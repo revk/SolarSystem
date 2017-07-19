@@ -1,0 +1,102 @@
+<h1>Door control</h1>
+<p>The bus library includes a number of functions to manage doors in a variety of configurations. It then determines the state of the door based on inputs and outputs and reports state changes to the application as events.</p>
+<h2>Controls</h2>
+<p>The door links in a number of inputs and outputs. Typically a door is linked to one or two Max readers as the key components to the system, and uses the inputs and outputs provided by that Max reader to manage a door. However, the door system can use additional I/O from a RIO, or replace the normal use of I/O on the Max reader. The config makes use of a single Max reader simple by use of <tt>max="..."</tt> rather than listing its individual I/O.</p>
+<p>The actual library does not worry about keyfob use or exit buttons - these are handled by the application which calls the functions to unlock and lock the door. There is however a door open input.</p>
+<p>The library operates using two locks. A <i>mainlock</i> which is intended to be the normal ingress/egress lock (such as a maglock or fast acting V bolt lock), and a secondary <i>deadlock</i> which is intended to be a slower operating motorised lock which would be two slow for normal use, and hence used when the alarm is set.</i>
+<p>Each lock has one output, to lock the door, and one input to report that the lock is not engaged. If no input is defined, the system uses a timer. If no output is defined (as if often the case with no deadlock) then the system still goes through the motions as if it did, and reports the state accordingly.</p>
+<p>There are a number of timers that can be configured in 10ths of a second. For each lock, a locking and unlocking timer. Also a door opening timer, a door forcing timer, and a door propped timer.</p>
+<h2>Functions</h2>
+<p>There are functions to control the door...</p>
+<ul>
+<li>door_error: Uses LED/beep on the connected Max reader(s) to report an error.</li>
+<li>door_confirm: Uses LED/beep on the connected Max reader(s) to report a confirmation.</li>
+<li>door_open: Unlocks the mainlock and deadlock. Locking the mainlock is automatic when the door opens (the lock then waits for door to close).</li>
+<li>door_deadlock: Locks the deadlock.</li>
+<li>door_unlock: Unlocks the deadlock.</li>
+<li>door_quiet: Stops the beep until next door state changed, used to silence a propped state alert.</li>
+</ul>
+<h2>States</h2>
+<p>There are six normal states:-</p>
+<ul>
+<li>DOOR_DEADLOCKED: The door is locked and deadlocked.</li>
+<li>DOOR_LOCKED: The door is locked but not deadlocked.</li>
+<li>DOOR_UNLOCKING: The door is unlocking but not deadlocked.</li>
+<li>DOOR_CLOSED: The door is neither locked but not deadlocked. It is waiting to be opened. This state lasts for at most the door opening timer.</li>
+<li>DOOR_OPEN: The door has been opened. This can validly come directly from other states, depending on timing.</li>
+<li>DOOR_LOCKING: The door is closed and the lock is engaging.</li>
+</ul>
+<p>There are also five abnormal states:-</p>
+<ul>
+<li>DOOR_PROPPED: The door was open for more than the propped timer.</li>
+<li>DOOR_FORCED: The door was opened without the mainlock being released. There is door force timer which has to be exceeded to avoid overly sensitive reed switches.</li>
+<li>DOOR_AJAR: The door is closed but the mainlock has not engaged in the expected time - so the door is probably not quite closed.</li>
+<li>DOOR_FAULT: Some invalid condition, e.g. the deadlock has failed to engage or disengage or the mainlock has failed to disengaged.</li>
+<li>DOOR_TAMPER: Inputs or associated devices show a tamper condition.</li>
+</ul>
+<p>The application should consider that any state could be presented in any order. Illegal transitions such as forcing a door are detected by the library so the application does not have to.</p>
+<h2>Behind the scenes</h2>
+<h3>Lock state</h3>
+<p>Each of the mainlock and deadlock have a lock state, consisting of:-</p>
+<ul>
+<li>The port for output, to engage the lock. This is active to lock, but polarity could be changed in the library port settings.</li>
+<li>The port for input. This is active for lock not engaged (the error case).</li>
+<li>The locking time - how long to lock. Even for instant locking devices like maglocks this should be set to allow for bus poll / delays.</li>
+<li>The unlocking time - how long to unlock. Even for instant unlocking devices like maglocks this should be set to allow for bus poll / delays.</li>
+<li>The current lock output state - set for locked.</li>
+<li>A timer, +ve means time counting down for lock/unlock operation to complete. 0 for operation completed successfully. -1 for fault (failed to complete correctly).</li>
+</ul>
+<p>The functions to lock and unlock will check the locked state and return if already in the correct state. If not, then the state is changed and the output changed. For unlock the output change is marked urgent to the bus for quick response. The timer is set to the lock or unlock timer as appropriate.</p>
+<p>Each tick, before working out state, the lock states are progressed. This depends on the door open input. If no input is defined then it is assumed the door stays closed.</p>
+<p>If lock set to <i>locked</i>...</p>
+<ul>
+<li>If the door is open, reset timer to lock timer, exit. (we are waiting for the door to close before lock starts to engage)</li>
+<li>If the input is defined and shows the door as engaged, set timer 0, exit. (The lock engaging has completed within time, and all is well, lock engaged)</li>
+<li>If door timer not running, exit. (all is well, lock is engaged)</li>
+<li>Count down timer, if not zero then exit. (still waiting for lock to engage)</li>
+<li>If input defined, set timer to -1. (timer expired without lock reporting engaged, lock failed to engage correctly)</li>
+</ul>
+<p>If lock set to <i>unlocked</i>...</p>
+<ul>
+<li>If the input is defined and shows the door as disengaged, set timer 0, exit. (The lock disengaging has completed within time, and all is well, lock disengaged)</li>
+<li>If door timer not running, exit. (all is well, lock is disengaged)</li>
+<li>Count down timer, if not zero then exit. (still waiting for lock to disengage)</li>
+<li>If input defined, set timer to -1. (timer expired without lock reporting disengaged, lock failed to disengage correctly)</li>
+</ul>
+<h3>Door state</h3>
+<p>First off, if any input or associated device is in tamper, then state is set to TAMPER.</p>
+<p>If the main lock is locked, timer zerp, there is a delay for time-forced before door is considered in open state.</p>
+<p>If door is closed...</p>
+<ul>
+<li>If deadlock locked, timer 0, return DEADLOCKED</li>
+<li>If deadlock timer -1, return FAULT</li>
+<li>If lock locked, timer 0, return LOCKED</li>
+<li>If lock locked, timer -1, return AJAR</li>
+<li>If lock locked, timer &gt;0, return LOCKING</li>
+<li>If lock unlocked, timer &gt;0, return UNLOCKING</li>
+<li>return CLOSED</li>
+</ul>
+<p>If door is open...</p>
+<ul>
+<li>If deadlock timer -1, return FAULT</li>
+<li>If deadlock locked and timer 0, return FORCED</li>
+<li>If lock locked and timer 0, return FORCED</li>
+<li>return OPEN (unless already PROPPED state)</li>
+</ul>
+<p>Once the above is determined, if the door is open and the mainlock not locked, do door_lock(). And the lock state / timers can progress.</p>
+<p>A timer of the OPEN state runs for the door propped time, and sets PROPPED. A timer of the CLOSED state runs for door open timer, and does door_lock() when expired.</li>
+<p>It is probably worth running a mutex around the lock state updates</p>
+<h3>LEDs</h3>
+<p>Where an LED and beep output are configured (normally one or more Max readers), these are set as follows.</p>
+<p>Constant beep is set for FORCED, AJAR, PROPPED, FAULT and TAMPER. The door_error() and door_confirm() temporarily override the beep.</p>
+<p>The LEDs are normally set as follows, but door_error() and door_confirm() temporarily override LEDs.</p>
+<ul>
+<li>Radio: set when fob near</li>
+<li>Exit: set when mainlock is not set locked.</li>
+<li>X: set when mainlock is set locked.</li>
+<li>clock: set if door closed and mainlock or deadlock timers are +ve. Also set if PROPPED.</li>
+<li>+: set for FORCED or FAULT.</li>
+<li>-: set for AJAR or FAULT.</li>
+<li>P: set for deadlock set locked.</li>
+</ul>
+<p>TAMPER sets all LEDs</p>

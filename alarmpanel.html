@@ -1,0 +1,201 @@
+<h1>Alarm panel</h1>
+<h2>Config</h2>
+<p>The config is XML (though JSON can be used), and is described below.</p>
+<h2>Groups</h2>
+<p>The operation of the system is divided in to groups, typically allowing independent operation of sets of sensors and outputs, i.e. multiple alarms.</p>
+<p>However, sensors and outputs and keypads and so on can be shared between groups - e.g. an input can be an alarm triggering (intruder) that is an input to more than one group at a time. Similarly an output such as a bell could be an output for more than one group. This means, in effect, groups can overlap.</p>
+<p>Groups are numbered 0 to 9 to allow working with the keypad.</p>
+<h3>Group states</h3>
+<p>States are per group. The full list is included below in the <tt>output</tt> config section.</p>
+<ul>
+<li>The lowest level of input is <i>warning</i>. This creates a log and a warning state. The warning state clears automatically when all warnings clear.</li>
+<li>The <i>fault</i> state is for faults, such as high or low resistance on inputs. This is latched, and has to be cleared by a user reset. The fault state does not stop operation.</li>
+<li>The <i>tamper</i> state is for wiring issues, and this causes an alert on keypads at any time (expect in engineering mode, where it is expected). This is latched and have to be cleared by user reset. The <i>tamper</i> state, when the intruder alarm is set, causes an <i>alarm</i> state.</li>
+<li>The <i>intruder</i> state is for inputs that indicate an intruder. The inputs create an <i>open</i> state but when the alarm is set the inputs cause a latching <i>intruder</i> state and trigger an alarm. There are <i>entry</i> inputs which trigger an <i>entry</i> state for a period before an alarm and then will trigger <i>intruder</i> states as well.</li>
+<li>The <i>fire</i> state is for fire alarm inputs, and this cases an alarm even when the intruder alarm is not set. This is also latched and cleared by user reset.</li>
+<li>The <i>alarm</i> state is where there is an intruder or fire alarm. It is triggered by tamper as well when the alarm is set. The alarm causes the bell output (which can also be delayed).</li>
+</ul>
+<h3>Timed events</h3>
+<p>Some aspects are linked to timers, for example when setting the alarm in a group there is a time for relevant inputs to settle, and the timer restarts if they are triggered. There is also a longer timer for the alarm to set overall, and if this is exceeded (i.e. because the setting timer keeps resetting) that means the alarm has failed to set, which is an important event to report.</p>
+<p>There are also some timers on things like the bell output, which should only ring so long. It makes sense that there is a recovery timer too, so if not rung for a while and a new alarm event happens even though alarm is set, the bell starts again.</p>
+<p>The alarm setting also has possible delays. A simple delay before causing alarm state to allow entry to get to keypad to unset, for example. There may also want to be delays before bells ring allowing some silent reporting first.</p>
+<h2>Keypads</h2>
+<p>Keypads allow some basic operations - reporting status, and allowing use of PIN to clear alarm, set alarm, etc.</p>
+<p>A keypad is in one or more groups, and so only shows status and allows setting/controls for those groups. When in more than one group some operations ask which groups to apply the operation to.</p>
+<ul>
+<li>Setting alarm with a timer by use of <tt>A</tt> key. During the timer groups can be removed from those being set. Use <tt>ENT</tt> to then set instantly.</li>
+<li>Instant set of the alarm by use of the <tt>B</tt> key.</li>
+<li>Enter PIN for user to log in. This unsets the intruder alarm. This shows more details of latched states, etc.</li>
+<li>Enter PIN again when logged in to reset latched states.</li>
+</ul>
+<h2>Doors</h2>
+<p>Doors make use of a number of settings to create a logical entity in their own right.</p>
+<p>The settings allow one or two max readers, inputs for exit buttons, input for door open sensor, outputs to open the door and to deadlock the door with lock engaged sensors. The system then manages a door state tracking things like door propped, door forced, door ajar, etc.</p>
+<h2>Inputs</h2>
+<p>Inputs can be via RIO or Max. For the RIO the inputs have physical parameters (response time, and resistance thresholds). Whilst the RIOs have 8 inputs there are additional logical inputs for High Res and Low Res states which typically get used to trigger a fault.</p>
+<p>Inputs are then linked to groups using a bit map.</p>
+<ul>
+<li>Response times (RIO only)</li>
+<li>Resistor thresholds (RIO only)</li>
+<li>Intruder: Defines groups where this input being open is an intruder event, causing alarm when alarm is set, and ignored when not.</li>
+<li>Fire: Defines groups where this input being open is a fire alarm. This alarms whether alarm is set or not.</li>
+<li>Warning: Defines groups where this input indicates a warning condition.</li>
+<li>Fault: Defines groups where this input being open is considered a fault condition.</li>
+</ul>
+<p>Note that a tamper on any input that is in use for any of the above in a group causes a fault condition too.</p>
+<p>A logical input also exists for device missing, and tamper on the device level.</p>
+<h2>Outputs</h2>
+<p>For each group a number of logical outputs exist - obviously the main states as described above, but also some derived state such as BELL which only continues for a time period whilst alarm is set.</p>
+<p>Each actual output has the option to connect logically to these group outputs.</p>
+<p>In addition to RIO and Max, the beeper on Keypad and Max are considered outputs as well. On the keypad there are different types of beep which are treated as different outputs. This allows them to be linked to alarm state, or pre-alarm or pre-set, etc.</p>
+<p>RIO outputs may need polarity setting, and do we need pulse/latch type settings somehow?</p>
+<h2>Users</h2>
+<p>Users relate to actual people.</p>
+<ul>
+<li>Name</li>
+<li>PIN for keypad use - sadly these need to be unique, and would suggest long</li>
+<li>Password for web interface</li>
+<li>Key fob number(s) - allow use to have more than one fob, or same fob as read by keypad and max (they have different codes for same fob).</li>
+<li>Groups the user can interact with at all</li>
+<li>Groups the user can set alarm</li>
+<li>Groups the user can unset alarm</li>
+<li>Groups the user can reset fire and fault</li>
+<li>Groups the user can override door propped</li>
+</ul>
+<h2>Rooms</h2>
+<p>We may want a concept of rooms?</p>
+<h2>Airlock doors</h2>
+<p>We should definitely have that as a system</p>
+<h2>Logging and reporting</h2>
+<p>Events are logged in an internal logging system that writes to system.</p>
+<p>However, events can also be configured to be handled in other ways including emailing and posting to a web page.</p>
+<h1>Config</h1>
+<p>The config consists of a number of objects as described below.</p>
+<h2>Device/port IDs</h2>
+<p>The alarm panel needs to reference ports, and display them. In the XML, ports can be references by either the port name (defined for input or output) or its address.</p>
+<p>Port addresses are made up of:</p>
+<ul>
+<li><tt>XXX</tt> port type, e.g. <tt>PAD</tt>, <tt>RIO</tt> or <tt>MAX</tt>.</li>
+<li><tt>B</tt> bus ID, <tt>1</tt> to <tt>9</tt>.</li>
+<li><tt>AA</tt> bus hexadecimal address, <tt>00</tt> to <tt>FF</tt>.</li>
+<li><tt>P</tt> port <tt>1</tt> to <tt>8</tt>.</li>
+</ul>
+<p>In some cases the port is not needed, e.g. referencing just the device.</p>
+<p>In some cases more than one port or device can be specified, in which case a space separated list is used.</p>
+<h2>system</h2>
+<table border=1>
+<tr><td>name</td><td>System name</td></tr>
+<tr><td>email</td><td>System email address</td></tr>
+<tr><td>engineering</td><td>If true then system is in engineering mode</td></tr>
+<tr><td>sms-user</td><td>SMS username</td></tr>
+<tr><td>sms-pass</td><td>SMS password</td></tr>
+<tr><td>sms-host</td><td>SMS hostname if not A&amp;A</td></tr>
+</table>
+<h2>group</h2>
+<table border=1>
+<tr><td>name</td><td>Group name</td></tr>
+<tr><td>set-time</td><td>Time for normal set - if there are inputs with exit timers then it is longer.</td></tr>
+<tr><td>set-time</td><td>Timed intruder alarm setting to allow for exit - reset on each intruder input</td></tr>
+<tr><td>set-fail</td><td>Total time to try setting alarm else set failed.</td></tr>
+<tr><td>entry-time</td><td>Timed entry before intruder alarm</td></tr>
+<tr><td>bell-delay</td><td>Time before bell starts to ring</td></tr>
+<tr><td>bell-time</td><td>Time for bell to ring before stopping to avoid annoyance</td></tr>
+<tr><td>bell-rest</td><td>Time for bell to rest before being allowed to ring again (unless alarm reset in between).</td></tr>
+</table>
+<h2>input</h2>
+<p>Defines an input, the following attributes can be included. Apart from <tt>id</tt>, defaults are applied if not specified</p>
+<table border=1>
+<tr><td>id</td><td>The port address, e.g. <tt>RIO1015</tt> (can by space separated list of ports)</td></tr>
+<tr><td>response</td><td>(RIO) The response time in ms, e.g. <tt>200</tt>. Only applies to RIOs. (10ms steps)</td></tr>
+<tr><td>thresholds</td><td>(RIO) The resistance thresholds, space separated values in &ohm;, e.g. <tt>800 900 1100 1500 2500</tt> (100&ohm; steps). Also, can use some named presets.</td></tr>
+<tr><td>exit</td><td>Groups this is an exit route for</td></tr>
+<tr><td>entry</td><td>Groups this is an entry route for</td></tr>
+<tr><td>intruder</td><td>Groups for which this is an intruder input</td></tr>
+<tr><td>fire</td><td>Groups for which this is a fire input</td></tr>
+<tr><td>warning</td><td>Groups for which this is a warning input</td></tr>
+<tr><td>fault</td><td>Groups for which this is a fault input</td></tr>
+<tr><td>tamper</td><td>Groups for which this is a tamper input</td></tr>
+<tr><td>user1-4</td><td>Groups for which this is a user input</td></tr>
+</table>
+<p>TODO named presets.</p>
+<h2>output</h2>
+<table border=1>
+<tr><td>id</td><td>The port address, e.g. <tt>RIO1012</tt> (can by space separated list of ports)</td></tr>
+<tr><td>groups</td><td>Groups (default is all)</td></tr>
+<tr><td>polarity</td><td><tt>POS</tt> or <tt>NEG</tt></td></tr>
+<tr><td>type</td><td>Type, see below</td></tr>
+</table>
+<p>TODO maybe pulsed? We have latched as pick LATCH version output</p>
+<p>The types of output are :-</p>
+<table border=1>
+<tr><td>ENGINEERING</td><td>Engineering mode (typically to silence alarm in box tamper)</td></tr>
+<tr><td>UNSET</td><td>Intruder alarm is not set, or is setting</td></tr>
+<tr><td>SET</td><td>Intruder alarm is set</td></tr>
+<tr><td>ARM</td><td>Intruder alarm is arming (timed set)</td></tr>
+<tr><td>PREALARM</td><td>Intruder alarm has triggered but allowing time for entry before entering alarm state</td></tr>
+<tr><td>BELL</td><td>Bell should be ringing (time limited)</td></tr>
+<tr><td>ALARM</td><td>Alarm state - stays until alarm unset</td></tr>
+<tr><td>OPEN</td><td>A zone or entry input is active and alarm not set</td></tr>
+<tr><td>ZONE</td><td>A non entry input is active</td></tr>
+<tr><td>INTRUDER*</td><td>Intruder input active, i.e. SET, and ZONE, or not PREALARM and ENTRY</td></tr>
+<tr><td>TAMPER*</td><td>Tamper active</td></tr>
+<tr><td>FIRE*</td><td>Fire alarm active</td></tr>
+<tr><td>FAULT*</td><td>Fault state</td></tr>
+<tr><td>ENTRY</td><td>An entry route intruder input is active</td></tr>
+<tr><td>NONEXIT</td><td>A non exit route intruder input is active</td></tr>
+<tr><td>WARNING</td><td>Warning state</td></tr>
+<tr><td>USER1-4</td><td>Additional states, self clearing, can link inputs to outputs or things like door lockdown</td></tr>
+</table>
+<p>Those marked with a * have latching modes as well, selected by adding <tt>_LATCH</tt>, e.g. <tt>INTRUDER_LATCH</tt>, on the output type.</p>
+<h2>door</h2>
+<p>Defines a door. Attributes as follows, with suitable defaults if not specified.</p>
+<table border=1>
+<tr><td>groups</td><td>Groups (default is all groups)</td></tr>
+<tr><td>fire</td><td>Groups for which the door should be opened during fire alarm (default is all groups)</td></tr>
+<tr><td>set</td><td>Groups which can be set using a keyfob on this door</td></tr>
+<tr><td>unset</td><td>Groups which can be unset using a keyfob on this door</td></tr>
+<tr><td>max</td><td>Shortcut, defines Max readers used for fob, o-led, o-lock, i-open, i-exit in standard configuration.</td></tr>
+<tr><td>fob</td><td>Define the Max readers used for key fob based exit.</td></tr>
+<tr><td>o-led</td><td>Define the Max readers used for LED status output.</td></tr>
+<tr><td>o-lock</td><td>Define the ports used to activate lock (typically port 2 of Max reader).</td></tr>
+<tr><td>o-beep</td><td>Define the ports used to beep for door open and error (typically port 1 of Max reader).</td></tr>
+<tr><td>i-open</td><td>Define the port used to detect door open (typically port 1 of Max reader).</td></tr>
+<tr><td>i-exit</td><td>Define the ports used for exit request button (typically port 2 of Max reader).</td></tr>
+<tr><td>i-unlock</td><td>Define the port used to detect main door lock not engaged.</td></tr>
+<tr><td>o-deadlock</td><td>Define the ports used to engage the additional deadlock not engaged (can use horn output port 1 of Max)</td></tr>
+<tr><td>i-undeadlock</td><td>Define the port used to detect additional deadlock engaged.</td></tr>
+<tr><td>time-set</td><td>Define the timed set seconds for keyfob hold, if 0 then keyfobs cannot set the alarm. Typically 1 second or so as setting from outside.</td></tr>
+<tr><td>time-open</td><td>Define the time to allow for a door to be opened.</td></tr>
+<tr><td>time-close</td><td>Define the time to allow for a door to be locked after closed (during which re-open is not force event).</td></tr>
+<tr><td>time-deadlock</td><td>Define the time to allow for a deadlock to engage - only matters if deadlock input defined.</td></tr>
+<tr><td>time-force</td><td>Define the time to allow for door to be momentarily open without counting as forced (when alarm not set).</td></tr>
+<tr><td>time-prop</td><td>Define the time to allow for door to be open before being considered propped (0 disables propped).</td></tr>
+<tr><td>deadlock</td><td>Defines when to deadlock, can be <tt>false</tt>, <tt>arm</tt> (default), or <tt>set</tt>.</td></tr>
+<tr><td>lock-down</td><td>Defines an state/type which, if active, stops the door opening. Typically linked to a user input or panic button.</td></tr>
+<tr><td>open-quiet</td><td>If <tt>true</tt> then no beep when door can be opened. Beeps for other error cases.</td></tr>
+</table>
+<p>Ports references can be the <i>name</i> of an input or output (if name clashes, first name found is used).</p>
+<h2>keypad</h2>
+<table border=1>
+<tr><td>id</td><td>The port address, e.g. <tt>PAD110</tt> (can by space separated list of ports)</td></tr>
+<tr><td>name</td><td>Keypad name</td></tr>
+<tr><td>groups</td><td>Groups (default is all groups)</td></tr>
+<tr><td>logout</td><td>Auto logout time on keypad, 0 means don't log out.</td></tr>
+<tr><td>message</td><td>Idle display message</td></tr>
+<tr><td>prox</td><td>The port address of the prox reader, e.g. <tt>MAX190</tt></td></tr>
+</table>
+<p>Typically PAD110 uses MAX190, PAD120 use MAX191, PAD130 uses MAX192, PAD140 uses MAX193, PAD144 uses MAX194, PAD145 uses MAX195, PAD146 uses MAX 146, and PAD147 uses MAX197.</o>
+<h2>max</h2>
+<table border=1>
+<tr><td>id</td><td>The port address, e.g. <tt>MAX190</tt> (can by space separated list of ports)</td></tr>
+<tr><td>name</td><td>Keypad name</td></tr>
+<tr><td>fob-hold</td><td>How many seconds a key fob is held to be a fob held event, 0 means no fob held event.</td></tr>
+</table>
+<h2>log</h2>
+<p>Each log is checked against a lot of logging processing entries in the config, and any matched are actioned.</p>
+<table border=1>
+<tr><td>type</td><td>The types of event, note that state changes have <tt>+</tt> or <tt>-</tt> in front of the state, e.g. <tt>+INTRUDER</tt>.</td></tr>
+<tr><td>port</td><td>Where the event relates to a particular port or ports, including ports like <tt>DOOR01</tt>. See syslog for examples</td></tr>
+<tr><td>groups</td><td>The groups to log</td></tr>
+<tr><td>action</td><td>What do do. This can be a URL for POST to http or https. Include a <tt>?</tt> to do a GET instead.i Alternatively this can be an email address to email the log.</td></tr>
+</table>
