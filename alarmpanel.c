@@ -17,7 +17,7 @@
        You should have received a copy of the GNU General Public License
        along with this program.  If not, see <http://www.gnu.org/licenses/>.
      */
-
+#define _GNU_SOURCE
 #include <stdio.h>
 #include <string.h>
 #include <stdarg.h>
@@ -41,8 +41,10 @@
 #include <curl/curl.h>
 #include <galaxybus.h>
 #include <axl.h>
-#include <libemail.h>
 #include <dataformat.h>
+#ifdef	LIBEMAIL
+#include <libemail.h>
+#endif
 
 // TODO
 // Should keypad have backlight timer options?
@@ -1552,6 +1554,7 @@ dologger (CURL * curl, xml_t system, log_t * l)
 	  if (result)
 	    syslog (LOG_INFO, "Log to %s failed\n", v);
 	}
+#ifdef	LIBEMAIL
       else if (strchr (v, '@'))
 	{			// Email
 	  char email[200];
@@ -1580,6 +1583,7 @@ dologger (CURL * curl, xml_t system, log_t * l)
 		syslog (LOG_INFO, "Email failed to %s: %s", e, err);
 	    }
 	}
+#endif
       else
 	{
 	  char tel[40];
