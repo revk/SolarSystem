@@ -945,13 +945,13 @@ poller (void *d)
 		    more++;
 		  else
 		    {
-		      mydev[id].send0C = (mydev[id].output != dev[id].output || mydev[id].invert != dev[id].invert || mydev[id].disable != dev[id].disable) ? 1 : 0;	// Send twice
+		      mydev[id].send0C = (mydev[id].toggle0C||mydev[id].output != dev[id].output || mydev[id].invert != dev[id].invert || mydev[id].disable != dev[id].disable) ? 1 : 0;	// Send twice
 		      mydev[id].output = dev[id].output;
 		      mydev[id].invert = dev[id].invert;
 		      mydev[id].disable = dev[id].disable;
 		      mydev[id].led = dev[id].led;
 		      cmd[++cmdlen] = 0x0C;
-		      //cmd[++cmdlen] = ((mydev[id].toggle0C ? 0x09 : 0x00) | (((mydev[id].output ^ mydev[id].invert) & 3) << 1) | ((mydev[id].disable) ? 0 : 0x80));
+		      // The logic here is not 100% clear, seems we have to send the toggle on and off to latch something. Seems to work now
 		      cmd[++cmdlen] = ((mydev[id].toggle0C ? 0x09 : 0x00) | (((mydev[id].output ^ mydev[id].invert) & 3) << 1) | ((mydev[id].disable) ? 0 : 0x80));
 		      cmd[++cmdlen] = dev[id].led;
 		      mydev[id].send07 = 0;	// Includes LED
