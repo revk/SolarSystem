@@ -9,3 +9,6 @@ alarmpanel: alarmpanel.c galaxybus.o galaxybus.h ../AXL/axl.o ../AXL/axl.h ../Da
 
 galaxybus.o: galaxybus.c
 	cc -O -c -o galaxybus.o galaxybus.c -I. -DLIB -pthread
+
+clean:
+	rm -f *.o alarmpanel
