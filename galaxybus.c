@@ -4,22 +4,22 @@
 // Command line provides some basic test / tools
 
     /*
-    A complete alarm panel using devices compatible with Honeywell/Galaxy RS485 buses
-    Copyright (C) 2017  RevK
+       A complete alarm panel using devices compatible with Honeywell/Galaxy RS485 buses
+       Copyright (C) 2017  RevK
 
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
+       This program is free software: you can redistribute it and/or modify
+       it under the terms of the GNU General Public License as published by
+       the Free Software Foundation, either version 3 of the License, or
+       (at your option) any later version.
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+       This program is distributed in the hope that it will be useful,
+       but WITHOUT ANY WARRANTY; without even the implied warranty of
+       MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+       GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-    */
+       You should have received a copy of the GNU General Public License
+       along with this program.  If not, see <http://www.gnu.org/licenses/>.
+     */
 
 #include <stdio.h>
 #include <string.h>
@@ -466,12 +466,12 @@ poller (void *d)
     snprintf (devname, sizeof (devname), "/sys/bus/usb-serial/devices/ttyUSB%d/latency_timer", busid);
     FILE *f = fopen (devname, "w");
     if (!f)
+      warn ("Cannot see %s", devname);
+    else
       {
-	warn ("Cannot see %s", devname);
-	return NULL;
+	fprintf (f, "1");
+	fclose (f);
       }
-    fprintf (f, "1");
-    fclose (f);
   }
   snprintf (devname, sizeof (devname), "/dev/ttyUSB%d", busid);
   int f = open (devname, O_RDWR);
@@ -945,7 +945,7 @@ poller (void *d)
 		    more++;
 		  else
 		    {
-		      mydev[id].send0C = (mydev[id].toggle0C||mydev[id].output != dev[id].output || mydev[id].invert != dev[id].invert || mydev[id].disable != dev[id].disable) ? 1 : 0;	// Send twice
+		      mydev[id].send0C = (mydev[id].toggle0C || mydev[id].output != dev[id].output || mydev[id].invert != dev[id].invert || mydev[id].disable != dev[id].disable) ? 1 : 0;	// Send twice
 		      mydev[id].output = dev[id].output;
 		      mydev[id].invert = dev[id].invert;
 		      mydev[id].disable = dev[id].disable;
