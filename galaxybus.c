@@ -143,7 +143,7 @@ door_led (int d, unsigned char state)
       if (door[d].deadlock.locked)
 	led |= (1 << 5);
     }
-  int n;
+  unsigned int n;
   for (n = 0; n < sizeof (door[d].o_led) / sizeof (*door[d].o_led); n++)
     if (port_valid (door[d].o_led[n]))
       {
@@ -338,6 +338,7 @@ door_unlock (int d)
 static void *
 doorman (void *d)
 {
+  d = d;			// Unused
   while (1)
     {
       struct timeval tv;
@@ -487,7 +488,7 @@ poller (void *d)
       warn ("Cannot lock %s", devname);
       return NULL;
     }
-  struct termios t = {
+  struct termios t = { 0
   };
   t.c_cflag = B9600 | CS8 | CSTOPB | CREAD | CLOCAL;
   t.c_cc[VTIME] = 1;
@@ -546,9 +547,9 @@ poller (void *d)
   {
   };
 //
-  struct timeval now = {
+  struct timeval now = { 0
   };
-  struct timezone tz = {
+  struct timezone tz = { 0
   };
   unsigned char id = 0, idleid = 0;;
   unsigned char idlecheck = 0;
@@ -566,9 +567,9 @@ poller (void *d)
 
   // TODO cleanup to close f?
   unsigned char cmd[256];
-  unsigned char cmdlen = 0;
+  unsigned int cmdlen = 0;
   unsigned char res[256];
-  unsigned char reslen = 0;
+  unsigned int reslen = 0;
   int errors = 0;		// Protocol errors
   int stalled = 0;		// Stuck sending
   int retries = 0;		// retries
@@ -585,7 +586,7 @@ poller (void *d)
       fd_set readfds;
       FD_ZERO (&readfds);
       FD_SET (f, &readfds);
-      struct timeval timeout = {
+      struct timeval timeout = { 0
       };
       timeout.tv_usec = 9000;
       if (!reslen)
@@ -617,7 +618,7 @@ poller (void *d)
 	tx += cmdlen;
 	if (dump || (debug && (cmd[1] != 0x06 || cmdlen > 3) && (cmd[1] != 0x01 || cmdlen > 3) && (cmd[1] != 0x00 || cmdlen > 4)))
 	  {			// Debug does not dump boring polls
-	    int n;
+	    unsigned int n;
 	    printf ("%s%X%02X >", type_name[dev[id].type], busid + 1, id);
 	    for (n = 0; n < cmdlen - 1; n++)
 	      printf (" %02X", cmd[n]);
@@ -632,7 +633,7 @@ poller (void *d)
 	    retries++;
 	    if (debug)
 	      {
-		int n;
+		unsigned int n;
 		printf ("%s%X%02X *", type_name[dev[id].type], busid + 1, id);
 		for (n = 0; n < cmdlen - 1; n++)
 		  printf (" %02X", cmd[n]);
@@ -662,7 +663,7 @@ poller (void *d)
 	continue;		// Too short
       if (reslen)
 	{			// Check checksum
-	  int c = 0xAA, n;
+	  unsigned int c = 0xAA, n;
 	  for (n = 0; n < reslen - 1; n++)
 	    c += res[n];
 	  while (c > 0xFF)
@@ -814,8 +815,8 @@ poller (void *d)
 		    mydev[id].tamper &= ~(1 << MAX_INPUT);	// no tamper
 		  if (res[1] == 0xF1)
 		    {		// Voltages
-		      int p = 2;
-		      int n;
+		      unsigned int p = 2;
+		      unsigned int n;
 		      for (n = 0; n < MAX_INPUT && p + 1 < reslen; n++)
 			{
 			  dev[id].ri[n].resistance = (res[p] << 8) + res[p + 1];
@@ -865,7 +866,7 @@ poller (void *d)
 	{			// TODO not seeing if not to US, so not loggged...
 	  if (dump || (debug && (res[0] != US || ((reslen != 4 || res[1] != 0xF4 || res[2] != mydev[id].laststatus) && (reslen != 3 || res[1] != 0xFE) && (type != TYPE_RIO || res[1] != 0xF8) && (type != TYPE_RIO || res[1] != 0xF1)))))
 	    {			// debug does not log boring
-	      int n;
+	      unsigned int n;
 	      printf ("%s%X%02X <", type_name[dev[id].type], busid + 1, id);
 	      for (n = 0; n < reslen - 1; n++)
 		printf (" %02X", res[n]);
@@ -1266,7 +1267,7 @@ poller (void *d)
 	    }
 	}
       {				// Send next command
-	int c = 0xAA,		// Work out checksum
+	unsigned int c = 0xAA,	// Work out checksum
 	  n;
 	cmd[0] = id;
 	cmdlen++;
@@ -1402,7 +1403,7 @@ bus_event (long long usec)
   fd_set readfds;
   FD_ZERO (&readfds);
   FD_SET (qpipe[0], &readfds);
-  struct timeval timeout = {
+  struct timeval timeout = { 0
   };
   timeout.tv_sec = usec / 1000000ULL;
   timeout.tv_usec = usec % 1000000ULL;

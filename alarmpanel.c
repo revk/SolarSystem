@@ -330,8 +330,8 @@ port_id (unsigned int port)
   port &= 0xFF;
   if (port)
     {
-      int n;
-      for (n = 0; n < 8 && port != (1 << n); n++);
+      unsigned int n;
+      for (n = 0; n < 8 && port != (1U << n); n++);
       if (n < 8)
 	return n;
     }
@@ -631,7 +631,7 @@ load_config (const char *configfile)
 	  {
 	    port_t p = port_parse (pl, &pl, 1);
 	    unsigned int id = port_device (p);
-	    unsigned int n = port_id (p);
+	    int n = port_id (p);
 	    if (n < 0 || n >= MAX_INPUT)
 	      {
 		dolog (ALL_GROUPS, "CONFIG", NULL, port_name (p), "Input with bad port");
@@ -693,7 +693,7 @@ load_config (const char *configfile)
 	  {
 	    port_t p = port_parse (pl, &pl, 0);
 	    unsigned int id = port_device (p);
-	    unsigned int n = port_id (p);
+	    int n = port_id (p);
 	    if (n < 0 || n >= MAX_OUTPUT)
 	      {
 		dolog (ALL_GROUPS, "CONFIG", NULL, port_name (p), "Output with bad port");
@@ -761,7 +761,7 @@ load_config (const char *configfile)
 	}
       if ((v = xml_get (x, "@fob")))
 	{			// FOBs
-	  int q = 0;
+	  unsigned int q = 0;
 	  while (*v && q < sizeof (u->fob) / sizeof (*u->fob))
 	    {
 	      fob_t n = 0;
@@ -779,7 +779,7 @@ load_config (const char *configfile)
 		  user_t *f;
 		  for (f = users; f; f = f->next)
 		    {
-		      int z;
+		      unsigned int z;
 		      for (z = 0; z < sizeof (u->fob) / sizeof (*u->fob) && f->fob[z] != n; z++);
 		      if (z < sizeof (u->fob) / sizeof (*u->fob))
 			break;
@@ -1391,7 +1391,7 @@ next_log (long long usec)
   fd_set readfds;
   FD_ZERO (&readfds);
   FD_SET (logpipe[0], &readfds);
-  struct timeval timeout = {
+  struct timeval timeout = { 0
   };
   timeout.tv_sec = usec / 1000000ULL;
   timeout.tv_usec = usec % 1000000ULL;
@@ -1515,7 +1515,7 @@ dologger (CURL * curl, xml_t system, log_t * l)
 		  fprintf (u, "&");
 		and = 1;
 		char *e = curl_easy_escape (curl, value, strlen (value));
-		fprintf (u, "%s", e);
+		fprintf (u, "%s=%s", tag, e);
 		curl_free (e);
 	      }
 	      add ("when", when);
@@ -1633,6 +1633,7 @@ dologger (CURL * curl, xml_t system, log_t * l)
 static void *
 logger (void *d)
 {				// Processing logs in separate thread
+  d = d;			// Unused
   openlog ("alarm", LOG_CONS | LOG_PID, LOG_USER);
   CURL *curl = curl_easy_init ();
   if (debug)
@@ -2281,7 +2282,7 @@ doevent (event_t * e)
 		}
 	      if (mydevice[id].input[i].isexit && (e->status & (1 << i)))
 		{
-		  int d, n;
+		  unsigned int d, n;
 		  for (d = 0; d < MAX_DOOR; d++)
 		    for (n = 0; n < sizeof (mydoor[d].i_exit) / sizeof (*mydoor[d].i_exit); n++)
 		      if (port_device (mydoor[d].i_exit[n]) == id)
@@ -2426,7 +2427,7 @@ doevent (event_t * e)
     case EVENT_FOB:
     case EVENT_FOB_HELD:
       {				// Check users, doors?
-	int d, n;
+	unsigned int d, n;
 	user_t *u = NULL;
 	if (e->fob)
 	  for (u = users; u; u = u->next)
@@ -2578,14 +2579,13 @@ main (int argc, const char *argv[])
       {
        "set-file", 's', POPT_ARG_STRING | POPT_ARGFLAG_SHOW_DEFAULT, &setfile, 0, "File holding set state", "filename"},
       {
-       "max-from", 0, POPT_ARG_STRING, &maxfrom, 0, "Max from port"},
+       "max-from", 0, POPT_ARG_STRING, &maxfrom, 0, "Max from port", "ID"},
       {
-       "max-to", 0, POPT_ARG_STRING, &maxto, 0, "Max to port"},
+       "max-to", 0, POPT_ARG_STRING, &maxto, 0, "Max to port", "ID"},
       {
-       "dump", 'V', POPT_ARG_NONE, &dump, 0, "Dump"},
+       "dump", 'V', POPT_ARG_NONE, &dump, 0, "Dump", NULL},
       {
-       "debug", 'v', POPT_ARG_NONE, &debug, 0, "Debug"}, POPT_AUTOHELP {
-									}
+       "debug", 'v', POPT_ARG_NONE, &debug, 0, "Debug", NULL}, POPT_AUTOHELP {NULL}
     };
     optCon = poptGetContext (NULL, argc, argv, optionsTable, 0);
     //poptSetOtherOptionHelp (optCon, "");

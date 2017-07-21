@@ -16,12 +16,12 @@
       fprintf (stderr, "\nSignal: %d\n", sig);
       char *cmd = NULL;
       int e = asprintf (&cmd, "addr2line -f -i -e %s", argv[0]);
-      int i;
+      unsigned int i;
       for (i = 2; i < size; i++)
          e += asprintf (&cmd, "%s %p", cmd, stack[i]);
       FILE *al = popen (cmd, "r");
       char buf[1000];
-      while (fgets (buf, sizeof (buf), al) > 0)
+      while (fgets (buf, sizeof (buf), al))
          fprintf (stderr, "%s", buf);
       pclose (al);
       openlog (argv[0], LOG_CONS | LOG_PID, LOG_USER);
