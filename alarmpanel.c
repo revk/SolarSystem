@@ -1666,6 +1666,7 @@ dolog (group_t g, const char *type, const char *user, const char *port, const ch
   if (!l)
     {
       warn ("malloc");
+      free(msg);
       return NULL;
     }
   memset (l, 0, sizeof (*l));
