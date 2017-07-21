@@ -1654,6 +1654,13 @@ logger (void *d)
 static void *
 dolog (group_t g, const char *type, const char *user, const char *port, const char *fmt, ...)
 {				// Log a message
+  log_t *l = malloc (sizeof (*l));
+  if (!l)
+    {
+      warn ("malloc");
+      return NULL;
+    }
+  memset (l, 0, sizeof (*l));
   char *msg = NULL;
   if (fmt)
     {
@@ -1661,15 +1668,8 @@ dolog (group_t g, const char *type, const char *user, const char *port, const ch
       va_start (ap, fmt);
       vasprintf (&msg, fmt, ap);
       va_end (ap);
+      // If malloc for msg leaves NULL, then fine, we do log with no message
     }
-  log_t *l = malloc (sizeof (*l));
-  if (!l)
-    {
-      warn ("malloc");
-      free(msg);
-      return NULL;
-    }
-  memset (l, 0, sizeof (*l));
   l->groups = g;
   l->when = time (0);
   if (type)
