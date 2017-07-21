@@ -613,7 +613,7 @@ poller (void *d)
 	}
       void sendcmd (void)
       {				// Send command
-	if (write (f, cmd, cmdlen) != cmdlen)
+	if (write (f, cmd, cmdlen) != (int) cmdlen)
 	  errors++;
 	tx += cmdlen;
 	if (dump || (debug && (cmd[1] != 0x06 || cmdlen > 3) && (cmd[1] != 0x01 || cmdlen > 3) && (cmd[1] != 0x00 || cmdlen > 4)))
