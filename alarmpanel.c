@@ -2008,7 +2008,7 @@ keypad_update (keypad_t * k, char key)
 		      }
 		  }
 	      }
-	    snprintf (l2, 17, "ACTIVE %-10s", state_name[t]);
+	    snprintf (l2, 17, "ACTIVE %-9s", state_name[t]);
 	    return NULL;
 	  }
       for (t = 0; t < STATE_LATCHED; t++)
