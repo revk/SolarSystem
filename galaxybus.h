@@ -135,6 +135,7 @@ typedef volatile struct door_s door_t;
 struct device_s
 {				// Device on the bus...
   input_t input;		// Bit map of inputs
+  input_t inhibit;		// Inhibited inputs
   output_t output;		// Bit map of outputs
   output_t invert;		// Invert outputs
   fault_t fault;		// Bit map of faults

@@ -469,7 +469,7 @@ poller (void *d)
     snprintf (devname, sizeof (devname), "/sys/bus/usb-serial/devices/ttyUSB%d/latency_timer", busid);
     FILE *f = fopen (devname, "w");
     if (!f)
-      warn ("Cannot see %s", devname);
+      warn ("Cannot open %s", devname);
     else
       {
 	fprintf (f, "1");
@@ -1298,12 +1298,15 @@ poller (void *d)
       // Status change event?
       if (mydev[id].input != dev[id].input)
 	{
-	  unsigned short changed = (mydev[id].input ^ dev[id].input);
-	  dev[id].input ^= changed;
-	  event_t *e = newevent (EVENT_INPUT);
-	  e->status = dev[id].input;
-	  e->changed = changed;
-	  postevent (e);
+	  unsigned short changed = ((mydev[id].input ^ dev[id].input) & ~dev[id].inhibit);
+	  if (changed)
+	    {
+	      dev[id].input ^= changed;
+	      event_t *e = newevent (EVENT_INPUT);
+	      e->status = dev[id].input;
+	      e->changed = changed;
+	      postevent (e);
+	    }
 	}
       // Tamper change event?
       if (mydev[id].tamper != dev[id].tamper)
