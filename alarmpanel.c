@@ -2002,6 +2002,10 @@ keypad_update (keypad_t * k, char key)
     alert = "\aWARNING!";
   else if (k->groups & state[STATE_ENGINEERING])
     alert = "ENGINEERING MODE";
+  if (alert && *alert == '\a')
+    device[n].blink = 1;
+  else
+    device[n].blink = 0;
   device[n].cursor = 0;
   if (k->user)
     {				// User logged in
