@@ -589,7 +589,7 @@ poller (void *d)
       if (!reslen)
 	timeout.tv_usec = 11 * 1000000 * cmdlen / 9600 + 15000;	// First byte - allow our message and response time
       if (dev[id].type == TYPE_MAX && cmdlen > 1 && (cmd[1] == 6 || cmd[1] == 8))
-	timeout.tv_usec += 10000;	// Max can be slow on some things
+	timeout.tv_usec += 15000;	// Max can be slow on some things
       int s = select (f + 1, &readfds, NULL, NULL, &timeout);
       if (s > 0)
 	s = read (f, &res[reslen], 1);
