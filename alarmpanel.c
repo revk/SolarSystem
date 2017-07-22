@@ -2596,6 +2596,21 @@ doevent (event_t * e)
   free ((void *) e);
 }
 
+static void
+profile_check (void)
+{				// Update profiles.
+  int changed = 0;
+  xml_t p = NULL;
+  while ((p = xml_element_next_by_name (config, p, "profile")))
+    {				// Scan profiles
+      // TODO check dates, times, days of weeks, etc
+    }
+  if (changed)
+    {				// Apply profiles where needed
+      // TODO allow inputs to have profiles, and other things like auto setting alarms, or reporting alarm is not set when it should be
+    }
+}
+
 // Main
 int
 main (int argc, const char *argv[])
@@ -2715,6 +2730,7 @@ main (int argc, const char *argv[])
 	      commfailreported = 0;
 	      rem_warning (groups, "COMMS", NULL);
 	    }
+	  profile_check ();
 	}
       if (state[STATE_ARM])
 	{			// Top level timed settings
