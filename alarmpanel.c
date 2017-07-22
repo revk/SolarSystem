@@ -177,6 +177,9 @@ const char *state_name[STATES] = {
 #undef s
 };
 
+unsigned int commfailcount = 0;
+unsigned int commfailreported = 0;
+
 typedef unsigned char state_t;
 
 // The actual state bits...
@@ -1495,6 +1498,8 @@ dologger (CURL * curl, xml_t system, log_t * l)
 	continue;
       if (!strncasecmp (v, "http:", 5) || !strncasecmp (v, "https:", 6))
 	{			// CURL
+	  FILE *o = fopen ("/dev/null", "w");
+	  curl_easy_setopt (curl, CURLOPT_WRITEDATA, o);
 	  char *url = NULL;
 	  char *q = strrchr (v, '?');
 	  if (q)
@@ -1552,7 +1557,11 @@ dologger (CURL * curl, xml_t system, log_t * l)
 	  else
 	    curl_formfree (fi);	// Free post data
 	  if (result)
-	    syslog (LOG_INFO, "Log to %s failed\n", v);
+	    {
+	      syslog (LOG_INFO, "Log to %s failed\n", v);
+	      commfailcount++;
+	    }
+	  fclose (o);
 	}
 #ifdef	LIBEMAIL
       else if (strchr (v, '@'))
@@ -1580,7 +1589,10 @@ dologger (CURL * curl, xml_t system, log_t * l)
 		fprintf (o, "Message:\n\n%s\n", l->msg);
 	      const char *err = email_send (m, 0);
 	      if (err)
-		syslog (LOG_INFO, "Email failed to %s: %s", e, err);
+		{
+		  syslog (LOG_INFO, "Email failed to %s: %s", e, err);
+		  commfailcount++;
+		}
 	    }
 	}
 #endif
@@ -1592,9 +1604,17 @@ dologger (CURL * curl, xml_t system, log_t * l)
 	    {			// SMS
 	      char *u, *p;
 	      if (!system || !(u = xml_get (system, "@sms-user")) || !(p = xml_get (system, "@sms-pass")))
-		syslog (LOG_INFO, "No system details for SMS to %s", v);
+		{
+		  syslog (LOG_INFO, "No system details for SMS to %s", v);
+		  commfailcount++;
+		}
 	      else if (l->groups & ~state[STATE_ENGINEERING])
 		{
+		  // response file
+		  char *reply = NULL;
+		  size_t replylen = 0;
+		  FILE *o = open_memstream (&reply, &replylen);
+		  curl_easy_setopt (curl, CURLOPT_WRITEDATA, o);
 		  void add (char *tag, char *value)
 		  {
 		    if (!value)
@@ -1608,13 +1628,25 @@ dologger (CURL * curl, xml_t system, log_t * l)
 		  char *ud;
 		  asprintf (&ud, "%s\t%s\n%.*s\n%s\t%s\n%s", l->type ? : "?", l->msg ? : "", MAX_GROUP, groups, l->port ? : "", name ? : "", l->user ? : "");
 		  add ("ud", ud);
-		  curl_easy_setopt (curl, CURLOPT_URL, xml_get (system, "@sms-host") ? : "https://sms.aa.net.uk/");
+		  const char *server = xml_get (system, "@sms-host") ? : "https://sms.aa.net.uk/";
+		  curl_easy_setopt (curl, CURLOPT_URL, server);
 		  curl_easy_setopt (curl, CURLOPT_HTTPPOST, fi);
 		  CURLcode result = curl_easy_perform (curl);
 		  curl_formfree (fi);	// Free post data
 		  if (result)
-		    syslog (LOG_INFO, "SMS to %s failed\n", v);
+		    {
+		      syslog (LOG_INFO, "SMS to %s failed to connect to server %s\n", v, server);
+		      commfailcount++;
+		    }
 		  free (ud);
+		  fclose (o);
+		  if (!strstr (reply, "OK"))
+		    {
+		      syslog (LOG_INFO, "SMS to %s failed to send\n", v);
+		      commfailcount++;
+		    }
+		  if (reply)
+		    free (reply);
 		}
 	    }
 	}
@@ -2660,11 +2692,30 @@ main (int argc, const char *argv[])
 	}
     }
   state_change (groups);
+  time_t lastmin = time (0);
   while (1)
     {
       gettimeofday (&now, NULL);
       localtime_r (&now.tv_sec, &lnow);
       time_t nextpoll = (now.tv_sec + 60) / 60 * 60;
+      if (nextpoll > lastmin)
+	{			// Every minute
+	  lastmin = nextpoll;
+	  if (commfailcount)
+	    {
+	      commfailcount = 0;
+	      if (!commfailreported)
+		{
+		  commfailreported = 1;
+		  add_warning (groups, "COMMS", NULL);
+		}
+	    }
+	  else if (commfailreported)
+	    {
+	      commfailreported = 0;
+	      rem_warning (groups, "COMMS", NULL);
+	    }
+	}
       if (state[STATE_ARM])
 	{			// Top level timed settings
 	  int s;
