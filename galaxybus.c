@@ -522,6 +522,7 @@ poller (void *d)
       struct
       {				// keypad
 	unsigned char backlight:1;
+	unsigned char blink:1;	// Blink led
 	unsigned char quiet:1;
 	unsigned char silent:1;
 	unsigned char beep[2];
@@ -1034,7 +1035,7 @@ poller (void *d)
 		      mydev[id].toggle0B ^= 1;
 		    }
 		}
-	      if (mydev[id].send07 || mydev[id].cursor != dev[id].cursor || memcmp (mydev[id].text[0], (void *) dev[id].text[0], 16) || memcmp (mydev[id].text[1], (void *) dev[id].text[1], 16))
+	      if (mydev[id].send07 || mydev[id].blink != dev[id].blink || mydev[id].cursor != dev[id].cursor || memcmp (mydev[id].text[0], (void *) dev[id].text[0], 16) || memcmp (mydev[id].text[1], (void *) dev[id].text[1], 16))
 		{		// Text change
 		  int l, p;
 		  if (cmdlen)
@@ -1042,7 +1043,7 @@ poller (void *d)
 		  else
 		    {		// Updating display, try to track the change in mydev text as we go and only send what we need to
 		      cmd[++cmdlen] = 0x07;
-		      cmd[++cmdlen] = 0x01 + (mydev[id].toggle07 ? 0x80 : 0);;
+		      cmd[++cmdlen] = 0x01 | ((mydev[id].blink = dev[id].blink) ? 0x08 : 0x00) | (mydev[id].toggle07 ? 0x80 : 0);
 		      if (mydev[id].send07 || mydev[id].cursor)
 			{
 			  cmd[++cmdlen] = 0x07;	// Cursor off
