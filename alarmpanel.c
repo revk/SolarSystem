@@ -2,7 +2,7 @@
 
     /*
        A complete alarm panel using devices compatible with Honeywell/Galaxy RS485 buses
-       Copyright (C) 2017  RevK
+       Copyright (C) 2017  RevK and Andrews & Arnold Ltd
 
        This program is free software: you can redistribute it and/or modify
        it under the terms of the GNU General Public License as published by
