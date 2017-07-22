@@ -46,15 +46,6 @@
 #include <libemail.h>
 #endif
 
-// TODO
-// Should keypad have backlight timer options?
-// curl and SMS failures need to create comms error fault
-// Time profiles, but need to have low level input disable so triggers change when enabled
-// Web sockets for live reporting
-// Fire exits? Are they special?
-// Combined set group logic - e.g. common hallway in unit 4
-// Curl response to /dev/null or check it for OK in case of SMS
-
 xml_t config = NULL;
 
 #define	MAX_GROUP	10	// Mainly to work with keypad...
