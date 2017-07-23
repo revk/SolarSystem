@@ -2319,7 +2319,7 @@ doevent (event_t * e)
 			  snprintf (doorno, sizeof (doorno), "DOOR%02u", d);
 			  if (!door_locked (d))
 			    {
-			      if (mydoor[d].airlock >= 0 && door[mydoor[d].airlock].state != DOOR_CLOSED && door[mydoor[d].airlock].state != DOOR_DEADLOCKED)
+			      if (mydoor[d].airlock >= 0 && door[mydoor[d].airlock].state != DOOR_LOCKED && door[mydoor[d].airlock].state != DOOR_DEADLOCKED)
 				{
 				  dolog (mydoor[d].groups, "DOORAIRLOCK", NULL, doorno, "Airlock violation with DOOR%02d, exit rejected", mydoor[d].airlock);
 				  door_error (d);
@@ -2525,7 +2525,7 @@ doevent (event_t * e)
 		      {
 			if (u->group_open & mydoor[d].groups & ~state[STATE_SET] & ~state[STATE_ARM])
 			  {
-			    if (mydoor[d].airlock >= 0 && door[mydoor[d].airlock].state != DOOR_CLOSED && door[mydoor[d].airlock].state != DOOR_DEADLOCKED)
+			    if (mydoor[d].airlock >= 0 && door[mydoor[d].airlock].state != DOOR_LOCKED && door[mydoor[d].airlock].state != DOOR_DEADLOCKED)
 			      {
 				dolog (mydoor[d].groups, "DOORAIRLOCK", u->name, doorno, "Airlock violation with DOOR%02d using fob %lu", mydoor[d].airlock, e->fob);
 				door_error (d);
