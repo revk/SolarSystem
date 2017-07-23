@@ -398,7 +398,7 @@ doorman (void *d)
 		  {
 		    door[d].mainlock.timer = 10;
 		    door[d].deadlock.timer = 10;
-		    state = (open ? DOOR_OPEN : DOOR_LOCKING);
+		    state = (open ? DOOR_UNLOCKING : DOOR_LOCKING);
 		  }
 		else if (state == DOOR_OPEN && door[d].time_prop && door[d].timer >= door[d].time_prop)
 		  state = DOOR_PROPPED;
