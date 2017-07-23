@@ -7,8 +7,8 @@
 <group id="2" name="House"/>
 
 <door max="MAX191" name="FrontDoor" open-quiet="true" time-open="3" groups="2" comment="Dummy, used to set house alarm"/>
-<door max="MAX192" name="UtilityDoor" i-unlock="RIO1021" open-quiet="true" time-close="5" groups="12" set="1"/>
-<door max="MAX293" name="BECDoor" i-unlock="RIO2021" open-quiet="true" time-close="5" groups="1"/>
+<door max="MAX192" name="UtilityDoor" i-unlock="RIO1021" open-quiet="true" time-lock="5" groups="12" set="1"/>
+<door max="MAX293" name="BECDoor" i-unlock="RIO2021" open-quiet="true" time-lock="5" groups="1"/>
 
 <input id="RIO2022" name="PSU" tamper="*"/>
 <input id="RIO2023" name="Bell" tamper="*"/>
