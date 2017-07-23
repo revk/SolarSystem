@@ -1259,7 +1259,7 @@ poller (void *d)
 	    {			// Check for device
 	      cmd[++cmdlen] = 0;
 	      cmd[++cmdlen] = 0x0E;
-	      if (dev[id].missing)
+	      if (!dev[id].found || dev[id].missing)
 		retry = MAX_RETRY;	// try once
 	    }
 	}
