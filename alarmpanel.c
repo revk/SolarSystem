@@ -1987,11 +1987,11 @@ keypad_update (keypad_t * k, char key)
     alert = "\a\aTAMPER!";
   else if (k->groups & state[STATE_BELL])
     alert = "\a\aALARM!";
-  else if (k->groups & state[STATE_FAULT])
+  else if (k->groups & state[STATE_FAULT] & ~state[STATE_ENGINEERING])
     alert = "\aFAULT!";
   else if (k->groups & state[STATE_WARNING])
     alert = "\aWARNING!";
-  else if (k->groups & state[STATE_ENGINEERING])
+  else if (k->user && k->groups & state[STATE_ENGINEERING])
     alert = "ENGINEERING MODE";
   if (alert && *alert == '\a')
     device[n].blink = 1;
