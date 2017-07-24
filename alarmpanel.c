@@ -2147,6 +2147,8 @@ doevent (event_t * e)
 		mybus[n].fault = 0;
 		rem_fault (groups, busno, NULL);
 	      }
+	    if (e->retries)
+	      syslog (LOG_INFO, "Bus %d retries: %d", n, e->retries);
 	  }
       }
       break;
