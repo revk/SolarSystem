@@ -585,7 +585,7 @@ poller (void *d)
       FD_SET (f, &readfds);
       struct timeval timeout = { 0
       };
-      timeout.tv_usec = 10000;
+      timeout.tv_usec = 9000;
       if (!reslen)
 	timeout.tv_usec = 11 * 1000000 * cmdlen / 9600 + 15000;	// First byte - allow our message and response time
       if (dev[id].type == TYPE_MAX)
