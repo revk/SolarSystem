@@ -1834,7 +1834,7 @@ keypad_update (keypad_t * k, char key)
     }
   if (!k->groups)
     {				// Not in use at all!
-      snprintf (l1, 17, "%-16s", k->message?:"-- NOT IN USE --");
+      snprintf (l1, 17, "%-16s", k->message ? : "-- NOT IN USE --");
       snprintf (l2, 17, "%02d:%02d %10s", lnow.tm_hour, lnow.tm_min, port_name (k->port));
       device[n].silent = 1;	// No keys
       return NULL;
