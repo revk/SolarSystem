@@ -577,6 +577,7 @@ poller (void *d)
   int stall = 0;		// Stall count
   time_t nextka = time (0) + 10;	// next keep alive
   time_t lastsec = 0;		// One second events
+  long long gap = 0;		// Time to first byte response for logging
   while (1)
     {
       unsigned char type = dev[id].type;
@@ -590,14 +591,22 @@ poller (void *d)
 	timeout.tv_usec = 11 * 1000000 * cmdlen / 9600 + 15000;	// First byte - allow our message and response time
       if (dev[id].type == TYPE_MAX)
 	timeout.tv_usec += 15000;	// Max can be slow on some things
+      gettimeofday (&now, &tz);
+      long long reftime = now.tv_sec * 1000000ULL + now.tv_usec;
       int s = select (f + 1, &readfds, NULL, NULL, &timeout);
       if (s > 0)
 	s = read (f, &res[reslen], 1);
       if (s < 0)
 	warn ("Bad rx");
-      gettimeofday (&now, &tz);
       if (s)
 	{			// we have a character
+	  if (!reslen && !*res)
+	    continue;		// An initial break is seeing tail end of us sending
+	  if (!reslen && (debug || dump))
+	    {			// Timing for debug
+	      gettimeofday (&now, &tz);
+	      gap = now.tv_sec * 1000000ULL + now.tv_usec - reftime - 11 * 1000000 * cmdlen / 9600;
+	    }
 	  rx++;
 	  if (reslen == sizeof (res))
 	    {			// Not sensible
@@ -607,6 +616,23 @@ poller (void *d)
 	    }
 	  reslen++;
 	  continue;
+	}
+      // Timeout
+      if (reslen)
+	{			// Dump
+	  if (dump || (debug && (res[0] != US || ((reslen != 4 || res[1] != 0xF4 || res[2] != mydev[id].laststatus) && (reslen != 3 || res[1] != 0xFE) && (type != TYPE_RIO || res[1] != 0xF8) && (type != TYPE_RIO || res[1] != 0xF1)))))
+	    {			// debug tries not to log boring
+	      unsigned int n;
+	      printf ("%s%X%02X <", type_name[dev[id].type], busid + 1, id);
+	      for (n = 0; n < reslen - 1; n++)
+		printf (" %02X", res[n]);
+	      if (reslen == 1)
+		printf (" ? %02X", res[n]);	// too short?
+	      printf (" (%lld.%lldms)\n", gap / 1000, gap / 100 % 10);
+	      fflush (stdout);
+	    }
+	  if (reslen == 4 && res[0] == US && res[1] == 0xF4)
+	    mydev[id].laststatus = res[2];
 	}
       void sendcmd (void)
       {				// Send command
@@ -858,20 +884,6 @@ poller (void *d)
 		  break;
 		}
 	      }
-	}
-      if (reslen)
-	{			// TODO not seeing if not to US, so not loggged...
-	  if (dump || (debug && (res[0] != US || ((reslen != 4 || res[1] != 0xF4 || res[2] != mydev[id].laststatus) && (reslen != 3 || res[1] != 0xFE) && (type != TYPE_RIO || res[1] != 0xF8) && (type != TYPE_RIO || res[1] != 0xF1)))))
-	    {			// debug does not log boring
-	      unsigned int n;
-	      printf ("%s%X%02X <", type_name[dev[id].type], busid + 1, id);
-	      for (n = 0; n < reslen - 1; n++)
-		printf (" %02X", res[n]);
-	      printf ("\n");
-	      fflush (stdout);
-	    }
-	  if (reslen == 4 && res[0] == US && res[1] == 0xF4)
-	    mydev[id].laststatus = res[2];
 	}
       if (more && stall++ >= MAX_STALL)
 	{
