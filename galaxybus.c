@@ -486,7 +486,7 @@ poller (void *d)
     }
   struct termios t = { 0
   };
-  t.c_cflag = B9600 | CS8 | CREAD | CLOCAL; // 9600Baud 1n8
+  t.c_cflag = B9600 | CS8 | CREAD | CLOCAL;	// 9600Baud 1n8
   t.c_cc[VTIME] = 1;
   ioctl (f, TCSETS, &t);
   dev[US].disabled = 1;		// Don't poll ourselves
@@ -580,12 +580,14 @@ poller (void *d)
   };
   void sendcmd (void)
   {				// Send command
+    if (!dev[id].type || dev[id].type != TYPE_PAD)
+      usleep (5000);		// We dont actually drive the bus before sending but this seems to be what is expected
     if (write (f, cmd, cmdlen) != (int) cmdlen)
       errors++;
     // Delay for the sending of the command - we do not rx data at this point (though can pick up a break sometimes)
-    usleep (1000000 * (10*cmdlen+1) / 9600);
+    usleep (1000000 * (10 * cmdlen + 1) / 9600);	// We send one stop bit, then data with 1 stop on each byte
     // Timeout for reply
-    timeout.tv_usec = 15000;
+    timeout.tv_usec = 15000;	// 10ms inter message gap, and then some extra for slower devices
     //if (!dev[id].type || dev[id].type == TYPE_MAX) timeout.tv_usec += 15000;  // Max can be slow on some things
     tx += cmdlen;
     // Debug/dump
@@ -617,7 +619,7 @@ poller (void *d)
 	{			// we have a character
 	  if (!reslen && !*res)
 	    continue;		// An initial break is seeing tail end of us sending
-	  timeout.tv_usec = 10000;	// Inter message gap typically 10ms
+	  timeout.tv_usec = 5000;	// Inter message gap typically 10ms, 5ms timeout, 5ms driving before message
 	  if (!reslen && (debug || dump))
 	    {			// Timing for debug
 	      gettimeofday (&now, &tz);
