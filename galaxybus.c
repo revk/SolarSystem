@@ -895,7 +895,7 @@ poller (void *d)
 	{			// Move on to next
 	  stall = 0;
 	  int m = 2;
-	  while (1)
+	  while (m)
 	    {
 	      if (!++id)
 		{		// End of scan cycle
