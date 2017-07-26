@@ -580,8 +580,6 @@ poller (void *d)
   };
   void sendcmd (void)
   {				// Send command
-    if (!dev[id].type || dev[id].type != TYPE_PAD)
-      usleep (5000);		// We dont actually drive the bus before sending but this seems to be what is expected
     if (write (f, cmd, cmdlen) != (int) cmdlen)
       errors++;
     // Delay for the sending of the command - we do not rx data at this point (though can pick up a break sometimes)
@@ -619,7 +617,7 @@ poller (void *d)
 	{			// we have a character
 	  if (!reslen && !*res)
 	    continue;		// An initial break is seeing tail end of us sending
-	  timeout.tv_usec = 5000;	// Inter message gap typically 10ms, 5ms timeout, 5ms driving before message
+	  timeout.tv_usec = 10000;	// Inter message gap typically 10ms, 5ms timeout, 5ms driving before message
 	  if (!reslen && (debug || dump))
 	    {			// Timing for debug
 	      gettimeofday (&now, &tz);
