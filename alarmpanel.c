@@ -1834,7 +1834,7 @@ keypad_update (keypad_t * k, char key)
     }
   if (!k->groups)
     {				// Not in use at all!
-      snprintf (l1, 17, "%-16s", "-- NOT IN USE --");
+      snprintf (l1, 17, "%-16s", k->message?:"-- NOT IN USE --");
       snprintf (l2, 17, "%02d:%02d %10s", lnow.tm_hour, lnow.tm_min, port_name (k->port));
       device[n].silent = 1;	// No keys
       return NULL;
@@ -2576,7 +2576,7 @@ doevent (event_t * e)
 	      }
 	if (!found)
 	  {			// Unassociated max reader
-	    dolog (mydoor[d].groups, e->event == EVENT_FOB_HELD ? "FOBHELDIGNORE" : "FOBIGNORED", u->name, port_name (e->port), "Ignored fob %lu as reader not linked to a door", e->fob);
+	    dolog (groups, e->event == EVENT_FOB_HELD ? "FOBHELDIGNORE" : "FOBIGNORED", u ? u->name : NULL, port_name (e->port), "Ignored fob %lu as reader not linked to a door", e->fob);
 	    door_error (d);
 	  }
       }
@@ -2691,16 +2691,16 @@ main (int argc, const char *argv[])
     {				// Move a max
       port_t f = port_parse (maxfrom, NULL, -1);
       port_t t = port_parse (maxto, NULL, -1);
-      if (device[f].type != TYPE_MAX)
+      if (!f || device[port_device (f)].type != TYPE_MAX)
 	dolog (groups, "CONFIG", NULL, NULL, "max-from invalid");
-      else if (device[t].type != TYPE_MAX)
+      else if (!t || device[port_device (t)].type != TYPE_MAX)
 	dolog (groups, "CONFIG", NULL, NULL, "max-to invalid");
-      else if ((f >> 16) != (t << 16))
+      else if ((f >> 16) != (t >> 16))
 	dolog (groups, "CONFIG", NULL, NULL, "max-from and max-to on different buses");
       else
 	{
-	  device[f].newid = (t >> 8);
-	  device[f].config = 1;
+	  device[port_device (f)].newid = (t >> 8);
+	  device[port_device (f)].config = 1;
 	}
     }
   state_change (groups);
