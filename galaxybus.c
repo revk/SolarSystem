@@ -486,7 +486,7 @@ poller (void *d)
     }
   struct termios t = { 0
   };
-  t.c_cflag = B9600 | CS8 | CSTOPB | CREAD | CLOCAL;
+  t.c_cflag = B9600 | CS8 | CREAD | CLOCAL; // 9600Baud 1n8
   t.c_cc[VTIME] = 1;
   ioctl (f, TCSETS, &t);
   dev[US].disabled = 1;		// Don't poll ourselves
@@ -561,11 +561,9 @@ poller (void *d)
     e->event = etype;
     return e;
   }
-
-  // TODO cleanup to close f?
-  unsigned char cmd[256];
+  unsigned char cmd[256];	// The command we are sending
   unsigned int cmdlen = 0;
-  unsigned char res[256];
+  unsigned char res[256];	// The response we are receiving
   unsigned int reslen = 0;
   int errors = 0;		// Protocol errors
   int stalled = 0;		// Stuck sending
@@ -578,19 +576,36 @@ poller (void *d)
   time_t nextka = time (0) + 10;	// next keep alive
   time_t lastsec = 0;		// One second events
   long long gap = 0;		// Time to first byte response for logging
+  struct timeval timeout = { 0
+  };
+  void sendcmd (void)
+  {				// Send command
+    if (write (f, cmd, cmdlen) != (int) cmdlen)
+      errors++;
+    // Delay for the sending of the command - we do not rx data at this point (though can pick up a break sometimes)
+    usleep (1000000 * (10*cmdlen+1) / 9600);
+    // Timeout for reply
+    timeout.tv_usec = 15000;
+    //if (!dev[id].type || dev[id].type == TYPE_MAX) timeout.tv_usec += 15000;  // Max can be slow on some things
+    tx += cmdlen;
+    // Debug/dump
+    if (dump || (debug && (cmd[1] != 0x06 || cmdlen > 3) && (cmd[1] != 0x01 || cmdlen > 3) && (cmd[1] != 0x00 || cmdlen > 4)))
+      {				// Debug does not dump boring polls
+	unsigned int n;
+	printf ("%s%X%02X >", type_name[dev[id].type], busid + 1, id);
+	for (n = 0; n < cmdlen - 1; n++)
+	  printf (" %02X", cmd[n]);
+	printf ("\n");
+	fflush (stdout);
+      }
+  }
+  // Main polling loop
   while (1)
     {
       unsigned char type = dev[id].type;
       fd_set readfds;
       FD_ZERO (&readfds);
       FD_SET (f, &readfds);
-      struct timeval timeout = { 0
-      };
-      timeout.tv_usec = 9000;
-      if (!reslen)
-	timeout.tv_usec = 11 * 1000000 * cmdlen / 9600 + 15000;	// First byte - allow our message and response time
-      if (dev[id].type == TYPE_MAX)
-	timeout.tv_usec += 15000;	// Max can be slow on some things
       gettimeofday (&now, &tz);
       long long reftime = now.tv_sec * 1000000ULL + now.tv_usec;
       int s = select (f + 1, &readfds, NULL, NULL, &timeout);
@@ -602,10 +617,11 @@ poller (void *d)
 	{			// we have a character
 	  if (!reslen && !*res)
 	    continue;		// An initial break is seeing tail end of us sending
+	  timeout.tv_usec = 10000;	// Inter message gap typically 10ms
 	  if (!reslen && (debug || dump))
 	    {			// Timing for debug
 	      gettimeofday (&now, &tz);
-	      gap = now.tv_sec * 1000000ULL + now.tv_usec - reftime - 11 * 1000000 * cmdlen / 9600;
+	      gap = now.tv_sec * 1000000ULL + now.tv_usec - reftime;
 	    }
 	  rx++;
 	  if (reslen == sizeof (res))
@@ -634,21 +650,6 @@ poller (void *d)
 	  if (reslen == 4 && res[0] == US && res[1] == 0xF4)
 	    mydev[id].laststatus = res[2];
 	}
-      void sendcmd (void)
-      {				// Send command
-	if (write (f, cmd, cmdlen) != (int) cmdlen)
-	  errors++;
-	tx += cmdlen;
-	if (dump || (debug && (cmd[1] != 0x06 || cmdlen > 3) && (cmd[1] != 0x01 || cmdlen > 3) && (cmd[1] != 0x00 || cmdlen > 4)))
-	  {			// Debug does not dump boring polls
-	    unsigned int n;
-	    printf ("%s%X%02X >", type_name[dev[id].type], busid + 1, id);
-	    for (n = 0; n < cmdlen - 1; n++)
-	      printf (" %02X", cmd[n]);
-	    printf ("\n");
-	    fflush (stdout);
-	  }
-      }
       int fail (void)
       {				// Failed rx
 	if (cmdlen && cmd[1])
@@ -697,7 +698,7 @@ poller (void *d)
       if (reslen && res[0] != US && fail ())
 	continue;		// Not to us - should we consider this some sort of tamper?
       retry = 0;
-// Process response in context of cmd sent
+      // Process response in context of cmd sent
       if (reslen && cmdlen)
 	{
 	  if (!mydev[id].polling)
