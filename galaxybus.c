@@ -620,7 +620,7 @@ poller (void *d)
 	{			// we have a character
 	  if (!reslen && !*res)
 	    continue;		// An initial break is seeing tail end of us sending
-	  timeout.tv_usec = 5000;	// Inter message gap typically 10ms, 5ms timeout, 5ms driving before message
+	  timeout.tv_usec = 6000;	// Inter message gap typically 10ms, 5ms timeout, 5ms driving before message
 	  if (!reslen && (debug || dump))
 	    {			// Timing for debug
 	      gettimeofday (&now, &tz);
