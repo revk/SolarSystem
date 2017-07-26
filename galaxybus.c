@@ -580,13 +580,16 @@ poller (void *d)
   };
   void sendcmd (void)
   {				// Send command
+    if (!dev[id].type || dev[id].type != TYPE_PAD)
+      usleep (5000);
     if (write (f, cmd, cmdlen) != (int) cmdlen)
       errors++;
     // Delay for the sending of the command - we do not rx data at this point (though can pick up a break sometimes)
     usleep (1000000 * (10 * cmdlen + 1) / 9600);	// We send one stop bit, then data with 1 stop on each byte
     // Timeout for reply
     timeout.tv_usec = 15000;	// 10ms inter message gap, and then some extra for slower devices
-    //if (!dev[id].type || dev[id].type == TYPE_MAX) timeout.tv_usec += 15000;  // Max can be slow on some things
+    if (dev[id].type == TYPE_MAX)
+      timeout.tv_usec += 10000;	// And more for max!!
     tx += cmdlen;
     // Debug/dump
     if (dump || (debug && (cmd[1] != 0x06 || cmdlen > 3) && (cmd[1] != 0x01 || cmdlen > 3) && (cmd[1] != 0x00 || cmdlen > 4)))
@@ -617,7 +620,7 @@ poller (void *d)
 	{			// we have a character
 	  if (!reslen && !*res)
 	    continue;		// An initial break is seeing tail end of us sending
-	  timeout.tv_usec = 10000;	// Inter message gap typically 10ms, 5ms timeout, 5ms driving before message
+	  timeout.tv_usec = 5000;	// Inter message gap typically 10ms, 5ms timeout, 5ms driving before message
 	  if (!reslen && (debug || dump))
 	    {			// Timing for debug
 	      gettimeofday (&now, &tz);
