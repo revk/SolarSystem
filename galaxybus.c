@@ -581,7 +581,7 @@ poller (void *d)
   void sendcmd (void)
   {				// Send command
     if (!dev[id].type || dev[id].type != TYPE_PAD)
-      usleep (5000);
+      usleep (4000);
     if (write (f, cmd, cmdlen) != (int) cmdlen)
       errors++;
     // Delay for the sending of the command - we do not rx data at this point (though can pick up a break sometimes)
