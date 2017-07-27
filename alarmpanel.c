@@ -2071,8 +2071,11 @@ keypad_update (keypad_t * k, char key)
     if (s < STATE_LATCHED)
       {
 	snprintf (l2, 17, "RESET %-10s", state_name[s]);
-	device[n].beep[0] = 1;
-	device[n].beep[1] = 49;
+	if ((s != STATE_TAMPER && s != STATE_FAULT) || !(state[STATE_ENGINEERING] & state[STATE_TRIGGERS + s]))
+	  {			// Beep if not engineering
+	    device[n].beep[0] = 1;
+	    device[n].beep[1] = 49;
+	  }
 	return NULL;
       }
     else			// Idle

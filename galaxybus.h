@@ -169,6 +169,7 @@ struct device_s
     };
     struct
     {				// RIO
+	    unsigned char rf:1;	// Is newer RF RIO
       input_t low;		// Low res fault or short circuit tamper, set by library
       unsigned short voltage[8];	// Reported voltages, seems 5 is battery and 6 is mains on the RIO PSU, 0 is main power on normal RIO
       struct

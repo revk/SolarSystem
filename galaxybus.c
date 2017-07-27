@@ -620,7 +620,7 @@ poller (void *d)
 	{			// we have a character
 	  if (!reslen && !*res)
 	    continue;		// An initial break is seeing tail end of us sending
-	  timeout.tv_usec = 6000;	// Inter message gap typically 10ms, 5ms timeout, 5ms driving before message
+	  timeout.tv_usec = 7000;	// Inter message gap typically 9 to 10ms
 	  if (!reslen && (debug || dump))
 	    {			// Timing for debug
 	      gettimeofday (&now, &tz);
@@ -639,7 +639,7 @@ poller (void *d)
       // Timeout
       if (reslen)
 	{			// Dump
-	  if (dump || (debug && (res[0] != US || ((reslen != 4 || res[1] != 0xF4 || res[2] != mydev[id].laststatus) && (reslen != 3 || res[1] != 0xFE) && (type != TYPE_RIO || res[1] != 0xF8) && (type != TYPE_RIO || res[1] != 0xF1)))))
+	  if (dump || (debug && (res[0] != US || ((reslen != 4 || res[1] != 0xF4 || res[2] != mydev[id].laststatus) && (reslen != 3 || res[1] != 0xFE) && (type != TYPE_RIO || (res[1] != 0xF7 && res[1] != 0xF8 && res[1] != 0xFE)) && (type != TYPE_RIO || res[1] != 0xF1)))))
 	    {			// debug tries not to log boring
 	      unsigned int n;
 	      printf ("%s%X%02X <", type_name[dev[id].type], busid + 1, id);
@@ -711,6 +711,7 @@ poller (void *d)
 	    }
 	  if (cmd[1] == 0x00 && cmdlen == 4 && res[1] == 0xFF && reslen > 5)
 	    {			// Restart response
+	      //11 FF 11 03 00 RF RIO
 	      more = 1;
 	      if (res[2] & 0x08)
 		{
@@ -729,6 +730,11 @@ poller (void *d)
 		}
 	      else if (res[2] & 0x20)
 		type = TYPE_RIO;
+	      else if (res[2] == 0x10)
+		{
+		  type = TYPE_RIO;
+		  dev[id].rf = 1;
+		}
 	      if (!dev[id].type)
 		{		// New
 		  if (debug)
@@ -836,10 +842,13 @@ poller (void *d)
 		}
 	      case TYPE_RIO:	// Date from RIO
 		{
-		  if (res[1] == 0xF8 && reslen > 11 && (res[6] & 0x01))
+		  if ((res[1] == 0xF8 && reslen > 11 && (res[6] & 0x01)) || (res[1] == 0xFE && res[2] == 0x0F))
 		    mydev[id].tamper |= (1 << MAX_INPUT);	// tamper
 		  else if (res[1] == 0xFE || (res[1] == 0xF8 && reslen > 11 && !(res[6] & 0x01)))
 		    mydev[id].tamper &= ~(1 << MAX_INPUT);	// no tamper
+		  if (res[1] == 0xFE)
+		    {		// Inputs from RF RIO
+		    }
 		  if (res[1] == 0xF1)
 		    {		// Voltages
 		      unsigned int p = 2;
@@ -1172,6 +1181,8 @@ poller (void *d)
 	    }
 	  case TYPE_RIO:	// Output to RIO
 	    {
+	      if (dev[id].rf)
+		break;
 	      if (mydev[id].restart)
 		{		// RIO specific resets
 		  mydev[id].restart = 0;
@@ -1185,7 +1196,7 @@ poller (void *d)
 		}
 	      int n;
 	      for (n = 0; n < MAX_INPUT && mydev[id].response[n] == dev[id].ri[n].response; n++);
-	      if (mydev[id].send01 || n < MAX_INPUT)
+	      if (dev[id].rf && (mydev[id].send01 || n < MAX_INPUT))
 		{
 		  if (cmdlen)
 		    more++;
