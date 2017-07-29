@@ -901,19 +901,26 @@ poller (void *d)
 		else if (res[1] == 0xFE)
 		  mydev[id].tamper &= ~(1 << MAX_INPUT);	// no tamper
 		if (res[1] == 0xF7)
-		  {		// Status
+		  {		// Status including voltage?
+		    // TODO
 		  }
 		if (res[1] == 0xFE)
-		  {		// Inputs from RF RIO
+		  {		// Status
 		    // TODO
 		  }
 		if (res[1] == 0xFD && reslen > 12)
 		  {		// RF signal
-		    event_t *e = newevent (EVENT_RF);
-		    e->serial = ((res[3] << 16) | (res[4] << 8) | res[5]);
-		    e->rfstatus = res[7];
-		    e->rfsignal = res[11];
-		    postevent (e);
+		    if (!(res[3] & 0xF0) && !res[6] && !res[8] && !res[9])
+		      {		// Probably a V2GY packet
+			unsigned int serial = ((res[3] << 16) | (res[4] << 8) | res[5]);
+			// TODO find / create rf device
+			// TODO Send found, key, status, or tamper events
+			event_t *e = newevent (EVENT_RF);
+			e->serial = serial;
+			e->rfstatus = res[7];
+			e->rfsignal = res[11];
+			postevent (e);
+		      }
 		  }
 		break;
 	      }

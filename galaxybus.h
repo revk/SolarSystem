@@ -127,7 +127,12 @@ enum
   FAULT_RIO_BAD_BAT,		// Battery fault
 };
 
-typedef unsigned int port_t;	// deviceid << 8 + 1 << port (where deviceid is busid<<8+addr)
+// A port ID is used for several purposes
+// A zero is invalid.
+// Reference to a device on a bus is (busid<<16)+(deviceid<<8)
+// Reference to a port on a device on a bus is (busid<<16)+(deviceid<<8)+(1<<port)
+// Reference to an RF device is 0x10000000+(serialno<<8) optionally +(1<<port)
+typedef unsigned int port_t;
 
 // Structures
 
