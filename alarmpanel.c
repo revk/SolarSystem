@@ -1738,7 +1738,6 @@ keypad_message (keypad_t * k, char *fmt, ...)
   char *l1 = (char *) device[n].text[0];
   char *l2 = (char *) device[n].text[1];
   device[n].cursor = 0;
-  device[n].silent = 0;
   // Format
   char *msg = NULL;
   va_list ap;
@@ -1780,7 +1779,7 @@ keypad_message (keypad_t * k, char *fmt, ...)
     *nl++ = 0;
   snprintf (l1, 17, "%-16s", v);
   snprintf (l2, 17, "%-16s", nl ? : "");
-  k->when = now.tv_sec + 3;
+  k->when = now.tv_sec + (device[n].silent ? 10 : 3);
   free (msg);
   return NULL;
 }
@@ -1839,6 +1838,8 @@ keypad_update (keypad_t * k, char key)
       device[n].silent = 1;	// No keys
       return NULL;
     }
+  if (key && device[n].silent)
+    return keypad_message (k, "Wait");
   int s;
   group_t trigger = 0;
   for (s = 0; s < STATE_LATCHED; s++)
@@ -1873,7 +1874,6 @@ keypad_update (keypad_t * k, char key)
       if (!(k->groups & state[STATE_ARM]))
 	return keypad_message (k, "CANCELLED SET");	// Nothing left to set
       device[n].cursor = 0;
-      device[n].silent = 1;
       if (k->groups & state[STATE_ARM] & trigger)
 	{			// Not setting
 	  device[n].beep[0] = 0;
@@ -1931,12 +1931,14 @@ keypad_update (keypad_t * k, char key)
 	  k->pininput = 0;
 	  if (key == '\n' || key == 'A')
 	    {			// Login?
-	      if (!k->pin)
-		return keypad_message (k, "INVALID CODE");	// No PIN 0
-	      user_t *u;
-	      for (u = users; u && u->pin != k->pin; u = u->next);
+	      user_t *u = NULL;
+	      if (k->pin)
+		for (u = users; u && u->pin != k->pin; u = u->next);
 	      if (!u)
-		return keypad_message (k, "INVALID CODE");
+		{		// PIN 0 or user not valid
+		  device[n].silent = 1;
+		  return keypad_message (k, "INVALID CODE");
+		}
 	      if (key == 'A')
 		{
 		  if (!alarm_arm (u->name ? : k->name, port_name (k->port), k->groups & u->group_set, 0))
