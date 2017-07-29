@@ -719,7 +719,6 @@ poller (void *d)
 	    }
 	  if (cmd[1] == 0x00 && cmdlen == 4 && res[1] == 0xFF && reslen > 5)
 	    {			// Restart response
-	      //11 FF 11 03 00 RF RIO
 	      more = 1;
 	      if (res[2] & 0x08)
 		{

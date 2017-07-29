@@ -2124,6 +2124,8 @@ doevent (event_t * e)
 	printf ("%02X", e->key);
       if (e->event == EVENT_FOB || e->event == EVENT_FOB_HELD)
 	printf (" %09u", e->fob);
+      if (e->event == EVENT_RF)
+	printf ("%06u %02X", e->serial, e->rfstatus);
       printf ("\n");
     }
   // Simple sanity checks
@@ -2611,8 +2613,6 @@ doevent (event_t * e)
     case EVENT_RF:
       {
 	// TODO
-	if (debug)
-	  printf ("RF %06u %02X\n", e->serial, e->rfstatus);
       }
       break;
     }
