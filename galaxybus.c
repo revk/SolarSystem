@@ -700,6 +700,12 @@ poller (void *d)
 	}
       if (reslen && res[0] != US && fail ())
 	continue;		// Not to us - should we consider this some sort of tamper?
+      if (reslen == 3 && res[1] == 0xF2)
+	{			// Did not understand
+	  errors++;
+	  fail ();
+	  continue;
+	}
       retry = 0;
       // Process response in context of cmd sent
       if (reslen && cmdlen)
@@ -762,141 +768,138 @@ poller (void *d)
 		  postevent (newevent (EVENT_FOUND));
 		}
 	    }
-	  if (res[1] == 0xF2)
-	    errors++;		// F2 is bad checksum,, or unknown command, so treat so not confirmed
-	  else
-	    switch (type)
+	  switch (type)
+	    {
+	    case TYPE_MAX:	// Data from max
 	      {
-	      case TYPE_MAX:	// Data from max
-		{
-		  if ((res[1] == 0xF4 || res[1] == 0xFC) && reslen > 3)
-		    {
-		      dev[id].found = 1;
-		      unsigned long was = mydev[id].tamper;
-		      if (res[1] == 0xFC)
-			mydev[id].tamper |= ((1 << MAX_INPUT) | (1 << INPUT_MAX_OPEN) | (1 << INPUT_MAX_EXIT));
-		      else
-			mydev[id].tamper &= ~((1 << MAX_INPUT) | (1 << INPUT_MAX_OPEN) | (1 << INPUT_MAX_EXIT));
-		      if (res[2] & 0x10)
-			mydev[id].input &= ~(1 << INPUT_MAX_OPEN);
-		      else
-			mydev[id].input |= (1 << INPUT_MAX_OPEN);
-		      if (res[2] & 0x20)
-			mydev[id].input |= (1 << INPUT_MAX_EXIT);
-		      else
-			mydev[id].input &= ~(1 << INPUT_MAX_EXIT);
-		      if (reslen > 4)
-			{
-			  unsigned long n = (res[2] & 0x0F), q;
-			  for (q = 3; q < reslen - 1; q++)
-			    n = n * 100 + (res[q] >> 4) * 10 + (res[q] & 0xF);
-			  if (!(mydev[id].input & (1 << INPUT_MAX_FOB)))
-			    {	// Fob starts
-			      event_t *e = newevent (EVENT_FOB);
-			      e->fob = n;
-			      postevent (e);
-			      mydev[id].input |= (1 << INPUT_MAX_FOB);
-			      if (dev[id].fob_hold)
-				mydev[id].fobheld = now.tv_sec * 1000000ULL + now.tv_usec + dev[id].fob_hold * 100000ULL;
-			      else
-				mydev[id].fobheld = 0;
-			    }
-			  else if (mydev[id].fobheld && now.tv_sec * 1000000ULL + now.tv_usec > mydev[id].fobheld)
-			    {	// Fob held
-			      mydev[id].input |= (1 << INPUT_MAX_FOB_HELD);
+		if ((res[1] == 0xF4 || res[1] == 0xFC) && reslen > 3)
+		  {
+		    dev[id].found = 1;
+		    unsigned long was = mydev[id].tamper;
+		    if (res[1] == 0xFC)
+		      mydev[id].tamper |= ((1 << MAX_INPUT) | (1 << INPUT_MAX_OPEN) | (1 << INPUT_MAX_EXIT));
+		    else
+		      mydev[id].tamper &= ~((1 << MAX_INPUT) | (1 << INPUT_MAX_OPEN) | (1 << INPUT_MAX_EXIT));
+		    if (res[2] & 0x10)
+		      mydev[id].input &= ~(1 << INPUT_MAX_OPEN);
+		    else
+		      mydev[id].input |= (1 << INPUT_MAX_OPEN);
+		    if (res[2] & 0x20)
+		      mydev[id].input |= (1 << INPUT_MAX_EXIT);
+		    else
+		      mydev[id].input &= ~(1 << INPUT_MAX_EXIT);
+		    if (reslen > 4)
+		      {
+			unsigned long n = (res[2] & 0x0F), q;
+			for (q = 3; q < reslen - 1; q++)
+			  n = n * 100 + (res[q] >> 4) * 10 + (res[q] & 0xF);
+			if (!(mydev[id].input & (1 << INPUT_MAX_FOB)))
+			  {	// Fob starts
+			    event_t *e = newevent (EVENT_FOB);
+			    e->fob = n;
+			    postevent (e);
+			    mydev[id].input |= (1 << INPUT_MAX_FOB);
+			    if (dev[id].fob_hold)
+			      mydev[id].fobheld = now.tv_sec * 1000000ULL + now.tv_usec + dev[id].fob_hold * 100000ULL;
+			    else
 			      mydev[id].fobheld = 0;
-			      event_t *e = newevent (EVENT_FOB_HELD);
-			      e->fob = n;
-			      postevent (e);
-			    }
-			}
-		      else
-			mydev[id].input &= ~((1 << INPUT_MAX_FOB) | (1 << INPUT_MAX_FOB_HELD));
-		      if (was != mydev[id].tamper)
-			mydev[id].send07 = 1;	// Override internal LEDs
-		    }
-		  break;
-		}
-	      case TYPE_PAD:	// Data from keypad
-		{
-		  if (res[1] == 0xF4 && reslen > 3)
-		    {		// Status
-		      dev[id].found = 1;
-		      if (res[2] & 0x40)
-			mydev[id].tamper |= (1 << MAX_INPUT);
-		      else
-			mydev[id].tamper &= ~(1 << MAX_INPUT);
-		      if (res[2] != 0x7F)
-			{	// key
-			  event_t *e = newevent (EVENT_KEY);
-			  e->key = "0123456789BA\n\e*#"[res[2] & 0x0F];
-			  postevent (e);
-			  mydev[id].send0B = 1;
-			  more = 1;	// Don't get distracted with an urgent device as we'll end up seeing this key again if we do
-			}
-		      break;
-		    }
-		  if (res[1] == 0xFE)
-		    mydev[id].tamper &= ~(1 << MAX_INPUT);	// idle (no tamper)
-		  break;
-		}
-	      case TYPE_RIO:	// Date from RIO
-		{
-		  if ((res[1] == 0xF8 && reslen > 11 && (res[6] & 0x01)) || (res[1] == 0xFE && res[2] == 0x0F))
-		    mydev[id].tamper |= (1 << MAX_INPUT);	// tamper
-		  else if (res[1] == 0xFE || (res[1] == 0xF8 && reslen > 11 && !(res[6] & 0x01)))
-		    mydev[id].tamper &= ~(1 << MAX_INPUT);	// no tamper
-		  if (res[1] == 0xFE)
-		    {		// Inputs from RF RIO
-		    }
-		  if (res[1] == 0xF1)
-		    {		// Voltages
-		      unsigned int p = 2;
-		      unsigned int n;
-		      for (n = 0; n < MAX_INPUT && p + 1 < reslen; n++)
-			{
-			  dev[id].ri[n].resistance = (res[p] << 8) + res[p + 1];
-			  p += 2;
-			}
-		      for (; n < MAX_INPUT; n++)
-			dev[id].ri[n].resistance = 0;
-		      for (n = 0; n < sizeof (dev[id].voltage) / sizeof (*dev[id].voltage) && p + 1 < reslen; n++)
-			{
-			  dev[id].voltage[n] = (res[p] << 8) + res[p + 1];
-			  p += 2;
-			}
-		      if (n < sizeof (dev[id].voltage) / sizeof (*dev[id].voltage))
-			for (; n < sizeof (dev[id].voltage) / sizeof (*dev[id].voltage); n++)
-			  dev[id].voltage[n] = 0;
-		      else if (p + 1 < reslen)
-			{	// Flags
-			  if (res[p] & 0x80)
-			    mydev[id].fault &= ~(1 << FAULT_RIO_NO_PWR);
-			  else
-			    mydev[id].fault |= (1 << FAULT_RIO_NO_PWR);
-			  if (res[p] & 0x40)
-			    mydev[id].fault &= ~(1 << FAULT_RIO_NO_BAT);
-			  else
-			    mydev[id].fault |= (1 << FAULT_RIO_NO_BAT);
-#if 0				// Looks like 0x20 may be charging, and stops briefly every hour
-			  if (res[p] & 0x20)
-			    mydev[id].fault |= (1 << FAULT_RIO_BAD_BAT);
-			  else
-			    mydev[id].fault &= ~(1 << FAULT_RIO_BAD_BAT);
-#endif
-			}
-		    }
-		  if (res[1] == 0xF8)
-		    {		// Status
-		      dev[id].found = 1;
-		      mydev[id].input = res[2];
-		      mydev[id].fault = ((mydev[id].fault & ~0xFF) | res[4] | res[5]);
-		      dev[id].low = (res[5] | res[7]);	// combined with tamper and fault can work out what state it is...
-		      mydev[id].tamper = ((mydev[id].tamper & ~0xFF) | res[3]);
-		    }
-		  break;
-		}
+			  }
+			else if (mydev[id].fobheld && now.tv_sec * 1000000ULL + now.tv_usec > mydev[id].fobheld)
+			  {	// Fob held
+			    mydev[id].input |= (1 << INPUT_MAX_FOB_HELD);
+			    mydev[id].fobheld = 0;
+			    event_t *e = newevent (EVENT_FOB_HELD);
+			    e->fob = n;
+			    postevent (e);
+			  }
+		      }
+		    else
+		      mydev[id].input &= ~((1 << INPUT_MAX_FOB) | (1 << INPUT_MAX_FOB_HELD));
+		    if (was != mydev[id].tamper)
+		      mydev[id].send07 = 1;	// Override internal LEDs
+		  }
+		break;
 	      }
+	    case TYPE_PAD:	// Data from keypad
+	      {
+		if (res[1] == 0xF4 && reslen > 3)
+		  {		// Status
+		    dev[id].found = 1;
+		    if (res[2] & 0x40)
+		      mydev[id].tamper |= (1 << MAX_INPUT);
+		    else
+		      mydev[id].tamper &= ~(1 << MAX_INPUT);
+		    if (res[2] != 0x7F)
+		      {		// key
+			event_t *e = newevent (EVENT_KEY);
+			e->key = "0123456789BA\n\e*#"[res[2] & 0x0F];
+			postevent (e);
+			mydev[id].send0B = 1;
+			more = 1;	// Don't get distracted with an urgent device as we'll end up seeing this key again if we do
+		      }
+		    break;
+		  }
+		if (res[1] == 0xFE)
+		  mydev[id].tamper &= ~(1 << MAX_INPUT);	// idle (no tamper)
+		break;
+	      }
+	    case TYPE_RIO:	// Date from RIO
+	      {
+		if ((res[1] == 0xF8 && reslen > 11 && (res[6] & 0x01)) || (res[1] == 0xFE && res[2] == 0x0F))
+		  mydev[id].tamper |= (1 << MAX_INPUT);	// tamper
+		else if (res[1] == 0xFE || (res[1] == 0xF8 && reslen > 11 && !(res[6] & 0x01)))
+		  mydev[id].tamper &= ~(1 << MAX_INPUT);	// no tamper
+		if (res[1] == 0xFE)
+		  {		// Inputs from RF RIO
+		  }
+		if (res[1] == 0xF1)
+		  {		// Voltages
+		    unsigned int p = 2;
+		    unsigned int n;
+		    for (n = 0; n < MAX_INPUT && p + 1 < reslen; n++)
+		      {
+			dev[id].ri[n].resistance = (res[p] << 8) + res[p + 1];
+			p += 2;
+		      }
+		    for (; n < MAX_INPUT; n++)
+		      dev[id].ri[n].resistance = 0;
+		    for (n = 0; n < sizeof (dev[id].voltage) / sizeof (*dev[id].voltage) && p + 1 < reslen; n++)
+		      {
+			dev[id].voltage[n] = (res[p] << 8) + res[p + 1];
+			p += 2;
+		      }
+		    if (n < sizeof (dev[id].voltage) / sizeof (*dev[id].voltage))
+		      for (; n < sizeof (dev[id].voltage) / sizeof (*dev[id].voltage); n++)
+			dev[id].voltage[n] = 0;
+		    else if (p + 1 < reslen)
+		      {		// Flags
+			if (res[p] & 0x80)
+			  mydev[id].fault &= ~(1 << FAULT_RIO_NO_PWR);
+			else
+			  mydev[id].fault |= (1 << FAULT_RIO_NO_PWR);
+			if (res[p] & 0x40)
+			  mydev[id].fault &= ~(1 << FAULT_RIO_NO_BAT);
+			else
+			  mydev[id].fault |= (1 << FAULT_RIO_NO_BAT);
+#if 0				// Looks like 0x20 may be charging, and stops briefly every hour
+			if (res[p] & 0x20)
+			  mydev[id].fault |= (1 << FAULT_RIO_BAD_BAT);
+			else
+			  mydev[id].fault &= ~(1 << FAULT_RIO_BAD_BAT);
+#endif
+		      }
+		  }
+		if (res[1] == 0xF8)
+		  {		// Status
+		    dev[id].found = 1;
+		    mydev[id].input = res[2];
+		    mydev[id].fault = ((mydev[id].fault & ~0xFF) | res[4] | res[5]);
+		    dev[id].low = (res[5] | res[7]);	// combined with tamper and fault can work out what state it is...
+		    mydev[id].tamper = ((mydev[id].tamper & ~0xFF) | res[3]);
+		  }
+		break;
+	      }
+	    }
 	}
       if (more && stall++ >= MAX_STALL)
 	{
