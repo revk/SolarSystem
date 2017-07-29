@@ -226,6 +226,7 @@ struct event_s
     {				// EVENT_RF
       unsigned int serial;
       unsigned char rfstatus;
+      unsigned char rfsignal;	// Out of 10
     };
   };
 };

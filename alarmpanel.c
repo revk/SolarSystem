@@ -2125,7 +2125,7 @@ doevent (event_t * e)
       if (e->event == EVENT_FOB || e->event == EVENT_FOB_HELD)
 	printf (" %09u", e->fob);
       if (e->event == EVENT_RF)
-	printf ("%06u %02X", e->serial, e->rfstatus);
+	printf ("%07u %02X %2d/10", e->serial, e->rfstatus, e->rfsignal);
       printf ("\n");
     }
   // Simple sanity checks

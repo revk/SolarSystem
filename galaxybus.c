@@ -912,6 +912,7 @@ poller (void *d)
 		    event_t *e = newevent (EVENT_RF);
 		    e->serial = ((res[3] << 16) | (res[4] << 8) | res[5]);
 		    e->rfstatus = res[7];
+		    e->rfsignal = res[11];
 		    postevent (e);
 		  }
 		break;
