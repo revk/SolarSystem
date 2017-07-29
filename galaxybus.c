@@ -913,13 +913,34 @@ poller (void *d)
 		    if (!(res[3] & 0xF0) && !res[6] && !res[8] && !res[9])
 		      {		// Probably a V2GY packet
 			unsigned int serial = ((res[3] << 16) | (res[4] << 8) | res[5]);
-			// TODO find / create rf device
-			// TODO Send found, key, status, or tamper events
-			event_t *e = newevent (EVENT_RF);
-			e->serial = serial;
-			e->rfstatus = res[7];
-			e->rfsignal = res[11];
-			postevent (e);
+			if (res[10] == 5)
+			  {	// Fob
+			    if (res[7] == 0x20)
+			      {
+				event_t *e = newevent (EVENT_FOB);
+				e->fob = serial;
+				postevent (e);
+				// TODO port?
+			      }
+			    else if (res[7] == 0x40)
+			      {
+				event_t *e = newevent (EVENT_FOB_HELD);
+				e->fob = serial;
+				postevent (e);
+				// TODO port?
+			      }
+			    // TODO
+			  }
+			else
+			  {
+			    // TODO find / create rf device
+			    // TODO Send found, key, status, or tamper events
+			    event_t *e = newevent (EVENT_RF);
+			    e->serial = serial;
+			    e->rfstatus = res[7];
+			    e->rfsignal = res[11];
+			    postevent (e);
+			  }
 		      }
 		  }
 		break;
