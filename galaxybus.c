@@ -1093,6 +1093,51 @@ poller (void *d)
 		    {		// Updating display, try to track the change in mydev text as we go and only send what we need to
 		      cmd[++cmdlen] = 0x07;
 		      cmd[++cmdlen] = 0x01 | ((mydev[id].blink = dev[id].blink) ? 0x08 : 0x00) | (mydev[id].toggle07 ? 0x80 : 0);
+		      unsigned int maketext (int dummy, int space)
+		      {
+			int q = cmdlen;
+			if (space)
+			  cmd[++q] = 0x17;	// clear/home
+			for (l = 0; l < 2; l++)
+			  {
+			    for (p = 0; p < 16 && (space ? : mydev[id].text[l][p]) == dev[id].text[l][p]; p++);	// First character changed
+			    if (p == 16)
+			      continue;	// Line not different
+			    if (p < 2)
+			      {	// Start line
+				if (l || !mydev[id].send07)
+				  cmd[++q] = l + 1;
+				p = 0;
+			      }
+			    else
+			      {	// Move cursor
+				cmd[++q] = 0x03;
+				cmd[++q] = (l ? 0x40 : 0) + p;
+			      }
+			    int p2 = p;
+			    for (p2 = 15; p2 > p && (space ? : mydev[id].text[l][p2]) == dev[id].text[l][p2]; p2--);	// Last character changed
+			    while (p <= p2)
+			      {
+				unsigned char c = (dummy ? dev[id].text[l][p] : (mydev[id].text[l][p] = dev[id].text[l][p]));
+				if (c < ' ')
+				  cmd[++q] = ' ';
+				else if (c == '0' && !dev[id].cross)
+				  cmd[++q] = 'O';
+				else
+				  cmd[++q] = c;
+				p++;
+			      }
+			    if (!dummy)
+			      {
+				// Record where we left cursor
+				if (p == 16)
+				  mydev[id].cursor = (mydev[id].cursor & ~0x1F) | (l ? 0 : 0x10);	// wrapped
+				else
+				  mydev[id].cursor = (mydev[id].cursor & ~0x1F) | (l ? 0x10 : 0) | p;
+			      }
+			  }
+			return q;
+		      }
 		      if (mydev[id].send07 || mydev[id].cursor)
 			{
 			  cmd[++cmdlen] = 0x07;	// Cursor off
@@ -1105,43 +1150,18 @@ poller (void *d)
 			    for (p = 0; p < 16; p++)
 			      mydev[id].text[l][p] = ' ';
 			  mydev[id].cursor &= ~0x1F;	// Home
+			  cmdlen = maketext (0, ' ');
 			}
-		      for (l = 0; l < 2; l++)
-			{
-			  for (p = 0; p < 16 && mydev[id].text[l][p] == dev[id].text[l][p]; p++);	// First character changed
-			  if (p == 16)
-			    continue;	// Line not different
-			  if (p < 2)
-			    {	// Start line
-			      if (l || !mydev[id].send07)
-				cmd[++cmdlen] = l + 1;
-			      p = 0;
-			    }
+		      else
+			{	// Work out if clear/home would be worthwhile
+			  int c1 = maketext (1, ' ');
+			  int c2 = maketext (0, 0);
+			  if (c1 < c2)
+			    cmdlen = maketext (0, ' ');
 			  else
-			    {	// Move cursor
-			      cmd[++cmdlen] = 0x03;
-			      cmd[++cmdlen] = (l ? 0x40 : 0) + p;
-			    }
-			  int p2 = p;
-			  for (p2 = 15; p2 > p && mydev[id].text[l][p2] == dev[id].text[l][p2]; p2--);	// Last character changed
-			  while (p <= p2)
-			    {
-			      unsigned char c = (mydev[id].text[l][p] = dev[id].text[l][p]);
-			      if (c < ' ')
-				cmd[++cmdlen] = ' ';
-			      else if (c == '0' && !dev[id].cross)
-				cmd[++cmdlen] = 'O';
-			      else
-				cmd[++cmdlen] = c;
-			      p++;
-			    }
+			    cmdlen = c2;
+			}
 
-// Record where we left cursor
-			  if (p == 16)
-			    mydev[id].cursor = (mydev[id].cursor & ~0x1F) | (l ? 0 : 0x10);	// wrapped
-			  else
-			    mydev[id].cursor = (mydev[id].cursor & ~0x1F) | (l ? 0x10 : 0) | p;
-			}
 		      unsigned char cursor = dev[id].cursor;
 		      if (cursor)
 			{
