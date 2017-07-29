@@ -1178,7 +1178,12 @@ poller (void *d)
 			  int c1 = maketext (1, ' ');
 			  int c2 = maketext (0, 0);
 			  if (c1 < c2)
-			    cmdlen = maketext (0, ' ');
+			    {	// Work from blank
+			      for (l = 0; l < 2; l++)
+				for (p = 0; p < 16; p++)
+				  mydev[id].text[l][p] = ' ';
+			      cmdlen = maketext (0, ' ');
+			    }
 			  else
 			    cmdlen = c2;
 			}
