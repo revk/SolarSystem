@@ -1,6 +1,6 @@
 <!-- 
     A complete alarm panel using devices compatible with Honeywell/Galaxy RS485 buses
-    Copyright (C) 2017  RevK
+    Copyright (C) 2017  RevK Andrews & Arnold Ltd
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -94,7 +94,7 @@
 <p>The alarm panel needs to reference ports, and display them. In the XML, ports can be references by either the port name (defined for input or output) or its address.</p>
 <p>Port addresses are made up of:</p>
 <ul>
-<li><tt>XXX</tt> port type, e.g. <tt>PAD</tt>, <tt>RIO</tt> or <tt>MAX</tt>.</li>
+<li><tt>XXX</tt> port type, e.g. <tt>PAD</tt>, <tt>RIO</tt>, <tt>RFR</tt> or <tt>MAX</tt>.</li>
 <li><tt>B</tt> bus ID, <tt>1</tt> to <tt>9</tt>.</li>
 <li><tt>AA</tt> bus hexadecimal address, <tt>00</tt> to <tt>FF</tt>.</li>
 <li><tt>P</tt> port <tt>1</tt> to <tt>8</tt>.</li>
@@ -209,6 +209,10 @@
 <tr><td>id</td><td>The port address, e.g. <tt>MAX190</tt> (can by space separated list of ports)</td></tr>
 <tr><td>name</td><td>Keypad name</td></tr>
 <tr><td>fob-hold</td><td>How many seconds a key fob is held to be a fob held event, 0 means no fob held event.</td></tr>
+</table>
+<h2>rf-rio</h2>
+<table border=1>
+<tr><td>id</td><td>The bus address, e.g. <tt>RFR184</tt> (can by space separated list of addresses)</td></tr>
 </table>
 <h2>log</h2>
 <p>Each log is checked against a lot of logging processing entries in the config, and any matched are actioned.</p>

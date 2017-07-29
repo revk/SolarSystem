@@ -678,6 +678,20 @@ load_config (const char *configfile)
 	  }
     }
   x = NULL;
+  while ((x = xml_element_next_by_name (config, x, "rf-rio")))
+    {				// Scan inputs, get names
+      if (!(pl = xml_get (x, "@id")) || !*pl)
+	dolog (ALL_GROUPS, "CONFIG", NULL, NULL, "RF RIO with no id");
+      else
+	while (pl)
+	  {
+	    port_t p = port_parse (pl, &pl, 0);
+	    unsigned int id = port_device (p);
+	    if (!id)
+	      dolog (ALL_GROUPS, "CONFIG", NULL, NULL, "Bad address for RF RIO");
+	  }
+    }
+  x = NULL;
   while ((x = xml_element_next_by_name (config, x, "output")))
     {				// Scan inputs, get names
       if (!(pl = xml_get (x, "@id")) || !*pl)
@@ -2592,6 +2606,13 @@ doevent (event_t * e)
 	for (k = keypad; k && k->port != e->port; k = k->next);
 	if (k)
 	  keypad_update (k, e->key);
+      }
+      break;
+    case EVENT_RF:
+      {
+	// TODO
+	if (debug)
+	  printf ("RF %06u %02X\n", e->serial, e->rfstatus);
       }
       break;
     }

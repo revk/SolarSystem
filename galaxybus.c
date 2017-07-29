@@ -456,6 +456,8 @@ doorman (void *d)
 void *
 poller (void *d)
 {
+  char *argv[] = { "bus" };
+#include <trace.h>
   int busid = (long) d;
   if (busid < 0 || busid >= MAX_BUS)
     errx (1, "Bad bus ID to start %d", busid);
@@ -639,7 +641,7 @@ poller (void *d)
       // Timeout
       if (reslen)
 	{			// Dump
-	  if (dump || (debug && (res[0] != US || ((reslen != 4 || res[1] != 0xF4 || res[2] != mydev[id].laststatus) && (reslen != 3 || res[1] != 0xFE) && (type != TYPE_RIO || (res[1] != 0xF7 && res[1] != 0xF8 && res[1] != 0xFE)) && (type != TYPE_RIO || res[1] != 0xF1)))))
+	  if (dump || (debug && (res[0] != US || ((reslen != 4 || res[1] != 0xF4 || res[2] != mydev[id].laststatus) && (reslen != 3 || res[1] != 0xFE) && (type != TYPE_RIO || (res[1] != 0xF1 && res[1] != 0xF7)) && (type != TYPE_RFR || (res[1] != 0xF7 && res[1] != 0xFE && res[1] != 0xFD))))))
 	    {			// debug tries not to log boring
 	      unsigned int n;
 	      printf ("%s%X%02X <", type_name[dev[id].type], busid + 1, id);
@@ -737,10 +739,7 @@ poller (void *d)
 	      else if (res[2] & 0x20)
 		type = TYPE_RIO;
 	      else if (res[2] == 0x10)
-		{
-		  type = TYPE_RIO;
-		  dev[id].rf = 1;
-		}
+		type = TYPE_RFR;
 	      if (!dev[id].type)
 		{		// New
 		  if (debug)
@@ -845,13 +844,10 @@ poller (void *d)
 	      }
 	    case TYPE_RIO:	// Date from RIO
 	      {
-		if ((res[1] == 0xF8 && reslen > 11 && (res[6] & 0x01)) || (res[1] == 0xFE && res[2] == 0x0F))
+		if (res[1] == 0xF8 && reslen > 11 && (res[6] & 0x01))
 		  mydev[id].tamper |= (1 << MAX_INPUT);	// tamper
 		else if (res[1] == 0xFE || (res[1] == 0xF8 && reslen > 11 && !(res[6] & 0x01)))
 		  mydev[id].tamper &= ~(1 << MAX_INPUT);	// no tamper
-		if (res[1] == 0xFE)
-		  {		// Inputs from RF RIO
-		  }
 		if (res[1] == 0xF1)
 		  {		// Voltages
 		    unsigned int p = 2;
@@ -896,6 +892,28 @@ poller (void *d)
 		    mydev[id].fault = ((mydev[id].fault & ~0xFF) | res[4] | res[5]);
 		    dev[id].low = (res[5] | res[7]);	// combined with tamper and fault can work out what state it is...
 		    mydev[id].tamper = ((mydev[id].tamper & ~0xFF) | res[3]);
+		  }
+		break;
+	      }
+	    case TYPE_RFR:	// Data from Rf RIO
+	      {
+		if (res[1] == 0xFE && res[2] == 0x0F)
+		  mydev[id].tamper |= (1 << MAX_INPUT);	// tamper
+		else if (res[1] == 0xFE)
+		  mydev[id].tamper &= ~(1 << MAX_INPUT);	// no tamper
+		if (res[1] == 0xF7)
+		  {		// Status
+		  }
+		if (res[1] == 0xFE)
+		  {		// Inputs from RF RIO
+		    // TODO
+		  }
+		if (res[1] == 0xFD && reslen > 12)
+		  {		// RF signal
+		    event_t *e = newevent (EVENT_RF);
+		    e->serial = ((res[3] << 16) | (res[4] << 8) | res[5]);
+		    e->rfstatus = res[7];
+		    postevent (e);
 		  }
 		break;
 	      }
@@ -1184,8 +1202,6 @@ poller (void *d)
 	    }
 	  case TYPE_RIO:	// Output to RIO
 	    {
-	      if (dev[id].rf)
-		break;
 	      if (mydev[id].restart)
 		{		// RIO specific resets
 		  mydev[id].restart = 0;
@@ -1199,7 +1215,7 @@ poller (void *d)
 		}
 	      int n;
 	      for (n = 0; n < MAX_INPUT && mydev[id].response[n] == dev[id].ri[n].response; n++);
-	      if (dev[id].rf && (mydev[id].send01 || n < MAX_INPUT))
+	      if (mydev[id].send01 || n < MAX_INPUT)
 		{
 		  if (cmdlen)
 		    more++;
@@ -1272,6 +1288,11 @@ poller (void *d)
 		      mydev[id].send02 = 0;
 		    }
 		}
+	      break;
+	    }
+	  case TYPE_RFR:	// Output to RF RIO
+	    {
+	      // TODO - is anything sent?
 	      break;
 	    }
 	  }

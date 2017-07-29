@@ -38,6 +38,7 @@ typedef unsigned char input_t;
 typedef unsigned char output_t;
 typedef unsigned short tamper_t;
 typedef unsigned short fault_t;
+typedef unsigned short voltage_t;
 
 typedef unsigned int fob_t;	// Fob number
 
@@ -49,6 +50,7 @@ typedef unsigned int fob_t;	// Fob number
 	t(PAD)	\
 	t(MAX)	\
 	t(RIO)	\
+	t(RFR)	\
 
 #define t(x)	TYPE_##x,
 enum
@@ -68,8 +70,9 @@ const char *type_name[MAX_TYPE];	// Device type name
 	e(FAULT)	\
 	e(KEY)		\
 	e(FOB)		\
-	e(FOB_HELD)		\
+	e(FOB_HELD)	\
 	e(DOOR)		\
+	e(RF)		\
 
 #define e(x) EVENT_##x,
 enum
@@ -140,7 +143,7 @@ struct device_s
   output_t invert;		// Invert outputs
   fault_t fault;		// Bit map of faults
   tamper_t tamper;		// Bit map of tampers (device tamper is 1<<8)
-  unsigned char type:2;		// Type of device
+  unsigned char type;		// Type of device
   unsigned char disabled:1;	// Device disabled, not polled
   unsigned char missing:1;	// Device is missing
   unsigned char found:1;	// Device has been found
@@ -169,9 +172,8 @@ struct device_s
     };
     struct
     {				// RIO
-	    unsigned char rf:1;	// Is newer RF RIO
       input_t low;		// Low res fault or short circuit tamper, set by library
-      unsigned short voltage[8];	// Reported voltages, seems 5 is battery and 6 is mains on the RIO PSU, 0 is main power on normal RIO
+      voltage_t voltage[8];	// Reported voltages, seems 5 is battery and 6 is mains on the RIO PSU, 0 is main power on normal RIO
       struct
       {
 	unsigned char response;	// Response time in 10ms units
@@ -182,6 +184,10 @@ struct device_s
       {
 	unsigned char invert:1;
       } ro[MAX_OUTPUT];
+    };
+    struct			// RF
+    {
+      // TODO
     };
   };
 };
@@ -215,6 +221,11 @@ struct event_s
     struct
     {				// EVENT_FOB / EVENT_FOB_HELD
       fob_t fob;		// Decimal fob ID for FOB related door events
+    };
+    struct
+    {				// EVENT_RF
+      unsigned int serial;
+      unsigned char rfstatus;
     };
   };
 };
