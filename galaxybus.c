@@ -894,7 +894,7 @@ poller (void *d)
 		  }
 		break;
 	      }
-	    case TYPE_RFR:	// Data from Rf RIO
+	    case TYPE_RFR:	// Data from RF RIO
 	      {
 		if (res[1] == 0xFE && res[2] == 0x0F)
 		  mydev[id].tamper |= (1 << MAX_INPUT);	// tamper
@@ -910,38 +910,38 @@ poller (void *d)
 		  }
 		if (res[1] == 0xFD && reslen > 12)
 		  {		// RF signal
-		    if (!(res[3] & 0xF0) && !res[6] && !res[8] && !res[9])
-		      {		// Probably a V2GY packet
-			unsigned int serial = ((res[3] << 16) | (res[4] << 8) | res[5]);
-			if (res[10] == 5)
-			  {	// Fob
-			    if (res[7] == 0x20)
-			      {
-				event_t *e = newevent (EVENT_FOB);
-				e->fob = serial;
-				postevent (e);
-				// TODO port?
-			      }
-			    else if (res[7] == 0x40)
-			      {
-				event_t *e = newevent (EVENT_FOB_HELD);
-				e->fob = serial;
-				postevent (e);
-				// TODO port?
-			      }
-			    // TODO
-			  }
-			else
-			  {
-			    // TODO find / create rf device
-			    // TODO Send found, key, status, or tamper events
-			    event_t *e = newevent (EVENT_RF);
-			    e->serial = serial;
-			    e->rfstatus = res[7];
-			    e->rfsignal = res[11];
-			    postevent (e);
-			  }
+		    // find device by serial, or create new device object
+		    // TODO
+		    switch (res[10])
+		      {		// Device types we know
+		      case 0x03:	// PIR V2GY or Flood V2GY
+			// TODO
+			break;
+		      case 0x05:	// Fob V2GY (simple)
+			// TODO
+			break;
+		      case 0x06:	// Smoke detector, V2GY or Alpha
+			// TODO
+			break;
+		      case 0x08:	// Fob Alpha
+			// TODO
+			break;
+		      case 0x12:	// Flood Alpha
+			// TODO
+			break;
+		      case 0x18:	// PIR Alpha
+			// TODO
+			break;
 		      }
+		    // Set up response message to device
+		    // TODO
+		    // TODO temp for now
+		    event_t *e = newevent (EVENT_KEY);
+		    e->rfserial = ((res[2] << 24) | (res[3] << 16) | (res[4] << 8) | res[5]);
+		    e->rfstatus = ((res[6] << 24) | (res[7] << 16) | (res[8] << 8) | res[9]);
+		    e->rftype = res[10];
+		    e->rfsignal = res[11];
+		    postevent (e);
 		  }
 		break;
 	      }
