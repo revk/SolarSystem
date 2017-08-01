@@ -583,7 +583,7 @@ poller (void *d)
   void sendcmd (void)
   {				// Send command
     if (!dev[id].type || dev[id].type != TYPE_PAD)
-      usleep (4000);
+      usleep (3000);
     if (write (f, cmd, cmdlen) != (int) cmdlen)
       errors++;
     // Delay for the sending of the command - we do not rx data at this point (though can pick up a break sometimes)
@@ -622,7 +622,7 @@ poller (void *d)
 	{			// we have a character
 	  if (!reslen && !*res)
 	    continue;		// An initial break is seeing tail end of us sending
-	  timeout.tv_usec = 7000;	// Inter message gap typically 9 to 10ms
+	  timeout.tv_usec = 6000;	// Inter message gap typically 9 to 10ms
 	  if (!reslen && (debug || dump))
 	    {			// Timing for debug
 	      gettimeofday (&now, &tz);
@@ -705,11 +705,11 @@ poller (void *d)
       if (reslen == 3 && res[1] == 0xF2)
 	{			// Did not understand
 	  errors++;
-	  fail ();
-	  continue;
+	  if (fail ())
+	    continue;
 	}
       retry = 0;
-      // Process response in context of cmd sent
+      // Process response in context of cmd sent - resets cmdlen, and may have cmdlen set again as part of response to response
       if (reslen && cmdlen)
 	{
 	  if (!mydev[id].polling)
@@ -766,6 +766,7 @@ poller (void *d)
 		  postevent (newevent (EVENT_FOUND));
 		}
 	    }
+	  cmdlen = 0;		// Reset.. Possible that some responses need immediate reply.
 	  switch (type)
 	    {
 	    case TYPE_MAX:	// Data from max
@@ -832,8 +833,10 @@ poller (void *d)
 			event_t *e = newevent (EVENT_KEY);
 			e->key = "0123456789BA\n\e*#"[res[2] & 0x0F];
 			postevent (e);
-			mydev[id].send0B = 1;
-			more = 1;	// Don't get distracted with an urgent device as we'll end up seeing this key again if we do
+			// Acknowledge key
+			cmd[++cmdlen] = 0x0B;
+			cmd[++cmdlen] = (mydev[id].toggle0B ? 2 : 0);
+			mydev[id].toggle0B ^= 1;
 		      }
 		    break;
 		  }
@@ -924,7 +927,9 @@ poller (void *d)
 			// TODO
 			break;
 		      case 0x08:	// Fob Alpha
-			// TODO
+			{
+			  // TODO
+			}
 			break;
 		      case 0x12:	// Flood Alpha
 			// TODO
@@ -936,7 +941,7 @@ poller (void *d)
 		    // Set up response message to device
 		    // TODO
 		    // TODO temp for now
-		    event_t *e = newevent (EVENT_KEY);
+		    event_t *e = newevent (EVENT_RF);
 		    e->rfserial = ((res[2] << 24) | (res[3] << 16) | (res[4] << 8) | res[5]);
 		    e->rfstatus = ((res[6] << 24) | (res[7] << 16) | (res[8] << 8) | res[9]);
 		    e->rftype = res[10];
@@ -947,6 +952,8 @@ poller (void *d)
 	      }
 	    }
 	}
+      if (cmdlen)
+	more = 1;		// Have set up new command in response to response
       if (more && stall++ >= MAX_STALL)
 	{
 	  stalled++;
@@ -1000,7 +1007,6 @@ poller (void *d)
 // Note, this mostly works by comparing dev to mydev, and sending new required settings from dev and copying to mydev
 // Take care to avoid race conditions, e.g. read dev, send command, then copy (changed) dev to mydev - that is bad
       more = 0;
-      cmdlen = 0;		// Note the following use ++cmdlen, so leave cmdlen one short
       if (type && mydev[id].polling)
 	switch (type)
 	  {
