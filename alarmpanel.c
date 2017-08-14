@@ -2590,7 +2590,7 @@ doevent (event_t * e)
 		      }
 		    else
 		      {
-			dolog (mydoor[d].groups, "FOBHELDIGNORED", u->name, doorno, "Ignored held fob %lu as not setting options", e->fob);
+			dolog (mydoor[d].groups, "FOBHELDIGNORED", u->name, doorno, "Ignored held fob %lu as no setting options", e->fob);
 			door_error (d);
 		      }
 		  }
