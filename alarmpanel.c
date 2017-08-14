@@ -2546,9 +2546,14 @@ doevent (event_t * e)
 		      }
 		    else
 		      {
-			if (u->group_open & mydoor[d].groups & ~state[STATE_SET] & ~state[STATE_ARM])
+			if (u->group_open & mydoor[d].groups)
 			  {
-			    if (mydoor[d].airlock >= 0 && door[mydoor[d].airlock].state != DOOR_LOCKED && door[mydoor[d].airlock].state != DOOR_DEADLOCKED)
+			    if (door[d].state == DOOR_DEADLOCKED)
+			      {
+				dolog (mydoor[d].groups, "DOORLOCKED", u->name, doorno, "Door is locked, not opening DOOR%02d using fob %lu", mydoor[d].airlock, e->fob);
+				door_error (d);
+			      }
+			    else if (mydoor[d].airlock >= 0 && door[mydoor[d].airlock].state != DOOR_LOCKED && door[mydoor[d].airlock].state != DOOR_DEADLOCKED)
 			      {
 				dolog (mydoor[d].groups, "DOORAIRLOCK", u->name, doorno, "Airlock violation with DOOR%02d using fob %lu", mydoor[d].airlock, e->fob);
 				door_error (d);
