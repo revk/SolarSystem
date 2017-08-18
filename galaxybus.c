@@ -458,6 +458,7 @@ poller (void *d)
 {
   char *argv[] = { "bus" };
 #include <trace.h>
+  int wd = open ("/dev/watchdog", O_RDWR);
   int busid = (long) d;
   if (busid < 0 || busid >= MAX_BUS)
     errx (1, "Bad bus ID to start %d", busid);
@@ -992,6 +993,8 @@ poller (void *d)
 			}
 		      while (m && mydev[idleid].polling);
 		      idlecheck = 1;
+		      if (wd >= 0)
+			write (wd, &idlecheck, 1);	// Poke watchdog
 		    }
 		}
 	      if (dev[id].disabled)
