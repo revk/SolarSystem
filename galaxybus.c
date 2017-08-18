@@ -416,8 +416,6 @@ doorman (void *d)
 		  door[d].beep = 1;
 		else
 		  door[d].beep = 0;
-		if (!door[d].blip)
-		  port_output (door[d].o_beep, door[d].beep);	// Beep
 		event_t *e = malloc (sizeof (event_t));
 		if (!e)
 		  errx (1, "malloc");
@@ -429,7 +427,10 @@ doorman (void *d)
 		postevent (e);
 	      }
 	    if (!door[d].blip)
-	      door_led (d, state);	// LED
+	      {
+		door_led (d, state);	// LED
+		port_output (door[d].o_beep, tv.tv_usec >= 500000 ? door[d].beep : 0);	// Beep
+	      }
 	    else
 	      {			// Override led/beep
 		door[d].blip--;
