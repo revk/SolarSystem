@@ -174,7 +174,7 @@ unsigned int commfailreported = 0;
 typedef unsigned char state_t;
 
 // The actual state bits...
-const char *setfile = "/tmp/alarmset";
+const char *setfile = "/var/local/alarmset";
 static group_t state[STATES] = { };	// the states, for each group
 static group_t previous_state[STATES] = { };	// the states, for each group
 
