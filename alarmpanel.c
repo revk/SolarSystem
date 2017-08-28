@@ -2336,14 +2336,14 @@ doevent (event_t * e)
 	      if ((e->status & (1 << i)))
 		{		// on
 		  if (state[STATE_ENGINEERING])
-		    syslog (LOG_INFO, "+%s(%s)", port, name);
+		    syslog (LOG_INFO, "+%s(%s)", port, name ? : "");
 		  for (s = 0; s < STATE_TRIGGERS; s++)
 		    add_state (mydevice[id].input[i].trigger[s], port, name, s);
 		}
 	      else
 		{		// off
 		  if (state[STATE_ENGINEERING])
-		    syslog (LOG_INFO, "-%s(%s)", port, name);
+		    syslog (LOG_INFO, "-%s(%s)", port, name ? : "");
 		  for (s = 0; s < STATE_TRIGGERS; s++)
 		    rem_state (mydevice[id].input[i].trigger[s], port, name, s);
 		}
@@ -2397,13 +2397,13 @@ doevent (event_t * e)
 	      if ((e->status & (1 << i)))
 		{
 		  if (state[STATE_ENGINEERING])
-		    syslog (LOG_INFO, "+%s(%s) Tamper", port, name);
+		    syslog (LOG_INFO, "+%s(%s) Tamper", port, name ? : "");
 		  add_tamper (g, port, name);
 		}
 	      else
 		{
 		  if (state[STATE_ENGINEERING])
-		    syslog (LOG_INFO, "-%s(%s) Tamper", port, name);
+		    syslog (LOG_INFO, "-%s(%s) Tamper", port, name ? : "");
 		  rem_tamper (g, port, name);
 		}
 	    }
@@ -2455,13 +2455,13 @@ doevent (event_t * e)
 	      if ((e->status & (1 << i)))
 		{
 		  if (state[STATE_ENGINEERING])
-		    syslog (LOG_INFO, "+%s(%s) Fault", port, name);
+		    syslog (LOG_INFO, "+%s(%s) Fault", port, name ? : "");
 		  add_fault (g, port, name);
 		}
 	      else
 		{
 		  if (state[STATE_ENGINEERING])
-		    syslog (LOG_INFO, "-%s(%s) Fault", port, name);
+		    syslog (LOG_INFO, "-%s(%s) Fault", port, name ? : "");
 		  rem_fault (g, port, name);
 		}
 	    }
