@@ -657,7 +657,7 @@ load_config (const char *configfile)
 	      {			// Resistance and response
 		if ((v = xml_get (x, "@response")))
 		  device[id].ri[n].response = atoi (v) / 10;
-		if ((v = xml_get (x, "@thresholds"))||(v = xml_get (x, "@preset")))
+		if ((v = xml_get (x, "@thresholds")) || (v = xml_get (x, "@preset")))
 		  {		// resistance thresholds
 		    unsigned int q = 0;
 		    for (q = 0; q < sizeof (rio_thresholds) / sizeof (*rio_thresholds) && strcasecmp (rio_thresholds[q].name, v); q++);
@@ -2335,11 +2335,15 @@ doevent (event_t * e)
 	      char *name = mydevice[id].input[i].name ? : mydevice[id].name;
 	      if ((e->status & (1 << i)))
 		{		// on
+		  if (state[STATE_ENGINEERING])
+		    syslog (LOG_INFO, "+%s(%s)", port, name);
 		  for (s = 0; s < STATE_TRIGGERS; s++)
 		    add_state (mydevice[id].input[i].trigger[s], port, name, s);
 		}
 	      else
 		{		// off
+		  if (state[STATE_ENGINEERING])
+		    syslog (LOG_INFO, "-%s(%s)", port, name);
 		  for (s = 0; s < STATE_TRIGGERS; s++)
 		    rem_state (mydevice[id].input[i].trigger[s], port, name, s);
 		}
@@ -2391,9 +2395,17 @@ doevent (event_t * e)
 	      for (s = 0; s < STATE_TRIGGERS; s++)
 		g |= mydevice[id].input[i].trigger[s];
 	      if ((e->status & (1 << i)))
-		add_tamper (g, port, name);
+		{
+		  if (state[STATE_ENGINEERING])
+		    syslog (LOG_INFO, "+%s(%s) Tamper", port, name);
+		  add_tamper (g, port, name);
+		}
 	      else
-		rem_tamper (g, port, name);
+		{
+		  if (state[STATE_ENGINEERING])
+		    syslog (LOG_INFO, "-%s(%s) Tamper", port, name);
+		  rem_tamper (g, port, name);
+		}
 	    }
 	for (; i < MAX_TAMPER && e->changed; i++)
 	  if (e->changed & (1 << i))
@@ -2441,9 +2453,17 @@ doevent (event_t * e)
 	      for (s = 0; s < STATE_TRIGGERS; s++)
 		g |= mydevice[id].input[i].trigger[s];
 	      if ((e->status & (1 << i)))
-		add_fault (g, port, name);
+		{
+		  if (state[STATE_ENGINEERING])
+		    syslog (LOG_INFO, "+%s(%s) Fault", port, name);
+		  add_fault (g, port, name);
+		}
 	      else
-		rem_fault (g, port, name);
+		{
+		  if (state[STATE_ENGINEERING])
+		    syslog (LOG_INFO, "-%s(%s) Fault", port, name);
+		  rem_fault (g, port, name);
+		}
 	    }
 	if (device[id].type == TYPE_RIO && e->changed)
 	  {
