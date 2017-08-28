@@ -657,22 +657,34 @@ load_config (const char *configfile)
 	      {			// Resistance and response
 		if ((v = xml_get (x, "@response")))
 		  device[id].ri[n].response = atoi (v) / 10;
-		if ((v = xml_get (x, "@thresholds")))
-		  {		// resistance thesholds
-		    int q = 0;
-		    while (isdigit (*v) && q < 5)
+		if ((v = xml_get (x, "@thresholds"))||(v = xml_get (x, "@preset")))
+		  {		// resistance thresholds
+		    unsigned int q = 0;
+		    for (q = 0; q < sizeof (rio_thresholds) / sizeof (*rio_thresholds) && strcasecmp (rio_thresholds[q].name, v); q++);
+		    if (q < sizeof (rio_thresholds) / sizeof (*rio_thresholds))
 		      {
-			int o = 0;
-			while (isdigit (*v))
-			  o = o * 10 + *v++ - '0';
-			if (*v == ',')
-			  v++;
-			while (isspace (*v))
-			  v++;
-			device[id].ri[n].threshold[q++] = o / 100;
+			device[id].ri[n].threshold[0] = rio_thresholds[q].tampersc;
+			device[id].ri[n].threshold[1] = rio_thresholds[q].lowres;
+			device[id].ri[n].threshold[2] = rio_thresholds[q].normal;
+			device[id].ri[n].threshold[3] = rio_thresholds[q].highres;
+			device[id].ri[n].threshold[4] = rio_thresholds[q].open;
 		      }
-		    if (*v)
-		      dolog (ALL_GROUPS, "CONFIG", NULL, port_name (p), "Input with bad threshold value %s", v);
+		    else
+		      {
+			while (isdigit (*v) && q < 5)
+			  {
+			    int o = 0;
+			    while (isdigit (*v))
+			      o = o * 10 + *v++ - '0';
+			    if (*v == ',')
+			      v++;
+			    while (isspace (*v))
+			      v++;
+			    device[id].ri[n].threshold[q++] = o / 100;
+			  }
+			if (*v)
+			  dolog (ALL_GROUPS, "CONFIG", NULL, port_name (p), "Input with bad threshold value %s", v);
+		      }
 		  }
 	      }
 	  }

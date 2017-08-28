@@ -90,7 +90,12 @@ const char *door_name[DOOR_COUNT] = { DOOR };
 #undef d
 
 #define RIO_DEFAULT_RESPONSE    300	// ms
-const unsigned char RIO_DEFAULT_THRESHOLDS[] = { 8, 9, 12, 13, 120 };	// 100 ohm units
+
+const rio_threshold_t rio_thresholds[3] = {
+  {"1k", 8, 9, 12, 13, 120},
+  {"2k2", 18, 20, 25, 27, 120},
+  {"4k7", 37, 42, 55, 65, 190},
+};
 
 pthread_t doorthread;
 
@@ -1313,10 +1318,18 @@ poller (void *d)
 			cmd[++cmdlen] = n;
 			memcpy (mydev[id].threshold[n], (unsigned char *) dev[id].ri[n].threshold, sizeof (mydev[id].threshold[n]));
 			if (mydev[id].threshold[n][sizeof (mydev[id].threshold[n]) - 1])
-			  memcpy (cmd + cmdlen + 1, (unsigned char *) mydev[id].threshold[n], sizeof (mydev[id].threshold[n]));
+			  {
+			    memcpy (cmd + cmdlen + 1, (unsigned char *) mydev[id].threshold[n], sizeof (mydev[id].threshold[n]));
+			    cmdlen += sizeof (mydev[id].threshold[n]);
+			  }
 			else
-			  memcpy (cmd + cmdlen + 1, RIO_DEFAULT_THRESHOLDS, sizeof (mydev[id].threshold[n]));
-			cmdlen += sizeof (mydev[id].threshold[n]);
+			  {
+			    cmd[++cmdlen] = rio_thresholds[0].tampersc;
+			    cmd[++cmdlen] = rio_thresholds[0].lowres;
+			    cmd[++cmdlen] = rio_thresholds[0].normal;
+			    cmd[++cmdlen] = rio_thresholds[0].highres;
+			    cmd[++cmdlen] = rio_thresholds[0].open;
+			  }
 		      }
 		  }
 	      if (mydev[id].send02 || mydev[id].output != dev[id].output || mydev[id].invert != dev[id].invert)

@@ -127,6 +127,20 @@ enum
   FAULT_RIO_BAD_BAT,		// Battery fault
 };
 
+// RIO presets
+typedef struct rio_threshold_s rio_threshold_t;
+struct rio_threshold_s
+{
+	const char *name;
+	// Resistance, upper for each bank, in 100 ohm multiples.
+	unsigned char tampersc;
+	unsigned char lowres;
+	unsigned char normal;
+	unsigned char highres;
+	unsigned char open;
+};
+const rio_threshold_t rio_thresholds[3];
+
 // A port ID is used for several purposes
 // A zero is invalid.
 // Reference to a device on a bus is (busid<<16)+(deviceid<<8)
