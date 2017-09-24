@@ -898,14 +898,18 @@ poller (void *d)
 		  {		// Status
 		    dev[id].found = 1;
 		    mydev[id].input = res[2];
-		    if (reslen > 4)
+		    if (reslen > 7)
 		      {
 			mydev[id].fault = ((mydev[id].fault & ~0xFF) | res[4] | res[5]);
 			dev[id].low = (res[5] | res[7]);	// combined with tamper and fault can work out what state it is...
 			mydev[id].tamper = ((mydev[id].tamper & ~0xFF) | res[3]);
 		      }
-		    else	// Shorter message
-		      mydev[id].fault = dev[id].low = mydev[id].tamper = 0;
+		    else
+		      {		// Short message when no fault or tamper
+			mydev[id].fault = (mydev[id].fault & ~0xFF);
+			dev[id].low = 0;
+			mydev[id].tamper = (mydev[id].tamper & ~0xFF);
+		      }
 		  }
 		break;
 	      }
