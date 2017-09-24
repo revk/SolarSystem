@@ -170,6 +170,7 @@ const char *state_name[STATES] = {
 
 unsigned int commfailcount = 0;
 unsigned int commfailreported = 0;
+group_t walkthrough = 0;
 
 typedef unsigned char state_t;
 
@@ -917,6 +918,7 @@ load_config (const char *configfile)
   if ((x = xml_element_next_by_name (config, NULL, "system")))
     {
       state[STATE_ENGINEERING] = group_parse (xml_get (x, "@engineering"));
+      walkthrough = xml_get (x, "@walk-through") ? 1 : 0;
     }
   // All groups...
   {
@@ -2335,14 +2337,14 @@ doevent (event_t * e)
 	      char *name = mydevice[id].input[i].name ? : mydevice[id].name;
 	      if ((e->status & (1 << i)))
 		{		// on
-		  if (state[STATE_ENGINEERING])
+		  if (walkthrough)
 		    syslog (LOG_INFO, "+%s(%s)", port, name ? : "");
 		  for (s = 0; s < STATE_TRIGGERS; s++)
 		    add_state (mydevice[id].input[i].trigger[s], port, name, s);
 		}
 	      else
 		{		// off
-		  if (state[STATE_ENGINEERING])
+		  if (walkthrough)
 		    syslog (LOG_INFO, "-%s(%s)", port, name ? : "");
 		  for (s = 0; s < STATE_TRIGGERS; s++)
 		    rem_state (mydevice[id].input[i].trigger[s], port, name, s);
@@ -2396,13 +2398,13 @@ doevent (event_t * e)
 		g |= mydevice[id].input[i].trigger[s];
 	      if ((e->status & (1 << i)))
 		{
-		  if (state[STATE_ENGINEERING])
+		  if (walkthrough)
 		    syslog (LOG_INFO, "+%s(%s) Tamper", port, name ? : "");
 		  add_tamper (g, port, name);
 		}
 	      else
 		{
-		  if (state[STATE_ENGINEERING])
+		  if (walkthrough)
 		    syslog (LOG_INFO, "-%s(%s) Tamper", port, name ? : "");
 		  rem_tamper (g, port, name);
 		}
@@ -2454,13 +2456,13 @@ doevent (event_t * e)
 		g |= mydevice[id].input[i].trigger[s];
 	      if ((e->status & (1 << i)))
 		{
-		  if (state[STATE_ENGINEERING])
+		  if (walkthrough)
 		    syslog (LOG_INFO, "+%s(%s) Fault", port, name ? : "");
 		  add_fault (g, port, name);
 		}
 	      else
 		{
-		  if (state[STATE_ENGINEERING])
+		  if (walkthrough)
 		    syslog (LOG_INFO, "-%s(%s) Fault", port, name ? : "");
 		  rem_fault (g, port, name);
 		}
