@@ -1,38 +1,7 @@
 <panel>
-<system name="BEC Alarm" sms-user="(redacted)" sms-pass="(redacted)" email="(redacted)"/>
+<system name="Test Alarm" ws-user="adrian"/>
 
-<keypad id="PAD210" prox="MAX290" message="Binfield Eng Ctr"/>
-
-<group id="1" name="BEC"/>
-<group id="2" name="House"/>
-
-<door max="MAX191" name="FrontDoor" open-quiet="true" time-open="3" groups="2" comment="Dummy, used to set house alarm"/>
-<door max="MAX192" name="UtilityDoor" i-unlock="RIO1021" open-quiet="true" time-lock="5" groups="12" set="1"/>
-<door max="MAX293" name="BECDoor" i-unlock="RIO2021" open-quiet="true" time-lock="5" groups="1"/>
-
-<input id="RIO2022" name="PSU" tamper="*"/>
-<input id="RIO2023" name="Bell" tamper="*"/>
-
-<input id="RIO2027" name="PIRBEC1" intruder="1"/>
-<input id="RIO2028" name="PIRBEC2" intruder="1"/>
-
-<input id="RIO1022" name="PIRUtility" intruder="2"/>
-<input id="RIO1023" name="FrontDoor" intruder="2"/>
-<input id="RIO1024" name="PIRHallway" intruder="2"/>
-<input id="RIO1025" name="PIRLiving" intruder="" comment="Disabled because pets and a speaker in the way"/>
-
-<output id="RIO2021" name="Bell" type="BELL"/>
-<output id="RIO2022" name="Strobe" type="STROBE"/>
-<output id="RIO2023" name="Holdoff" type="ENGINEERING"/>
-<output id="RIO2024" name="Dark" type="SET"/>
-
-<user name="sandra" fill-name="Sandra" fob="(redacted)" set="*" unset="*" reset="*"/>
-<user name="adrian" full-name="Adrian" fob="(redacted) (redacted) (redacted) (redacted)" set="*" unset="*" reset="*"/>
-<user name="james" full-name="James" fob="(redacted)"/>
-<user name="kiaja" full-name="Kiaja" fob="(redacted)"/>
-
-<log type="ARM CANCEL UNSET FAILSET ZONE RESET" action="(redacted mobile number)"/>
-<log type="ZONE" groups="2" action="(redacted mobile number)"/>
-<log type="SET FAILSET UNSET" groups="2" user="sandra" action="(redacted mobile number)"/>
+<keypad id="PAD110" message="Test alarm"/>
+<user name="adrian" pin="1234"/>
 
 </panel>

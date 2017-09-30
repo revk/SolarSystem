@@ -45,6 +45,9 @@
 #ifdef	LIBEMAIL
 #include <libemail.h>
 #endif
+#ifdef	LIBWS
+#include <websocket.h>
+#endif
 
 xml_t config = NULL;
 
@@ -919,6 +922,14 @@ load_config (const char *configfile)
     {
       state[STATE_ENGINEERING] = group_parse (xml_get (x, "@engineering"));
       walkthrough = xml_get (x, "@walk-through") ? 1 : 0;
+      char *wd = xml_get (x, "@watchdog");
+      if (wd && strcasecmp (wd, "false"))
+	{
+	  if (*wd == '/')
+	    WATCHDOG = strdup (wd);
+	  else
+	    WATCHDOG = "/dev/watchdog";
+	}
     }
   // All groups...
   {
@@ -2673,12 +2684,36 @@ profile_check (void)
     }
 }
 
+#ifdef	LIBWS
+const char *
+wsconnect (websocket_t * w, const char *origin, const char *host, const char *path, const char *addr)
+{
+  // TODO
+  return NULL;
+}
+
+const char *
+wsrx (websocket_t * w, xml_t data)
+{
+  // TODO
+  return NULL;
+}
+#endif
+
 // Main
 int
 main (int argc, const char *argv[])
 {
   const char *configfile = NULL;
   const char *maxfrom = NULL, *maxto = NULL;
+#ifdef	LIBWS
+  const char *wsport = "81";
+  const char *wsorigin = NULL;
+  const char *wshost = NULL;
+  const char *wspath = NULL;
+  const char *wscertfile = NULL;
+  const char *wskeyfile = NULL;
+#endif
 #include <trace.h>
   {
     int c;
@@ -2710,6 +2745,13 @@ main (int argc, const char *argv[])
       }
     poptFreeContext (optCon);
   }
+#ifdef	LIBWS
+  {
+    const char *e = websocket_bind (wsport, wsorigin, wshost, wspath, wscertfile, wskeyfile, wsconnect, wsrx);
+    if (e)
+      errx (1, "Websocket fail: %s", e);
+  }
+#endif
   gettimeofday (&now, NULL);
   bus_init ();
   pthread_mutex_init (&logmutex, 0);

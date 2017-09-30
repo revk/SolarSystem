@@ -42,6 +42,8 @@ typedef unsigned short voltage_t;
 
 typedef unsigned int fob_t;	// Fob number
 
+extern char *WATCHDOG; // Watchdog device if needed (default NULL)
+
 #define MAX_RETRY	3	// Message retry
 #define	MAX_STALL	20	// Messages to same device in a row
 

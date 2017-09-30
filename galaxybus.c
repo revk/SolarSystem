@@ -75,6 +75,8 @@ pthread_mutex_t lockmutex;
 pthread_mutex_t outputmutex;
 int qpipe[2];
 
+char *WATCHDOG = NULL;		// Optional watchdog device
+
 #define t(x) #x,
 const char *type_name[MAX_TYPE] = { TYPE };
 
@@ -611,7 +613,9 @@ poller (void *d)
       }
   }
   // Main polling loop
-  int wd = open ("/dev/watchdog", O_RDWR);
+  int wd = -1;
+  if (WATCHDOG)
+    open (WATCHDOG, O_RDWR);
   while (1)
     {
       unsigned char type = dev[id].type;
