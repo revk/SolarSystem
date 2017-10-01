@@ -2685,15 +2685,8 @@ profile_check (void)
 }
 
 #ifdef	LIBWS
-const char *
-wsconnect (websocket_t * w, const char *origin, const char *host, const char *path, const char *addr)
-{
-  // TODO
-  return NULL;
-}
-
-const char *
-wsrx (websocket_t * w, xml_t data)
+char *
+wscallback (websocket_t * w, xml_t head,xml_t data)
 {
   // TODO
   return NULL;
@@ -2747,7 +2740,7 @@ main (int argc, const char *argv[])
   }
 #ifdef	LIBWS
   {
-    const char *e = websocket_bind (wsport, wsorigin, wshost, wspath, wscertfile, wskeyfile, wsconnect, wsrx);
+    const char *e = websocket_bind (wsport, wsorigin, wshost, wspath, wscertfile, wskeyfile, wscallback);
     if (e)
       errx (1, "Websocket fail: %s", e);
   }
