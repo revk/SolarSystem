@@ -2167,11 +2167,11 @@ keypad_ws (xml_t root, keypad_t * k)
   unsigned int n = port_device (k->port);
   xml_add (x, "+line", (char *) device[n].text[0]);
   xml_add (x, "+line", (char *) device[n].text[1]);
-  xml_addf (x, "+-beep", "%d",device[n].beep[0]);
-  xml_addf (x, "+-beep", "%d",device[n].beep[1]);
-  xml_addf (x, "+@-cursor", "%d",device[n].cursor);
-  xml_addf (x, "+@-silent", "%s",device[n].silent?"true":"false");
-  xml_addf (x, "+@-blink", "%s",device[n].blink?"true":"false");
+  xml_addf (x, "+-beep", "%d", device[n].beep[0]);
+  xml_addf (x, "+-beep", "%d", device[n].beep[1]);
+  xml_addf (x, "+@-cursor", "%d", device[n].cursor);
+  xml_addf (x, "+@-silent", "%s", device[n].silent ? "true" : "false");
+  xml_addf (x, "+@-blink", "%s", device[n].blink ? "true" : "false");
   return x;
 }
 #endif
@@ -2775,11 +2775,13 @@ wscallback (websocket_t * w, xml_t head, xml_t data)
       xml_tree_delete (head);
       if (!er)
 	{			// We want to send current state data to this connection
+	  pthread_mutex_lock (&eventmutex);	// Avoid things changing
 	  xml_t root = xml_tree_new (NULL);
 	  keypad_t *k;
 	  for (k = keypad; k; k = k->next)
 	    keypad_ws (root, k);
 	  websocket_send (1, &w, root);
+	  pthread_mutex_unlock (&eventmutex);
 	  xml_tree_delete (root);
 	}
       return er;
