@@ -171,6 +171,16 @@ const char *state_name[STATES] = {
 #undef s
 };
 
+#ifdef	LIBWS
+char *wsport = NULL;
+char *wsauth = NULL;
+const char *wsorigin = NULL;
+const char *wshost = NULL;
+const char *wspath = NULL;
+const char *wscertfile = NULL;
+const char *wskeyfile = NULL;
+#endif
+
 unsigned int commfailcount = 0;
 unsigned int commfailreported = 0;
 group_t walkthrough = 0;
@@ -930,6 +940,26 @@ load_config (const char *configfile)
 	  else
 	    WATCHDOG = "/dev/watchdog";
 	}
+#ifdef	LIBWS
+      char *ws = xml_get (x, "@ws-auth");
+      if (ws)
+	wsauth = strdup (ws);
+      ws = xml_get (x, "@ws-host");
+      if (ws)
+	wshost = strdup (ws);
+      ws = xml_get (x, "@ws-port");
+      if (ws)
+	wsport = strdup (ws);
+      ws = xml_get (x, "@ws-path");
+      if (ws)
+	wspath = strdup (ws);
+      ws = xml_get (x, "@ws-cert-file");
+      if (ws)
+	wscertfile = strdup (ws);
+      ws = xml_get (x, "@ws-key-file");
+      if (ws)
+	wskeyfile = strdup (ws);
+#endif
     }
   // All groups...
   {
@@ -2686,10 +2716,45 @@ profile_check (void)
 
 #ifdef	LIBWS
 char *
-wscallback (websocket_t * w, xml_t head,xml_t data)
+wscallback (websocket_t * w, xml_t head, xml_t data)
 {
-  // TODO
-  return NULL;
+  if (!w || (head && data))
+    {
+      if (head)
+	xml_tree_delete (head);
+      if (data)
+	xml_tree_delete (data);
+      return "Websocket only";	// Would be nice to serve necessary for letsencrypt maybe
+    }
+  if (head)
+    {				// New connection, authenticate
+      char *er = NULL;
+      if (wsauth)
+	{
+	  char *auth = xml_get (head, "@authorization");
+	  if (!auth)
+	    er = "401 Need auth";
+	  else if (!wsauth || strcmp (wsauth, auth))
+	    er = "403 Bad auth";
+	}
+      syslog (LOG_INFO, "%s Websocket %s", xml_get (head, "@IP"), er ? : "OK");
+      xml_tree_delete (head);
+      if (!er)
+	{			// We want to send current state data to this connection
+	  xml_t x = xml_tree_new ("solarsystem");
+	  websocket_send (1, &w, x);
+	  xml_tree_delete (x);
+	}
+      return er;
+    }
+  if (data)
+    {				// Existing connection
+      // Process valid requests
+      // TODO
+      xml_tree_delete (data);
+      return NULL;
+    }
+  return NULL;			// Closed connection, we don't care really
 }
 #endif
 
@@ -2699,14 +2764,6 @@ main (int argc, const char *argv[])
 {
   const char *configfile = NULL;
   const char *maxfrom = NULL, *maxto = NULL;
-#ifdef	LIBWS
-  const char *wsport = "81";
-  const char *wsorigin = NULL;
-  const char *wshost = NULL;
-  const char *wspath = NULL;
-  const char *wscertfile = NULL;
-  const char *wskeyfile = NULL;
-#endif
 #include <trace.h>
   {
     int c;
@@ -2738,13 +2795,6 @@ main (int argc, const char *argv[])
       }
     poptFreeContext (optCon);
   }
-#ifdef	LIBWS
-  {
-    const char *e = websocket_bind (wsport, wsorigin, wshost, wspath, wscertfile, wskeyfile, wscallback);
-    if (e)
-      errx (1, "Websocket fail: %s", e);
-  }
-#endif
   gettimeofday (&now, NULL);
   bus_init ();
   pthread_mutex_init (&logmutex, 0);
@@ -2753,6 +2803,15 @@ main (int argc, const char *argv[])
   if (pthread_create (&logthread, NULL, logger, NULL))
     warn ("Bus start failed");
   load_config (configfile);
+#ifdef	LIBWS
+  if (wsport)
+    {
+      const char *e = websocket_bind (wsport, wsorigin, wshost, wspath, wscertfile, wskeyfile, wscallback);
+      if (e)
+	errx (1, "Websocket fail: %s", e);
+      syslog (LOG_INFO, "Websocket bind %s", wsport);
+    }
+#endif
   if (!buses)
     buses = 1;			// Poll one anyway
   {

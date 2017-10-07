@@ -1,5 +1,5 @@
 <panel>
-<system name="Test Alarm" ws-user="adrian"/>
+<system name="Test Alarm" ws-port="1234"/>
 
 <keypad id="PAD110" message="Test alarm"/>
 <user name="adrian" pin="1234"/>
