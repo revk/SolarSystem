@@ -1431,6 +1431,7 @@ struct log_s
 };
 volatile log_t *logs = NULL, **logp = NULL;
 pthread_mutex_t logmutex;
+pthread_mutex_t eventmutex;;
 int logpipe[2];
 static log_t *
 next_log (long long usec)
@@ -2782,8 +2783,9 @@ wscallback (websocket_t * w, xml_t head, xml_t data)
     {				// Existing connection
       // Process valid requests
       syslog (LOG_INFO, "Websocket data");
+      pthread_mutex_lock (&eventmutex);	// Stop simultaneous event processing
       // TODO
-
+      pthread_mutex_unlock (&eventmutex);
       xml_tree_delete (data);
       return NULL;
     }
@@ -2830,6 +2832,7 @@ main (int argc, const char *argv[])
   }
   gettimeofday (&now, NULL);
   bus_init ();
+  pthread_mutex_init (&eventmutex, 0);
   pthread_mutex_init (&logmutex, 0);
   pipe2 (logpipe, O_NONBLOCK);	// We check queue anyway an we don't want to risk stalling if app is stalled for some reason and a lot of events
   pthread_t logthread;
@@ -2949,11 +2952,17 @@ main (int argc, const char *argv[])
 		  nextpoll = group[n].when_set;
 	      }
 	  if (set)
-	    alarm_set (NULL, NULL, set);
+	    {
+	      pthread_mutex_lock (&eventmutex);
+	      alarm_set (NULL, NULL, set);
+	      pthread_mutex_unlock (&eventmutex);
+	    }
 	  if (failed)
 	    {
+	      pthread_mutex_lock (&eventmutex);
 	      alarm_failset (NULL, NULL, failed);
 	      keypads_message (failed, "SET FAILED");
+	      pthread_mutex_unlock (&eventmutex);
 	    }
 	}
       group_t changed = 0;
@@ -3013,7 +3022,11 @@ main (int argc, const char *argv[])
 	  }
       }
       if (changed)
-	state_change (changed);
+	{
+	  pthread_mutex_lock (&eventmutex);
+	  state_change (changed);
+	  pthread_mutex_unlock (&eventmutex);
+	}
       {				// KA check
 	int n;
 	for (n = 0; n < MAX_BUS; n++)
@@ -3025,7 +3038,11 @@ main (int argc, const char *argv[])
       }
       event_t *e;
       if ((e = bus_event ((nextpoll - now.tv_sec) * 1000000ULL - now.tv_usec)))
-	doevent (e);
+	{
+	  pthread_mutex_lock (&eventmutex);
+	  doevent (e);
+	  pthread_mutex_unlock (&eventmutex);
+	}
     }
   return 0;
 }
