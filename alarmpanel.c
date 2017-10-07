@@ -2791,7 +2791,26 @@ wscallback (websocket_t * w, xml_t head, xml_t data)
       // Process valid requests
       syslog (LOG_INFO, "Websocket data");
       pthread_mutex_lock (&eventmutex);	// Stop simultaneous event processing
-      // TODO
+      xml_t e;
+      for (e = NULL; (e = xml_element_next_by_name (data, e, "keypad"));)
+	{			// Key presses
+	  port_t port = port_parse (xml_get (e, "@id"), NULL, -1);
+	  if (!port)
+	    continue;
+	  keypad_t *k = NULL;
+	  for (k = keypad; k && k->port != port; k = k->next);
+	  if (!k)
+	    continue;
+	  char *key = xml_get (e, "@key");
+	  if (!key || !*key)
+	    continue;
+	  if (!strcasecmp (key, "ESC"))
+	    key = "\e";
+	  else if (!strcasecmp (key, "ENT"))
+	    key = "\n";
+	  keypad_update (k, *key);
+	}
+      // TODO other requests, alarm set, unset, door open, etc...
       pthread_mutex_unlock (&eventmutex);
       xml_tree_delete (data);
       return NULL;
@@ -2822,7 +2841,8 @@ main (int argc, const char *argv[])
       {
        "dump", 'V', POPT_ARG_NONE, &dump, 0, "Dump", NULL},
       {
-       "debug", 'v', POPT_ARG_NONE, &debug, 0, "Debug", NULL}, POPT_AUTOHELP {NULL}
+       "debug", 'v', POPT_ARG_NONE, &debug, 0, "Debug", NULL}, POPT_AUTOHELP {
+									      NULL}
     };
     optCon = poptGetContext (NULL, argc, argv, optionsTable, 0);
     //poptSetOtherOptionHelp (optCon, "");
