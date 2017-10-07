@@ -2167,6 +2167,11 @@ keypad_ws (xml_t root, keypad_t * k)
   unsigned int n = port_device (k->port);
   xml_add (x, "+line", (char *) device[n].text[0]);
   xml_add (x, "+line", (char *) device[n].text[1]);
+  xml_addf (x, "+-beep", "%d",device[n].beep[0]);
+  xml_addf (x, "+-beep", "%d",device[n].beep[1]);
+  xml_addf (x, "+@-cursor", "%d",device[n].cursor);
+  xml_addf (x, "+@-silent", "%s",device[n].silent?"true":"false");
+  xml_addf (x, "+@-blink", "%s",device[n].blink?"true":"false");
   return x;
 }
 #endif
