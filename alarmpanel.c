@@ -1874,7 +1874,7 @@ keypad_login (keypad_t * k, user_t * u, const char *where)
 }
 
 static void *
-keypad_update (keypad_t * k, char key)
+do_keypad_update (keypad_t * k, char key)
 {				// Update keypad display / beep (key non 0 for key press).
   // Called either for a key, or when k->when passed.
   int p;
@@ -2155,6 +2155,34 @@ keypad_update (keypad_t * k, char key)
   device[n].beep[0] = 0;
   device[n].beep[1] = 0;
   return NULL;
+}
+
+#ifdef	LIBWS
+xml_t
+keypad_ws (xml_t root, keypad_t * k)
+{				// Add keypad status to XML
+  xml_t x = xml_element_add (root, "keypad");
+  xml_add (x, "@id", port_name (k->port));
+  unsigned int n = port_device (k->port);
+  xml_add (x, "+line", (char *) device[n].text[0]);
+  xml_add (x, "+line", (char *) device[n].text[1]);
+  return x;
+}
+#endif
+
+static void *
+keypad_update (keypad_t * k, char key)
+{				// Do keypad update, possibly with a key pressed
+  void *ret = do_keypad_update (k, key);
+#ifdef	LIBWS
+  xml_t root = xml_tree_new (NULL);
+  xml_t x = keypad_ws (root, k);
+  if (key)
+    xml_addf (x, "@key", "%c", key);
+  websocket_send_all (root);
+  xml_tree_delete (root);
+#endif
+  return ret;
 }
 
 void
@@ -2741,16 +2769,21 @@ wscallback (websocket_t * w, xml_t head, xml_t data)
       xml_tree_delete (head);
       if (!er)
 	{			// We want to send current state data to this connection
-	  xml_t x = xml_tree_new ("solarsystem");
-	  websocket_send (1, &w, x);
-	  xml_tree_delete (x);
+	  xml_t root = xml_tree_new (NULL);
+	  keypad_t *k;
+	  for (k = keypad; k; k = k->next)
+	    keypad_ws (root, k);
+	  websocket_send (1, &w, root);
+	  xml_tree_delete (root);
 	}
       return er;
     }
   if (data)
     {				// Existing connection
       // Process valid requests
+      syslog (LOG_INFO, "Websocket data");
       // TODO
+
       xml_tree_delete (data);
       return NULL;
     }
@@ -2803,15 +2836,6 @@ main (int argc, const char *argv[])
   if (pthread_create (&logthread, NULL, logger, NULL))
     warn ("Bus start failed");
   load_config (configfile);
-#ifdef	LIBWS
-  if (wsport)
-    {
-      const char *e = websocket_bind (wsport, wsorigin, wshost, wspath, wscertfile, wskeyfile, wscallback);
-      if (e)
-	errx (1, "Websocket fail: %s", e);
-      syslog (LOG_INFO, "Websocket bind %s", wsport);
-    }
-#endif
   if (!buses)
     buses = 1;			// Poll one anyway
   {
@@ -2821,12 +2845,21 @@ main (int argc, const char *argv[])
 	{
 	  bus_start (n);
 	  if (debug)
-	    printf ("Starting bus %d\n", n);
+	    printf ("Starting bus %d\n", n + 1);
 	  mybus[n].watchdog = now.tv_sec + 120;
 	}
   }
   if (debug)
     printf ("%s Groups found\n", group_list (groups));
+#ifdef	LIBWS
+  if (wsport)
+    {
+      const char *e = websocket_bind (wsport, wsorigin, wshost, wspath, wscertfile, wskeyfile, wscallback);
+      if (e)
+	errx (1, "Websocket fail: %s", e);
+      syslog (LOG_INFO, "Websocket bind %s", wsport);
+    }
+#endif
   state[STATE_UNSET] = groups;
   if (setfile)
     {
