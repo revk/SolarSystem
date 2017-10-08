@@ -2759,14 +2759,17 @@ do_wscallback (websocket_t * w, xml_t head, xml_t data)
 	  char *auth = xml_get (head, "@authorization");
 	  if (!auth || !wsauth || strcmp (wsauth, auth))
 	    {
-	      if(auth)sleep (10);
+	      if (auth)
+		sleep (10);
 	      return "401 SolarSystem";
 	    }
 	}
       char *path = xml_element_content (head);
-      if (path && *path == '/' && !path[1])
+      if (!path || *path != '/')
+	return "404 WTF";
+      if (!path[1])
 	path = "/index.html";
-      if (!path || *path != '/' || !isalnum (path[1]))
+      if (!isalnum (path[1]))
 	return "404 WTF";
       char *p;
       for (p = path + 1; isalnum (*p); p++);
@@ -2896,7 +2899,7 @@ main (int argc, const char *argv[])
   if (debug)
     printf ("%s Groups found\n", group_list (groups));
 #ifdef	LIBWS
-  if (wsport)
+  if (wsport || wskeyfile)
     {
       const char *e = websocket_bind (wsport, wsorigin, wshost, wspath, wscertfile, wskeyfile, wscallback);
       if (e)

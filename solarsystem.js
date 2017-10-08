@@ -27,23 +27,24 @@ ws.onmessage=function(event)
 			x=document.createElement("div");
 			x.id=k.id;
 			x.className="keypad";
+			document.getElementById("keypads").appendChild(x);
 			l=document.createElement("img");
 			l.className="keypad";
 			l.src="keypad.png";
-			x.append(l);
+			x.appendChild(l);
 			l=document.createElement("div");
 			l.className="keypadline1";
-			x.append(l);
+			x.appendChild(l);
 			l=document.createElement("div");
 			l.className="keypadline2";
-			x.append(l);
+			x.appendChild(l);
 			l=document.createElement("div");
 			l.className="keypadlabel";
 			l.textContent=k.id;
-			x.append(l);
+			x.appendChild(l);
 			l=document.createElement("div");
 			l.className="keypadbuttons";
-			x.append(l);
+			x.appendChild(l);
 			keys=['1','2','3','A','4','5','6','B','7','8','9','ent','*','0','#','esc'];
 			for(var n=0;n<16;n++)
 			{
@@ -57,9 +58,8 @@ ws.onmessage=function(event)
 					var a={keypad:[{id:k.id,key:this.key}]};
 					ws.send(JSON.stringify(a));
 				}
-				l.append(b);
+				l.appendChild(b);
 			}
-			document.getElementById("keypads").append(x);
 		}
 		x.children[1].textContent=k.line[0];
 		x.children[2].textContent=k.line[1];
