@@ -1966,6 +1966,11 @@ do_keypad_update (keypad_t * k, char key)
       else if (key)
 	k->when_logout = now.tv_sec + k->time_logout;
     }
+  else if (!k->user && k->when_logout && k->when_logout <= now.tv_sec)
+    {				// PIN timeout
+      k->when_logout = 0;
+      k->pininput = 0;
+    }
   if (k->when_logout && k->when_logout < k->when)
     k->when = k->when_logout;
   if (k->msg)
@@ -2067,9 +2072,7 @@ do_keypad_update (keypad_t * k, char key)
   // PIN entry?
   if (k->pininput || isdigit (key))
     {
-      if (!key)
-	k->pininput = 0;	// timed out
-      else if (key == '\n' || key == '\e')
+      if (key == '\n' || key == '\e')
 	{
 	  k->pininput = 0;
 	  if (key == '\n' || key == 'A')
@@ -2106,7 +2109,7 @@ do_keypad_update (keypad_t * k, char key)
 	    l1[p] = ' ';
 	  for (p = 0; p < 16; p++)
 	    l2[p] = ' ';
-	  k->when = now.tv_sec + 10;	// Timeout
+	  k->when = k->when_logout = now.tv_sec + 10;	// Timeout
 	}
       if (k->pininput)
 	return NULL;
