@@ -77,13 +77,9 @@ ws.onmessage=function(event)
 			l.className="doorlabel";
 			l.textContent=d.name;
 			x.appendChild(l);
-			l=document.createElement("div");
-			l.className="doorstate";
+			l=document.createElement("img");
+			l.className="doorimg";
 			l.textContent=d.name;
-			x.appendChild(l);
-			l=document.createElement("button");
-			l.className="dooropen";
-			l.textContent="OPEN";
 			l.doorid=d.id;
 			l.onclick=function()
 			{
@@ -91,8 +87,13 @@ ws.onmessage=function(event)
 				ws.send(JSON.stringify(a));
 			}
 			x.appendChild(l);
+			l=document.createElement("div");
+			l.className="doorstate";
+			l.textContent=d.name;
+			x.appendChild(l);
 		}
-		x.children[1].textContent=d.state;
+		x.children[1].src="door"+d.state+".png";
+		x.children[2].textContent=d.state;
 	});
 	if(o.input)
 	{	// Input updates

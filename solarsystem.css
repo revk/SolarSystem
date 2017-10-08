@@ -52,5 +52,7 @@ img.keypad {
 }
 
 div.door {
-	border: 1px solid red;
+	display: inline-block;
+	position: relative;
+	text-align: center;
 }
