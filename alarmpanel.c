@@ -2175,6 +2175,18 @@ keypad_ws (xml_t root, keypad_t * k)
   xml_addf (x, "+@-blink", "%s", device[n].blink ? "true" : "false");
   return x;
 }
+
+xml_t
+door_ws (xml_t root, int d)
+{				// Add door status to XML
+  if (!door[d].state)
+    return NULL;		// Not active
+  xml_t x = xml_element_add (root, "door");
+  xml_addf (x, "@id", "DOOR%02d", d);
+  if(mydoor[d].name)xml_add(x,"@name",mydoor[d].name);
+  xml_add(x,"@state",door_name[door[d].state]);
+  return x;
+}
 #endif
 
 static void *
@@ -2399,6 +2411,12 @@ doevent (event_t * e)
 		rem_fault (d->groups, doorno, doorname);
 	      }
 	  }
+#ifdef	LIBWS
+	xml_t root = xml_tree_new (NULL);
+	if (door_ws (root, e->door))
+	  websocket_send_all (root);
+	xml_tree_delete (root);
+#endif
       }
       break;
     case EVENT_INPUT:
@@ -2815,7 +2833,7 @@ do_wscallback (websocket_t * w, xml_t head, xml_t data)
       if (!path || *path != '/')
 	return "404 WTF";
       char *a = authpath ();
-      if (!a||strncmp (path + 1, a, strlen (a)) || path[1 + strlen (a)] != '/')
+      if (!a || strncmp (path + 1, a, strlen (a)) || path[1 + strlen (a)] != '/')
 	return "403 Sorry";
       // We want to send current state data to this connection
       pthread_mutex_lock (&eventmutex);	// Avoid things changing
@@ -2823,6 +2841,9 @@ do_wscallback (websocket_t * w, xml_t head, xml_t data)
       keypad_t *k;
       for (k = keypad; k; k = k->next)
 	keypad_ws (root, k);
+      int d;
+      for (d = 0; d < MAX_DOOR; d++)
+	door_ws (root, d);
       websocket_send (1, &w, root);
       pthread_mutex_unlock (&eventmutex);
       xml_tree_delete (root);

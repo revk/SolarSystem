@@ -4,6 +4,8 @@
 <keypad id="PAD110" message="Test alarm (A)"/>
 <keypad id="PAD120" message="Test alarm (B)"/>
 
+<door name="Test Door"/>
+
 <user name="adrian" pin="1234"/>
 
 </panel>

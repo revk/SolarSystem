@@ -3,7 +3,7 @@
 window.onload=function()
 {
 // Set up web socket connection
-var ws = new WebSocket((window.location.protocol=="https:"?"wss://":"ws://")+window.location.host+"/");
+var ws = new WebSocket((window.location.protocol=="https:"?"wss://":"ws://")+window.location.host+window.location.pathname);
 ws.onopen=function()
 {
 	document.getElementById("status").textContent="Connected";
@@ -63,6 +63,26 @@ ws.onmessage=function(event)
 		}
 		x.children[1].textContent=k.line[0];
 		x.children[2].textContent=k.line[1];
+	});
+	if(o.door)o.door.forEach(function(d){
+		console.log(d);
+		x=document.getElementById(d.id);
+		if(!x)
+		{
+			x=document.createElement("div");
+			x.id=d.id;
+			x.className="door";
+			document.getElementById("doors").appendChild(x);
+			l=document.createElement("div");
+			l.className="doorlabel";
+			l.textContent=d.name;
+			x.appendChild(l);
+			l=document.createElement("div");
+			l.className="doorstate";
+			l.textContent=d.name;
+			x.appendChild(l);
+		}
+		x.children[1].textContent=d.state;
 	});
 	if(o.input)
 	{	// Input updates

@@ -51,3 +51,6 @@ img.keypad {
 	width:200px;
 }
 
+div.door {
+	border: 1px solid red;
+}
