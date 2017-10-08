@@ -56,3 +56,16 @@ div.door {
 	position: relative;
 	text-align: center;
 }
+
+div.group {
+	display: inline-block;
+	position: relative;
+	text-align: center;
+}
+
+div.groupid {
+	position: absolute;
+	left: 43%;
+	top: 15px;
+	pointer-events: none;
+}

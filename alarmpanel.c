@@ -578,6 +578,60 @@ xml_copy (xml_t x, char *n)
   return v;
 }
 
+
+#ifdef	LIBWS
+xml_t
+keypad_ws (xml_t root, keypad_t * k)
+{				// Add keypad status to XML
+  xml_t x = xml_element_add (root, "keypad");
+  xml_add (x, "@id", port_name (k->port));
+  if (k->name)
+    xml_add (x, "@name", k->name);
+  unsigned int n = port_device (k->port);
+  xml_add (x, "+line", (char *) device[n].text[0]);
+  xml_add (x, "+line", (char *) device[n].text[1]);
+  xml_addf (x, "+-beep", "%d", device[n].beep[0]);
+  xml_addf (x, "+-beep", "%d", device[n].beep[1]);
+  xml_addf (x, "+@-cursor", "%d", device[n].cursor);
+  xml_addf (x, "+@-silent", "%s", device[n].silent ? "true" : "false");
+  xml_addf (x, "+@-blink", "%s", device[n].blink ? "true" : "false");
+  return x;
+}
+
+xml_t
+door_ws (xml_t root, int d)
+{				// Add door status to XML
+  if (!door[d].state)
+    return NULL;		// Not active
+  xml_t x = xml_element_add (root, "door");
+  xml_addf (x, "@id", "DOOR%02d", d);
+  if (mydoor[d].name)
+    xml_add (x, "@name", mydoor[d].name);
+  xml_add (x, "@state", door_name[door[d].state]);
+  return x;
+}
+
+xml_t
+state_ws (xml_t root, char *tag, int s, int c)
+{
+  if (!c)
+    return NULL;
+  xml_t x = xml_add (root, tag, NULL);
+  const char *i = state_name[s];
+  char *name = alloca (strlen (i) + 3), *p = name;
+  *p++ = '+';
+  *p++ = '-';
+  while (*i)
+    *p++ = tolower (*i++);
+  *p = 0;
+  int g;
+  for (g = 0; g < MAX_GROUP; g++)
+    if (c & (1 << g))
+      xml_addf (x, name, "%d", g);
+  return x;
+}
+#endif
+
 static void *
 load_config (const char *configfile)
 {
@@ -1233,6 +1287,9 @@ state_change (group_t g)
 	  if (group[n].when_alarm + group[n].bell_rest < now.tv_sec)
 	    group[n].when_alarm = now.tv_sec - group[n].entry_time;	// restart to allow bell to ring again
 	}
+#ifdef	LIBWS
+  xml_t x = xml_tree_new (NULL);
+#endif
   // Log state changes
   for (s = 0; s < STATES; s++)
     if (s != STATE_ZONE && s != STATE_ENTRY && s != STATE_NONEXIT && s != STATE_OPEN)
@@ -1244,12 +1301,18 @@ state_change (group_t g)
 	    {
 	      snprintf (type, sizeof (type), "+%s", state_name[s]);
 	      dolog (c, type, NULL, NULL, NULL);
+#ifdef	LIBWS
+	      state_ws (x, "*set", s, c);
+#endif
 	    }
 	  c = (~state[s] & previous_state[s]);
 	  if (c)
 	    {
 	      snprintf (type, sizeof (type), "-%s", state_name[s]);
 	      dolog (c, type, NULL, NULL, NULL);
+#ifdef	LIBWS
+	      state_ws (x, "*clr", s, c);
+#endif
 	    }
 	  previous_state[s] = state[s];
 	  if (s == STATE_SET)
@@ -1264,6 +1327,11 @@ state_change (group_t g)
 		}
 	    }
 	}
+#ifdef	LIBWS
+  if (xml_element_next (x, NULL))
+    websocket_send_all (x);
+  xml_tree_delete (x);
+#endif
   // Do outputs and stuff resulting from state change
   output_state (g);
   door_state (g);
@@ -2159,37 +2227,6 @@ do_keypad_update (keypad_t * k, char key)
   return NULL;
 }
 
-#ifdef	LIBWS
-xml_t
-keypad_ws (xml_t root, keypad_t * k)
-{				// Add keypad status to XML
-  xml_t x = xml_element_add (root, "keypad");
-  xml_add (x, "@id", port_name (k->port));
-  unsigned int n = port_device (k->port);
-  xml_add (x, "+line", (char *) device[n].text[0]);
-  xml_add (x, "+line", (char *) device[n].text[1]);
-  xml_addf (x, "+-beep", "%d", device[n].beep[0]);
-  xml_addf (x, "+-beep", "%d", device[n].beep[1]);
-  xml_addf (x, "+@-cursor", "%d", device[n].cursor);
-  xml_addf (x, "+@-silent", "%s", device[n].silent ? "true" : "false");
-  xml_addf (x, "+@-blink", "%s", device[n].blink ? "true" : "false");
-  return x;
-}
-
-xml_t
-door_ws (xml_t root, int d)
-{				// Add door status to XML
-  if (!door[d].state)
-    return NULL;		// Not active
-  xml_t x = xml_element_add (root, "door");
-  xml_addf (x, "@id", "DOOR%02d", d);
-  if (mydoor[d].name)
-    xml_add (x, "@name", mydoor[d].name);
-  xml_add (x, "@state", door_name[door[d].state]);
-  return x;
-}
-#endif
-
 static void *
 keypad_update (keypad_t * k, char key)
 {				// Do keypad update, possibly with a key pressed
@@ -2840,12 +2877,27 @@ do_wscallback (websocket_t * w, xml_t head, xml_t data)
       // We want to send current state data to this connection
       pthread_mutex_lock (&eventmutex);	// Avoid things changing
       xml_t root = xml_tree_new (NULL);
+      int g;
+      for (g = 0; g < MAX_GROUP; g++)
+	if (groups & (1 << g))
+	  {
+	    xml_t x = xml_addf (root, "+group@-id", "%d", g);
+	    if (group[g].name)
+	      xml_add (x, "@name", group[g].name);
+	  }
       keypad_t *k;
       for (k = keypad; k; k = k->next)
 	keypad_ws (root, k);
       int d;
       for (d = 0; d < MAX_DOOR; d++)
 	door_ws (root, d);
+      int s;
+      for (s = 0; s < STATES; s++)
+	if (s != STATE_ZONE && s != STATE_ENTRY && s != STATE_NONEXIT && s != STATE_OPEN)
+	  {
+	    state_ws (root, "*set", s, state[s] & groups);
+	    state_ws (root, "*clr", s, (~state[s]) & groups);
+	  }
       websocket_send (1, &w, root);
       pthread_mutex_unlock (&eventmutex);
       xml_tree_delete (root);
@@ -2884,10 +2936,20 @@ do_wscallback (websocket_t * w, xml_t head, xml_t data)
 	    continue;
 	  if (door[d].state == DOOR_CLOSED)
 	    door_lock (d);
-	  else
+	  else if (door[d].state != DOOR_DEADLOCKED)
 	    door_open (d);
 	}
-      // TODO other requests, alarm set, unset, door open, etc...
+      for (e = NULL; (e = xml_element_next_by_name (data, e, "group"));)
+	{
+	  int g = atoi (xml_element_content (e) ? : "-1");
+	  if (g >= 0 && g < MAX_GROUP)
+	    {
+	      if (state[STATE_UNSET] & ~state[STATE_ARM] & (1 << g))
+		alarm_arm ("web", NULL, 1 << g, 1);
+	      else
+		alarm_unset ("web", NULL, 1 << g);
+	    }
+	}
       pthread_mutex_unlock (&eventmutex);
       return NULL;
     }

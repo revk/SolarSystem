@@ -20,6 +20,48 @@ ws.onerror=function(event)
 ws.onmessage=function(event)
 {
 	o=JSON.parse(event.data);
+	if(o.group)o.group.forEach(function(g){
+		x=document.getElementById(g.id);
+		if(!x)
+		{
+			x=document.createElement("div");
+			x.id="group"+g.id;
+			x.className="group";
+			document.getElementById("groups").appendChild(x);
+			l=document.createElement("img");
+			l.className="groupimg";
+			l.groupid=g.id;
+			l.onclick=function()
+			{
+					var a={group:[this.groupid]};
+					ws.send(JSON.stringify(a));
+			}
+			x.appendChild(l);
+				l=document.createElement("div");
+				l.className="groupid";
+				l.textContent=g.id;
+				x.appendChild(l);
+			if(g.name)
+			{
+				l=document.createElement("div");
+				l.className="groupname";
+				l.textContent=g.name;
+				x.appendChild(l);
+			}
+		}
+	});
+	if(o.set&&o.set.set)o.set.set.forEach(function(g){
+		document.getElementById("group"+g).children[0].src="groupSET.png";
+	});
+	if(o.set&&o.set.arm)o.set.arm.forEach(function(g){
+		document.getElementById("group"+g).children[0].src="groupARM.png";
+	});
+	if(o.set&&o.set.unset)o.set.unset.forEach(function(g){
+		document.getElementById("group"+g).children[0].src="groupUNSET.png";
+	});
+	if(o.clr&&o.clr.arm)o.clr.arm.forEach(function(g){
+		document.getElementById("group"+g).children[0].src="groupUNSET.png";
+	});
 	if(o.keypad)o.keypad.forEach(function(k){
 		x=document.getElementById(k.id);
 		if(!x)
@@ -65,7 +107,6 @@ ws.onmessage=function(event)
 		x.children[2].textContent=k.line[1];
 	});
 	if(o.door)o.door.forEach(function(d){
-		console.log(d);
 		x=document.getElementById(d.id);
 		if(!x)
 		{
