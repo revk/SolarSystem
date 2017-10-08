@@ -659,6 +659,10 @@ load_config (const char *configfile)
     g = 0;
     while ((x = xml_element_next_by_name (config, x, "group")))
       {
+	if (xml_get (x, "@id"))
+	  g = atoi (xml_get (x, "@id"));
+	if (g < 0 || g >= MAX_GROUP)
+	  continue;
 	group[g].name = xml_copy (x, "@name");
 	if ((v = xml_get (x, "@set-time")))
 	  group[g].set_time = atoi (v);
