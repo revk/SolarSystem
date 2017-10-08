@@ -2759,7 +2759,7 @@ do_wscallback (websocket_t * w, xml_t head, xml_t data)
 	  char *auth = xml_get (head, "@authorization");
 	  if (!auth || !wsauth || strcmp (wsauth, auth))
 	    {
-	      sleep (10);
+	      if(auth)sleep (10);
 	      return "401 SolarSystem";
 	    }
 	}

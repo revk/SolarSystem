@@ -1,2 +1,37 @@
 /* SolarSystem css */
 
+div.status {
+	float:right;
+}
+
+div.keypad {
+	display:inline-block;
+	position:relative;
+}
+
+div.keypadline1 {
+	font-family: monospace;
+	font-size: 12px;
+	position: absolute;
+	left: 60px;
+	top: 30px;
+}
+
+div.keypadline2 {
+	font-family: monospace;
+	font-size: 12px;
+	position: absolute;
+	left: 60px;
+	top: 42px;
+}
+
+div.keypadlabel {
+	position: absolute;
+	left: 90px;
+	bottom: 25px;
+}
+
+img.keypad {
+	width:200px;
+}
+

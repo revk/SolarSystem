@@ -2,21 +2,55 @@
 
 window.onload=function()
 {
-var ws = new WebSocket("ws://"+window.location.host+"/");
+// Set up web socket connection
+var ws = new WebSocket((window.location.protocol=="https:"?"wss://":"ws://")+window.location.host+"/");
 ws.onopen=function()
 {
-	console.log("ws open");
+	document.getElementById("status").textContent="Connected";
 }
 ws.onclose=function()
 {
-	console.log("ws close");
+	document.getElementById("status").textContent="DISCONNECTED";
+	setTimeout(function(){window.location.reload(true)},1000);
 }
-ws.onerror=function()
+ws.onerror=function(event)
 {
-	console.log("ws error");
+	document.getElementById("status").textContent="Error: "+event.data;
 }
 ws.onmessage=function(event)
 {
-	console.log(JSON.parse(event.data));
+	o=JSON.parse(event.data);
+	if(o.keypad)o.keypad.forEach(function(k){
+		x=document.getElementById(k.id);
+		if(!x)
+		{
+			x=document.createElement("div");
+			x.id=k.id;
+			x.className="keypad";
+			l=document.createElement("img");
+			l.className="keypad";
+			l.src="keypad.png";
+			x.append(l);
+			l=document.createElement("div");
+			l.className="keypadline1";
+			x.append(l);
+			l=document.createElement("div");
+			l.className="keypadline2";
+			x.append(l);
+			l=document.createElement("div");
+			l.className="keypadlabel";
+			l.textContent=k.id;
+			x.append(l);
+			document.getElementById("keypads").append(x);
+		}
+		x.children[1].textContent=k.line[0];
+		x.children[2].textContent=k.line[1];
+	});
+	if(o.input)
+	{	// Input updates
+	}
+	if(o.log)
+	{	// Log updates
+	}
 }
 }
