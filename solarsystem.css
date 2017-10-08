@@ -31,6 +31,22 @@ div.keypadlabel {
 	bottom: 25px;
 }
 
+div.keypadbuttons {
+	position: absolute;
+	width: 120px;
+	height: 120px;
+	left: 51px;
+	bottom: 71px;
+}
+
+button.keypadbutton {
+	position: absolute;
+	width: 30px;
+	height: 30px;
+	background: transparent;
+	border: none;
+}
+
 img.keypad {
 	width:200px;
 }
