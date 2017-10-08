@@ -2958,9 +2958,9 @@ do_wscallback (websocket_t * w, xml_t head, xml_t data)
 	  if (g >= 0 && g < MAX_GROUP)
 	    {
 	      if (state[STATE_UNSET] & ~state[STATE_ARM] & (1 << g))
-		alarm_arm (xml_get(head,"@IP"), NULL, 1 << g, 1);
+		alarm_arm ("web", NULL, 1 << g, 1);
 	      else
-		alarm_unset (xml_get(head,"@IP"), NULL, 1 << g);
+		alarm_unset ("web", NULL, 1 << g);
 	    }
 	}
       pthread_mutex_unlock (&eventmutex);
