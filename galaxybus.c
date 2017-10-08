@@ -615,7 +615,7 @@ poller (void *d)
   // Main polling loop
   int wd = -1;
   if (WATCHDOG)
-    open (WATCHDOG, O_RDWR);
+    wd = open (WATCHDOG, O_RDWR);
   while (1)
     {
       unsigned char type = dev[id].type;
