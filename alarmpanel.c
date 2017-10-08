@@ -2986,7 +2986,15 @@ int
 main (int argc, const char *argv[])
 {
 #ifdef	LIBWS
-  chdir ("/projects/SolarSystem");	// TODO a better way
+  char *d = strrchr (argv[0], '/');
+  if (d)
+    {
+      char *dir = strdupa (argv[0]);
+      d = strrchr (dir, '/');
+      *d = 0;
+      if (chdir (dir))
+	errx (1, "Count not chdir to %s", dir);
+    }
 #endif
   const char *configfile = NULL;
   const char *maxfrom = NULL, *maxto = NULL;
