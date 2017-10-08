@@ -2882,7 +2882,10 @@ do_wscallback (websocket_t * w, xml_t head, xml_t data)
 	  int d = atoi (id + 4);
 	  if (d < 0 || d >= MAX_DOOR || !door[d].state)
 	    continue;
-	  door_open (d);	// Do we need any other "action" for a door really?
+	  if (door[d].state == DOOR_CLOSED)
+	    door_lock (d);
+	  else
+	    door_open (d);
 	}
       // TODO other requests, alarm set, unset, door open, etc...
       pthread_mutex_unlock (&eventmutex);
