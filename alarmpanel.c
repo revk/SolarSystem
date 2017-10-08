@@ -2749,47 +2749,51 @@ profile_check (void)
 }
 
 #ifdef	LIBWS
-char *
-wscallback (websocket_t * w, xml_t head, xml_t data)
+static char *
+do_wscallback (websocket_t * w, xml_t head, xml_t data)
 {
-  if (!w || (head && data))
-    {
-      if (head)
-	xml_tree_delete (head);
-      if (data)
-	xml_tree_delete (data);
-      return "Websocket only";	// Would be nice to serve necessary for letsencrypt maybe
-    }
-  if (head)
-    {				// New connection, authenticate
-      char *er = NULL;
+  if (!w && head && !data)
+    {				// Non websocket get
       if (wsauth)
 	{
 	  char *auth = xml_get (head, "@authorization");
-	  if (!auth)
-	    er = "401 Need auth";
-	  else if (!wsauth || strcmp (wsauth, auth))
-	    er = "403 Bad auth";
+	  if (!auth || !wsauth || strcmp (wsauth, auth))
+	    {
+	      sleep (10);
+	      return "401 SolarSystem";
+	    }
 	}
-      syslog (LOG_INFO, "%s Websocket %s", xml_get (head, "@IP"), er ? : "OK");
-      xml_tree_delete (head);
-      if (!er)
-	{			// We want to send current state data to this connection
-	  pthread_mutex_lock (&eventmutex);	// Avoid things changing
-	  xml_t root = xml_tree_new (NULL);
-	  keypad_t *k;
-	  for (k = keypad; k; k = k->next)
-	    keypad_ws (root, k);
-	  websocket_send (1, &w, root);
-	  pthread_mutex_unlock (&eventmutex);
-	  xml_tree_delete (root);
-	}
-      return er;
+      char *path = xml_element_content (head);
+      if (path && *path == '/' && !path[1])
+	path = "/index.html";
+      if (!path || *path != '/' || !isalnum (path[1]))
+	return "404 WTF";
+      char *p;
+      for (p = path + 1; isalnum (*p); p++);
+      if (*p != '.' || (strcmp (p, ".html") && strcmp (p, ".js") && strcmp (p, ".css") && strcmp (p, ".png")))	// Very limited options of files to serve
+	return "404 Not found";
+      path = strdup (path);
+      *path = '@';
+      return path;
     }
-  if (data)
+  if (w && head && !data)
+    {				// New connection, authenticate
+      // TODO origin check?
+      // TODO cookie or something to validate?
+      // We want to send current state data to this connection
+      pthread_mutex_lock (&eventmutex);	// Avoid things changing
+      xml_t root = xml_tree_new (NULL);
+      keypad_t *k;
+      for (k = keypad; k; k = k->next)
+	keypad_ws (root, k);
+      websocket_send (1, &w, root);
+      pthread_mutex_unlock (&eventmutex);
+      xml_tree_delete (root);
+      return NULL;
+    }
+  if (w && !head && data)
     {				// Existing connection
       // Process valid requests
-      syslog (LOG_INFO, "Websocket data");
       pthread_mutex_lock (&eventmutex);	// Stop simultaneous event processing
       xml_t e;
       for (e = NULL; (e = xml_element_next_by_name (data, e, "keypad"));)
@@ -2812,10 +2816,20 @@ wscallback (websocket_t * w, xml_t head, xml_t data)
 	}
       // TODO other requests, alarm set, unset, door open, etc...
       pthread_mutex_unlock (&eventmutex);
-      xml_tree_delete (data);
       return NULL;
     }
-  return NULL;			// Closed connection, we don't care really
+  return NULL;
+}
+
+static char *
+wscallback (websocket_t * w, xml_t head, xml_t data)
+{				// Do callback and tidy up afterwards
+  char *e = do_wscallback (w, head, data);
+  if (head)
+    xml_tree_delete (head);
+  if (data)
+    xml_tree_delete (data);
+  return e;
 }
 #endif
 
@@ -2887,7 +2901,6 @@ main (int argc, const char *argv[])
       const char *e = websocket_bind (wsport, wsorigin, wshost, wspath, wscertfile, wskeyfile, wscallback);
       if (e)
 	errx (1, "Websocket fail: %s", e);
-      syslog (LOG_INFO, "Websocket bind %s", wsport);
     }
 #endif
   state[STATE_UNSET] = groups;
