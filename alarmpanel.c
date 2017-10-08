@@ -1924,6 +1924,12 @@ keypad_message (keypad_t * k, char *fmt, ...)
   snprintf (l2, 17, "%-16s", nl ? : "");
   k->when = now.tv_sec + (device[n].silent ? 10 : 3);
   free (msg);
+#ifdef  LIBWS
+  xml_t root = xml_tree_new (NULL);
+  keypad_ws (root, k);
+  websocket_send_all (root);
+  xml_tree_delete (root);
+#endif
   return NULL;
 }
 
