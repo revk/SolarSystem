@@ -28,6 +28,7 @@
 #include <syslog.h>
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <openssl/sha.h>
 #include <fcntl.h>
 #include <netdb.h>
 #include <stdlib.h>
@@ -2752,21 +2753,50 @@ profile_check (void)
 static char *
 do_wscallback (websocket_t * w, xml_t head, xml_t data)
 {
+  char apath[SHA_DIGEST_LENGTH * 2 + 1];
+  char *authpath (void)
+  {				// return an authorisation path - this is used once logged in, and allows websocket to use the same path to then authenticate as no Authorization gets to wwebsocket it seems
+    char *ip;
+    if (!wsauth || !head || !(ip = xml_get (head, "@IP")))
+      return NULL;
+    unsigned char hash[SHA_DIGEST_LENGTH];
+    time_t t = time (0);
+    char today[11];
+    strftime (today, sizeof (today), "%F", localtime (&t));
+    SHA_CTX c;
+    SHA1_Init (&c);
+    SHA1_Update (&c, wsauth, strlen (wsauth));
+    SHA1_Update (&c, ip, strlen (ip));
+    SHA1_Final (hash, &c);
+    int n;
+    for (n = 0; n < SHA_DIGEST_LENGTH; n++)
+      sprintf (apath + n * 2, "%02X", hash[n]);
+    return apath;
+  }
   if (!w && head && !data)
     {				// Non websocket get
-      if (wsauth)
+      if (!wsauth)
+	return "403 Sorry, not set up properly";
+      char *auth = xml_get (head, "@authorization");
+      if (!auth || !wsauth || strcmp (wsauth, auth))
 	{
-	  char *auth = xml_get (head, "@authorization");
-	  if (!auth || !wsauth || strcmp (wsauth, auth))
-	    {
-	      if (auth)
-		sleep (10);
-	      return "401 SolarSystem";
-	    }
+	  if (auth)
+	    sleep (10);
+	  return "401 SolarSystem";
 	}
       char *path = xml_element_content (head);
       if (!path || *path != '/')
 	return "404 WTF";
+      char *a = authpath ();
+      if (!a)
+	return "403 Sorry";
+      if (strncmp (path + 1, a, strlen (a)) || path[1 + strlen (a)] != '/')
+	{			// Redirect to secure path
+	  if (asprintf (&path, ">/%s/", a) < 0)
+	    return "Ooops";
+	  return path;
+	}
+      path += 1 + strlen (a);
       if (!path[1])
 	path = "/index.html";
       if (!isalnum (path[1]))
@@ -2781,8 +2811,12 @@ do_wscallback (websocket_t * w, xml_t head, xml_t data)
     }
   if (w && head && !data)
     {				// New connection, authenticate
-      // TODO origin check?
-      // TODO cookie or something to validate?
+      char *path = xml_element_content (head);
+      if (!path || *path != '/')
+	return "404 WTF";
+      char *a = authpath ();
+      if (!a||strncmp (path + 1, a, strlen (a)) || path[1 + strlen (a)] != '/')
+	return "403 Sorry";
       // We want to send current state data to this connection
       pthread_mutex_lock (&eventmutex);	// Avoid things changing
       xml_t root = xml_tree_new (NULL);
