@@ -2183,8 +2183,9 @@ door_ws (xml_t root, int d)
     return NULL;		// Not active
   xml_t x = xml_element_add (root, "door");
   xml_addf (x, "@id", "DOOR%02d", d);
-  if(mydoor[d].name)xml_add(x,"@name",mydoor[d].name);
-  xml_add(x,"@state",door_name[door[d].state]);
+  if (mydoor[d].name)
+    xml_add (x, "@name", mydoor[d].name);
+  xml_add (x, "@state", door_name[door[d].state]);
   return x;
 }
 #endif
@@ -2871,6 +2872,16 @@ do_wscallback (websocket_t * w, xml_t head, xml_t data)
 	  else if (!strcasecmp (key, "ENT"))
 	    key = "\n";
 	  keypad_update (k, *key);
+	}
+      for (e = NULL; (e = xml_element_next_by_name (data, e, "door"));)
+	{
+	  char *id = xml_get (e, "@id");
+	  if (!id || !strncasecmp (id, "door", 4))
+	    continue;
+	  int d = atoi (id + 4);
+	  if (d < 0 || d >= MAX_DOOR || !door[d].state)
+	    continue;
+	  door_open (d);	// Do we need any other "action" for a door really?
 	}
       // TODO other requests, alarm set, unset, door open, etc...
       pthread_mutex_unlock (&eventmutex);

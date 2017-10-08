@@ -81,6 +81,16 @@ ws.onmessage=function(event)
 			l.className="doorstate";
 			l.textContent=d.name;
 			x.appendChild(l);
+			l=document.createElement("button");
+			l.className="dooropen";
+			l.textContent="OPEN";
+			l.doorid=d.id;
+			l.onclick=function()
+			{
+				var a={door:[{id:this.doorid}]};
+				ws.send(JSON.stringify(a));
+			}
+			x.appendChild(l);
 		}
 		x.children[1].textContent=d.state;
 	});
