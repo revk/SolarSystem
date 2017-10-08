@@ -50,6 +50,9 @@ ws.onmessage=function(event)
 			}
 		}
 	});
+	if(o.clr&&o.clr.arm)o.clr.arm.forEach(function(g){
+		document.getElementById("group"+g).children[0].src="groupUNSET.png";
+	});
 	if(o.set&&o.set.set)o.set.set.forEach(function(g){
 		document.getElementById("group"+g).children[0].src="groupSET.png";
 	});
@@ -57,9 +60,6 @@ ws.onmessage=function(event)
 		document.getElementById("group"+g).children[0].src="groupARM.png";
 	});
 	if(o.set&&o.set.unset)o.set.unset.forEach(function(g){
-		document.getElementById("group"+g).children[0].src="groupUNSET.png";
-	});
-	if(o.clr&&o.clr.arm)o.clr.arm.forEach(function(g){
 		document.getElementById("group"+g).children[0].src="groupUNSET.png";
 	});
 	if(o.keypad)o.keypad.forEach(function(k){
