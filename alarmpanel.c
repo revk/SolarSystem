@@ -2772,6 +2772,7 @@ profile_check (void)
 static char *
 do_wscallback (websocket_t * w, xml_t head, xml_t data)
 {
+  // TODO a better way than Basic http auth would be good some time
   char apath[SHA_DIGEST_LENGTH * 2 + 1];
   char *authpath (void)
   {				// return an authorisation path - this is used once logged in, and allows websocket to use the same path to then authenticate as no Authorization gets to wwebsocket it seems
@@ -2906,6 +2907,9 @@ wscallback (websocket_t * w, xml_t head, xml_t data)
 int
 main (int argc, const char *argv[])
 {
+#ifdef	LIBWS
+  chdir ("/projects/SolarSystem");	// TODO a better way
+#endif
   const char *configfile = NULL;
   const char *maxfrom = NULL, *maxto = NULL;
 #include <trace.h>
@@ -2965,7 +2969,7 @@ main (int argc, const char *argv[])
   if (debug)
     printf ("%s Groups found\n", group_list (groups));
 #ifdef	LIBWS
-  if (wsport || wskeyfile)
+  if (wsport || wskeyfile || wsauth)
     {
       const char *e = websocket_bind (wsport, wsorigin, wshost, wspath, wscertfile, wskeyfile, wscallback);
       if (e)
