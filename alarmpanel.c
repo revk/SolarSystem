@@ -2877,7 +2877,7 @@ do_wscallback (websocket_t * w, xml_t head, xml_t data)
       for (e = NULL; (e = xml_element_next_by_name (data, e, "door"));)
 	{
 	  char *id = xml_get (e, "@id");
-	  if (!id || !strncasecmp (id, "door", 4))
+	  if (!id || strncasecmp (id, "door", 4))
 	    continue;
 	  int d = atoi (id + 4);
 	  if (d < 0 || d >= MAX_DOOR || !door[d].state)
