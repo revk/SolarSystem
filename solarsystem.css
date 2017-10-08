@@ -11,17 +11,17 @@ div.keypad {
 
 div.keypadline1 {
 	font-family: monospace;
-	font-size: 12px;
+	font-size: 11px;
 	position: absolute;
-	left: 60px;
+	left: 59px;
 	top: 30px;
 }
 
 div.keypadline2 {
 	font-family: monospace;
-	font-size: 12px;
+	font-size: 11px;
 	position: absolute;
-	left: 60px;
+	left: 59px;
 	top: 42px;
 }
 

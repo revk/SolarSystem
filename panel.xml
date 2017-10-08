@@ -1,7 +1,9 @@
 <panel>
 <system name="Test Alarm" ws-port="1234" ws-auth="adrian:1234"/>
 
-<keypad id="PAD110" message="Test alarm"/>
+<keypad id="PAD110" message="Test alarm (A)"/>
+<keypad id="PAD111" message="Test alarm (B)"/>
+
 <user name="adrian" pin="1234"/>
 
 </panel>
