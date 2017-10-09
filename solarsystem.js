@@ -156,7 +156,7 @@ ws.onmessage=function(event)
 		{
 			x=document.createElement("div");
 			x.id="input"+i.id;
-			x.textContent=i.name?:i.id;
+			x.textContent=(i.name?i.name:i.id);
 			if(i.name)x.title=i.id;
 			document.getElementById("inputs").appendChild(x);
 		}
@@ -169,7 +169,7 @@ ws.onmessage=function(event)
 		{
 			x=document.createElement("div");
 			x.id="output"+o.id;
-			x.textContent=o.name?:o.id;
+			x.textContent=(o.name?o.name:o.id);
 			if(o.name)x.title=o.id;
 			document.getElementById("outputs").appendChild(x);
 		}
