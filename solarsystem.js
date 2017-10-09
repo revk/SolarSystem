@@ -25,7 +25,8 @@ ws.onerror=function()
 ws.onmessage=function(event)
 {
 	o=JSON.parse(event.data);
-	if(o.group)o.group.forEach(function(g){
+	if(o.group)o.group.forEach(function(g)
+	{
 		x=document.getElementById("group"+g.id);
 		if(!x)
 		{
@@ -56,19 +57,24 @@ ws.onmessage=function(event)
 			}
 		}
 	});
-	if(o.clr&&o.clr.arm)o.clr.arm.forEach(function(g){
+	if(o.clr&&o.clr.arm)o.clr.arm.forEach(function(g)
+	{
 		document.getElementById("group"+g).children[0].src="groupUNSET.png";
 	});
-	if(o.set&&o.set.set)o.set.set.forEach(function(g){
+	if(o.set&&o.set.set)o.set.set.forEach(function(g)
+	{
 		document.getElementById("group"+g).children[0].src="groupSET.png";
 	});
-	if(o.set&&o.set.arm)o.set.arm.forEach(function(g){
+	if(o.set&&o.set.arm)o.set.arm.forEach(function(g)
+	{
 		document.getElementById("group"+g).children[0].src="groupARM.png";
 	});
-	if(o.set&&o.set.unset)o.set.unset.forEach(function(g){
+	if(o.set&&o.set.unset)o.set.unset.forEach(function(g)
+	{
 		document.getElementById("group"+g).children[0].src="groupUNSET.png";
 	});
-	if(o.keypad)o.keypad.forEach(function(k){
+	if(o.keypad)o.keypad.forEach(function(k)
+	{
 		x=document.getElementById(k.id);
 		if(!x)
 		{
@@ -112,7 +118,8 @@ ws.onmessage=function(event)
 		x.children[1].textContent=k.line[0];
 		x.children[2].textContent=k.line[1];
 	});
-	if(o.door)o.door.forEach(function(d){
+	if(o.door)o.door.forEach(function(d)
+	{
 		x=document.getElementById(d.id);
 		if(!x)
 		{
@@ -142,8 +149,8 @@ ws.onmessage=function(event)
 		x.children[1].src="door"+d.state+".png";
 		x.children[2].textContent=d.state;
 	});
-	if(o.input)
-	{	// Input updates
+	if(o.input)o.input.forEach(function(d)
+	{
 		x=document.getElementById("input"+d.id);
 		if(!x)
 		{
@@ -154,8 +161,8 @@ ws.onmessage=function(event)
 			document.getElementById("inputs").appendChild(x);
 		}
 		x.className=(x.tamper?"inputtamper":x.fault?"inputfault":x.active?"inputactive":"inputidle");
-	}
-	if(o.log)
+	});
+	if(o.output)o.output.forEach(function(d)
 	{	// Log updates
 		x=document.getElementById("output"+d.id);
 		if(!x)
@@ -167,8 +174,7 @@ ws.onmessage=function(event)
 			document.getElementById("outputs").appendChild(x);
 		}
 		x.className=(x.active?"outputactive":"outputidle");
-	}
-	}
+	});
 }
 }
 
