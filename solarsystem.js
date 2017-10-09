@@ -159,7 +159,7 @@ ws.onmessage=function(event)
 			if(i.name)x.title=i.id;
 			document.getElementById("inputs").appendChild(x);
 		}
-		x.className=(i.tamper?"inputtamper":i.fault?"inputfault":i.active?"inputactive":"inputidle");
+		x.className="input"+(i.tamper?"tamper":i.fault?"fault":i.active?"active":"idle");
 	});
 	if(o.output)o.output.forEach(function(o)
 	{	// Log updates
