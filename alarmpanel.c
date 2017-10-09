@@ -307,6 +307,11 @@ static struct
     state_t type;		// Which state we are outputting
     group_t group;		// Which groups it applies to
   } output[MAX_OUTPUT];
+  // Updated states from events
+  input_t inputs;		// Bit map of inputs
+  fault_t faults;		// Bit map of faults
+  tamper_t tampers;		// Bit map of tampers (device tamper is 1<<8)
+
 } mydevice[MAX_DEVICE] =
 {
 };
@@ -629,6 +634,54 @@ state_ws (xml_t root, char *tag, int s, int c)
     if (c & (1 << g))
       xml_addf (x, name, "%d", g);
   return x;
+}
+
+xml_t
+input_ws (xml_t root, port_t port)
+{
+  int id = port_device (port);
+  if (id < 0 || id > MAX_DEVICE || !device[id].type)
+    return NULL;
+  int n = port_id (port);
+  if (n < 0 || n >= MAX_INPUT)
+    return NULL;
+  if ((device[id].type == TYPE_MAX && n >= 4) || device[id].type != TYPE_RIO)
+    return NULL;
+  xml_t x = xml_element_add (root, "input");
+  xml_add (x, "@id", port_name (port));
+  if (mydevice[id].name)
+    xml_add (x, "@device", mydevice[id].name);
+  if (mydevice[id].input[n].name)
+    xml_add (x, "@name", mydevice[id].input[n].name);
+  if (mydevice[id].inputs & (1 << n))
+    xml_add (x, "@-active", "true");
+  if (mydevice[id].tampers & (1 << n))
+    xml_add (x, "@-tamper", "true");
+  if (mydevice[id].faults & (1 << n))
+    xml_add (x, "@-fault", "true");
+  return NULL;
+}
+
+xml_t
+output_ws (xml_t root, port_t port)
+{
+  int id = port_device (port);
+  if (id < 0 || id > MAX_DEVICE || !device[id].type)
+    return NULL;
+  int n = port_id (port);
+  if (n < 0 || n >= MAX_OUTPUT)
+    return NULL;
+  if ((device[id].type == TYPE_MAX && n >= 2) || device[id].type != TYPE_RIO)
+    return NULL;
+  xml_t x = xml_element_add (root, "output");
+  xml_add (x, "@id", port_name (port));
+  if (mydevice[id].name)
+    xml_add (x, "@device", mydevice[id].name);
+  if (mydevice[id].output[n].name)
+    xml_add (x, "@name", mydevice[id].output[n].name);
+  if (device[id].output & (1 << n))
+    xml_add (x, "@-active", "true");
+  return NULL;
 }
 #endif
 
@@ -1105,6 +1158,9 @@ output_state (group_t g)
 {				// Set outputs after state change
   if (!g)
     return;
+#ifdef	LIBWS
+  xml_t root = xml_tree_new (NULL);
+#endif
   port_t p;
   for (p = 0; p < MAX_DEVICE; p++)
     if (device[p].type && device[p].type < STATES)
@@ -1119,6 +1175,9 @@ output_state (group_t g)
 		    {
 		      port_t id = (p << 8) | (1 << o);
 		      port_output (id, 1);
+#ifdef	LIBWS
+		      output_ws (root, id);
+#endif
 		    }
 		}
 	      else
@@ -1127,10 +1186,18 @@ output_state (group_t g)
 		    {
 		      port_t id = (p << 8) | (1 << o);
 		      port_output (id, 0);
+#ifdef	LIBWS
+		      output_ws (root, id);
+#endif
 		    }
 		}
 	    }
       }
+#ifdef	LIBWS
+  if (xml_element_next (root, NULL))
+    websocket_send_all (root);
+  xml_tree_delete (root);
+#endif
 }
 
 // Main state change events
@@ -1292,7 +1359,7 @@ state_change (group_t g)
 	    group[n].when_alarm = now.tv_sec - group[n].entry_time;	// restart to allow bell to ring again
 	}
 #ifdef	LIBWS
-  xml_t x = xml_tree_new (NULL);
+  xml_t root = xml_tree_new (NULL);
 #endif
   // Log state changes
   for (s = 0; s < STATES; s++)
@@ -1306,7 +1373,7 @@ state_change (group_t g)
 	      snprintf (type, sizeof (type), "+%s", state_name[s]);
 	      dolog (c, type, NULL, NULL, NULL);
 #ifdef	LIBWS
-	      state_ws (x, "*set", s, c);
+	      state_ws (root, "*set", s, c);
 #endif
 	    }
 	  c = (~state[s] & previous_state[s]);
@@ -1315,7 +1382,7 @@ state_change (group_t g)
 	      snprintf (type, sizeof (type), "-%s", state_name[s]);
 	      dolog (c, type, NULL, NULL, NULL);
 #ifdef	LIBWS
-	      state_ws (x, "*clr", s, c);
+	      state_ws (root, "*clr", s, c);
 #endif
 	    }
 	  previous_state[s] = state[s];
@@ -1332,9 +1399,9 @@ state_change (group_t g)
 	    }
 	}
 #ifdef	LIBWS
-  if (xml_element_next (x, NULL))
-    websocket_send_all (x);
-  xml_tree_delete (x);
+  if (xml_element_next (root, NULL))
+    websocket_send_all (root);
+  xml_tree_delete (root);
 #endif
   // Do outputs and stuff resulting from state change
   output_state (g);
@@ -2471,188 +2538,224 @@ doevent (event_t * e)
       }
       break;
     case EVENT_INPUT:
-      {
-	int i;
-	for (i = 0; i < MAX_INPUT && e->changed; i++)
-	  if (e->changed & (1 << i))
-	    {
-	      int s;
-	      e->changed &= ~(1 << i);
-	      char *port = port_name (e->port + (1 << i));
-	      char *name = mydevice[id].input[i].name ? : mydevice[id].name;
-	      if ((e->status & (1 << i)))
-		{		// on
-		  if (walkthrough)
-		    syslog (LOG_INFO, "+%s(%s)", port, name ? : "");
-		  for (s = 0; s < STATE_TRIGGERS; s++)
-		    add_state (mydevice[id].input[i].trigger[s], port, name, s);
-		}
-	      else
-		{		// off
-		  if (walkthrough)
-		    syslog (LOG_INFO, "-%s(%s)", port, name ? : "");
-		  for (s = 0; s < STATE_TRIGGERS; s++)
-		    rem_state (mydevice[id].input[i].trigger[s], port, name, s);
-		}
-	      if (mydevice[id].input[i].isexit && (e->status & (1 << i)))
-		{
-		  unsigned int d, n;
-		  for (d = 0; d < MAX_DOOR; d++)
-		    for (n = 0; n < sizeof (mydoor[d].i_exit) / sizeof (*mydoor[d].i_exit); n++)
-		      if (port_device (mydoor[d].i_exit[n]) == id)
-			{
-			  char doorno[8];
-			  snprintf (doorno, sizeof (doorno), "DOOR%02u", d);
-			  if (!door_locked (d))
-			    {
-			      if (mydoor[d].airlock >= 0 && door[mydoor[d].airlock].state != DOOR_LOCKED && door[mydoor[d].airlock].state != DOOR_DEADLOCKED)
-				{
-				  dolog (mydoor[d].groups, "DOORAIRLOCK", NULL, doorno, "Airlock violation with DOOR%02d, exit rejected", mydoor[d].airlock);
-				  door_error (d);
-				}
-			      else if (mydoor[d].lockdown && (state[mydoor[d].lockdown] & mydoor[d].groups))
-				{	// Door in lockdown
-				  dolog (mydoor[d].groups, "DOORLOCKDOWN", NULL, doorno, "Lockdown violation, exit rejected");
-				  door_error (d);
-				}
-			      else
-				door_open (d);
-			    }
-			  else
-			    {
-			      dolog (mydoor[d].groups, "DOORREJECT", NULL, doorno, "Door is deadlocked, exit rejected");
-			      door_error (d);
-			    }
-			}
-		}
-	    }
-      }
-      break;
-    case EVENT_TAMPER:
-      {
-	int i;
-	for (i = 0; i < MAX_INPUT && e->changed; i++)
-	  if (e->changed & (1 << i))
-	    {
-	      e->changed &= ~(1 << i);
-	      char *port = port_name (e->port + (1 << i));
-	      char *name = mydevice[id].input[i].name ? : mydevice[id].name;
-	      group_t g = 0;
-	      int s;
-	      for (s = 0; s < STATE_TRIGGERS; s++)
-		g |= mydevice[id].input[i].trigger[s];
-	      if ((e->status & (1 << i)))
-		{
-		  if (walkthrough)
-		    syslog (LOG_INFO, "+%s(%s) Tamper", port, name ? : "");
-		  add_tamper (g, port, name);
-		}
-	      else
-		{
-		  if (walkthrough)
-		    syslog (LOG_INFO, "-%s(%s) Tamper", port, name ? : "");
-		  rem_tamper (g, port, name);
-		}
-	    }
-	for (; i < MAX_TAMPER && e->changed; i++)
-	  if (e->changed & (1 << i))
-	    {			// Device level tamper - apply if any inputs in use, etc
-	      e->changed &= ~(1 << i);
-	      char *port = port_name (e->port);
-	      char *name = mydevice[id].name;
-	      group_t g = 0;
-	      int q, s;
-	      if (device[id].type == TYPE_RIO)
-		{
-		  for (q = 0; q < MAX_INPUT; q++)
-		    for (s = 0; s < STATE_TRIGGERS; s++)
-		      g |= mydevice[id].input[q].trigger[s];
-		  for (q = 0; q < MAX_OUTPUT; q++)
-		    g |= mydevice[id].output[q].group;
-		}
-	      else if (device[id].type == TYPE_PAD)
-		{
-		  keypad_t *k;
-		  for (k = keypad; k && port_device (k->port) != port_device (e->port); k = k->next);
-		  if (k)
-		    g = k->groups;
-		}
-	      else
-		g = groups;
-	      if ((e->status & (1 << i)))
-		add_tamper (g, port, name);
-	      else
-		rem_tamper (g, port, name);
-	    }
-      }
-      break;
-    case EVENT_FAULT:
-      {
-	int i;
-	for (i = 0; i < MAX_INPUT && e->changed; i++)
-	  if (e->changed & (1 << i))
-	    {
-	      e->changed &= ~(1 << i);
-	      char *port = port_name (e->port + (1 << i));
-	      char *name = mydevice[id].name;
-	      group_t g = 0;
-	      int s;
-	      for (s = 0; s < STATE_TRIGGERS; s++)
-		g |= mydevice[id].input[i].trigger[s];
-	      if ((e->status & (1 << i)))
-		{
-		  if (walkthrough)
-		    syslog (LOG_INFO, "+%s(%s) Fault", port, name ? : "");
-		  add_fault (g, port, name);
-		}
-	      else
-		{
-		  if (walkthrough)
-		    syslog (LOG_INFO, "-%s(%s) Fault", port, name ? : "");
-		  rem_fault (g, port, name);
-		}
-	    }
-	if (device[id].type == TYPE_RIO && e->changed)
-	  {
-	    group_t g = 0;
-	    int q, s;
-	    for (q = 0; q < MAX_INPUT; q++)
-	      for (s = 0; s < STATE_TRIGGERS; s++)
-		g |= mydevice[id].input[q].trigger[s];
-	    for (q = 0; q < MAX_OUTPUT; q++)
-	      g |= mydevice[id].output[q].group;
-	    if (g)
+      if (e->changed)
+	{
+#ifdef	LIBWS
+	  xml_t root = xml_tree_new (NULL);
+#endif
+	  mydevice[id].inputs = e->status;
+	  int i;
+	  for (i = 0; i < MAX_INPUT && e->changed; i++)
+	    if (e->changed & (1 << i))
 	      {
-		if (e->changed & (1 << FAULT_RIO_NO_PWR))
-		  {
-		    char port[20];
-		    snprintf (port, sizeof (port), "%sNOPWR", port_name (e->port));
-		    if ((e->status & (1 << FAULT_RIO_NO_PWR)))
-		      add_fault (g, port, mydevice[id].name);
-		    else
-		      rem_fault (g, port, mydevice[id].name);
+#ifdef	LIBWS
+		input_ws (root, e->port + (1 << i));
+#endif
+		int s;
+		e->changed &= ~(1 << i);
+		char *port = port_name (e->port + (1 << i));
+		char *name = mydevice[id].input[i].name ? : mydevice[id].name;
+		if ((e->status & (1 << i)))
+		  {		// on
+		    if (walkthrough)
+		      syslog (LOG_INFO, "+%s(%s)", port, name ? : "");
+		    for (s = 0; s < STATE_TRIGGERS; s++)
+		      add_state (mydevice[id].input[i].trigger[s], port, name, s);
 		  }
-		if (e->changed & (1 << FAULT_RIO_NO_BAT))
-		  {
-		    char port[20];
-		    snprintf (port, sizeof (port), "%sNOBAT", port_name (e->port));
-		    if ((e->status & (1 << FAULT_RIO_NO_BAT)))
-		      add_fault (g, port, mydevice[id].name);
-		    else
-		      rem_fault (g, port, mydevice[id].name);
+		else
+		  {		// off
+		    if (walkthrough)
+		      syslog (LOG_INFO, "-%s(%s)", port, name ? : "");
+		    for (s = 0; s < STATE_TRIGGERS; s++)
+		      rem_state (mydevice[id].input[i].trigger[s], port, name, s);
 		  }
-		if (e->changed & (1 << FAULT_RIO_BAD_BAT))
+		if (mydevice[id].input[i].isexit && (e->status & (1 << i)))
 		  {
-		    char port[20];
-		    snprintf (port, sizeof (port), "%sBADBAT", port_name (e->port));
-		    if ((e->status & (1 << FAULT_RIO_BAD_BAT)))
-		      add_fault (g, port, mydevice[id].name);
-		    else
-		      rem_fault (g, port, mydevice[id].name);
+		    unsigned int d, n;
+		    for (d = 0; d < MAX_DOOR; d++)
+		      for (n = 0; n < sizeof (mydoor[d].i_exit) / sizeof (*mydoor[d].i_exit); n++)
+			if (port_device (mydoor[d].i_exit[n]) == id)
+			  {
+			    char doorno[8];
+			    snprintf (doorno, sizeof (doorno), "DOOR%02u", d);
+			    if (!door_locked (d))
+			      {
+				if (mydoor[d].airlock >= 0 && door[mydoor[d].airlock].state != DOOR_LOCKED && door[mydoor[d].airlock].state != DOOR_DEADLOCKED)
+				  {
+				    dolog (mydoor[d].groups, "DOORAIRLOCK", NULL, doorno, "Airlock violation with DOOR%02d, exit rejected", mydoor[d].airlock);
+				    door_error (d);
+				  }
+				else if (mydoor[d].lockdown && (state[mydoor[d].lockdown] & mydoor[d].groups))
+				  {	// Door in lockdown
+				    dolog (mydoor[d].groups, "DOORLOCKDOWN", NULL, doorno, "Lockdown violation, exit rejected");
+				    door_error (d);
+				  }
+				else
+				  door_open (d);
+			      }
+			    else
+			      {
+				dolog (mydoor[d].groups, "DOORREJECT", NULL, doorno, "Door is deadlocked, exit rejected");
+				door_error (d);
+			      }
+			  }
 		  }
 	      }
-	  }
-      }
+#ifdef	LIBWS
+	  websocket_send_all (root);
+	  xml_tree_delete (root);
+#endif
+	}
+      break;
+    case EVENT_TAMPER:
+      if (e->changed)
+	{
+#ifdef	LIBWS
+	  xml_t root = xml_tree_new (NULL);
+#endif
+	  mydevice[id].tampers = e->status;
+	  int i;
+	  for (i = 0; i < MAX_INPUT && e->changed; i++)
+	    if (e->changed & (1 << i))
+	      {
+#ifdef	LIBWS
+		input_ws (root, e->port + (1 << i));
+#endif
+		e->changed &= ~(1 << i);
+		char *port = port_name (e->port + (1 << i));
+		char *name = mydevice[id].input[i].name ? : mydevice[id].name;
+		group_t g = 0;
+		int s;
+		for (s = 0; s < STATE_TRIGGERS; s++)
+		  g |= mydevice[id].input[i].trigger[s];
+		if ((e->status & (1 << i)))
+		  {
+		    if (walkthrough)
+		      syslog (LOG_INFO, "+%s(%s) Tamper", port, name ? : "");
+		    add_tamper (g, port, name);
+		  }
+		else
+		  {
+		    if (walkthrough)
+		      syslog (LOG_INFO, "-%s(%s) Tamper", port, name ? : "");
+		    rem_tamper (g, port, name);
+		  }
+	      }
+	  for (; i < MAX_TAMPER && e->changed; i++)
+	    if (e->changed & (1 << i))
+	      {			// Device level tamper - apply if any inputs in use, etc
+		e->changed &= ~(1 << i);
+		char *port = port_name (e->port);
+		char *name = mydevice[id].name;
+		group_t g = 0;
+		int q, s;
+		if (device[id].type == TYPE_RIO)
+		  {
+		    for (q = 0; q < MAX_INPUT; q++)
+		      for (s = 0; s < STATE_TRIGGERS; s++)
+			g |= mydevice[id].input[q].trigger[s];
+		    for (q = 0; q < MAX_OUTPUT; q++)
+		      g |= mydevice[id].output[q].group;
+		  }
+		else if (device[id].type == TYPE_PAD)
+		  {
+		    keypad_t *k;
+		    for (k = keypad; k && port_device (k->port) != port_device (e->port); k = k->next);
+		    if (k)
+		      g = k->groups;
+		  }
+		else
+		  g = groups;
+		if ((e->status & (1 << i)))
+		  add_tamper (g, port, name);
+		else
+		  rem_tamper (g, port, name);
+	      }
+#ifdef	LIBWS
+	  websocket_send_all (root);
+	  xml_tree_delete (root);
+#endif
+	}
+      break;
+    case EVENT_FAULT:
+      if (e->changed)
+	{
+#ifdef	LIBWS
+	  xml_t root = xml_tree_new (NULL);
+#endif
+	  mydevice[id].faults = e->status;
+	  int i;
+	  for (i = 0; i < MAX_INPUT && e->changed; i++)
+	    if (e->changed & (1 << i))
+	      {
+#ifdef	LIBWS
+		input_ws (root, e->port + (1 << i));
+#endif
+		e->changed &= ~(1 << i);
+		char *port = port_name (e->port + (1 << i));
+		char *name = mydevice[id].name;
+		group_t g = 0;
+		int s;
+		for (s = 0; s < STATE_TRIGGERS; s++)
+		  g |= mydevice[id].input[i].trigger[s];
+		if ((e->status & (1 << i)))
+		  {
+		    if (walkthrough)
+		      syslog (LOG_INFO, "+%s(%s) Fault", port, name ? : "");
+		    add_fault (g, port, name);
+		  }
+		else
+		  {
+		    if (walkthrough)
+		      syslog (LOG_INFO, "-%s(%s) Fault", port, name ? : "");
+		    rem_fault (g, port, name);
+		  }
+	      }
+	  if (device[id].type == TYPE_RIO && e->changed)
+	    {
+	      group_t g = 0;
+	      int q, s;
+	      for (q = 0; q < MAX_INPUT; q++)
+		for (s = 0; s < STATE_TRIGGERS; s++)
+		  g |= mydevice[id].input[q].trigger[s];
+	      for (q = 0; q < MAX_OUTPUT; q++)
+		g |= mydevice[id].output[q].group;
+	      if (g)
+		{
+		  if (e->changed & (1 << FAULT_RIO_NO_PWR))
+		    {
+		      char port[20];
+		      snprintf (port, sizeof (port), "%sNOPWR", port_name (e->port));
+		      if ((e->status & (1 << FAULT_RIO_NO_PWR)))
+			add_fault (g, port, mydevice[id].name);
+		      else
+			rem_fault (g, port, mydevice[id].name);
+		    }
+		  if (e->changed & (1 << FAULT_RIO_NO_BAT))
+		    {
+		      char port[20];
+		      snprintf (port, sizeof (port), "%sNOBAT", port_name (e->port));
+		      if ((e->status & (1 << FAULT_RIO_NO_BAT)))
+			add_fault (g, port, mydevice[id].name);
+		      else
+			rem_fault (g, port, mydevice[id].name);
+		    }
+		  if (e->changed & (1 << FAULT_RIO_BAD_BAT))
+		    {
+		      char port[20];
+		      snprintf (port, sizeof (port), "%sBADBAT", port_name (e->port));
+		      if ((e->status & (1 << FAULT_RIO_BAD_BAT)))
+			add_fault (g, port, mydevice[id].name);
+		      else
+			rem_fault (g, port, mydevice[id].name);
+		    }
+		}
+	    }
+#ifdef	LIBWS
+	  websocket_send_all (root);
+	  xml_tree_delete (root);
+#endif
+	}
       break;
     case EVENT_FOB:
     case EVENT_FOB_HELD:
@@ -2911,6 +3014,15 @@ do_wscallback (websocket_t * w, xml_t head, xml_t data)
 	    state_ws (root, "*set", s, state[s] & groups);
 	    state_ws (root, "*clr", s, (~state[s]) & groups);
 	  }
+      int p;
+      for (d = 0; d < MAX_DEVICE; d++)
+	if (device[d].type)
+	  for (p = 0; p < MAX_INPUT; p++)
+	    input_ws (root, (d << 8) + (1 << p));
+      for (d = 0; d < MAX_DEVICE; d++)
+	if (device[d].type)
+	  for (p = 0; p < MAX_OUTPUT; p++)
+	    output_ws (root, (d << 8) + (1 << p));
       websocket_send (1, &w, root);
       pthread_mutex_unlock (&eventmutex);
       xml_tree_delete (root);
@@ -2956,19 +3068,19 @@ do_wscallback (websocket_t * w, xml_t head, xml_t data)
 	{
 	  int g = atoi (xml_element_content (e) ? : "-1");
 	  if (g >= 0 && g < MAX_GROUP)
-		alarm_arm ("web", NULL, 1 << g, 1);
+	    alarm_arm ("web", NULL, 1 << g, 1);
 	}
       for (e = NULL; (e = xml_element_next_by_name (data, e, "disarm"));)
 	{
 	  int g = atoi (xml_element_content (e) ? : "-1");
 	  if (g >= 0 && g < MAX_GROUP)
-		alarm_unset ("web", NULL, 1 << g);
+	    alarm_unset ("web", NULL, 1 << g);
 	}
       for (e = NULL; (e = xml_element_next_by_name (data, e, "reset"));)
 	{
 	  int g = atoi (xml_element_content (e) ? : "-1");
 	  if (g >= 0 && g < MAX_GROUP)
-		alarm_reset ("web", NULL, 1 << g);
+	    alarm_reset ("web", NULL, 1 << g);
 	}
       pthread_mutex_unlock (&eventmutex);
       return NULL;
