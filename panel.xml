@@ -6,8 +6,11 @@
 <keypad id="PAD110" message="Test alarm (A)" name="Pad A"/>
 <keypad id="PAD120" message="Test alarm (B)" name="Pad B"/>
 
-<door name="Test Door"/>
+<door name="Test Door" max="MAX190"/>
 
 <user name="adrian" pin="1234"/>
+
+<input id="RIO1011" name="PIR1" intruder="*"/>;
+<input id="RIO1012" name="PIR2" intruder="*"/>;
 
 </panel>
