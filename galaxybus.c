@@ -305,7 +305,8 @@ lock_tick (volatile lock_t * l, int open)
 void
 door_open (int d)
 {				// Unlock deadlock and lock
-  lock_open (&door[d].mainlock);
+  if (door[d].mainlock.o_lock)
+    lock_open (&door[d].mainlock);
   lock_open (&door[d].deadlock);
 }
 
