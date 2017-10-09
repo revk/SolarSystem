@@ -297,6 +297,7 @@ static struct
   struct
   {				// Inputs
     char *name;
+    unsigned char inuse:1;	// Mentioned in config at all
     unsigned char isexit:1;	// Door related input
     unsigned char isbell:1;	// Door related input
     group_t trigger[STATE_TRIGGERS];	// If this input applies to a state
@@ -311,7 +312,6 @@ static struct
   input_t inputs;		// Bit map of inputs
   fault_t faults;		// Bit map of faults
   tamper_t tampers;		// Bit map of tampers (device tamper is 1<<8)
-
 } mydevice[MAX_DEVICE] =
 {
 };
@@ -544,8 +544,13 @@ port_set_n (volatile port_t * w, int n, const char *v, unsigned char p, int i)
       if (!(id & 0xFF))
 	id |= p;		// default port
       w[q++] = id;
-      if (i == 1 && port_id (id) && device[port_device (id)].type == TYPE_RIO)
-	device[port_device (id)].ri[port_id (id)].response = 1;
+      int pi = port_id (id);
+      if (i == 1 && pi >= 0 && device[port_device (id)].type == TYPE_RIO)
+	device[port_device (id)].ri[pi].response = 1;
+      if (i == 1 && pi >= 0 && pi < MAX_INPUT)
+	mydevice[id].input[pi].inuse = 1;
+      else if (i == 0 && pi >= 0 && pi < MAX_OUTPUT && mydevice[id].output[pi].type >= STATES)
+	mydevice[id].output[pi].type = STATES;
     }
   if (v)
     dolog (groups, "CONFIG", NULL, NULL, "Too many ports in list %s", v);
@@ -647,11 +652,8 @@ input_ws (xml_t root, port_t port)
     return NULL;
   if (!((device[id].type == TYPE_MAX && n < 4) || device[id].type == TYPE_RIO))
     return NULL;
-  int t = 0;
-  if (!(mydevice[id].inputs & (1 << n)) && !mydevice[id].input[n].isexit && !mydevice[id].input[n].isbell)
-    for (t = 0; t < STATE_TRIGGERS && !mydevice[id].input[n].trigger[t]; t++);
-  if (t == STATE_TRIGGERS)
-    return NULL;		// Not used
+  if (!mydevice[id].input[n].inuse)
+    return NULL;		// Not in use
   xml_t x = xml_element_add (root, "input");
   xml_add (x, "@id", port_name (port));
   if (mydevice[id].name)
@@ -682,6 +684,8 @@ output_ws (xml_t root, port_t port)
     return NULL;
   if (!((device[id].type == TYPE_MAX && n < 2) || device[id].type == TYPE_RIO))
     return NULL;
+  if (mydevice[id].output[n].type != (state_t) - 1)
+    return NULL;		// Not in use
   xml_t x = xml_element_add (root, "output");
   xml_add (x, "@id", port_name (port));
   if (mydevice[id].name)
