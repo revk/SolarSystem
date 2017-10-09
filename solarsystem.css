@@ -66,6 +66,7 @@ div.doorlabel {
 	left: 2px;
 	color: white;
 	width: 100%;
+	pointer-events: none;
 }
 
 div.doorstate {
@@ -74,6 +75,7 @@ div.doorstate {
 	left:2px;
 	color:white;
 	width: 100%;
+	pointer-events: none;
 }
 
 div.group {
