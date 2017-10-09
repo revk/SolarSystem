@@ -645,7 +645,7 @@ input_ws (xml_t root, port_t port)
   int n = port_id (port);
   if (n < 0 || n >= MAX_INPUT)
     return NULL;
-  if ((device[id].type == TYPE_MAX && n >= 4) || device[id].type != TYPE_RIO)
+  if (!((device[id].type == TYPE_MAX && n < 4) || device[id].type == TYPE_RIO))
     return NULL;
   int t = 0;
   if (!(mydevice[id].inputs & (1 << n)) && !mydevice[id].input[n].isexit && !mydevice[id].input[n].isbell)
@@ -680,7 +680,7 @@ output_ws (xml_t root, port_t port)
   int n = port_id (port);
   if (n < 0 || n >= MAX_OUTPUT)
     return NULL;
-  if ((device[id].type == TYPE_MAX && n >= 2) || device[id].type != TYPE_RIO)
+  if (!((device[id].type == TYPE_MAX && n < 2) || device[id].type == TYPE_RIO))
     return NULL;
   xml_t x = xml_element_add (root, "output");
   xml_add (x, "@id", port_name (port));
