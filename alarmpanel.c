@@ -785,6 +785,7 @@ load_config (const char *configfile)
 		dolog (ALL_GROUPS, "CONFIG", NULL, port_name (p), "Input with bad port");
 		continue;
 	      }
+	    mydevice[id].input[n].inuse = 1;
 	    mydevice[id].input[n].name = xml_copy (x, "@name");
 	    // triggers
 	    int t;
