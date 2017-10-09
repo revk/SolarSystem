@@ -1,21 +1,26 @@
 // SolarSytem Javascript
 
-window.onload=function()
-{
 // Set up web socket connection
-var ws = new WebSocket((window.location.protocol=="https:"?"wss://":"ws://")+window.location.host+window.location.pathname);
+var backoff=1;
+var ws=null;
+function wsconnect()
+{
+document.getElementById("status").textContent="Connecting";
+ws = new WebSocket((window.location.protocol=="https:"?"wss://":"ws://")+window.location.host+window.location.pathname);
 ws.onopen=function()
 {
 	document.getElementById("status").textContent="Connected";
+	backoff=1;
 }
 ws.onclose=function()
 {
 	document.getElementById("status").textContent="DISCONNECTED";
-	setTimeout(function(){window.location.reload(true)},1000);
+	backoff=backoff*2;
+	setTimeout(wsconnect,1000*backoff);
 }
-ws.onerror=function(event)
+ws.onerror=function()
 {
-	document.getElementById("status").textContent="Error: "+event.data;
+	document.getElementById("status").textContent="Error";
 }
 ws.onmessage=function(event)
 {
@@ -145,3 +150,6 @@ ws.onmessage=function(event)
 	}
 }
 }
+
+window.onload=wsconnect;
+
