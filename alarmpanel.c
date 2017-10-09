@@ -547,12 +547,10 @@ port_set_n (volatile port_t * w, int n, const char *v, unsigned char p, int i)
       int pi = port_id (id);
       if (i == 1 && pi >= 0 && device[port_device (id)].type == TYPE_RIO)
 	device[port_device (id)].ri[pi].response = 1;
-#if 0
       if (i == 1 && pi >= 0 && pi < MAX_INPUT)
 	mydevice[id].input[pi].inuse = 1;
       else if (i == 0 && pi >= 0 && pi < MAX_OUTPUT && mydevice[id].output[pi].type >= STATES)
 	mydevice[id].output[pi].type = STATES;
-#endif
     }
   if (v)
     dolog (groups, "CONFIG", NULL, NULL, "Too many ports in list %s", v);
@@ -686,7 +684,7 @@ output_ws (xml_t root, port_t port)
     return NULL;
   if (!((device[id].type == TYPE_MAX && n < 2) || device[id].type == TYPE_RIO))
     return NULL;
-  if (mydevice[id].output[n].type != (state_t) - 1)
+  if (mydevice[id].output[n].type == (state_t) - 1)
     return NULL;		// Not in use
   xml_t x = xml_element_add (root, "output");
   xml_add (x, "@id", port_name (port));
