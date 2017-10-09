@@ -544,13 +544,17 @@ port_set_n (volatile port_t * w, int n, const char *v, unsigned char p, int i)
       if (!(id & 0xFF))
 	id |= p;		// default port
       w[q++] = id;
+      int pd = port_device (id);
       int pi = port_id (id);
-      if (i == 1 && pi >= 0 && device[port_device (id)].type == TYPE_RIO)
-	device[port_device (id)].ri[pi].response = 1;
-      if (i == 1 && pi >= 0 && pi < MAX_INPUT)
-	mydevice[id].input[pi].inuse = 1;
-      else if (i == 0 && pi >= 0 && pi < MAX_OUTPUT && mydevice[id].output[pi].type >= STATES)
-	mydevice[id].output[pi].type = STATES;
+      if (pi >= 0 && pd < MAX_DEVICE)
+	{
+	  if (i == 1 && device[pd].type == TYPE_RIO)
+	    device[pd].ri[pi].response = 1;
+	  if (i == 1 && pi < MAX_INPUT)
+	    mydevice[pd].input[pi].inuse = 1;
+	  else if (i == 0 && pi < MAX_OUTPUT && mydevice[pd].output[pi].type >= STATES)
+	    mydevice[pd].output[pi].type = STATES;
+	}
     }
   if (v)
     dolog (groups, "CONFIG", NULL, NULL, "Too many ports in list %s", v);
