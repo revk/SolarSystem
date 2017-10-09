@@ -149,31 +149,31 @@ ws.onmessage=function(event)
 		x.children[1].src="door"+d.state+".png";
 		x.children[2].textContent=d.state;
 	});
-	if(o.input)o.input.forEach(function(d)
+	if(o.input)o.input.forEach(function(i)
 	{
-		x=document.getElementById("input"+d.id);
+		x=document.getElementById("input"+i.id);
 		if(!x)
 		{
 			x=document.createElement("div");
-			x.id="input"+d.id;
-			x.textContent=x.id;
-			if(x.name)x.title=x.name;
+			x.id="input"+i.id;
+			x.textContent=i.id;
+			if(i.name)x.title=i.name;
 			document.getElementById("inputs").appendChild(x);
 		}
-		x.className=(x.tamper?"inputtamper":x.fault?"inputfault":x.active?"inputactive":"inputidle");
+		x.className=(i.tamper?"inputtamper":i.fault?"inputfault":i.active?"inputactive":"inputidle");
 	});
-	if(o.output)o.output.forEach(function(d)
+	if(o.output)o.output.forEach(function(o)
 	{	// Log updates
-		x=document.getElementById("output"+d.id);
+		x=document.getElementById("output"+o.id);
 		if(!x)
 		{
 			x=document.createElement("div");
-			x.id="output"+d.id;
-			x.textContent=x.id;
-			if(x.name)x.title=x.name;
+			x.id="output"+o.id;
+			x.textContent=o.id;
+			if(o.name)x.title=o.name;
 			document.getElementById("outputs").appendChild(x);
 		}
-		x.className=(x.active?"outputactive":"outputidle");
+		x.className=(o.active?"outputactive":"outputidle");
 	});
 }
 }
