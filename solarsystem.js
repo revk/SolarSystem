@@ -26,7 +26,7 @@ ws.onmessage=function(event)
 {
 	o=JSON.parse(event.data);
 	if(o.group)o.group.forEach(function(g){
-		x=document.getElementById(g.id);
+		x=document.getElementById("group"+g.id);
 		if(!x)
 		{
 			x=document.createElement("div");
