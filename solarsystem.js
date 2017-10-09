@@ -16,7 +16,7 @@ ws.onclose=function()
 {
 	document.getElementById("status").textContent="DISCONNECTED";
 	backoff=backoff*2;
-	setTimeout(wsconnect,1000*backoff);
+	setTimeout(wsconnect,100*backoff);
 }
 ws.onerror=function()
 {
