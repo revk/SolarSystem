@@ -9,7 +9,7 @@ document.getElementById("status").textContent="Connecting";
 ws = new WebSocket((window.location.protocol=="https:"?"wss://":"ws://")+window.location.host+window.location.pathname);
 ws.onopen=function()
 {
-	document.getElementById("status").textContent="Connected";
+	document.getElementById("status").textContent="Connected to "+window.location.hostname;
 	backoff=1;
 }
 ws.onclose=function()

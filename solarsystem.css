@@ -1,9 +1,5 @@
 /* SolarSystem css */
 
-div.status {
-	float:right;
-}
-
 div.keypad {
 	display:inline-block;
 	position:relative;
