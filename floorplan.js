@@ -8,18 +8,18 @@ function wsconnect()
 	ws = new WebSocket((window.location.protocol=="https:"?"wss://":"ws://")+window.location.host+window.location.pathname);
 	ws.onopen=function()
 	{
-		        //document.getElementById("status").textContent="Connected to "+window.location.hostname;
+		        document.getElementById("floorplan").style.background="none";
 		        backoff=1;
 	}
 	ws.onclose=function()
 	{
-		        //document.getElementById("status").textContent="DISCONNECTED";
+		        document.getElementById("floorplan").style.background="yellow";
 		        backoff=backoff*2;
 		        setTimeout(wsconnect,100*backoff);
 	}
 	ws.onerror=function()
 	{
-		        //document.getElementById("status").textContent="Error";
+		        document.getElementById("floorplan").style.background="red";
 	}
 	ws.onmessage=function(event)
 	{
