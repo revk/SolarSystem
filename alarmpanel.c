@@ -529,13 +529,13 @@ real_port_name (char *v, port_t p)
 }
 
 // Functions
-#define	port_exit_set(w,v,p) port_exit_set_n(port_set_n((volatile port_t*)&(w),sizeof(w)/sizeof(port_t),v,p,1,"Exit"),sizeof(w)/sizeof(port_t))
-#define	port_bell_set(w,v,p) port_bell_set_n(port_set_n((volatile port_t*)&(w),sizeof(w)/sizeof(port_t),v,p,1,"Bell"),sizeof(w)/sizeof(port_t))
-#define	port_i_set(w,v,p,name) port_set_n((volatile port_t*)&(w),sizeof(w)/sizeof(port_t),v,p,1,name)
-#define	port_o_set(w,v,p,name) port_set_n((volatile port_t*)&(w),sizeof(w)/sizeof(port_t),v,p,0,name)
-#define	port_set(w,v,p,name) port_set_n((volatile port_t*)&(w),sizeof(w)/sizeof(port_t),v,p,-1,name)
+#define	port_exit_set(w,v,p,door) port_exit_set_n(port_set_n((volatile port_t*)&(w),sizeof(w)/sizeof(port_t),v,p,1,door,"Exit"),sizeof(w)/sizeof(port_t))
+#define	port_bell_set(w,v,p,door) port_bell_set_n(port_set_n((volatile port_t*)&(w),sizeof(w)/sizeof(port_t),v,p,1,door,"Bell"),sizeof(w)/sizeof(port_t))
+#define	port_i_set(w,v,p,door,name) port_set_n((volatile port_t*)&(w),sizeof(w)/sizeof(port_t),v,p,1,door,name)
+#define	port_o_set(w,v,p,door,name) port_set_n((volatile port_t*)&(w),sizeof(w)/sizeof(port_t),v,p,0,door,name)
+#define	port_set(w,v,p,door,name) port_set_n((volatile port_t*)&(w),sizeof(w)/sizeof(port_t),v,p,-1,door,name)
 static volatile port_t *
-port_set_n (volatile port_t * w, int n, const char *v, unsigned char p, int i, char *name)
+port_set_n (volatile port_t * w, int n, const char *v, unsigned char p, int i, char *door, char *name)
 {				// Set up port
   int q = 0;
   while (v && *v && q < n)
@@ -553,13 +553,13 @@ port_set_n (volatile port_t * w, int n, const char *v, unsigned char p, int i, c
 	  if (i == 1 && pi < MAX_INPUT)
 	    {
 	      if (name && !mydevice[pd].input[pi].name)
-		asprintf (&mydevice[pd].input[pi].name, "%s-%s", mydevice[pd].name ? : port_name (pd<<8), name);
+		asprintf (&mydevice[pd].input[pi].name, "%s-%s", door ? : mydevice[pd].name ? : port_name (pd << 8), name);
 	      mydevice[pd].input[pi].inuse = 1;
 	    }
 	  else if (i == 0 && pi < MAX_OUTPUT && mydevice[pd].output[pi].type >= STATES)
 	    {
 	      if (name && !mydevice[pd].output[pi].name)
-		asprintf (&mydevice[pd].output[pi].name, "%s-%s", mydevice[pd].name ? : port_name (pd<<8), name);
+		asprintf (&mydevice[pd].output[pi].name, "%s-%s", door ? : mydevice[pd].name ? : port_name (pd << 8), name);
 	      mydevice[pd].output[pi].type = STATES;
 	    }
 	}
@@ -578,7 +578,7 @@ port_exit_set_n (volatile port_t * w, int n)
 	int pd = port_device (w[n]);
 	int pi = port_id (w[n]);
 	if (pd < MAX_DEVICE && pi >= 0 && pi < MAX_INPUT)
-	    mydevice[pd].input[pi].isexit = 1;
+	  mydevice[pd].input[pi].isexit = 1;
       }
   return w;
 }
@@ -591,7 +591,7 @@ port_bell_set_n (volatile port_t * w, int n)
       int pd = port_device (w[n]);
       int pi = port_id (w[n]);
       if (pd < MAX_DEVICE && pi >= 0 && pi < MAX_INPUT)
-	  mydevice[pd].input[pi].isbell = 1;
+	mydevice[pd].input[pi].isbell = 1;
     }
   return w;
 }
@@ -996,10 +996,13 @@ load_config (const char *configfile)
 	    dolog (ALL_GROUPS, "CONFIG", NULL, NULL, "Too many doors");
 	    continue;
 	  }
+	char doorno[8];
+	snprintf (doorno, sizeof (doorno), "DOOR%02u", d);
 	mydoor[d].groups = group_parse (xml_get (x, "@groups") ? : "*");
 	mydoor[d].group_set = group_parse (xml_get (x, "@set") ? : xml_get (x, "@groups") ? : "*");
 	mydoor[d].group_unset = group_parse (xml_get (x, "@unset") ? : xml_get (x, "@groups") ? : "*");
 	mydoor[d].name = xml_copy (x, "@name");
+	char *doorname = mydoor[d].name ? : doorno;
 	const char *max = xml_get (x, "@max");
 	mydoor[d].fire = group_parse (xml_get (x, "@fire") ? : "*");
 	if (max)
@@ -1007,24 +1010,24 @@ load_config (const char *configfile)
 	    port_t maxport = port_parse (max, NULL, -2);
 	    if (maxport && !mydevice[port_device (maxport)].name)
 	      mydevice[port_device (maxport)].name = mydoor[d].name;
-	    port_o_set (door[d].o_led, max, 0xFF, "Max");
-	    port_o_set (door[d].mainlock.o_lock, max, 1 << 1, "Lock");
-	    port_i_set (door[d].i_open, max, 1 << 0, "Open");
-	    port_o_set (door[d].o_beep, max, 1 << 0, "Beep");
-	    port_exit_set (mydoor[d].i_exit, max, 1 << 1);
-	    port_set (mydoor[d].i_fob, max, -2,"Max");
+	    port_o_set (door[d].o_led, max, 0xFF, doorname, "Max");
+	    port_o_set (door[d].mainlock.o_lock, max, 1 << 1, doorname, "Lock");
+	    port_i_set (door[d].i_open, max, 1 << 0, doorname, "Open");
+	    port_o_set (door[d].o_beep, max, 1 << 0, doorname, "Beep");
+	    port_exit_set (mydoor[d].i_exit, max, 1 << 1, doorname);
+	    port_set (mydoor[d].i_fob, max, -2, doorname, "Max");
 	  }
-	port_set (mydoor[d].i_fob, xml_get (x, "@fob"), 0,"Max");
-	port_o_set (door[d].o_led, xml_get (x, "@o-led"), 0xFF, "Max");
-	port_o_set (door[d].mainlock.o_lock, xml_get (x, "@o-lock"), 0, "Main");
-	port_i_set (door[d].mainlock.i_unlock, xml_get (x, "@i-unlock"), 0, "Unlock");
-	port_o_set (door[d].o_beep, xml_get (x, "@o-beep"), 0, "Beep");
-	port_i_set (door[d].i_open, xml_get (x, "@i-open"), 0, "Open");
-	port_o_set (door[d].deadlock.o_lock, xml_get (x, "@o-deadlock"), 0, "Deadlock");
-	port_i_set (door[d].deadlock.i_unlock, xml_get (x, "@i-undeadlock"), 0, "Deadunlock");
-	port_exit_set (mydoor[d].i_exit, xml_get (x, "@i-exit"), 0);
-	port_bell_set (mydoor[d].i_bell, xml_get (x, "@i-bell"), 0);
-	port_o_set (mydoor[d].o_bell, xml_get (x, "@o-bell"), 0, "Bell");
+	port_set (mydoor[d].i_fob, xml_get (x, "@fob"), 0, doorname, "Max");
+	port_o_set (door[d].o_led, xml_get (x, "@o-led"), 0xFF, doorname, "Max");
+	port_o_set (door[d].mainlock.o_lock, xml_get (x, "@o-lock"), 0, doorname, "Main");
+	port_i_set (door[d].mainlock.i_unlock, xml_get (x, "@i-unlock"), 0, doorname, "Unlock");
+	port_o_set (door[d].o_beep, xml_get (x, "@o-beep"), 0, doorname, "Beep");
+	port_i_set (door[d].i_open, xml_get (x, "@i-open"), 0, doorname, "Open");
+	port_o_set (door[d].deadlock.o_lock, xml_get (x, "@o-deadlock"), 0, doorname, "Deadlock");
+	port_i_set (door[d].deadlock.i_unlock, xml_get (x, "@i-undeadlock"), 0, doorname, "Deadunlock");
+	port_exit_set (mydoor[d].i_exit, xml_get (x, "@i-exit"), 0, doorname);
+	port_bell_set (mydoor[d].i_bell, xml_get (x, "@i-bell"), 0, doorname);
+	port_o_set (mydoor[d].o_bell, xml_get (x, "@o-bell"), 0, doorname, "Bell");
 	mydoor[d].time_set = parse_time (xml_get (x, "time-set") ? : "3", 10, 0) / 10;	// Time set is in whole seconds
 	door[d].time_open = parse_time (xml_get (x, "@time-open") ? : "10", 0, 0);
 	door[d].time_force = parse_time (xml_get (x, "@time-force") ? : "0", 0, 100);
