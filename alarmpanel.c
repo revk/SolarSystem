@@ -565,10 +565,16 @@ static volatile port_t *
 port_exit_set_n (volatile port_t * w, int n)
 {
   while (n--)
-    {
-      if (w[n] && port_device (w[n]) < MAX_DEVICE && port_id (w[n]) < MAX_INPUT)
-	mydevice[port_device (w[n])].input[port_id (w[n])].isexit = 1;
-    }
+    if (w[n])
+      {
+	int pd = port_device (w[n]);
+	int pi = port_id (w[n]);
+	if (pd < MAX_DEVICE && pi >= 0 && pi < MAX_INPUT)
+	  {
+	    mydevice[pd].input[pi].isexit = 1;
+	    mydevice[pd].input[pi].inuse = 1;
+	  }
+      }
   return w;
 }
 
@@ -577,8 +583,13 @@ port_bell_set_n (volatile port_t * w, int n)
 {
   while (n--)
     {
-      if (w[n] && port_device (w[n]) < MAX_DEVICE && port_id (w[n]) < MAX_INPUT)
-	mydevice[port_device (w[n])].input[port_id (w[n])].isbell = 1;
+      int pd = port_device (w[n]);
+      int pi = port_id (w[n]);
+      if (pd < MAX_DEVICE && pi >= 0 && pi < MAX_INPUT)
+	{
+	  mydevice[pd].input[pi].isbell = 1;
+	  mydevice[pd].input[pi].inuse = 1;
+	}
     }
   return w;
 }
