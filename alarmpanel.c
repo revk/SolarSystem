@@ -647,6 +647,11 @@ input_ws (xml_t root, port_t port)
     return NULL;
   if ((device[id].type == TYPE_MAX && n >= 4) || device[id].type != TYPE_RIO)
     return NULL;
+  int t = 0;
+  if (!(mydevice[id].inputs & (1 << n)) && !mydevice[id].input[n].isexit && !mydevice[id].input[n].isbell)
+    for (t = 0; t < STATE_TRIGGERS && !mydevice[id].input[n].trigger[t]; t++);
+  if (t == STATE_TRIGGERS)
+    return NULL;		// Not used
   xml_t x = xml_element_add (root, "input");
   xml_add (x, "@id", port_name (port));
   if (mydevice[id].name)
@@ -659,6 +664,10 @@ input_ws (xml_t root, port_t port)
     xml_add (x, "@-tamper", "true");
   if (mydevice[id].faults & (1 << n))
     xml_add (x, "@-fault", "true");
+  if (device[id].type == TYPE_RIO)
+    {				// Voltage...
+      // TODO
+    }
   return NULL;
 }
 
