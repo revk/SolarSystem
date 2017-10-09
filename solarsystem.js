@@ -144,9 +144,30 @@ ws.onmessage=function(event)
 	});
 	if(o.input)
 	{	// Input updates
+		x=document.getElementById("input"+d.id);
+		if(!x)
+		{
+			x=document.createElement("div");
+			x.id="input"+d.id;
+			x.textContent=x.id;
+			if(x.name)x.title=x.name;
+			document.getElementById("inputs").appendChild(x);
+		}
+		x.className=(x.tamper?"inputtamper":x.fault?"inputfault":x.active?"inputactive":"inputidle");
 	}
 	if(o.log)
 	{	// Log updates
+		x=document.getElementById("output"+d.id);
+		if(!x)
+		{
+			x=document.createElement("div");
+			x.id="output"+d.id;
+			x.textContent=x.id;
+			if(x.name)x.title=x.name;
+			document.getElementById("outputs").appendChild(x);
+		}
+		x.className=(x.active?"outputactive":"outputidle");
+	}
 	}
 }
 }

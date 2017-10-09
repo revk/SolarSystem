@@ -68,3 +68,33 @@ div.groupid {
 	top: 15px;
 	pointer-events: none;
 }
+
+div.inputidle {
+	display: inline-block;
+	background-color: #8f8;
+}
+
+div.inputactive {
+	display: inline-block;
+	background-color: #f88;
+}
+
+div.inputfault {
+	display: inline-block;
+	background-color: #88f;
+}
+
+div.inputtamper {
+	display: inline-block;
+	background-color: #ff8;
+}
+
+div.outputidle {
+	display: inline-block;
+	background-color: #8f8;
+}
+
+div.outputactive {
+	display: inline-block;
+	background-color: #f88;
+}
