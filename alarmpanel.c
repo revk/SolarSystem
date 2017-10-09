@@ -2952,16 +2952,23 @@ do_wscallback (websocket_t * w, xml_t head, xml_t data)
 	  else if (door[d].state != DOOR_DEADLOCKED)
 	    door_open (d);
 	}
-      for (e = NULL; (e = xml_element_next_by_name (data, e, "group"));)
+      for (e = NULL; (e = xml_element_next_by_name (data, e, "arm"));)
 	{
 	  int g = atoi (xml_element_content (e) ? : "-1");
 	  if (g >= 0 && g < MAX_GROUP)
-	    {
-	      if (state[STATE_UNSET] & ~state[STATE_ARM] & (1 << g))
 		alarm_arm ("web", NULL, 1 << g, 1);
-	      else
+	}
+      for (e = NULL; (e = xml_element_next_by_name (data, e, "disarm"));)
+	{
+	  int g = atoi (xml_element_content (e) ? : "-1");
+	  if (g >= 0 && g < MAX_GROUP)
 		alarm_unset ("web", NULL, 1 << g);
-	    }
+	}
+      for (e = NULL; (e = xml_element_next_by_name (data, e, "reset"));)
+	{
+	  int g = atoi (xml_element_content (e) ? : "-1");
+	  if (g >= 0 && g < MAX_GROUP)
+		alarm_reset ("web", NULL, 1 << g);
 	}
       pthread_mutex_unlock (&eventmutex);
       return NULL;

@@ -33,8 +33,9 @@ ws.onmessage=function(event)
 			l.groupid=g.id;
 			l.onclick=function()
 			{
-					var a={group:[this.groupid]};
-					ws.send(JSON.stringify(a));
+				var a={disarm:[this.groupid]};
+				if(this.src.match(/UNSET/))a={arm:[this.groupip]};
+				ws.send(JSON.stringify(a));
 			}
 			x.appendChild(l);
 				l=document.createElement("div");
