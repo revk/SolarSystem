@@ -369,7 +369,7 @@ doorman (void *d)
 		      state = DOOR_FAULT;
 		    else if (door[d].deadlock.locked && !door[d].deadlock.timer)
 		      state = DOOR_FORCED;
-		    else if (door[d].mainlock.locked && !door[d].mainlock.timer)
+		    else if (door[d].mainlock.locked && !door[d].mainlock.timer && door[d].mainlock.o_lock)
 		      state = DOOR_FORCED;
 		    else if (state != DOOR_PROPPED && state != DOOR_FORCED)
 		      state = DOOR_OPEN;
@@ -407,7 +407,7 @@ doorman (void *d)
 		    door[d].deadlock.timer = 10;
 		    state = (open ? DOOR_UNLOCKING : DOOR_LOCKING);
 		  }
-		else if (state == DOOR_OPEN && door[d].time_prop && door[d].timer >= door[d].time_prop)
+		else if (state == DOOR_OPEN && door[d].time_prop && door[d].timer >= door[d].time_prop && door[d].mainlock.o_lock)
 		  state = DOOR_PROPPED;
 		else if (state == DOOR_CLOSED && door[d].time_open && door[d].timer >= door[d].time_open)
 		  {
