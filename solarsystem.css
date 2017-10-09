@@ -60,6 +60,22 @@ div.door {
 	vertical-align: top;
 }
 
+div.doorlabel {
+	position: absolute;
+	top: 2px;
+	left: 2px;
+	color: white;
+	width: 100%;
+}
+
+div.doorstate {
+	position: absolute;
+	bottom:2px;
+	left:2px;
+	color:white;
+	width: 100%;
+}
+
 div.group {
 	display: inline-block;
 	position: relative;
@@ -69,8 +85,8 @@ div.group {
 
 div.groupid {
 	position: absolute;
-	left: 43%;
 	top: 15px;
+	width: 100%;
 	pointer-events: none;
 }
 

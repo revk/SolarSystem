@@ -80,6 +80,7 @@ ws.onmessage=function(event)
 			x=document.createElement("div");
 			x.id=k.id;
 			x.className="keypad";
+			x.title=k.id;
 			document.getElementById("keypads").appendChild(x);
 			l=document.createElement("img");
 			l.className="keypad";
@@ -93,7 +94,7 @@ ws.onmessage=function(event)
 			x.appendChild(l);
 			l=document.createElement("div");
 			l.className="keypadlabel";
-			l.textContent=k.id;
+			l.textContent=(k.name?k.name:k.id);
 			x.appendChild(l);
 			l=document.createElement("div");
 			l.className="keypadbuttons";
@@ -125,6 +126,7 @@ ws.onmessage=function(event)
 			x=document.createElement("div");
 			x.id=d.id;
 			x.className="door";
+			x.title=d.id;
 			document.getElementById("doors").appendChild(x);
 			l=document.createElement("div");
 			l.className="doorlabel";
@@ -155,8 +157,8 @@ ws.onmessage=function(event)
 		{
 			x=document.createElement("div");
 			x.id="input"+i.id;
+			x.title=i.id;
 			x.textContent=(i.name?i.name:i.id);
-			if(i.name)x.title=i.id;
 			document.getElementById("inputs").appendChild(x);
 		}
 		x.className="input"+(i.tamper?"tamper":i.fault?"fault":i.active?"active":"idle");
@@ -168,8 +170,8 @@ ws.onmessage=function(event)
 		{
 			x=document.createElement("div");
 			x.id="output"+o.id;
+			x.title=o.id;
 			x.textContent=(o.name?o.name:o.id);
-			if(o.name)x.title=o.id;
 			document.getElementById("outputs").appendChild(x);
 		}
 		x.className=(o.active?"outputactive":"outputidle");
