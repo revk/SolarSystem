@@ -156,8 +156,8 @@ ws.onmessage=function(event)
 		{
 			x=document.createElement("div");
 			x.id="input"+i.id;
-			x.textContent=i.id;
-			if(i.name)x.title=i.name;
+			x.textContent=i.name?:i.id;
+			if(i.name)x.title=i.id;
 			document.getElementById("inputs").appendChild(x);
 		}
 		x.className=(i.tamper?"inputtamper":i.fault?"inputfault":i.active?"inputactive":"inputidle");
@@ -169,8 +169,8 @@ ws.onmessage=function(event)
 		{
 			x=document.createElement("div");
 			x.id="output"+o.id;
-			x.textContent=o.id;
-			if(o.name)x.title=o.name;
+			x.textContent=o.name?:o.id;
+			if(o.name)x.title=o.id;
 			document.getElementById("outputs").appendChild(x);
 		}
 		x.className=(o.active?"outputactive":"outputidle");
