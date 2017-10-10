@@ -58,19 +58,19 @@ ws.onmessage=function(event)
 	});
 	if(o.clr&&o.clr.arm)o.clr.arm.forEach(function(g)
 	{
-		document.getElementById("group"+g).children[0].src="groupUNSET.png";
+		document.getElementById("group"+g).children[0].src="groupUNSET.svg";
 	});
 	if(o.set&&o.set.set)o.set.set.forEach(function(g)
 	{
-		document.getElementById("group"+g).children[0].src="groupSET.png";
+		document.getElementById("group"+g).children[0].src="groupSET.svg";
 	});
 	if(o.set&&o.set.arm)o.set.arm.forEach(function(g)
 	{
-		document.getElementById("group"+g).children[0].src="groupARM.png";
+		document.getElementById("group"+g).children[0].src="groupARM.svg";
 	});
 	if(o.set&&o.set.unset)o.set.unset.forEach(function(g)
 	{
-		document.getElementById("group"+g).children[0].src="groupUNSET.png";
+		document.getElementById("group"+g).children[0].src="groupUNSET.svg";
 	});
 	if(o.keypad)o.keypad.forEach(function(k)
 	{
