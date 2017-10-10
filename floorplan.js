@@ -71,7 +71,7 @@ function wsconnect()
 		        if(o.door)o.door.forEach(function(d)
 			{
 				x=newobj(d,"door",d.state);
-				if(!x.ondblclick) x.ondblclick=function()
+				if(!x.onclick) x.onclick=function()
 				{
 					var a={door:[{id:this.id}]};
 					ws.send(JSON.stringify(a));
