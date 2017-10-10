@@ -1,8 +1,11 @@
 /* Floorplan */
 
-div.floorplan {
-	background-image:url("floorplan.png");
-	background-size:100%;
-	width:100%;
-	height:100%;
+body {
+	margin: 0;
 }
+
+div.floorplan {
+	position:relative;
+	display:inline-block;
+}
+
