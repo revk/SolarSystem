@@ -74,6 +74,7 @@ pthread_mutex_t qmutex;
 pthread_mutex_t lockmutex;
 pthread_mutex_t outputmutex;
 int qpipe[2];
+port_output_callback_t *port_output_callback = NULL;
 
 char *WATCHDOG = NULL;		// Optional watchdog device
 
@@ -178,6 +179,8 @@ port_output_n (volatile port_t * w, int n, int v)
 		pthread_mutex_lock (&outputmutex);
 		device[port_device (w[n])].output |= (w[n] & 0xFF);
 		pthread_mutex_unlock (&outputmutex);
+		if (port_output_callback)
+		  port_output_callback (w[n]);
 	      }
 	  }
 	else
@@ -187,6 +190,8 @@ port_output_n (volatile port_t * w, int n, int v)
 		pthread_mutex_lock (&outputmutex);
 		device[port_device (w[n])].output &= ~(w[n] & 0xFF);
 		pthread_mutex_unlock (&outputmutex);
+		if (port_output_callback)
+		  port_output_callback (w[n]);
 	      }
 	  }
       }

@@ -1187,14 +1187,22 @@ keypad_state (group_t g)
       k->when = 0;		// Force display update
 }
 
+#ifdef	LIBWS
+static void
+ws_port_output_callback (port_t id)
+{
+  xml_t root = xml_tree_new (NULL);
+  output_ws (root, id);
+  websocket_send_all (root);
+  xml_tree_delete (root);
+}
+#endif
+
 static void
 output_state (group_t g)
 {				// Set outputs after state change
   if (!g)
     return;
-#ifdef	LIBWS
-  xml_t root = xml_tree_new (NULL);
-#endif
   port_t p;
   for (p = 0; p < MAX_DEVICE; p++)
     if (device[p].type && device[p].type < STATES)
@@ -1209,9 +1217,6 @@ output_state (group_t g)
 		    {
 		      port_t id = (p << 8) | (1 << o);
 		      port_output (id, 1);
-#ifdef	LIBWS
-		      output_ws (root, id);
-#endif
 		    }
 		}
 	      else
@@ -1220,18 +1225,10 @@ output_state (group_t g)
 		    {
 		      port_t id = (p << 8) | (1 << o);
 		      port_output (id, 0);
-#ifdef	LIBWS
-		      output_ws (root, id);
-#endif
 		    }
 		}
 	    }
       }
-#ifdef	LIBWS
-  if (xml_element_next (root, NULL))
-    websocket_send_all (root);
-  xml_tree_delete (root);
-#endif
 }
 
 // Main state change events
@@ -3148,6 +3145,7 @@ main (int argc, const char *argv[])
       if (chdir (dir))
 	errx (1, "Count not chdir to %s", dir);
     }
+  port_output_callback = ws_port_output_callback;
 #endif
   const char *configfile = NULL;
   const char *maxfrom = NULL, *maxto = NULL;
