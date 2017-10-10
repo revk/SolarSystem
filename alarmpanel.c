@@ -2909,12 +2909,12 @@ doevent (event_t * e)
 		  }
 		else if (e->event == EVENT_FOB)
 		  {
-		    if (alarm_unset (u->name, port_name (e->port), u->group_set & mydoor[d].group_set & state[STATE_ARM]))	// cancel any setting
-		      door_confirm (d);
-		    if (alarm_unset (u->name, port_name (e->port), u->group_unset & mydoor[d].group_unset & state[STATE_SET]))	// unset
-		      door_confirm (d);
+		    // disarm is the groups that can be disarmed by this user on this door.
+		    group_t disarm = ((u->group_set & mydoor[d].group_set & state[STATE_ARM]) | (port_name (e->port), u->group_unset & mydoor[d].group_unset & state[STATE_SET]));
 		    if (door[d].state == DOOR_PROPPED)
 		      {
+			if (disarm && alarm_unset (u->name, port_name (e->port), disarm))
+			  door_confirm (d);
 			if (u->group_prop & mydoor[d].groups)
 			  {
 			    //door_confirm (d); // no as this undoes the quieting and beeping stopping should be obvious
@@ -2929,6 +2929,8 @@ doevent (event_t * e)
 		      }
 		    else if (door[d].state == DOOR_CLOSED)
 		      {
+			if (disarm && alarm_unset (u->name, port_name (e->port), disarm))
+			  door_confirm (d);
 			//door_confirm (d); // Beeping annoying and clear from LEDs
 			door_lock (d);	// Cancel open
 			dolog (mydoor[d].groups, "DOORCANCEL", u->name, doorno, "Door open cancelled by fob %lu", e->fob);
@@ -2938,12 +2940,7 @@ doevent (event_t * e)
 		      {
 			if (u->group_open & mydoor[d].groups)
 			  {
-			    if (mydoor[d].groups & (state[STATE_SET] | state[STATE_ARM]))
-			      {
-				dolog (mydoor[d].groups, "DOORALARMED", u->name, doorno, "Door is alarmed, not opening DOOR%02d using fob %lu", d, e->fob);
-				door_error (d);
-			      }
-			    else if (mydoor[d].airlock >= 0 && door[mydoor[d].airlock].state != DOOR_LOCKED && door[mydoor[d].airlock].state != DOOR_DEADLOCKED)
+			    if (mydoor[d].airlock >= 0 && door[mydoor[d].airlock].state != DOOR_LOCKED && door[mydoor[d].airlock].state != DOOR_DEADLOCKED)
 			      {
 				dolog (mydoor[d].groups, "DOORAIRLOCK", u->name, doorno, "Airlock violation with DOOR%02d using fob %lu", mydoor[d].airlock, e->fob);
 				door_error (d);
@@ -2953,13 +2950,23 @@ doevent (event_t * e)
 				dolog (mydoor[d].groups, "DOORLOCKDOWN", u->name, doorno, "Lockdown violation with DOOR%02d using fob %lu", mydoor[d].airlock, e->fob);
 				door_error (d);
 			      }
-			    else if (door[d].state != DOOR_OPEN && door[d].state != DOOR_UNLOCKING)
-			      {	// Open
-				dolog (mydoor[d].groups, "DOOROPEN", u->name, doorno, "Door open by fob %lu", e->fob);
-				door_open (d);	// Open the door
+			    else if (mydoor[d].groups & ((state[STATE_SET] | state[STATE_ARM]) & ~disarm))
+			      {
+				dolog (mydoor[d].groups, "DOORALARMED", u->name, doorno, "Door is alarmed, not opening DOOR%02d using fob %lu", d, e->fob);
+				door_error (d);
 			      }
-			    else if (door[d].state == DOOR_OPEN)
-			      dolog (mydoor[d].groups, "FOBIGNORED", u->name, doorno, "Ignored fob %lu as door open", e->fob);
+			    else
+			      {	// Allowed to be opened
+				if (disarm && alarm_unset (u->name, port_name (e->port), disarm))
+				  door_confirm (d);
+				if (door[d].state != DOOR_OPEN && door[d].state != DOOR_UNLOCKING)
+				  {	// Open it
+				    dolog (mydoor[d].groups, "DOOROPEN", u->name, doorno, "Door open by fob %lu", e->fob);
+				    door_open (d);	// Open the door
+				  }
+				else if (door[d].state == DOOR_OPEN)
+				  dolog (mydoor[d].groups, "FOBIGNORED", u->name, doorno, "Ignored fob %lu as door open", e->fob);
+			      }
 			    // Other cases (unlocking) are transient and max will sometimes multiple read
 			  }
 			else
