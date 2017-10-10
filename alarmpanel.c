@@ -3006,8 +3006,8 @@ do_wscallback (websocket_t * w, xml_t head, xml_t data)
       if (!isalnum (path[1]))
 	return "404 WTF";
       char *p;
-      for (p = path + 1; isalnum (*p); p++);
-      if (*p != '.' || (strcmp (p, ".html") && strcmp (p, ".js") && strcmp (p, ".css") && strcmp (p, ".png")))	// Very limited options of files to serve
+      for (p = path + 1; isalnum (*p) || *p == '_' || *p == '-'; p++);
+      if (*p != '.' || (strcmp (p, ".html") && strcmp (p, ".js") && strcmp (p, ".css") && strcmp (p, ".png") && strcmp (p, ".svg")))	// Very limited options of files to serve
 	return "404 Not found";
       path = strdup (path);
       *path = '@';

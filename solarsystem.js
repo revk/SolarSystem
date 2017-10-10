@@ -43,10 +43,10 @@ ws.onmessage=function(event)
 				ws.send(JSON.stringify(a));
 			}
 			x.appendChild(l);
-				l=document.createElement("div");
-				l.className="groupid";
-				l.textContent=g.id;
-				x.appendChild(l);
+			l=document.createElement("div");
+			l.className="groupid";
+			l.textContent=g.id;
+			x.appendChild(l);
 			if(g.name)
 			{
 				l=document.createElement("div");

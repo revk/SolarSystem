@@ -27,9 +27,14 @@ function wsconnect()
 					x.id=d.id;
 					x.className="door";
 					x.draggable=true;
+					x.ondblclick=function()
+					{
+						var a={door:[{id:this.id}]};
+						ws.send(JSON.stringify(a));
+					}
 					document.getElementById("floorplan").appendChild(x);
 				}
-				x.src="floorplandoor"+d.state+".png";
+				x.src="floorplan-door-"+d.state+".svg";
 				x.title=d.name?d.name:d.id;
 			});
 		        if(o.input)o.input.forEach(function(i)
@@ -43,7 +48,7 @@ function wsconnect()
 					x.draggable=true;
 					document.getElementById("floorplan").appendChild(x);
 				}
-				x.src="floorplaninput"+(i.tamper?"tamper":i.fault?"fault":i.active?"active":"idle")+".png";
+				x.src="floorplan-input-"+(i.tamper?"tamper":i.fault?"fault":i.active?"active":"idle")+".svg";
 				x.title=i.name?i.name:i.id;
 			});
 	}
