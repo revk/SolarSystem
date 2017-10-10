@@ -3032,12 +3032,6 @@ do_wscallback (websocket_t * w, xml_t head, xml_t data)
 	    if (group[g].name)
 	      xml_add (x, "@name", group[g].name);
 	  }
-      keypad_t *k;
-      for (k = keypad; k; k = k->next)
-	keypad_ws (root, k);
-      int d;
-      for (d = 0; d < MAX_DOOR; d++)
-	door_ws (root, d);
       int s;
       for (s = 0; s < STATES; s++)
 	if (s != STATE_ZONE && s != STATE_ENTRY && s != STATE_NONEXIT && s != STATE_OPEN)
@@ -3045,6 +3039,12 @@ do_wscallback (websocket_t * w, xml_t head, xml_t data)
 	    state_ws (root, "*set", s, state[s] & groups);
 	    state_ws (root, "*clr", s, (~state[s]) & groups);
 	  }
+      keypad_t *k;
+      for (k = keypad; k; k = k->next)
+	keypad_ws (root, k);
+      int d;
+      for (d = 0; d < MAX_DOOR; d++)
+	door_ws (root, d);
       int p;
       for (d = 0; d < MAX_DEVICE; d++)
 	if (device[d].type)

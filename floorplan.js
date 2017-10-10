@@ -2,6 +2,7 @@
 
 var backoff=1;
 var ws=null;
+var engineering=false;
 function allowdrop(e)
 {
 	e.preventDefault();
@@ -42,6 +43,7 @@ function wsconnect()
 	ws.onmessage=function(event)
 	{
 		        o=JSON.parse(event.data);
+			if(o.set&&o.set.engineering)engineering=true;
 		        if(o.door)o.door.forEach(function(d)
 			{
 				x=document.getElementById(d.id);
@@ -50,7 +52,7 @@ function wsconnect()
 					x=document.createElement("img");
 					x.id=d.id;
 					x.className="door";
-					x.draggable=true;
+					x.draggable=engineering;
 					x.ondragstart=startdrop;
 					x.ondblclick=function()
 					{
@@ -70,7 +72,7 @@ function wsconnect()
 					x=document.createElement("img");
 					x.id="input"+i.id;
 					x.className="input";
-					x.draggable=true;
+					x.draggable=engineering;
 					x.ondragstart=startdrop;
 					x.title=i.name?i.name:i.id;
 					document.getElementById("floorplan").appendChild(x);
@@ -85,7 +87,7 @@ function wsconnect()
 					x=document.createElement("img");
 					x.id="output"+o.id;
 					x.className="output";
-					x.draggable=true;
+					x.draggable=engineering;
 					x.ondragstart=startdrop;
 					x.title=o.name?o.name:o.id;
 					document.getElementById("floorplan").appendChild(x);

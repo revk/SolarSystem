@@ -1,5 +1,5 @@
 <panel>
-<system name="Test Alarm" ws-port="1234" ws-auth="adrian:1234"/>
+<system name="Test Alarm" ws-port="1234" ws-auth="adrian:1234" engineering="*"/>
 
 <group id="0" name="test"/>
 
