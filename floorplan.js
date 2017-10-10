@@ -45,6 +45,7 @@ function newobj(o,type,state)
 			x.style.position="absolute";
 			x.style.left=(o.x)+"px";
 			x.style.top=(o.y)+"px";
+			if('a' in o)x.style.transform="rotate("+(o.a)+"deg)";
 		}
 		document.getElementById("floorplan").appendChild(x);
 	}
