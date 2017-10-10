@@ -757,6 +757,7 @@ save_config (const char *configfile)
       }
     }
   pthread_mutex_unlock (&eventmutex);	// Avoid things changing
+  sync();
 }
 
 static void *
