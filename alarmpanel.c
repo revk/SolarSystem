@@ -51,6 +51,8 @@
 #endif
 
 xml_t config = NULL;
+int configchanged = 0;
+pthread_mutex_t eventmutex;;
 
 #define	MAX_GROUP	10	// Mainly to work with keypad...
 typedef unsigned short group_t;	// Set of groups
@@ -733,6 +735,30 @@ output_ws (xml_t root, port_t port)
 }
 #endif
 
+static void
+save_config (const char *configfile)
+{
+  if (!config || !configchanged)
+    return;
+  pthread_mutex_lock (&eventmutex);	// Avoid things changing
+  char *temp = alloca (strlen (configfile) + 5);
+  sprintf (temp, "%s.tmp", configfile);
+  FILE *f = fopen (temp, "w");
+  if (f)
+    {
+      xml_write (f, config);
+      fclose (f);
+      if (rename (temp, configfile))
+	dolog (groups, "CONFIG", NULL, NULL, "Cannot save %s", configfile);
+      else
+      {
+	dolog (groups, "CONFIG", NULL, NULL, "Saved %s", configfile);
+	configchanged = 0;
+      }
+    }
+  pthread_mutex_unlock (&eventmutex);	// Avoid things changing
+}
+
 static void *
 load_config (const char *configfile)
 {
@@ -805,6 +831,8 @@ load_config (const char *configfile)
 		dolog (ALL_GROUPS, "CONFIG", NULL, port_name (p), "Input with bad port");
 		continue;
 	      }
+	mydevice[id].input[n].x=atoi(xml_get(x,"@x")?:"");
+	mydevice[id].input[n].y=atoi(xml_get(x,"@y")?:"");
 	    mydevice[id].input[n].inuse = 1;
 	    mydevice[id].input[n].name = xml_copy (x, "@name");
 	    // triggers
@@ -894,6 +922,8 @@ load_config (const char *configfile)
 		dolog (ALL_GROUPS, "CONFIG", NULL, port_name (p), "Output with bad port");
 		continue;
 	      }
+	mydevice[id].output[n].x=atoi(xml_get(x,"@x")?:"");
+	mydevice[id].output[n].y=atoi(xml_get(x,"@y")?:"");
 	    mydevice[id].output[n].type = state_parse (xml_get (x, "@type"));
 	    mydevice[id].output[n].name = xml_copy (x, "@name");
 	    mydevice[id].output[n].group = group_parse (xml_get (x, "@groups") ? : "*");
@@ -1016,6 +1046,9 @@ load_config (const char *configfile)
 	  }
 	char doorno[8];
 	snprintf (doorno, sizeof (doorno), "DOOR%02u", d);
+	if(!xml_get(x,"@id"))xml_add(x,"@id",doorno);
+	mydoor[d].x=atoi(xml_get(x,"@x")?:"");
+	mydoor[d].y=atoi(xml_get(x,"@y")?:"");
 	mydoor[d].groups = group_parse (xml_get (x, "@groups") ? : "*");
 	mydoor[d].group_set = group_parse (xml_get (x, "@set") ? : xml_get (x, "@groups") ? : "*");
 	mydoor[d].group_unset = group_parse (xml_get (x, "@unset") ? : xml_get (x, "@groups") ? : "*");
@@ -1620,7 +1653,6 @@ struct log_s
 };
 volatile log_t *logs = NULL, **logp = NULL;
 pthread_mutex_t logmutex;
-pthread_mutex_t eventmutex;;
 int logpipe[2];
 static log_t *
 next_log (long long usec)
@@ -3108,10 +3140,32 @@ do_wscallback (websocket_t * w, xml_t head, xml_t data)
 	  char *id = xml_get (e, "@id");
 	  if (!id || !*id)
 	    continue;
-	  int x = atoi(xml_get (e, "@x") ? : "-1");
-	  int y = atoi(xml_get (e, "@y") ? : "-1");
+	  int x = atoi (xml_get (e, "@x") ? : "-1");
+	  int y = atoi (xml_get (e, "@y") ? : "-1");
 	  if (x < 0 || y < 0)
 	    continue;
+	  void patch (void)
+	  {			// Update config
+	    if (!config)
+	      return;
+	    xml_t e = NULL;
+	    while ((e = xml_element_next_by_name (config, e, type)))
+	      {
+		char *xid = xml_get (e, "@id");
+		if (!xid)
+		  continue;
+		if (!strcmp (xid, id))
+			break; // found
+	      }
+	    if (!e)
+	      {
+		e = xml_element_add (config, type);
+		xml_add (e, "@id", id);
+	      }
+	    xml_addf (e, "@x", "%u", x);
+	    xml_addf (e, "@y", "%u", y);
+	    configchanged = 1;
+	  }
 	  if (!strcasecmp (type, "door") && !strncasecmp (id, "DOOR", 4))
 	    {
 	      int d = atoi (id + 4);
@@ -3119,12 +3173,12 @@ do_wscallback (websocket_t * w, xml_t head, xml_t data)
 		continue;
 	      mydoor[d].x = x;
 	      mydoor[d].y = y;
-	      // TODO save this somewhere
+	      patch ();
 	      continue;
 	    }
 	  if (!strcasecmp (type, "input"))
 	    {
-	      port_t p = port_parse_i (id,NULL);
+	      port_t p = port_parse_i (id, NULL);
 	      if (!p)
 		continue;
 	      int id = port_device (p);
@@ -3135,11 +3189,12 @@ do_wscallback (websocket_t * w, xml_t head, xml_t data)
 		continue;
 	      mydevice[id].input[port].x = x;
 	      mydevice[id].input[port].y = y;
+	      patch ();
 	      continue;
 	    }
 	  if (!strcasecmp (type, "output"))
 	    {
-	      port_t p = port_parse_o (id,NULL);
+	      port_t p = port_parse_o (id, NULL);
 	      if (!p)
 		continue;
 	      int id = port_device (p);
@@ -3150,6 +3205,7 @@ do_wscallback (websocket_t * w, xml_t head, xml_t data)
 		continue;
 	      mydevice[id].output[port].x = x;
 	      mydevice[id].output[port].y = y;
+	      patch ();
 	      continue;
 	    }
 	}
@@ -3328,6 +3384,7 @@ main (int argc, const char *argv[])
       time_t nextpoll = (now.tv_sec + 60) / 60 * 60;
       if (nextpoll > lastmin)
 	{			// Every minute
+	  save_config (configfile);
 	  lastmin = nextpoll;
 	  if (commfailcount)
 	    {
