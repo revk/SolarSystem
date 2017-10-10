@@ -247,6 +247,7 @@ struct mydoor_s
   unsigned char lock_arm:1;
   unsigned char lock_set:1;
   unsigned char opening:1;
+  unsigned int x, y;
 } mydoor[MAX_DOOR] =
 {
 };
@@ -300,11 +301,13 @@ static struct
     unsigned char inuse:1;	// Mentioned in config at all
     unsigned char isexit:1;	// Door related input
     unsigned char isbell:1;	// Door related input
+    unsigned int x, y;
     group_t trigger[STATE_TRIGGERS];	// If this input applies to a state
   } input[MAX_INPUT];
   struct
   {				// Outputs
     char *name;
+    unsigned int x, y;
     state_t type;		// Which state we are outputting
     group_t group;		// Which groups it applies to
   } output[MAX_OUTPUT];
@@ -632,6 +635,11 @@ door_ws (xml_t root, int d)
     return NULL;		// Not active
   xml_t x = xml_element_add (root, "door");
   xml_addf (x, "@id", "DOOR%02d", d);
+  if (mydoor[d].x || mydoor[d].y)
+    {
+      xml_addf (x, "@x", "%u", mydoor[d].x);
+      xml_addf (x, "@y", "%u", mydoor[d].y);
+    }
   if (mydoor[d].name)
     xml_add (x, "@name", mydoor[d].name);
   xml_add (x, "@state", door_name[door[d].state]);
@@ -673,6 +681,11 @@ input_ws (xml_t root, port_t port)
     return NULL;		// Not in use
   xml_t x = xml_element_add (root, "input");
   xml_add (x, "@id", port_name (port));
+  if (mydevice[id].input[n].x || mydevice[id].input[n].y)
+    {
+      xml_addf (x, "@x", "%u", mydevice[id].input[n].x);
+      xml_addf (x, "@y", "%u", mydevice[id].input[n].y);
+    }
   if (mydevice[id].name)
     xml_add (x, "@device", mydevice[id].name);
   if (mydevice[id].input[n].name)
@@ -705,6 +718,11 @@ output_ws (xml_t root, port_t port)
     return NULL;		// Not in use
   xml_t x = xml_element_add (root, "output");
   xml_add (x, "@id", port_name (port));
+  if (mydevice[id].output[n].x || mydevice[id].output[n].y)
+    {
+      xml_addf (x, "@x", "%u", mydevice[id].output[n].x);
+      xml_addf (x, "@y", "%u", mydevice[id].output[n].y);
+    }
   if (mydevice[id].name)
     xml_add (x, "@device", mydevice[id].name);
   if (mydevice[id].output[n].name)
@@ -3082,8 +3100,61 @@ do_wscallback (websocket_t * w, xml_t head, xml_t data)
 	    key = "\n";
 	  keypad_update (k, *key);
 	}
+      for (e = NULL; (e = xml_element_next_by_name (data, e, "position"));)
+	{			// Position update
+	  char *type = xml_get (e, "@type");
+	  if (!type)
+	    continue;
+	  char *id = xml_get (e, "@id");
+	  if (!id || !*id)
+	    continue;
+	  int x = atoi(xml_get (e, "@x") ? : "-1");
+	  int y = atoi(xml_get (e, "@y") ? : "-1");
+	  if (x < 0 || y < 0)
+	    continue;
+	  if (!strcasecmp (type, "door") && !strncasecmp (id, "DOOR", 4))
+	    {
+	      int d = atoi (id + 4);
+	      if (d < 0 || d >= MAX_DOOR)
+		continue;
+	      mydoor[d].x = x;
+	      mydoor[d].y = y;
+	      // TODO save this somewhere
+	      continue;
+	    }
+	  if (!strcasecmp (type, "input"))
+	    {
+	      port_t p = port_parse_i (id,NULL);
+	      if (!p)
+		continue;
+	      int id = port_device (p);
+	      if (id >= MAX_DEVICE)
+		continue;
+	      int port = port_id (p);
+	      if (port >= MAX_INPUT)
+		continue;
+	      mydevice[id].input[port].x = x;
+	      mydevice[id].input[port].y = y;
+	      continue;
+	    }
+	  if (!strcasecmp (type, "output"))
+	    {
+	      port_t p = port_parse_o (id,NULL);
+	      if (!p)
+		continue;
+	      int id = port_device (p);
+	      if (id >= MAX_DEVICE)
+		continue;
+	      int port = port_id (p);
+	      if (port >= MAX_OUTPUT)
+		continue;
+	      mydevice[id].output[port].x = x;
+	      mydevice[id].output[port].y = y;
+	      continue;
+	    }
+	}
       for (e = NULL; (e = xml_element_next_by_name (data, e, "door"));)
-	{
+	{			// Door action
 	  char *id = xml_get (e, "@id");
 	  if (!id || strncasecmp (id, "door", 4))
 	    continue;
@@ -3096,19 +3167,19 @@ do_wscallback (websocket_t * w, xml_t head, xml_t data)
 	    door_open (d);
 	}
       for (e = NULL; (e = xml_element_next_by_name (data, e, "arm"));)
-	{
+	{			// Group ARM
 	  int g = atoi (xml_element_content (e) ? : "-1");
 	  if (g >= 0 && g < MAX_GROUP)
 	    alarm_arm ("web", NULL, 1 << g, 1);
 	}
       for (e = NULL; (e = xml_element_next_by_name (data, e, "disarm"));)
-	{
+	{			// Group DISARM
 	  int g = atoi (xml_element_content (e) ? : "-1");
 	  if (g >= 0 && g < MAX_GROUP)
 	    alarm_unset ("web", NULL, 1 << g);
 	}
       for (e = NULL; (e = xml_element_next_by_name (data, e, "reset"));)
-	{
+	{			// Group RESET
 	  int g = atoi (xml_element_content (e) ? : "-1");
 	  if (g >= 0 && g < MAX_GROUP)
 	    alarm_reset ("web", NULL, 1 << g);

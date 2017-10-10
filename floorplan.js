@@ -22,10 +22,34 @@ function dodrop(e)
 		o.style.position="absolute";
 		o.style.left=(e.x-o.ox)+"px";
 		o.style.top=(e.y-o.oy)+"px";
-		// TODO reporting back position to permanently store
+		var a={position:[{type:o.className,id:o.tag,x:(e.x-o.ox),y:(e.y-o.oy)}]};
+		ws.send(JSON.stringify(a));
 		// TODO allow rotation - how
 		// TODO allow picking icon (drop on icon to use?)
 	}
+}
+function newobj(o,type,state)
+{
+	x=document.getElementById(type+o.id);
+	if(!x)
+	{
+		x=document.createElement("img");
+		x.id=type+o.id;
+		x.tag=o.id;
+		x.className=type;
+		x.draggable=engineering;
+		x.ondragstart=startdrop;
+		x.title=o.name?o.name:o.id;
+		if(o.x)
+		{
+			x.style.position="absolute";
+			x.style.left=(o.x)+"px";
+			x.style.top=(o.y)+"px";
+		}
+		document.getElementById("floorplan").appendChild(x);
+	}
+	x.src="floorplan-"+type+"-"+state+".svg";
+	return x;
 }
 function wsconnect()
 {
@@ -46,53 +70,20 @@ function wsconnect()
 			if(o.set&&o.set.engineering)engineering=true;
 		        if(o.door)o.door.forEach(function(d)
 			{
-				x=document.getElementById(d.id);
-				if(!x)
+				x=newobj(d,"door",d.state);
+				if(!x.ondblclick) x.ondblclick=function()
 				{
-					x=document.createElement("img");
-					x.id=d.id;
-					x.className="door";
-					x.draggable=engineering;
-					x.ondragstart=startdrop;
-					x.ondblclick=function()
-					{
-						var a={door:[{id:this.id}]};
-						ws.send(JSON.stringify(a));
-					}
-					document.getElementById("floorplan").appendChild(x);
+					var a={door:[{id:this.id}]};
+					ws.send(JSON.stringify(a));
 				}
-				x.src="floorplan-door-"+d.state+".svg";
-				x.title=d.name?d.name:d.id;
 			});
 		        if(o.input)o.input.forEach(function(i)
 			{
-				x=document.getElementById("input"+i.id);
-				if(!x)
-				{
-					x=document.createElement("img");
-					x.id="input"+i.id;
-					x.className="input";
-					x.draggable=engineering;
-					x.ondragstart=startdrop;
-					x.title=i.name?i.name:i.id;
-					document.getElementById("floorplan").appendChild(x);
-				}
-				x.src="floorplan-input-"+(i.tamper?"tamper":i.fault?"fault":i.active?"active":"idle")+".svg";
+				x=newobj(i,"input",(i.tamper?"tamper":i.fault?"fault":i.active?"active":"idle"));
 			});
 		        if(o.output)o.output.forEach(function(o)
 			{
-				x=document.getElementById("output"+o.id);
-				if(!x)
-				{
-					x=document.createElement("img");
-					x.id="output"+o.id;
-					x.className="output";
-					x.draggable=engineering;
-					x.ondragstart=startdrop;
-					x.title=o.name?o.name:o.id;
-					document.getElementById("floorplan").appendChild(x);
-				}
-				x.src="floorplan-output-"+(o.active?"active":"idle")+".svg";
+				x=newobj(o,"output",(o.active?"active":"idle"));
 			});
 	}
 	x=document.getElementById("floorplan");
