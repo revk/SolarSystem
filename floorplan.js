@@ -73,7 +73,7 @@ function wsconnect()
 				x=newobj(d,"door",d.state);
 				if(!x.onclick) x.onclick=function()
 				{
-					var a={door:[{id:this.id}]};
+					var a={door:[{id:this.tag}]};
 					ws.send(JSON.stringify(a));
 				}
 			});
