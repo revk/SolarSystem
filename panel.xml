@@ -10,4 +10,6 @@
    <input id="RIO1012" name="PIR2" intruder="*" x="434" y="259"/>
    <output id="MAX1902" x="785" y="504"/>
    <output id="MAX1901" x="147" y="488"/>
+   <input id="MAX1902" a="4294967295" x="266" y="359"/>
+   <input id="MAX1901" a="4294967295" x="571" y="363"/>
 </panel>

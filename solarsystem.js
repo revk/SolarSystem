@@ -86,10 +86,10 @@ ws.onmessage=function(event)
 			l.className="keypad";
 			l.src="keypad.png";
 			x.appendChild(l);
-			l=document.createElement("div");
+			l=document.createElement("pre");
 			l.className="keypadline1";
 			x.appendChild(l);
-			l=document.createElement("div");
+			l=document.createElement("pre");
 			l.className="keypadline2";
 			x.appendChild(l);
 			l=document.createElement("div");

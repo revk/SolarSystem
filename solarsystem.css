@@ -11,20 +11,18 @@ div.keypad {
 	vertical-align: top;
 }
 
-div.keypadline1 {
-	font-family: monospace;
+pre.keypadline1 {
 	font-size: 11px;
 	position: absolute;
 	left: 59px;
-	top: 30px;
+	top: 20px;
 }
 
-div.keypadline2 {
-	font-family: monospace;
+pre.keypadline2 {
 	font-size: 11px;
 	position: absolute;
 	left: 59px;
-	top: 42px;
+	top: 32px;
 }
 
 div.keypadlabel {

@@ -627,7 +627,8 @@ keypad_ws (xml_t root, keypad_t * k)
   xml_add (x, "+line", (char *) device[n].text[1]);
   xml_addf (x, "+-beep", "%d", device[n].beep[0]);
   xml_addf (x, "+-beep", "%d", device[n].beep[1]);
-  xml_addf (x, "+@-cursor", "%d", device[n].cursor);
+  if (device[n].cursor)
+    xml_addf (x, "+@-cursor", "%d", device[n].cursor);
   if (device[n].silent)
     xml_add (x, "+@-silent", "true");
   if (device[n].blink)
@@ -2417,7 +2418,11 @@ keypad_update (keypad_t * k, char key)
 #ifdef	LIBWS
   xml_t root = xml_tree_new (NULL);
   xml_t x = keypad_ws (root, k);
-  if (key)
+  if (key == '\e')
+    xml_add (x, "@key", "esc");
+  else if (key == '\n')
+    xml_add (x, "@key", "ent");
+  else if (key)
     xml_addf (x, "@key", "%c", key);
   websocket_send_all (root);
   xml_tree_delete (root);
