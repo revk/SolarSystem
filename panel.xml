@@ -4,12 +4,12 @@
    <group id="0" name="test"/>
    <keypad id="PAD110" message="Test alarm (A)" name="Pad A"/>
    <keypad id="PAD120" message="Test alarm (B)" name="Pad B"/>
-   <door name="Test Door" max="MAX190" id="DOOR00" x="262" y="424" a="135"/>
+   <door name="Test Door" max="MAX190" id="DOOR00" x="262" y="424" a="315"/>
    <user name="adrian" pin="1234"/>
-   <input id="RIO1011" name="PIR1" intruder="*" x="253" y="307" t="pir" a="0"/>
+   <input id="RIO1011" name="PIR1" intruder="*" x="456" y="254" t="input"/>
    <input id="RIO1012" name="PIR2" intruder="*" x="335" y="464"/>
    <output id="MAX1902" x="184" y="318"/>
-   <output id="MAX1901" x="215" y="300" a="135" t="output"/>
-   <input id="MAX1902" a="45" x="277" y="341"/>
-   <input id="MAX1901" a="4294967295" x="294" y="480"/>
+   <output id="MAX1901" x="363" y="220" t="output"/>
+   <input id="MAX1902" x="277" y="341"/>
+   <input id="MAX1901" x="294" y="480"/>
 </panel>

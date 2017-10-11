@@ -649,11 +649,11 @@ door_ws (xml_t root, int d)
   if (xml_get (root, "@full-data"))
     {
       if (mydoor[d].a >= 0)
-	xml_addf (x, "@a", "%d", mydoor[d].a);
+	xml_addf (x, "@-a", "%d", mydoor[d].a);
       if (mydoor[d].x >= 0)
-	xml_addf (x, "@x", "%d", mydoor[d].x);
+	xml_addf (x, "@-x", "%d", mydoor[d].x);
       if (mydoor[d].y >= 0)
-	xml_addf (x, "@y", "%d", mydoor[d].y);
+	xml_addf (x, "@-y", "%d", mydoor[d].y);
       if (mydoor[d].t)
 	xml_add (x, "@t", mydoor[d].t);
       if (mydoor[d].name)
@@ -701,11 +701,11 @@ input_ws (xml_t root, port_t port)
   if (xml_get (root, "@full-data"))
     {
       if (mydevice[id].input[n].a >= 0)
-	xml_addf (x, "@a", "%d", mydevice[id].input[n].a);
+	xml_addf (x, "@-a", "%d", mydevice[id].input[n].a);
       if (mydevice[id].input[n].x >= 0)
-	xml_addf (x, "@x", "%d", mydevice[id].input[n].x);
+	xml_addf (x, "@-x", "%d", mydevice[id].input[n].x);
       if (mydevice[id].input[n].y >= 0)
-	xml_addf (x, "@y", "%d", mydevice[id].input[n].y);
+	xml_addf (x, "@-y", "%d", mydevice[id].input[n].y);
       if (mydevice[id].input[n].t)
 	xml_add (x, "@t", mydevice[id].input[n].t);
       if (mydevice[id].name)
@@ -744,11 +744,11 @@ output_ws (xml_t root, port_t port)
   if (xml_get (root, "@full-data"))
     {
       if (mydevice[id].output[n].a >= 0)
-	xml_addf (x, "@a", "%d", mydevice[id].output[n].a);
+	xml_addf (x, "@-a", "%d", mydevice[id].output[n].a);
       if (mydevice[id].output[n].x >= 0)
-	xml_addf (x, "@x", "%d", mydevice[id].output[n].x);
+	xml_addf (x, "@-x", "%d", mydevice[id].output[n].x);
       if (mydevice[id].output[n].y >= 0)
-	xml_addf (x, "@y", "%d", mydevice[id].output[n].y);
+	xml_addf (x, "@-y", "%d", mydevice[id].output[n].y);
       if (mydevice[id].output[n].t)
 	xml_add (x, "@t", mydevice[id].output[n].t);
       if (mydevice[id].name)

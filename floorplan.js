@@ -18,10 +18,10 @@ function startdrop(e)
 function send(o)
 {
 	var a={position:[{type:o.className,id:o.tag}]};
-	if(o.x)a.position[0].x=o.x;
-	if(o.y)a.position[0].y=o.y;
-	if(o.a)a.position[0].a=o.a;
-	if(o.t)a.position[0].t=o.t;
+	if('posx' in o)a.position[0].x=o.posx;
+	if('posy' in o)a.position[0].y=o.posy;
+	if('posa' in o)a.position[0].a=o.posa;
+	if('post' in o)a.position[0].t=o.post;
 	ws.send(JSON.stringify(a));
 }
 
@@ -30,21 +30,17 @@ function dodrop(e)
 	o=document.getElementById(e.dataTransfer.getData("text"));
 	if(o)
 	{
-		o.x=e.x-o.ox;
-		o.y=e.y-o.oy;
-		console.log(e);
+		o.posx=(e.x-o.ox);
+		o.posy=(e.y-o.oy);
 		o.style.position="absolute";
-		o.style.left=o.x+"px";
-		o.style.top=o.y+"px";
-		if('a' in o)x.style.transform="rotate("+(o.a)+"deg)";
+		o.style.left=o.posx+"px";
+		o.style.top=o.posy+"px";
 		send(o);
 	}
 }
 
 function iconmenu(menu,e,o)
 {
-	console.log(menu);
-	console.log(e);
 	var x=document.createElement("div");
 	x.className="menu";
 	x.style.position="absolute";
@@ -57,7 +53,7 @@ function iconmenu(menu,e,o)
 		l.className="menuitem";
 		l.textContent=m;
 		l.onclick=function(){
-			o.t=l.textContent;
+			o.post=l.textContent;
 			send(o);
 			x.onmouseleave=null;
 			x.parentNode.removeChild(x);
@@ -69,9 +65,9 @@ function iconmenu(menu,e,o)
 		l.className="menuitem";
 		l.textContent="↻";
 		l.onclick=function(){
-			if(!o.a)o.a=0;
-			o.a+=45;
-			if(o.a>=360)o.a-=360;
+			if(!o.posa)o.posa=0;
+			o.posa=(o.posa+45);
+			if(o.posa>=360)o.posa=o.posa-360;
 			send(o);
 			x.onmouseleave=null;
 			x.parentNode.removeChild(x);
@@ -83,9 +79,9 @@ function iconmenu(menu,e,o)
 		l.className="menuitem";
 		l.textContent="⟲";
 		l.onclick=function(){
-			if(!o.a)o.a=0;
-			o.a-=45;
-			if(o.a<0)o.a+=360;
+			if(!o.posa)o.posa=0;
+			o.posa=o.posa-45;
+			if(o.posa<0)o.posa=o.posa+360;
 			send(o);
 			x.onmouseleave=null;
 			x.parentNode.removeChild(x);
@@ -105,15 +101,15 @@ function newobj(o,type,state,classes,menu)
 		x.className=type;
 		x.draggable=engineering;
 		x.ondragstart=startdrop;
-		x.title=o.name?o.name:o.id;
+		x.title=(o.name?o.name:o.id);
 		if(menu&&engineering)x.oncontextmenu=function(e){iconmenu(menu,e,this);return false;}
 		document.getElementById("floorplan").appendChild(x);
 	}
 	if('x' in o || 'y' in o)x.style.position="absolute";
-	if('x' in o)x.style.left=(x.x=o.x)+"px";
-	if('y' in o)x.style.top=(x.y=o.y)+"px";
-	if('a' in o)x.style.transform="rotate("+(x.a=o.a)+"deg)";
-	if('t' in o)x.t=o.t;
+	if('x' in o)x.style.left=(x.posx=o.x)+"px";
+	if('y' in o)x.style.top=(x.posy=o.y)+"px";
+	if('a' in o)x.style.transform="rotate("+(x.posa=o.a)+"deg)";
+	if('t' in o)x.post=o.t;
 	s="floorplan-"+(x.t?x.t:type)+"-"+state+".svg";
 	if(x.src!=s)x.src=s;
 	s=type;
