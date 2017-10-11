@@ -110,7 +110,7 @@ function newobj(o,type,state,classes,menu)
 	if('y' in o)x.style.top=(x.posy=o.y)+"px";
 	if('a' in o)x.style.transform="rotate("+(x.posa=o.a)+"deg)";
 	if('t' in o)x.post=o.t;
-	s="floorplan-"+(x.t?x.t:type)+"-"+state+".svg";
+	s="floorplan-"+(x.post?x.post:type)+"-"+state+".svg";
 	if(x.src!=s)x.src=s;
 	s=type;
 	if(classes)s=s+" "+classes;
@@ -128,7 +128,7 @@ function wsconnect()
 	}
 	ws.onclose=function()
 	{
-		        backoff=backoff*2;
+		        if(backoff<10000)backoff=backoff*2;
 		        setTimeout(wsconnect,100*backoff);
 	}
 	ws.onmessage=function(event)

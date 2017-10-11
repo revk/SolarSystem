@@ -14,7 +14,7 @@ ws.onopen=function()
 ws.onclose=function()
 {
 	document.getElementById("main").style.background="yellow";
-	backoff=backoff*2;
+	if(backoff<10000)backoff=backoff*2;
 	setTimeout(wsconnect,100*backoff);
 }
 ws.onerror=function()
