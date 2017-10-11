@@ -249,7 +249,8 @@ struct mydoor_s
   unsigned char lock_arm:1;
   unsigned char lock_set:1;
   unsigned char opening:1;
-  unsigned int a, x, y;		// Position on floor plan
+  int a, x, y;			// Position on floor plan
+  char *t;			// icon
 } mydoor[MAX_DOOR] =
 {
 };
@@ -303,13 +304,15 @@ static struct
     unsigned char inuse:1;	// Mentioned in config at all
     unsigned char isexit:1;	// Door related input
     unsigned char isbell:1;	// Door related input
-    unsigned int a, x, y;	// Position on floor plan
+    int a, x, y;		// Position on floor plan
+    char *t;			//icon
     group_t trigger[STATE_TRIGGERS];	// If this input applies to a state
   } input[MAX_INPUT];
   struct
   {				// Outputs
     char *name;
-    unsigned int a, x, y;	// Position on floor plan
+    int a, x, y;		// Position on floor plan
+    char *t;			//icon
     state_t type;		// Which state we are outputting
     group_t group;		// Which groups it applies to
   } output[MAX_OUTPUT];
@@ -645,12 +648,14 @@ door_ws (xml_t root, int d)
   xml_addf (x, "@id", "DOOR%02d", d);
   if (xml_get (root, "@full-data"))
     {
-      if (mydoor[d].x || mydoor[d].y)
-	{
-	  xml_addf (x, "@a", "%u", mydoor[d].a);
-	  xml_addf (x, "@x", "%u", mydoor[d].x);
-	  xml_addf (x, "@y", "%u", mydoor[d].y);
-	}
+      if (mydoor[d].a >= 0)
+	xml_addf (x, "@a", "%d", mydoor[d].a);
+      if (mydoor[d].x >= 0)
+	xml_addf (x, "@x", "%d", mydoor[d].x);
+      if (mydoor[d].y >= 0)
+	xml_addf (x, "@y", "%d", mydoor[d].y);
+      if (mydoor[d].t)
+	xml_add (x, "@t", mydoor[d].t);
       if (mydoor[d].name)
 	xml_add (x, "@name", mydoor[d].name);
     }
@@ -695,12 +700,14 @@ input_ws (xml_t root, port_t port)
   xml_add (x, "@id", port_name (port));
   if (xml_get (root, "@full-data"))
     {
-      if (mydevice[id].input[n].x || mydevice[id].input[n].y)
-	{
-	  xml_addf (x, "@a", "%u", mydevice[id].input[n].a);
-	  xml_addf (x, "@x", "%u", mydevice[id].input[n].x);
-	  xml_addf (x, "@y", "%u", mydevice[id].input[n].y);
-	}
+      if (mydevice[id].input[n].a >= 0)
+	xml_addf (x, "@a", "%d", mydevice[id].input[n].a);
+      if (mydevice[id].input[n].x >= 0)
+	xml_addf (x, "@x", "%d", mydevice[id].input[n].x);
+      if (mydevice[id].input[n].y >= 0)
+	xml_addf (x, "@y", "%d", mydevice[id].input[n].y);
+      if (mydevice[id].input[n].t)
+	xml_add (x, "@t", mydevice[id].input[n].t);
       if (mydevice[id].name)
 	xml_add (x, "@device", mydevice[id].name);
       if (mydevice[id].input[n].name)
@@ -736,12 +743,14 @@ output_ws (xml_t root, port_t port)
   xml_add (x, "@id", port_name (port));
   if (xml_get (root, "@full-data"))
     {
-      if (mydevice[id].output[n].x || mydevice[id].output[n].y)
-	{
-	  xml_addf (x, "@a", "%u", mydevice[id].output[n].a);
-	  xml_addf (x, "@x", "%u", mydevice[id].output[n].x);
-	  xml_addf (x, "@y", "%u", mydevice[id].output[n].y);
-	}
+      if (mydevice[id].output[n].a >= 0)
+	xml_addf (x, "@a", "%d", mydevice[id].output[n].a);
+      if (mydevice[id].output[n].x >= 0)
+	xml_addf (x, "@x", "%d", mydevice[id].output[n].x);
+      if (mydevice[id].output[n].y >= 0)
+	xml_addf (x, "@y", "%d", mydevice[id].output[n].y);
+      if (mydevice[id].output[n].t)
+	xml_add (x, "@t", mydevice[id].output[n].t);
       if (mydevice[id].name)
 	xml_add (x, "@device", mydevice[id].name);
       if (mydevice[id].output[n].name)
@@ -853,6 +862,11 @@ load_config (const char *configfile)
 	    mydevice[id].input[n].a = atoi (xml_get (x, "@a") ? : "");
 	    mydevice[id].input[n].x = atoi (xml_get (x, "@x") ? : "");
 	    mydevice[id].input[n].y = atoi (xml_get (x, "@y") ? : "");
+	    {
+	      char *t = xml_get (x, "@t");
+	      if (t)
+		mydevice[id].input[n].t = strdup (t);
+	    }
 	    mydevice[id].input[n].inuse = 1;
 	    mydevice[id].input[n].name = xml_copy (x, "@name");
 	    // triggers
@@ -945,6 +959,9 @@ load_config (const char *configfile)
 	    mydevice[id].output[n].a = atoi (xml_get (x, "@a") ? : "");
 	    mydevice[id].output[n].x = atoi (xml_get (x, "@x") ? : "");
 	    mydevice[id].output[n].y = atoi (xml_get (x, "@y") ? : "");
+	    char *t = xml_get (x, "@t");
+	    if (t)
+	      mydevice[id].output[n].t = strdup (t);
 	    mydevice[id].output[n].type = state_parse (xml_get (x, "@type"));
 	    mydevice[id].output[n].name = xml_copy (x, "@name");
 	    mydevice[id].output[n].group = group_parse (xml_get (x, "@groups") ? : "*");
@@ -1072,6 +1089,9 @@ load_config (const char *configfile)
 	mydoor[d].a = atoi (xml_get (x, "@a") ? : "");
 	mydoor[d].x = atoi (xml_get (x, "@x") ? : "");
 	mydoor[d].y = atoi (xml_get (x, "@y") ? : "");
+	char *t = xml_get (x, "@t");
+	if (t)
+	  mydoor[d].t = strdup (t);
 	mydoor[d].groups = group_parse (xml_get (x, "@groups") ? : "*");
 	mydoor[d].group_set = group_parse (xml_get (x, "@set") ? : xml_get (x, "@groups") ? : "*");
 	mydoor[d].group_unset = group_parse (xml_get (x, "@unset") ? : xml_get (x, "@groups") ? : "*");
@@ -3147,7 +3167,9 @@ do_wscallback (websocket_t * w, xml_t head, xml_t data)
   if (w && !head && data)
     {				// Existing connection
       // Process valid requests
-      pthread_mutex_lock (&eventmutex);	// Stop simultaneous event processing
+      pthread_mutex_lock (&eventmutex);	// Stop simultaneous event processingx
+      xml_t root = xml_tree_new (NULL);
+      xml_add (root, "@full-data", "true");	// Send name, etc.
       xml_t e;
       for (e = NULL; (e = xml_element_next_by_name (data, e, "keypad"));)
 	{			// Key presses
@@ -3178,8 +3200,7 @@ do_wscallback (websocket_t * w, xml_t head, xml_t data)
 	  int a = atoi (xml_get (e, "@a") ? : "-1");
 	  int x = atoi (xml_get (e, "@x") ? : "-1");
 	  int y = atoi (xml_get (e, "@y") ? : "-1");
-	  if (x < 0 || y < 0)
-	    continue;
+	  char *t = xml_get (e, "@t");
 	  void patch (void)
 	  {			// Update config
 	    if (!config)
@@ -3198,9 +3219,14 @@ do_wscallback (websocket_t * w, xml_t head, xml_t data)
 		e = xml_element_add (config, type);
 		xml_add (e, "@id", id);
 	      }
-	    xml_addf (e, "@a", "%u", a);
-	    xml_addf (e, "@x", "%u", x);
-	    xml_addf (e, "@y", "%u", y);
+	    if (a >= 0)
+	      xml_addf (e, "@a", "%d", a);
+	    if (x >= 0)
+	      xml_addf (e, "@x", "%d", x);
+	    if (y >= 0)
+	      xml_addf (e, "@y", "%d", y);
+	    if (t)
+	      xml_addf (e, "@t", "%s", t);
 	    configchanged = 1;
 	  }
 	  if (!strcasecmp (type, "door") && !strncasecmp (id, "DOOR", 4))
@@ -3208,10 +3234,20 @@ do_wscallback (websocket_t * w, xml_t head, xml_t data)
 	      int d = atoi (id + 4);
 	      if (d < 0 || d >= MAX_DOOR)
 		continue;
-	      mydoor[d].a = a;
-	      mydoor[d].x = x;
-	      mydoor[d].y = y;
+	      if (a >= 0)
+		mydoor[d].a = a;
+	      if (a >= 0)
+		mydoor[d].x = x;
+	      if (y >= 0)
+		mydoor[d].y = y;
+	      if (t)
+		{
+		  if (mydoor[d].t)
+		    free (mydoor[d].t);
+		  mydoor[d].t = strdup (t);
+		}
 	      patch ();
+	      door_ws (root, d);
 	      continue;
 	    }
 	  if (!strcasecmp (type, "input"))
@@ -3225,10 +3261,20 @@ do_wscallback (websocket_t * w, xml_t head, xml_t data)
 	      int port = port_id (p);
 	      if (port >= MAX_INPUT)
 		continue;
-	      mydevice[id].input[port].a = a;
-	      mydevice[id].input[port].x = x;
-	      mydevice[id].input[port].y = y;
+	      if (a >= 0)
+		mydevice[id].input[port].a = a;
+	      if (x >= 0)
+		mydevice[id].input[port].x = x;
+	      if (y >= 0)
+		mydevice[id].input[port].y = y;
+	      if (t)
+		{
+		  if (mydevice[id].input[port].t)
+		    free (mydevice[id].input[port].t);
+		  mydevice[id].input[port].t = strdup (t);
+		}
 	      patch ();
+	      input_ws (root, p);
 	      continue;
 	    }
 	  if (!strcasecmp (type, "output"))
@@ -3242,10 +3288,20 @@ do_wscallback (websocket_t * w, xml_t head, xml_t data)
 	      int port = port_id (p);
 	      if (port >= MAX_OUTPUT)
 		continue;
-	      mydevice[id].output[port].a = a;
-	      mydevice[id].output[port].x = x;
-	      mydevice[id].output[port].y = y;
+	      if (a >= 0)
+		mydevice[id].output[port].a = a;
+	      if (x >= 0)
+		mydevice[id].output[port].x = x;
+	      if (y >= 0)
+		mydevice[id].output[port].y = y;
+	      if (t)
+		{
+		  if (mydevice[id].output[port].t)
+		    free (mydevice[id].output[port].t);
+		  mydevice[id].output[port].t = strdup (t);
+		}
 	      patch ();
+	      output_ws (root, p);
 	      continue;
 	    }
 	}
@@ -3280,6 +3336,9 @@ do_wscallback (websocket_t * w, xml_t head, xml_t data)
 	  if (g >= 0 && g < MAX_GROUP)
 	    alarm_reset ("web", NULL, 1 << g);
 	}
+      if (xml_element_next (root, NULL))
+	websocket_send_all (root);
+      xml_tree_delete (root);
       pthread_mutex_unlock (&eventmutex);
       return NULL;
     }

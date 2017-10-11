@@ -17,3 +17,26 @@ img.floorplanimg {
 	left: 0px;
 	z-index: -1;
 }
+
+div.menu {
+	border:1px solid black;
+	padding:2px;
+	background: white;
+}
+
+div.menuitem {
+	width:100%;
+}
+
+div.menuitem:hover {
+	background: black;
+	color: white;
+}
+
+div.tamper {
+	border: 2px solid purple;
+}
+
+div.fault {
+	border: 2px solid blue;
+}
