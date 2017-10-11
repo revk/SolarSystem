@@ -146,11 +146,11 @@ function wsconnect()
 			});
 		        if(o.input)o.input.forEach(function(i)
 			{
-				x=newobj(i,"input",(i.active?"active":"idle"),i.tamper?"tamper":i.fault?"fault":"",["input","pir","reed"]);
+				x=newobj(i,"input",(i.active?"active":"idle"),i.tamper?"tamper":i.fault?"fault":"",["input","pir","reed","button","glass","smoke"]);
 			});
 		        if(o.output)o.output.forEach(function(o)
 			{
-				x=newobj(o,"output",(o.active?"active":"idle"),o.tamper?"tamper":o.fault?"fault":"",["output","lock","bell"]);
+				x=newobj(o,"output",(o.active?"active":"idle"),o.tamper?"tamper":o.fault?"fault":"",["output","lock","bell","light","beep"]);
 			});
 	}
 	x=document.getElementById("floorplan");
