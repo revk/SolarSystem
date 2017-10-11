@@ -106,7 +106,7 @@ function newobj(o,type,state,classes,menu)
 		x.draggable=engineering;
 		x.ondragstart=startdrop;
 		x.title=o.name?o.name:o.id;
-		if(menu)x.oncontextmenu=function(e){iconmenu(menu,e,this);return false;}
+		if(menu&&engineering)x.oncontextmenu=function(e){iconmenu(menu,e,this);return false;}
 		document.getElementById("floorplan").appendChild(x);
 	}
 	if('x' in o || 'y' in o)x.style.position="absolute";
