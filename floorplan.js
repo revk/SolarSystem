@@ -137,7 +137,7 @@ function wsconnect()
 			if(o.set&&o.set.engineering)engineering=true;
 		        if(o.door)o.door.forEach(function(d)
 			{
-				x=newobj(d,"door",d.state,(d.state=="TAMPER")?"tamper":(d.state=="FAULT")?"fault":null,[]);
+				x=newobj(d,"door",d.state,(d.state=="TAMPER")?"tamper":(d.state=="FAULT")?"fault":null,["door","door2"]);
 				if(!x.onclick) x.onclick=function()
 				{
 					var a={door:[{id:this.tag}]};

@@ -4,9 +4,9 @@
    <group id="0" name="test"/>
    <keypad id="PAD110" message="Test alarm (A)" name="Pad A"/>
    <keypad id="PAD120" message="Test alarm (B)" name="Pad B"/>
-   <door name="Test Door" max="MAX190" id="DOOR00" x="262" y="424" a="315"/>
+   <door name="Test Door" max="MAX190" id="DOOR00" x="262" y="424" a="315" t="door2"/>
    <user name="adrian" pin="1234"/>
-   <input id="RIO1011" name="PIR1" intruder="*" x="456" y="254" t="input"/>
+   <input id="RIO1011" name="PIR1" intruder="*" x="456" y="254" t="pir" a="0"/>
    <input id="RIO1012" name="PIR2" intruder="*" x="335" y="464"/>
    <output id="MAX1902" x="184" y="318"/>
    <output id="MAX1901" x="363" y="220" t="output"/>
