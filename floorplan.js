@@ -12,7 +12,7 @@ function startdrop(e)
 {
 	e.dataTransfer.setData("text", e.target.id);
 	this.lx=e.layerX;
-	this.ly=e.layerX;
+	this.ly=e.layerY;
 	console.log(e);
 }
 
