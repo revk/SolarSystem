@@ -1197,8 +1197,8 @@ load_config (const char *configfile)
       if (ws)
 	wskeyfile = strdup (ws);
       ws = xml_get (x, "@ws-floorplan");
-      if (ws && *ws == '/')
-	wsfloorplan = strdup (ws);
+      if (ws)
+	asprintf (&wsfloorplan, "@%s", ws);
 #endif
     }
   // All groups...
@@ -3114,9 +3114,12 @@ do_wscallback (websocket_t * w, xml_t head, xml_t data)
       if (*p != '.' || (strcmp (p, ".html") && strcmp (p, ".js") && strcmp (p, ".css") && strcmp (p, ".png") && strcmp (p, ".svg")))	// Very limited options of files to serve
 	return "404 Not found";
       if (wsfloorplan && !strcmp (path, "/floorplan.png"))
-	path = wsfloorplan;
-      path = strdup (path);
-      *path = '@';
+	path = strdup (wsfloorplan);	// already has @ prefix
+      else
+	{
+	  path = strdup (path);
+	  *path = '@';
+	}
       return path;
     }
   if (w && head && !data)
