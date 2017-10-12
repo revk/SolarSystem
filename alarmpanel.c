@@ -179,9 +179,9 @@ char *wsport = NULL;
 char *wsauth = NULL;
 const char *wsorigin = NULL;
 const char *wshost = NULL;
-const char *wspath = NULL;
 const char *wscertfile = NULL;
 const char *wskeyfile = NULL;
+char *wsfloorplan=NULL;
 #endif
 
 unsigned int commfailcount = 0;
@@ -1190,15 +1190,15 @@ load_config (const char *configfile)
       ws = xml_get (x, "@ws-port");
       if (ws)
 	wsport = strdup (ws);
-      ws = xml_get (x, "@ws-path");
-      if (ws)
-	wspath = strdup (ws);
       ws = xml_get (x, "@ws-cert-file");
       if (ws)
 	wscertfile = strdup (ws);
       ws = xml_get (x, "@ws-key-file");
       if (ws)
 	wskeyfile = strdup (ws);
+      ws = xml_get (x, "@ws-floorplan");
+      if (ws&&*ws=='/')
+	wsfloorplan = strdup (ws);
 #endif
     }
   // All groups...
@@ -3109,6 +3109,7 @@ do_wscallback (websocket_t * w, xml_t head, xml_t data)
 	path = "/index.html";
       if (!isalnum (path[1]))
 	return "404 WTF";
+      if(wsfloorplan&&!strcmp(path,"/ploorplan.png"))path=wsfloorplan;
       char *p;
       for (p = path + 1; isalnum (*p) || *p == '_' || *p == '-'; p++);
       if (*p != '.' || (strcmp (p, ".html") && strcmp (p, ".js") && strcmp (p, ".css") && strcmp (p, ".png") && strcmp (p, ".svg")))	// Very limited options of files to serve
@@ -3434,7 +3435,7 @@ main (int argc, const char *argv[])
 #ifdef	LIBWS
   if (wsport || wskeyfile || wsauth)
     {
-      const char *e = websocket_bind (wsport, wsorigin, wshost, wspath, wscertfile, wskeyfile, wscallback);
+      const char *e = websocket_bind (wsport, wsorigin, wshost, NULL, wscertfile, wskeyfile, wscallback);
       if (e)
 	errx (1, "Websocket fail: %s", e);
     }

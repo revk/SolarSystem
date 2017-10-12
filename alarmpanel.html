@@ -112,6 +112,16 @@
 <tr><td>walk-through</td><td>If present then logs inputs, tampers and faults. (set to "true").</td></tr>
 <tr><td>watchdog</td><td>Either <i>true</i> or the /dev/whatever for the watchdog device file. Default is no watchdog</td></tr>
 </table>
+<p>In addition, for web socket use there are a number of related settings in <i>system</i></p>
+<table border=1>
+</table>
+<tr><td>ws-auth</td><td>Authentication (user:pass)</td></tr>
+<tr><td>ws-host</td><td>Host name to check (optional, not usually sensible)</td></tr>
+<tr><td>ws-port</td><td>Port to use (default is 80 or 443)</td></tr>
+<tr><td>ws-auth</td><td>Authentication (user:pass)</td></tr>
+<tr><td>ws-cert-file</td><td>Filename for certificate for https and wss</td></tr>
+<tr><td>ws-key-file</td><td>Filename for key for https and wss</td></tr>
+<tr><td>ws-floorplan</td><td>Path to floor plan file (start with /), suggest png or svg with one unit per cm scale</td></tr>
 <h2>group</h2>
 <table border=1>
 <tr><td>name</td><td>Group name</td></tr>

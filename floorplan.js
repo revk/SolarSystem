@@ -11,8 +11,9 @@ function allowdrop(e)
 function startdrop(e)
 {
 	e.dataTransfer.setData("text", e.target.id);
-	this.ox=e.offsetX;
-	this.oy=e.offsetY;
+	this.lx=e.layerX;
+	this.ly=e.layerX;
+	console.log(e);
 }
 
 function send(o)
@@ -30,8 +31,8 @@ function dodrop(e)
 	o=document.getElementById(e.dataTransfer.getData("text"));
 	if(o)
 	{
-		o.posx=(e.x-o.ox);
-		o.posy=(e.y-o.oy);
+		o.posx=(e.x-o.lx);
+		o.posy=(e.y-o.ly);
 		o.style.position="absolute";
 		o.style.left=o.posx+"px";
 		o.style.top=o.posy+"px";
