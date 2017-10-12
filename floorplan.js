@@ -148,10 +148,12 @@ function wsconnect()
 		        if(o.input)o.input.forEach(function(i)
 			{
 				x=newobj(i,"input",(i.active?"active":"idle"),i.tamper?"tamper":i.fault?"fault":"",["input","pir","reed","button","glass","smoke"]);
+				if(!engineering)x.style.pointerEvents=null;
 			});
 		        if(o.output)o.output.forEach(function(o)
 			{
 				x=newobj(o,"output",(o.active?"active":"idle"),o.tamper?"tamper":o.fault?"fault":"",["output","lock","bell","light","beep"]);
+				if(!engineering)x.style.pointerEvents=null;
 			});
 	}
 	x=document.getElementById("floorplan");
