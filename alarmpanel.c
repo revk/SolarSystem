@@ -181,7 +181,7 @@ const char *wsorigin = NULL;
 const char *wshost = NULL;
 const char *wscertfile = NULL;
 const char *wskeyfile = NULL;
-char *wsfloorplan=NULL;
+char *wsfloorplan = NULL;
 #endif
 
 unsigned int commfailcount = 0;
@@ -1197,7 +1197,7 @@ load_config (const char *configfile)
       if (ws)
 	wskeyfile = strdup (ws);
       ws = xml_get (x, "@ws-floorplan");
-      if (ws&&*ws=='/')
+      if (ws && *ws == '/')
 	wsfloorplan = strdup (ws);
 #endif
     }
@@ -3109,11 +3109,12 @@ do_wscallback (websocket_t * w, xml_t head, xml_t data)
 	path = "/index.html";
       if (!isalnum (path[1]))
 	return "404 WTF";
-      if(wsfloorplan&&!strcmp(path,"/ploorplan.png"))path=wsfloorplan;
       char *p;
       for (p = path + 1; isalnum (*p) || *p == '_' || *p == '-'; p++);
       if (*p != '.' || (strcmp (p, ".html") && strcmp (p, ".js") && strcmp (p, ".css") && strcmp (p, ".png") && strcmp (p, ".svg")))	// Very limited options of files to serve
 	return "404 Not found";
+      if (wsfloorplan && !strcmp (path, "/ploorplan.png"))
+	path = wsfloorplan;
       path = strdup (path);
       *path = '@';
       return path;
