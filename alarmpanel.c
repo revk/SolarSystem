@@ -176,7 +176,6 @@ const char *state_name[STATES] = {
 
 #ifdef	LIBWS
 char *wsport = NULL;
-char *wsauth = NULL;
 const char *wsorigin = NULL;
 const char *wshost = NULL;
 const char *wscertfile = NULL;
@@ -818,6 +817,7 @@ load_config (const char *configfile)
 	  g = atoi (xml_get (x, "@id"));
 	if (g < 0 || g >= MAX_GROUP)
 	  continue;
+	groups |= (1 << g);
 	group[g].name = xml_copy (x, "@name");
 	if ((v = xml_get (x, "@set-time")))
 	  group[g].set_time = atoi (v);
@@ -1181,10 +1181,7 @@ load_config (const char *configfile)
 	    WATCHDOG = "/dev/watchdog";
 	}
 #ifdef	LIBWS
-      char *ws = xml_get (x, "@ws-auth");
-      if (ws)
-	wsauth = strdup (ws);
-      ws = xml_get (x, "@ws-host");
+      char *ws = xml_get (x, "@ws-host");
       if (ws)
 	wshost = strdup (ws);
       ws = xml_get (x, "@ws-port");
@@ -3062,10 +3059,10 @@ do_wscallback (websocket_t * w, xml_t head, xml_t data)
 {
   // TODO a better way than Basic http auth would be good some time
   char apath[SHA_DIGEST_LENGTH * 2 + 1];
-  char *authpath (void)
+  char *authpath (char *user, char *pass)
   {				// return an authorisation path - this is used once logged in, and allows websocket to use the same path to then authenticate as no Authorization gets to wwebsocket it seems
     char *ip;
-    if (!wsauth || !head || !(ip = xml_get (head, "@IP")))
+    if (!head || !(ip = xml_get (head, "@IP")))
       return NULL;
     unsigned char hash[SHA_DIGEST_LENGTH];
     time_t t = time (0);
@@ -3073,7 +3070,10 @@ do_wscallback (websocket_t * w, xml_t head, xml_t data)
     strftime (today, sizeof (today), "%F", localtime (&t));
     SHA_CTX c;
     SHA1_Init (&c);
-    SHA1_Update (&c, wsauth, strlen (wsauth));
+    SHA1_Update (&c, user, strlen (user));
+    SHA1_Update (&c, "/", 1);
+    SHA1_Update (&c, pass, strlen (pass));
+    SHA1_Update (&c, "/", 1);
     SHA1_Update (&c, ip, strlen (ip));
     SHA1_Final (hash, &c);
     int n;
@@ -3083,28 +3083,44 @@ do_wscallback (websocket_t * w, xml_t head, xml_t data)
   }
   if (!w && head && !data)
     {				// Non websocket get
-      if (!wsauth)
-	return "403 Sorry, not set up properly";
+      char *expect = NULL;
       char *auth = xml_get (head, "@authorization");
-      if (!auth || !wsauth || strcmp (wsauth, auth))
+      if (auth)
 	{
+	  char *pass = auth;
+	  while (*pass && *pass != ':')
+	    pass++;
+	  if (*pass)
+	    *pass++ = 0;
+	  if (*auth && *pass)
+	    {
+	      xml_t e = NULL;
+	      char *name = NULL;
+	      while ((e = xml_element_next_by_name (config, e, "user")) && (!(name = xml_get (e, "@name")) || strcasecmp (name, auth)));
+	      if (e)
+		{		// found a user
+		  char *check = xml_get (e, "@pass");
+		  if (check && !strcmp (check, pass))
+		    asprintf (&expect, ">/%s/%s/", name, authpath (name, pass));	// Good password
+		}
+	    }
+	}
+      if (!expect)
+	{			// Not valid
 	  if (auth)
-	    sleep (10);
+	    {
+	      syslog (LOG_INFO, "Failed login %s", auth);
+	      sleep (10);
+	    }
 	  return "401 SolarSystem";
 	}
       char *path = xml_element_content (head);
-      if (!path || *path != '/')
+      if (!path || !*path)
 	return "404 WTF";
-      char *a = authpath ();
-      if (!a)
-	return "403 Sorry";
-      if (strncmp (path + 1, a, strlen (a)) || path[1 + strlen (a)] != '/')
-	{			// Redirect to secure path
-	  if (asprintf (&path, ">/%s/", a) < 0)
-	    return "Ooops";
-	  return path;
-	}
-      path += 1 + strlen (a);
+      if (strncmp (path, expect + 1, strlen (expect) - 1))
+	return expect;
+      path += strlen (expect) - 2;
+      free (expect);
       if (!path[1])
 	path = "/index.html";
       if (!isalnum (path[1]))
@@ -3127,20 +3143,50 @@ do_wscallback (websocket_t * w, xml_t head, xml_t data)
       char *path = xml_element_content (head);
       if (!path || *path != '/')
 	return "404 WTF";
-      char *a = authpath ();
-      if (!a || strncmp (path + 1, a, strlen (a)) || path[1 + strlen (a)] != '/')
-	return "403 Sorry";
+      char *user = ++path;
+      while (*path && *path != '/')
+	path++;
+      if (!*path)
+	return "404 WTF";
+      *path++ = 0;
+      xml_t e = NULL;
+      char *name = NULL;
+      char *pass = NULL;
+      while ((e = xml_element_next_by_name (config, e, "user")) && (!(name = xml_get (e, "@name")) || strcasecmp (name, user)));
+      if (!e || !(pass = xml_get (e, "@pass")))
+	return "404 WTF";
+      user_t *u;
+      for (u = users; u && strcmp (u->name, user); u = u->next);
+      if (!u)
+	return "404 WTF";
+      websocket_set_data (w, u);
+      char *a = authpath (user, pass);
+      if (!a || strncmp (path, a, strlen (a)) || path[strlen (a)] != '/')
+	return "403 sorry";
       // We want to send current state data to this connection
       pthread_mutex_lock (&eventmutex);	// Avoid things changing
       xml_t root = xml_tree_new (NULL);
       xml_add (root, "@full-data", "true");	// Send name, etc.
+      xml_add (root, "*user", user);
       int g;
       for (g = 0; g < MAX_GROUP; g++)
 	if (groups & (1 << g))
 	  {
 	    xml_t x = xml_addf (root, "+group@-id", "%d", g);
 	    if (group[g].name)
-	      xml_add (x, "@name", group[g].name);
+	      {
+		xml_add (x, "@name", group[g].name);
+		if (u->group_open & (1 << g))
+		  xml_add (x, "@-user-open", "true");
+		if (u->group_set & (1 << g))
+		  xml_add (x, "@-user-set", "true");
+		if (u->group_unset & (1 << g))
+		  xml_add (x, "@-user-unset", "true");
+		if (u->group_reset & (1 << g))
+		  xml_add (x, "@-user-reset", "true");
+		if (u->group_prop & (1 << g))
+		  xml_add (x, "@-prop", "true");
+	      }
 	  }
       int s;
       for (s = 0; s < STATES; s++)
@@ -3171,6 +3217,9 @@ do_wscallback (websocket_t * w, xml_t head, xml_t data)
     }
   if (w && !head && data)
     {				// Existing connection
+      user_t *user = websocket_data (w);
+      if (!user)
+	return "No user";
       // Process valid requests
       pthread_mutex_lock (&eventmutex);	// Stop simultaneous event processingx
       xml_t root = xml_tree_new (NULL);
@@ -3318,6 +3367,8 @@ do_wscallback (websocket_t * w, xml_t head, xml_t data)
 	  int d = atoi (id + 4);
 	  if (d < 0 || d >= MAX_DOOR || !door[d].state)
 	    continue;
+	  if (!(mydoor[d].groups & user->group_open))
+	    continue;		// Not allowed
 	  if (door[d].state == DOOR_CLOSED)
 	    door_lock (d);
 	  else if (door[d].state != DOOR_DEADLOCKED)
@@ -3326,20 +3377,20 @@ do_wscallback (websocket_t * w, xml_t head, xml_t data)
       for (e = NULL; (e = xml_element_next_by_name (data, e, "arm"));)
 	{			// Group ARM
 	  int g = atoi (xml_element_content (e) ? : "-1");
-	  if (g >= 0 && g < MAX_GROUP)
-	    alarm_arm ("web", NULL, 1 << g, 1);
+	  if (g >= 0 && g < MAX_GROUP && (user->group_set & (1 << g)))
+	    alarm_arm (user->name ? : "web", NULL, 1 << g, 1);
 	}
       for (e = NULL; (e = xml_element_next_by_name (data, e, "disarm"));)
 	{			// Group DISARM
 	  int g = atoi (xml_element_content (e) ? : "-1");
-	  if (g >= 0 && g < MAX_GROUP)
-	    alarm_unset ("web", NULL, 1 << g);
+	  if (g >= 0 && g < MAX_GROUP && (user->group_unset & (1 << g)))
+	    alarm_unset (user->name ? : "web", NULL, 1 << g);
 	}
       for (e = NULL; (e = xml_element_next_by_name (data, e, "reset"));)
 	{			// Group RESET
 	  int g = atoi (xml_element_content (e) ? : "-1");
-	  if (g >= 0 && g < MAX_GROUP)
-	    alarm_reset ("web", NULL, 1 << g);
+	  if (g >= 0 && g < MAX_GROUP && (user->group_reset & (1 << g)))
+	    alarm_reset (user->name ? : "web", NULL, 1 << g);
 	}
       if (xml_element_next (root, NULL))
 	websocket_send_all (root);
@@ -3437,12 +3488,12 @@ main (int argc, const char *argv[])
   if (debug)
     printf ("%s Groups found\n", group_list (groups));
 #ifdef	LIBWS
-  if (wsport || wskeyfile || wsauth)
-    {
-      const char *e = websocket_bind (wsport, wsorigin, wshost, NULL, wscertfile, wskeyfile, wscallback);
-      if (e)
-	errx (1, "Websocket fail: %s", e);
-    }
+  //if (wsport || wskeyfile)
+  {
+    const char *e = websocket_bind (wsport, wsorigin, wshost, NULL, wscertfile, wskeyfile, wscallback);
+    if (e)
+      errx (1, "Websocket fail: %s", e);
+  }
 #endif
   state[STATE_UNSET] = groups;
   if (setfile)

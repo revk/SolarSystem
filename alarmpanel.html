@@ -115,13 +115,25 @@
 <p>In addition, for web socket use there are a number of related settings in <i>system</i>. Filenames should be full path names.</p>
 <table border=1>
 </table>
-<tr><td>ws-auth</td><td>Authentication (user:pass)</td></tr>
 <tr><td>ws-host</td><td>Host name to check (optional, not usually sensible)</td></tr>
 <tr><td>ws-port</td><td>Port to use (default is 80 or 443)</td></tr>
-<tr><td>ws-auth</td><td>Authentication (user:pass)</td></tr>
 <tr><td>ws-cert-file</td><td>Filename for certificate for https and wss</td></tr>
 <tr><td>ws-key-file</td><td>Filename for key for https and wss</td></tr>
 <tr><td>ws-floorplan</td><td>Filename for floorplan, suggest png or svg with one unit per cm scale</td></tr>
+</table>
+<h2>user</h2>
+<table border=1>
+<tr><td>name</td><td>Users name (used for login to websockets)</td></tr>
+<tr><td>full-name</td><td>Users full name</td></tr>
+<tr><td>pin</td><td>Keypad PIN</td></tr>
+<tr><td>fob</td><td>Up to 4 keyfob IDs</td></tr>
+<tr><td>pass</td><td>Web socket password</td></tr>
+<tr><td>open</td><td>Groups that user is allowed to open doors for</td></tr>
+<tr><td>set</td><td>Groups that user is allowed to set</td></tr>
+<tr><td>unset</td><td>Groups that user is allowed to unset</td></tr>
+<tr><td>reset</td><td>Groups that user is allowed to reset</td></tr>
+<tr><td>prop</td><td>Groups that user is allowed to stop propped door alerts</td></tr>
+</table>
 <h2>group</h2>
 <table border=1>
 <tr><td>name</td><td>Group name</td></tr>

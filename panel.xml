@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <panel>
-   <system name="Test Alarm" ws-port="1234" ws-auth="adrian:1234" engineering="*"/>
+   <system name="Test Alarm" ws-port="1234" engineering="*"/>
    <group id="0" name="test"/>
+   <group id="1" name="test2"/>
    <keypad id="PAD110" message="Test alarm (A)" name="Pad A"/>
    <keypad id="PAD120" message="Test alarm (B)" name="Pad B"/>
    <door name="Test Door" max="MAX190" id="DOOR00" x="97" y="89" a="270" t="door2"/>
-   <user name="adrian" pin="1234"/>
+   <user name="adrian" pin="1234" pass="1234" full-name="Adrian Testing" set="1"/>
    <input id="RIO1011" name="PIR1" intruder="*" x="330" y="181" t="pir" a="270"/>
    <input id="RIO1012" name="PIR2" intruder="*" x="335" y="464" a="0" t="reed"/>
    <output id="MAX1902" x="184" y="318" a="0" t="lock"/>
