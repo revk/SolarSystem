@@ -276,7 +276,7 @@ lock_lock (volatile lock_t * l)
     return;
   pthread_mutex_lock (&lockmutex);
   if (!l->locked)
-    {				// Is unlocked - start unlock
+    {				// Is unlocked - start lock
       l->locked = 1;
       l->timer = l->time_lock;
       port_output (l->o_lock, 1);
