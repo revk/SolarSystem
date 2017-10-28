@@ -470,7 +470,7 @@ doorman (void *d)
 void *
 poller (void *d)
 {
-  char *argv[] = { "galaxybus" };
+  char *argv[] = { "alarmpanel" };
 #include <trace.h>
   int busid = (long) d;
   if (busid < 0 || busid >= MAX_BUS)

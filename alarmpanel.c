@@ -222,6 +222,8 @@ struct
   int bell_rest;		// Rest time (from alarm set)
   int count[STATE_TRIGGERS];	// Input counts
   const char *armed_by;		// Who armed the alarm
+  group_t setifany;		// Auto set, if any of these set
+  group_t setifall;		// Auto set, if all of these set
 } group[MAX_GROUP];
 
 // Doors not a linked list as mapper to door structure in library
@@ -232,10 +234,10 @@ struct mydoor_s
   port_t i_exit[3];		// Exit buttons, max readers, etc, or reception desk
   port_t i_bell[2];		// Bell button(s)
   port_t o_bell[2];		// Bell output(s)
-  group_t groups;		// Groups that apply
-  group_t group_set;		// Which groups can set alarm
-  group_t group_unset;		// Which groups can set alarm
-  group_t fire;			// Open for fire in specified zones
+  group_t group_fire;		// Which groups, any of which force the door open for fire
+  group_t group_lock;		// Which groups, any of which mean the door is "locked" (if not fire)
+  group_t group_arm;		// Which groups can arm alarm
+  group_t group_disarm;		// Which groups can unset alarm
   int time_set;			// If set, the hold fob does timed set, else does not
   char *name;
   int airlock;			// door that must be closed before this one is opened
@@ -263,8 +265,8 @@ struct user_s
   char *hash;
   unsigned long pin;
   fob_t fob[MAX_FOB];
-  group_t group_set;
-  group_t group_unset;
+  group_t group_arm;
+  group_t group_disarm;
   group_t group_reset;
   group_t group_open;
   group_t group_prop;
@@ -831,6 +833,8 @@ load_config (const char *configfile)
 	  group[g].bell_time = atoi (v);
 	if ((v = xml_get (x, "@bell-rest")))
 	  group[g].bell_rest = atoi (v);
+	group[g].setifany = group_parse (xml_get (x, "@set-if-any"));
+	group[g].setifall = group_parse (xml_get (x, "@set-if-all"));
 	g++;
       }
     for (g = 0; g < MAX_GROUP; g++)
@@ -1062,8 +1066,8 @@ load_config (const char *configfile)
 	}
       group_t mask = group_parse (xml_get (x, "@mask") ? : "*");	// Default is all zones
       u->group_open = mask & group_parse (xml_get (x, "@open") ? : "*");	// Default is all zones so all doors
-      u->group_set = mask & group_parse (xml_get (x, "@set"));	// Default is no zones
-      u->group_unset = mask & group_parse (xml_get (x, "@unset"));	// Default is no zones
+      u->group_arm = mask & group_parse (xml_get (x, "@arm"));	// Default is no zones
+      u->group_disarm = mask & group_parse (xml_get (x, "@disarm"));	// Default is no zones
       u->group_reset = mask & group_parse (xml_get (x, "@reset"));
       u->group_prop = mask & group_parse (xml_get (x, "@prop"));
       u->next = users;
@@ -1084,21 +1088,21 @@ load_config (const char *configfile)
 	  }
 	char doorno[8];
 	snprintf (doorno, sizeof (doorno), "DOOR%02u", d);
-	if (!xml_get (x, "@id"))
-	  xml_add (x, "@id", doorno);
+	//if (!xml_get (x, "@id"))
+	xml_add (x, "@id", doorno);
 	mydoor[d].a = atoi (xml_get (x, "@a") ? : "");
 	mydoor[d].x = atoi (xml_get (x, "@x") ? : "");
 	mydoor[d].y = atoi (xml_get (x, "@y") ? : "");
 	char *t = xml_get (x, "@t");
 	if (t)
 	  mydoor[d].t = strdup (t);
-	mydoor[d].groups = group_parse (xml_get (x, "@groups") ? : "*");
-	mydoor[d].group_set = group_parse (xml_get (x, "@set") ? : xml_get (x, "@groups") ? : "*");
-	mydoor[d].group_unset = group_parse (xml_get (x, "@unset") ? : xml_get (x, "@groups") ? : "*");
+	mydoor[d].group_lock = group_parse (xml_get (x, "@lock") ? : xml_get (x, "@lock") ? : "*");
+	mydoor[d].group_fire = group_parse (xml_get (x, "@fire") ? : xml_get (x, "@lock") ? : "*");
+	mydoor[d].group_arm = group_parse (xml_get (x, "@arm") ? : xml_get (x, "@lock") ? : "*");
+	mydoor[d].group_disarm = group_parse (xml_get (x, "@disarm") ? : xml_get (x, "@lock") ? : "*");
 	mydoor[d].name = xml_copy (x, "@name");
 	char *doorname = mydoor[d].name ? : doorno;
 	const char *max = xml_get (x, "@max");
-	mydoor[d].fire = group_parse (xml_get (x, "@fire") ? : "*");
 	if (max)
 	  {			// short cut to set based on max reader
 	    port_t maxport = port_parse (max, NULL, -2);
@@ -1161,7 +1165,7 @@ load_config (const char *configfile)
 	    if (d2 < MAX_DOOR)
 	      mydoor[d].airlock = d2;
 	    else
-	      dolog (mydoor[d].groups, "CONFIG", NULL, doorno, "Airlock not found %s", v);
+	      dolog (mydoor[d].group_lock ? : ALL_GROUPS, "CONFIG", NULL, doorno, "Airlock not found %s", v);
 	  }
 	if (++d == MAX_DOOR)
 	  break;
@@ -1208,16 +1212,17 @@ load_config (const char *configfile)
     int d;
     for (d = 0; d < MAX_DOOR; d++)
       {
-	mydoor[d].groups &= groups;
-	mydoor[d].fire &= groups;
-	mydoor[d].group_set &= groups;
+	mydoor[d].group_lock &= groups;
+	mydoor[d].group_fire &= groups;
+	mydoor[d].group_arm &= groups;
+	mydoor[d].group_disarm &= groups;
       }
     user_t *u;
     for (u = users; u; u = u->next)
       {
 	u->group_open &= groups;
-	u->group_set &= groups;
-	u->group_unset &= groups;
+	u->group_arm &= groups;
+	u->group_disarm &= groups;
 	u->group_reset &= groups;
 	u->group_prop &= groups;
       }
@@ -1248,7 +1253,7 @@ door_locked (int d)
     mask |= state[STATE_SET];
   if (mydoor[d].lockdown < STATES)
     mask |= state[mydoor[d].lockdown];
-  if (mydoor[d].groups & mask)
+  if (mydoor[d].group_lock & mask)
     return 1;
   return 0;
 }
@@ -1258,9 +1263,9 @@ door_state (group_t g)
 {				// Update door locking state after state change
   int d;
   for (d = 0; d < MAX_DOOR; d++)
-    if (mydoor[d].groups & g)
+    if ((mydoor[d].group_lock | mydoor[d].group_fire) & g)
       {
-	if (state[STATE_FIRE] & mydoor[d].fire)
+	if (state[STATE_FIRE] & mydoor[d].group_fire)
 	  door_open (d);	// Fire alarm
 	else if (door_locked (d))
 	  door_deadlock (d);
@@ -1543,13 +1548,22 @@ alarm_timed (group_t g, int t)
 static group_t
 alarm_arm (const char *who, const char *where, group_t mask, int t)
 {				// Arm alarm - return which groups set
-  mask &= ~state[STATE_ARM];	// Already setting
-  mask &= ~state[STATE_SET];	// Already set
+  group_t allow = (state[STATE_ARM] | state[STATE_SET]);
+  int n;
+  while (1)
+    {
+      group_t was = mask;
+      for (n = 0; n < MAX_GROUP; n++)
+	if ((group[n].setifany & (allow | mask)) || (group[n].setifall && group[n].setifall == (group[n].setifall & (allow | mask))))
+	  mask |= (1 << n);
+      if (mask == was)
+	break;
+    }
+  mask &= ~allow;		// Ignore already setting / set
   if (!mask)
     return mask;		// nothing to do
   dolog (mask, "ARM", who, where, "Alarm armed");
   state[STATE_ARM] |= mask;
-  int n;
   for (n = 0; n < MAX_GROUP; n++)
     if (mask & (1 << n))
       {
@@ -1599,7 +1613,18 @@ alarm_set (const char *who, const char *where, group_t mask)
 static group_t
 alarm_unset (const char *who, const char *where, group_t mask)
 {				// Unset alarm - return which groups unset
-  mask &= (state[STATE_SET] | state[STATE_ARM] | state[STATE_PREALARM] | state[STATE_BELL]);
+  group_t allow = state[STATE_SET] | state[STATE_ARM] | state[STATE_PREALARM] | state[STATE_BELL];
+  int n;
+  while (1)
+    {
+      group_t was = mask;
+      for (n = 0; n < MAX_GROUP; n++)
+	if ((group[n].setifany || group[n].setifall) && !((group[n].setifany & allow & ~mask) || (group[n].setifall && group[n].setifall == (group[n].setifall & allow & ~mask))))
+	  mask |= (1 << n);
+      if (mask == was)
+	break;
+    }
+  mask &= allow;
   if (!mask)
     return mask;		// Nothing to do
   group_t unset = (state[STATE_SET] & mask);
@@ -2130,7 +2155,7 @@ keypad_login (keypad_t * k, user_t * u, const char *where)
       if (k->time_logout && !(state[STATE_ENGINEERING] & u->group_reset))
 	k->when_logout = now.tv_sec + k->time_logout;	// No logout in engineering if we can reset
       dolog (k->groups, "LOGIN", u->name, where, "Keypad login");
-      if (!alarm_unset (u->name, where, k->groups & u->group_unset))
+      if (!alarm_unset (u->name, where, k->groups & u->group_disarm))
 	return keypad_message (k, "LOGGED IN\n%s", u->fullname ? : u->name ? : "");
     }
   else
@@ -2281,7 +2306,7 @@ do_keypad_update (keypad_t * k, char key)
 		}
 	      if (key == 'A')
 		{
-		  if (!alarm_arm (u->name ? : k->name, port_name (k->port), k->groups & u->group_set, 0))
+		  if (!alarm_arm (u->name ? : k->name, port_name (k->port), k->groups & u->group_arm, 0))
 		    return keypad_message (k, "CANNOT SET!");
 		}
 	      else
@@ -2549,7 +2574,7 @@ doevent (event_t * e)
 	char doorno[8];
 	snprintf (doorno, sizeof (doorno), "DOOR%02u", e->door);
 	char *doorname = d->name;
-	if (d->fire & state[STATE_FIRE])
+	if (d->group_fire & state[STATE_FIRE])
 	  door_open (e->door);	// fire alarm override
 	// Log some states
 	if (e->state == DOOR_CLOSED)
@@ -2557,17 +2582,17 @@ doevent (event_t * e)
 	else if (e->state == DOOR_OPEN)
 	  d->opening = 0;
 	else if (e->state == DOOR_LOCKING && d->opening)
-	  dolog (d->groups, "DOORNOTOPEN", NULL, doorno, "Door was not opened");
+	  dolog (d->group_lock, "DOORNOTOPEN", NULL, doorno, "Door was not opened");
 	else if (e->state == DOOR_AJAR)
-	  dolog (d->groups, "DOORAJAR", NULL, doorno, "Door ajar (lock not engaged)");
+	  dolog (d->group_lock, "DOORAJAR", NULL, doorno, "Door ajar (lock not engaged)");
 	else if (e->state == DOOR_FORCED)
-	  dolog (d->groups, "DOORFORCED", NULL, doorno, "Door forced");
+	  dolog (d->group_lock, "DOORFORCED", NULL, doorno, "Door forced");
 	else if (e->state == DOOR_TAMPER)
-	  dolog (d->groups, "DOORTAMPER", NULL, doorno, "Door tamper");
+	  dolog (d->group_lock, "DOORTAMPER", NULL, doorno, "Door tamper");
 	else if (e->state == DOOR_FAULT)
-	  dolog (d->groups, "DOORFAULT", NULL, doorno, "Door fault");
+	  dolog (d->group_lock, "DOORFAULT", NULL, doorno, "Door fault");
 	else if (e->state == DOOR_PROPPED)
-	  dolog (d->groups, "DOORPROPPED", NULL, doorno, "Door propped");
+	  dolog (d->group_lock, "DOORPROPPED", NULL, doorno, "Door propped");
 	// Update alarm state linked to doors
 	// Entry
 	if (e->state == DOOR_OPEN)
@@ -2575,7 +2600,7 @@ doevent (event_t * e)
 	    if (!d->entry)
 	      {
 		d->entry = 1;
-		add_entry (d->groups, doorno, doorname);
+		add_entry (d->group_lock, doorno, doorname);
 	      }
 	  }
 	else
@@ -2583,7 +2608,7 @@ doevent (event_t * e)
 	    if (d->entry)
 	      {
 		d->entry = 0;
-		rem_entry (d->groups, doorno, doorname);
+		rem_entry (d->group_lock, doorno, doorname);
 	      }
 	  }
 	// Intruder
@@ -2592,7 +2617,7 @@ doevent (event_t * e)
 	    if (!d->intruder)
 	      {
 		d->intruder = 1;
-		add_intruder (d->groups, doorno, doorname);
+		add_intruder (d->group_lock, doorno, doorname);
 	      }
 	  }
 	else
@@ -2600,7 +2625,7 @@ doevent (event_t * e)
 	    if (d->intruder)
 	      {
 		d->intruder = 0;
-		rem_intruder (d->groups, doorno, doorname);
+		rem_intruder (d->group_lock, doorno, doorname);
 	      }
 	  }
 	// Tamper
@@ -2609,7 +2634,7 @@ doevent (event_t * e)
 	    if (!d->tamper)
 	      {
 		d->tamper = 1;
-		add_tamper (d->groups, doorno, doorname);
+		add_tamper (d->group_lock, doorno, doorname);
 	      }
 	  }
 	else
@@ -2617,7 +2642,7 @@ doevent (event_t * e)
 	    if (d->tamper)
 	      {
 		d->tamper = 0;
-		rem_tamper (d->groups, doorno, doorname);
+		rem_tamper (d->group_lock, doorno, doorname);
 	      }
 	  }
 	// Warning
@@ -2626,7 +2651,7 @@ doevent (event_t * e)
 	    if (!d->warning)
 	      {
 		d->warning = 1;
-		add_warning (d->groups, doorno, doorname);
+		add_warning (d->group_lock, doorno, doorname);
 	      }
 	  }
 	else
@@ -2634,7 +2659,7 @@ doevent (event_t * e)
 	    if (d->warning)
 	      {
 		d->warning = 0;
-		rem_warning (d->groups, doorno, doorname);
+		rem_warning (d->group_lock, doorno, doorname);
 	      }
 	  }
 	// Fault
@@ -2643,7 +2668,7 @@ doevent (event_t * e)
 	    if (!d->fault)
 	      {
 		d->fault = 1;
-		add_fault (d->groups, doorno, doorname);
+		add_fault (d->group_lock, doorno, doorname);
 	      }
 	  }
 	else
@@ -2651,7 +2676,7 @@ doevent (event_t * e)
 	    if (d->fault)
 	      {
 		d->fault = 0;
-		rem_fault (d->groups, doorno, doorname);
+		rem_fault (d->group_lock, doorno, doorname);
 	      }
 	  }
 #ifdef	LIBWS
@@ -2707,12 +2732,12 @@ doevent (event_t * e)
 			      {
 				if (mydoor[d].airlock >= 0 && door[mydoor[d].airlock].state != DOOR_LOCKED && door[mydoor[d].airlock].state != DOOR_DEADLOCKED)
 				  {
-				    dolog (mydoor[d].groups, "DOORAIRLOCK", NULL, doorno, "Airlock violation with DOOR%02d, exit rejected", mydoor[d].airlock);
+				    dolog (mydoor[d].group_lock, "DOORAIRLOCK", NULL, doorno, "Airlock violation with DOOR%02d, exit rejected", mydoor[d].airlock);
 				    door_error (d);
 				  }
-				else if (mydoor[d].lockdown && (state[mydoor[d].lockdown] & mydoor[d].groups))
+				else if (mydoor[d].lockdown && (state[mydoor[d].lockdown] & mydoor[d].group_lock))
 				  {	// Door in lockdown
-				    dolog (mydoor[d].groups, "DOORLOCKDOWN", NULL, doorno, "Lockdown violation, exit rejected");
+				    dolog (mydoor[d].group_lock, "DOORLOCKDOWN", NULL, doorno, "Lockdown violation, exit rejected");
 				    door_error (d);
 				  }
 				else
@@ -2720,7 +2745,7 @@ doevent (event_t * e)
 			      }
 			    else
 			      {
-				dolog (mydoor[d].groups, "DOORREJECT", NULL, doorno, "Door is deadlocked, exit rejected");
+				dolog (mydoor[d].group_lock, "DOORREJECT", NULL, doorno, "Door is deadlocked, exit rejected");
 				door_error (d);
 			      }
 			  }
@@ -2922,25 +2947,25 @@ doevent (event_t * e)
 		  {
 		    door_error (d);
 		    door_lock (d);	// Cancel open
-		    dolog (mydoor[d].groups, "FOBBAD", NULL, doorno, "Unrecognised fob %lu", e->fob);
+		    dolog (mydoor[d].group_lock, "FOBBAD", NULL, doorno, "Unrecognised fob %lu", e->fob);
 		  }
 		else if (e->event == EVENT_FOB)
 		  {
 		    // disarm is the groups that can be disarmed by this user on this door.
-		    group_t disarm = ((u->group_set & mydoor[d].group_set & state[STATE_ARM]) | (port_name (e->port), u->group_unset & mydoor[d].group_unset & state[STATE_SET]));
+		    group_t disarm = ((u->group_arm & mydoor[d].group_arm & state[STATE_ARM]) | (port_name (e->port), u->group_disarm & mydoor[d].group_disarm & state[STATE_SET]));
 		    if (door[d].state == DOOR_PROPPED)
 		      {
 			if (disarm && alarm_unset (u->name, port_name (e->port), disarm))
 			  door_confirm (d);
-			if (u->group_prop & mydoor[d].groups)
+			if (u->group_prop & mydoor[d].group_lock)
 			  {
 			    //door_confirm (d); // no as this undoes the quieting and beeping stopping should be obvious
 			    door_quiet (d);
-			    dolog (mydoor[d].groups, "DOORHELD", u->name, doorno, "Door prop cancelled by fob %lu", e->fob);
+			    dolog (mydoor[d].group_lock, "DOORHELD", u->name, doorno, "Door prop cancelled by fob %lu", e->fob);
 			  }
 			else
 			  {
-			    dolog (mydoor[d].groups, "DOORSTILLPROPPED", u->name, doorno, "Door prop not cancelled by fob %lu as not allowed", e->fob);
+			    dolog (mydoor[d].group_lock, "DOORSTILLPROPPED", u->name, doorno, "Door prop not cancelled by fob %lu as not allowed", e->fob);
 			    door_error (d);
 			  }
 		      }
@@ -2950,26 +2975,26 @@ doevent (event_t * e)
 			  door_confirm (d);
 			//door_confirm (d); // Beeping annoying and clear from LEDs
 			door_lock (d);	// Cancel open
-			dolog (mydoor[d].groups, "DOORCANCEL", u->name, doorno, "Door open cancelled by fob %lu", e->fob);
+			dolog (mydoor[d].group_lock, "DOORCANCEL", u->name, doorno, "Door open cancelled by fob %lu", e->fob);
 			mydoor[d].opening = 0;	// Don't report not opened
 		      }
 		    else
 		      {
-			if (u->group_open & mydoor[d].groups)
+			if (u->group_open & mydoor[d].group_lock)
 			  {
 			    if (mydoor[d].airlock >= 0 && door[mydoor[d].airlock].state != DOOR_LOCKED && door[mydoor[d].airlock].state != DOOR_DEADLOCKED)
 			      {
-				dolog (mydoor[d].groups, "DOORAIRLOCK", u->name, doorno, "Airlock violation with DOOR%02d using fob %lu", mydoor[d].airlock, e->fob);
+				dolog (mydoor[d].group_lock, "DOORAIRLOCK", u->name, doorno, "Airlock violation with DOOR%02d using fob %lu", mydoor[d].airlock, e->fob);
 				door_error (d);
 			      }
-			    else if (mydoor[d].lockdown && (state[mydoor[d].lockdown] & mydoor[d].groups))
+			    else if (mydoor[d].lockdown && (state[mydoor[d].lockdown] & mydoor[d].group_lock))
 			      {	// Door in lockdown
-				dolog (mydoor[d].groups, "DOORLOCKDOWN", u->name, doorno, "Lockdown violation with DOOR%02d using fob %lu", mydoor[d].airlock, e->fob);
+				dolog (mydoor[d].group_lock, "DOORLOCKDOWN", u->name, doorno, "Lockdown violation with DOOR%02d using fob %lu", mydoor[d].airlock, e->fob);
 				door_error (d);
 			      }
-			    else if (mydoor[d].groups & ((state[STATE_SET] | state[STATE_ARM]) & ~disarm))
+			    else if (mydoor[d].group_lock & ((state[STATE_SET] | state[STATE_ARM]) & ~disarm))
 			      {
-				dolog (mydoor[d].groups, "DOORALARMED", u->name, doorno, "Door is alarmed, not opening DOOR%02d using fob %lu", d, e->fob);
+				dolog (mydoor[d].group_lock, "DOORALARMED", u->name, doorno, "Door is alarmed, not opening DOOR%02d using fob %lu", d, e->fob);
 				door_error (d);
 			      }
 			    else
@@ -2978,24 +3003,24 @@ doevent (event_t * e)
 				  door_confirm (d);
 				if (door[d].state != DOOR_OPEN && door[d].state != DOOR_UNLOCKING)
 				  {	// Open it
-				    dolog (mydoor[d].groups, "DOOROPEN", u->name, doorno, "Door open by fob %lu", e->fob);
+				    dolog (mydoor[d].group_lock, "DOOROPEN", u->name, doorno, "Door open by fob %lu", e->fob);
 				    door_open (d);	// Open the door
 				  }
 				else if (door[d].state == DOOR_OPEN)
-				  dolog (mydoor[d].groups, "FOBIGNORED", u->name, doorno, "Ignored fob %lu as door open", e->fob);
+				  dolog (mydoor[d].group_lock, "FOBIGNORED", u->name, doorno, "Ignored fob %lu as door open", e->fob);
 			      }
 			    // Other cases (unlocking) are transient and max will sometimes multiple read
 			  }
 			else
 			  {
 			    door_error (d);
-			    dolog (mydoor[d].groups, "FOBBAD", u->name, doorno, "Not allowed fob %lu", e->fob);
+			    dolog (mydoor[d].group_lock, "FOBBAD", u->name, doorno, "Not allowed fob %lu", e->fob);
 			  }
 		      }
 		  }
 		else if (mydoor[d].time_set)
 		  {		// Held and we are allowed to set
-		    group_t set = (mydoor[d].group_set & u->group_set & ~state[STATE_SET] & ~state[STATE_ARM]);
+		    group_t set = (mydoor[d].group_arm & u->group_arm & ~state[STATE_SET] & ~state[STATE_ARM]);
 		    if (set)
 		      {
 			door_confirm (d);
@@ -3004,13 +3029,13 @@ doevent (event_t * e)
 		      }
 		    else
 		      {
-			dolog (mydoor[d].groups, "FOBHELDIGNORED", u->name, doorno, "Ignored held fob %lu as no setting options", e->fob);
+			dolog (mydoor[d].group_lock, "FOBHELDIGNORED", u->name, doorno, "Ignored held fob %lu as no setting options", e->fob);
 			door_error (d);
 		      }
 		  }
 		else
 		  {
-		    dolog (mydoor[d].groups, "FOBHELDIGNORED", u->name, doorno, "Ignored held fob %lu as door cannot set alarm", e->fob);
+		    dolog (mydoor[d].group_lock, "FOBHELDIGNORED", u->name, doorno, "Ignored held fob %lu as door cannot set alarm", e->fob);
 		    door_error (d);
 		  }
 	      }
@@ -3178,10 +3203,10 @@ do_wscallback (websocket_t * w, xml_t head, xml_t data)
 		xml_add (x, "@name", group[g].name);
 		if (u->group_open & (1 << g))
 		  xml_add (x, "@-user-open", "true");
-		if (u->group_set & (1 << g))
-		  xml_add (x, "@-user-set", "true");
-		if (u->group_unset & (1 << g))
-		  xml_add (x, "@-user-unset", "true");
+		if (u->group_arm & (1 << g))
+		  xml_add (x, "@-user-arm", "true");
+		if (u->group_disarm & (1 << g))
+		  xml_add (x, "@-user-disarm", "true");
 		if (u->group_reset & (1 << g))
 		  xml_add (x, "@-user-reset", "true");
 		if (u->group_prop & (1 << g))
@@ -3367,7 +3392,7 @@ do_wscallback (websocket_t * w, xml_t head, xml_t data)
 	  int d = atoi (id + 4);
 	  if (d < 0 || d >= MAX_DOOR || !door[d].state)
 	    continue;
-	  if (!(mydoor[d].groups & user->group_open))
+	  if (!(mydoor[d].group_lock & user->group_open))
 	    continue;		// Not allowed
 	  if (door[d].state == DOOR_CLOSED)
 	    door_lock (d);
@@ -3377,13 +3402,13 @@ do_wscallback (websocket_t * w, xml_t head, xml_t data)
       for (e = NULL; (e = xml_element_next_by_name (data, e, "arm"));)
 	{			// Group ARM
 	  int g = atoi (xml_element_content (e) ? : "-1");
-	  if (g >= 0 && g < MAX_GROUP && (user->group_set & (1 << g)))
+	  if (g >= 0 && g < MAX_GROUP && (user->group_arm & (1 << g)))
 	    alarm_arm (user->name ? : "web", NULL, 1 << g, 1);
 	}
       for (e = NULL; (e = xml_element_next_by_name (data, e, "disarm"));)
 	{			// Group DISARM
 	  int g = atoi (xml_element_content (e) ? : "-1");
-	  if (g >= 0 && g < MAX_GROUP && (user->group_unset & (1 << g)))
+	  if (g >= 0 && g < MAX_GROUP && (user->group_disarm & (1 << g)))
 	    alarm_unset (user->name ? : "web", NULL, 1 << g);
 	}
       for (e = NULL; (e = xml_element_next_by_name (data, e, "reset"));)

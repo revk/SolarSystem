@@ -76,8 +76,8 @@
 <li>Password for web interface</li>
 <li>Key fob number(s) - allow use to have more than one fob, or same fob as read by keypad and max (they have different codes for same fob).</li>
 <li>Groups the user can interact with at all</li>
-<li>Groups the user can set alarm</li>
-<li>Groups the user can unset alarm</li>
+<li>Groups the user can arm alarm</li>
+<li>Groups the user can disarm alarm</li>
 <li>Groups the user can reset fire and fault</li>
 <li>Groups the user can override door propped</li>
 </ul>
@@ -129,8 +129,8 @@
 <tr><td>fob</td><td>Up to 4 keyfob IDs</td></tr>
 <tr><td>pass</td><td>Web socket password</td></tr>
 <tr><td>open</td><td>Groups that user is allowed to open doors for</td></tr>
-<tr><td>set</td><td>Groups that user is allowed to set</td></tr>
-<tr><td>unset</td><td>Groups that user is allowed to unset</td></tr>
+<tr><td>arm</td><td>Groups that user is allowed to arm</td></tr>
+<tr><td>disarm</td><td>Groups that user is allowed to disarm</td></tr>
 <tr><td>reset</td><td>Groups that user is allowed to reset</td></tr>
 <tr><td>prop</td><td>Groups that user is allowed to stop propped door alerts</td></tr>
 </table>
@@ -144,6 +144,8 @@
 <tr><td>bell-delay</td><td>Time before bell starts to ring</td></tr>
 <tr><td>bell-time</td><td>Time for bell to ring before stopping to avoid annoyance</td></tr>
 <tr><td>bell-rest</td><td>Time for bell to rest before being allowed to ring again (unless alarm reset in between).</td></tr>
+<tr><td>set-if-all</td><td>Groups which, if all are set, cause this group to also be set, and unset if not the case.</td></tr>
+<tr><td>set-if-any</td><td>Groups which, if any are set, cause this group to also be set, and unset if not the case.</td></tr>
 </table>
 <h2>input</h2>
 <p>Defines an input, the following attributes can be included. Apart from <tt>id</tt>, defaults are applied if not specified</p>
@@ -193,10 +195,10 @@
 <h2>door</h2>
 <p>Defines a door. Attributes as follows, with suitable defaults if not specified.</p>
 <table border=1>
-<tr><td>groups</td><td>Groups (default is all groups)</td></tr>
-<tr><td>fire</td><td>Groups for which the door should be opened during fire alarm (default is all groups)</td></tr>
-<tr><td>set</td><td>Groups which can be set using a keyfob on this door</td></tr>
-<tr><td>unset</td><td>Groups which can be unset using a keyfob on this door</td></tr>
+<tr><td>lock</td><td>Groups (default is all groups)</td></tr>
+<tr><td>fire</td><td>Groups for which the door should be opened during fire alarm (default is lock set)</td></tr>
+<tr><td>arm</td><td>Groups which can be arm using a keyfob on this door (default is lock set)</td></tr>
+<tr><td>disarm</td><td>Groups which can be disarm using a keyfob on this door (default is lock set)</td></tr>
 <tr><td>max</td><td>Shortcut, defines Max readers used for fob, o-led, o-lock, i-open, i-exit in standard configuration.</td></tr>
 <tr><td>fob</td><td>Define the Max readers used for key fob based exit.</td></tr>
 <tr><td>o-led</td><td>Define the Max readers used for LED status output.</td></tr>
