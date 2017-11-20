@@ -1986,14 +1986,14 @@ dologger (CURL * curl, xml_t system, log_t * l)
 		  curl_formfree (fi);	// Free post data
 		  if (result)
 		    {
-		      syslog (LOG_INFO, "SMS to %s failed to connect to server %s\n", v, server);
+		      syslog (LOG_INFO, "SMS to %s failed to connect to server %s", v, server);
 		      commfailcount++;
 		    }
 		  free (ud);
 		  fclose (o);
 		  if (!strstr (reply, "OK"))
 		    {
-		      syslog (LOG_INFO, "SMS to %s failed to send\n", v);
+		      syslog (LOG_INFO, "SMS to %s failed to send (%s)", v,reply);
 		      commfailcount++;
 		    }
 		  if (reply)
