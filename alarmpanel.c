@@ -2522,7 +2522,7 @@ doevent (event_t * e)
 	dolog (groups, "KEEPALIVE", NULL, busno, "Keepalive");
 	if (e->tx)
 	  mybus[n].watchdog = now.tv_sec + 120;
-	if (e->errors || e->stalled || !e->rx || !e->tx)
+	if (e->errors>1 || e->stalled>1 || !e->rx || !e->tx)
 	  {
 	    if (!mybus[n].fault)
 	      {
