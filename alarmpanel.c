@@ -215,6 +215,7 @@ struct
   time_t when_fail;		// When set fail
   time_t when_alarm;		// When entry/alarm started
   int set_time;			// How long to set
+  int set_delay;		// Extra delay on setting
   int set_fail;			// How long for failing to set
   int entry_time;		// Entry time
   int bell_delay;		// Delay before ringing (from alarm set)
@@ -807,6 +808,7 @@ load_config (const char *configfile)
     int g = 0;
     for (g = 0; g < MAX_GROUP; g++)
       {				// Defaults in cased not named, etc.
+	group[g].set_delay = 0;
 	group[g].set_time = 10;
 	group[g].set_fail = 120;
 	group[g].bell_time = 300;
@@ -821,6 +823,8 @@ load_config (const char *configfile)
 	  continue;
 	groups |= (1 << g);
 	group[g].name = xml_copy (x, "@name");
+	if ((v = xml_get (x, "@set-delay")))
+	  group[g].set_delay = atoi (v);
 	if ((v = xml_get (x, "@set-time")))
 	  group[g].set_time = atoi (v);
 	if ((v = xml_get (x, "@set-fail")))
@@ -1542,7 +1546,7 @@ alarm_timed (group_t g, int t)
   int n;
   for (n = 0; n < MAX_GROUP; n++)
     if (g & (1 << n))
-      group[n].when_set = now.tv_sec + (t ? : group[n].set_time);
+      group[n].when_set = now.tv_sec + (t ? : group[n].set_time) + group[n].set_delay;
 }
 
 static group_t
@@ -2522,7 +2526,7 @@ doevent (event_t * e)
 	dolog (groups, "KEEPALIVE", NULL, busno, "Keepalive");
 	if (e->tx)
 	  mybus[n].watchdog = now.tv_sec + 120;
-	if (e->errors>1 || e->stalled>1 || !e->rx || !e->tx)
+	if (e->errors > 1 || e->stalled > 1 || !e->rx || !e->tx)
 	  {
 	    if (!mybus[n].fault)
 	      {
