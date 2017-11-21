@@ -1993,7 +1993,7 @@ dologger (CURL * curl, xml_t system, log_t * l)
 		  fclose (o);
 		  if (!strstr (reply, "OK"))
 		    {
-		      syslog (LOG_INFO, "SMS to %s failed to send (%s)", v,reply);
+		      syslog (LOG_INFO, "SMS to %s failed to send (%s)", v, reply);
 		      commfailcount++;
 		    }
 		  if (reply)
@@ -2542,7 +2542,7 @@ doevent (event_t * e)
 		mybus[n].fault = 0;
 		rem_fault (groups, busno, NULL);
 	      }
-	    if (e->retries)
+	    if (e->retries > 5)
 	      syslog (LOG_INFO, "Bus %d retries: %d", n, e->retries);
 	  }
       }
