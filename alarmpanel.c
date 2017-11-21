@@ -1977,7 +1977,7 @@ dologger (CURL * curl, xml_t system, log_t * l)
 		  add ("da", n);
 		  add ("oa", xml_get (system, "@name"));
 		  char *ud;
-		  asprintf (&ud, "%s\t%s\n%.*s\n%s\t%s\n%s", l->type ? : "?", l->msg ? : "", MAX_GROUP, groups, l->port ? : "", name ? : "", l->user ? : "");
+		  asprintf (&ud, "%s\t%s\n%.*s\n%s\t%s\n%s\n%s", l->type ? : "?", l->msg ? : "", MAX_GROUP, groups, l->port ? : "", name ? : "", l->user ? : "", when);
 		  add ("ud", ud);
 		  const char *server = xml_get (system, "@sms-host") ? : "https://sms.aa.net.uk/";
 		  curl_easy_setopt (curl, CURLOPT_URL, server);
