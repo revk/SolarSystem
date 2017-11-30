@@ -3138,7 +3138,7 @@ do_wscallback (websocket_t * w, xml_t head, xml_t data)
 	{			// Not valid
 	  if (auth)
 	    {
-	      syslog (LOG_INFO, "Failed login %s", auth);
+	      syslog (LOG_INFO, "Failed login %s from %s", auth,xml_get (head, "@IP"));
 	      sleep (10);
 	    }
 	  return "401 SolarSystem";
