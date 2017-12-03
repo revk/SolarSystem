@@ -215,7 +215,6 @@ struct
   time_t when_fail;		// When set fail
   time_t when_alarm;		// When entry/alarm started
   int set_time;			// How long to set
-  int set_delay;		// Extra delay on setting
   int set_fail;			// How long for failing to set
   int entry_time;		// Entry time
   int bell_delay;		// Delay before ringing (from alarm set)
@@ -808,7 +807,6 @@ load_config (const char *configfile)
     int g = 0;
     for (g = 0; g < MAX_GROUP; g++)
       {				// Defaults in cased not named, etc.
-	group[g].set_delay = 0;
 	group[g].set_time = 10;
 	group[g].set_fail = 120;
 	group[g].bell_time = 300;
@@ -823,8 +821,6 @@ load_config (const char *configfile)
 	  continue;
 	groups |= (1 << g);
 	group[g].name = xml_copy (x, "@name");
-	if ((v = xml_get (x, "@set-delay")))
-	  group[g].set_delay = atoi (v);
 	if ((v = xml_get (x, "@set-time")))
 	  group[g].set_time = atoi (v);
 	if ((v = xml_get (x, "@set-fail")))
@@ -1546,7 +1542,7 @@ alarm_timed (group_t g, int t)
   int n;
   for (n = 0; n < MAX_GROUP; n++)
     if (g & (1 << n))
-      group[n].when_set = now.tv_sec + (t ? : group[n].set_time) + group[n].set_delay;
+      group[n].when_set = now.tv_sec + (t ? : group[n].set_time);
 }
 
 static group_t
@@ -2227,10 +2223,8 @@ do_keypad_update (keypad_t * k, char key)
 	      if (state[STATE_ARM] & g)
 		alarm_unset (k->user ? k->user->name : k->name, port_name (k->port), g);
 	      else if (!(state[STATE_SET] & g))
-		{
-		  alarm_arm (k->user ? k->user->name : k->name, port_name (k->port), g, 0);
-		  alarm_timed (state[STATE_ARM] & g, -group[n].set_delay);
-		}
+		alarm_arm (k->user ? k->user->name : k->name, port_name (k->port), g, 0);
+	      alarm_timed (state[STATE_ARM] & g, 0);
 	    }
 	}
       else if (key == '\e')	// Immediate set
