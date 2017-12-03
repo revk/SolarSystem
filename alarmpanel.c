@@ -2227,8 +2227,10 @@ do_keypad_update (keypad_t * k, char key)
 	      if (state[STATE_ARM] & g)
 		alarm_unset (k->user ? k->user->name : k->name, port_name (k->port), g);
 	      else if (!(state[STATE_SET] & g))
-		alarm_arm (k->user ? k->user->name : k->name, port_name (k->port), g, 0);
-	      alarm_timed (state[STATE_ARM] & g, 0);
+		{
+		  alarm_arm (k->user ? k->user->name : k->name, port_name (k->port), g, 0);
+		  alarm_timed (state[STATE_ARM] & g, -group[n].set_delay);
+		}
 	    }
 	}
       else if (key == '\e')	// Immediate set
@@ -3138,7 +3140,7 @@ do_wscallback (websocket_t * w, xml_t head, xml_t data)
 	{			// Not valid
 	  if (auth)
 	    {
-	      syslog (LOG_INFO, "Failed login %s from %s", auth,xml_get (head, "@IP"));
+	      syslog (LOG_INFO, "Failed login %s from %s", auth, xml_get (head, "@IP"));
 	      sleep (10);
 	    }
 	  return "401 SolarSystem";
