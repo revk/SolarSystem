@@ -1,0 +1,32 @@
+<h1>Solar System - Keypad operation</h1>
+<p>The keypad used has a 4x4 matrix of keys marked 0-9, *, #, A, B, ENT, and ESC. It also has a 2x16 text display.</p>
+<h2>Idle state</h2>
+<p>In the idle state, the display shows a message, typically the company name, and the date/time.</p>
+<p>It may be that arming the alarm is allowed in the idle state, in which case the A key is a timed set and the B key is an immediate set, as described below for the logged in state. If no groups are configured then these keys do nothing in the idle state.</p>
+<p>Entering a PIN and keying ENT will login as a user, as will using a keyfob on a Prox keypad.</p>
+<h2>Alarm setting state</h2>
+<p>During a timed set, keypads which allow arming of the zones being set show the group being set.</p>
+<p>The digit keys 0-9 will toggle which group is being set or not, restarting the timer on each key press.</p>
+<p>The ESC key cancels setting.</p>
+<p>The ENT key changes to immediate set.</p>
+<p>Entering a PIN for a user, or using a keyfob for a user, cancels the arming of any groups that user is allowed to arm or disarm.</p>
+<h2>Armed state</h2>
+<p>Keypads only relate to a set of groups. If any of the groups covered by a keypad are armed, then the behaviour is different.</p>
+<p>Entering a PIN for a user, or using a keyfob for a user, disarms any groups they are allowed to disarm. It does not log them in.</p>
+<h2>Logged in state</h2>
+<p>In a logged in state, additional information is displayed for FAULT, TAMPER, ZONE, etc. This provides information about events that are latched, including the time. If a live event additional information such as tamper resistance are shown. The display cycles through the latched events.</p>
+<p>If there are no events, the display simply shows the logged in user.</p>
+<p>The ESC key logs out, back to idle mode. There is also a timeout to log out.</p>
+<p>The ENT key resets (clears) latched events, and if not possible (events being "live") says a reset cannot be done and continues to show the live events.</p>
+<p>At this point, the A and B key allow timed and immediate setting of groups that the user is allowed to set.</p>
+<p>Using a keyfob, or entering a PIN, for the same user will also started a timed alarm for the groups the user is allowed to set.</p>
+<h2>Multiple group setting</h2>
+<p>In some cases the user may want to explicitly control which groups they are setting as they are able to set multiple groups.</p>
+<p>The A key, which starts a timed set, will start with none of the groups being marked to be set, and the user has to key digits to say which groups to set.</p>
+<p>Using a PIN or keyfob at this point will however start a timed set with all groups that can be set as setting.</p>
+<p>The B key also immediately sets all groups which can be set.</p>
+<p>This means the user can either use A and then digit(s) to set selected groups, or use a keyfob (or PIN) to set all possible. Or he can use B.</p>
+<p>Holding the keyfob on the idle screen works the same as using it twice, so will typically cause first a login, and then a setting of all possible groups. This allows a short cut without opening the keypad or using any keys.</p>
+<h2>Other keys</h2>
+<p>The * key clears the PIN so far entered. The # key currently does nothing.</p>
+
