@@ -137,9 +137,8 @@
 <h2>group</h2>
 <table border=1>
 <tr><td>name</td><td>Group name</td></tr>
-<tr><td>set-time</td><td>Time for normal set - if there are inputs with exit timers then it is longer.</td></tr>
-<tr><td>set-time</td><td>Timed intruder alarm setting to allow for exit - reset on each intruder input</td></tr>
-<tr><td>set-fail</td><td>Total time to try setting alarm else set failed.</td></tr>
+<tr><td>time-set</td><td>Time for normal set - resets to this when non exit inputs are triggered, so can reach fail if they keep being triggered.</td></tr>
+<tr><td>time-fail</td><td>Total time to try setting alarm else set failed.</td></tr>
 <tr><td>entry-time</td><td>Timed entry before intruder alarm</td></tr>
 <tr><td>bell-delay</td><td>Time before bell starts to ring</td></tr>
 <tr><td>bell-time</td><td>Time for bell to ring before stopping to avoid annoyance</td></tr>

@@ -214,8 +214,8 @@ struct
   time_t when_set;		// When set complete
   time_t when_fail;		// When set fail
   time_t when_alarm;		// When entry/alarm started
-  int set_time;			// How long to set
-  int set_fail;			// How long for failing to set
+  int time_set;			// How long to set
+  int time_fail;			// How long for failing to set
   int entry_time;		// Entry time
   int bell_delay;		// Delay before ringing (from alarm set)
   int bell_time;		// Max time to ring bell (from alarm set)
@@ -807,8 +807,8 @@ load_config (const char *configfile)
     int g = 0;
     for (g = 0; g < MAX_GROUP; g++)
       {				// Defaults in cased not named, etc.
-	group[g].set_time = 10;
-	group[g].set_fail = 120;
+	group[g].time_set = 10;
+	group[g].time_fail = 120;
 	group[g].bell_time = 300;
 	group[g].bell_rest = 3600;
       }
@@ -821,10 +821,10 @@ load_config (const char *configfile)
 	  continue;
 	groups |= (1 << g);
 	group[g].name = xml_copy (x, "@name");
-	if ((v = xml_get (x, "@set-time")))
-	  group[g].set_time = atoi (v);
-	if ((v = xml_get (x, "@set-fail")))
-	  group[g].set_fail = atoi (v);
+	if ((v = xml_get (x, "@time-set")))
+	  group[g].time_set = atoi (v);
+	if ((v = xml_get (x, "@time-fail")))
+	  group[g].time_fail = atoi (v);
 	if ((v = xml_get (x, "@entry-time")))
 	  group[g].entry_time = atoi (v);
 	if ((v = xml_get (x, "@bell-delay")))
@@ -1542,7 +1542,7 @@ alarm_timed (group_t g, int t)
   int n;
   for (n = 0; n < MAX_GROUP; n++)
     if (g & (1 << n))
-      group[n].when_set = now.tv_sec + (t ? : group[n].set_time);
+      group[n].when_set = now.tv_sec + (t ? : group[n].time_set);
 }
 
 static group_t
@@ -1567,7 +1567,7 @@ alarm_arm (const char *who, const char *where, group_t mask, int t)
   for (n = 0; n < MAX_GROUP; n++)
     if (mask & (1 << n))
       {
-	group[n].when_fail = now.tv_sec + group[n].set_fail;
+	group[n].when_fail = now.tv_sec + group[n].time_fail;
 	group[n].armed_by = who;
       }
   alarm_timed (mask, t);
