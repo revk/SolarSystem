@@ -215,7 +215,7 @@ struct
   time_t when_fail;		// When set fail
   time_t when_alarm;		// When entry/alarm started
   int time_set;			// How long to set
-  int time_fail;			// How long for failing to set
+  int time_fail;		// How long for failing to set
   int entry_time;		// Entry time
   int bell_delay;		// Delay before ringing (from alarm set)
   int bell_time;		// Max time to ring bell (from alarm set)
@@ -713,6 +713,12 @@ input_ws (xml_t root, port_t port)
 	xml_add (x, "@device", mydevice[id].name);
       if (mydevice[id].input[n].name)
 	xml_add (x, "@name", mydevice[id].input[n].name);
+      xml_add (x, "@dev", port_name (port & ~0xFF));
+      xml_addf (x, "@port", "%d", port_id (port) + 1);
+      if (device[id].type == TYPE_RIO)
+	xml_add (x, "@type", "rio");
+      else if (device[id].type == TYPE_MAX)
+	xml_add (x, "@type", "max");
     }
   if (mydevice[id].inputs & (1 << n))
     xml_add (x, "@-active", "true");
@@ -756,6 +762,12 @@ output_ws (xml_t root, port_t port)
 	xml_add (x, "@device", mydevice[id].name);
       if (mydevice[id].output[n].name)
 	xml_add (x, "@name", mydevice[id].output[n].name);
+      xml_add (x, "@dev", port_name (port & ~0xFF));
+      xml_addf (x, "@port", "%d", port_id (port) + 1);
+      if (device[id].type == TYPE_RIO)
+	xml_add (x, "@type", "rio");
+      else if (device[id].type == TYPE_MAX)
+	xml_add (x, "@type", "max");
     }
   if (device[id].output & (1 << n))
     xml_add (x, "@-active", "true");

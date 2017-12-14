@@ -38,8 +38,10 @@ ws.onmessage=function(event)
 			l.groupid=g.id;
 			l.onclick=function()
 			{
-				var a={disarm:[this.groupid]};
-				if(this.src.match(/UNSET/))a={arm:[this.groupid]};
+				var a;
+				if(this.getAttribute("data-fault_latch") || this.getAttribute("data-tamper_latch"))a={reset:[this.groupid]};
+				else if(this.getAttribute("data-set")||this.getAttribute("data-arm")) a={disarm:[this.groupid]};
+				else a={arm:[this.groupid]};
 				ws.send(JSON.stringify(a));
 			}
 			x.appendChild(l);
@@ -56,22 +58,32 @@ ws.onmessage=function(event)
 			}
 		}
 	});
-	if(o.clr&&o.clr.arm)o.clr.arm.forEach(function(g)
+	function groupstate(x)
 	{
-		document.getElementById("group"+g).children[0].src="groupUNSET.svg";
-	});
-	if(o.set&&o.set.set)o.set.set.forEach(function(g)
+		if(x.getAttribute("data-set"))x.src="groupSET.svg";
+		else if(x.getAttribute("data-arm"))x.src="groupARM.svg";
+		else if(x.getAttribute("data-fault_latch"))x.src="groupFAULT.svg";
+		else if(x.getAttribute("data-tamper_latch"))x.src="groupTAMPER.svg";
+		else x.src="groupUNSET.svg";
+	}
+	if(o.clr)for(var s in o.clr)
 	{
-		document.getElementById("group"+g).children[0].src="groupSET.svg";
-	});
-	if(o.set&&o.set.arm)o.set.arm.forEach(function(g)
+		o.clr[s].forEach(function(g)
+			{
+			x=document.getElementById("group"+g).children[0];
+			x.setAttribute("data-"+s,"");
+			groupstate(x);
+			});
+	};
+	if(o.set)for(var s in o.set)
 	{
-		document.getElementById("group"+g).children[0].src="groupARM.svg";
-	});
-	if(o.set&&o.set.unset)o.set.unset.forEach(function(g)
-	{
-		document.getElementById("group"+g).children[0].src="groupUNSET.svg";
-	});
+		o.set[s].forEach(function(g)
+			{
+			x=document.getElementById("group"+g).children[0];
+			x.setAttribute("data-"+s,1);
+			groupstate(x);
+			});
+	};
 	if(o.keypad)o.keypad.forEach(function(k)
 	{
 		x=document.getElementById(k.id);
@@ -152,27 +164,77 @@ ws.onmessage=function(event)
 	});
 	if(o.input)o.input.forEach(function(i)
 	{
+		d=document.getElementById("input"+i.dev);
+		if(!d)
+		{
+			d=document.createElement("table");
+			d.id="input"+i.dev;
+			d.className="input"+i.type;
+			r=document.createElement("tr");
+			d.appendChild(r);
+			c=document.createElement("th");
+			c.textContent=i.dev;
+			c.colSpan="3";
+			r.appendChild(c);
+			ps=8;
+			if(i.type=="max")ps=4;
+			for(p=0;p<ps;p++)
+			{
+				r=document.createElement("tr");
+				d.appendChild(r);
+				c=document.createElement("td");
+				r.appendChild(c);
+				c=document.createElement("td");
+				c.textContent=p+1;
+				r.appendChild(c);
+			}
+			document.getElementById("inputs").appendChild(d);
+		}
 		x=document.getElementById("input"+i.id);
 		if(!x)
 		{
-			x=document.createElement("div");
+			x=document.createElement("td");
 			x.id="input"+i.id;
 			x.title=i.id;
 			x.textContent=(i.name?i.name:i.id);
-			document.getElementById("inputs").appendChild(x);
+			d.children[i.port].appendChild(x);
 		}
 		x.className="input"+(i.tamper?"tamper":i.fault?"fault":i.active?"active":"idle");
 	});
 	if(o.output)o.output.forEach(function(o)
 	{	// Log updates
+		d=document.getElementById("output"+o.dev);
+		if(!d)
+		{
+			d=document.createElement("table");
+			d.id="output"+o.dev;
+			d.className="output"+o.type;
+			r=document.createElement("tr");
+			d.appendChild(r);
+			c=document.createElement("th");
+			c.textContent=o.dev;
+			c.colSpan="3";
+			r.appendChild(c);
+			for(p=0;p<4;p++)
+			{
+				r=document.createElement("tr");
+				d.appendChild(r);
+				c=document.createElement("td");
+				r.appendChild(c);
+				c=document.createElement("td");
+				c.textContent=p+1;
+				r.appendChild(c);
+			}
+			document.getElementById("outputs").appendChild(d);
+		}
 		x=document.getElementById("output"+o.id);
 		if(!x)
 		{
-			x=document.createElement("div");
+			x=document.createElement("td");
 			x.id="output"+o.id;
 			x.title=o.id;
 			x.textContent=(o.name?o.name:o.id);
-			document.getElementById("outputs").appendChild(x);
+			d.children[o.port].appendChild(x);
 		}
 		x.className=(o.active?"outputactive":"outputidle");
 	});
