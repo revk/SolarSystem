@@ -221,7 +221,7 @@ ws.onmessage=function(event)
 				c.colSpan="3";
 				r.appendChild(c);
 				ps=4;
-				if(i.type=="max")ps=2;
+				if(o.type=="max")ps=2;
 				for(p=0;p<ps;p++)
 				{
 					r=document.createElement("tr");
