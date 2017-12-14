@@ -179,7 +179,7 @@ ws.onmessage=function(event)
 				c.colSpan="3";
 				r.appendChild(c);
 				ps=8;
-				if(i.type=="max")ps=4;
+				if(i.type=="max")ps=2;
 				for(p=0;p<ps;p++)
 				{
 					r=document.createElement("tr");
@@ -220,7 +220,9 @@ ws.onmessage=function(event)
 				c.textContent=o.dev;
 				c.colSpan="3";
 				r.appendChild(c);
-				for(p=0;p<4;p++)
+				ps=4;
+				if(i.type=="max")ps=2;
+				for(p=0;p<ps;p++)
 				{
 					r=document.createElement("tr");
 					d.appendChild(r);
