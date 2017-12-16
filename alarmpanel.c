@@ -2350,6 +2350,8 @@ do_keypad_update (keypad_t * k, char key)
       k->user = NULL;
       return keypad_message (k, "LOGGED OUT");
     }
+  if (k->user && key == '\n' && !alarm_reset (k->user->name, port_name (k->port), k->groups & k->user->group_reset))
+    return keypad_message (k, "CANNOT RESET!");
   if (!k->user && key == 'A' && !alarm_arm (k->name, port_name (k->port), k->groups, 0))
     return keypad_message (k, "CANNOT SET");
   if (!k->user && key == 'B' && ((k->groups & trigger) || !alarm_arm (k->name, port_name (k->port), k->groups, 1)))
