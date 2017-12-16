@@ -285,6 +285,8 @@ struct keypad_s
   int time_logout;		// Config logout time
   time_t when;			// When to next update keypad
   group_t groups;		// What groups the keypad applies to
+  group_t group_arm;		// What groups can be armed with no login
+  group_t group_reset;		// What groups can be reset with no login
   unsigned char pininput;	// Inputting PIN
   unsigned long pin;		// PIN so far
   user_t *user;			// User if logged in
@@ -987,7 +989,7 @@ load_config (const char *configfile)
     }
   x = NULL;
   while ((x = xml_element_next_by_name (config, x, "max")))
-    {				// Scan keypads
+    {				// Scan max readers
       if (!(pl = xml_get (x, "@id")) || !*pl)
 	dolog (ALL_GROUPS, "CONFIG", NULL, NULL, "Max with no id");
       else
@@ -1011,6 +1013,8 @@ load_config (const char *configfile)
 	    k->port = p;
 	    k->name = xml_copy (x, "@name");
 	    k->groups = group_parse (xml_get (x, "@groups") ? : "*");
+	    k->group_arm = (group_parse (xml_get (x, "@arm") ? : "*") & k->groups);	// default is all groups covered
+	    k->group_reset = (group_parse (xml_get (x, "@reset") ? : "*") & k->groups);	// default is no groups, i.e. needs login
 	    k->prox = port_parse (xml_get (x, "@prox"), NULL, 0);
 	    k->time_logout = atoi (xml_get (x, "@logout") ? : "60");
 	    k->message = xml_copy (x, "@message");
@@ -2170,11 +2174,8 @@ keypad_login (keypad_t * k, user_t * u, const char *where)
       if (!alarm_unset (u->name, where, k->groups & u->group_disarm))
 	return keypad_message (k, "LOGGED IN\n%s", u->fullname ? : u->name ? : "");
     }
-  else
-    {
-      if (!alarm_reset (u->name, where, k->groups & u->group_reset))
-	return keypad_message (k, "CANNOT RESET!");
-    }
+  else				// Second login, same as using keyfob twice, arm alarm
+    alarm_arm (u->name, where, k->groups & u->group_arm, 0);
   return NULL;
 }
 
@@ -2226,7 +2227,7 @@ do_keypad_update (keypad_t * k, char key)
       trigger |= state[s];
   // Status
   if (k->groups & state[STATE_ARM])
-    {
+    {				// Arming
       if (key >= '0' && key < '0' + MAX_GROUP)
 	{			// Change groups?
 	  group_t g = (((int) 1 << (int) (key - '0')) & k->groups);
@@ -2239,14 +2240,14 @@ do_keypad_update (keypad_t * k, char key)
 	      alarm_timed (state[STATE_ARM] & g, 0);
 	    }
 	}
-      else if (key == '\e')	// Immediate set
+      else if (key == '\e')	// Cancel
 	alarm_unset (k->user ? k->user->name : k->name, port_name (k->port), k->groups & state[STATE_ARM]);
       else if (key == 'B')	// Part set
 	{
 	  alarm_unset (k->user ? k->user->name : k->name, port_name (k->port), state[STATE_ARM] & ~(k->groups & trigger));
 	}
       else if (key == '\n')
-	{
+	{			// Set
 	  alarm_set (k->user ? k->user->name : k->name, port_name (k->port), k->groups & state[STATE_ARM]);
 	  return NULL;
 	}
@@ -2300,33 +2301,27 @@ do_keypad_update (keypad_t * k, char key)
       return NULL;
     }
   device[n].silent = 0;
+
   // PIN entry?
   if (k->pininput || isdigit (key))
     {
-      if (key == '\n' || key == '\e')
-	{
+      if (!isdigit (key))
+	{			// End of PIN entry, do we login?
 	  k->pininput = 0;
-	  if (key == '\n' || key == 'A')
-	    {			// Login?
-	      user_t *u = NULL;
-	      if (k->pin)
-		for (u = users; u && u->pin != k->pin; u = u->next);
-	      if (!u)
-		{		// PIN 0 or user not valid
-		  device[n].silent = 1;
-		  return keypad_message (k, "INVALID CODE");
-		}
-	      if (key == 'A')
-		{
-		  if (!alarm_arm (u->name ? : k->name, port_name (k->port), k->groups & u->group_arm, 0))
-		    return keypad_message (k, "CANNOT SET!");
-		}
-	      else
-		keypad_login (k, u, port_name (k->port));
+	  user_t *u = NULL;
+	  if (k->pin)
+	    for (u = users; u && u->pin != k->pin; u = u->next);
+	  if (!u)
+	    {			// PIN 0 or user not valid
+	      device[n].silent = 1;
+	      return keypad_message (k, "INVALID CODE");
 	    }
+	  keypad_login (k, u, port_name (k->port));
+	  if (key == '\n')
+	    return NULL;
 	}
-      else if (isdigit (key))
-	{
+      else
+	{			// Digit
 	  if (k->pininput < 9)
 	    {
 	      if (!k->pininput++)
@@ -2341,21 +2336,58 @@ do_keypad_update (keypad_t * k, char key)
 	  for (p = 0; p < 16; p++)
 	    l2[p] = ' ';
 	  k->when = k->when_logout = now.tv_sec + 10;	// Timeout
+	  return NULL;
 	}
-      if (k->pininput)
-	return NULL;
     }
-  if (k->user && key == '\e')
-    {
-      k->user = NULL;
-      return keypad_message (k, "LOGGED OUT");
+  // Other keys
+  if (key == '\e')
+    {				// ESC - logout
+      if (k->user)
+	{			// Logout
+	  k->user = NULL;
+	  return keypad_message (k, "LOGGED OUT");
+	}
+      // No action for not logged in
     }
-  if (k->user && key == '\n' && !alarm_reset (k->user->name, port_name (k->port), k->groups & k->user->group_reset))
-    return keypad_message (k, "CANNOT RESET!");
-  if (!k->user && key == 'A' && !alarm_arm (k->name, port_name (k->port), k->groups, 0))
-    return keypad_message (k, "CANNOT SET");
-  if (!k->user && key == 'B' && ((k->groups & trigger) || !alarm_arm (k->name, port_name (k->port), k->groups, 1)))
-    return keypad_message (k, "CANNOT SET");
+  if (key == '\n')
+    {				// ENT - reset
+      if (k->user)
+	{
+	  if (!alarm_reset (k->user->name, port_name (k->port), k->groups & k->user->group_reset))
+	    return keypad_message (k, "CANNOT RESET!");
+	}
+      else
+	{
+	  if (!alarm_reset (k->name, port_name (k->port), k->group_reset))
+	    return keypad_message (k, "CANNOT RESET!");
+	}
+    }
+  if (key == 'A')
+    {				// A - arm timed
+      if (k->user)
+	{
+	  if (!alarm_arm (k->user->name, port_name (k->port), k->user->group_arm, 0))
+	    return keypad_message (k, "CANNOT SET");
+	}
+      else
+	{
+	  if (!alarm_arm (k->name, port_name (k->port), k->group_arm, 0))
+	    return keypad_message (k, "CANNOT SET");
+	}
+    }
+  if (key == 'B')
+    {				// B - arm instant
+      if (k->user)
+	{
+	  if (!alarm_arm (k->user->name, port_name (k->port), k->user->group_arm, 1))
+	    return keypad_message (k, "CANNOT SET");
+	}
+      else
+	{
+	  if (!alarm_arm (k->name, port_name (k->port), k->group_arm, 1))
+	    return keypad_message (k, "CANNOT SET");
+	}
+    }
   // Status display
   const char *alert = NULL;
   if (k->groups & state[STATE_FIRE])
