@@ -1281,10 +1281,10 @@ door_state (group_t g)
   for (d = 0; d < MAX_DOOR; d++)
     if ((mydoor[d].group_lock | mydoor[d].group_fire) & g)
       {
-	if (state[STATE_FIRE] & mydoor[d].group_fire)
+	if (door_locked (d))
+	  door_deadlock (d);	// No point if deadlocked as will set of intruder alarm
+	else if (state[STATE_FIRE] & mydoor[d].group_fire)
 	  door_open (d);	// Fire alarm
-	else if (door_locked (d))
-	  door_deadlock (d);
 	else
 	  door_unlock (d);
       }
