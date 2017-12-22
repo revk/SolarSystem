@@ -1142,7 +1142,7 @@ load_config (const char *configfile)
 	port_exit_set (mydoor[d].i_exit, xml_get (x, "@i-exit"), 0, doorname);
 	port_bell_set (mydoor[d].i_bell, xml_get (x, "@i-bell"), 0, doorname);
 	port_o_set (mydoor[d].o_bell, xml_get (x, "@o-bell"), 0, doorname, "Bell");
-	mydoor[d].time_set = parse_time (xml_get (x, "time-set") ? : "3", 10, 0) / 10;	// Time set is in whole seconds
+	mydoor[d].time_set = parse_time (xml_get (x, "@time-set") ? : "3", 10, 0) / 10;	// Time set is in whole seconds
 	door[d].time_open = parse_time (xml_get (x, "@time-open") ? : "10", 0, 0);
 	door[d].time_force = parse_time (xml_get (x, "@time-force") ? : "0", 0, 100);
 	door[d].time_prop = parse_time (xml_get (x, "@time-prop") ? : "0", 0, 0);
