@@ -1578,7 +1578,7 @@ alarm_arm (const char *who, const char *where, group_t mask, int t)
   mask &= ~allow;		// Ignore already setting / set
   if (!mask)
     return mask;		// nothing to do
-  dolog (mask, "ARM", who, where, "Alarm armed");
+  dolog (mask, "ARM", who, where, "Alarm armed (%d seconds)", t);
   state[STATE_ARM] |= mask;
   for (n = 0; n < MAX_GROUP; n++)
     if (mask & (1 << n))
