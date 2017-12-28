@@ -2491,23 +2491,23 @@ do_keypad_update (keypad_t * k, char key)
     int s;
     for (s = 0; s < STATE_LATCHED && !state[STATE_TRIGGERS + s]; s++);
     if (s < STATE_LATCHED)
-      {
+      {				// Something needs resetting
 	snprintf (l2, 17, "RESET %-10s", state_name[s]);
-	if (!k->ack && ((s != STATE_TAMPER && s != STATE_FAULT) || !(state[STATE_ENGINEERING] & state[STATE_TRIGGERS + s])))
-	  {			// Beep if not engineering not acked
-	    device[n].beep[0] = 1;
-	    device[n].beep[1] = 49;
-	  }
-	else
-	  {			// No beep
+	if (k->ack || (state[STATE_ENGINEERING] & state[STATE_TRIGGERS + s]))
+	  {			// No beep, just blink
+	    device[n].blink = 1;	// Blink anyway, even if this is acked
 	    device[n].beep[0] = 0;
 	    device[n].beep[1] = 0;
 	  }
+	else
+	  {			// Beep
+	    device[n].beep[0] = 1;
+	    device[n].beep[1] = 49;
+	  }
 	return NULL;
       }
-    else			// Idle
-      snprintf (l2, 17, "%04d-%02d-%02d %02d:%02d", lnow.tm_year + 1900, lnow.tm_mon + 1, lnow.tm_mday, lnow.tm_hour, lnow.tm_min);
   }
+  snprintf (l2, 17, "%04d-%02d-%02d %02d:%02d", lnow.tm_year + 1900, lnow.tm_mon + 1, lnow.tm_mday, lnow.tm_hour, lnow.tm_min);
   device[n].beep[0] = 0;
   device[n].beep[1] = 0;
   return NULL;
