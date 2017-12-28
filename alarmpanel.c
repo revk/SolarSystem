@@ -1299,6 +1299,7 @@ keypad_state (group_t g)
   for (k = keypad; k; k = k->next)
     if (k->groups & g)
       k->when = 0;		// Force display update
+  postevent(NULL);
 }
 
 #ifdef	LIBWS

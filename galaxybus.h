@@ -42,7 +42,7 @@ typedef unsigned short voltage_t;
 
 typedef unsigned int fob_t;	// Fob number
 
-extern char *WATCHDOG; // Watchdog device if needed (default NULL)
+extern char *WATCHDOG;		// Watchdog device if needed (default NULL)
 
 #define MAX_RETRY	3	// Message retry
 #define	MAX_STALL	20	// Messages to same device in a row
@@ -133,13 +133,13 @@ enum
 typedef struct rio_threshold_s rio_threshold_t;
 struct rio_threshold_s
 {
-	const char *name;
-	// Resistance, upper for each bank, in 100 ohm multiples.
-	unsigned char tampersc;
-	unsigned char lowres;
-	unsigned char normal;
-	unsigned char highres;
-	unsigned char open;
+  const char *name;
+  // Resistance, upper for each bank, in 100 ohm multiples.
+  unsigned char tampersc;
+  unsigned char lowres;
+  unsigned char normal;
+  unsigned char highres;
+  unsigned char open;
 };
 const rio_threshold_t rio_thresholds[3];
 
@@ -149,7 +149,7 @@ const rio_threshold_t rio_thresholds[3];
 // Reference to a port on a device on a bus is (busid<<16)+(deviceid<<8)+(1<<port)
 // Reference to an RF device is 0x10000000+(serialno<<8) optionally +(1<<port)
 typedef unsigned int port_t;
-typedef void port_output_callback_t(port_t);
+typedef void port_output_callback_t (port_t);
 extern port_output_callback_t *port_output_callback;
 
 // Structures
@@ -249,7 +249,7 @@ struct event_s
     {				// EVENT_RF
       unsigned int rfserial;
       unsigned int rfstatus;
-      unsigned char rftype;     // Type
+      unsigned char rftype;	// Type
       unsigned char rfsignal;	// Out of 10
     };
   };
@@ -314,3 +314,5 @@ void door_lock (int d);		// Lock the door
 void door_deadlock (int d);	// Deadlock the door
 void door_unlock (int d);	// Un deadlock the door
 event_t *bus_event (long long usec);	// Get next event, wait up to usec if none ready
+void postevent (event_t * e);
+

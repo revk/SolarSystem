@@ -105,13 +105,16 @@ pthread_t doorthread;
 void
 postevent (event_t * e)
 {
-  pthread_mutex_lock (&qmutex);
-  if (event)
-    *eventp = e;
-  else
-    event = e;
-  eventp = (void *) &e->next;
-  pthread_mutex_unlock (&qmutex);
+  if (e)
+    {
+      pthread_mutex_lock (&qmutex);
+      if (event)
+	*eventp = e;
+      else
+	event = e;
+      eventp = (void *) &e->next;
+      pthread_mutex_unlock (&qmutex);
+    }
   // Use pipe to signal that event is waiting, but it will get events anyway so non blocking
   char x = 0;
   if (write (qpipe[1], &x, 1) < 0)
