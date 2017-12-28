@@ -2418,7 +2418,7 @@ do_keypad_update (keypad_t * k, char key)
   if (k->alert != alert)
     {				// New alert or end of alert
       k->alert = alert;
-      k->ack = 1;		// Allow beeping again
+      k->ack = 0;		// Allow beeping again
     }
   if (k->ack)
     while (*alert == '\a')
