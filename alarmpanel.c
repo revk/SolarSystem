@@ -293,6 +293,8 @@ struct keypad_s
   const char *msg;		// Flash up message
   int posn;			// List position
   time_t when_posn;		// List time
+  const char *alert;		// Last alert state
+  unsigned char ack:1;		// Alert acknowledged so do not beep
 };
 static keypad_t *keypad = NULL;
 
@@ -2167,6 +2169,7 @@ keypad_login (keypad_t * k, user_t * u, const char *where)
 {				// PIN or fob login
   if (u && k->user != u)
     {
+      k->ack = 1;		// Acknowledged
       k->user = u;
       if (k->time_logout && !(state[STATE_ENGINEERING] & u->group_reset))
 	k->when_logout = now.tv_sec + k->time_logout;	// No logout in engineering if we can reset
@@ -2342,6 +2345,7 @@ do_keypad_update (keypad_t * k, char key)
   // Other keys
   if (key == '\e')
     {				// ESC - logout
+      k->ack = 1;		// Acknowledged - stop beeping
       if (k->user)
 	{			// Logout
 	  k->user = NULL;
@@ -2353,8 +2357,8 @@ do_keypad_update (keypad_t * k, char key)
     {				// ENT - reset
       if (k->user)
 	{
-	  if (!alarm_reset (k->user->name, port_name (k->port), k->groups & k->user->group_reset))
-	    return keypad_message (k, "CANNOT RESET!");
+	  if (!alarm_reset (k->user->name, port_name (k->port), k->user->group_reset))
+	    return keypad_message (k, "CANNOT RESET!");	// Allow wider reset than keypad
 	}
       else
 	{
@@ -2366,8 +2370,8 @@ do_keypad_update (keypad_t * k, char key)
     {				// A - arm timed
       if (k->user)
 	{
-	  if (!alarm_arm (k->user->name, port_name (k->port), k->user->group_arm, 0))
-	    return keypad_message (k, "CANNOT SET");
+	  if (!alarm_arm (k->user->name, port_name (k->port), k->groups & k->user->group_arm, 0))
+	    return keypad_message (k, "CANNOT SET");	// Only alarm what keypad allows
 	}
       else
 	{
@@ -2379,8 +2383,8 @@ do_keypad_update (keypad_t * k, char key)
     {				// B - arm instant
       if (k->user)
 	{
-	  if (!alarm_arm (k->user->name, port_name (k->port), k->user->group_arm, 1))
-	    return keypad_message (k, "CANNOT SET");
+	  if (!alarm_arm (k->user->name, port_name (k->port), k->groups & k->user->group_arm, 1))
+	    return keypad_message (k, "CANNOT SET");	// Only alarm what keypad allows
 	}
       else
 	{
@@ -2407,15 +2411,20 @@ do_keypad_update (keypad_t * k, char key)
   else if (k->user && k->groups & state[STATE_ENGINEERING])
     alert = "ENGINEERING MODE";
   if (alert && *alert == '\a')
-    device[n].blink = 1;
+    device[n].blink = 1;	// Blink anyway, even if this is acked
   else
     device[n].blink = 0;
   device[n].cursor = 0;
+  if (k->alert != alert)
+    {				// New alert or end of alert
+      k->alert = alert;
+      k->ack = 1;		// Allow beeping again
+    }
+  if (k->ack)
+    while (*alert == '\a')
+      alert++;			// Silence
   if (k->user)
     {				// User logged in
-      if (alert)
-	while (*alert == '\a')
-	  alert++;
       device[n].beep[0] = 0;
       device[n].beep[1] = 0;
       if (k->when_posn != now.tv_sec || k->posn < 0)
