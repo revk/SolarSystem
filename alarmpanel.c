@@ -2355,6 +2355,7 @@ do_keypad_update (keypad_t * k, char key)
     }
   if (key == '\n')
     {				// ENT - reset
+      k->ack = 1;		// Acknowledged - stop beeping
       if (k->user)
 	{
 	  if (!alarm_reset (k->user->name, port_name (k->port), k->user->group_reset))
@@ -2495,7 +2496,6 @@ do_keypad_update (keypad_t * k, char key)
 	snprintf (l2, 17, "RESET %-10s", state_name[s]);
 	if (k->ack || (state[STATE_ENGINEERING] & state[STATE_TRIGGERS + s]))
 	  {			// No beep, just blink
-	    device[n].blink = 1;	// Blink anyway, even if this is acked
 	    device[n].beep[0] = 0;
 	    device[n].beep[1] = 0;
 	  }
