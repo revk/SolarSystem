@@ -2420,7 +2420,7 @@ do_keypad_update (keypad_t * k, char key)
       k->alert = alert;
       k->ack = 0;		// Allow beeping again
     }
-  if (k->ack)
+  if (k->ack && alert)
     while (*alert == '\a')
       alert++;			// Silence
   if (k->user)
@@ -2493,10 +2493,15 @@ do_keypad_update (keypad_t * k, char key)
     if (s < STATE_LATCHED)
       {
 	snprintf (l2, 17, "RESET %-10s", state_name[s]);
-	if ((s != STATE_TAMPER && s != STATE_FAULT) || !(state[STATE_ENGINEERING] & state[STATE_TRIGGERS + s]))
-	  {			// Beep if not engineering
+	if (!k->ack && ((s != STATE_TAMPER && s != STATE_FAULT) || !(state[STATE_ENGINEERING] & state[STATE_TRIGGERS + s])))
+	  {			// Beep if not engineering not acked
 	    device[n].beep[0] = 1;
 	    device[n].beep[1] = 49;
+	  }
+	else
+	  {			// No beep
+	    device[n].beep[0] = 0;
+	    device[n].beep[1] = 0;
 	  }
 	return NULL;
       }
