@@ -447,7 +447,7 @@ doorman (void *d)
 	    if (!door[d].blip)
 	      {
 		door_led (d, state);	// LED
-		port_output (door[d].o_beep, (door[d].beep == 1 || tv.tv_usec >= 500000) ? 1 : 0);
+		port_output (door[d].o_beep, (door[d].beep == 1 || (door[d].beep && tv.tv_usec >= 500000)) ? 1 : 0);
 	      }
 	    else
 	      {			// Override led/beep
