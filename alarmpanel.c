@@ -1299,7 +1299,7 @@ keypad_state (group_t g)
   for (k = keypad; k; k = k->next)
     if (k->groups & g)
       k->when = 0;		// Force display update
-  postevent(NULL);
+  postevent (NULL);
 }
 
 #ifdef	LIBWS
@@ -2544,7 +2544,7 @@ doevent (event_t * e)
       if (e->event == EVENT_DOOR)
 	printf ("DOOR%02d %s", e->door, door_name[e->state]);
       else if (e->event == EVENT_KEEPALIVE)
-	printf ("BUS%d %s ", e->port >> 16, event_name[e->event]);
+	printf ("BUS%d %s ", (e->port >> 16) + 1, event_name[e->event]);
       else
 	printf ("%s %s ", port_name (e->port), event_name[e->event]);
       if (e->event == EVENT_KEEPALIVE)
@@ -2577,7 +2577,7 @@ doevent (event_t * e)
     {
     case EVENT_KEEPALIVE:
       {
-	int n = (id >> 8);
+	int n = (id >> 8) + 1;
 	char busno[10];
 	snprintf (busno, sizeof (busno), "BUS%d", n);
 	dolog (groups, "KEEPALIVE", NULL, busno, "Keepalive");
