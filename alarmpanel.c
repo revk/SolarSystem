@@ -2539,6 +2539,8 @@ doevent (event_t * e)
   gettimeofday (&now, NULL);
   unsigned int id = port_device (e->port);
   unsigned char type = device[id].type;
+  if (e->event == EVENT_KEEPALIVE)
+    syslog (LOG_INFO, "Bus %d KA OK", (e->port >> 16) + 1);
   if (debug)
     {				// Debug logging
       if (e->event == EVENT_DOOR)
@@ -2600,7 +2602,7 @@ doevent (event_t * e)
 		rem_fault (groups, busno, NULL);
 	      }
 	    if (e->retries > 5)
-	      syslog (LOG_INFO, "Bus %d retries: %d", n, e->retries);
+	      syslog (LOG_INFO, "%s retries: %d", busno, e->retries);
 	  }
       }
       break;
@@ -3034,7 +3036,6 @@ doevent (event_t * e)
 		      {
 			if (disarm && alarm_unset (u->name, port_name (e->port), disarm))
 			  door_confirm (d);
-			//door_confirm (d); // Beeping annoying and clear from LEDs
 			door_lock (d);	// Cancel open
 			dolog (mydoor[d].group_lock, "DOORCANCEL", u->name, doorno, "Door open cancelled by fob %lu", e->fob);
 			mydoor[d].opening = 0;	// Don't report not opened

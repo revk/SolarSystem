@@ -243,7 +243,6 @@ port_defined_n (volatile port_t * w, int n)
   return q;
 }
 
-
 void
 door_error (int d)
 {				// Indicate error
