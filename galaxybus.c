@@ -428,8 +428,10 @@ doorman (void *d)
 	      {			// State change
 		door[d].state = state;
 		door[d].timer = 0;
-		if ((!door[d].mainlock.locked && !door[d].open_quiet) || state == DOOR_TAMPER || state == DOOR_FORCED || state == DOOR_PROPPED || state == DOOR_AJAR)
+		if (!door[d].mainlock.locked && !door[d].open_quiet)
 		  door[d].beep = 1;
+		else if (state == DOOR_TAMPER || state == DOOR_FORCED || state == DOOR_PROPPED || state == DOOR_AJAR)
+		  door[d].beep = 2;
 		else
 		  door[d].beep = 0;
 		event_t *e = malloc (sizeof (event_t));
@@ -445,7 +447,7 @@ doorman (void *d)
 	    if (!door[d].blip)
 	      {
 		door_led (d, state);	// LED
-		port_output (door[d].o_beep, tv.tv_usec >= 500000 ? door[d].beep : 0);	// Beep
+		port_output (door[d].o_beep, (door[d].beep == 1 || tv.tv_usec >= 500000) ? 1 : 0);
 	      }
 	    else
 	      {			// Override led/beep

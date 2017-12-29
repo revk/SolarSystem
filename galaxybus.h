@@ -286,7 +286,7 @@ struct door_s
   unsigned int force_timer;	// Ticks delayed force state
   unsigned char state;		// Door state as last reported
   unsigned char blip;		// Blip counter
-  unsigned char beep:1;		// Beep required
+  unsigned char beep:2;		// Beep required (1=continuous, 2=intermittent)
 };
 
 // Data
