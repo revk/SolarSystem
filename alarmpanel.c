@@ -2540,7 +2540,7 @@ doevent (event_t * e)
   unsigned int id = port_device (e->port);
   unsigned char type = device[id].type;
   if (e->event == EVENT_KEEPALIVE)
-    syslog (LOG_INFO, "Bus %d KA OK", (e->port >> 16) + 1);
+    syslog (LOG_INFO, "Bus %d KA OK (tx %d)", (e->port >> 16) + 1, e->tx);
   if (debug)
     {				// Debug logging
       if (e->event == EVENT_DOOR)
