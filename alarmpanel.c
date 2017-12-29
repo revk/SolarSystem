@@ -1892,7 +1892,7 @@ dologger (CURL * curl, xml_t system, log_t * l)
 	      add ("when", when);
 	      add ("groups", groups);
 	      add ("type", l->type);
-	      add ("user", l->user);
+	      add ("userid", l->user);
 	      add ("port", l->port);
 	      add ("name", name);
 	      add ("msg", l->msg);
@@ -1910,7 +1910,7 @@ dologger (CURL * curl, xml_t system, log_t * l)
 	      add ("when", when);
 	      add ("groups", groups);
 	      add ("type", l->type);
-	      add ("user", l->user);
+	      add ("userid", l->user);
 	      add ("port", l->port);
 	      add ("name", name);
 	      add ("msg", l->msg);
