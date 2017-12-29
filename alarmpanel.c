@@ -2584,7 +2584,7 @@ doevent (event_t * e)
 	snprintf (busno, sizeof (busno), "BUS%d", n);
 	dolog (groups, "KEEPALIVE", NULL, busno, "Keepalive");
 	if (e->tx)
-	  mybus[n].watchdog = now.tv_sec + 120;
+	  mybus[n - 1].watchdog = now.tv_sec + 150;
 	if (e->errors > 5 || e->stalled > 1 || !e->rx || !e->tx)
 	  {
 	    if (!mybus[n].fault)
