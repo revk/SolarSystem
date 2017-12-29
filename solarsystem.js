@@ -39,7 +39,10 @@ ws.onmessage=function(event)
 			l.onclick=function()
 			{
 				var a;
-				if(this.getAttribute("data-fault_latch") || this.getAttribute("data-tamper_latch"))a={reset:[this.groupid]};
+				if(this.getAttribute("data-fault_latch")
+					|| this.getAttribute("data-tamper_latch")
+					|| this.getAttribute("data-intruder_latch")
+				)a={reset:[this.groupid]};
 				else if(this.getAttribute("data-set")||this.getAttribute("data-arm")) a={disarm:[this.groupid]};
 				else a={arm:[this.groupid]};
 				ws.send(JSON.stringify(a));
@@ -63,6 +66,7 @@ ws.onmessage=function(event)
 		if(x.getAttribute("data-set"))x.src="groupSET.svg";
 		else if(x.getAttribute("data-arm"))x.src="groupARM.svg";
 		else if(x.getAttribute("data-fault_latch"))x.src="groupFAULT.svg";
+		else if(x.getAttribute("data-intruder_latch"))x.src="groupINTRUDER.svg";
 		else if(x.getAttribute("data-tamper_latch"))x.src="groupTAMPER.svg";
 		else x.src="groupUNSET.svg";
 	}
