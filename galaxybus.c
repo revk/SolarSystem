@@ -369,7 +369,7 @@ doorman (void *d)
 	      open = 0;		// Pretend closed
 	    if (state != DOOR_NEW)
 	      {
-		if (port_tamper (door[d].i_open) || port_tamper (door[d].mainlock.o_lock) || port_tamper (door[d].mainlock.i_unlock) || port_tamper (door[d].deadlock.o_lock) || port_tamper (door[d].deadlock.i_unlock))
+		if (port_tamper (door[d].i_open) || port_tamper (door[d].mainlock.i_unlock) || port_tamper (door[d].deadlock.i_unlock))
 		  state = DOOR_TAMPER;
 		else if (open)
 		  {		// Door is open
