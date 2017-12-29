@@ -3751,8 +3751,8 @@ main (int argc, const char *argv[])
 	for (n = 0; n < MAX_BUS; n++)
 	  if ((buses & (1 << n)) && mybus[n].watchdog < now.tv_sec)
 	    {
-	      syslog (LOG_INFO, "KA timeout bus %d (%lu)", n, now.tv_sec - mybus[n].watchdog);
-	      errx (1, "KA timeout bus %d (%lu)", n, now.tv_sec - mybus[n].watchdog);
+	      syslog (LOG_INFO, "KA timeout bus %d (%lu)", n + 1, now.tv_sec - mybus[n].watchdog);
+	      errx (1, "KA timeout bus %d (%lu)", n + 1, now.tv_sec - mybus[n].watchdog);
 	    }
       }
       event_t *e;
