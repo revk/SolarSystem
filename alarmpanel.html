@@ -133,6 +133,8 @@
 <tr><td>disarm</td><td>Groups that user is allowed to disarm</td></tr>
 <tr><td>reset</td><td>Groups that user is allowed to reset</td></tr>
 <tr><td>prop</td><td>Groups that user is allowed to stop propped door alerts</td></tr>
+<tr><td>sms</td><td>Used for logging</td></tr>
+<tr><td>email</td><td>Used for logging</td></tr>
 </table>
 <h2>group</h2>
 <table border=1>
@@ -247,5 +249,15 @@
 <tr><td>type</td><td>The types of event, note that state changes have <tt>+</tt> or <tt>-</tt> in front of the state, e.g. <tt>+INTRUDER</tt>.</td></tr>
 <tr><td>port</td><td>Where the event relates to a particular port or ports, including ports like <tt>DOOR01</tt>. See syslog for examples</td></tr>
 <tr><td>groups</td><td>The groups to log</td></tr>
-<tr><td>action</td><td>What do do. This can be a URL for POST to http or https. Include a <tt>?</tt> to do a GET instead.i Alternatively this can be an email address to email the log.</td></tr>
+<tr><td>action</td><td>What do do, see below.</td></td>
 </table>
+<p>The action defines how the logging is done. This is a simple single action string which can be one of the following. If more than one action is required, create multiple log entries.</p>
+<ul>
+	<li>An email address causes an email to be sent (where built with email option)</li>
+	<li>A telephone number causes an SMS to be sent (requires sms authentication settings in system)</li>
+	<li>A URL starting http: or https: causes details to be sent to a URL. This is normally a form style POST, but if the URL ends with a <tt>?</tt> then a form style GET is done instead.</li>
+	<li>The string <tt>sms</tt> causes an SMS to be sent to the number in the <tt>sms</tt> attribute of the user related to the log entry if there is one, e.g. you may like to sms a user to confirm they set the alarm using a key fob.</li>
+	<li>A string starting <tt>sms:</tt> and a user name will sms user the <tt>sms</tt> attribute of that specific user. This avoids having to duplicate numbers that are already in the user settings.</li>
+	<li>The string <tt>email</tt> causes an email to be sent to the number in the <tt>email</tt> attribute of the user related to the log entry if there is one, e.g. you may like to email a user to confirm they set the alarm using a key fob.</li>
+	<li>A string starting <tt>email:</tt> and a user name will email user the <tt>email</tt> attribute of that specific user. This avoids having to duplicate numbers that are already in the user settings.</li>
+</ul>

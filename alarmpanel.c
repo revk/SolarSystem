@@ -1803,8 +1803,9 @@ checklist (char *l, const char *t)
 }
 
 static void
-dologger (CURL * curl, xml_t system, log_t * l)
+dologger (CURL * curl, log_t * l)
 {
+  xml_t system = xml_element_next_by_name (config, NULL, "system");
   char when[20];
   strftime (when, sizeof (when), "%FT%T", localtime (&l->when));
   char groups[MAX_GROUP + 1];
@@ -1862,6 +1863,42 @@ dologger (CURL * curl, xml_t system, log_t * l)
       v = xml_get (c, "@action");
       if (!v)
 	continue;
+      // Special cases
+      if (!strcasecmp (v, "sms") || !strncasecmp (v, "sms:", 4))
+	{			// sms for user
+	  char *name = l->user;	// default for just "sms"
+	  if (v[3])
+	    name = v + 4;	// use name for "sms:name"
+	  if (!name || !*name)
+	    continue;		// No action
+	  xml_t u = NULL;
+	  while ((u = xml_element_next_by_name (config, u, "user")))
+	    if ((v = xml_get (u, "@name")) && !strcasecmp (v, name))
+	      break;
+	  if (!u)
+	    continue;		// No user match
+	  v = xml_get (u, "@sms");
+	  if (!v || !*v)
+	    continue;		// No SMS
+	}
+      else if (!strcasecmp (v, "email") || !strncasecmp (v, "email:", 6))
+	{			// email for user
+	  char *name = l->user;	// default for just "email"
+	  if (v[5])
+	    name = v + 6;	// use name for "email:name"
+	  if (!name || !*name)
+	    continue;		// No action
+	  xml_t u = NULL;
+	  while ((u = xml_element_next_by_name (config, u, "user")))
+	    if ((v = xml_get (u, "@name")) && !strcasecmp (v, name))
+	      break;
+	  if (!u)
+	    continue;		// No user match
+	  v = xml_get (u, "@email");
+	  if (!v || !*v)
+	    continue;		// No SMS
+	}
+      // Handle standard actions (web/email/sms)
       if (!strncasecmp (v, "http:", 5) || !strncasecmp (v, "https:", 6))
 	{			// CURL
 	  FILE *o = fopen ("/dev/null", "w");
@@ -2038,13 +2075,12 @@ logger (void *d)
     curl_easy_setopt (curl, CURLOPT_VERBOSE, 1L);
   curl_easy_setopt (curl, CURLOPT_CONNECTTIMEOUT, 10L);
   curl_easy_setopt (curl, CURLOPT_TIMEOUT, 10L);
-  xml_t system = xml_element_next_by_name (config, NULL, "system");
   while (1)
     {
       log_t *l = next_log (1000000);
       if (!l)
 	continue;
-      dologger (curl, system, l);
+      dologger (curl, l);
     }
   return NULL;
 }
