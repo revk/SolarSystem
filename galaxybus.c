@@ -453,9 +453,8 @@ doorman (void *d)
 		door[d].blip--;
 		if (door[d].blip == 3 || door[d].blip == 9)
 		  {		// Start of blip
-
 		    if (door[d].open_quiet)
-		      port_output (door[d].o_beep, 1);
+		      port_output (door[d].o_beep, 1); // Not 100% sure why I do this here
 		    door_led (d, DOOR_TAMPER);
 		    port_output (door[d].o_beep, 1);
 		    port_urgent (door[d].o_beep);
@@ -463,7 +462,7 @@ doorman (void *d)
 		else if (!door[d].blip || door[d].blip == 6)
 		  {		// End of blip - put back to normal
 		    door_led (d, state);
-		    port_output (door[d].o_beep, door[d].blip ? 0 : door[d].beep);
+		    port_output (door[d].o_beep, door[d].blip ? 0 : (door[d].beep == 1 || (door[d].beep && tv.tv_usec >= 500000)) ? 1 : 0);
 		    port_urgent (door[d].o_beep);
 		  }
 	      }

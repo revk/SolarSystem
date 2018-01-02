@@ -3139,7 +3139,6 @@ doevent (event_t * e)
 	if (!found)
 	  {			// Unassociated max reader
 	    dolog (groups, e->event == EVENT_FOB_HELD ? "FOBHELDIGNORE" : "FOBIGNORED", u ? u->name : NULL, port_name (e->port), "Ignored fob %lu as reader not linked to a door", e->fob);
-	    door_error (d);
 	  }
       }
       break;
