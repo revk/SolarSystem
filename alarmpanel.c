@@ -51,6 +51,7 @@
 #endif
 
 xml_t config = NULL;
+const char *maxfrom = NULL, *maxto = NULL;
 int configchanged = 0;
 pthread_mutex_t eventmutex;;
 
@@ -995,12 +996,22 @@ load_config (const char *configfile)
       if (!(pl = xml_get (x, "@id")) || !*pl)
 	dolog (ALL_GROUPS, "CONFIG", NULL, NULL, "Max with no id");
       else
-	while (pl)
-	  {
-	    port_t p = port_parse (pl, &pl, -1);
-	    if ((v = xml_get (x, "@fob-held")))
-	      device[port_device (p)].fob_hold = atoi (v) * 10;
-	  }
+	{
+	  char *from = xml_get (x, "@from");	// Renumber max, e.g. a new one, assumes id is simple max port
+	  if (from)
+	    {
+	      if (maxfrom)
+		dolog (ALL_GROUPS, "CONFIG", NULL, pl, "Can only renumber one max at a time");
+	      maxfrom = from;
+	      maxto = pl;
+	    }
+	  while (pl)
+	    {
+	      port_t p = port_parse (pl, &pl, -1);
+	      if ((v = xml_get (x, "@fob-held")))
+		device[port_device (p)].fob_hold = atoi (v) * 10;
+	    }
+	}
     }
   x = NULL;
   while ((x = xml_element_next_by_name (config, x, "keypad")))
@@ -3551,7 +3562,6 @@ main (int argc, const char *argv[])
   port_output_callback = ws_port_output_callback;
 #endif
   const char *configfile = NULL;
-  const char *maxfrom = NULL, *maxto = NULL;
 #include <trace.h>
   {
     int c;
