@@ -3662,6 +3662,7 @@ main (int argc, const char *argv[])
 	{
 	  device[port_device (f)].newid = (t >> 8);
 	  device[port_device (f)].config = 1;
+	  dolog (groups, "CONFIG", NULL, NULL, "Max renumber planned");
 	}
     }
   state_change (groups);
