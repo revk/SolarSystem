@@ -90,7 +90,6 @@ div.groupid {
 }
 
 .inputidle {
-	display: inline-block;
 	background-color: #8f8;
 	border: 1px solid green;
 	padding: 1px;
@@ -98,7 +97,6 @@ div.groupid {
 }
 
 .inputactive {
-	display: inline-block;
 	background-color: #f88;
 	border: 1px solid red;
 	padding: 1px;
@@ -106,7 +104,6 @@ div.groupid {
 }
 
 .inputfault {
-	display: inline-block;
 	background-color: #88f;
 	border: 1px solid blue;
 	padding: 1px;
@@ -114,7 +111,6 @@ div.groupid {
 }
 
 .inputtamper {
-	display: inline-block;
 	background-color: #f8f;
 	border: 1px solid purple;
 	padding: 1px;
@@ -122,7 +118,6 @@ div.groupid {
 }
 
 .outputidle {
-	display: inline-block;
 	background-color: #8f8;
 	border: 1px solid green;
 	padding: 1px;
@@ -130,22 +125,20 @@ div.groupid {
 }
 
 .outputactive {
-	display: inline-block;
 	background-color: #f88;
 	border: 1px solid red;
 	padding: 1px;
 	margin: 1px;
 }
 
-table.inputrio {
+table.rio {
 	display:inline-block;
 }
-table.outputrio {
+table.max {
 	display:inline-block;
 }
-table.inputmax {
-	display:inline-block;
-}
-table.outputmax {
-	display:inline-block;
+td {
+	margin:1px;
+	padding:1px;
+	border:1px solid transparent;
 }
