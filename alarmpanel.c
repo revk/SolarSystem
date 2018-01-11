@@ -1138,7 +1138,7 @@ load_config (const char *configfile)
 	    if (maxport && !mydevice[port_device (maxport)].name)
 	      mydevice[port_device (maxport)].name = mydoor[d].name;
 	    port_o_set (door[d].o_led, max, 0xFF, doorname, "Max");
-	    port_o_set (door[d].mainlock.o_lock, max, 1 << 1, doorname, "Lock");
+	    port_o_set (door[d].mainlock.o_unlock, max, 1 << 1, doorname, "Unlock");
 	    port_i_set (door[d].i_open, max, 1 << 0, doorname, "Open");
 	    port_o_set (door[d].o_beep, max, 1 << 0, doorname, "Beep");
 	    port_exit_set (mydoor[d].i_exit, max, 1 << 1, doorname);
@@ -1146,12 +1146,12 @@ load_config (const char *configfile)
 	  }
 	port_set (mydoor[d].i_fob, xml_get (x, "@fob"), 0, doorname, "Max");
 	port_o_set (door[d].o_led, xml_get (x, "@o-led"), 0xFF, doorname, "Max");
-	port_o_set (door[d].mainlock.o_lock, xml_get (x, "@o-lock"), 0, doorname, "Main");
+	port_o_set (door[d].mainlock.o_unlock, xml_get (x, "@o-unlock"), 0, doorname, "Unlock");
 	port_i_set (door[d].mainlock.i_unlock, xml_get (x, "@i-unlock"), 0, doorname, "Unlock");
 	port_o_set (door[d].o_beep, xml_get (x, "@o-beep"), 0, doorname, "Beep");
 	port_i_set (door[d].i_open, xml_get (x, "@i-open"), 0, doorname, "Open");
-	port_o_set (door[d].deadlock.o_lock, xml_get (x, "@o-deadlock"), 0, doorname, "Deadlock");
-	port_i_set (door[d].deadlock.i_unlock, xml_get (x, "@i-undeadlock"), 0, doorname, "Deadunlock");
+	port_o_set (door[d].deadlock.o_unlock, xml_get (x, "@o-undeadlock"), 0, doorname, "UnDeadlock");
+	port_i_set (door[d].deadlock.i_unlock, xml_get (x, "@i-undeadlock"), 0, doorname, "UnDeadlock");
 	port_exit_set (mydoor[d].i_exit, xml_get (x, "@i-exit"), 0, doorname);
 	port_bell_set (mydoor[d].i_bell, xml_get (x, "@i-bell"), 0, doorname);
 	port_o_set (mydoor[d].o_bell, xml_get (x, "@o-bell"), 0, doorname, "Bell");

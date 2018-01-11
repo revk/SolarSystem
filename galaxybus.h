@@ -260,7 +260,7 @@ typedef struct lock_s lock_t;
 struct lock_s
 {
   // Config
-  port_t o_lock;		// Output active to lock
+  port_t o_unlock;		// Output active to unlock
   port_t i_unlock;		// Input, active if unlocked
   unsigned char time_lock;	// How long to lock
   unsigned char time_unlock;	// How long to unlock

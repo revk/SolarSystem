@@ -265,8 +265,8 @@ lock_open (volatile lock_t * l)
     {				// Is locked - start unlock
       l->locked = 0;
       l->timer = l->time_unlock;
-      port_output (l->o_lock, 0);
-      port_urgent (l->o_lock);
+      port_output (l->o_unlock, 1);
+      port_urgent (l->o_unlock);
     }
   pthread_mutex_unlock (&lockmutex);
 }
@@ -281,7 +281,7 @@ lock_lock (volatile lock_t * l)
     {				// Is unlocked - start lock
       l->locked = 1;
       l->timer = l->time_lock;
-      port_output (l->o_lock, 1);
+      port_output (l->o_unlock, 0);
     }
   pthread_mutex_unlock (&lockmutex);
 }
@@ -312,7 +312,7 @@ lock_tick (volatile lock_t * l, int open)
 void
 door_open (int d)
 {				// Unlock deadlock and lock
-  if (door[d].mainlock.o_lock)
+  if (door[d].mainlock.o_unlock)
     lock_open (&door[d].mainlock);
   lock_open (&door[d].deadlock);
 }
@@ -377,7 +377,7 @@ doorman (void *d)
 		      state = DOOR_FAULT;
 		    else if (door[d].deadlock.locked && !door[d].deadlock.timer)
 		      state = DOOR_FORCED;
-		    else if (door[d].mainlock.locked && !door[d].mainlock.timer && door[d].mainlock.o_lock)
+		    else if (door[d].mainlock.locked && !door[d].mainlock.timer && door[d].mainlock.o_unlock)
 		      state = DOOR_FORCED;
 		    else if (state != DOOR_PROPPED && state != DOOR_FORCED)
 		      state = DOOR_OPEN;
@@ -415,7 +415,7 @@ doorman (void *d)
 		    door[d].deadlock.timer = 10;
 		    state = (open ? DOOR_UNLOCKING : DOOR_LOCKING);
 		  }
-		else if (state == DOOR_OPEN && door[d].time_prop && door[d].timer >= door[d].time_prop && door[d].mainlock.o_lock)
+		else if (state == DOOR_OPEN && door[d].time_prop && door[d].timer >= door[d].time_prop && door[d].mainlock.o_unlock)
 		  state = DOOR_PROPPED;
 		else if (state == DOOR_CLOSED && door[d].time_open && door[d].timer >= door[d].time_open)
 		  {
@@ -1061,7 +1061,7 @@ poller (void *d)
 		      mydev[id].led = dev[id].led;
 		      cmd[++cmdlen] = 0x0C;
 		      // The logic here is not 100% clear, seems we have to send the toggle on and off to latch something. Seems to work now
-		      cmd[++cmdlen] = ((mydev[id].toggle0C ? 0x09 : 0x00) | (((mydev[id].output ^ mydev[id].invert) & 3) << 1) | ((mydev[id].disable) ? 0 : 0x80));
+		      cmd[++cmdlen] = ((mydev[id].toggle0C ? 0x09 : 0x00) | (((mydev[id].output ^ mydev[id].invert ^ 2) & 3) << 1) | ((mydev[id].disable) ? 0 : 0x80));
 		      cmd[++cmdlen] = dev[id].led;
 		      mydev[id].send07 = 0;	// Includes LED
 		      mydev[id].toggle0C ^= 1;
