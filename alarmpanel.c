@@ -3340,10 +3340,10 @@ do_wscallback (websocket_t * w, xml_t head, xml_t data)
       for (d = 0; d < MAX_DEVICE; d++)
 	if (device[d].type)
 	{
-	  for (p = 0; p < MAX_INPUT; p++)
-	    input_ws (root, (d << 8) + (1 << p));
 	  for (p = 0; p < MAX_OUTPUT; p++)
 	    output_ws (root, (d << 8) + (1 << p));
+	  for (p = 0; p < MAX_INPUT; p++)
+	    input_ws (root, (d << 8) + (1 << p));
 	}
       websocket_send (1, &w, root);
       pthread_mutex_unlock (&eventmutex);
