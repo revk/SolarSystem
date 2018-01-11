@@ -36,7 +36,7 @@ function io(dir,e)
 			d.appendChild(r);
 			c=document.createElement("th");
 			c.textContent=e.dev;
-			c.colSpan="3";
+			c.colSpan="2";
 			r.appendChild(c);
 			ps=8;
 			if(e.type=="max")ps=2;
