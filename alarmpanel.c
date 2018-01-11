@@ -2652,6 +2652,9 @@ doevent (event_t * e)
 	  }
       }
       break;
+    case EVENT_CONFIG:
+      dolog (groups, "BUSCONFIG", NULL, port_name (e->port), "Device config started");
+      break;
     case EVENT_FOUND:
       {
 	dolog (groups, "BUSFOUND", NULL, port_name (e->port), "Device found on bus");

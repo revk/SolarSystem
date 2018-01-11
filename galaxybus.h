@@ -65,6 +65,7 @@ const char *type_name[MAX_TYPE];	// Device type name
 #define	EVENT	\
 	e(KEEPALIVE)	\
 	e(FOUND)	\
+	e(CONFIG)	\
 	e(MISSING)	\
 	e(DISABLED)	\
 	e(INPUT)	\
