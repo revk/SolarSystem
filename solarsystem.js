@@ -226,15 +226,15 @@ ws.onmessage=function(event)
 		x.children[1].src="door"+d.state+".png";
 		x.children[2].textContent=d.state;
 	});
-	if(o.input)o.input.forEach(function(i)
-	{
-		x=io("I",i);
-		x.className="input"+(i.tamper?"tamper":i.fault?"fault":i.active?"active":"idle");
-	});
 	if(o.output)o.output.forEach(function(o)
 	{	// Log updates
 		x=io("O",o);
 		x.className=(o.active?"outputactive":"outputidle");
+	});
+	if(o.input)o.input.forEach(function(i)
+	{
+		x=io("I",i);
+		x.className="input"+(i.tamper?"tamper":i.fault?"fault":i.active?"active":"idle");
 	});
 }
 }
