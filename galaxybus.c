@@ -313,7 +313,7 @@ void
 door_open (int d)
 {				// Unlock deadlock and lock
   if (!door[d].open_quiet)
-    port_output (door[d].o_beep, 1);
+    port_output (door[d].o_beep, door[d].beep = 1);
   if (door[d].mainlock.o_unlock)
     lock_open (&door[d].mainlock);
   lock_open (&door[d].deadlock);
