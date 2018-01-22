@@ -311,8 +311,8 @@ lock_tick (volatile lock_t * l, int open)
 
 void
 door_open (int d)
-{				// Unlock deadlock and lock
-  if (door[d].mainlock.locked)
+{				// Unlock deadlock and lock, unless unlocked or actually open!
+  if (door[d].mainlock.locked && !port_input (door[d].i_open))
     {
       if (!door[d].open_quiet)
 	port_output (door[d].o_beep, door[d].beep = 1);
