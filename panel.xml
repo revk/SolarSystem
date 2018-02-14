@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <panel>
-   <system name="Test Alarm" ws-port="1234" engineering="*"/>
+   <system name="Test Alarm" ws-port="80" engineering="*"/>
    <group id="0" name="test"/>
    <group id="1" name="test2"/>
    <keypad id="PAD110" message="Test alarm (A)" name="Pad A"/>
