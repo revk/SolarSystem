@@ -1027,7 +1027,7 @@ load_config (const char *configfile)
 	    k->name = xml_copy (x, "@name");
 	    k->groups = group_parse (xml_get (x, "@groups") ? : "*");
 	    k->group_arm = (group_parse (xml_get (x, "@arm") ? : "*") & k->groups);	// default is all groups covered
-	    k->group_reset = (group_parse (xml_get (x, "@reset") ? : "*") & k->groups);	// default is no groups, i.e. needs login
+	    k->group_reset = (group_parse (xml_get (x, "@reset") ? : "") & k->groups);	// default is no groups, i.e. needs login
 	    k->prox = port_parse (xml_get (x, "@prox"), NULL, 0);
 	    k->time_logout = atoi (xml_get (x, "@logout") ? : "60");
 	    k->message = xml_copy (x, "@message");
