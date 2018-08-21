@@ -2989,27 +2989,27 @@ doevent (event_t * e)
 		      char port[20];
 		      snprintf (port, sizeof (port), "%sNOPWR", port_name (e->port));
 		      if ((e->status & (1 << FAULT_RIO_NO_PWR)))
-			add_fault (g, port, mydevice[id].name);
+			add_warning (g, port, mydevice[id].name);
 		      else
-			rem_fault (g, port, mydevice[id].name);
+			rem_warning (g, port, mydevice[id].name);
 		    }
 		  if (e->changed & (1 << FAULT_RIO_NO_BAT))
 		    {
 		      char port[20];
 		      snprintf (port, sizeof (port), "%sNOBAT", port_name (e->port));
 		      if ((e->status & (1 << FAULT_RIO_NO_BAT)))
-			add_fault (g, port, mydevice[id].name);
+			add_warning (g, port, mydevice[id].name);
 		      else
-			rem_fault (g, port, mydevice[id].name);
+			rem_warning (g, port, mydevice[id].name);
 		    }
 		  if (e->changed & (1 << FAULT_RIO_BAD_BAT))
 		    {
 		      char port[20];
 		      snprintf (port, sizeof (port), "%sBADBAT", port_name (e->port));
 		      if ((e->status & (1 << FAULT_RIO_BAD_BAT)))
-			add_fault (g, port, mydevice[id].name);
+			add_warning (g, port, mydevice[id].name);
 		      else
-			rem_fault (g, port, mydevice[id].name);
+			rem_warning (g, port, mydevice[id].name);
 		    }
 		}
 	    }
