@@ -3219,7 +3219,7 @@ do_wscallback (websocket_t * w, xml_t head, xml_t data)
   if (!w && head && !data)
     {				// Non websocket get
       char *expect = NULL;
-      char *auth = xml_get (head, "@authorization");
+      char *auth = xml_get (head, "http/@authorization") ? : xml_get (head, "@authorization");
       if (auth)
 	{
 	  char *pass = auth;
@@ -3339,12 +3339,12 @@ do_wscallback (websocket_t * w, xml_t head, xml_t data)
       int p;
       for (d = 0; d < MAX_DEVICE; d++)
 	if (device[d].type)
-	{
-	  for (p = 0; p < MAX_OUTPUT; p++)
-	    output_ws (root, (d << 8) + (1 << p));
-	  for (p = 0; p < MAX_INPUT; p++)
-	    input_ws (root, (d << 8) + (1 << p));
-	}
+	  {
+	    for (p = 0; p < MAX_OUTPUT; p++)
+	      output_ws (root, (d << 8) + (1 << p));
+	    for (p = 0; p < MAX_INPUT; p++)
+	      input_ws (root, (d << 8) + (1 << p));
+	  }
       websocket_send (1, &w, root);
       pthread_mutex_unlock (&eventmutex);
       xml_tree_delete (root);
