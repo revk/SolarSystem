@@ -4,6 +4,8 @@ else
 LIBEMAIL=
 endif
 
+all: git alarmpanel
+
 alarmpanel: alarmpanel.c galaxybus.o galaxybus.h AXL/axl.o Dataformat/dataformat.o websocket/websocket.o trace.h
 	cc -g -Wall -Wextra -O -o alarmpanel alarmpanel.c galaxybus.o -I. -IAXL -IDataformat -Iwebsocket AXL/axl.o Dataformat/dataformat.o websocket/websocket.o -lcurl -pthread -lpopt -DLIBWS ${LIBEMAIL} -lcrypto -lssl
 
@@ -12,3 +14,6 @@ galaxybus.o: galaxybus.c
 
 clean:
 	rm -f *.o alarmpanel
+
+git:
+	git submodule update --init
