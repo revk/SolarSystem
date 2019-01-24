@@ -1,0 +1,9 @@
+[submodule "AXL"]
+	path = AXL
+	url = https://github.com/revk/AXL
+[submodule "Dataformat"]
+	path = Dataformat
+	url = https://github.com/revk/Dataformat
+[submodule "websocket"]
+	path = websocket
+	url = https://github.com/revk/websocket

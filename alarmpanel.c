@@ -3224,7 +3224,7 @@ do_wscallback (websocket_t * w, xml_t head, xml_t data)
   if (!w && head && !data)
     {				// Non websocket get
       char *expect = NULL;
-      char *auth = xml_get (head, "@authorization");
+      char *auth = xml_get (head, "http/@authorization");
       if (auth)
 	{
 	  char *pass = auth;
