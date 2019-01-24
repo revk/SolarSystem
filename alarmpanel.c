@@ -344,7 +344,8 @@ struct
 };
 
 // Functions
-static void *dolog (group_t g, const char *type, const char *user, const char *port, const char *fmt, ...);
+static void *dolog (group_t g, const char *type, const char *user,
+		    const char *port, const char *fmt, ...);
 static keypad_t *keypad_new (port_t p);
 static void keypads_message (group_t g, const char *msg);
 static void state_change (group_t g);
@@ -386,12 +387,14 @@ parse_time (const char *v, int min, int max)
     }
   if (n < min)
     {
-      dolog (groups, "CONFIG", NULL, NULL, "Time too short %s<%d.%d", v, min / 10, min % 10);
+      dolog (groups, "CONFIG", NULL, NULL, "Time too short %s<%d.%d", v,
+	     min / 10, min % 10);
       n = min;
     }
   if (max && n > max)
     {
-      dolog (groups, "CONFIG", NULL, NULL, "Time too long %s>%d.%d", v, max / 10, max % 10);
+      dolog (groups, "CONFIG", NULL, NULL, "Time too long %s>%d.%d", v,
+	     max / 10, max % 10);
       n = max;
     }
   return n;
@@ -440,7 +443,8 @@ port_parse (const char *v, const char **ep, int i)
       int d, p;
       for (d = 0; d < MAX_DEVICE; d++)
 	for (p = 0; p < MAX_OUTPUT; p++)
-	  if (mydevice[d].output[i].name && !strcmp (mydevice[d].output[i].name, v))
+	  if (mydevice[d].output[i].name
+	      && !strcmp (mydevice[d].output[i].name, v))
 	    return (i << 8) + (1 << p);
     }
   else if (i == 1)
@@ -448,7 +452,8 @@ port_parse (const char *v, const char **ep, int i)
       int d, p;
       for (d = 0; d < MAX_DEVICE; d++)
 	for (p = 0; p < MAX_INPUT; p++)
-	  if (mydevice[d].input[i].name && !strcmp (mydevice[d].input[i].name, v))
+	  if (mydevice[d].input[i].name
+	      && !strcmp (mydevice[d].input[i].name, v))
 	    return (i << 8) + (1 << p);
     }
   else if (i == -1)
@@ -460,13 +465,16 @@ port_parse (const char *v, const char **ep, int i)
     }
   // Parse the port
   unsigned int id = 0, type = 0, port = 0;
-  while (type < MAX_TYPE && strncmp (type_name[type], v, strlen (type_name[type])))
+  while (type < MAX_TYPE
+	 && strncmp (type_name[type], v, strlen (type_name[type])))
     type++;
   if (type < MAX_TYPE)
     v += strlen (type_name[type]);
   if (*v > '0' && *v <= '0' + MAX_BUS && isxdigit (v[1]) && isxdigit (v[2]))
     {				//  Device
-      id = ((*v - '1') << 8) + (((isalpha (v[1]) ? 9 : 0) + (v[1] & 0xF)) << 4) + ((isalpha (v[2]) ? 9 : 0) + (v[2] & 0xF));
+      id =
+	((*v - '1') << 8) + (((isalpha (v[1]) ? 9 : 0) + (v[1] & 0xF)) << 4) +
+	((isalpha (v[2]) ? 9 : 0) + (v[2] & 0xF));
       v += 3;
       if (*v > '0' && *v <= '0' + MAX_INPUT)
 	port |= (1 << (*v++ - '1'));
@@ -484,7 +492,9 @@ port_parse (const char *v, const char **ep, int i)
 	}
       else if (device[id].type != type)
 	{
-	  dolog (groups, "CONFIG", NULL, NULL, "Device type clash port %s %s/%s, device disabled", port_name (id), type_name[device[id].type], type_name[type]);
+	  dolog (groups, "CONFIG", NULL, NULL,
+		 "Device type clash port %s %s/%s, device disabled",
+		 port_name (id), type_name[device[id].type], type_name[type]);
 	  device[id].disabled = 1;
 	}
     }
@@ -549,7 +559,8 @@ real_port_name (char *v, port_t p)
 #define	port_o_set(w,v,p,door,name) port_set_n((volatile port_t*)&(w),sizeof(w)/sizeof(port_t),v,p,0,door,name)
 #define	port_set(w,v,p,door,name) port_set_n((volatile port_t*)&(w),sizeof(w)/sizeof(port_t),v,p,-1,door,name)
 static volatile port_t *
-port_set_n (volatile port_t * w, int n, const char *v, unsigned char p, int i, char *door, char *name)
+port_set_n (volatile port_t * w, int n, const char *v, unsigned char p, int i,
+	    char *door, char *name)
 {				// Set up port
   int q = 0;
   while (v && *v && q < n)
@@ -567,13 +578,18 @@ port_set_n (volatile port_t * w, int n, const char *v, unsigned char p, int i, c
 	  if (i == 1 && pi < MAX_INPUT)
 	    {
 	      if (name && !mydevice[pd].input[pi].name)
-		asprintf (&mydevice[pd].input[pi].name, "%s-%s", door ? : mydevice[pd].name ? : port_name (pd << 8), name);
+		asprintf (&mydevice[pd].input[pi].name, "%s-%s",
+			  door ? : mydevice[pd].name ? : port_name (pd << 8),
+			  name);
 	      mydevice[pd].input[pi].inuse = 1;
 	    }
-	  else if (i == 0 && pi < MAX_OUTPUT && mydevice[pd].output[pi].type >= STATES)
+	  else if (i == 0 && pi < MAX_OUTPUT
+		   && mydevice[pd].output[pi].type >= STATES)
 	    {
 	      if (name && !mydevice[pd].output[pi].name)
-		asprintf (&mydevice[pd].output[pi].name, "%s-%s", door ? : mydevice[pd].name ? : port_name (pd << 8), name);
+		asprintf (&mydevice[pd].output[pi].name, "%s-%s",
+			  door ? : mydevice[pd].name ? : port_name (pd << 8),
+			  name);
 	      mydevice[pd].output[pi].type = STATES;
 	    }
 	}
@@ -698,7 +714,8 @@ input_ws (xml_t root, port_t port)
   int n = port_id (port);
   if (n < 0 || n >= MAX_INPUT)
     return NULL;
-  if (!((device[id].type == TYPE_MAX && n < 4) || device[id].type == TYPE_RIO))
+  if (!
+      ((device[id].type == TYPE_MAX && n < 4) || device[id].type == TYPE_RIO))
     return NULL;
   if (!mydevice[id].input[n].inuse)
     return NULL;		// Not in use
@@ -747,7 +764,8 @@ output_ws (xml_t root, port_t port)
   int n = port_id (port);
   if (n < 0 || n >= MAX_OUTPUT)
     return NULL;
-  if (!((device[id].type == TYPE_MAX && n < 2) || device[id].type == TYPE_RIO))
+  if (!
+      ((device[id].type == TYPE_MAX && n < 2) || device[id].type == TYPE_RIO))
     return NULL;
   if (mydevice[id].output[n].type == (state_t) - 1)
     return NULL;		// Not in use
@@ -815,8 +833,10 @@ load_config (const char *configfile)
     xml_tree_delete (config);
   config = NULL;
   if (configfile)
-    if (!(config = xml_tree_read_file (configfile)) && !(config = xml_tree_read_file_json (configfile)))
-      return dolog (ALL_GROUPS, "CONFIG", NULL, NULL, "Cannot read %s", configfile);
+    if (!(config = xml_tree_read_file (configfile))
+	&& !(config = xml_tree_read_file_json (configfile)))
+      return dolog (ALL_GROUPS, "CONFIG", NULL, NULL, "Cannot read %s",
+		    configfile);
   if (!config)
     return dolog (ALL_GROUPS, "CONFIG", NULL, NULL, "No config");
   xml_t x = NULL;
@@ -877,7 +897,8 @@ load_config (const char *configfile)
 	    int n = port_id (p);
 	    if (n < 0 || n >= MAX_INPUT)
 	      {
-		dolog (ALL_GROUPS, "CONFIG", NULL, port_name (p), "Input with bad port");
+		dolog (ALL_GROUPS, "CONFIG", NULL, port_name (p),
+		       "Input with bad port");
 		continue;
 	      }
 	    mydevice[id].input[n].a = atoi (xml_get (x, "@a") ? : "");
@@ -902,30 +923,44 @@ load_config (const char *configfile)
 		      *p = '-';
 		    else
 		      *p = tolower (*p);
-		  mydevice[id].input[n].trigger[t] = group_parse (xml_get (x, at));
+		  mydevice[id].input[n].trigger[t] =
+		    group_parse (xml_get (x, at));
 		}
-	    mydevice[id].input[n].trigger[STATE_ZONE] |= group_parse (xml_get (x, "@intruder"));
+	    mydevice[id].input[n].trigger[STATE_ZONE] |=
+	      group_parse (xml_get (x, "@intruder"));
 	    // Special case for NONEXIT which are always intruder anyway
 	    group_t exit = group_parse (xml_get (x, "@exit"));
-	    mydevice[id].input[n].trigger[STATE_NONEXIT] = mydevice[id].input[n].trigger[STATE_ZONE] & ~exit;
+	    mydevice[id].input[n].trigger[STATE_NONEXIT] =
+	      mydevice[id].input[n].trigger[STATE_ZONE] & ~exit;
 	    mydevice[id].input[n].trigger[STATE_ZONE] |= exit;
 	    // Special case as entry is treated not as intruder directly
-	    mydevice[id].input[n].trigger[STATE_ZONE] &= ~mydevice[id].input[n].trigger[STATE_ENTRY];
+	    mydevice[id].input[n].trigger[STATE_ZONE] &=
+	      ~mydevice[id].input[n].trigger[STATE_ENTRY];
 	    if (device[id].type == TYPE_RIO)
 	      {			// Resistance and response
 		if ((v = xml_get (x, "@response")))
 		  device[id].ri[n].response = atoi (v) / 10;
-		if ((v = xml_get (x, "@thresholds")) || (v = xml_get (x, "@preset")))
+		if ((v = xml_get (x, "@thresholds"))
+		    || (v = xml_get (x, "@preset")))
 		  {		// resistance thresholds
 		    unsigned int q = 0;
-		    for (q = 0; q < sizeof (rio_thresholds) / sizeof (*rio_thresholds) && strcasecmp (rio_thresholds[q].name, v); q++);
-		    if (q < sizeof (rio_thresholds) / sizeof (*rio_thresholds))
+		    for (q = 0;
+			 q <
+			 sizeof (rio_thresholds) / sizeof (*rio_thresholds)
+			 && strcasecmp (rio_thresholds[q].name, v); q++);
+		    if (q <
+			sizeof (rio_thresholds) / sizeof (*rio_thresholds))
 		      {
-			device[id].ri[n].threshold[0] = rio_thresholds[q].tampersc;
-			device[id].ri[n].threshold[1] = rio_thresholds[q].lowres;
-			device[id].ri[n].threshold[2] = rio_thresholds[q].normal;
-			device[id].ri[n].threshold[3] = rio_thresholds[q].highres;
-			device[id].ri[n].threshold[4] = rio_thresholds[q].open;
+			device[id].ri[n].threshold[0] =
+			  rio_thresholds[q].tampersc;
+			device[id].ri[n].threshold[1] =
+			  rio_thresholds[q].lowres;
+			device[id].ri[n].threshold[2] =
+			  rio_thresholds[q].normal;
+			device[id].ri[n].threshold[3] =
+			  rio_thresholds[q].highres;
+			device[id].ri[n].threshold[4] =
+			  rio_thresholds[q].open;
 		      }
 		    else
 		      {
@@ -941,7 +976,8 @@ load_config (const char *configfile)
 			    device[id].ri[n].threshold[q++] = o / 100;
 			  }
 			if (*v)
-			  dolog (ALL_GROUPS, "CONFIG", NULL, port_name (p), "Input with bad threshold value %s", v);
+			  dolog (ALL_GROUPS, "CONFIG", NULL, port_name (p),
+				 "Input with bad threshold value %s", v);
 		      }
 		  }
 	      }
@@ -958,7 +994,8 @@ load_config (const char *configfile)
 	    port_t p = port_parse (pl, &pl, 0);
 	    unsigned int id = port_device (p);
 	    if (!id)
-	      dolog (ALL_GROUPS, "CONFIG", NULL, NULL, "Bad address for RF RIO");
+	      dolog (ALL_GROUPS, "CONFIG", NULL, NULL,
+		     "Bad address for RF RIO");
 	  }
     }
   x = NULL;
@@ -974,7 +1011,8 @@ load_config (const char *configfile)
 	    int n = port_id (p);
 	    if (n < 0 || n >= MAX_OUTPUT)
 	      {
-		dolog (ALL_GROUPS, "CONFIG", NULL, port_name (p), "Output with bad port");
+		dolog (ALL_GROUPS, "CONFIG", NULL, port_name (p),
+		       "Output with bad port");
 		continue;
 	      }
 	    mydevice[id].output[n].a = atoi (xml_get (x, "@a") ? : "");
@@ -985,7 +1023,8 @@ load_config (const char *configfile)
 	      mydevice[id].output[n].t = strdup (t);
 	    mydevice[id].output[n].type = state_parse (xml_get (x, "@type"));
 	    mydevice[id].output[n].name = xml_copy (x, "@name");
-	    mydevice[id].output[n].group = group_parse (xml_get (x, "@groups") ? : "*");
+	    mydevice[id].output[n].group =
+	      group_parse (xml_get (x, "@groups") ? : "*");
 	    if ((v = xml_get (x, "@polarity")) && toupper (*v) == 'N')
 	      device[id].invert |= (1 << n);
 	  }
@@ -1001,7 +1040,8 @@ load_config (const char *configfile)
 	  if (from)
 	    {
 	      if (maxfrom)
-		dolog (ALL_GROUPS, "CONFIG", NULL, pl, "Can only renumber one max at a time");
+		dolog (ALL_GROUPS, "CONFIG", NULL, pl,
+		       "Can only renumber one max at a time");
 	      maxfrom = from;
 	      maxto = pl;
 	    }
@@ -1031,7 +1071,8 @@ load_config (const char *configfile)
 	    k->prox = port_parse (xml_get (x, "@prox"), NULL, 0);
 	    k->time_logout = atoi (xml_get (x, "@logout") ? : "60");
 	    k->message = xml_copy (x, "@message");
-	    if ((v = xml_get (x, "@crossed-zeros")) && !strcasecmp (v, "true"))
+	    if ((v = xml_get (x, "@crossed-zeros"))
+		&& !strcasecmp (v, "true"))
 	      device[port_device (p)].cross = 1;
 	  }
     }
@@ -1050,9 +1091,11 @@ load_config (const char *configfile)
 	  else
 	    {
 	      user_t *f;
-	      for (f = users; f && (!f->pin || f->pin != u->pin); f = f->next);
+	      for (f = users; f && (!f->pin || f->pin != u->pin);
+		   f = f->next);
 	      if (f)
-		dolog (ALL_GROUPS, "CONFIG", u->name, NULL, "User with duplicate PIN", f->name ? : "?");
+		dolog (ALL_GROUPS, "CONFIG", u->name, NULL,
+		       "User with duplicate PIN", f->name ? : "?");
 	    }
 	}
       if ((v = xml_get (x, "@fob")))
@@ -1068,7 +1111,8 @@ load_config (const char *configfile)
 	      while (*v && isspace (*v))
 		v++;
 	      if (!n)
-		dolog (ALL_GROUPS, "CONFIG", u->name, NULL, "User with zero fob");
+		dolog (ALL_GROUPS, "CONFIG", u->name, NULL,
+		       "User with zero fob");
 	      else
 		{		// Check duplicates
 
@@ -1076,12 +1120,15 @@ load_config (const char *configfile)
 		  for (f = users; f; f = f->next)
 		    {
 		      unsigned int z;
-		      for (z = 0; z < sizeof (u->fob) / sizeof (*u->fob) && f->fob[z] != n; z++);
+		      for (z = 0;
+			   z < sizeof (u->fob) / sizeof (*u->fob)
+			   && f->fob[z] != n; z++);
 		      if (z < sizeof (u->fob) / sizeof (*u->fob))
 			break;
 		    }
 		  if (f)
-		    dolog (ALL_GROUPS, "CONFIG", u->name, NULL, "User with duplicate fob", f->name ? : "?");
+		    dolog (ALL_GROUPS, "CONFIG", u->name, NULL,
+			   "User with duplicate fob", f->name ? : "?");
 		}
 	      if (*v && !isdigit (*v))
 		break;
@@ -1089,7 +1136,8 @@ load_config (const char *configfile)
 	    }
 	  if (*v)
 	    {
-	      dolog (ALL_GROUPS, "CONFIG", u->name, NULL, "User with invalid fob [%s]", v);
+	      dolog (ALL_GROUPS, "CONFIG", u->name, NULL,
+		     "User with invalid fob [%s]", v);
 	      break;
 	    }
 	}
@@ -1125,10 +1173,15 @@ load_config (const char *configfile)
 	char *t = xml_get (x, "@t");
 	if (t)
 	  mydoor[d].t = strdup (t);
-	mydoor[d].group_lock = group_parse (xml_get (x, "@lock") ? : xml_get (x, "@lock") ? : "*");
-	mydoor[d].group_fire = group_parse (xml_get (x, "@fire") ? : xml_get (x, "@lock") ? : "*");
-	mydoor[d].group_arm = group_parse (xml_get (x, "@arm") ? : xml_get (x, "@lock") ? : "*");
-	mydoor[d].group_disarm = group_parse (xml_get (x, "@disarm") ? : xml_get (x, "@lock") ? : "*");
+	mydoor[d].group_lock =
+	  group_parse (xml_get (x, "@lock") ? : xml_get (x, "@lock") ? : "*");
+	mydoor[d].group_fire =
+	  group_parse (xml_get (x, "@fire") ? : xml_get (x, "@lock") ? : "*");
+	mydoor[d].group_arm =
+	  group_parse (xml_get (x, "@arm") ? : xml_get (x, "@lock") ? : "*");
+	mydoor[d].group_disarm =
+	  group_parse (xml_get (x, "@disarm") ? : xml_get (x, "@lock") ? :
+		       "*");
 	mydoor[d].name = xml_copy (x, "@name");
 	char *doorname = mydoor[d].name ? : doorno;
 	const char *max = xml_get (x, "@max");
@@ -1138,31 +1191,47 @@ load_config (const char *configfile)
 	    if (maxport && !mydevice[port_device (maxport)].name)
 	      mydevice[port_device (maxport)].name = mydoor[d].name;
 	    port_o_set (door[d].o_led, max, 0xFF, doorname, "Max");
-	    port_o_set (door[d].mainlock.o_unlock, max, 1 << 1, doorname, "Unlock");
+	    port_o_set (door[d].mainlock.o_unlock, max, 1 << 1, doorname,
+			"Unlock");
 	    port_i_set (door[d].i_open, max, 1 << 0, doorname, "Open");
 	    port_o_set (door[d].o_beep, max, 1 << 0, doorname, "Beep");
 	    port_exit_set (mydoor[d].i_exit, max, 1 << 1, doorname);
 	    port_set (mydoor[d].i_fob, max, -2, doorname, "Max");
 	  }
 	port_set (mydoor[d].i_fob, xml_get (x, "@fob"), 0, doorname, "Max");
-	port_o_set (door[d].o_led, xml_get (x, "@o-led"), 0xFF, doorname, "Max");
-	port_o_set (door[d].mainlock.o_unlock, xml_get (x, "@o-unlock"), 0, doorname, "Unlock");
-	port_i_set (door[d].mainlock.i_unlock, xml_get (x, "@i-unlock"), 0, doorname, "Unlock");
-	port_o_set (door[d].o_beep, xml_get (x, "@o-beep"), 0, doorname, "Beep");
-	port_i_set (door[d].i_open, xml_get (x, "@i-open"), 0, doorname, "Open");
-	port_o_set (door[d].deadlock.o_unlock, xml_get (x, "@o-undeadlock"), 0, doorname, "UnDeadlock");
-	port_i_set (door[d].deadlock.i_unlock, xml_get (x, "@i-undeadlock"), 0, doorname, "UnDeadlock");
+	port_o_set (door[d].o_led, xml_get (x, "@o-led"), 0xFF, doorname,
+		    "Max");
+	port_o_set (door[d].mainlock.o_unlock, xml_get (x, "@o-unlock"), 0,
+		    doorname, "Unlock");
+	port_i_set (door[d].mainlock.i_unlock, xml_get (x, "@i-unlock"), 0,
+		    doorname, "Unlock");
+	port_o_set (door[d].o_beep, xml_get (x, "@o-beep"), 0, doorname,
+		    "Beep");
+	port_i_set (door[d].i_open, xml_get (x, "@i-open"), 0, doorname,
+		    "Open");
+	port_o_set (door[d].deadlock.o_unlock, xml_get (x, "@o-undeadlock"),
+		    0, doorname, "UnDeadlock");
+	port_i_set (door[d].deadlock.i_unlock, xml_get (x, "@i-undeadlock"),
+		    0, doorname, "UnDeadlock");
 	port_exit_set (mydoor[d].i_exit, xml_get (x, "@i-exit"), 0, doorname);
 	port_bell_set (mydoor[d].i_bell, xml_get (x, "@i-bell"), 0, doorname);
-	port_o_set (mydoor[d].o_bell, xml_get (x, "@o-bell"), 0, doorname, "Bell");
+	port_o_set (mydoor[d].o_bell, xml_get (x, "@o-bell"), 0, doorname,
+		    "Bell");
 	mydoor[d].time_set = parse_time (xml_get (x, "@time-set") ? : "3", 10, 0) / 10;	// Time set is in whole seconds
-	door[d].time_open = parse_time (xml_get (x, "@time-open") ? : "10", 0, 0);
-	door[d].time_force = parse_time (xml_get (x, "@time-force") ? : "0", 0, 100);
-	door[d].time_prop = parse_time (xml_get (x, "@time-prop") ? : "0", 0, 0);
-	door[d].mainlock.time_lock = parse_time (xml_get (x, "@time-lock") ? : "1", 5, 127);
-	door[d].mainlock.time_unlock = parse_time (xml_get (x, "@time-unlock") ? : "1", 5, 127);
-	door[d].deadlock.time_lock = parse_time (xml_get (x, "@time-deadlock") ? : "3", 5, 127);
-	door[d].deadlock.time_unlock = parse_time (xml_get (x, "@time-undeadlock") ? : "1", 5, 127);
+	door[d].time_open =
+	  parse_time (xml_get (x, "@time-open") ? : "10", 0, 0);
+	door[d].time_force =
+	  parse_time (xml_get (x, "@time-force") ? : "0", 0, 100);
+	door[d].time_prop =
+	  parse_time (xml_get (x, "@time-prop") ? : "0", 0, 0);
+	door[d].mainlock.time_lock =
+	  parse_time (xml_get (x, "@time-lock") ? : "1", 5, 127);
+	door[d].mainlock.time_unlock =
+	  parse_time (xml_get (x, "@time-unlock") ? : "1", 5, 127);
+	door[d].deadlock.time_lock =
+	  parse_time (xml_get (x, "@time-deadlock") ? : "3", 5, 127);
+	door[d].deadlock.time_unlock =
+	  parse_time (xml_get (x, "@time-undeadlock") ? : "1", 5, 127);
 	if ((v = xml_get (x, "@open-quiet")) && strcasecmp (v, "false"))
 	  door[d].open_quiet = 1;
 	if (!(v = xml_get (x, "@deadlock")) || !strcasecmp (v, "arm"))
@@ -1181,7 +1250,9 @@ load_config (const char *configfile)
 	if ((v = xml_get (x, "@airlock")))
 	  {
 	    int d2;
-	    for (d2 = 0; d2 < MAX_DOOR && (!mydoor[d2].name || strcasecmp (mydoor[d2].name, v)); d2++);
+	    for (d2 = 0;
+		 d2 < MAX_DOOR && (!mydoor[d2].name
+				   || strcasecmp (mydoor[d2].name, v)); d2++);
 	    if (d2 < MAX_DOOR && isdigit (*v))
 	      {
 		const char *n = v;
@@ -1194,7 +1265,8 @@ load_config (const char *configfile)
 	    if (d2 < MAX_DOOR)
 	      mydoor[d].airlock = d2;
 	    else
-	      dolog (mydoor[d].group_lock ? : ALL_GROUPS, "CONFIG", NULL, doorno, "Airlock not found %s", v);
+	      dolog (mydoor[d].group_lock ? : ALL_GROUPS, "CONFIG", NULL,
+		     doorno, "Airlock not found %s", v);
 	  }
 	if (++d == MAX_DOOR)
 	  break;
@@ -1335,7 +1407,8 @@ output_state (group_t g)
       {
 	int o;
 	for (o = 0; o < MAX_OUTPUT; o++)
-	  if ((mydevice[p].output[o].group & g) && mydevice[p].output[o].type < STATES)
+	  if ((mydevice[p].output[o].group & g)
+	      && mydevice[p].output[o].type < STATES)
 	    {
 	      if (state[mydevice[p].output[o].type] & g)
 		{
@@ -1393,7 +1466,9 @@ add_state (group_t g, const char *port, const char *name, state_t which)
   void addtolist (group_t g, int which)
   {
     statelist_t *s = NULL;
-    for (s = statelist; s && (s->type != which || strcmp (s->port ? : "", port ? : "") || strcmp (s->name ? : "", name ? : "")); s = s->next);
+    for (s = statelist;
+	 s && (s->type != which || strcmp (s->port ? : "", port ? : "")
+	       || strcmp (s->name ? : "", name ? : "")); s = s->next);
     if (!s)
       {				// New
 	s = malloc (sizeof (*s));
@@ -1432,7 +1507,8 @@ add_state (group_t g, const char *port, const char *name, state_t which)
 	if (which < STATE_LATCHED)
 	  state[STATE_TRIGGERS + which] |= (1 << n);
 	// Do we log it
-	if ((which != STATE_ZONE && which != STATE_ENTRY && which != STATE_NONEXIT) || (state[STATE_SET] & (1 << n)))
+	if ((which != STATE_ZONE && which != STATE_ENTRY
+	     && which != STATE_NONEXIT) || (state[STATE_SET] & (1 << n)))
 	  logging |= (1 << n);
 	//if (debug) printf ("Group %d %s=%d %s\n", n, state_name[which], group[n].count[which], port ? : "");
       }
@@ -1447,7 +1523,9 @@ rem_state (group_t g, const char *port, const char *name, int which)
   if (!g)
     return;
   statelist_t *s;
-  for (s = statelist; s && (s->type != which || strcmp (s->port ? : "", port ? : "") || strcmp (s->name ? : "", name ? : "")); s = s->next);
+  for (s = statelist;
+       s && (s->type != which || strcmp (s->port ? : "", port ? : "")
+	     || strcmp (s->name ? : "", name ? : "")); s = s->next);
   if (s)
     del_state (g, s);
   group_t changed = 0;
@@ -1473,7 +1551,9 @@ state_change (group_t g)
   if (!g)
     return;
   // Trigger pre alarm for entry intruder input
-  group_t alarm = (g & state[STATE_SET] & state[STATE_ENTRY] & ~state[STATE_PREALARM] & ~state[STATE_ALARM]);
+  group_t alarm =
+    (g & state[STATE_SET] & state[STATE_ENTRY] & ~state[STATE_PREALARM] &
+     ~state[STATE_ALARM]);
   if (alarm)
     for (n = 0; n < MAX_GROUP && alarm; n++)
       if (alarm & (1 << n))
@@ -1486,13 +1566,20 @@ state_change (group_t g)
 	    }
 	}
   // Derive OPEN and INTRUDER states
-  state[STATE_OPEN] = (state[STATE_OPEN] & ~g) | (g & ~state[STATE_SET] & (state[STATE_ENTRY] | state[STATE_ZONE]));
-  state[STATE_INTRUDER] = (state[STATE_INTRUDER] & ~g) | (g & state[STATE_SET] & (state[STATE_ZONE] | (~state[STATE_PREALARM] & state[STATE_ENTRY])));
+  state[STATE_OPEN] =
+    (state[STATE_OPEN] & ~g) | (g & ~state[STATE_SET] &
+				(state[STATE_ENTRY] | state[STATE_ZONE]));
+  state[STATE_INTRUDER] =
+    (state[STATE_INTRUDER] & ~g) | (g & state[STATE_SET] &
+				    (state[STATE_ZONE] |
+				     (~state[STATE_PREALARM] &
+				      state[STATE_ENTRY])));
   state[STATE_INTRUDER_LATCH] |= state[STATE_INTRUDER];
   // Trigger full alarm for any trigger apart from entry (handled about) and fault and nonexit (as covered by intruder or entry)
   group_t trigger = 0;
   for (s = 0; s < STATE_TRIGGERS; s++)
-    if (s != STATE_FAULT && s != STATE_ENTRY && s != STATE_NONEXIT && s != STATE_WARNING && s < STATE_USER1)
+    if (s != STATE_FAULT && s != STATE_ENTRY && s != STATE_NONEXIT
+	&& s != STATE_WARNING && s < STATE_USER1)
       trigger |= state[s];
   alarm = (g & state[STATE_SET] & trigger & ~state[STATE_ALARM]);
   if (alarm)
@@ -1520,7 +1607,8 @@ state_change (group_t g)
 #endif
   // Log state changes
   for (s = 0; s < STATES; s++)
-    if (s != STATE_ZONE && s != STATE_ENTRY && s != STATE_NONEXIT && s != STATE_OPEN)
+    if (s != STATE_ZONE && s != STATE_ENTRY && s != STATE_NONEXIT
+	&& s != STATE_OPEN)
       if (state[s] != previous_state[s])
 	{
 	  char type[20];
@@ -1547,7 +1635,8 @@ state_change (group_t g)
 	    {
 	      FILE *f = fopen (setfile, "w");
 	      if (!f)
-		dolog (groups, "CONFIG", NULL, NULL, "Cannot open %s", setfile);
+		dolog (groups, "CONFIG", NULL, NULL, "Cannot open %s",
+		       setfile);
 	      else
 		{
 		  fprintf (f, group_list (state[s]));
@@ -1584,7 +1673,9 @@ alarm_arm (const char *who, const char *where, group_t mask, int t)
     {
       group_t was = mask;
       for (n = 0; n < MAX_GROUP; n++)
-	if ((group[n].setifany & (allow | mask)) || (group[n].setifall && group[n].setifall == (group[n].setifall & (allow | mask))))
+	if ((group[n].setifany & (allow | mask))
+	    || (group[n].setifall
+		&& group[n].setifall == (group[n].setifall & (allow | mask))))
 	  mask |= (1 << n);
       if (mask == was)
 	break;
@@ -1606,7 +1697,8 @@ alarm_arm (const char *who, const char *where, group_t mask, int t)
 }
 
 static void
-logarmed (group_t mask, const char *who, const char *where, const char *type, const char *msg)
+logarmed (group_t mask, const char *who, const char *where, const char *type,
+	  const char *msg)
 {
   if (who)
     dolog (mask, type, who, where, "%s", msg);	// log who finally set the alarm
@@ -1643,13 +1735,19 @@ alarm_set (const char *who, const char *where, group_t mask)
 static group_t
 alarm_unset (const char *who, const char *where, group_t mask)
 {				// Unset alarm - return which groups unset
-  group_t allow = state[STATE_SET] | state[STATE_ARM] | state[STATE_PREALARM] | state[STATE_BELL];
+  group_t allow =
+    state[STATE_SET] | state[STATE_ARM] | state[STATE_PREALARM] |
+    state[STATE_BELL];
   int n;
   while (1)
     {
       group_t was = mask;
       for (n = 0; n < MAX_GROUP; n++)
-	if ((group[n].setifany || group[n].setifall) && !((group[n].setifany & allow & ~mask) || (group[n].setifall && group[n].setifall == (group[n].setifall & allow & ~mask))))
+	if ((group[n].setifany || group[n].setifall)
+	    && !((group[n].setifany & allow & ~mask)
+		 || (group[n].setifall
+		     && group[n].setifall ==
+		     (group[n].setifall & allow & ~mask))))
 	  mask |= (1 << n);
       if (mask == was)
 	break;
@@ -1706,7 +1804,8 @@ alarm_reset (const char *who, const char *where, group_t mask)
   while (s)
     {
       statelist_t *n = s->next;
-      if ((s->groups & mask) && s->type >= STATE_TRIGGERS && s->type < STATE_TRIGGERS + STATE_LATCHED)
+      if ((s->groups & mask) && s->type >= STATE_TRIGGERS
+	  && s->type < STATE_TRIGGERS + STATE_LATCHED)
 	del_state (mask, s);	// These do not use counters
       s = n;
     }
@@ -1841,9 +1940,12 @@ dologger (CURL * curl, log_t * l)
     }
   // Syslog (except boring keepalives)
   if (!l->type || strcasecmp (l->type, "KEEPALIVE"))
-    syslog (LOG_INFO, "%*s %s %s %s %s %s", MAX_GROUP, groups, l->type ? : "?", l->port ? : "", name ? : "", l->user ? : "", l->msg ? : "");
+    syslog (LOG_INFO, "%*s %s %s %s %s %s", MAX_GROUP, groups,
+	    l->type ? : "?", l->port ? : "", name ? : "", l->user ? : "",
+	    l->msg ? : "");
   if (debug)
-    printf ("%*s\t%s\t%s\t%s\t%s\t%s\n", MAX_GROUP, groups, l->type ? : "?", l->port ? : "", name ? : "", l->user ? : "", l->msg ? : "");
+    printf ("%*s\t%s\t%s\t%s\t%s\t%s\n", MAX_GROUP, groups, l->type ? : "?",
+	    l->port ? : "", name ? : "", l->user ? : "", l->msg ? : "");
   // Other logging
   xml_t c = NULL;
   while ((c = xml_element_next_by_name (config, c, "log")))
@@ -1953,7 +2055,8 @@ dologger (CURL * curl, log_t * l)
 	      {
 		if (!value)
 		  return;
-		curl_formadd (&fi, &li, CURLFORM_PTRNAME, tag, CURLFORM_PTRCONTENTS, value, CURLFORM_END);
+		curl_formadd (&fi, &li, CURLFORM_PTRNAME, tag,
+			      CURLFORM_PTRCONTENTS, value, CURLFORM_END);
 	      }
 	      add ("when", when);
 	      add ("groups", groups);
@@ -1989,7 +2092,8 @@ dologger (CURL * curl, log_t * l)
 	      FILE *o = NULL;
 	      email_t m = email_new (&o);
 	      email_subject (m, "%s", (l->msg && *l->msg) ? l->msg : l->type);
-	      email_address (m, "From", xml_get (system, "@email"), xml_get (system, "@name"));
+	      email_address (m, "From", xml_get (system, "@email"),
+			     xml_get (system, "@name"));
 	      email_address (m, "To", e, NULL);
 	      fprintf (o, "Email from alarm system\n\n");
 	      fprintf (o, "Groups:\t%s\n", groups);
@@ -2017,7 +2121,8 @@ dologger (CURL * curl, log_t * l)
 	  if (n)
 	    {			// SMS
 	      char *u, *p;
-	      if (!system || !(u = xml_get (system, "@sms-user")) || !(p = xml_get (system, "@sms-pass")))
+	      if (!system || !(u = xml_get (system, "@sms-user"))
+		  || !(p = xml_get (system, "@sms-pass")))
 		{
 		  syslog (LOG_INFO, "No system details for SMS to %s", v);
 		  commfailcount++;
@@ -2033,30 +2138,39 @@ dologger (CURL * curl, log_t * l)
 		  {
 		    if (!value)
 		      return;
-		    curl_formadd (&fi, &li, CURLFORM_PTRNAME, tag, CURLFORM_PTRCONTENTS, value, CURLFORM_END);
+		    curl_formadd (&fi, &li, CURLFORM_PTRNAME, tag,
+				  CURLFORM_PTRCONTENTS, value, CURLFORM_END);
 		  }
 		  add ("username", u);
 		  add ("password", p);
 		  add ("da", n);
 		  add ("oa", xml_get (system, "@name"));
 		  char *ud;
-		  asprintf (&ud, "%s\t%s\n%.*s\n%s\t%s\n%s\n%s", l->type ? : "?", l->msg ? : "", MAX_GROUP, groups, l->port ? : "", name ? : "", l->user ? : "", when);
+		  asprintf (&ud, "%s\t%s\n%.*s\n%s\t%s\n%s\n%s",
+			    l->type ? : "?", l->msg ? : "", MAX_GROUP, groups,
+			    l->port ? : "", name ? : "", l->user ? : "",
+			    when);
 		  add ("ud", ud);
-		  const char *server = xml_get (system, "@sms-host") ? : "https://sms.aa.net.uk/";
+		  const char *server =
+		    xml_get (system,
+			     "@sms-host") ? : "https://sms.aa.net.uk/";
 		  curl_easy_setopt (curl, CURLOPT_URL, server);
 		  curl_easy_setopt (curl, CURLOPT_HTTPPOST, fi);
 		  CURLcode result = curl_easy_perform (curl);
 		  curl_formfree (fi);	// Free post data
 		  if (result)
 		    {
-		      syslog (LOG_INFO, "SMS to %s failed to connect to server %s", v, server);
+		      syslog (LOG_INFO,
+			      "SMS to %s failed to connect to server %s", v,
+			      server);
 		      commfailcount++;
 		    }
 		  free (ud);
 		  fclose (o);
 		  if (!strstr (reply, "OK"))
 		    {
-		      syslog (LOG_INFO, "SMS to %s failed to send (%s)", v, reply);
+		      syslog (LOG_INFO, "SMS to %s failed to send (%s)", v,
+			      reply);
 		      commfailcount++;
 		    }
 		  if (reply)
@@ -2097,7 +2211,8 @@ logger (void *d)
 }
 
 static void *
-dolog (group_t g, const char *type, const char *user, const char *port, const char *fmt, ...)
+dolog (group_t g, const char *type, const char *user, const char *port,
+       const char *fmt, ...)
 {				// Log a message
   log_t *l = malloc (sizeof (*l));
   if (!l)
@@ -2223,7 +2338,8 @@ keypad_login (keypad_t * k, user_t * u, const char *where)
 	k->when_logout = now.tv_sec + k->time_logout;	// No logout in engineering if we can reset
       dolog (k->groups, "LOGIN", u->name, where, "Keypad login");
       if (!alarm_unset (u->name, where, k->groups & u->group_disarm))
-	return keypad_message (k, "LOGGED IN\n%s", u->fullname ? : u->name ? : "");
+	return keypad_message (k, "LOGGED IN\n%s",
+			       u->fullname ? : u->name ? : "");
     }
   else				// Second login, same as using keyfob twice, arm alarm
     alarm_arm (u->name, where, k->groups & u->group_arm, 0);
@@ -2265,7 +2381,8 @@ do_keypad_update (keypad_t * k, char key)
   if (!k->groups)
     {				// Not in use at all!
       snprintf (l1, 17, "%-16s", k->message ? : "-- NOT IN USE --");
-      snprintf (l2, 17, "%02d:%02d %10s", lnow.tm_hour, lnow.tm_min, port_name (k->port));
+      snprintf (l2, 17, "%02d:%02d %10s", lnow.tm_hour, lnow.tm_min,
+		port_name (k->port));
       device[n].silent = 1;	// No keys
       return NULL;
     }
@@ -2285,21 +2402,26 @@ do_keypad_update (keypad_t * k, char key)
 	  if (g)
 	    {
 	      if (state[STATE_ARM] & g)
-		alarm_unset (k->user ? k->user->name : k->name, port_name (k->port), g);
+		alarm_unset (k->user ? k->user->name : k->name,
+			     port_name (k->port), g);
 	      else if (!(state[STATE_SET] & g))
-		alarm_arm (k->user ? k->user->name : k->name, port_name (k->port), g, 0);
+		alarm_arm (k->user ? k->user->name : k->name,
+			   port_name (k->port), g, 0);
 	      alarm_timed (state[STATE_ARM] & g, 0);
 	    }
 	}
       else if (key == '\e')	// Cancel
-	alarm_unset (k->user ? k->user->name : k->name, port_name (k->port), k->groups & state[STATE_ARM]);
+	alarm_unset (k->user ? k->user->name : k->name, port_name (k->port),
+		     k->groups & state[STATE_ARM]);
       else if (key == 'B')	// Part set
 	{
-	  alarm_unset (k->user ? k->user->name : k->name, port_name (k->port), state[STATE_ARM] & ~(k->groups & trigger));
+	  alarm_unset (k->user ? k->user->name : k->name, port_name (k->port),
+		       state[STATE_ARM] & ~(k->groups & trigger));
 	}
       else if (key == '\n')
 	{			// Set
-	  alarm_set (k->user ? k->user->name : k->name, port_name (k->port), k->groups & state[STATE_ARM]);
+	  alarm_set (k->user ? k->user->name : k->name, port_name (k->port),
+		     k->groups & state[STATE_ARM]);
 	  return NULL;
 	}
       if (!(k->groups & state[STATE_ARM]))
@@ -2317,7 +2439,8 @@ do_keypad_update (keypad_t * k, char key)
 	}
       int n, left = 99;
       for (n = 0; n < MAX_GROUP; n++)
-	if ((k->groups & state[STATE_ARM] & (1 << n)) && group[n].when_set - now.tv_sec < left)
+	if ((k->groups & state[STATE_ARM] & (1 << n))
+	    && group[n].when_set - now.tv_sec < left)
 	  left = group[n].when_set - now.tv_sec;
       if (left < 0)
 	left = 0;
@@ -2330,11 +2453,16 @@ do_keypad_update (keypad_t * k, char key)
 	  l2[n] = '*';
 	else if (state[STATE_ARM] & (1 << n))
 	  {
-	    for (s = 0; s < STATE_TRIGGERS && (s == STATE_FAULT || s == STATE_WARNING || s == STATE_ZONE || s >= STATE_USER1 || !(state[s] & (1 << n))); s++);
+	    for (s = 0;
+		 s < STATE_TRIGGERS && (s == STATE_FAULT || s == STATE_WARNING
+					|| s == STATE_ZONE || s >= STATE_USER1
+					|| !(state[s] & (1 << n))); s++);
 	    if (alt && s < STATE_TRIGGERS)
 	      {
 		if (!l)
-		  for (l = statelist; l && ((s != STATE_OPEN && l->type != s) || !(l->groups & (1 << n))); l = l->next);
+		  for (l = statelist;
+		       l && ((s != STATE_OPEN && l->type != s)
+			     || !(l->groups & (1 << n))); l = l->next);
 		l2[n] = (s == STATE_OPEN ? 'X' : *state_name[s]);
 	      }
 	    else
@@ -2406,7 +2534,8 @@ do_keypad_update (keypad_t * k, char key)
       k->ack = 1;		// Acknowledged - stop beeping
       if (k->user)
 	{
-	  if (!alarm_reset (k->user->name, port_name (k->port), k->user->group_reset))
+	  if (!alarm_reset
+	      (k->user->name, port_name (k->port), k->user->group_reset))
 	    return keypad_message (k, "CANNOT RESET!");	// Allow wider reset than keypad
 	}
       else
@@ -2419,7 +2548,9 @@ do_keypad_update (keypad_t * k, char key)
     {				// A - arm timed
       if (k->user)
 	{
-	  if (!alarm_arm (k->user->name, port_name (k->port), k->groups & k->user->group_arm, 0))
+	  if (!alarm_arm
+	      (k->user->name, port_name (k->port),
+	       k->groups & k->user->group_arm, 0))
 	    return keypad_message (k, "CANNOT SET");	// Only alarm what keypad allows
 	}
       else
@@ -2432,7 +2563,9 @@ do_keypad_update (keypad_t * k, char key)
     {				// B - arm instant
       if (k->user)
 	{
-	  if (!alarm_arm (k->user->name, port_name (k->port), k->groups & k->user->group_arm, 1))
+	  if (!alarm_arm
+	      (k->user->name, port_name (k->port),
+	       k->groups & k->user->group_arm, 1))
 	    return keypad_message (k, "CANNOT SET");	// Only alarm what keypad allows
 	}
       else
@@ -2488,7 +2621,9 @@ do_keypad_update (keypad_t * k, char key)
 	  {			// Active
 	    k->when = now.tv_sec + 1;
 	    statelist_t *s;
-	    for (s = statelist; s && (!(s->groups & k->groups) || s->type != t || n--); s = s->next);
+	    for (s = statelist;
+		 s && (!(s->groups & k->groups) || s->type != t || n--);
+		 s = s->next);
 	    if (!s)
 	      continue;
 	    snprintf (l1, 17, "%-7s %-8s", s->port, s->name ? : "");
@@ -2497,11 +2632,13 @@ do_keypad_update (keypad_t * k, char key)
 		port_t p = port_parse (s->port, NULL, -2);
 		if ((p & 0xFF) && device[port_device (p)].type == TYPE_RIO)
 		  {
-		    unsigned int v = device[port_device (p)].ri[port_id (p)].resistance;
+		    unsigned int v =
+		      device[port_device (p)].ri[port_id (p)].resistance;
 		    if (v)
 		      {
 			if (v == 65535)
-			  snprintf (l2, 17, "%-6s %-9s", "OPEN", state_name[t]);
+			  snprintf (l2, 17, "%-6s %-9s", "OPEN",
+				    state_name[t]);
 			else
 			  snprintf (l2, 17, "%5u\xF4 %-9s", v, state_name[t]);
 			return NULL;
@@ -2516,20 +2653,25 @@ do_keypad_update (keypad_t * k, char key)
 	  {			// Latched
 	    k->when = now.tv_sec + 1;
 	    statelist_t *s;
-	    for (s = statelist; s && (!(s->groups & k->groups) || s->type != STATE_TRIGGERS + t || n--); s = s->next);
+	    for (s = statelist;
+		 s && (!(s->groups & k->groups)
+		       || s->type != STATE_TRIGGERS + t || n--); s = s->next);
 	    if (!s)
 	      continue;
 	    struct tm *l = localtime (&s->when);
 	    snprintf (l1, 17, "%-7s %-8s", s->port, s->name ? : "");
-	    snprintf (l2, 17, "%02d:%02d %-10s", l->tm_hour, l->tm_min, state_name[t]);
+	    snprintf (l2, 17, "%02d:%02d %-10s", l->tm_hour, l->tm_min,
+		      state_name[t]);
 	    return NULL;
 	  }
       k->posn = -1;
-      snprintf (l1, 17, "%-16s", k->user->fullname ? : k->user->name ? : "Logged in");
+      snprintf (l1, 17, "%-16s",
+		k->user->fullname ? : k->user->name ? : "Logged in");
       if (alert)
 	snprintf (l2, 17, "%-16s", alert);
       else
-	snprintf (l2, 17, "%02d:%02d %10s", lnow.tm_hour, lnow.tm_min, port_name (k->port));
+	snprintf (l2, 17, "%02d:%02d %10s", lnow.tm_hour, lnow.tm_min,
+		  port_name (k->port));
       return NULL;
     }
   if (alert)
@@ -2555,7 +2697,8 @@ do_keypad_update (keypad_t * k, char key)
 	return NULL;
       }
   }
-  snprintf (l2, 17, "%04d-%02d-%02d %02d:%02d", lnow.tm_year + 1900, lnow.tm_mon + 1, lnow.tm_mday, lnow.tm_hour, lnow.tm_min);
+  snprintf (l2, 17, "%04d-%02d-%02d %02d:%02d", lnow.tm_year + 1900,
+	    lnow.tm_mon + 1, lnow.tm_mday, lnow.tm_hour, lnow.tm_min);
   device[n].beep[0] = 0;
   device[n].beep[1] = 0;
   return NULL;
@@ -2596,15 +2739,18 @@ doevent (event_t * e)
       else
 	printf ("%s %s ", port_name (e->port), event_name[e->event]);
       if (e->event == EVENT_KEEPALIVE)
-	printf ("%5d %5d %5d %5d %5d", e->tx, e->rx, e->errors, e->stalled, e->retries);
-      if (e->event == EVENT_INPUT || e->event == EVENT_TAMPER || e->event == EVENT_FAULT)
+	printf ("%5d %5d %5d %5d %5d", e->tx, e->rx, e->errors, e->stalled,
+		e->retries);
+      if (e->event == EVENT_INPUT || e->event == EVENT_TAMPER
+	  || e->event == EVENT_FAULT)
 	printf ("%02X %02X", e->changed, e->status);
       if (e->event == EVENT_KEY)
 	printf ("%02X", e->key);
       if (e->event == EVENT_FOB || e->event == EVENT_FOB_HELD)
 	printf (" %09u", e->fob);
       if (e->event == EVENT_RF)
-	printf ("%08X %08X %02X %2d/10", e->rfserial, e->rfstatus, e->rftype, e->rfsignal);
+	printf ("%08X %08X %02X %2d/10", e->rfserial, e->rfstatus, e->rftype,
+		e->rfsignal);
       printf ("\n");
     }
   // Simple sanity checks
@@ -2638,7 +2784,9 @@ doevent (event_t * e)
 		mybus[n].fault = 1;
 		add_fault (groups, busno, NULL);
 	      }
-	    dolog (groups, "BUSERROR", NULL, busno, "Bus reports errors:%d stalled:%d retries:%d tx:%d rx:%d", e->errors, e->stalled, e->retries, e->tx, e->rx);
+	    dolog (groups, "BUSERROR", NULL, busno,
+		   "Bus reports errors:%d stalled:%d retries:%d tx:%d rx:%d",
+		   e->errors, e->stalled, e->retries, e->tx, e->rx);
 	  }
 	else
 	  {
@@ -2653,11 +2801,13 @@ doevent (event_t * e)
       }
       break;
     case EVENT_CONFIG:
-      dolog (groups, "BUSCONFIG", NULL, port_name (e->port), "Device config started");
+      dolog (groups, "BUSCONFIG", NULL, port_name (e->port),
+	     "Device config started");
       break;
     case EVENT_FOUND:
       {
-	dolog (groups, "BUSFOUND", NULL, port_name (e->port), "Device found on bus");
+	dolog (groups, "BUSFOUND", NULL, port_name (e->port),
+	       "Device found on bus");
 	if (mydevice[id].missing)
 	  {
 	    mydevice[id].missing = 0;
@@ -2671,13 +2821,15 @@ doevent (event_t * e)
       if (!mydevice[id].missing)
 	{
 	  mydevice[id].missing = 1;
-	  dolog (groups, "BUSMISSING", NULL, port_name (e->port), "Device missing from bus");
+	  dolog (groups, "BUSMISSING", NULL, port_name (e->port),
+		 "Device missing from bus");
 	  add_tamper (groups, port_name (e->port), mydevice[id].name);
 	}
       break;
     case EVENT_DISABLED:
       {
-	dolog (groups, "BUSDISABLED", NULL, port_name (e->port), "Device disabled on bus");
+	dolog (groups, "BUSDISABLED", NULL, port_name (e->port),
+	       "Device disabled on bus");
       }
       break;
     case EVENT_DOOR:
@@ -2694,9 +2846,11 @@ doevent (event_t * e)
 	else if (e->state == DOOR_OPEN)
 	  d->opening = 0;
 	else if (e->state == DOOR_LOCKING && d->opening)
-	  dolog (d->group_lock, "DOORNOTOPEN", NULL, doorno, "Door was not opened");
+	  dolog (d->group_lock, "DOORNOTOPEN", NULL, doorno,
+		 "Door was not opened");
 	else if (e->state == DOOR_AJAR)
-	  dolog (d->group_lock, "DOORAJAR", NULL, doorno, "Door ajar (lock not engaged)");
+	  dolog (d->group_lock, "DOORAJAR", NULL, doorno,
+		 "Door ajar (lock not engaged)");
 	else if (e->state == DOOR_FORCED)
 	  dolog (d->group_lock, "DOORFORCED", NULL, doorno, "Door forced");
 	else if (e->state == DOOR_TAMPER)
@@ -2706,7 +2860,8 @@ doevent (event_t * e)
 	else if (e->state == DOOR_PROPPED)
 	  dolog (d->group_lock, "DOORPROPPED", NULL, doorno, "Door propped");
 	else if (e->state == DOOR_PROPPEDOK)
-	  dolog (d->group_lock, "DOORPROPPEDOK", NULL, doorno, "Door prop authorised");
+	  dolog (d->group_lock, "DOORPROPPEDOK", NULL, doorno,
+		 "Door prop authorised");
 	// Update alarm state linked to doors
 	// Entry
 	if (e->state == DOOR_OPEN)
@@ -2824,34 +2979,50 @@ doevent (event_t * e)
 		    if (walkthrough)
 		      syslog (LOG_INFO, "+%s(%s)", port, name ? : "");
 		    for (s = 0; s < STATE_TRIGGERS; s++)
-		      add_state (mydevice[id].input[i].trigger[s], port, name, s);
+		      add_state (mydevice[id].input[i].trigger[s], port, name,
+				 s);
 		  }
 		else
 		  {		// off
 		    if (walkthrough)
 		      syslog (LOG_INFO, "-%s(%s)", port, name ? : "");
 		    for (s = 0; s < STATE_TRIGGERS; s++)
-		      rem_state (mydevice[id].input[i].trigger[s], port, name, s);
+		      rem_state (mydevice[id].input[i].trigger[s], port, name,
+				 s);
 		  }
 		if (mydevice[id].input[i].isexit && (e->status & (1 << i)))
 		  {
 		    unsigned int d, n;
 		    for (d = 0; d < MAX_DOOR; d++)
-		      for (n = 0; n < sizeof (mydoor[d].i_exit) / sizeof (*mydoor[d].i_exit); n++)
+		      for (n = 0;
+			   n <
+			   sizeof (mydoor[d].i_exit) /
+			   sizeof (*mydoor[d].i_exit); n++)
 			if (port_device (mydoor[d].i_exit[n]) == id)
 			  {
 			    char doorno[8];
 			    snprintf (doorno, sizeof (doorno), "DOOR%02u", d);
 			    if (!door_locked (d))
 			      {
-				if (mydoor[d].airlock >= 0 && door[mydoor[d].airlock].state != DOOR_LOCKED && door[mydoor[d].airlock].state != DOOR_DEADLOCKED)
+				if (mydoor[d].airlock >= 0
+				    && door[mydoor[d].airlock].state !=
+				    DOOR_LOCKED
+				    && door[mydoor[d].airlock].state !=
+				    DOOR_DEADLOCKED)
 				  {
-				    dolog (mydoor[d].group_lock, "DOORAIRLOCK", NULL, doorno, "Airlock violation with DOOR%02d, exit rejected", mydoor[d].airlock);
+				    dolog (mydoor[d].group_lock,
+					   "DOORAIRLOCK", NULL, doorno,
+					   "Airlock violation with DOOR%02d, exit rejected",
+					   mydoor[d].airlock);
 				    door_error (d);
 				  }
-				else if (mydoor[d].lockdown && (state[mydoor[d].lockdown] & mydoor[d].group_lock))
+				else if (mydoor[d].lockdown
+					 && (state[mydoor[d].lockdown] &
+					     mydoor[d].group_lock))
 				  {	// Door in lockdown
-				    dolog (mydoor[d].group_lock, "DOORLOCKDOWN", NULL, doorno, "Lockdown violation, exit rejected");
+				    dolog (mydoor[d].group_lock,
+					   "DOORLOCKDOWN", NULL, doorno,
+					   "Lockdown violation, exit rejected");
 				    door_error (d);
 				  }
 				else
@@ -2859,7 +3030,9 @@ doevent (event_t * e)
 			      }
 			    else
 			      {
-				dolog (mydoor[d].group_lock, "DOORREJECT", NULL, doorno, "Door is deadlocked, exit rejected");
+				dolog (mydoor[d].group_lock, "DOORREJECT",
+				       NULL, doorno,
+				       "Door is deadlocked, exit rejected");
 				door_error (d);
 			      }
 			  }
@@ -2924,7 +3097,9 @@ doevent (event_t * e)
 		else if (device[id].type == TYPE_PAD)
 		  {
 		    keypad_t *k;
-		    for (k = keypad; k && port_device (k->port) != port_device (e->port); k = k->next);
+		    for (k = keypad;
+			 k && port_device (k->port) != port_device (e->port);
+			 k = k->next);
 		    if (k)
 		      g = k->groups;
 		  }
@@ -2989,7 +3164,8 @@ doevent (event_t * e)
 		  if (e->changed & (1 << FAULT_RIO_NO_PWR))
 		    {
 		      char port[20];
-		      snprintf (port, sizeof (port), "%sNOPWR", port_name (e->port));
+		      snprintf (port, sizeof (port), "%sNOPWR",
+				port_name (e->port));
 		      if ((e->status & (1 << FAULT_RIO_NO_PWR)))
 			add_warning (g, port, mydevice[id].name);
 		      else
@@ -2998,7 +3174,8 @@ doevent (event_t * e)
 		  if (e->changed & (1 << FAULT_RIO_NO_BAT))
 		    {
 		      char port[20];
-		      snprintf (port, sizeof (port), "%sNOBAT", port_name (e->port));
+		      snprintf (port, sizeof (port), "%sNOBAT",
+				port_name (e->port));
 		      if ((e->status & (1 << FAULT_RIO_NO_BAT)))
 			add_warning (g, port, mydevice[id].name);
 		      else
@@ -3007,7 +3184,8 @@ doevent (event_t * e)
 		  if (e->changed & (1 << FAULT_RIO_BAD_BAT))
 		    {
 		      char port[20];
-		      snprintf (port, sizeof (port), "%sBADBAT", port_name (e->port));
+		      snprintf (port, sizeof (port), "%sBADBAT",
+				port_name (e->port));
 		      if ((e->status & (1 << FAULT_RIO_BAD_BAT)))
 			add_warning (g, port, mydevice[id].name);
 		      else
@@ -3029,14 +3207,17 @@ doevent (event_t * e)
 	if (e->fob)
 	  for (u = users; u; u = u->next)
 	    {
-	      for (n = 0; n < sizeof (u->fob) / sizeof (*u->fob) && u->fob[n] != e->fob; n++);
+	      for (n = 0;
+		   n < sizeof (u->fob) / sizeof (*u->fob)
+		   && u->fob[n] != e->fob; n++);
 	      if (n < sizeof (u->fob) / sizeof (*u->fob))
 		break;
 	    }
 	if (device[id].pad)
 	  {			// Prox for keypad, so somewhat different
 	    if (!u)
-	      dolog (groups, "FOBBAD", NULL, port_name (e->port), "Unrecognised fob %lu", e->fob);
+	      dolog (groups, "FOBBAD", NULL, port_name (e->port),
+		     "Unrecognised fob %lu", e->fob);
 	    else
 	      {
 		keypad_t *k;
@@ -3044,14 +3225,16 @@ doevent (event_t * e)
 		if (k)
 		  keypad_login (k, u, port_name (e->port));
 		else
-		  dolog (groups, "FOBBAD", NULL, port_name (e->port), "Prox not linked to keypad, fob %lu", e->fob);
+		  dolog (groups, "FOBBAD", NULL, port_name (e->port),
+			 "Prox not linked to keypad, fob %lu", e->fob);
 	      }
 	    return;
 	  }
 	int found = 0;
 	// We only do stuff for Max readers on doors - maybe we need some logic for stand alone max readers - or make a dummy door.
 	for (d = 0; d < MAX_DOOR; d++)
-	  for (n = 0; n < sizeof (mydoor[0].i_fob) / sizeof (*mydoor[0].i_fob); n++)
+	  for (n = 0;
+	       n < sizeof (mydoor[0].i_fob) / sizeof (*mydoor[0].i_fob); n++)
 	    if (port_device (mydoor[d].i_fob[n]) == id)
 	      {
 		found++;
@@ -3061,103 +3244,166 @@ doevent (event_t * e)
 		  {
 		    door_error (d);
 		    door_lock (d);	// Cancel open
-		    dolog (mydoor[d].group_lock, "FOBBAD", NULL, doorno, "Unrecognised fob %lu", e->fob);
+		    dolog (mydoor[d].group_lock, "FOBBAD", NULL, doorno,
+			   "Unrecognised fob %lu", e->fob);
 		  }
 		else if (e->event == EVENT_FOB)
 		  {
 		    // disarm is the groups that can be disarmed by this user on this door.
-		    group_t disarm = ((u->group_arm & mydoor[d].group_arm & state[STATE_ARM]) | (port_name (e->port), u->group_disarm & mydoor[d].group_disarm & state[STATE_SET]));
-		    if (door[d].state == DOOR_PROPPED || door[d].state == DOOR_OPEN || door[d].state == DOOR_PROPPEDOK)
+		    group_t disarm =
+		      ((u->group_arm & mydoor[d].
+			group_arm & state[STATE_ARM]) | (port_name (e->port),
+							 u->
+							 group_disarm &
+							 mydoor[d].
+							 group_disarm &
+							 state[STATE_SET]));
+		    if (door[d].state == DOOR_PROPPED
+			|| door[d].state == DOOR_OPEN
+			|| door[d].state == DOOR_PROPPEDOK)
 		      {
-			if (disarm && alarm_unset (u->name, port_name (e->port), disarm))
+			if (disarm
+			    && alarm_unset (u->name, port_name (e->port),
+					    disarm))
 			  door_confirm (d);
 			if (u->group_prop & mydoor[d].group_lock)
 			  {
 			    door_auth (d);
 			    if (door[d].state != DOOR_PROPPEDOK)
 			      {
-				dolog (mydoor[d].group_lock, "DOORHELD", u->name, doorno, "Door prop authorised by fob %lu", e->fob);
+				dolog (mydoor[d].group_lock, "DOORHELD",
+				       u->name, doorno,
+				       "Door prop authorised by fob %lu",
+				       e->fob);
 				door_confirm (d);
 			      }
 			  }
 			else
 			  {
-			    dolog (mydoor[d].group_lock, "DOORSTILLPROPPED", u->name, doorno, "Door prop not authorised by fob %lu as not allowed", e->fob);
+			    dolog (mydoor[d].group_lock, "DOORSTILLPROPPED",
+				   u->name, doorno,
+				   "Door prop not authorised by fob %lu as not allowed",
+				   e->fob);
 			    door_error (d);
 			  }
 		      }
 		    else if (door[d].state == DOOR_CLOSED)
 		      {
-			if (disarm && alarm_unset (u->name, port_name (e->port), disarm))
+			if (disarm
+			    && alarm_unset (u->name, port_name (e->port),
+					    disarm))
 			  door_confirm (d);
 			door_lock (d);	// Cancel open
-			dolog (mydoor[d].group_lock, "DOORCANCEL", u->name, doorno, "Door open cancelled by fob %lu", e->fob);
+			dolog (mydoor[d].group_lock, "DOORCANCEL", u->name,
+			       doorno, "Door open cancelled by fob %lu",
+			       e->fob);
 			mydoor[d].opening = 0;	// Don't report not opened
 		      }
 		    else
 		      {
 			if (u->group_open & mydoor[d].group_lock)
 			  {
-			    if (mydoor[d].airlock >= 0 && door[mydoor[d].airlock].state != DOOR_LOCKED && door[mydoor[d].airlock].state != DOOR_DEADLOCKED)
+			    if (mydoor[d].airlock >= 0
+				&& door[mydoor[d].airlock].state !=
+				DOOR_LOCKED
+				&& door[mydoor[d].airlock].state !=
+				DOOR_DEADLOCKED)
 			      {
-				dolog (mydoor[d].group_lock, "DOORAIRLOCK", u->name, doorno, "Airlock violation with DOOR%02d using fob %lu", mydoor[d].airlock, e->fob);
+				dolog (mydoor[d].group_lock, "DOORAIRLOCK",
+				       u->name, doorno,
+				       "Airlock violation with DOOR%02d using fob %lu",
+				       mydoor[d].airlock, e->fob);
 				door_error (d);
 			      }
-			    else if (mydoor[d].lockdown && (state[mydoor[d].lockdown] & mydoor[d].group_lock))
+			    else if (mydoor[d].lockdown
+				     && (state[mydoor[d].lockdown] &
+					 mydoor[d].group_lock))
 			      {	// Door in lockdown
-				dolog (mydoor[d].group_lock, "DOORLOCKDOWN", u->name, doorno, "Lockdown violation with DOOR%02d using fob %lu", mydoor[d].airlock, e->fob);
+				dolog (mydoor[d].group_lock, "DOORLOCKDOWN",
+				       u->name, doorno,
+				       "Lockdown violation with DOOR%02d using fob %lu",
+				       mydoor[d].airlock, e->fob);
 				door_error (d);
 			      }
-			    else if (mydoor[d].group_lock & ((state[STATE_SET] | state[STATE_ARM]) & ~disarm))
+			    else if (mydoor[d].
+				     group_lock &
+				     ((state[STATE_SET] | state[STATE_ARM]) &
+				      ~disarm))
 			      {
-				dolog (mydoor[d].group_lock, "DOORALARMED", u->name, doorno, "Door is alarmed, not opening DOOR%02d using fob %lu", d, e->fob);
+				dolog (mydoor[d].group_lock, "DOORALARMED",
+				       u->name, doorno,
+				       "Door is alarmed, not opening DOOR%02d using fob %lu",
+				       d, e->fob);
 				door_error (d);
 			      }
 			    else
 			      {	// Allowed to be opened
-				if (disarm && alarm_unset (u->name, port_name (e->port), disarm))
+				if (disarm
+				    && alarm_unset (u->name,
+						    port_name (e->port),
+						    disarm))
 				  door_confirm (d);
-				if (door[d].state != DOOR_OPEN && door[d].state != DOOR_UNLOCKING)
+				if (door[d].state != DOOR_OPEN
+				    && door[d].state != DOOR_UNLOCKING)
 				  {	// Open it
-				    dolog (mydoor[d].group_lock, "DOOROPEN", u->name, doorno, "Door open by fob %lu", e->fob);
+				    dolog (mydoor[d].group_lock, "DOOROPEN",
+					   u->name, doorno,
+					   "Door open by fob %lu", e->fob);
 				    door_open (d);	// Open the door
 				  }
 				else if (door[d].state == DOOR_OPEN)
-				  dolog (mydoor[d].group_lock, "FOBIGNORED", u->name, doorno, "Ignored fob %lu as door open", e->fob);
+				  dolog (mydoor[d].group_lock, "FOBIGNORED",
+					 u->name, doorno,
+					 "Ignored fob %lu as door open",
+					 e->fob);
 			      }
 			    // Other cases (unlocking) are transient and max will sometimes multiple read
 			  }
 			else
 			  {
 			    door_error (d);
-			    dolog (mydoor[d].group_lock, "FOBBAD", u->name, doorno, "Not allowed fob %lu", e->fob);
+			    dolog (mydoor[d].group_lock, "FOBBAD", u->name,
+				   doorno, "Not allowed fob %lu", e->fob);
 			  }
 		      }
 		  }
 		else if (mydoor[d].time_set)
 		  {		// Held and we are allowed to set
-		    group_t set = (mydoor[d].group_arm & u->group_arm & ~state[STATE_SET] & ~state[STATE_ARM]);
+		    group_t set =
+		      (mydoor[d].group_arm & u->
+		       group_arm & ~state[STATE_SET] & ~state[STATE_ARM]);
 		    if (set)
 		      {
 			door_confirm (d);
 			door_lock (d);
-			alarm_arm (u->name, port_name (e->port), set, mydoor[d].time_set);
+			alarm_arm (u->name, port_name (e->port), set,
+				   mydoor[d].time_set);
 		      }
 		    else
 		      {
-			dolog (mydoor[d].group_lock, "FOBHELDIGNORED", u->name, doorno, "Ignored held fob %lu as no setting options", e->fob);
+			dolog (mydoor[d].group_lock, "FOBHELDIGNORED",
+			       u->name, doorno,
+			       "Ignored held fob %lu as no setting options",
+			       e->fob);
 			door_error (d);
 		      }
 		  }
 		else
 		  {
-		    dolog (mydoor[d].group_lock, "FOBHELDIGNORED", u->name, doorno, "Ignored held fob %lu as door cannot set alarm", e->fob);
+		    dolog (mydoor[d].group_lock, "FOBHELDIGNORED", u->name,
+			   doorno,
+			   "Ignored held fob %lu as door cannot set alarm",
+			   e->fob);
 		    door_error (d);
 		  }
 	      }
 	if (!found)
 	  {			// Unassociated max reader
-	    dolog (groups, e->event == EVENT_FOB_HELD ? "FOBHELDIGNORE" : "FOBIGNORED", u ? u->name : NULL, port_name (e->port), "Ignored fob %lu as reader not linked to a door", e->fob);
+	    dolog (groups,
+		   e->event ==
+		   EVENT_FOB_HELD ? "FOBHELDIGNORE" : "FOBIGNORED",
+		   u ? u->name : NULL, port_name (e->port),
+		   "Ignored fob %lu as reader not linked to a door", e->fob);
 	  }
       }
       break;
@@ -3198,6 +3444,7 @@ static char *
 do_wscallback (websocket_t * w, xml_t head, xml_t data)
 {
   // TODO a better way than Basic http auth would be good some time
+  xml_t http = xml_find (head, "http");
   char apath[SHA_DIGEST_LENGTH * 2 + 1];
   char *authpath (char *user, char *pass)
   {				// return an authorisation path - this is used once logged in, and allows websocket to use the same path to then authenticate as no Authorization gets to wwebsocket it seems
@@ -3224,7 +3471,7 @@ do_wscallback (websocket_t * w, xml_t head, xml_t data)
   if (!w && head && !data)
     {				// Non websocket get
       char *expect = NULL;
-      char *auth = xml_get (head, "http/@authorization");
+      char *auth = xml_get (http, "@authorization");
       if (auth)
 	{
 	  char *pass = auth;
@@ -3236,7 +3483,9 @@ do_wscallback (websocket_t * w, xml_t head, xml_t data)
 	    {
 	      xml_t e = NULL;
 	      char *name = NULL;
-	      while ((e = xml_element_next_by_name (config, e, "user")) && (!(name = xml_get (e, "@name")) || strcasecmp (name, auth)));
+	      while ((e = xml_element_next_by_name (config, e, "user"))
+		     && (!(name = xml_get (e, "@name"))
+			 || strcasecmp (name, auth)));
 	      if (e)
 		{		// found a user
 		  char *check = xml_get (e, "@pass");
@@ -3249,12 +3498,13 @@ do_wscallback (websocket_t * w, xml_t head, xml_t data)
 	{			// Not valid
 	  if (auth)
 	    {
-	      syslog (LOG_INFO, "Failed login %s from %s", auth, xml_get (head, "@IP"));
+	      syslog (LOG_INFO, "Failed login %s from %s", auth,
+		      xml_get (head, "@IP"));
 	      sleep (10);
 	    }
 	  return "401 SolarSystem";
 	}
-      char *path = xml_element_content (head);
+      char *path = xml_element_content (http);
       if (!path || !*path)
 	return "404 WTF";
       if (strncmp (path, expect + 1, strlen (expect) - 1))
@@ -3280,7 +3530,7 @@ do_wscallback (websocket_t * w, xml_t head, xml_t data)
     }
   if (w && head && !data)
     {				// New connection, authenticate
-      char *path = xml_element_content (head);
+      char *path = xml_element_content (http);
       if (!path || *path != '/')
 	return "404 WTF";
       char *user = ++path;
@@ -3292,7 +3542,8 @@ do_wscallback (websocket_t * w, xml_t head, xml_t data)
       xml_t e = NULL;
       char *name = NULL;
       char *pass = NULL;
-      while ((e = xml_element_next_by_name (config, e, "user")) && (!(name = xml_get (e, "@name")) || strcasecmp (name, user)));
+      while ((e = xml_element_next_by_name (config, e, "user"))
+	     && (!(name = xml_get (e, "@name")) || strcasecmp (name, user)));
       if (!e || !(pass = xml_get (e, "@pass")))
 	return "404 WTF";
       user_t *u;
@@ -3330,7 +3581,8 @@ do_wscallback (websocket_t * w, xml_t head, xml_t data)
 	  }
       int s;
       for (s = 0; s < STATES; s++)
-	if (s != STATE_ZONE && s != STATE_ENTRY && s != STATE_NONEXIT && s != STATE_OPEN)
+	if (s != STATE_ZONE && s != STATE_ENTRY && s != STATE_NONEXIT
+	    && s != STATE_OPEN)
 	  {
 	    state_ws (root, "*set", s, state[s] & groups);
 	    state_ws (root, "*clr", s, (~state[s]) & groups);
@@ -3578,7 +3830,8 @@ main (int argc, const char *argv[])
       {
        "config", 'c', POPT_ARG_STRING, &configfile, 0, "Config", "filename"},
       {
-       "set-file", 's', POPT_ARG_STRING | POPT_ARGFLAG_SHOW_DEFAULT, &setfile, 0, "File holding set state", "filename"},
+       "set-file", 's', POPT_ARG_STRING | POPT_ARGFLAG_SHOW_DEFAULT, &setfile,
+       0, "File holding set state", "filename"},
       {
        "max-from", 0, POPT_ARG_STRING, &maxfrom, 0, "Max from port", "ID"},
       {
@@ -3592,7 +3845,8 @@ main (int argc, const char *argv[])
     optCon = poptGetContext (NULL, argc, argv, optionsTable, 0);
     //poptSetOtherOptionHelp (optCon, "");
     if ((c = poptGetNextOpt (optCon)) < -1)
-      errx (1, "%s: %s\n", poptBadOption (optCon, POPT_BADOPTION_NOALIAS), poptStrerror (c));
+      errx (1, "%s: %s\n", poptBadOption (optCon, POPT_BADOPTION_NOALIAS),
+	    poptStrerror (c));
     if (!configfile && poptPeekArg (optCon))
       configfile = poptGetArg (optCon);
     if (poptPeekArg (optCon))
@@ -3629,7 +3883,9 @@ main (int argc, const char *argv[])
 #ifdef	LIBWS
   //if (wsport || wskeyfile)
   {
-    const char *e = websocket_bind (wsport, wsorigin, wshost, NULL, wscertfile, wskeyfile, wscallback);
+    const char *e =
+      websocket_bind (wsport, wsorigin, wshost, NULL, wscertfile, wskeyfile,
+		      wscallback);
     if (e)
       errx (1, "Websocket fail: %s", e);
   }
@@ -3662,7 +3918,8 @@ main (int argc, const char *argv[])
       else if (!t || device[port_device (t)].type != TYPE_MAX)
 	dolog (groups, "CONFIG", NULL, NULL, "max-to invalid");
       else if ((f >> 16) != (t >> 16))
-	dolog (groups, "CONFIG", NULL, NULL, "max-from and max-to on different buses");
+	dolog (groups, "CONFIG", NULL, NULL,
+	       "max-from and max-to on different buses");
       else
 	{
 	  device[port_device (f)].newid = (t >> 8);
@@ -3702,7 +3959,8 @@ main (int argc, const char *argv[])
 	  int s;
 	  group_t stalled = 0;	// Which have reason to restart, not intruder as covered by NONEXIT
 	  for (s = 0; s < STATE_TRIGGERS; s++)
-	    if (s != STATE_ZONE && s != STATE_FAULT && s != STATE_WARNING && s != STATE_OPEN && s < STATE_USER1)
+	    if (s != STATE_ZONE && s != STATE_FAULT && s != STATE_WARNING
+		&& s != STATE_OPEN && s < STATE_USER1)
 	      stalled |= state[s];
 	  stalled &= state[STATE_ARM];
 	  if (stalled)
@@ -3770,7 +4028,8 @@ main (int argc, const char *argv[])
 			changed |= (1 << n);
 		      }
 		  }
-		else if (group[n].when_alarm + group[n].bell_delay < now.tv_sec)
+		else if (group[n].when_alarm + group[n].bell_delay <
+			 now.tv_sec)
 		  {		// Should be on
 		    if (!(state[STATE_BELL] & (1 << n)))
 		      {
@@ -3805,12 +4064,15 @@ main (int argc, const char *argv[])
 	for (n = 0; n < MAX_BUS; n++)
 	  if ((buses & (1 << n)) && mybus[n].watchdog < now.tv_sec)
 	    {
-	      syslog (LOG_INFO, "KA timeout bus %d (%lu)", n + 1, now.tv_sec - mybus[n].watchdog);
-	      errx (1, "KA timeout bus %d (%lu)", n + 1, now.tv_sec - mybus[n].watchdog);
+	      syslog (LOG_INFO, "KA timeout bus %d (%lu)", n + 1,
+		      now.tv_sec - mybus[n].watchdog);
+	      errx (1, "KA timeout bus %d (%lu)", n + 1,
+		    now.tv_sec - mybus[n].watchdog);
 	    }
       }
       event_t *e;
-      if ((e = bus_event ((nextpoll - now.tv_sec) * 1000000ULL - now.tv_usec)))
+      if ((e =
+	   bus_event ((nextpoll - now.tv_sec) * 1000000ULL - now.tv_usec)))
 	{
 	  pthread_mutex_lock (&eventmutex);
 	  doevent (e);
