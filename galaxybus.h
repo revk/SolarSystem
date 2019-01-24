@@ -96,6 +96,7 @@ const char *event_name[EVENT_COUNT];	// Event name
 	d(OPEN) \
 	d(LOCKING) \
 	d(PROPPED) \
+	d(PROPPEDOK) \
 	d(FORCED) \
 	d(AJAR)	\
 	d(FAULT)\
@@ -288,6 +289,7 @@ struct door_s
   unsigned char state;		// Door state as last reported
   unsigned char blip;		// Blip counter
   unsigned char beep:2;		// Beep required (1=continuous, 2=intermittent)
+  unsigned char auth:1;		// Auth propped
 };
 
 // Data
@@ -310,7 +312,7 @@ void bus_stop (int bus);
 void door_error (int d);	// Indicate error
 void door_confirm (int d);	// Indicate confirmation
 void door_open (int d);		// Open the door
-void door_quiet (int d);	// Stop beep for now
+void door_auth (int d);	// Auth propped
 void door_lock (int d);		// Lock the door
 void door_deadlock (int d);	// Deadlock the door
 void door_unlock (int d);	// Un deadlock the door

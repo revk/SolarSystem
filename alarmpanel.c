@@ -2705,6 +2705,8 @@ doevent (event_t * e)
 	  dolog (d->group_lock, "DOORFAULT", NULL, doorno, "Door fault");
 	else if (e->state == DOOR_PROPPED)
 	  dolog (d->group_lock, "DOORPROPPED", NULL, doorno, "Door propped");
+	else if (e->state == DOOR_PROPPEDOK)
+	  dolog (d->group_lock, "DOORPROPPEDOK", NULL, doorno, "Door prop authorised");
 	// Update alarm state linked to doors
 	// Entry
 	if (e->state == DOOR_OPEN)
@@ -3065,19 +3067,22 @@ doevent (event_t * e)
 		  {
 		    // disarm is the groups that can be disarmed by this user on this door.
 		    group_t disarm = ((u->group_arm & mydoor[d].group_arm & state[STATE_ARM]) | (port_name (e->port), u->group_disarm & mydoor[d].group_disarm & state[STATE_SET]));
-		    if (door[d].state == DOOR_PROPPED)
+		    if (door[d].state == DOOR_PROPPED || door[d].state == DOOR_OPEN || door[d].state == DOOR_PROPPEDOK)
 		      {
 			if (disarm && alarm_unset (u->name, port_name (e->port), disarm))
 			  door_confirm (d);
 			if (u->group_prop & mydoor[d].group_lock)
 			  {
-			    //door_confirm (d); // no as this undoes the quieting and beeping stopping should be obvious
-			    door_quiet (d);
-			    dolog (mydoor[d].group_lock, "DOORHELD", u->name, doorno, "Door prop cancelled by fob %lu", e->fob);
+			    door_auth (d);
+			    if (door[d].state != DOOR_PROPPEDOK)
+			      {
+				dolog (mydoor[d].group_lock, "DOORHELD", u->name, doorno, "Door prop authorised by fob %lu", e->fob);
+				door_confirm (d);
+			      }
 			  }
 			else
 			  {
-			    dolog (mydoor[d].group_lock, "DOORSTILLPROPPED", u->name, doorno, "Door prop not cancelled by fob %lu as not allowed", e->fob);
+			    dolog (mydoor[d].group_lock, "DOORSTILLPROPPED", u->name, doorno, "Door prop not authorised by fob %lu as not allowed", e->fob);
 			    door_error (d);
 			  }
 		      }
@@ -3339,12 +3344,12 @@ do_wscallback (websocket_t * w, xml_t head, xml_t data)
       int p;
       for (d = 0; d < MAX_DEVICE; d++)
 	if (device[d].type)
-	{
-	  for (p = 0; p < MAX_OUTPUT; p++)
-	    output_ws (root, (d << 8) + (1 << p));
-	  for (p = 0; p < MAX_INPUT; p++)
-	    input_ws (root, (d << 8) + (1 << p));
-	}
+	  {
+	    for (p = 0; p < MAX_OUTPUT; p++)
+	      output_ws (root, (d << 8) + (1 << p));
+	    for (p = 0; p < MAX_INPUT; p++)
+	      input_ws (root, (d << 8) + (1 << p));
+	  }
       websocket_send (1, &w, root);
       pthread_mutex_unlock (&eventmutex);
       xml_tree_delete (root);
