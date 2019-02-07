@@ -3517,7 +3517,7 @@ do_wscallback (websocket_t * w, xml_t head, xml_t data)
 	return "404 WTF";
       char *p;
       for (p = path + 1; isalnum (*p) || *p == '_' || *p == '-'; p++);
-      if (*p != '.' || (strcmp (p, ".html") && strcmp (p, ".js") && strcmp (p, ".css") && strcmp (p, ".png") && strcmp (p, ".svg")))	// Very limited options of files to serve
+      if (*p != '.' || (strcmp (p, ".html") && strcmp (p, ".js") && strcmp (p, ".css") && strcmp (p, ".png") && strcmp (p, ".svg") && strcmp(p,".ttf")))	// Very limited options of files to serve
 	return "404 Not found";
       if (wsfloorplan && !strcmp (path, "/floorplan.png"))
 	path = strdup (wsfloorplan);	// already has @ prefix
