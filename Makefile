@@ -6,6 +6,9 @@ endif
 
 all: git alarmpanel
 
+update:
+	git submodule update --remote --merge
+
 AXL/axl.o: AXL/axl.c
 	make -C AXL
 Dataformat/dataformat.o: Dataformat/dataformat.c
