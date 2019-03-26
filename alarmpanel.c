@@ -2133,10 +2133,6 @@ static void *
 logger (void *d)
 {				// Processing logs in separate thread
   d = d;			// Unused
-#ifdef	LIBMQTT
-  if (mqtt)
-    mosquitto_loop_start (mqtt);
-#endif
   openlog ("alarm", LOG_CONS | LOG_PID, LOG_USER);
   CURL *curl = curl_easy_init ();
   if (debug)
@@ -2147,17 +2143,17 @@ logger (void *d)
     {
       log_t *l = next_log (1000000);
 #ifdef LIBMQTT
-      static time_t nextmqtt=0;
-      if(nextmqtt<time(0))
-      {
-	      nextmqtt=time(0)+10;
-	      int e = mosquitto_publish (mqtt, NULL, "alarmpannel", 0,NULL,0,0);
-	      if (e)
-		{
-		  syslog (LOG_INFO, "MQTT publish failed (%s)", mosquitto_strerror (e));
-		  commfailcount++;
-		}
-      }
+      static time_t nextmqtt = 0;
+      if (nextmqtt < time (0))
+	{
+	  nextmqtt = time (0) + 10;
+	  int e = mosquitto_publish (mqtt, NULL, "alarmpannel", 0, NULL, 0, 0);
+	  if (e)
+	    {
+	      syslog (LOG_INFO, "MQTT publish failed (%s)", mosquitto_strerror (e));
+	      commfailcount++;
+	    }
+	}
 #endif
       if (!l)
 	continue;
@@ -3684,18 +3680,26 @@ main (int argc, const char *argv[])
   pipe2 (logpipe, O_NONBLOCK);	// We check queue anyway an we don't want to risk stalling if app is stalled for some reason and a lot of events
 #ifdef	LIBMQTT
   mosquitto_lib_init ();
-  mqtt = mosquitto_new ("solarsystem", 1, NULL);
+  mqtt = mosquitto_new (NULL, true, NULL);
   if (!mqtt)
     warnx ("MQTT init failed");
   else
     {
+      mosquitto_loop_start (mqtt);
+      void mqtt_connected (struct mosquitto *mqtt, void *obj, int rc)
+      {
+	obj = obj;
+	dolog (groups, "MQTT", NULL, NULL, "MQTT connected %d", rc);
+      }
       void mqtt_disconnected (struct mosquitto *mqtt, void *obj, int rc)
       {
 	obj = obj;
 	if (rc)
 	  mosquitto_reconnect_async (mqtt);
 	dolog (groups, "MQTT", NULL, NULL, "MQTT disconnected %d", rc);
+	commfailcount++;
       }
+      mosquitto_connect_callback_set (mqtt, mqtt_connected);
       mosquitto_disconnect_callback_set (mqtt, mqtt_disconnected);
     }
 #endif
@@ -3730,8 +3734,7 @@ main (int argc, const char *argv[])
       mosquitto_username_pw_set (mqtt, xml_get (config, "system@mqtt-user"), xml_get (config, "system@mqtt-pass"));
       char *host = xml_get (config, "system@mqtt-host");
       int port = atoi (xml_get (config, "system@mqtt-port") ? : "1883");
-      if (mosquitto_connect_async (mqtt, host, port, 60))
-	warnx ("MQTT connect failed %s:%d", host, port);
+      if (mosquitto_connect_async (mqtt, host, port, 60)) warnx ("MQTT connect failed %s:%d", host, port);
     }
 #endif
 #ifdef	LIBWS
