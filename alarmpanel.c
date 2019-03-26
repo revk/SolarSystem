@@ -2247,10 +2247,6 @@ static void *
 mqttloop (void *d)
 {
   d = d;
-  char *host = xml_get (config, "system@mqtt-host")?:"localhost";
-  int port = atoi (xml_get (config, "system@mqtt-port") ? : "1883");
-  if (mosquitto_connect (mqtt, host, port, 1))
-    warnx ("MQTT connect failed %s:%d", host, port);
   mosquitto_loop_forever (mqtt, -1, 1);
   return NULL;
 }
@@ -3317,13 +3313,11 @@ doevent (event_t * e)
 		  {
 		    // disarm is the groups that can be disarmed by this user on this door.
 		    group_t disarm =
-		      ((u->group_arm & mydoor[d].
-			group_arm & state[STATE_ARM]) | (port_name (e->port),
-							 u->
-							 group_disarm &
-							 mydoor[d].
-							 group_disarm &
-							 state[STATE_SET]));
+		      ((u->
+			group_arm & mydoor[d].group_arm & state[STATE_ARM]) |
+		       (port_name (e->port),
+			u->group_disarm & mydoor[d].group_disarm &
+			state[STATE_SET]));
 		    if (door[d].state == DOOR_PROPPED
 			|| door[d].state == DOOR_OPEN
 			|| door[d].state == DOOR_PROPPEDOK)
@@ -3435,8 +3429,9 @@ doevent (event_t * e)
 		else if (mydoor[d].time_set)
 		  {		// Held and we are allowed to set
 		    group_t set =
-		      (mydoor[d].group_arm & u->
-		       group_arm & ~state[STATE_SET] & ~state[STATE_ARM]);
+		      (mydoor[d].
+		       group_arm & u->group_arm & ~state[STATE_SET] &
+		       ~state[STATE_ARM]);
 		    if (set)
 		      {
 			door_confirm (d);
@@ -3963,6 +3958,10 @@ main (int argc, const char *argv[])
       mosquitto_username_pw_set (mqtt,
 				 xml_get (config, "system@mqtt-user"),
 				 xml_get (config, "system@mqtt-pass"));
+      char *host = xml_get (config, "system@mqtt-host") ? : "localhost";
+      int port = atoi (xml_get (config, "system@mqtt-port") ? : "1883");
+      if (mosquitto_connect (mqtt, host, port, 1))
+	warnx ("MQTT connect failed %s:%d", host, port);
       pthread_t mqttthread;
       if (pthread_create (&mqttthread, NULL, mqttloop, NULL))
 	warn ("MQTT thread failed");
