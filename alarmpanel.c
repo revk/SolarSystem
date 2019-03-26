@@ -3735,7 +3735,7 @@ main (int argc, const char *argv[])
       mosquitto_username_pw_set (mqtt, xml_get (config, "system@mqtt-user"), xml_get (config, "system@mqtt-pass"));
       char *host = xml_get (config, "system@mqtt-host");
       int port = atoi (xml_get (config, "system@mqtt-port") ? : "1883");
-      if (mosquitto_connect_async (mqtt, host, port, 60))
+      if (mosquitto_connect_async(mqtt, host, port, 60))
 	warnx ("MQTT connect failed %s:%d", host, port);
     }
 #endif
