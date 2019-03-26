@@ -2027,7 +2027,7 @@ dologger (CURL * curl, log_t * l)
 		*msg++ = 0;
 	      if (mosquitto_publish (mqtt, NULL, v, strlen (msg ? : ""), msg, 0, 0))
 		{
-		  syslog (LOG_INFO, "MQTT publish to %s failed",v);
+		  syslog (LOG_INFO, "MQTT publish to %s failed", v);
 		  commfailcount++;
 		}
 	    }
@@ -2105,6 +2105,8 @@ static void *
 mqttloop (void *d)
 {
   d = d;
+  if (mosquitto_connect (mqtt, xml_get (config, "panel/system@mqtt-host"), atoi (xml_get (config, "panel/system@mqtt-port") ? : "1883"), 1))
+    warn ("MQTT connect failed");
   mosquitto_loop_forever (mqtt, -1, 1);
   return NULL;
 }
@@ -3671,8 +3673,6 @@ main (int argc, const char *argv[])
   else
     {
       mosquitto_username_pw_set (mqtt, xml_get (config, "panel/system@mqtt-user"), xml_get (config, "panel/system@mqtt-pass"));
-      if (mosquitto_connect (mqtt, xml_get (config, "panel/system@mqtt-host"), atoi (xml_get (config, "panel/system@mqtt-port") ? : "1883"), 1))
-	warn ("MQTT connect failed");
       pthread_t mqttthread;
       if (pthread_create (&mqttthread, NULL, mqttloop, NULL))
 	warn ("MQTT thread failed");
