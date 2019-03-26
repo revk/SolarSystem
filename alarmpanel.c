@@ -3688,6 +3688,7 @@ main (int argc, const char *argv[])
       mosquitto_loop_start (mqtt);
       void mqtt_connected (struct mosquitto *mqtt, void *obj, int rc)
       {
+	mqtt = mqtt;
 	obj = obj;
 	dolog (groups, "MQTT", NULL, NULL, "MQTT connected %d", rc);
       }
@@ -3734,7 +3735,8 @@ main (int argc, const char *argv[])
       mosquitto_username_pw_set (mqtt, xml_get (config, "system@mqtt-user"), xml_get (config, "system@mqtt-pass"));
       char *host = xml_get (config, "system@mqtt-host");
       int port = atoi (xml_get (config, "system@mqtt-port") ? : "1883");
-      if (mosquitto_connect_async (mqtt, host, port, 60)) warnx ("MQTT connect failed %s:%d", host, port);
+      if (mosquitto_connect_async (mqtt, host, port, 60))
+	warnx ("MQTT connect failed %s:%d", host, port);
     }
 #endif
 #ifdef	LIBWS
