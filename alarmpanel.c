@@ -2105,8 +2105,13 @@ static void *
 mqttloop (void *d)
 {
   d = d;
-  if (mosquitto_connect (mqtt, xml_get (config, "panel/system@mqtt-host"), atoi (xml_get (config, "panel/system@mqtt-port") ? : "1883"), 1))
-    warn ("MQTT connect failed");
+  char *host = xml_get (config, "panel/system@mqtt-host");
+  int port = atoi (xml_get (config, "panel/system@mqtt-port") ? : "1883");
+  if (mosquitto_connect (mqtt, host, port, 1))
+    {
+      syslog (LOG_INFO, "MQTT connect failed %s", host);
+      warn ("MQTT connect failed");
+    }
   mosquitto_loop_forever (mqtt, -1, 1);
   return NULL;
 }
