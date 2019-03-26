@@ -86,7 +86,7 @@
 <h2>Airlock doors</h2>
 <p>We should definitely have that as a system</p>
 <h2>Logging and reporting</h2>
-<p>Events are logged in an internal logging system that writes to system.</p>
+<p>Events are logged in an internal logging system that writes to syslog.</p>
 <p>However, events can also be configured to be handled in other ways including emailing and posting to a web page.</p>
 <h1>Config</h1>
 <p>The config consists of a number of objects as described below.</p>
@@ -111,6 +111,9 @@
 <tr><td>sms-host</td><td>SMS hostname if not A&amp;A</td></tr>
 <tr><td>walk-through</td><td>If present then logs inputs, tampers and faults. (set to "true").</td></tr>
 <tr><td>watchdog</td><td>Either <i>true</i> or the /dev/whatever for the watchdog device file. Default is no watchdog</td></tr>
+<tr><td>mqtt-host</td><td>(If built with MQTT) the MQTT broker hostname</td></tr>
+<tr><td>mqtt-user</td><td>(If built with MQTT) the MQTT broker username</td></tr>
+<tr><td>mqtt-pass</td><td>(If built with MQTT) the MQTT broker password</td></tr>
 </table>
 <p>In addition, for web socket use there are a number of related settings in <i>system</i>. Filenames should be full path names.</p>
 <table border=1>
@@ -260,4 +263,5 @@
 	<li>A string starting <tt>sms:</tt> and a user name will sms user the <tt>sms</tt> attribute of that specific user. This avoids having to duplicate numbers that are already in the user settings.</li>
 	<li>The string <tt>email</tt> causes an email to be sent to the number in the <tt>email</tt> attribute of the user related to the log entry if there is one, e.g. you may like to email a user to confirm they set the alarm using a key fob.</li>
 	<li>A string starting <tt>email:</tt> and a user name will email user the <tt>email</tt> attribute of that specific user. This avoids having to duplicate numbers that are already in the user settings.</li>
+	<li>A string of the form prefix/topic/command optionally with space and message text causes an MQTT publish (where built with MQTT).</li>
 </ul>

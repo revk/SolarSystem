@@ -4,6 +4,12 @@ else
 LIBEMAIL=
 endif
 
+ifneq ("$(wildcard /usr/include/mosquitto.h)","")
+LIBMQTT=-DLIBMQTT -lmosquitto
+else
+LIBMQTT=
+endif
+
 all: git alarmpanel
 
 update:
@@ -17,7 +23,7 @@ websocket/websocket.o: websocket/websocket.c
 	make -C websocket
 
 alarmpanel: alarmpanel.c galaxybus.o galaxybus.h AXL/axl.o Dataformat/dataformat.o websocket/websocket.o trace.h
-	cc -g -Wall -Wextra -O -o alarmpanel alarmpanel.c galaxybus.o -I. -IAXL -IDataformat -Iwebsocket AXL/axl.o Dataformat/dataformat.o websocket/websocket.o -lcurl -pthread -lpopt -DLIBWS ${LIBEMAIL} -lcrypto -lssl
+	cc -g -Wall -Wextra -O -o alarmpanel alarmpanel.c galaxybus.o -I. -IAXL -IDataformat -Iwebsocket AXL/axl.o Dataformat/dataformat.o websocket/websocket.o -lcurl -pthread -lpopt -DLIBWS ${LIBEMAIL} ${LIBMQTT} -lcrypto -lssl
 
 galaxybus.o: galaxybus.c
 	cc -g -Wall -Wextra -O -c -o galaxybus.o galaxybus.c -I. -DLIB -pthread
