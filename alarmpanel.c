@@ -2142,19 +2142,6 @@ logger (void *d)
   while (1)
     {
       log_t *l = next_log (1000000);
-#ifdef LIBMQTT
-      static time_t nextmqtt = 0;
-      if (nextmqtt < time (0))
-	{
-	  nextmqtt = time (0) + 10;
-	  int e = mosquitto_publish (mqtt, NULL, "alarmpannel", 0, NULL, 0, 0);
-	  if (e)
-	    {
-	      syslog (LOG_INFO, "MQTT publish failed (%s)", mosquitto_strerror (e));
-	      commfailcount++;
-	    }
-	}
-#endif
       if (!l)
 	continue;
       dologger (curl, l);
