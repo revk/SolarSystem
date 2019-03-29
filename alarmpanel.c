@@ -3306,13 +3306,11 @@ doevent (event_t * e)
 		  {
 		    // disarm is the groups that can be disarmed by this user on this door.
 		    group_t disarm =
-		      ((u->group_arm & mydoor[d].
-			group_arm & state[STATE_ARM]) | (port_name (e->port),
-							 u->
-							 group_disarm &
-							 mydoor[d].
-							 group_disarm &
-							 state[STATE_SET]));
+		      ((u->
+			group_arm & mydoor[d].group_arm & state[STATE_ARM]) |
+		       (port_name (e->port),
+			u->group_disarm & mydoor[d].group_disarm &
+			state[STATE_SET]));
 		    if (door[d].state == DOOR_PROPPED
 			|| door[d].state == DOOR_OPEN
 			|| door[d].state == DOOR_PROPPEDOK)
@@ -3380,8 +3378,7 @@ doevent (event_t * e)
 				       mydoor[d].airlock, e->fob);
 				door_error (d);
 			      }
-			    else if (mydoor[d].
-				     group_lock &
+			    else if (mydoor[d].group_lock &
 				     ((state[STATE_SET] | state[STATE_ARM]) &
 				      ~disarm))
 			      {
@@ -3425,8 +3422,9 @@ doevent (event_t * e)
 		else if (mydoor[d].time_set)
 		  {		// Held and we are allowed to set
 		    group_t set =
-		      (mydoor[d].group_arm & u->
-		       group_arm & ~state[STATE_SET] & ~state[STATE_ARM]);
+		      (mydoor[d].
+		       group_arm & u->group_arm & ~state[STATE_SET] &
+		       ~state[STATE_ARM]);
 		    if (set)
 		      {
 			door_confirm (d);
@@ -3918,31 +3916,6 @@ main (int argc, const char *argv[])
   pthread_mutex_init (&eventmutex, 0);
   pthread_mutex_init (&logmutex, 0);
   pipe2 (logpipe, O_NONBLOCK);	// We check queue anyway an we don't want to risk stalling if app is stalled for some reason and a lot of events
-#ifdef	LIBMQTT
-  mosquitto_lib_init ();
-  mqtt = mosquitto_new (NULL, true, NULL);
-  if (!mqtt)
-    warnx ("MQTT init failed");
-  else
-    {
-      mosquitto_loop_start (mqtt);
-      void mqtt_connected (struct mosquitto *mqtt, void *obj, int rc)
-      {
-	mqtt = mqtt;
-	obj = obj;
-	dolog (groups, "MQTT", NULL, NULL, "MQTT connected %d", rc);
-      }
-      void mqtt_disconnected (struct mosquitto *mqtt, void *obj, int rc)
-      {
-	obj = obj;
-	mosquitto_reconnect_async (mqtt);
-	dolog (groups, "MQTT", NULL, NULL, "MQTT disconnected %d", rc);
-	commfailcount++;
-      }
-      mosquitto_connect_callback_set (mqtt, mqtt_connected);
-      mosquitto_disconnect_callback_set (mqtt, mqtt_disconnected);
-    }
-#endif
   if (debug)
     warnx ("Create log thread");
   pthread_t logthread;
@@ -3969,14 +3942,34 @@ main (int argc, const char *argv[])
   if (debug)
     printf ("%s Groups found\n", group_list (groups));
 #ifdef	LIBMQTT
-  if (mqtt)
+  mosquitto_lib_init ();
+  mqtt = mosquitto_new (NULL, true, NULL);
+  if (!mqtt)
+    warnx ("MQTT init failed");
+  else
     {
+      void mqtt_connected (struct mosquitto *mqtt, void *obj, int rc)
+      {
+	mqtt = mqtt;
+	obj = obj;
+	dolog (groups, "MQTT", NULL, NULL, "MQTT connected %d", rc);
+      }
+      void mqtt_disconnected (struct mosquitto *mqtt, void *obj, int rc)
+      {
+	obj = obj;
+	mosquitto_reconnect_async (mqtt);
+	dolog (groups, "MQTT", NULL, NULL, "MQTT disconnected %d", rc);
+	commfailcount++;
+      }
+      mosquitto_connect_callback_set (mqtt, mqtt_connected);
+      mosquitto_disconnect_callback_set (mqtt, mqtt_disconnected);
       mosquitto_username_pw_set (mqtt, xml_get (config, "system@mqtt-user"),
 				 xml_get (config, "system@mqtt-pass"));
       char *host = xml_get (config, "system@mqtt-host");
       int port = atoi (xml_get (config, "system@mqtt-port") ? : "1883");
       if (mosquitto_connect_async (mqtt, host, port, 60))
 	warnx ("MQTT connect failed %s:%d", host, port);
+      mosquitto_loop_start (mqtt);
     }
 #endif
 #ifdef	LIBWS
