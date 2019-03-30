@@ -103,7 +103,7 @@
 <p>In some cases more than one port or device can be specified, in which case a space separated list is used.</p>
 <h2>system</h2>
 <table border=1>
-<tr><td>name</td><td>System name</td></tr>
+<tr><td>name</td><td>System name (also used as part of MQTT topic)</td></tr>
 <tr><td>email</td><td>System email address</td></tr>
 <tr><td>engineering</td><td>Groups for which engineering mode is active</td></tr>
 <tr><td>sms-user</td><td>SMS username</td></tr>
@@ -114,6 +114,7 @@
 <tr><td>mqtt-host</td><td>(If built with MQTT) the MQTT broker hostname</td></tr>
 <tr><td>mqtt-user</td><td>(If built with MQTT) the MQTT broker username</td></tr>
 <tr><td>mqtt-pass</td><td>(If built with MQTT) the MQTT broker password</td></tr>
+<tr><td>mqtt-arm</td><td>(If built with MQTT) groups that can be armed using <tt>cmnd/<i>name</i>/arm</tt> MQTT topic</td></tr>
 </table>
 <p>In addition, for web socket use there are a number of related settings in <i>system</i>. Filenames should be full path names.</p>
 <table border=1>
