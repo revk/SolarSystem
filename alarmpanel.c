@@ -3712,7 +3712,7 @@ main (int argc, const char *argv[])
          mqtt = mqtt;
          obj = obj;
          dolog (groups, "MQTT", NULL, NULL, "MQTT connected %d", rc);
-         if (mqtt_arm||mqtt_unset)
+         if (mqtt_arm || mqtt_unset)
          {                      // Subscribe
             if (asprintf (&mqtt_topic, "cmnd/%s/+", xml_get (config, "system@name") ? : "SolarSystem") < 0)
                errx (1, "malloc");
@@ -3724,40 +3724,40 @@ main (int argc, const char *argv[])
       {
          mqtt = mqtt;
          obj = obj;
-	 if(mqtt_topic)
-	 {
-		 int l=strlen(mqtt_topic)-1;
-		 if(!strncmp(msg->topic,mqtt_topic,l))
-		 {
-         char *m = malloc (msg->payloadlen + 1);
-         if (!m)
-            errx (1, "malloc");
-         memcpy (m, msg->payload, msg->payloadlen);
-         m[msg->payloadlen] = 0;
-         group_t g = group_parse (m);
-         free (m);
-         if (!strcmp (msg->topic+l,"arm"))
+         if (mqtt_topic)
          {
-            if (g & ~mqtt_arm)
-               dolog (g & ~mqtt_arm, "MQTT", NULL, NULL, "MQTT attempting arm of invalid groups");
-            g &= mqtt_arm;
-            pthread_mutex_lock (&eventmutex);
-            alarm_arm ("MQTT", NULL, g, 0);
-            pthread_mutex_unlock (&eventmutex);
-            return;
+            int l = strlen (mqtt_topic) - 1;
+            if (!strncmp (msg->topic, mqtt_topic, l))
+            {
+               char *m = malloc (msg->payloadlen + 1);
+               if (!m)
+                  errx (1, "malloc");
+               memcpy (m, msg->payload, msg->payloadlen);
+               m[msg->payloadlen] = 0;
+               group_t g = group_parse (m);
+               free (m);
+               if (!strcmp (msg->topic + l, "arm"))
+               {
+                  if (g & ~mqtt_arm)
+                     dolog (g & ~mqtt_arm, "MQTT", NULL, NULL, "MQTT attempting arm of invalid groups");
+                  g &= mqtt_arm;
+                  pthread_mutex_lock (&eventmutex);
+                  alarm_arm ("MQTT", NULL, g, 0);
+                  pthread_mutex_unlock (&eventmutex);
+                  return;
+               }
+               if (!strcmp (msg->topic + l, "unset"))
+               {
+                  if (g & ~mqtt_unset)
+                     dolog (g & ~mqtt_unset, "MQTT", NULL, NULL, "MQTT attempting unset of invalid groups");
+                  g &= mqtt_unset;
+                  pthread_mutex_lock (&eventmutex);
+                  alarm_unset ("MQTT", NULL, g);
+                  pthread_mutex_unlock (&eventmutex);
+                  return;
+               }
+            }
          }
-         if (!strcmp (msg->topic+l,"unset"))
-         {
-            if (g & ~mqtt_unset)
-               dolog (g & ~mqtt_unset, "MQTT", NULL, NULL, "MQTT attempting unset of invalid groups");
-            g &= mqtt_unset;
-            pthread_mutex_lock (&eventmutex);
-            alarm_unset ("MQTT", NULL, g);
-            pthread_mutex_unlock (&eventmutex);
-            return;
-         }
-		 }
-	 }
          dolog (groups, "MQTT", NULL, NULL, "MQTT unexpected message %s", msg->topic);
       }
       void mqtt_disconnected (struct mosquitto *mqtt, void *obj, int rc)
@@ -3768,7 +3768,7 @@ main (int argc, const char *argv[])
          commfailcount++;
       }
       mosquitto_connect_callback_set (mqtt, mqtt_connected);
-      if (mqtt_arm||mqtt_unset)
+      if (mqtt_arm || mqtt_unset)
          mosquitto_message_callback_set (mqtt, mqtt_message);
       mosquitto_disconnect_callback_set (mqtt, mqtt_disconnected);
       mosquitto_username_pw_set (mqtt, xml_get (config, "system@mqtt-user"), xml_get (config, "system@mqtt-pass"));
