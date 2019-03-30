@@ -3715,14 +3715,14 @@ main (int argc, const char *argv[])
          dolog (groups, "MQTT", NULL, NULL, "MQTT connected %d", rc);
          if (mqtt_arm)
          {                      // Subscribe
-            if (asprintf (&mqtt_arm_topic, "cmnd/%s/arm", xml_get (config, "system@name") ? : "alarmpanel") < 0)
+            if (asprintf (&mqtt_arm_topic, "cmnd/%s/arm", xml_get (config, "system@name") ? : "SolarSystem") < 0)
                errx (1, "malloc");
             if (mosquitto_subscribe (mqtt, NULL, mqtt_arm_topic, 0))
                dolog (groups, "MQTT", NULL, NULL, "MQTT subscribe failed %s", mqtt_arm_topic);
          }
          if (mqtt_unset)
          {                      // Subscribe
-            if (asprintf (&mqtt_unset_topic, "cmnd/%s/unset", xml_get (config, "system@name") ? : "alarmpanel") < 0)
+            if (asprintf (&mqtt_unset_topic, "cmnd/%s/unset", xml_get (config, "system@name") ? : "SolarSystem") < 0)
                errx (1, "malloc");
             if (mosquitto_subscribe (mqtt, NULL, mqtt_unset_topic, 0))
                dolog (groups, "MQTT", NULL, NULL, "MQTT subscribe failed %s", mqtt_unset_topic);
