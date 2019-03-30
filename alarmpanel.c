@@ -3943,7 +3943,7 @@ main (int argc, const char *argv[])
     printf ("%s Groups found\n", group_list (groups));
 #ifdef	LIBMQTT
   mosquitto_lib_init ();
-  mqtt = mosquitto_new (NULL, true, NULL);
+  mqtt = mosquitto_new (xml_get(config,"system@name"), true, NULL);
   if (!mqtt)
     warnx ("MQTT init failed");
   else
