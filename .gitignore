@@ -2,3 +2,4 @@ alarmpanel
 galaxybus.o
 *~
 *.swp
+.DS_Store
