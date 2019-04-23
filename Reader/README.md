@@ -28,6 +28,10 @@ Settings are applied when you next restart. If you mess up, reflash via serial w
 - restart	Clean restart
 - upgrade	Upgrade from OTA - path is /Reader.ino.nodenc.bin
 
+Security
+
+- mifarekey	Set key to authentciate cards (TBA)
+
 * Data
 
 The status is sent as stat/Reader/XXXXXX/...
