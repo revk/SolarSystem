@@ -4,7 +4,7 @@ This is a design for an RFID based reader that can be used with Solar System. It
 
 * Defaults
 
-This connects to a WiFi SSID of "IoT' with password "security", and connects to an (unsecure) MQTT server called "mqtt.iot" on port 1883. From there you can send commands to change settings. You will see it appear on MQTT sending stat/Reader/XXXXXX and a build date. XXXXXX is the hostname (device ID).
+This connects to a WiFi SSID of "IoT" with password "security", and connects to an (unsecure) MQTT server called "mqtt.iot" on port 1883. From there you can send commands to change settings. You will see it appear on MQTT sending stat/Reader/XXXXXX and a build date. XXXXXX is the hostname (device ID).
 
 * Settings
 
@@ -22,6 +22,11 @@ Note that you can also set wifissid2, wifipass2, wifissid3, wifipass3, but if th
 - mqttuser	The MQTT username (no point unless using TLS)
 - mqttpass	The MQTT password (no point unless using TLS)
 - mqttsha1	The 20 byte SHA1 hash of the certificate (and hence uses TLS on port 8883)
+
+Settings are applied when you next restart. If you mess up, reflash via serial with erase flash option
+
+- restart	Clean restart
+- upgrade	Upgrade from OTA - path is /Reader.ino.nodenc.bin
 
 * Data
 
