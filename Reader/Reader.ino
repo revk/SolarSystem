@@ -18,7 +18,7 @@
 
 #include <ESP8266RevK.h>
 
-ESP8266RevK revk(__FILE__, "Build: " __DATE__ " " __TIME__);
+ESP8266RevK revk(__FILE__, __DATE__ " " __TIME__);
 
 #define RST 2 // SPI
 #define SS 16 // SPI
