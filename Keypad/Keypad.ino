@@ -182,6 +182,6 @@ void loop()
         revk.stat("present", "0");
       online = false;
     }
-    ESP.deepSleep(1e6);
+    delay(1);
   }
 }
