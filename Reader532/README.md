@@ -1,6 +1,9 @@
 * Min Reader
 
-This is a design for an RFID based reader that can be used with Solar System. It works using 2.4GHz WiFi to communicate. Please see security advice in the general documenttion.
+This is a design for an RFID based reader that can be used with Solar System. It works using 2.4GHz WiFi to communicate. Please see security advice in the general documentation.
+
+This covers the standalone reader, but the Door control can also work with this reader as a combined unit if needed.
+
 
 * Defaults
 

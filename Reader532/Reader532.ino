@@ -46,6 +46,15 @@ void setup()
   nfc.SAMConfig();
 }
 
+static byte lastuid[7] = {}, lastlen = 0;
+void report(const char *tag)
+{
+  char tid[15];
+  int n;
+  for (n = 0; n < lastlen && n * 2 < sizeof(tid); n++)sprintf(tid + n * 2, "%02X", lastuid[n]);
+  revk.stat(tag, tid);
+}
+
 void loop()
 {
   revk.loop();
@@ -55,24 +64,33 @@ void loop()
   if ((int)(cardcheck - now) < 0)
   {
     cardcheck = now + 100;
-
- // TODO reporting UID
-    
-    uint8_t success;
-    uint8_t uid[] = { 0, 0, 0, 0, 0, 0, 0 };  // Buffer to store the returned UID
-    uint8_t uidLength;                        // Length of the UID (4 or 7 bytes depending on ISO14443A card type)
-
-    // Wait for an ISO14443A type cards (Mifare, etc.).  When one is found
-    // 'uid' will be populated with the UID, and uidLength will indicate
-    // if the uid is 4 bytes (Mifare Classic) or 7 bytes (Mifare Ultralight)
-    success = nfc.readPassiveTargetID(PN532_MIFARE_ISO14443A, uid, &uidLength);
-    if (success)
+    static long first = 0;
+    static long last = 0;
+    static boolean held = false;
+    byte uid[7] = {}, uidlen = 0;
+    if (nfc.readPassiveTargetID(PN532_MIFARE_ISO14443A, uid, &uidlen))
     {
-      // Display some basic information about the card
-      Serial.println("Found an ISO14443A card");
-      Serial.print("  UID Length: "); Serial.print(uidLength, DEC); Serial.println(" bytes");
-      Serial.print("  UID Value: ");
-      nfc.PrintHex(uid, uidLength);
-    } else Serial.println("No card");
+      last = now;
+      if (!first || uidlen != lastlen || memcmp(lastuid, uid, uidlen))
+      {
+        if (held)
+          report("gone");
+        first = now;
+        held = false;
+        memcpy(lastuid, uid, lastlen = uidlen);
+        report("id");
+      } else if (!held && first && (int)(now - first) > HOLDTIME)
+      {
+        held = true;
+        report("held");
+      }
+    } else if (last && (int)(now - last) > RELEASETIME)
+    {
+      if (held)
+        report("gone");
+      first = 0;
+      last = 0;
+      held = false;
+    }
   }
 }
