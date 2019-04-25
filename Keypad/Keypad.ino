@@ -2,7 +2,7 @@
 // ESP-01 based with RS485 board
 // Connect to Galaxy keypad
 
-#define DEBUG // log message (header bytes)
+//#define DEBUG // log message (header bytes)
 
 #include <ESP8266RevK.h>
 
@@ -11,14 +11,14 @@ ESP8266RevK revk(__FILE__, __DATE__ " " __TIME__);
 #define RTS 2
 
 #define commands  \
-  f(07,display,32) \
-  f(19,keyclick,1) \
-  f(0C,beep,2) \
-  f(0D,backlight,1) \
-  f(07a,cursor,2) \
-  f(07b,blink,1) \
+  f(07,display,32,0) \
+  f(19,keyclick,1,5) \
+  f(0C,beep,2,0) \
+  f(0D,backlight,1,1) \
+  f(07a,cursor,2,0) \
+  f(07b,blink,1,0) \
 
-#define f(id,name,len) static byte name[len]={};boolean send##id=false;byte name##_len=0;
+#define f(id,name,len,def) static byte name[len]={def};boolean send##id=false;byte name##_len=0;
   commands
 #undef  f
 
@@ -29,7 +29,7 @@ ESP8266RevK revk(__FILE__, __DATE__ " " __TIME__);
 
   boolean app_cmnd(const char*suffix, const byte *message, size_t len)
   { // Called for incoming MQTT messages
-#define f(i,n,l) if(!strcasecmp(suffix,#n)&&len<=l){memcpy(n,message,len);n##_len=len;if(len<l)memset(n+len,0,l-len);send##i=true;return true;}
+#define f(i,n,l,d) if(!strcasecmp(suffix,#n)&&len<=l){memcpy(n,message,len);n##_len=len;if(len<l)memset(n+len,0,l-len);send##i=true;return true;}
     commands
 #undef f
     return false;
@@ -73,7 +73,7 @@ ESP8266RevK revk(__FILE__, __DATE__ " " __TIME__);
       } else if (send07 || send07a || send07b)
       { // Text
         buf[++p] = 0x07;
-        buf[++p] = 0x01 | (blink[0] ? 0x08 : 0x00) | (toggle07 ? 0x80 : 0);
+        buf[++p] = 0x01 | ((blink[0] & 1) ? 0x08 : 0x00) | (toggle07 ? 0x80 : 0);
         if (display_len)
         {
           if (cursor[0])
@@ -120,9 +120,9 @@ ESP8266RevK revk(__FILE__, __DATE__ " " __TIME__);
       } else if (send0C)
       { // Beeper
         buf[++p] = 0x0C;
-        buf[++p] = beep_len?beep[1]?3:1:0;
-        buf[++p] = (beep[0]&0x3F); // Time on
-        buf[++p] = (beep[1]&0x3F); // Time off
+        buf[++p] = beep_len ? beep[1] ? 3 : 1 : 0;
+        buf[++p] = (beep[0] & 0x3F); // Time on
+        buf[++p] = (beep[1] & 0x3F); // Time off
         send0C = false;
       } else if (send0D)
       { // Light change
