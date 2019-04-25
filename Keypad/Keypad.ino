@@ -33,6 +33,7 @@ void setup()
 #endif
   digitalWrite(RTS, LOW);
   pinMode(RTS, OUTPUT);
+  
 }
 
 void loop()
@@ -165,6 +166,8 @@ void loop()
           if (buf[2] != 0x7F)
           { // Key
             send0B = true;
+            // Note mapping and key held bit...
+            // TODO why duplicates?
             revk.stat("key", "%02X", buf[2]);
           }
         }
@@ -179,5 +182,6 @@ void loop()
         revk.stat("present", "0");
       online = false;
     }
+    ESP.deepSleep(1e6);
   }
 }
