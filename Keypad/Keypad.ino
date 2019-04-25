@@ -2,7 +2,7 @@
 // ESP-01 based with RS485 board
 // Connect to Galaxy keypad
 
-//#define DEBUG
+#define DEBUG // log message (header bytes)
 
 #include <ESP8266RevK.h>
 
@@ -10,31 +10,28 @@ ESP8266RevK revk(__FILE__, __DATE__ " " __TIME__);
 
 #define RTS 2
 
-static boolean send0B = false; // Key ack
-static boolean blink = false; // TODO
-
-#define settings  \
+#define commands  \
   f(07,display,32) \
-  f(19,sound,1) \
-  f(0C,beep,3) \
-  f(0D,light,1) \
+  f(19,keyclick,1) \
+  f(0C,beep,2) \
+  f(0D,backlight,1) \
   f(07a,cursor,2) \
+  f(07b,blink,1) \
 
-#define f(id,name,len) static byte name[len]={};boolean send##id=false;
-  settings
+#define f(id,name,len) static byte name[len]={};boolean send##id=false;byte name##_len=0;
+  commands
 #undef  f
 
   boolean app_setting(const char *setting, const byte *value, size_t len)
-  { // Called for settings retrieved from EEPROM
-#define f(i,n,l) if(!strcasecmp(setting,#n)&&len<=l){memcpy(n,value,len);if(len<l)memset(n+len,0,l-len);send##i=true;return true;}
-    settings
-#undef f
-    revk.stat("msg", setting);
+  { // Called for commands retrieved from EEPROM
     return false; // Done
   }
 
   boolean app_cmnd(const char*suffix, const byte *message, size_t len)
   { // Called for incoming MQTT messages
+#define f(i,n,l) if(!strcasecmp(suffix,#n)&&len<=l){memcpy(n,message,len);n##_len=len;if(len<l)memset(n+len,0,l-len);send##i=true;return true;}
+    commands
+#undef f
     return false;
   }
 
@@ -56,6 +53,7 @@ static boolean blink = false; // TODO
     if ((int)(next - now) < 0)
     {
       next = ((now + 1000) ? : 1); // Default if nothing responding
+      static boolean send0B = false;
       static boolean toggle0B = false;
       static boolean toggle07 = false;
       static boolean online = false;
@@ -68,51 +66,71 @@ static boolean blink = false; // TODO
         buf[++p] = 0x0E;
       } else    if (send0B)
       { // key confirm
-        send0B = false;
         buf[++p] = 0x0B;
         buf[++p] = toggle0B ? 2 : 0;
-        toggle0B = ~toggle0B;
-      } else if (send07 || send07a)
+        toggle0B = !toggle0B;
+        send0B = false;
+      } else if (send07 || send07a || send07b)
       { // Text
-        send07 = false;
         buf[++p] = 0x07;
-        buf[++p] = 0x01 | (blink ? 0x08 : 0x00) | (toggle07 ? 0x80 : 0);
-        // TODO simplistic
-        buf[++p] = 0x1F; // clear / home
-        int y, x;
-        for (y = 0; y < 2; y++)
+        buf[++p] = 0x01 | (blink[0] ? 0x08 : 0x00) | (toggle07 ? 0x80 : 0);
+        if (display_len)
         {
-          buf[++p] = 0x03; // Cursor
-          buf[++p] = (y ? 0x40 : 0);
-          for (x = 0; x < 16; x++)buf[++p] = (display[y * 126 + x] ? : ' ');
+          if (cursor[0])
+          {
+            buf[++p] = 0x07; // cursor off while we update
+            send07a = true; // send cursor when done
+          }
+          buf[++p] = 0x1F; //  home
+          int y, x;
+          for (y = 0; y < 2; y++)
+          {
+            buf[++p] = 0x03; // Cursor
+            buf[++p] = (y ? 0x40 : 0);
+            for (x = 0; x < 16; x++)buf[++p] = (display[y * 16 + x] ? : ' ');
+          }
         }
+        else buf[++p] = 0x17; // clear
         if (send07a)
         { // cursor
-          send07a = 0;
-          // TODO
+          if (cursor_len)
+          {
+            buf[++p] = 0x03;
+            buf[++p] =  ((cursor[0] & 0x10) ? 0x40 : 0) + (cursor[0] & 0x0F);
+            if (cursor[0] & 0x80)
+              buf[++p] = 0x06;       // Solid block
+            else if (cursor[0] & 0x40)
+              buf[++p] = 0x10;       // Underline
+          }
+          else buf[++p] = 0x07; // cursor off
         }
+        if (!toggle07)
+        { // send twice
+          send07a = false;
+          send07b = false;
+          send07 = false;
+        }
+        toggle07 = !toggle07;
       } else if (send19)
-      { // Key sounds
-        send19 = false;
+      { // Key keyclicks
         buf[++p] = 0x19;
-        buf[++p] = sound[0]; // 0x03 (silent), 0x05 (quiet), or 0x01 (normal)
+        buf[++p] = (keyclick[0] & 0x7); // 0x03 (silent), 0x05 (quiet), or 0x01 (normal)
         buf[++p] = 0;
+        send19 = false;
       } else if (send0C)
       { // Beeper
-        send0C = false;
         buf[++p] = 0x0C;
-        buf[++p] = beep[0]; // 3, 1, or 0
-        buf[++p] = beep[1]; // Time 1
-        buf[++p] = beep[2]; // Time 2
+        buf[++p] = beep_len?beep[1]?3:1:0;
+        buf[++p] = (beep[0]&0x3F); // Time on
+        buf[++p] = (beep[1]&0x3F); // Time off
+        send0C = false;
       } else if (send0D)
       { // Light change
-        send0D = false;
         buf[++p] = 0x0D;
-        buf[++p] = light[0];
+        buf[++p] = (backlight[0] & 1);
+        send0D = false;
       } else
-      { // Poll
-        buf[++p] = 0x06;
-      }
+        buf[++p] = 0x06; // Normal poll
       // Send
       buf[0] = 0x10; // ID of display
       p++;
@@ -172,6 +190,8 @@ static boolean blink = false; // TODO
               toggle0B = false;
               toggle07 = true;
               send07 = true;
+              send07a = true;
+              send07b = true;
               send0B = true;
               send0C = true;
               send0D = true;

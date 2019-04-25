@@ -1285,7 +1285,7 @@ poller (void *d)
 		      mydev[id].beep[0] = dev[id].beep[0];
 		      mydev[id].beep[1] = dev[id].beep[1];
 		      cmd[++cmdlen] = 0x0C;
-		      cmd[++cmdlen] = ((mydev[id].beep[0] || mydev[id].beep[1]) ? mydev[id].beep[0] ? 3 : 1 : 0);
+		      cmd[++cmdlen] = ((mydev[id].beep[0] || mydev[id].beep[1]) ? mydev[id].beep[1] ? 3 : 1 : 0);
 		      cmd[++cmdlen] = mydev[id].beep[0];
 		      cmd[++cmdlen] = mydev[id].beep[1];
 		      mydev[id].send0C = 0;
