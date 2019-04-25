@@ -1,7 +1,7 @@
 * Keypad
 
 A WiFi driver for a galaxy keypad/display for use with Solar System
-Designed to run on an ESP-01 connected to an RS485 level shifter (using GPIO0 for RTS)
+Designed to run on an ESP-01 connected to an RS485 level shifter (using GPIO2 for RTS)
 
 * Settings
 
