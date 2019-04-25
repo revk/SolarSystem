@@ -1,5 +1,6 @@
 # SolarSystem
 A complete alarm panel using devices compatible with Honeywell/Galaxy RS485 buses.
+Also works with a number of WiFi connected devices, designs and code for which are included.
 
 There are two main parts - galaxybus and alarmpanel. The galaxybus does the low level polling and device management but also includes the low level door control logic.
 
@@ -19,3 +20,5 @@ You run with the xml as the argumet. I ran as root, but with suitable permission
 I have something to keep it running if it stops, I think linux / debian on a pi makes that pretty easy these days too.
 
 By the way, you can get industrial grade SD cards for your Pi, and that is probably a good idea.
+
+You should also run a TLS MQTT server (mosquitto) with username and password for wifi connected devices.
