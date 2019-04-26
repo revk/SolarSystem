@@ -3749,7 +3749,7 @@ main (int argc, const char *argv[])
 	  mosquitto_disconnect_callback_set (mqtt, mqtt_disconnected);
 	  mosquitto_username_pw_set (mqtt, xml_get (config, "system@mqtt-user"), xml_get (config, "system@mqtt-pass"));
 	  char *host = xml_get (config, "system@mqtt-host") ? : "localhost";
-	  char *ca = xml_get (config, "system@iot-ca");
+	  char *ca = xml_get (config, "system@mqtt-ca");
 	  int port = atoi (xml_get (config, "system@mqtt-port") ? : ca ? "8883" : "1883");
 	  if (ca && mosquitto_tls_set (iot, ca, NULL, NULL, NULL, NULL))
 	    warnx ("MQTT cert failed %s", ca);
