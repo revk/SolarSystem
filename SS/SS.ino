@@ -18,7 +18,7 @@
 #include "Input.h"
 #include "Ranger.h"
 
-ESP8266RevK revk(NULL, __DATE__ " " __TIME__, "ota.revk.uk");
+ESP8266RevK revk(__FILE__, __DATE__ " " __TIME__);
 
 boolean app_setting(const char *setting, const byte *value, size_t len)
 { // Called for settings retrieved from EEPROM, return true if setting is OK
