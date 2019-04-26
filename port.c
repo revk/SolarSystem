@@ -66,21 +66,21 @@ port_output_n (volatile port_p * w, int n, int v)
       {
          if (v)
          {
-            if (w[n]->state)
-            {
-               w[n]->state = 0;
-               if (port_device (w[n]))
-                  device_output (port_device (w[n]), port_port (w[n]), 0);
-               if (port_output_callback)
-                  port_output_callback (w[n]);
-            }
-         } else
-         {
             if (!w[n]->state)
             {
                w[n]->state = 1;
                if (port_device (w[n]))
                   device_output (port_device (w[n]), port_port (w[n]), 1);
+               if (port_output_callback)
+                  port_output_callback (w[n]);
+            }
+         } else
+         {
+            if (w[n]->state)
+            {
+               w[n]->state = 0;
+               if (port_device (w[n]))
+                  device_output (port_device (w[n]), port_port (w[n]), 0);
                if (port_output_callback)
                   port_output_callback (w[n]);
             }
