@@ -583,17 +583,17 @@ poller (void *d)
    unsigned char id = 0,
       idleid = 0;
    unsigned char idlecheck = 0;
-   event_t *newevent (int etype)
+   event_t *newevent (int etype, int port)
    {
       event_t *e = malloc (sizeof (event_t));
       if (!e)
          errx (1, "malloc");
       memset ((void *) e, 0, sizeof (*e));
       unsigned int did = ((busid << 8) + id);
-      if (!device[did].port)
-         device[did].port = port_new_bus (did << 8);
+      if (!device[did].port[port])
+         device[did].port[port] = port_new_bus ((did << 8) + (port ? (1 << (port - 1)) : 0));
       e->when = now;
-      e->port = device[did].port;
+      e->port = device[did].port[port];
       e->event = etype;
       return e;
    }
@@ -720,7 +720,7 @@ poller (void *d)
                dev[id].missing = 1;
                if (debug)
                   printf ("%s%X%02X lost\n", type_name[dev[id].type], busid + 1, id);
-               postevent (newevent (EVENT_MISSING));
+               postevent (newevent (EVENT_MISSING, 0));
             }
             mydev[id].polling = 0;
             cmdlen = 0;         // we move on to next device
@@ -798,13 +798,13 @@ poller (void *d)
                memset ((void *) &dev[id], 0, sizeof (dev[id]));
                memset (&mydev[id], 0, sizeof (mydev[id]));
                dev[id].disabled = 1;
-               postevent (newevent (EVENT_DISABLED));
+               postevent (newevent (EVENT_DISABLED, 0));
             }
             dev[id].type = type;
             if (dev[id].missing)
             {                   // Report found
                dev[id].missing = 0;
-               postevent (newevent (EVENT_FOUND));
+               postevent (newevent (EVENT_FOUND, 0));
             }
          }
          cmdlen = 0;            // Reset.. Possible that some responses need immediate reply.
@@ -836,7 +836,7 @@ poller (void *d)
                         n = n * 100 + (res[q] >> 4) * 10 + (res[q] & 0xF);
                      if (!(mydev[id].input & (1 << INPUT_MAX_FOB)))
                      {          // Fob starts
-                        event_t *e = newevent (EVENT_FOB);
+                        event_t *e = newevent (EVENT_FOB, 0);
                         e->fob = n;
                         postevent (e);
                         mydev[id].input |= (1 << INPUT_MAX_FOB);
@@ -848,7 +848,7 @@ poller (void *d)
                      {          // Fob held
                         mydev[id].input |= (1 << INPUT_MAX_FOB_HELD);
                         mydev[id].fobheld = 0;
-                        event_t *e = newevent (EVENT_FOB_HELD);
+                        event_t *e = newevent (EVENT_FOB_HELD, 0);
                         e->fob = n;
                         postevent (e);
                      }
@@ -870,7 +870,7 @@ poller (void *d)
                      mydev[id].tamper &= ~(1 << MAX_INPUT);
                   if (res[2] != 0x7F)
                   {             // key
-                     event_t *e = newevent (EVENT_KEY);
+                     event_t *e = newevent (EVENT_KEY, 0);
                      e->key = "0123456789BA\n\e*#"[res[2] & 0x0F];
                      postevent (e);
                      // Acknowledge key
@@ -989,7 +989,7 @@ poller (void *d)
                   // Set up response message to device
                   // TODO
                   // TODO temp for now
-                  event_t *e = newevent (EVENT_RF);
+                  event_t *e = newevent (EVENT_RF, 0);
                   e->rfserial = ((res[2] << 24) | (res[3] << 16) | (res[4] << 8) | res[5]);
                   e->rfstatus = ((res[6] << 24) | (res[7] << 16) | (res[8] << 8) | res[9]);
                   e->rftype = res[10];
@@ -1107,7 +1107,7 @@ poller (void *d)
                   dev[id].config = 0;   // Clear
                   mydev[id].config = 1;
                   mydev[id].addr = 0;
-                  event_t *e = newevent (EVENT_CONFIG);
+                  event_t *e = newevent (EVENT_CONFIG, 0);
                   postevent (e);
                }
                if (mydev[id].config)
@@ -1452,7 +1452,7 @@ poller (void *d)
       if (nextka <= now.tv_sec)
       {                         // Keep alive stats
          nextka = now.tv_sec + 60;
-         event_t *e = newevent (EVENT_KEEPALIVE);
+         event_t *e = newevent (EVENT_KEEPALIVE, 0);
          e->rx = rx;
          e->tx = tx;
          e->errors = errors;
@@ -1465,6 +1465,18 @@ poller (void *d)
          tx = 0;
          rx = 0;
       }
+      void newevents (int etype, unsigned short status, unsigned short changed)
+      {                         // Post each change separately
+         int i;
+         for (i = 0; changed && i < MAX_TAMPER; i++)
+            if (changed & (1 << i))
+            {
+               changed &= ~(1 << i);
+               event_t *e = newevent (etype, i + 1);
+               e->state = ((status & (1 << i)) ? 1 : 0);
+               postevent (e);
+            }
+      }
       // Status change event?
       if (mydev[id].input != dev[id].input)
       {
@@ -1472,10 +1484,7 @@ poller (void *d)
          if (changed)
          {
             dev[id].input ^= changed;
-            event_t *e = newevent (EVENT_INPUT);
-            e->status = dev[id].input;
-            e->changed = changed;
-            postevent (e);
+            newevents (EVENT_INPUT, dev[id].input, changed);
          }
       }
       // Tamper change event?
@@ -1483,20 +1492,14 @@ poller (void *d)
       {
          unsigned short changed = (mydev[id].tamper ^ dev[id].tamper);
          dev[id].tamper ^= changed;
-         event_t *e = newevent (EVENT_TAMPER);
-         e->status = dev[id].tamper;
-         e->changed = changed;
-         postevent (e);
+         newevents (EVENT_TAMPER, dev[id].tamper, changed);
       }
       // Fault change event?
       if (mydev[id].fault != dev[id].fault)
       {
          unsigned short changed = (mydev[id].fault ^ dev[id].fault);
          dev[id].fault ^= changed;
-         event_t *e = newevent (EVENT_FAULT);
-         e->status = dev[id].fault;
-         e->changed = changed;
-         postevent (e);
+         newevents (EVENT_FAULT, dev[id].fault, changed);
       }
    }
 

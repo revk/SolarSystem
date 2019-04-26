@@ -2666,7 +2666,7 @@ doevent (event_t * e)
       if (e->event == EVENT_KEEPALIVE)
          printf ("%5d %5d %5d %5d %5d", e->tx, e->rx, e->errors, e->stalled, e->retries);
       if (e->event == EVENT_INPUT || e->event == EVENT_TAMPER || e->event == EVENT_FAULT)
-         printf ("%02X %02X", e->changed, e->status);
+         printf ("%d", e->state);
       if (e->event == EVENT_KEY)
          printf ("%02X", e->key);
       if (e->event == EVENT_FOB || e->event == EVENT_FOB_HELD)
@@ -2865,181 +2865,157 @@ doevent (event_t * e)
       }
       break;
    case EVENT_INPUT:
-      if (e->changed)
       {
+         int s;
+         int i = port_id (e->port);
+         if (i < 0)
+            break;
+         char *port = port_name (e->port);
+         char *name = mydevice[id].input[i].name ? : mydevice[id].name;
+         if (e->state)
+         {                      // on
+            mydevice[id].inputs |= (1 << i);
+            if (walkthrough)
+               syslog (LOG_INFO, "+%s(%s)", port, name ? : "");
+            for (s = 0; s < STATE_TRIGGERS; s++)
+               add_state (mydevice[id].input[i].trigger[s], port, name, s);
+         } else
+         {                      // off
+            mydevice[id].inputs &= ~(1 << i);
+            if (walkthrough)
+               syslog (LOG_INFO, "-%s(%s)", port, name ? : "");
+            for (s = 0; s < STATE_TRIGGERS; s++)
+               rem_state (mydevice[id].input[i].trigger[s], port, name, s);
+         }
+         if (mydevice[id].input[i].isexit && e->state)
+         {
+            unsigned int d,
+              n;
+            for (d = 0; d < MAX_DOOR; d++)
+               for (n = 0; n < sizeof (mydoor[d].i_exit) / sizeof (*mydoor[d].i_exit); n++)
+                  if (port_device (mydoor[d].i_exit[n]) == id)
+                  {
+                     char doorno[8];
+                     snprintf (doorno, sizeof (doorno), "DOOR%02u", d);
+                     if (!door_locked (d))
+                     {
+                        if (mydoor[d].airlock >= 0
+                            && door[mydoor[d].airlock].state != DOOR_LOCKED && door[mydoor[d].airlock].state != DOOR_DEADLOCKED)
+                        {
+                           dolog (mydoor[d].group_lock,
+                                  "DOORAIRLOCK", NULL, doorno, "Airlock violation with DOOR%02d, exit rejected", mydoor[d].airlock);
+                           door_error (d);
+                        } else if (mydoor[d].lockdown && (state[mydoor[d].lockdown] & mydoor[d].group_lock))
+                        {       // Door in lockdown
+                           dolog (mydoor[d].group_lock, "DOORLOCKDOWN", NULL, doorno, "Lockdown violation, exit rejected");
+                           door_error (d);
+                        } else
+                           door_open (d);
+                     } else
+                     {
+                        dolog (mydoor[d].group_lock, "DOORREJECT", NULL, doorno, "Door is deadlocked, exit rejected");
+                        door_error (d);
+                     }
+                  }
+         }
 #ifdef	LIBWS
          xml_t root = xml_tree_new (NULL);
-#endif
-         mydevice[id].inputs = e->status;
-         int i;
-         for (i = 0; i < MAX_INPUT && e->changed; i++)
-            if (e->changed & (1 << i))
-            {
-               port_p p = port_new_bus ((port_device (e->port) << 8) + (1 << i));       // TODO messy
-#ifdef	LIBWS
-               input_ws (root, p);
-#endif
-               int s;
-               e->changed &= ~(1 << i);
-               char *port = port_name (p);
-               char *name = mydevice[id].input[i].name ? : mydevice[id].name;
-               if ((e->status & (1 << i)))
-               {                // on
-                  if (walkthrough)
-                     syslog (LOG_INFO, "+%s(%s)", port, name ? : "");
-                  for (s = 0; s < STATE_TRIGGERS; s++)
-                     add_state (mydevice[id].input[i].trigger[s], port, name, s);
-               } else
-               {                // off
-                  if (walkthrough)
-                     syslog (LOG_INFO, "-%s(%s)", port, name ? : "");
-                  for (s = 0; s < STATE_TRIGGERS; s++)
-                     rem_state (mydevice[id].input[i].trigger[s], port, name, s);
-               }
-               if (mydevice[id].input[i].isexit && (e->status & (1 << i)))
-               {
-                  unsigned int d,
-                    n;
-                  for (d = 0; d < MAX_DOOR; d++)
-                     for (n = 0; n < sizeof (mydoor[d].i_exit) / sizeof (*mydoor[d].i_exit); n++)
-                        if (port_device (mydoor[d].i_exit[n]) == id)
-                        {
-                           char doorno[8];
-                           snprintf (doorno, sizeof (doorno), "DOOR%02u", d);
-                           if (!door_locked (d))
-                           {
-                              if (mydoor[d].airlock >= 0
-                                  && door[mydoor[d].airlock].state !=
-                                  DOOR_LOCKED && door[mydoor[d].airlock].state != DOOR_DEADLOCKED)
-                              {
-                                 dolog (mydoor[d].group_lock,
-                                        "DOORAIRLOCK", NULL, doorno,
-                                        "Airlock violation with DOOR%02d, exit rejected", mydoor[d].airlock);
-                                 door_error (d);
-                              } else if (mydoor[d].lockdown && (state[mydoor[d].lockdown] & mydoor[d].group_lock))
-                              { // Door in lockdown
-                                 dolog (mydoor[d].group_lock, "DOORLOCKDOWN", NULL, doorno, "Lockdown violation, exit rejected");
-                                 door_error (d);
-                              } else
-                                 door_open (d);
-                           } else
-                           {
-                              dolog (mydoor[d].group_lock, "DOORREJECT", NULL, doorno, "Door is deadlocked, exit rejected");
-                              door_error (d);
-                           }
-                        }
-               }
-            }
-#ifdef	LIBWS
+         input_ws (root, e->port);
          websocket_send_all (root);
          xml_tree_delete (root);
 #endif
       }
       break;
    case EVENT_TAMPER:
-      if (e->changed)
       {
+         char *port = port_name (e->port);
+         int i = port_id (e->port);
+         if (i < 0)
+            break;
+         if (i < MAX_INPUT)
+         {
+            char *name = mydevice[id].input[i].name ? : mydevice[id].name;
+            group_t g = 0;
+            int s;
+            for (s = 0; s < STATE_TRIGGERS; s++)
+               g |= mydevice[id].input[i].trigger[s];
+            if (e->state)
+            {
+               mydevice[id].tampers |= (1 << i);
+               if (walkthrough)
+                  syslog (LOG_INFO, "+%s(%s) Tamper", port, name ? : "");
+               add_tamper (g, port, name);
+            } else
+            {
+               mydevice[id].tampers &= ~(1 << i);
+               if (walkthrough)
+                  syslog (LOG_INFO, "-%s(%s) Tamper", port, name ? : "");
+               rem_tamper (g, port, name);
+            }
+         } else
+         {
+            char *name = mydevice[id].name;
+            group_t g = 0;
+            int q,
+              s;
+            if (device[id].type == TYPE_RIO)
+            {
+               for (q = 0; q < MAX_INPUT; q++)
+                  for (s = 0; s < STATE_TRIGGERS; s++)
+                     g |= mydevice[id].input[q].trigger[s];
+               for (q = 0; q < MAX_OUTPUT; q++)
+                  g |= mydevice[id].output[q].group;
+            } else if (device[id].type == TYPE_PAD)
+            {
+               keypad_t *k;
+               for (k = keypad; k && port_device (k->port) != port_device (e->port); k = k->next);
+               if (k)
+                  g = k->groups;
+            } else
+               g = groups;
+            if (e->state)
+            {
+               mydevice[id].tampers |= (1 << i);
+               add_tamper (g, port, name);
+            } else
+            {
+               mydevice[id].tampers &= ~(1 << i);
+               rem_tamper (g, port, name);
+            }
+         }
 #ifdef	LIBWS
          xml_t root = xml_tree_new (NULL);
-#endif
-         mydevice[id].tampers = e->status;
-         int i;
-         for (i = 0; i < MAX_INPUT && e->changed; i++)
-            if (e->changed & (1 << i))
-            {
-               port_p p = port_new_bus ((port_device (e->port) << 8) + (1 << i));       // TODO messy
-#ifdef	LIBWS
-               input_ws (root, p);
-#endif
-               e->changed &= ~(1 << i);
-               char *port = port_name (p);
-               char *name = mydevice[id].input[i].name ? : mydevice[id].name;
-               group_t g = 0;
-               int s;
-               for (s = 0; s < STATE_TRIGGERS; s++)
-                  g |= mydevice[id].input[i].trigger[s];
-               if ((e->status & (1 << i)))
-               {
-                  if (walkthrough)
-                     syslog (LOG_INFO, "+%s(%s) Tamper", port, name ? : "");
-                  add_tamper (g, port, name);
-               } else
-               {
-                  if (walkthrough)
-                     syslog (LOG_INFO, "-%s(%s) Tamper", port, name ? : "");
-                  rem_tamper (g, port, name);
-               }
-            }
-         for (; i < MAX_TAMPER && e->changed; i++)
-            if (e->changed & (1 << i))
-            {                   // Device level tamper - apply if any inputs in use, etc
-               e->changed &= ~(1 << i);
-               char *port = port_name (e->port);
-               char *name = mydevice[id].name;
-               group_t g = 0;
-               int q,
-                 s;
-               if (device[id].type == TYPE_RIO)
-               {
-                  for (q = 0; q < MAX_INPUT; q++)
-                     for (s = 0; s < STATE_TRIGGERS; s++)
-                        g |= mydevice[id].input[q].trigger[s];
-                  for (q = 0; q < MAX_OUTPUT; q++)
-                     g |= mydevice[id].output[q].group;
-               } else if (device[id].type == TYPE_PAD)
-               {
-                  keypad_t *k;
-                  for (k = keypad; k && port_device (k->port) != port_device (e->port); k = k->next);
-                  if (k)
-                     g = k->groups;
-               } else
-                  g = groups;
-               if ((e->status & (1 << i)))
-                  add_tamper (g, port, name);
-               else
-                  rem_tamper (g, port, name);
-            }
-#ifdef	LIBWS
+         input_ws (root, e->port);
          websocket_send_all (root);
          xml_tree_delete (root);
 #endif
       }
       break;
    case EVENT_FAULT:
-      if (e->changed)
       {
-#ifdef	LIBWS
-         xml_t root = xml_tree_new (NULL);
-#endif
-         mydevice[id].faults = e->status;
-         int i;
-         for (i = 0; i < MAX_INPUT && e->changed; i++)
-            if (e->changed & (1 << i))
-            {
-               port_p p = port_new_bus ((port_device (e->port) << 8) + (1 << i));       // TODO messy
-#ifdef	LIBWS
-               input_ws (root, p);
-#endif
-               e->changed &= ~(1 << i);
-               char *port = port_name (p);
-               char *name = mydevice[id].name;
-               group_t g = 0;
-               int s;
-               for (s = 0; s < STATE_TRIGGERS; s++)
-                  g |= mydevice[id].input[i].trigger[s];
-               if ((e->status & (1 << i)))
-               {
-                  if (walkthrough)
-                     syslog (LOG_INFO, "+%s(%s) Fault", port, name ? : "");
-                  add_fault (g, port, name);
-               } else
-               {
-                  if (walkthrough)
-                     syslog (LOG_INFO, "-%s(%s) Fault", port, name ? : "");
-                  rem_fault (g, port, name);
-               }
-            }
-         if (device[id].type == TYPE_RIO && e->changed)
+         char *port = port_name (e->port);
+         char *name = mydevice[id].name;
+         int i = port_id (e->port);
+         if (i < 0)
+            break;
+         group_t g = 0;
+         int s;
+         for (s = 0; s < STATE_TRIGGERS; s++)
+            g |= mydevice[id].input[i].trigger[s];
+         if (e->state)
+         {
+            mydevice[id].faults |= (1 << i);
+            if (walkthrough)
+               syslog (LOG_INFO, "+%s(%s) Fault", port, name ? : "");
+            add_fault (g, port, name);
+         } else
+         {
+            mydevice[id].faults &= ~(1 << i);
+            if (walkthrough)
+               syslog (LOG_INFO, "-%s(%s) Fault", port, name ? : "");
+            rem_fault (g, port, name);
+         }
+         if (device[id].type == TYPE_RIO)
          {
             group_t g = 0;
             int q,
@@ -3051,29 +3027,29 @@ doevent (event_t * e)
                g |= mydevice[id].output[q].group;
             if (g)
             {
-               if (e->changed & (1 << FAULT_RIO_NO_PWR))
+               if (i == FAULT_RIO_NO_PWR)
                {
                   char port[20];
                   snprintf (port, sizeof (port), "%sNOPWR", port_name (e->port));
-                  if ((e->status & (1 << FAULT_RIO_NO_PWR)))
+                  if (e->state)
                      add_warning (g, port, mydevice[id].name);
                   else
                      rem_warning (g, port, mydevice[id].name);
                }
-               if (e->changed & (1 << FAULT_RIO_NO_BAT))
+               if (i == FAULT_RIO_NO_BAT)
                {
                   char port[20];
                   snprintf (port, sizeof (port), "%sNOBAT", port_name (e->port));
-                  if ((e->status & (1 << FAULT_RIO_NO_BAT)))
+                  if (e->state)
                      add_warning (g, port, mydevice[id].name);
                   else
                      rem_warning (g, port, mydevice[id].name);
                }
-               if (e->changed & (1 << FAULT_RIO_BAD_BAT))
+               if (i == FAULT_RIO_BAD_BAT)
                {
                   char port[20];
                   snprintf (port, sizeof (port), "%sBADBAT", port_name (e->port));
-                  if ((e->status & (1 << FAULT_RIO_BAD_BAT)))
+                  if (e->state)
                      add_warning (g, port, mydevice[id].name);
                   else
                      rem_warning (g, port, mydevice[id].name);
@@ -3081,6 +3057,8 @@ doevent (event_t * e)
             }
          }
 #ifdef	LIBWS
+         xml_t root = xml_tree_new (NULL);
+         input_ws (root, e->port);
          websocket_send_all (root);
          xml_tree_delete (root);
 #endif
@@ -3189,8 +3167,8 @@ doevent (event_t * e)
                                  dolog (mydoor[d].group_lock, "DOOROPEN", u->name, doorno, "Door open by fob %lu", e->fob);
                                  door_open (d); // Open the door
                               } else if (door[d].state == DOOR_OPEN)
-                                 dolog (mydoor[d].group_lock, "FOBIGNORED",
-                                        u->name, doorno, "Ignored fob %lu as door open", e->fob);
+                                 dolog (mydoor[d].group_lock, "FOBIGNORED", u->name, doorno, "Ignored fob %lu as door open",
+                                        e->fob);
                            }
                            // Other cases (unlocking) are transient and max will sometimes multiple read
                         } else
@@ -3243,6 +3221,7 @@ doevent (event_t * e)
       }
       break;
    }
+
    free ((void *) e);
 }
 

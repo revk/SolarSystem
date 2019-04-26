@@ -25,13 +25,13 @@ websocket/websocket.o: websocket/websocket.c
 alarmpanel: alarmpanel.c galaxybus.o galaxybus.h port.o port.h door.o door.h AXL/axl.o Dataformat/dataformat.o websocket/websocket.o trace.h
 	cc -g -Wall -Wextra -O -o alarmpanel alarmpanel.c galaxybus.o port.o door.o -I. -IAXL -IDataformat -Iwebsocket AXL/axl.o Dataformat/dataformat.o websocket/websocket.o -lcurl -pthread -lpopt -DLIBWS ${LIBEMAIL} ${LIBMQTT} -lcrypto -lssl
 
-galaxybus.o: galaxybus.c
+galaxybus.o: galaxybus.c galaxybus.h port.h
 	cc -g -Wall -Wextra -O -c -o galaxybus.o galaxybus.c -I. -DLIB -pthread
 
-door.o: door.c
+door.o: door.c door.h
 	cc -g -Wall -Wextra -O -c -o door.o door.c -I. -DLIB -pthread
 
-port.o: port.c
+port.o: port.c port.h
 	cc -g -Wall -Wextra -O -c -o port.o port.c -I. -DLIB -pthread
 
 clean:

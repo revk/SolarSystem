@@ -161,7 +161,7 @@ typedef volatile struct door_s door_t;
 
 struct device_s
 {                               // Device on the bus...
-   port_p port;                 // The device port object (may be null if not used yet)
+   port_p port[MAX_TAMPER+1];	// Device ports in use for event reporting (base devivce ID, and then inputs and extra tampers)
    input_t input;               // Bit map of inputs
    input_t inhibit;             // Inhibited inputs
    output_t output;             // Bit map of outputs
@@ -226,11 +226,6 @@ struct event_s
    union
    {
       struct
-      {                         // EVENT_INPUT or EVENT_TAMPER or EVENT_FAULT
-         unsigned short status;
-         unsigned short changed;
-      };
-      struct
       {                         // EVENT_KEEPALIVE
          int tx,
            rx,
@@ -245,7 +240,7 @@ struct event_s
       struct
       {                         // EVENT DOOR
          unsigned char door;    // Which door for DOOR event
-         unsigned char state;   // The state of the door
+         unsigned char state;   // The state of the door or input
       };
       struct
       {                         // EVENT_FOB / EVENT_FOB_HELD

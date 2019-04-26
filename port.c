@@ -1,8 +1,9 @@
 // Port stuff
 
 #include "port.h"
-#include "malloc.h"
-#include "err.h"
+#include <string.h>
+#include <malloc.h>
+#include <err.h>
 
 port_p ports = NULL;
 
@@ -14,6 +15,7 @@ port_new_bus (unsigned int b)
    if (p)
       return p;
    p = malloc (sizeof (*p));
+   memset (p, 0, sizeof (*p));
    if (!p)
       errx (1, "malloc");
    p->busid = b;
