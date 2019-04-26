@@ -13,7 +13,10 @@ port_new_bus (unsigned char bus, unsigned char id, unsigned char isinput, unsign
    port_p p;
    for (p = ports; p && (p->mqtt || p->bus != bus || p->id != id || p->port != port || p->isinput != isinput); p = p->next);
    if (p)
+   {
+      fprintf (stderr, "Found bus port %d %02X %c%d (%d)\n", bus, id, port ? isinput ? 'I' : 'O' : '-', port,isinput);
       return p;
+   }
    p = malloc (sizeof (*p));
    memset (p, 0, sizeof (*p));
    if (!p)
@@ -24,7 +27,7 @@ port_new_bus (unsigned char bus, unsigned char id, unsigned char isinput, unsign
    p->isinput = isinput;
    p->next = ports;
    ports = p;
-   //fprintf (stderr, "New bus port %d %02X %c%d\n", bus, id, port ? isinput ? 'I' : 'O' : '-', port);
+   fprintf (stderr, "New bus port %d %02X %c%d\n", bus, id, port ? isinput ? 'I' : 'O' : '-', port);
    return p;
 }
 

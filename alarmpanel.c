@@ -565,7 +565,7 @@ port_set_n (volatile port_p * w, int n, const char *v, unsigned char p, int i, c
       const char *tag = v;
       port_p port = port_parse (v, &v, i);
       if (!port_port (port) && p)
-         port = port_new_bus (port_bus (port), port_id (port), port_isinput (port), p);
+         port = port_new_bus (port_bus (port), port_id (port), i, p);
       w[q++] = port;
       int pd = port_device (port);
       p = port_port (port);
@@ -576,6 +576,7 @@ port_set_n (volatile port_p * w, int n, const char *v, unsigned char p, int i, c
          if (i == 0 && port_app (port)->type >= STATES)
             port_app (port)->type = STATES;
       }
+      fprintf(stderr,"Setting for %s/%s existing %s %d/%d\n",door,name,port->name,i,port->isinput);
       if (p && name && !port->name)
          asprintf ((char **) &port->name, "%s-%s", door ? : tag, name);
    }
