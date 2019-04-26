@@ -122,7 +122,7 @@ port_input_n (volatile port_p * w, int n)
 {
    int q = 0;
    while (n--)
-      if (w[n] && w[n]->state)
+      if (w[n] && port_device (w[n]) && device_input (port_device (w[n]), port_port (w[n])) > 0)
          q++;
    return q;
 }

@@ -243,7 +243,9 @@ void door_unlock (int d);       // Un deadlock the door
 event_t *bus_event (long long usec);    // Get next event, wait up to usec if none ready
 void postevent (event_t * e);
 
+// Access to devices for door control, etc
 int device_found (int id);      // Check device exists
 void device_urgent (int id);    // Mark device urgent
 void device_output (int id, int port, int value);       // Set output
 void device_led (int id, int led);
+int device_input (int id, int port); // Read input

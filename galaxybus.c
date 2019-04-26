@@ -130,6 +130,14 @@ device_output (int id, int port, int value)
    pthread_mutex_unlock (&outputmutex);
 }
 
+int device_input (int id,int port)
+{
+   if (id < 0 || id >= MAX_DEVICE || port < 1 || port >= MAX_INPUT)
+      return -1;
+   if(device[id].input&(1<<(port-1)))return 1;
+   return 0;
+}
+
 void
 device_led (int id, int led)
 {
