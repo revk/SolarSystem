@@ -3745,7 +3745,7 @@ main (int argc, const char *argv[])
          {
             obj = obj;
             mosquitto_reconnect_async (mqtt);
-            dolog (groups, "mQTT", NULL, NULL, "Server disconnected %s", mosquitto_strerror (rc));
+            dolog (groups, "MQTT", NULL, NULL, "Server disconnected %s", mosquitto_strerror (rc));
             commfailcount++;
          }
          mosquitto_connect_callback_set (mqtt, mqtt_connected);
