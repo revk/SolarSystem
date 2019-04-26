@@ -164,9 +164,7 @@ door_led (int d, unsigned char state)
       if (port_valid (door[d].o_led[n]))
       {
          if (device[port_device (door[d].o_led[n])].type == TYPE_MAX)
-            device[port_device (door[d].o_led[n])].led =
-               ((device[port_device (door[d].o_led[n])].led & ~port_bits (door[d].o_led[n])) |
-                (led & port_bits (door[d].o_led[n])));
+            device[port_device (door[d].o_led[n])].led = led;
          else if (device[port_device (door[d].o_led[n])].type == TYPE_PAD)
             snprintf ((char *) device[port_device (door[d].o_led[n])].text[0], 17, "%-15s", door_name[state]);
       }
@@ -583,15 +581,15 @@ poller (void *d)
    unsigned char id = 0,
       idleid = 0;
    unsigned char idlecheck = 0;
-   event_t *newevent (int etype, int port)
-   {
+   event_t *newevent (int etype, unsigned char isinput, unsigned char port)
+   {                            // port from 1 else assumed device level
       event_t *e = malloc (sizeof (event_t));
       if (!e)
          errx (1, "malloc");
       memset ((void *) e, 0, sizeof (*e));
       unsigned int did = ((busid << 8) + id);
       if (!device[did].port[port])
-         device[did].port[port] = port_new_bus ((did << 8) + (port ? (1 << (port - 1)) : 0));
+         device[did].port[port] = port_new_bus (busid, id, isinput, port);
       e->when = now;
       e->port = device[did].port[port];
       e->event = etype;
@@ -720,7 +718,7 @@ poller (void *d)
                dev[id].missing = 1;
                if (debug)
                   printf ("%s%X%02X lost\n", type_name[dev[id].type], busid + 1, id);
-               postevent (newevent (EVENT_MISSING, 0));
+               postevent (newevent (EVENT_MISSING, 0, 0));
             }
             mydev[id].polling = 0;
             cmdlen = 0;         // we move on to next device
@@ -798,13 +796,13 @@ poller (void *d)
                memset ((void *) &dev[id], 0, sizeof (dev[id]));
                memset (&mydev[id], 0, sizeof (mydev[id]));
                dev[id].disabled = 1;
-               postevent (newevent (EVENT_DISABLED, 0));
+               postevent (newevent (EVENT_DISABLED, 0, 0));
             }
             dev[id].type = type;
             if (dev[id].missing)
             {                   // Report found
                dev[id].missing = 0;
-               postevent (newevent (EVENT_FOUND, 0));
+               postevent (newevent (EVENT_FOUND, 0, 0));
             }
          }
          cmdlen = 0;            // Reset.. Possible that some responses need immediate reply.
@@ -836,7 +834,7 @@ poller (void *d)
                         n = n * 100 + (res[q] >> 4) * 10 + (res[q] & 0xF);
                      if (!(mydev[id].input & (1 << INPUT_MAX_FOB)))
                      {          // Fob starts
-                        event_t *e = newevent (EVENT_FOB, 0);
+                        event_t *e = newevent (EVENT_FOB, 0, 0);
                         e->fob = n;
                         postevent (e);
                         mydev[id].input |= (1 << INPUT_MAX_FOB);
@@ -848,7 +846,7 @@ poller (void *d)
                      {          // Fob held
                         mydev[id].input |= (1 << INPUT_MAX_FOB_HELD);
                         mydev[id].fobheld = 0;
-                        event_t *e = newevent (EVENT_FOB_HELD, 0);
+                        event_t *e = newevent (EVENT_FOB_HELD, 0, 0);
                         e->fob = n;
                         postevent (e);
                      }
@@ -870,7 +868,7 @@ poller (void *d)
                      mydev[id].tamper &= ~(1 << MAX_INPUT);
                   if (res[2] != 0x7F)
                   {             // key
-                     event_t *e = newevent (EVENT_KEY, 0);
+                     event_t *e = newevent (EVENT_KEY, 0, 0);
                      e->key = "0123456789BA\n\e*#"[res[2] & 0x0F];
                      postevent (e);
                      // Acknowledge key
@@ -989,7 +987,7 @@ poller (void *d)
                   // Set up response message to device
                   // TODO
                   // TODO temp for now
-                  event_t *e = newevent (EVENT_RF, 0);
+                  event_t *e = newevent (EVENT_RF, 0, 0);
                   e->rfserial = ((res[2] << 24) | (res[3] << 16) | (res[4] << 8) | res[5]);
                   e->rfstatus = ((res[6] << 24) | (res[7] << 16) | (res[8] << 8) | res[9]);
                   e->rftype = res[10];
@@ -1107,7 +1105,7 @@ poller (void *d)
                   dev[id].config = 0;   // Clear
                   mydev[id].config = 1;
                   mydev[id].addr = 0;
-                  event_t *e = newevent (EVENT_CONFIG, 0);
+                  event_t *e = newevent (EVENT_CONFIG, 0, 0);
                   postevent (e);
                }
                if (mydev[id].config)
@@ -1452,7 +1450,7 @@ poller (void *d)
       if (nextka <= now.tv_sec)
       {                         // Keep alive stats
          nextka = now.tv_sec + 60;
-         event_t *e = newevent (EVENT_KEEPALIVE, 0);
+         event_t *e = newevent (EVENT_KEEPALIVE, 0, 0);
          e->rx = rx;
          e->tx = tx;
          e->errors = errors;
@@ -1472,7 +1470,7 @@ poller (void *d)
             if (changed & (1 << i))
             {
                changed &= ~(1 << i);
-               event_t *e = newevent (etype, i + 1);
+               event_t *e = newevent (etype, 1, i + 1);
                e->state = ((status & (1 << i)) ? 1 : 0);
                postevent (e);
             }

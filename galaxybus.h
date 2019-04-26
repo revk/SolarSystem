@@ -161,7 +161,7 @@ typedef volatile struct door_s door_t;
 
 struct device_s
 {                               // Device on the bus...
-   port_p port[MAX_TAMPER+1];	// Device ports in use for event reporting (base devivce ID, and then inputs and extra tampers)
+   port_p port[MAX_TAMPER + 1]; // Device ports in use for event reporting (base devivce ID, and then inputs and extra tampers)
    input_t input;               // Bit map of inputs
    input_t inhibit;             // Inhibited inputs
    output_t output;             // Bit map of outputs
