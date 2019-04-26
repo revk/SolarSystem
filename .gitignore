@@ -1,5 +1,5 @@
 alarmpanel
-galaxybus.o
+*.o
 *~
 *.swp
 .DS_Store
