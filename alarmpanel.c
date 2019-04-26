@@ -320,19 +320,11 @@ static struct
       unsigned char inuse:1;    // Mentioned in config at all
       unsigned char isexit:1;   // Door related input
       unsigned char isbell:1;   // Door related input
-      int a,
-        x,
-        y;                      // Position on floor plan
-      char *t;                  //icon
       group_t trigger[STATE_TRIGGERS];  // If this input applies to a state
    } input[MAX_INPUT];
    struct
    {                            // Outputs
       char *name;
-      int a,
-        x,
-        y;                      // Position on floor plan
-      char *t;                  //icon
       state_t type;             // Which state we are outputting
       group_t group;            // Which groups it applies to
    } output[MAX_OUTPUT];
@@ -567,7 +559,7 @@ port_set_n (volatile port_p * w, int n, const char *v, unsigned char p, int i, c
       int pd = port_device (id);
       int pp = port_port (id);
       if (pp && pd < MAX_DEVICE)
-      { // port
+      {                         // port
          pp--;
          if (i == 1 && device[pd].type == TYPE_RIO)
             device[pd].ri[pp].response = 1;
@@ -716,14 +708,13 @@ input_ws (xml_t root, port_p port)
    xml_add (x, "@id", port_name (port));
    if (xml_get (root, "@full-data"))
    {
-      if (mydevice[id].input[n].a >= 0)
-         xml_addf (x, "@-a", "%d", mydevice[id].input[n].a);
-      if (mydevice[id].input[n].x >= 0)
-         xml_addf (x, "@-x", "%d", mydevice[id].input[n].x);
-      if (mydevice[id].input[n].y >= 0)
-         xml_addf (x, "@-y", "%d", mydevice[id].input[n].y);
-      if (mydevice[id].input[n].t)
-         xml_add (x, "@t", mydevice[id].input[n].t);
+      if (port->onplan)
+      {
+         xml_addf (x, "@-a", "%d", port->a);
+         xml_addf (x, "@-x", "%d", port->x);
+         xml_addf (x, "@-y", "%d", port->y);
+         xml_add (x, "@t", port->t);
+      }
       if (mydevice[id].name)
          xml_add (x, "@device", mydevice[id].name);
       if (mydevice[id].input[n].name)
@@ -768,14 +759,13 @@ output_ws (xml_t root, port_p port)
    xml_add (x, "@id", port_name (port));
    if (xml_get (root, "@full-data"))
    {
-      if (mydevice[id].output[n].a >= 0)
-         xml_addf (x, "@-a", "%d", mydevice[id].output[n].a);
-      if (mydevice[id].output[n].x >= 0)
-         xml_addf (x, "@-x", "%d", mydevice[id].output[n].x);
-      if (mydevice[id].output[n].y >= 0)
-         xml_addf (x, "@-y", "%d", mydevice[id].output[n].y);
-      if (mydevice[id].output[n].t)
-         xml_add (x, "@t", mydevice[id].output[n].t);
+      if (port->onplan)
+      {
+         xml_addf (x, "@-a", "%d", port->a);
+         xml_addf (x, "@-x", "%d", port->x);
+         xml_addf (x, "@-y", "%d", port->y);
+         xml_add (x, "@t", port->t);
+      }
       if (mydevice[id].name)
          xml_add (x, "@device", mydevice[id].name);
       if (mydevice[id].output[n].name)
@@ -906,14 +896,16 @@ load_config (const char *configfile)
                continue;
             }
             n--;
-            mydevice[id].input[n].a = atoi (xml_get (x, "@a") ? : "");
-            mydevice[id].input[n].x = atoi (xml_get (x, "@x") ? : "");
-            mydevice[id].input[n].y = atoi (xml_get (x, "@y") ? : "");
+            p->a = atoi (xml_get (x, "@a") ? : "");
+            p->x = atoi (xml_get (x, "@x") ? : "");
+            p->y = atoi (xml_get (x, "@y") ? : "");
             {
                char *t = xml_get (x, "@t");
                if (t)
-                  mydevice[id].input[n].t = strdup (t);
+                  p->t = strdup (t);
             }
+            if (p->a || p->x || p->y || p->t)
+               p->onplan = 1;
             mydevice[id].input[n].inuse = 1;
             mydevice[id].input[n].name = xml_copy (x, "@name");
             // triggers
@@ -1009,12 +1001,16 @@ load_config (const char *configfile)
                continue;
             }
             n--;
-            mydevice[id].output[n].a = atoi (xml_get (x, "@a") ? : "");
-            mydevice[id].output[n].x = atoi (xml_get (x, "@x") ? : "");
-            mydevice[id].output[n].y = atoi (xml_get (x, "@y") ? : "");
-            char *t = xml_get (x, "@t");
-            if (t)
-               mydevice[id].output[n].t = strdup (t);
+            p->a = atoi (xml_get (x, "@a") ? : "");
+            p->x = atoi (xml_get (x, "@x") ? : "");
+            p->y = atoi (xml_get (x, "@y") ? : "");
+            {
+               char *t = xml_get (x, "@t");
+               if (t)
+                  p->t = strdup (t);
+            }
+            if (p->a || p->x || p->y || p->t)
+               p->onplan = 1;
             mydevice[id].output[n].type = state_parse (xml_get (x, "@type"));
             mydevice[id].output[n].name = xml_copy (x, "@name");
             mydevice[id].output[n].group = group_parse (xml_get (x, "@groups") ? : "*");
@@ -3505,17 +3501,19 @@ do_wscallback (websocket_t * w, xml_t head, xml_t data)
                continue;
             port--;
             if (a >= 0)
-               mydevice[id].input[port].a = a;
+               p->a = a;
             if (x >= 0)
-               mydevice[id].input[port].x = x;
+               p->x = x;
             if (y >= 0)
-               mydevice[id].input[port].y = y;
+               p->y = y;
             if (t)
             {
-               if (mydevice[id].input[port].t)
-                  free (mydevice[id].input[port].t);
-               mydevice[id].input[port].t = strdup (t);
+               if (p->t)
+                  free ((void*)p->t);
+               p->t = strdup (t);
             }
+            if (a >= 0 || x >= 0 || y >= 0 || t)
+               p->onplan = 1;
             patch ();
             input_ws (root, p);
             continue;
@@ -3533,17 +3531,19 @@ do_wscallback (websocket_t * w, xml_t head, xml_t data)
                continue;
             port--;
             if (a >= 0)
-               mydevice[id].output[port].a = a;
+               p->a = a;
             if (x >= 0)
-               mydevice[id].output[port].x = x;
+               p->x = x;
             if (y >= 0)
-               mydevice[id].output[port].y = y;
+               p->y = y;
             if (t)
             {
-               if (mydevice[id].output[port].t)
-                  free (mydevice[id].output[port].t);
-               mydevice[id].output[port].t = strdup (t);
+               if (p->t)
+                  free ((void*)p->t);
+               p->t = strdup (t);
             }
+            if (a >= 0 || x >= 0 || y >= 0 || t)
+               p->onplan = 1;
             patch ();
             output_ws (root, p);
             continue;

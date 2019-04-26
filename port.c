@@ -24,7 +24,7 @@ port_new_bus (unsigned char bus, unsigned char id, unsigned char isinput, unsign
    p->isinput = isinput;
    p->next = ports;
    ports = p;
-   fprintf (stderr, "New bus port %d %02X %c%d\n", bus, id, port ? isinput ? 'I' : 'O' : '-', port);
+   //fprintf (stderr, "New bus port %d %02X %c%d\n", bus, id, port ? isinput ? 'I' : 'O' : '-', port);
    return p;
 }
 

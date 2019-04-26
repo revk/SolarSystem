@@ -30,8 +30,10 @@ struct port_s
    unsigned char state:1;       // Current actual state
    unsigned char fault:1;       //
    unsigned char tamper:1;      //
-   // Application state
-   // TODO
+   // Application data
+   unsigned char onplan:1;	// Is on floor plan
+   int a,x,y;			// Location on floo plan
+   const char *t;		// Icon on floor plan
 };
 
 extern port_p ports;
