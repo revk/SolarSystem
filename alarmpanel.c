@@ -576,7 +576,7 @@ port_set_n (volatile port_p * w, int n, const char *v, unsigned char p, int i, c
          if (i == 0 && port_app (port)->type >= STATES)
             port_app (port)->type = STATES;
       }
-      fprintf(stderr,"Setting for %s/%s existing %s %d/%d\n",door,name,port->name,i,port->isinput);
+      fprintf (stderr, "Setting for %s/%s existing %s %d/%d\n", door, name, port->name, i, port->isinput);
       if (p && name && !port->name)
          asprintf ((char **) &port->name, "%s-%s", door ? : tag, name);
    }
@@ -3626,6 +3626,7 @@ main (int argc, const char *argv[])
    {
       // TODO alternative watchdog
    }
+   door_start ();
    if (debug)
       printf ("%s Groups found\n", group_list (groups));
 #ifdef	LIBMQTT

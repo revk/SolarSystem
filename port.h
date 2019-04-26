@@ -1,5 +1,8 @@
 // Port structures
 
+#ifndef PORT_H
+#define PORT_H
+
 #define	MAX_BUS	10              // Maximum buses
 #define	MAX_DEVICE (MAX_BUS*256)        // 256 addresses per bus
 
@@ -44,3 +47,23 @@ port_p port_new_bus (unsigned char bus, // Bus ID (from 0)
 port_p port_new (const char *mqtt,      // Device id (6 char hex normally)
                  unsigned char isinput, // 1 if input
                  unsigned char port);   // port number, from 1 (0 means device level)
+
+#define port_defined(w) port_defined_n((volatile port_p*)&(w),sizeof(w)/sizeof(port_p))
+int port_defined_n (volatile port_p * w, int n);
+
+#define port_input(w) port_input_n((volatile port_p*)&(w),sizeof(w)/sizeof(port_p))
+int port_input_n (volatile port_p * w, int n);
+
+#define port_found(w) port_found_n((volatile port_p*)&(w),sizeof(w)/sizeof(port_p))
+int port_found_n (volatile port_p * w, int n);
+
+#define port_tamper(w) port_tamper_n((volatile port_p*)&(w),sizeof(w)/sizeof(port_p))
+int port_tamper_n (volatile port_p * w, int n);
+
+#define port_output(w,v) port_output_n((volatile port_p*)&(w),sizeof(w)/sizeof(port_p),v)
+void port_output_n (volatile port_p * w, int n, int v);
+
+#define port_urgent(w) port_urgent_n((volatile port_p*)&(w),sizeof(w)/sizeof(port_p))
+void port_urgent_n (volatile port_p * w, int n);
+
+#endif

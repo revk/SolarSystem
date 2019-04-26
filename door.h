@@ -1,5 +1,10 @@
 // Door control
 
+#ifndef DOOR_H
+#define DOOR_H
+
+#include "port.h"
+
 #define MAX_DOOR        30      // Maximum doors
 
 #define DOOR    \
@@ -63,5 +68,17 @@ struct door_s
    unsigned char auth:1;        // Auth propped
 };
 
+// A port ID is used for several purposes
+// A zero is invalid.
+// Reference to a device on a bus is (busid<<16)+(deviceid<<8)
+// Reference to a port on a device on a bus is (busid<<16)+(deviceid<<8)+(1<<port)
+// Reference to an RF device is 0x10000000+(serialno<<8) optionally +(1<<port)
+typedef void port_output_callback_t (port_p);
+extern port_output_callback_t *port_output_callback;
+
 extern door_t door[MAX_DOOR];   // Door table
 
+void door_start (void);
+
+
+#endif

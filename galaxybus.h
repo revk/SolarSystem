@@ -119,14 +119,6 @@ struct rio_threshold_s
 };
 const rio_threshold_t rio_thresholds[3];
 
-// A port ID is used for several purposes
-// A zero is invalid.
-// Reference to a device on a bus is (busid<<16)+(deviceid<<8)
-// Reference to a port on a device on a bus is (busid<<16)+(deviceid<<8)+(1<<port)
-// Reference to an RF device is 0x10000000+(serialno<<8) optionally +(1<<port)
-typedef void port_output_callback_t (port_p);
-extern port_output_callback_t *port_output_callback;
-
 // Structures
 
 typedef volatile struct device_s device_t;      // Device
@@ -238,10 +230,6 @@ extern event_t *event,
 **eventp;                       // Event queue
 
 // Functions
-#define port_output(w,v) port_output_n((volatile port_p*)&(w),sizeof(w)/sizeof(port_p),v)
-void port_output_n (volatile port_p * w, int n, int v);
-#define port_urgent(w) port_urgent_n((volatile port_p*)&(w),sizeof(w)/sizeof(port_p))
-void port_urgent_n (volatile port_p * w, int n);
 void bus_init (void);
 void bus_start (int bus);
 void bus_stop (int bus);
@@ -254,3 +242,8 @@ void door_deadlock (int d);     // Deadlock the door
 void door_unlock (int d);       // Un deadlock the door
 event_t *bus_event (long long usec);    // Get next event, wait up to usec if none ready
 void postevent (event_t * e);
+
+int device_found (int id);      // Check device exists
+void device_urgent (int id);    // Mark device urgent
+void device_output (int id, int port, int value);       // Set output
+void device_led (int id, int led);
