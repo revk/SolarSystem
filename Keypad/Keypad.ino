@@ -1,6 +1,10 @@
+// Solar System
+// (c) Andrews & Arnold Ltd, Adrian Kennard, see LICENSE file (GPL)
+
 // Keypad / display
-// ESP-01 based with RS485 board
-// Connect to Galaxy keypad
+// ESP-01 based with RS485 board fits in Galaxy keypad/display module
+
+
 
 //#define DEBUG // log message (header bytes)
 

@@ -1,3 +1,6 @@
+// Solar System
+// (c) Andrews & Arnold Ltd, Adrian Kennard, see LICENSE file (GPL)
+
 // RFID Card reader for Solar System
 // ESP-12F based for use with PN532
 
@@ -8,46 +11,40 @@
 // GPIO14 SCK (CLK)
 // GPIO16 SDA (SS)
 
-#define HOLDTIME 3000
-#define RELEASETIME 1000
-
 #include <ESP8266RevK.h>
-
-ESP8266RevK revk(__FILE__, __DATE__ " " __TIME__);
-
+#include "Reader532.h"
 #include <PN532_SPI.h>
 #include "PN532.h"
 
 PN532_SPI pn532spi(SPI, 16);
 PN532 nfc(pn532spi);
 
-boolean app_setting(const char *setting, const byte *value, size_t len)
+boolean reader532_setting(const char *setting, const byte *value, size_t len)
 { // Called for settings retrieved from EEPROM
   return false; // Done
 }
 
-boolean app_cmnd(const char*suffix, const byte *message, size_t len)
+boolean reader532_cmnd(const char*suffix, const byte *message, size_t len)
 { // Called for incoming MQTT messages
   return false;
 }
 
-void setup()
+void reader532_setup(ESP8266RevK&revk)
 {
   Serial.begin(115200);
   nfc.begin();
-
   uint32_t versiondata = nfc.getFirmwareVersion();
   if (! versiondata) {
     Serial.println("Didn't find PN53x board");
     while (1); // halt
   }
-  Serial.printf("Version %u\n", versiondata);
   nfc.setPassiveActivationRetries(1);
   nfc.SAMConfig();
 }
 
-static byte lastuid[7] = {}, lastlen = 0;
-void report(const char *tag)
+static byte lastlen = 0;
+static byte lastuid[7] = {};
+static void report(const char *tag)
 {
   char tid[15];
   int n;
@@ -55,10 +52,8 @@ void report(const char *tag)
   revk.stat(tag, tid);
 }
 
-void loop()
+void reader532_loop(ESP8266RevK&revk)
 {
-  revk.loop();
-
   long now = (millis() ? : 1); // Allowing for wrap, and using 0 to mean not set
   static long cardcheck = 0;
   if ((int)(cardcheck - now) < 0)

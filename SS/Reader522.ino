@@ -1,51 +1,42 @@
-// RFID Card reader for Solar System
-// ESP-12F based for use with MFRC522 to send on card read
+// Solar System
+// (c) Andrews & Arnold Ltd, Adrian Kennard, see LICENSE file (GPL)
 
-// Witing for ESP-12F
-// RC522 connnections (in addition to GND/3V3)
+// RFID Card reader for Solar System
+// Functions for RC522 via SPI
+
 // GPIO2  RST (not actually needed)
 // GPIO13 MOSI
 // GPIO12 MISO
 // GPIO14 SCK (CLK)
 // GPIO16 SDA (SS)
 
-// TODO
-// HoldTime as a setting
-// More checks on MiFare card validity (key as a setting)
-
-#define HOLDTIME 3000
-#define RELEASETIME 1000
-
 #include <ESP8266RevK.h>
-
-ESP8266RevK revk(__FILE__, __DATE__ " " __TIME__);
+#include "Reader522.h"
+#include <SPI.h>
+#include <MFRC522.h>
 
 #define RST 2 // SPI
 #define SS 16 // SPI
-
-#include <SPI.h>
-#include <MFRC522.h>
 MFRC522 rfid(SS, RST); // Instance of the class
 
-boolean app_setting(const char *setting, const byte *value, size_t len)
+boolean reader522_setting(const char *setting, const byte *value, size_t len)
 { // Called for settings retrieved from EEPROM
   return false; // Done
 }
 
-boolean app_cmnd(const char*suffix, const byte *message, size_t len)
+boolean reader522_cmnd(const char*suffix, const byte *message, size_t len)
 { // Called for incoming MQTT messages
   return false;
 }
 
-void setup()
+void reader522_setup(ESP8266RevK&revk)
 {
   SPI.begin(); // Init SPI bus
   rfid.PCD_Init(); // Init MFRC522
 }
 
-void loop()
+void reader522_loop(ESP8266RevK&revk)
 {
-  revk.loop();
   long now = (millis() ? : 1); // Allowing for wrap, and using 0 to mean not set
   static long cardcheck = 0;
   if ((int)(cardcheck - now) < 0)
