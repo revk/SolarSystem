@@ -3678,9 +3678,10 @@ main (int argc, const char *argv[])
                {
                   if (g & ~iot_arm)
                      dolog (g & ~iot_arm, "IOT", NULL, NULL, "Attempting cancel of invalid groups");
+		  g &= state[STATE_ARM]; // Must be arming
                   g &= iot_arm;
                   pthread_mutex_lock (&eventmutex);
-                  alarm_cancel ("IOT", NULL, g, 0);
+                  alarm_unset ("IOT", NULL, g);
                   pthread_mutex_unlock (&eventmutex);
                   return;
                }
