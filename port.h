@@ -8,7 +8,7 @@
 #define port_id(w) ((w)?(w)->id:0)
 #define port_port(w) ((w)?(w)->port:0)
 #define port_bits(w) ((w)&&(w)->port?(1<<((w)->port-1)):0)
-#define port_isinput(w) ((w)?(w)->isinput:0)
+#define port_isinput(w) ((w)&&(w)->port&&(w)->isinput)
 #define port_isoutput(w) ((w)&&(w)->port&&!(w)->isinput)
 #define port_mqtt(w) ((w)?(w)->mqtt:NULL)
 

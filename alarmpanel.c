@@ -192,6 +192,7 @@ struct port_app_s
      y;                         // Location on floor plan
    const char *t;               // Icon on floor plan
    unsigned char onplan:1;      // Is on floor plan
+   unsigned char missing:1;     // Device missing
    union
    {
       struct
@@ -337,15 +338,6 @@ struct keypad_s
 };
 static keypad_t *keypad = NULL;
 
-// Device settings at alarm panel level
-static struct
-{                               // Per device settings
-   const char *name;            // TODO this is device level
-   unsigned char missing:1;     // Device is AWOL
-} mydevice[MAX_DEVICE] =
-{
-};
-
 static struct timeval now;
 static struct tm lnow;
 static unsigned int buses = 0;
@@ -466,7 +458,7 @@ port_parse (const char *v, const char **ep, int i)
    {                            //  Device
       id = ((*v - '1') << 8) + (((isalpha (v[1]) ? 9 : 0) + (v[1] & 0xF)) << 4) + ((isalpha (v[2]) ? 9 : 0) + (v[2] & 0xF));
       v += 3;
-      if (*v > '0' && *v <= '0' + MAX_INPUT)
+      if (*v > '0' && *v <= '9')
          port = *v - '0';
    }
    while (*v && !isspace (*v) && *v != ',')
@@ -585,7 +577,7 @@ port_set_n (volatile port_p * w, int n, const char *v, unsigned char p, int i, c
             port_app (port)->type = STATES;
       }
       if (p && name && !port->name)
-         asprintf ((char **) &port->name, "%s-%s", door ? : mydevice[pd].name ? : tag, name);
+         asprintf ((char **) &port->name, "%s-%s", door ? : tag, name);
    }
    if (v)
       dolog (groups, "CONFIG", NULL, NULL, "Too many ports in list %s", v);
@@ -699,7 +691,7 @@ input_ws (xml_t root, port_p port)
    if (id < 0 || id > MAX_DEVICE || !device[id].type)
       return NULL;
    int n = port_port (port);
-   if (!n || n > MAX_INPUT)
+   if (!n)
       return NULL;
    port_app_t *app = port_app (port);
    n--;
@@ -716,8 +708,6 @@ input_ws (xml_t root, port_p port)
          xml_addf (x, "@-y", "%d", app->y);
          xml_add (x, "@t", app->t);
       }
-      if (mydevice[id].name)
-         xml_add (x, "@device", mydevice[id].name);
       if (port_name (port))
          xml_add (x, "@name", port->name ? : port_name (port));
       xml_addf (x, "@dev", "%s%d%02X", type_name[device[port_device (port)].type], port_bus (port) + 1, port_id (port));
@@ -749,7 +739,7 @@ output_ws (xml_t root, port_p port)
    if (id < 0 || id > MAX_DEVICE || !device[id].type)
       return NULL;
    int n = port_port (port);
-   if (!n || n > MAX_OUTPUT)
+   if (!n)
       return NULL;
    port_app_t *app = port_app (port);
    n--;
@@ -768,8 +758,6 @@ output_ws (xml_t root, port_p port)
          xml_addf (x, "@-y", "%d", app->y);
          xml_add (x, "@t", app->t);
       }
-      if (mydevice[id].name)
-         xml_add (x, "@device", mydevice[id].name);
       if (port_name (port))
          xml_add (x, "@name", port->name ? : port_name (port));
       xml_addf (x, "@dev", "%s%d%02X", type_name[device[port_device (port)].type], port_bus (port) + 1, port_id (port));
@@ -887,7 +875,7 @@ load_config (const char *configfile)
             port_p p = port_parse (pl, &pl, 1);
             unsigned int id = port_device (p);
             int n = port_port (p);
-            if (!n || n > MAX_INPUT)
+            if (!n)
             {
                dolog (ALL_GROUPS, "CONFIG", NULL, port_name (p), "Input with bad port");
                continue;
@@ -998,7 +986,7 @@ load_config (const char *configfile)
             port_p p = port_parse (pl, &pl, 0);
             unsigned int id = port_device (p);
             int n = port_port (p);
-            if (!n || n > MAX_OUTPUT)
+            if (!n)
             {
                dolog (ALL_GROUPS, "CONFIG", NULL, port_name (p), "Output with bad port");
                continue;
@@ -1179,8 +1167,8 @@ load_config (const char *configfile)
          if (max)
          {                      // short cut to set based on max reader
             port_p maxport = port_parse (max, NULL, -2);
-            if (maxport && !mydevice[port_device (maxport)].name)
-               mydevice[port_device (maxport)].name = mydoor[d].name;
+            if (maxport && !maxport->name)
+               maxport->name = mydoor[d].name;
             port_o_set (door[d].o_led, max, 0, doorname, "Max");
             port_o_set (door[d].mainlock.o_unlock, max, 2, doorname, "Unlock");
             port_i_set (door[d].i_open, max, 1, doorname, "Open");
@@ -1891,7 +1879,7 @@ dologger (CURL * curl, log_t * l)
       if (!strncmp (l->port, "DOOR", 4))
          name = mydoor[atoi (l->port + 4)].name;
       else if ((p = port_parse (l->port, NULL, -2)))
-         name = mydevice[port_device (p)].name;
+         name = p->name;
    }
    // Syslog (except boring keepalives)
    if (!l->type || strcasecmp (l->type, "KEEPALIVE"))
@@ -2680,6 +2668,7 @@ doevent (event_t * e)
          printf ("Bad id %d\n", id);
       return;
    }
+   port_app_t *app = port_app (e->port);
    // Handle event
    switch (e->event)
    {
@@ -2718,21 +2707,21 @@ doevent (event_t * e)
    case EVENT_FOUND:
       {
          dolog (groups, "BUSFOUND", NULL, port_name (e->port), "Device found on bus");
-         if (mydevice[id].missing)
+         if (app && app->missing)
          {
-            mydevice[id].missing = 0;
-            rem_tamper (groups, port_name (e->port), mydevice[id].name);
+            app->missing = 0;
+            rem_tamper (groups, port_name (e->port), e->port->name);
          }
          if (type == TYPE_PAD)
             keypad_new (e->port);
       }
       break;
    case EVENT_MISSING:
-      if (!mydevice[id].missing)
+      if (app && !app->missing)
       {
-         mydevice[id].missing = 1;
+         app->missing = 1;
          dolog (groups, "BUSMISSING", NULL, port_name (e->port), "Device missing from bus");
-         add_tamper (groups, port_name (e->port), mydevice[id].name);
+         add_tamper (groups, port_name (e->port), e->port->name);
       }
       break;
    case EVENT_DISABLED:
@@ -2858,14 +2847,11 @@ doevent (event_t * e)
       break;
    case EVENT_INPUT:
       {
-         int s;
-         int i = port_port (e->port);
-         if (!i)
+         if (!app || !port_isinput (e->port))
             break;
-         i--;
-         port_app_t *app = port_app (e->port);
+         int s;
          const char *port = port_name (e->port);
-         const char *name = e->port->name ? : mydevice[id].name;
+         const char *name = e->port->name ? : port;
          if (e->state)
          {                      // on
             app->input = 1;
@@ -2922,62 +2908,26 @@ doevent (event_t * e)
       break;
    case EVENT_TAMPER:
       {
-         const char *port = port_name (e->port);
-         int i = port_port (e->port);
-         if (!i)
+         if (!app || !port_isinput (e->port))
             break;
-         port_app_t *app = port_app (e->port);
-         i--;
-         if (i < MAX_INPUT)
+         const char *port = port_name (e->port);
+         const char *name = e->port->name ? : port;
+         group_t g = 0;
+         int s;
+         for (s = 0; s < STATE_TRIGGERS; s++)
+            g |= app->trigger[s];
+         if (e->state)
          {
-            const char *name = port ? : mydevice[id].name;
-            group_t g = 0;
-            int s;
-            for (s = 0; s < STATE_TRIGGERS; s++)
-               g |= app->trigger[s];
-            if (e->state)
-            {
-               app->tamper = 1;
-               if (walkthrough)
-                  syslog (LOG_INFO, "+%s(%s) Tamper", port, name ? : "");
-               add_tamper (g, port, name);
-            } else
-            {
-               app->tamper = 0;
-               if (walkthrough)
-                  syslog (LOG_INFO, "-%s(%s) Tamper", port, name ? : "");
-               rem_tamper (g, port, name);
-            }
+            app->tamper = 1;
+            if (walkthrough)
+               syslog (LOG_INFO, "+%s(%s) Tamper", port, name ? : "");
+            add_tamper (g, port, name);
          } else
          {
-            const char *name = mydevice[id].name;
-            group_t g = 0;
-            int q,
-              s;
-            if (device[id].type == TYPE_RIO)
-            {
-               for (q = 0; q < MAX_INPUT; q++)
-                  for (s = 0; s < STATE_TRIGGERS; s++)
-                     g |= app->trigger[s];
-               for (q = 0; q < MAX_OUTPUT; q++)
-                  g |= app->group;
-            } else if (device[id].type == TYPE_PAD)
-            {
-               keypad_t *k;
-               for (k = keypad; k && port_device (k->port) != port_device (e->port); k = k->next);
-               if (k)
-                  g = k->groups;
-            } else
-               g = groups;
-            if (e->state)
-            {
-               app->tamper = 1;
-               add_tamper (g, port, name);
-            } else
-            {
-               app->tamper = 0;
-               rem_tamper (g, port, name);
-            }
+            app->tamper = 0;
+            if (walkthrough)
+               syslog (LOG_INFO, "-%s(%s) Tamper", port, name ? : "");
+            rem_tamper (g, port, name);
          }
 #ifdef	LIBWS
          xml_t root = xml_tree_new (NULL);
@@ -2989,12 +2939,11 @@ doevent (event_t * e)
       break;
    case EVENT_FAULT:
       {
-         int i = port_port (e->port);
-         if (!i)
+         if (!app || !port_isinput (e->port))
             break;
+         int i = port_port (e->port) - 1;
          const char *port = port_name (e->port);
-         const char *name = mydevice[id].name;
-         port_app_t *app = port_app (e->port);
+         const char *name = e->port->name ? : port;
          i--;
          group_t g = 0;
          int s;
@@ -3013,45 +2962,34 @@ doevent (event_t * e)
                syslog (LOG_INFO, "-%s(%s) Fault", port, name ? : "");
             rem_fault (g, port, name);
          }
-         if (device[id].type == TYPE_RIO)
+         if (id && device[id].type == TYPE_RIO)
          {
-            group_t g = 0;
-            int q,
-              s;
-            for (q = 0; q < MAX_INPUT; q++)
-               for (s = 0; s < STATE_TRIGGERS; s++)
-                  g |= app->trigger[s];
-            for (q = 0; q < MAX_OUTPUT; q++)
-               g |= app->group;
-            if (g)
+            if (i == FAULT_RIO_NO_PWR)
             {
-               if (i == FAULT_RIO_NO_PWR)
-               {
-                  char port[20];
-                  snprintf (port, sizeof (port), "%sNOPWR", port_name (e->port));
-                  if (e->state)
-                     add_warning (g, port, mydevice[id].name);
-                  else
-                     rem_warning (g, port, mydevice[id].name);
-               }
-               if (i == FAULT_RIO_NO_BAT)
-               {
-                  char port[20];
-                  snprintf (port, sizeof (port), "%sNOBAT", port_name (e->port));
-                  if (e->state)
-                     add_warning (g, port, mydevice[id].name);
-                  else
-                     rem_warning (g, port, mydevice[id].name);
-               }
-               if (i == FAULT_RIO_BAD_BAT)
-               {
-                  char port[20];
-                  snprintf (port, sizeof (port), "%sBADBAT", port_name (e->port));
-                  if (e->state)
-                     add_warning (g, port, mydevice[id].name);
-                  else
-                     rem_warning (g, port, mydevice[id].name);
-               }
+               char port[20];
+               snprintf (port, sizeof (port), "%sNOPWR", port_name (e->port));
+               if (e->state)
+                  add_warning (g, port, name);
+               else
+                  rem_warning (g, port, name);
+            }
+            if (i == FAULT_RIO_NO_BAT)
+            {
+               char port[20];
+               snprintf (port, sizeof (port), "%sNOBAT", port_name (e->port));
+               if (e->state)
+                  add_warning (g, port, name);
+               else
+                  rem_warning (g, port, name);
+            }
+            if (i == FAULT_RIO_BAD_BAT)
+            {
+               char port[20];
+               snprintf (port, sizeof (port), "%sBADBAT", port_name (e->port));
+               if (e->state)
+                  add_warning (g, port, name);
+               else
+                  rem_warning (g, port, name);
             }
          }
 #ifdef	LIBWS
@@ -3500,7 +3438,7 @@ do_wscallback (websocket_t * w, xml_t head, xml_t data)
             if (id >= MAX_DEVICE)
                continue;
             int port = port_port (p);
-            if (!port || port > MAX_INPUT)
+            if (!port)
                continue;
             port--;
             if (a >= 0)
@@ -3530,7 +3468,7 @@ do_wscallback (websocket_t * w, xml_t head, xml_t data)
             if (id >= MAX_DEVICE)
                continue;
             int port = port_port (p);
-            if (!port || port > MAX_OUTPUT)
+            if (!port)
                continue;
             port--;
             if (a >= 0)
