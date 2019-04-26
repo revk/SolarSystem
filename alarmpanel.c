@@ -3723,7 +3723,7 @@ main (int argc, const char *argv[])
    if (xml_get (config, "system@mqtt-ca"))
    {
       mqtt = mosquitto_new (xml_get (config, "system@name"), true, NULL);
-      if (!iot)
+      if (!mqtt)
          warnx ("MQTT init failed");
       else
       {
@@ -3756,7 +3756,7 @@ main (int argc, const char *argv[])
          char *host = xml_get (config, "system@mqtt-host") ? : "localhost";
          char *ca = xml_get (config, "system@mqtt-ca");
          int port = atoi (xml_get (config, "system@mqtt-port") ? : ca ? "8883" : "1883");
-         if (ca && mosquitto_tls_set (iot, ca, NULL, NULL, NULL, NULL))
+         if (ca && mosquitto_tls_set (mqtt, ca, NULL, NULL, NULL, NULL))
             warnx ("MQTT cert failed %s", ca);
          if (mosquitto_connect_async (mqtt, host, port, 60))
             warnx ("MQTT connect failed %s:%d", host, port);
