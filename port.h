@@ -12,6 +12,7 @@
 #define port_isoutput(w) ((w)&&(w)->port&&!(w)->isinput)
 #define port_mqtt(w) ((w)?(w)->mqtt:NULL)
 
+typedef struct port_app_s port_app_t;
 typedef struct port_s port_t;
 typedef port_t *port_p;
 struct port_s
@@ -31,9 +32,7 @@ struct port_s
    unsigned char fault:1;       //
    unsigned char tamper:1;      //
    // Application data
-   unsigned char onplan:1;	// Is on floor plan
-   int a,x,y;			// Location on floo plan
-   const char *t;		// Icon on floor plan
+   port_app_t *app;
 };
 
 extern port_p ports;

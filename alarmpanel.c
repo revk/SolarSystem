@@ -64,7 +64,7 @@ struct mosquitto *mqtt = NULL;
 #endif
 
 #define	MAX_GROUP	10      // Mainly to work with keypad...
-typedef unsigned short group_t; // Set of groups
+typedef unsigned long long group_t;     // Set of groups
 #define	ALL_GROUPS	((1<<MAX_GROUP)-1)
 
 #define	MAX_FOB		5       // Fobs per user
@@ -183,6 +183,32 @@ const char *state_name[STATES] = {
 #undef s
 };
 
+typedef unsigned char state_t;
+
+struct port_app_s
+{
+   int a,
+     x,
+     y;                         // Location on floor plan
+   const char *t;               // Icon on floor plan
+   unsigned char onplan:1;      // Is on floor plan
+   union
+   {
+      struct
+      {                         // Inputs
+         unsigned char inuse:1; // Mentioned in config at all
+         unsigned char isexit:1;        // Door related input
+         unsigned char isbell:1;        // Door related input
+         group_t trigger[STATE_TRIGGERS];       // If this input applies to a state
+      };
+      struct
+      {                         // Outputs
+         state_t type;          // Which state we are outputting
+         group_t group;         // Which groups it applies to
+      };
+   };
+};
+
 #ifdef	LIBWS
 char *wsport = NULL;
 const char *wsorigin = NULL;
@@ -196,7 +222,6 @@ unsigned int commfailcount = 0;
 unsigned int commfailreported = 0;
 group_t walkthrough = 0;
 
-typedef unsigned char state_t;
 
 // The actual state bits...
 const char *setfile = "/var/local/alarmset";
@@ -312,20 +337,8 @@ static keypad_t *keypad = NULL;
 // Device settings at alarm panel level
 static struct
 {                               // Per device settings
-   char *name;
+   const char *name;            // TODO this is device level
    unsigned char missing:1;     // Device is AWOL
-   struct
-   {                            // Inputs
-      unsigned char inuse:1;    // Mentioned in config at all
-      unsigned char isexit:1;   // Door related input
-      unsigned char isbell:1;   // Door related input
-      group_t trigger[STATE_TRIGGERS];  // If this input applies to a state
-   } input[MAX_INPUT];
-   struct
-   {                            // Outputs
-      state_t type;             // Which state we are outputting
-      group_t group;            // Which groups it applies to
-   } output[MAX_OUTPUT];
    // Updated states from events
    input_t inputs;              // Bit map of inputs
    fault_t faults;              // Bit map of faults
@@ -532,6 +545,21 @@ real_port_name (char *v, port_p p)
 }
 
 // Functions
+static port_app_t *
+port_app (port_p p)
+{                               // ensure port has app
+   if (!p)
+      return NULL;
+   if (!p->app)
+   {
+      p->app = malloc (sizeof (*p->app));
+      if (!p->app)
+         errx (1, "malloc");
+      memset (p->app, 0, sizeof (*p->app));
+   }
+   return p->app;
+}
+
 #define	port_exit_set(w,v,p,door) port_exit_set_n(port_set_n((volatile port_p*)&(w),sizeof(w)/sizeof(port_p),v,p,1,door,"Exit"),sizeof(w)/sizeof(port_p))
 #define	port_bell_set(w,v,p,door) port_bell_set_n(port_set_n((volatile port_p*)&(w),sizeof(w)/sizeof(port_p),v,p,1,door,"Bell"),sizeof(w)/sizeof(port_p))
 #define	port_i_set(w,v,p,door,name) port_set_n((volatile port_p*)&(w),sizeof(w)/sizeof(port_p),v,p,1,door,name)
@@ -544,29 +572,21 @@ port_set_n (volatile port_p * w, int n, const char *v, unsigned char p, int i, c
    while (v && *v && q < n)
    {
       const char *tag = v;
-      port_p id = port_parse (v, &v, i);
-      if (!port_port (id) && p)
-         id = port_new_bus (port_bus (id), port_id (id), port_isinput (id), p);
-      w[q++] = id;
-      int pd = port_device (id);
-      int pp = port_port (id);
-      if (pp && pd < MAX_DEVICE)
+      port_p port = port_parse (v, &v, i);
+      if (!port_port (port) && p)
+         port = port_new_bus (port_bus (port), port_id (port), port_isinput (port), p);
+      w[q++] = port;
+      int pd = port_device (port);
+      p = port_port (port);
+      if (p && pd < MAX_DEVICE)
       {                         // port
-         pp--;
          if (i == 1 && device[pd].type == TYPE_RIO)
-            device[pd].ri[pp].response = 1;
-         if (i == 1 && pp < MAX_INPUT)
-         {
-            if (name && !id->name)
-               asprintf ((char **) &id->name, "%s-%s", door ? : mydevice[pd].name ? : tag, name);
-            mydevice[pd].input[pp].inuse = 1;
-         } else if (i == 0 && pp < MAX_OUTPUT && mydevice[pd].output[pp].type >= STATES)
-         {
-            if (name && !id->name)
-               asprintf ((char **) &id->name, "%s-%s", door ? : mydevice[pd].name ? : tag, name);
-            mydevice[pd].output[pp].type = STATES;
-         }
+            device[pd].ri[p].response = 1;
+         if (i == 0 && port_app (port)->type >= STATES)
+            port_app (port)->type = STATES;
       }
+      if (p && name && !port->name)
+         asprintf ((char **) &port->name, "%s-%s", door ? : mydevice[pd].name ? : tag, name);
    }
    if (v)
       dolog (groups, "CONFIG", NULL, NULL, "Too many ports in list %s", v);
@@ -578,12 +598,7 @@ port_exit_set_n (volatile port_p * w, int n)
 {
    while (n--)
       if (w[n])
-      {
-         int pd = port_device (w[n]);
-         int pi = port_port (w[n]);
-         if (pd < MAX_DEVICE && pi && pi <= MAX_INPUT)
-            mydevice[pd].input[pi - 1].isexit = 1;
-      }
+         port_app (w[n])->isexit = 1;
    return w;
 }
 
@@ -591,12 +606,8 @@ static volatile port_p *
 port_bell_set_n (volatile port_p * w, int n)
 {
    while (n--)
-   {
-      int pd = port_device (w[n]);
-      int pi = port_port (w[n]);
-      if (pd < MAX_DEVICE && pi && pi <= MAX_INPUT)
-         mydevice[pd].input[pi - 1].isbell = 1;
-   }
+      if (w[n])
+         port_app (w[n])->isbell = 1;
    return w;
 }
 
@@ -694,24 +705,22 @@ input_ws (xml_t root, port_p port)
    n--;
    if (!((device[id].type == TYPE_MAX && n < 4) || device[id].type == TYPE_RIO))
       return NULL;
-   if (!mydevice[id].input[n].inuse)
-      return NULL;              // Not in use
    xml_t x = xml_element_add (root, "input");
    xml_add (x, "@id", port_name (port));
    if (xml_get (root, "@full-data"))
    {
-      if (port->onplan)
+      if (port_app (port)->onplan)
       {
-         xml_addf (x, "@-a", "%d", port->a);
-         xml_addf (x, "@-x", "%d", port->x);
-         xml_addf (x, "@-y", "%d", port->y);
-         xml_add (x, "@t", port->t);
+         xml_addf (x, "@-a", "%d", port_app (port)->a);
+         xml_addf (x, "@-x", "%d", port_app (port)->x);
+         xml_addf (x, "@-y", "%d", port_app (port)->y);
+         xml_add (x, "@t", port_app (port)->t);
       }
       if (mydevice[id].name)
          xml_add (x, "@device", mydevice[id].name);
-      if (port->name)
-         xml_add (x, "@name", port->name);
-      xml_addf (x, "@dev", "%.6s", port_name (port));
+      if (port_name (port))
+         xml_add (x, "@name", port->name ? : port_name (port));
+      xml_addf (x, "@dev", "%s%d%02X", type_name[device[port_device (port)].type], port_bus (port) + 1, port_id (port));
       xml_addf (x, "@port", "%d", port_port (port));
       if (device[id].type == TYPE_RIO)
          xml_add (x, "@type", "rio");
@@ -745,24 +754,24 @@ output_ws (xml_t root, port_p port)
    n--;
    if (!((device[id].type == TYPE_MAX && n < 2) || device[id].type == TYPE_RIO))
       return NULL;
-   if (mydevice[id].output[n].type == (state_t) - 1)
+   if (port_app (port)->type == (state_t) - 1)
       return NULL;              // Not in use
    xml_t x = xml_element_add (root, "output");
    xml_add (x, "@id", port_name (port));
    if (xml_get (root, "@full-data"))
    {
-      if (port->onplan)
+      if (port_app (port)->onplan)
       {
-         xml_addf (x, "@-a", "%d", port->a);
-         xml_addf (x, "@-x", "%d", port->x);
-         xml_addf (x, "@-y", "%d", port->y);
-         xml_add (x, "@t", port->t);
+         xml_addf (x, "@-a", "%d", port_app (port)->a);
+         xml_addf (x, "@-x", "%d", port_app (port)->x);
+         xml_addf (x, "@-y", "%d", port_app (port)->y);
+         xml_add (x, "@t", port_app (port)->t);
       }
       if (mydevice[id].name)
          xml_add (x, "@device", mydevice[id].name);
-      if (port->name)
-         xml_add (x, "@name", port->name);
-      xml_addf (x, "@dev", "%.6s", port_name (port));
+      if (port_name (port))
+         xml_add (x, "@name", port->name ? : port_name (port));
+      xml_addf (x, "@dev", "%s%d%02X", type_name[device[port_device (port)].type], port_bus (port) + 1, port_id (port));
       xml_addf (x, "@port", "%d", port_port (port));
       if (device[id].type == TYPE_RIO)
          xml_add (x, "@type", "rio");
@@ -864,11 +873,6 @@ load_config (const char *configfile)
          group[g].bell_time += group[g].bell_delay;
          group[g].bell_rest += group[g].bell_time;
       }
-      int p,
-        o;
-      for (p = 0; p < MAX_DEVICE; p++)
-         for (o = 0; o < MAX_OUTPUT; o++)
-            mydevice[p].output[o].type = -1;
    }
    if (debug)
       warnx ("Config check inputs");
@@ -893,40 +897,41 @@ load_config (const char *configfile)
                continue;
             }
             n--;
-            p->a = atoi (xml_get (x, "@a") ? : "");
-            p->x = atoi (xml_get (x, "@x") ? : "");
-            p->y = atoi (xml_get (x, "@y") ? : "");
+            port_app (p)->a = atoi (xml_get (x, "@a") ? : "");
+            port_app (p)->x = atoi (xml_get (x, "@x") ? : "");
+            port_app (p)->y = atoi (xml_get (x, "@y") ? : "");
             {
                char *t = xml_get (x, "@t");
                if (t)
-                  p->t = strdup (t);
+                  port_app (p)->t = strdup (t);
             }
-            if (p->a || p->x || p->y || p->t)
-               p->onplan = 1;
-            mydevice[id].input[n].inuse = 1;
+            if (port_app (p)->a || port_app (p)->x || port_app (p)->y || port_app (p)->t)
+               port_app (p)->onplan = 1;
             p->name = xml_copy (x, "@name");
             // triggers
             int t;
             for (t = 0; t < STATE_TRIGGERS; t++)
                if (t != STATE_INTRUDER)
                {
-                  char at[50],
-                   *p;
-                  snprintf (at, sizeof (at), "@%s", state_name[t]);
-                  for (p = at; *p; p++)
-                     if (*p == '_')
-                        *p = '-';
-                     else
-                        *p = tolower (*p);
-                  mydevice[id].input[n].trigger[t] = group_parse (xml_get (x, at));
+                  char at[50];
+                  {
+                     char *p;
+                     snprintf (at, sizeof (at), "@%s", state_name[t]);
+                     for (p = at; *p; p++)
+                        if (*p == '_')
+                           *p = '-';
+                        else
+                           *p = tolower (*p);
+                  }
+                  port_app (p)->trigger[t] = group_parse (xml_get (x, at));
                }
-            mydevice[id].input[n].trigger[STATE_ZONE] |= group_parse (xml_get (x, "@intruder"));
+            port_app (p)->trigger[STATE_ZONE] |= group_parse (xml_get (x, "@intruder"));
             // Special case for NONEXIT which are always intruder anyway
             group_t exit = group_parse (xml_get (x, "@exit"));
-            mydevice[id].input[n].trigger[STATE_NONEXIT] = mydevice[id].input[n].trigger[STATE_ZONE] & ~exit;
-            mydevice[id].input[n].trigger[STATE_ZONE] |= exit;
+            port_app (p)->trigger[STATE_NONEXIT] = port_app (p)->trigger[STATE_ZONE] & ~exit;
+            port_app (p)->trigger[STATE_ZONE] |= exit;
             // Special case as entry is treated not as intruder directly
-            mydevice[id].input[n].trigger[STATE_ZONE] &= ~mydevice[id].input[n].trigger[STATE_ENTRY];
+            port_app (p)->trigger[STATE_ZONE] &= ~port_app (p)->trigger[STATE_ENTRY];
             if (device[id].type == TYPE_RIO)
             {                   // Resistance and response
                if ((v = xml_get (x, "@response")))
@@ -997,25 +1002,25 @@ load_config (const char *configfile)
                dolog (ALL_GROUPS, "CONFIG", NULL, port_name (p), "Output with bad port");
                continue;
             }
-	    if(p->name)
-	    {
-               dolog (ALL_GROUPS, "CONFIG", NULL, port_name (p), "Output with duplicate name %s",p->name);
+            if (p->name)
+            {
+               dolog (ALL_GROUPS, "CONFIG", NULL, port_name (p), "Output with duplicate name %s", p->name);
                continue;
-	    }
+            }
             n--;
-            p->a = atoi (xml_get (x, "@a") ? : "");
-            p->x = atoi (xml_get (x, "@x") ? : "");
-            p->y = atoi (xml_get (x, "@y") ? : "");
+            port_app (p)->a = atoi (xml_get (x, "@a") ? : "");
+            port_app (p)->x = atoi (xml_get (x, "@x") ? : "");
+            port_app (p)->y = atoi (xml_get (x, "@y") ? : "");
             {
                char *t = xml_get (x, "@t");
                if (t)
-                  p->t = strdup (t);
+                  port_app (p)->t = strdup (t);
             }
-            if (p->a || p->x || p->y || p->t)
-               p->onplan = 1;
-            mydevice[id].output[n].type = state_parse (xml_get (x, "@type"));
+            if (port_app (p)->a || port_app (p)->x || port_app (p)->y || port_app (p)->t)
+               port_app (p)->onplan = 1;
+            port_app (p)->type = state_parse (xml_get (x, "@type"));
             p->name = xml_copy (x, "@name");
-            mydevice[id].output[n].group = group_parse (xml_get (x, "@groups") ? : "*");
+            port_app (p)->group = group_parse (xml_get (x, "@groups") ? : "*");
             if ((v = xml_get (x, "@polarity")) && toupper (*v) == 'N')
                device[id].invert |= (1 << n);
          }
@@ -1297,17 +1302,17 @@ load_config (const char *configfile)
          u->group_reset &= groups;
          u->group_prop &= groups;
       }
-      for (d = 0; d < MAX_DEVICE; d++)
-      {
-         int p;
-         for (p = 0; p < MAX_OUTPUT; p++)
-            mydevice[d].output[p].group &= groups;
-         int s;
-         for (p = 0; p < MAX_INPUT; p++)
-            for (s = 0; s < STATE_TRIGGERS; s++)
-               mydevice[d].input[p].trigger[s] &= groups;
-      }
       int s;
+      port_p p;
+      for (p = ports; p; p = p->next)
+         if (p->port)
+         {
+            if (!p->isinput)
+               port_app (p)->group &= groups;
+            else
+               for (s = 0; s < STATE_TRIGGERS; s++)
+                  port_app (p)->trigger[s] &= groups;
+         }
       for (s = 0; s < STATES; s++)
          state[s] &= groups;
    }
@@ -1375,29 +1380,23 @@ output_state (group_t g)
       return;
    port_p port;
    for (port = ports; port; port = port->next)
-   {
-      unsigned int p = port_device (port);
-      if (device[p].type && device[p].type < STATES)
+      if (port_isoutput (port))
       {
-         int o = port_port (port);
-         if (o && o <= MAX_OUTPUT)
+         if ((port_app (port)->group & g) && port_app (port)->type < STATES)
          {
-            o--;
-            if ((mydevice[p].output[o].group & g) && mydevice[p].output[o].type < STATES)
+            int p = port_device (port);
+            int o = port_bits (port);
+            if (state[port_app (port)->type] & g)
             {
-               if (state[mydevice[p].output[o].type] & g)
-               {
-                  if (!(device[p].output & (1 << o)))
-                     port_output (port, 1);
-               } else
-               {
-                  if (device[p].output & (1 << o))
-                     port_output (port, 0);
-               }
+               if (!(device[p].output & o))
+                  port_output (port, 1);
+            } else
+            {
+               if (device[p].output & o)
+                  port_output (port, 0);
             }
          }
       }
-   }
 }
 
 // Main state change events
@@ -1884,7 +1883,7 @@ dologger (CURL * curl, log_t * l)
             *o++ = '-';
       *o = 0;
    }
-   char *name = NULL;
+   const char *name = NULL;
    if (l->port)
    {
       port_p p;
@@ -1982,7 +1981,7 @@ dologger (CURL * curl, log_t * l)
             char and = 0;
             if (q[1])
                and = 1;
-            void add (char *tag, char *value)
+            void add (const char *tag, const char *value)
             {
                if (!value)
                   return;
@@ -2004,7 +2003,7 @@ dologger (CURL * curl, log_t * l)
             curl_easy_setopt (curl, CURLOPT_URL, url);
          } else
          {                      // POST
-            void add (char *tag, char *value)
+            void add (const char *tag, const char *value)
             {
                if (!value)
                   return;
@@ -2863,6 +2862,7 @@ doevent (event_t * e)
          if (!i)
             break;
          i--;
+         port_app_t *app = port_app (e->port);
          const char *port = port_name (e->port);
          const char *name = e->port->name ? : mydevice[id].name;
          if (e->state)
@@ -2871,16 +2871,16 @@ doevent (event_t * e)
             if (walkthrough)
                syslog (LOG_INFO, "+%s(%s)", port, name ? : "");
             for (s = 0; s < STATE_TRIGGERS; s++)
-               add_state (mydevice[id].input[i].trigger[s], port, name, s);
+               add_state (app->trigger[s], port, name, s);
          } else
          {                      // off
             mydevice[id].inputs &= ~(1 << i);
             if (walkthrough)
                syslog (LOG_INFO, "-%s(%s)", port, name ? : "");
             for (s = 0; s < STATE_TRIGGERS; s++)
-               rem_state (mydevice[id].input[i].trigger[s], port, name, s);
+               rem_state (app->trigger[s], port, name, s);
          }
-         if (mydevice[id].input[i].isexit && e->state)
+         if (app->isexit && e->state)
          {
             unsigned int d,
               n;
@@ -2925,6 +2925,7 @@ doevent (event_t * e)
          int i = port_port (e->port);
          if (!i)
             break;
+         port_app_t *app = port_app (e->port);
          i--;
          if (i < MAX_INPUT)
          {
@@ -2932,7 +2933,7 @@ doevent (event_t * e)
             group_t g = 0;
             int s;
             for (s = 0; s < STATE_TRIGGERS; s++)
-               g |= mydevice[id].input[i].trigger[s];
+               g |= app->trigger[s];
             if (e->state)
             {
                mydevice[id].tampers |= (1 << i);
@@ -2948,7 +2949,7 @@ doevent (event_t * e)
             }
          } else
          {
-            char *name = mydevice[id].name;
+            const char *name = mydevice[id].name;
             group_t g = 0;
             int q,
               s;
@@ -2956,9 +2957,9 @@ doevent (event_t * e)
             {
                for (q = 0; q < MAX_INPUT; q++)
                   for (s = 0; s < STATE_TRIGGERS; s++)
-                     g |= mydevice[id].input[q].trigger[s];
+                     g |= app->trigger[s];
                for (q = 0; q < MAX_OUTPUT; q++)
-                  g |= mydevice[id].output[q].group;
+                  g |= app->group;
             } else if (device[id].type == TYPE_PAD)
             {
                keypad_t *k;
@@ -2988,15 +2989,16 @@ doevent (event_t * e)
    case EVENT_FAULT:
       {
          const char *port = port_name (e->port);
-         char *name = mydevice[id].name;
+         const char *name = mydevice[id].name;
          int i = port_port (e->port);
          if (!i)
             break;
+         port_app_t *app = port_app (e->port);
          i--;
          group_t g = 0;
          int s;
          for (s = 0; s < STATE_TRIGGERS; s++)
-            g |= mydevice[id].input[i].trigger[s];
+            g |= app->trigger[s];
          if (e->state)
          {
             mydevice[id].faults |= (1 << i);
@@ -3017,9 +3019,9 @@ doevent (event_t * e)
               s;
             for (q = 0; q < MAX_INPUT; q++)
                for (s = 0; s < STATE_TRIGGERS; s++)
-                  g |= mydevice[id].input[q].trigger[s];
+                  g |= app->trigger[s];
             for (q = 0; q < MAX_OUTPUT; q++)
-               g |= mydevice[id].output[q].group;
+               g |= app->group;
             if (g)
             {
                if (i == FAULT_RIO_NO_PWR)
@@ -3105,8 +3107,7 @@ doevent (event_t * e)
                   {
                      // disarm is the groups that can be disarmed by this user on this door.
                      group_t disarm = ((u->group_arm & mydoor[d].group_arm & state[STATE_ARM]) | (port_name (e->port),
-                                                                                                  u->
-                                                                                                  group_disarm &
+                                                                                                  u->group_disarm &
                                                                                                   mydoor[d].group_disarm &
                                                                                                   state[STATE_SET]));
                      if (door[d].state == DOOR_PROPPED || door[d].state == DOOR_OPEN || door[d].state == DOOR_PROPPEDOK)
@@ -3502,19 +3503,19 @@ do_wscallback (websocket_t * w, xml_t head, xml_t data)
                continue;
             port--;
             if (a >= 0)
-               p->a = a;
+               port_app (p)->a = a;
             if (x >= 0)
-               p->x = x;
+               port_app (p)->x = x;
             if (y >= 0)
-               p->y = y;
+               port_app (p)->y = y;
             if (t)
             {
-               if (p->t)
-                  free ((void *) p->t);
-               p->t = strdup (t);
+               if (port_app (p)->t)
+                  free ((void *) port_app (p)->t);
+               port_app (p)->t = strdup (t);
             }
             if (a >= 0 || x >= 0 || y >= 0 || t)
-               p->onplan = 1;
+               port_app (p)->onplan = 1;
             patch ();
             input_ws (root, p);
             continue;
@@ -3532,19 +3533,19 @@ do_wscallback (websocket_t * w, xml_t head, xml_t data)
                continue;
             port--;
             if (a >= 0)
-               p->a = a;
+               port_app (p)->a = a;
             if (x >= 0)
-               p->x = x;
+               port_app (p)->x = x;
             if (y >= 0)
-               p->y = y;
+               port_app (p)->y = y;
             if (t)
             {
-               if (p->t)
-                  free ((void *) p->t);
-               p->t = strdup (t);
+               if (port_app (p)->t)
+                  free ((void *) port_app (p)->t);
+               port_app (p)->t = strdup (t);
             }
             if (a >= 0 || x >= 0 || y >= 0 || t)
-               p->onplan = 1;
+               port_app (p)->onplan = 1;
             patch ();
             output_ws (root, p);
             continue;
