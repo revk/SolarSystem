@@ -19,12 +19,12 @@
        along with this program.  If not, see <http://www.gnu.org/licenses/>.
      */
 
+#include "port.h"
+#include "door.h"
+
 // Constants
 
 #define	US 	0x11		// Our bus ID
-
-#define	MAX_BUS	10		// Maximum buses
-#define	MAX_DEVICE (MAX_BUS*256)	// 256 addresses per bus
 
 #define	MAX_DOOR	30	// Maximum doors
 
@@ -150,8 +150,7 @@ const rio_threshold_t rio_thresholds[3];
 // Reference to a device on a bus is (busid<<16)+(deviceid<<8)
 // Reference to a port on a device on a bus is (busid<<16)+(deviceid<<8)+(1<<port)
 // Reference to an RF device is 0x10000000+(serialno<<8) optionally +(1<<port)
-typedef unsigned int port_t;
-typedef void port_output_callback_t (port_t);
+typedef void port_output_callback_t (port_p);
 extern port_output_callback_t *port_output_callback;
 
 // Structures
@@ -222,7 +221,7 @@ struct event_s
   event_t *next;		// Next event in queue
   struct timeval when;
   unsigned char event;
-  port_t port;			// The device/port
+  port_p port;			// The device/port
   union
   {
     struct
@@ -261,8 +260,8 @@ typedef struct lock_s lock_t;
 struct lock_s
 {
   // Config
-  port_t o_unlock;		// Output active to unlock
-  port_t i_unlock;		// Input, active if unlocked
+  port_p o_unlock;		// Output active to unlock
+  port_p i_unlock;		// Input, active if unlocked
   unsigned char time_lock;	// How long to lock
   unsigned char time_unlock;	// How long to unlock
   // Status
@@ -275,9 +274,9 @@ struct door_s
 {				// general door object
   lock_t mainlock;		// Main lock
   lock_t deadlock;		// Deadlock for when alarm set
-  port_t o_led[2];		// Max readers on which to show LED status. port is mask of LEDs we se
-  port_t o_beep[2];		// Outputs for beep
-  port_t i_open;		// Input for open
+  port_p o_led[2];		// Max readers on which to show LED status. port is mask of LEDs we se
+  port_p o_beep[2];		// Outputs for beep
+  port_p i_open;		// Input for open
   unsigned char open_quiet:1;	// Don't beep on opening, just use LEDs
   // Times in 10th of a second
   unsigned int time_open;	// Time to allow for door to be opened once unlocked
@@ -301,11 +300,10 @@ extern door_t door[MAX_DOOR];	// Door table
 extern event_t *event, **eventp;	// Event queue
 
 // Functions
-#define port_device(w) ((w)>>8)
-#define port_output(w,v) port_output_n((volatile port_t *)&(w),sizeof(w)/sizeof(port_t),v)
-void port_output_n (volatile port_t * w, int n, int v);
-#define port_urgent(w) port_urgent_n((volatile port_t *)&(w),sizeof(w)/sizeof(port_t))
-void port_urgent_n (volatile port_t * w, int n);
+#define port_output(w,v) port_output_n((volatile port_p*)&(w),sizeof(w)/sizeof(port_p),v)
+void port_output_n (volatile port_p * w, int n, int v);
+#define port_urgent(w) port_urgent_n((volatile port_p*)&(w),sizeof(w)/sizeof(port_p))
+void port_urgent_n (volatile port_p * w, int n);
 void bus_init (void);
 void bus_start (int bus);
 void bus_stop (int bus);

@@ -235,14 +235,14 @@ struct
    group_t setifall;            // Auto set, if all of these set
 } group[MAX_GROUP];
 
-// Doors not a linked list as mapper to door structure in library
+// Doors not a linked list as mapped to door structure in library
 typedef struct mydoor_s mydoor_t;
 struct mydoor_s
 {                               // Per door settings
-   port_t i_fob[2];             // Max readers for FOB to exit and set alarm
-   port_t i_exit[3];            // Exit buttons, max readers, etc, or reception desk
-   port_t i_bell[2];            // Bell button(s)
-   port_t o_bell[2];            // Bell output(s)
+   port_p i_fob[2];             // Max readers for FOB to exit and set alarm
+   port_p i_exit[3];            // Exit buttons, max readers, etc, or reception desk
+   port_p i_bell[2];            // Bell button(s)
+   port_p o_bell[2];            // Bell output(s)
    group_t group_fire;          // Which groups, any of which force the door open for fire
    group_t group_lock;          // Which groups, any of which mean the door is "locked" (if not fire)
    group_t group_arm;           // Which groups can arm alarm
@@ -289,8 +289,8 @@ struct keypad_s
 {
    char *name;
    keypad_t *next;              // Linked list
-   port_t port;                 // The port it is on
-   port_t prox;                 // Prox reader
+   port_p port;                 // The port it is on
+   port_p prox;                 // Prox reader
    char *message;               // Display message
    time_t when_logout;          // Auto user logout
    int time_logout;             // Config logout time
@@ -359,17 +359,21 @@ struct
 
 // Functions
 static void *dolog (group_t g, const char *type, const char *user, const char *port, const char *fmt, ...);
-static keypad_t *keypad_new (port_t p);
+static keypad_t *keypad_new (port_p p);
 static void keypads_message (group_t g, const char *msg);
 static void state_change (group_t g);
 #define device_name(n) port_name((n)<<8)
 #define	port_name(p) real_port_name(alloca(20),p)
-static char *real_port_name (char *v, port_t p);
+static char *real_port_name (char *v, port_p p);
 
 static int
-port_id (unsigned int port)
+port_id (port_p p)
 {                               // Port ID from mask
-   port &= 0xFF;
+   if (!p)
+      return -1;
+   if (!p->busid)
+      return -1;
+   unsigned int port = port_bits (p);
    if (port)
    {
       unsigned int n;
@@ -426,11 +430,11 @@ state_parse (const char *v)
 
 #define	port_parse_i(v,e) port_parse(v,e,1)
 #define	port_parse_o(v,e) port_parse(v,e,0)
-static port_t
+static port_p
 port_parse (const char *v, const char **ep, int i)
 {                               // Parse a port name/id, return 0 if invalid, port part 0 if no port
    if (!v || !*v)
-      return 0;
+      return NULL;
    int l = 0;
    while (v[l] && v[l] != ',' && !isspace (v[l]))
       l++;
@@ -455,7 +459,7 @@ port_parse (const char *v, const char **ep, int i)
       for (d = 0; d < MAX_DEVICE; d++)
          for (p = 0; p < MAX_OUTPUT; p++)
             if (mydevice[d].output[i].name && !strcmp (mydevice[d].output[i].name, v))
-               return (i << 8) + (1 << p);
+               return port_new_bus ((i << 8) + (1 << p));
    } else if (i == 1)
    {                            // Check input port names
       int d,
@@ -463,13 +467,13 @@ port_parse (const char *v, const char **ep, int i)
       for (d = 0; d < MAX_DEVICE; d++)
          for (p = 0; p < MAX_INPUT; p++)
             if (mydevice[d].input[i].name && !strcmp (mydevice[d].input[i].name, v))
-               return (i << 8) + (1 << p);
+               return port_new_bus ((i << 8) + (1 << p));
    } else if (i == -1)
    {                            // Reference device
       int d;
       for (d = 0; d < MAX_DEVICE; d++)
          if (mydevice[d].name && !strcmp (mydevice[d].name, v))
-            return (i << 8);
+            return port_new_bus (i << 8);
    }
    // Parse the port
    unsigned int id = 0,
@@ -499,11 +503,11 @@ port_parse (const char *v, const char **ep, int i)
       } else if (device[id].type != type)
       {
          dolog (groups, "CONFIG", NULL, NULL,
-                "Device type clash port %s %s/%s, device disabled", port_name (id), type_name[device[id].type], type_name[type]);
+                "Device type clash port %s %s/%s, device disabled", v, type_name[device[id].type], type_name[type]);
          device[id].disabled = 1;
       }
    }
-   return (id << 8) | port;
+   return port_new_bus ((id << 8) | port);
 }
 
 static group_t
@@ -540,38 +544,42 @@ real_group_list (char *v, group_t g)
 }
 
 static char *
-real_port_name (char *v, port_t p)
+real_port_name (char *v, port_p p)
 {                               // Port name
-   if (((p >> 8) & 0xFF) == US)
+   if (!p)
+      return "?";
+   unsigned int id = p->busid;
+   if (((id >> 8) & 0xFF) == US)
       return "PANEL";
    char *o = v;
-   if ((p >> 8) >= MAX_DEVICE)
+   if ((id >> 8) >= MAX_DEVICE)
       o += sprintf (o, "?");
-   else if (device[p >> 8].type)
-      o += sprintf (o, type_name[device[p >> 8].type]);
-   o += sprintf (o, "%X%02X", ((p >> 16) + 1) & 0xF, (p >> 8) & 0xFF);
+   else if (device[id >> 8].type)
+      o += sprintf (o, type_name[device[id >> 8].type]);
+   o += sprintf (o, "%X%02X", ((id >> 16) + 1) & 0xF, (id >> 8) & 0xFF);
    int n;
    for (n = 0; n < 8; n++)
-      if (p & (1 << n))
+      if (id & (1 << n))
          o += sprintf (o, "%d", n + 1);
    return v;
 }
 
 // Functions
-#define	port_exit_set(w,v,p,door) port_exit_set_n(port_set_n((volatile port_t*)&(w),sizeof(w)/sizeof(port_t),v,p,1,door,"Exit"),sizeof(w)/sizeof(port_t))
-#define	port_bell_set(w,v,p,door) port_bell_set_n(port_set_n((volatile port_t*)&(w),sizeof(w)/sizeof(port_t),v,p,1,door,"Bell"),sizeof(w)/sizeof(port_t))
-#define	port_i_set(w,v,p,door,name) port_set_n((volatile port_t*)&(w),sizeof(w)/sizeof(port_t),v,p,1,door,name)
-#define	port_o_set(w,v,p,door,name) port_set_n((volatile port_t*)&(w),sizeof(w)/sizeof(port_t),v,p,0,door,name)
-#define	port_set(w,v,p,door,name) port_set_n((volatile port_t*)&(w),sizeof(w)/sizeof(port_t),v,p,-1,door,name)
-static volatile port_t *
-port_set_n (volatile port_t * w, int n, const char *v, unsigned char p, int i, char *door, char *name)
+#define	port_exit_set(w,v,p,door) port_exit_set_n(port_set_n((volatile port_p*)&(w),sizeof(w)/sizeof(port_p),v,p,1,door,"Exit"),sizeof(w)/sizeof(port_p))
+#define	port_bell_set(w,v,p,door) port_bell_set_n(port_set_n((volatile port_p*)&(w),sizeof(w)/sizeof(port_p),v,p,1,door,"Bell"),sizeof(w)/sizeof(port_p))
+#define	port_i_set(w,v,p,door,name) port_set_n((volatile port_p*)&(w),sizeof(w)/sizeof(port_p),v,p,1,door,name)
+#define	port_o_set(w,v,p,door,name) port_set_n((volatile port_p*)&(w),sizeof(w)/sizeof(port_p),v,p,0,door,name)
+#define	port_set(w,v,p,door,name) port_set_n((volatile port_p*)&(w),sizeof(w)/sizeof(port_p),v,p,-1,door,name)
+static volatile port_p *
+port_set_n (volatile port_p * w, int n, const char *v, unsigned char p, int i, char *door, char *name)
 {                               // Set up port
    int q = 0;
    while (v && *v && q < n)
    {
-      port_t id = port_parse (v, &v, i);
-      if (!(id & 0xFF))
-         id |= p;               // default port
+      const char *tag = v;
+      port_p id = port_parse (v, &v, i);
+      if (!port_bits (id))
+         id->busid |= p;        // default port
       w[q++] = id;
       int pd = port_device (id);
       int pi = port_id (id);
@@ -582,12 +590,12 @@ port_set_n (volatile port_t * w, int n, const char *v, unsigned char p, int i, c
          if (i == 1 && pi < MAX_INPUT)
          {
             if (name && !mydevice[pd].input[pi].name)
-               asprintf (&mydevice[pd].input[pi].name, "%s-%s", door ? : mydevice[pd].name ? : port_name (pd << 8), name);
+               asprintf (&mydevice[pd].input[pi].name, "%s-%s", door ? : mydevice[pd].name ? : tag, name);
             mydevice[pd].input[pi].inuse = 1;
          } else if (i == 0 && pi < MAX_OUTPUT && mydevice[pd].output[pi].type >= STATES)
          {
             if (name && !mydevice[pd].output[pi].name)
-               asprintf (&mydevice[pd].output[pi].name, "%s-%s", door ? : mydevice[pd].name ? : port_name (pd << 8), name);
+               asprintf (&mydevice[pd].output[pi].name, "%s-%s", door ? : mydevice[pd].name ? : tag, name);
             mydevice[pd].output[pi].type = STATES;
          }
       }
@@ -597,8 +605,8 @@ port_set_n (volatile port_t * w, int n, const char *v, unsigned char p, int i, c
    return w;
 }
 
-static volatile port_t *
-port_exit_set_n (volatile port_t * w, int n)
+static volatile port_p *
+port_exit_set_n (volatile port_p * w, int n)
 {
    while (n--)
       if (w[n])
@@ -611,8 +619,8 @@ port_exit_set_n (volatile port_t * w, int n)
    return w;
 }
 
-static volatile port_t *
-port_bell_set_n (volatile port_t * w, int n)
+static volatile port_p *
+port_bell_set_n (volatile port_p * w, int n)
 {
    while (n--)
    {
@@ -705,7 +713,7 @@ state_ws (xml_t root, char *tag, int s, int c)
 }
 
 xml_t
-input_ws (xml_t root, port_t port)
+input_ws (xml_t root, port_p port)
 {
    int id = port_device (port);
    if (id < 0 || id > MAX_DEVICE || !device[id].type)
@@ -733,7 +741,7 @@ input_ws (xml_t root, port_t port)
          xml_add (x, "@device", mydevice[id].name);
       if (mydevice[id].input[n].name)
          xml_add (x, "@name", mydevice[id].input[n].name);
-      xml_add (x, "@dev", port_name (port & ~0xFF));
+      xml_addf (x, "@dev", "%.6s", port_name (port));
       xml_addf (x, "@port", "%d", port_id (port) + 1);
       if (device[id].type == TYPE_RIO)
          xml_add (x, "@type", "rio");
@@ -754,7 +762,7 @@ input_ws (xml_t root, port_t port)
 }
 
 xml_t
-output_ws (xml_t root, port_t port)
+output_ws (xml_t root, port_p port)
 {
    int id = port_device (port);
    if (id < 0 || id > MAX_DEVICE || !device[id].type)
@@ -782,7 +790,7 @@ output_ws (xml_t root, port_t port)
          xml_add (x, "@device", mydevice[id].name);
       if (mydevice[id].output[n].name)
          xml_add (x, "@name", mydevice[id].output[n].name);
-      xml_add (x, "@dev", port_name (port & ~0xFF));
+      xml_addf (x, "@dev", "%.6s", port_name (port));
       xml_addf (x, "@port", "%d", port_id (port) + 1);
       if (device[id].type == TYPE_RIO)
          xml_add (x, "@type", "rio");
@@ -899,7 +907,7 @@ load_config (const char *configfile)
       else
          while (pl)
          {
-            port_t p = port_parse (pl, &pl, 1);
+            port_p p = port_parse (pl, &pl, 1);
             unsigned int id = port_device (p);
             int n = port_id (p);
             if (n < 0 || n >= MAX_INPUT)
@@ -985,7 +993,7 @@ load_config (const char *configfile)
       else
          while (pl)
          {
-            port_t p = port_parse (pl, &pl, 0);
+            port_p p = port_parse (pl, &pl, 0);
             unsigned int id = port_device (p);
             if (!id)
                dolog (ALL_GROUPS, "CONFIG", NULL, NULL, "Bad address for RF RIO");
@@ -1001,7 +1009,7 @@ load_config (const char *configfile)
       else
          while (pl)
          {
-            port_t p = port_parse (pl, &pl, 0);
+            port_p p = port_parse (pl, &pl, 0);
             unsigned int id = port_device (p);
             int n = port_id (p);
             if (n < 0 || n >= MAX_OUTPUT)
@@ -1041,7 +1049,7 @@ load_config (const char *configfile)
          }
          while (pl)
          {
-            port_t p = port_parse (pl, &pl, -1);
+            port_p p = port_parse (pl, &pl, -1);
             if ((v = xml_get (x, "@fob-held")))
                device[port_device (p)].fob_hold = atoi (v) * 10;
          }
@@ -1057,7 +1065,7 @@ load_config (const char *configfile)
       else
          while (pl)
          {
-            port_t p = port_parse (pl, &pl, -1);
+            port_p p = port_parse (pl, &pl, -1);
             keypad_t *k = keypad_new (p);
             k->port = p;
             k->name = xml_copy (x, "@name");
@@ -1174,7 +1182,7 @@ load_config (const char *configfile)
          const char *max = xml_get (x, "@max");
          if (max)
          {                      // short cut to set based on max reader
-            port_t maxport = port_parse (max, NULL, -2);
+            port_p maxport = port_parse (max, NULL, -2);
             if (maxport && !mydevice[port_device (maxport)].name)
                mydevice[port_device (maxport)].name = mydoor[d].name;
             port_o_set (door[d].o_led, max, 0xFF, doorname, "Max");
@@ -1361,7 +1369,7 @@ keypad_state (group_t g)
 
 #ifdef	LIBWS
 static void
-ws_port_output_callback (port_t id)
+ws_port_output_callback (port_p id)
 {
    xml_t root = xml_tree_new (NULL);
    output_ws (root, id);
@@ -1375,31 +1383,27 @@ output_state (group_t g)
 {                               // Set outputs after state change
    if (!g)
       return;
-   port_t p;
-   for (p = 0; p < MAX_DEVICE; p++)
+   port_p port;
+   for (port = ports; port; port = port->next)
+   {
+      unsigned int p = port_device (port);
       if (device[p].type && device[p].type < STATES)
       {
-         int o;
-         for (o = 0; o < MAX_OUTPUT; o++)
-            if ((mydevice[p].output[o].group & g) && mydevice[p].output[o].type < STATES)
+         int o = port_id (port);
+         if ((mydevice[p].output[o].group & g) && mydevice[p].output[o].type < STATES)
+         {
+            if (state[mydevice[p].output[o].type] & g)
             {
-               if (state[mydevice[p].output[o].type] & g)
-               {
-                  if (!(device[p].output & (1 << o)))
-                  {
-                     port_t id = (p << 8) | (1 << o);
-                     port_output (id, 1);
-                  }
-               } else
-               {
-                  if (device[p].output & (1 << o))
-                  {
-                     port_t id = (p << 8) | (1 << o);
-                     port_output (id, 0);
-                  }
-               }
+               if (!(device[p].output & (1 << o)))
+                  port_output (port, 1);
+            } else
+            {
+               if (device[p].output & (1 << o))
+                  port_output (port, 0);
             }
+         }
       }
+   }
 }
 
 // Main state change events
@@ -1770,7 +1774,7 @@ alarm_reset (const char *who, const char *where, group_t mask)
 }
 
 static keypad_t *
-keypad_new (port_t p)
+keypad_new (port_p p)
 {
    keypad_t *k;
    for (k = keypad; k && k->port != p; k = k->next);
@@ -1888,7 +1892,7 @@ dologger (CURL * curl, log_t * l)
    char *name = NULL;
    if (l->port)
    {
-      port_t p;
+      port_p p;
       if (!strncmp (l->port, "DOOR", 4))
          name = mydoor[atoi (l->port + 4)].name;
       else if ((p = port_parse (l->port, NULL, -2)))
@@ -2560,8 +2564,8 @@ do_keypad_update (keypad_t * k, char key)
             snprintf (l1, 17, "%-7s %-8s", s->port, s->name ? : "");
             if (t == STATE_FAULT || t == STATE_TAMPER)
             {
-               port_t p = port_parse (s->port, NULL, -2);
-               if ((p & 0xFF) && device[port_device (p)].type == TYPE_RIO)
+               port_p p = port_parse (s->port, NULL, -2);
+               if (port_bits(p) && device[port_device (p)].type == TYPE_RIO)
                {
                   unsigned int v = device[port_device (p)].ri[port_id (p)].resistance;
                   if (v)
@@ -2657,7 +2661,7 @@ doevent (event_t * e)
       if (e->event == EVENT_DOOR)
          printf ("DOOR%02d %s", e->door, door_name[e->state]);
       else if (e->event == EVENT_KEEPALIVE)
-         printf ("BUS%d %s ", (e->port >> 16) + 1, event_name[e->event]);
+         printf ("BUS%d %s ", (port_device(e->port) >> 8) + 1, event_name[e->event]);
       else
          printf ("%s %s ", port_name (e->port), event_name[e->event]);
       if (e->event == EVENT_KEEPALIVE)
@@ -3405,14 +3409,11 @@ do_wscallback (websocket_t * w, xml_t head, xml_t data)
       int d;
       for (d = 0; d < MAX_DOOR; d++)
          door_ws (root, d);
-      int p;
-      for (d = 0; d < MAX_DEVICE; d++)
-         if (device[d].type)
+      port_p p;
+      for(p=ports;p;p=p->next)
          {
-            for (p = 0; p < MAX_OUTPUT; p++)
-               output_ws (root, (d << 8) + (1 << p));
-            for (p = 0; p < MAX_INPUT; p++)
-               input_ws (root, (d << 8) + (1 << p));
+               output_ws (root, p);
+               input_ws (root, p);
          }
       websocket_send (1, &w, root);
       pthread_mutex_unlock (&eventmutex);
@@ -3431,7 +3432,7 @@ do_wscallback (websocket_t * w, xml_t head, xml_t data)
       xml_t e;
       for (e = NULL; (e = xml_element_next_by_name (data, e, "keypad"));)
       {                         // Key presses
-         port_t port = port_parse (xml_get (e, "@id"), NULL, -1);
+         port_p port = port_parse (xml_get (e, "@id"), NULL, -1);
          if (!port)
             continue;
          keypad_t *k = NULL;
@@ -3510,7 +3511,7 @@ do_wscallback (websocket_t * w, xml_t head, xml_t data)
          }
          if (!strcasecmp (type, "input"))
          {
-            port_t p = port_parse_i (id, NULL);
+            port_p p = port_parse_i (id, NULL);
             if (!p)
                continue;
             int id = port_device (p);
@@ -3537,7 +3538,7 @@ do_wscallback (websocket_t * w, xml_t head, xml_t data)
          }
          if (!strcasecmp (type, "output"))
          {
-            port_t p = port_parse_o (id, NULL);
+            port_p p = port_parse_o (id, NULL);
             if (!p)
                continue;
             int id = port_device (p);
@@ -3853,17 +3854,17 @@ main (int argc, const char *argv[])
    dolog (groups, "STARTUP", NULL, NULL, "System started");
    if (maxfrom && maxto)
    {                            // Move a max
-      port_t f = port_parse (maxfrom, NULL, -1);
-      port_t t = port_parse (maxto, NULL, -1);
+      port_p f = port_parse (maxfrom, NULL, -1);
+      port_p t = port_parse (maxto, NULL, -1);
       if (!f || device[port_device (f)].type != TYPE_MAX)
          dolog (groups, "CONFIG", NULL, NULL, "max-from invalid");
       else if (!t || device[port_device (t)].type != TYPE_MAX)
          dolog (groups, "CONFIG", NULL, NULL, "max-to invalid");
-      else if ((f >> 16) != (t >> 16))
+      else if ((port_device(f) >> 8) != (port_device(t) >> 8))
          dolog (groups, "CONFIG", NULL, NULL, "max-from and max-to on different buses");
       else
       {
-         device[port_device (f)].newid = (t >> 8);
+         device[port_device (f)].newid = port_device(t);
          device[port_device (f)].config = 1;
          dolog (groups, "CONFIG", NULL, NULL, "Max renumber planned");
       }
