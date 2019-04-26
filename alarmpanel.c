@@ -58,6 +58,7 @@ const char *maxfrom = NULL, *maxto = NULL;
 int configchanged = 0;
 pthread_mutex_t eventmutex;;
 #ifdef LIBMQTT
+struct mosquitto *iot = NULL;
 struct mosquitto *mqtt = NULL;
 #endif
 
@@ -2047,21 +2048,21 @@ dologger (CURL * curl, log_t * l)
 #ifdef	LIBMQTT
       else if (strchr (v, '/'))
 	{
-	  if (mqtt)
+	  if (iot)
 	    {
 	      v = strdupa (v);
 	      char *msg = strchr (v, ' ');
 	      if (msg)
 		*msg++ = 0;
-	      int e = mosquitto_publish (mqtt, NULL, v, strlen (msg ? : ""), msg, 1,
+	      int e = mosquitto_publish (iot, NULL, v, strlen (msg ? : ""), msg, 1,
 					 0);
 	      if (e)
 		{
-		  syslog (LOG_INFO, "MQTT publish to %s failed (%s)", v, mosquitto_strerror (e));
+		  syslog (LOG_INFO, "IoT MQTT publish to %s failed (%s)", v, mosquitto_strerror (e));
 		  commfailcount++;
 		}
 	      else
-		syslog (LOG_INFO, "MQTT %s %s", v, msg);
+		syslog (LOG_INFO, "IoT MQTT %s %s", v, msg);
 	    }
 	}
 #endif
@@ -3695,35 +3696,34 @@ main (int argc, const char *argv[])
     printf ("%s Groups found\n", group_list (groups));
 #ifdef	LIBMQTT
   mosquitto_lib_init ();
-  mqtt = mosquitto_new (xml_get (config, "system@name"), true, NULL);
-  if (!mqtt)
-    warnx ("MQTT init failed");
+  iot = mosquitto_new (xml_get (config, "system@name"), true, NULL);
+  if (!iot)
+    warnx ("IoT MQTT init failed");
   else
     {
-      group_t mqtt_arm = group_parse (xml_get (config, "system@mqtt-arm"));
-      group_t mqtt_unset = group_parse (xml_get (config, "system@mqtt-unset"));
-      char *mqtt_topic = NULL;
-      void mqtt_connected (struct mosquitto *mqtt, void *obj, int rc)
+      group_t iot_arm = group_parse (xml_get (config, "system@iot-arm"));
+      group_t iot_unset = group_parse (xml_get (config, "system@iot-unset"));
+      char *iot_topic = NULL;
+      void iot_connected (struct mosquitto *iot, void *obj, int rc)
       {
-	mqtt = mqtt;
 	obj = obj;
-	dolog (groups, "MQTT", NULL, NULL, "MQTT connected %d", rc);
-	if (mqtt_arm || mqtt_unset)
+	dolog (groups, "IOT", NULL, NULL, "IoT MQTT connected %d", rc);
+	if (iot_arm || iot_unset)
 	  {			// Subscribe
-	    if (asprintf (&mqtt_topic, "cmnd/%s/+", xml_get (config, "system@name") ? : "SolarSystem") < 0)
+	    if (asprintf (&iot_topic, "cmnd/%s/+", xml_get (config, "system@name") ? : "SolarSystem") < 0)
 	      errx (1, "malloc");
-	    if (mosquitto_subscribe (mqtt, NULL, mqtt_topic, 0))
-	      dolog (groups, "MQTT", NULL, NULL, "MQTT subscribe failed %s", mqtt_topic);
+	    if (mosquitto_subscribe (iot, NULL, iot_topic, 0))
+	      dolog (groups, "IOT", NULL, NULL, "IoT MQTT subscribe failed %s", iot_topic);
 	  }
       }
-      void mqtt_message (struct mosquitto *mqtt, void *obj, const struct mosquitto_message *msg)
+      void iot_message (struct mosquitto *iot, void *obj, const struct mosquitto_message *msg)
       {
-	mqtt = mqtt;
+	iot = iot;
 	obj = obj;
-	if (mqtt_topic)
+	if (iot_topic)
 	  {
-	    int l = strlen (mqtt_topic) - 1;
-	    if (!strncmp (msg->topic, mqtt_topic, l))
+	    int l = strlen (iot_topic) - 1;
+	    if (!strncmp (msg->topic, iot_topic, l))
 	      {
 		char *m = malloc (msg->payloadlen + 1);
 		if (!m)
@@ -3734,26 +3734,67 @@ main (int argc, const char *argv[])
 		free (m);
 		if (!strcmp (msg->topic + l, "arm"))
 		  {
-		    if (g & ~mqtt_arm)
-		      dolog (g & ~mqtt_arm, "MQTT", NULL, NULL, "MQTT attempting arm of invalid groups");
-		    g &= mqtt_arm;
+		    if (g & ~iot_arm)
+		      dolog (g & ~iot_arm, "IOT", NULL, NULL, "IoT MQTT attempting arm of invalid groups");
+		    g &= iot_arm;
 		    pthread_mutex_lock (&eventmutex);
-		    alarm_arm ("MQTT", NULL, g, 0);
+		    alarm_arm ("IOT", NULL, g, 0);
 		    pthread_mutex_unlock (&eventmutex);
 		    return;
 		  }
 		if (!strcmp (msg->topic + l, "unset"))
 		  {
-		    if (g & ~mqtt_unset)
-		      dolog (g & ~mqtt_unset, "MQTT", NULL, NULL, "MQTT attempting unset of invalid groups");
-		    g &= mqtt_unset;
+		    if (g & ~iot_unset)
+		      dolog (g & ~iot_unset, "IOT", NULL, NULL, "IoT MQTT attempting unset of invalid groups");
+		    g &= iot_unset;
 		    pthread_mutex_lock (&eventmutex);
-		    alarm_unset ("MQTT", NULL, g);
+		    alarm_unset ("IOT", NULL, g);
 		    pthread_mutex_unlock (&eventmutex);
 		    return;
 		  }
 	      }
 	  }
+	dolog (groups, "IOT", NULL, NULL, "IoT MQTT unexpected message %s", msg->topic);
+      }
+      void iot_disconnected (struct mosquitto *iot, void *obj, int rc)
+      {
+	obj = obj;
+	mosquitto_reconnect_async (iot);
+	dolog (groups, "IOT", NULL, NULL, "IoT MQTT disconnected %d", rc);
+	commfailcount++;
+      }
+      mosquitto_connect_callback_set (iot, iot_connected);
+      if (iot_arm || iot_unset)
+	mosquitto_message_callback_set (iot, iot_message);
+      mosquitto_disconnect_callback_set (iot, iot_disconnected);
+      mosquitto_username_pw_set (iot, xml_get (config, "system@iot-user"), xml_get (config, "system@iot-pass"));
+      char *host = xml_get (config, "system@iot-host");
+      char *ca = xml_get (config, "system@iot-ca");
+      if(ca&&mosquitto_tls_set(iot,ca,NULL,NULL,NULL,NULL))
+	warnx ("IoT MQTT cert failed %s", ca);
+      int port = atoi (xml_get (config, "system@iot-port") ? : ca?"8883":"1883");
+      if (mosquitto_connect_async (iot, host, port, 60))
+	warnx ("IoT MQTT connect failed %s:%d", host, port);
+      mosquitto_loop_start (iot);
+    }
+  mqtt = mosquitto_new (xml_get (config, "system@name"), true, NULL);
+  if (!iot)
+    warnx ("MQTT init failed");
+  else
+    {
+      void mqtt_connected (struct mosquitto *mqtt, void *obj, int rc)
+      {
+	obj = obj;
+	    if (mosquitto_subscribe (mqtt, NULL, "stat/#", 0))
+	      dolog (groups, "MQTT", NULL, NULL, "MQTT MQTT subscribe failed");
+	    if (mosquitto_subscribe (mqtt, NULL, "tele/#", 0))
+	      dolog (groups, "MQTT", NULL, NULL, "MQTT MQTT subscribe failed");
+	dolog (groups, "MQTT", NULL, NULL, "MQTT connected %d", rc);
+      }
+      void mqtt_message (struct mosquitto *mqtt, void *obj, const struct mosquitto_message *msg)
+      {
+	mqtt = mqtt;
+	obj = obj;
 	dolog (groups, "MQTT", NULL, NULL, "MQTT unexpected message %s", msg->topic);
       }
       void mqtt_disconnected (struct mosquitto *mqtt, void *obj, int rc)
@@ -3764,12 +3805,14 @@ main (int argc, const char *argv[])
 	commfailcount++;
       }
       mosquitto_connect_callback_set (mqtt, mqtt_connected);
-      if (mqtt_arm || mqtt_unset)
-	mosquitto_message_callback_set (mqtt, mqtt_message);
+      mosquitto_message_callback_set (mqtt, mqtt_message);
       mosquitto_disconnect_callback_set (mqtt, mqtt_disconnected);
       mosquitto_username_pw_set (mqtt, xml_get (config, "system@mqtt-user"), xml_get (config, "system@mqtt-pass"));
       char *host = xml_get (config, "system@mqtt-host");
-      int port = atoi (xml_get (config, "system@mqtt-port") ? : "1883");
+      char *ca = xml_get (config, "system@iot-ca");
+      int port = atoi (xml_get (config, "system@mqtt-port") ? : ca?"8883":"1883");
+      if(ca&&mosquitto_tls_set(iot,ca,NULL,NULL,NULL,NULL))
+	warnx ("MQTT cert failed %s", ca);
       if (mosquitto_connect_async (mqtt, host, port, 60))
 	warnx ("MQTT connect failed %s:%d", host, port);
       mosquitto_loop_start (mqtt);
