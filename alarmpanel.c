@@ -316,7 +316,6 @@ static struct
    unsigned char missing:1;     // Device is AWOL
    struct
    {                            // Inputs
-      char *name;
       unsigned char inuse:1;    // Mentioned in config at all
       unsigned char isexit:1;   // Door related input
       unsigned char isbell:1;   // Door related input
@@ -324,7 +323,6 @@ static struct
    } input[MAX_INPUT];
    struct
    {                            // Outputs
-      char *name;
       state_t type;             // Which state we are outputting
       group_t group;            // Which groups it applies to
    } output[MAX_OUTPUT];
@@ -427,26 +425,22 @@ port_parse (const char *v, const char **ep, int i)
       *ep = NULL;               // Last word
    if (i == 0)
    {                            // Check output port names
-      int d,
-        p;
-      for (d = 0; d < MAX_DEVICE; d++)
-         for (p = 0; p < MAX_OUTPUT; p++)
-            if (mydevice[d].output[i].name && !strcmp (mydevice[d].output[i].name, v))
-               return port_new_bus (i >> 8, i & 0xFF, 0, p + 1);
+      port_p p;
+      for (p = ports; p && (!p->name || !p->port || p->isinput || strcmp (p->name, v)); p = p->next);
+      if (p)
+         return p;
    } else if (i == 1)
    {                            // Check input port names
-      int d,
-        p;
-      for (d = 0; d < MAX_DEVICE; d++)
-         for (p = 0; p < MAX_INPUT; p++)
-            if (mydevice[d].input[i].name && !strcmp (mydevice[d].input[i].name, v))
-               return port_new_bus (i >> 8, i & 0xFF, 1, p + 1);
+      port_p p;
+      for (p = ports; p && (!p->name || !p->port || !p->isinput || strcmp (p->name, v)); p = p->next);
+      if (p)
+         return p;
    } else if (i == -1)
    {                            // Reference device
-      int d;
-      for (d = 0; d < MAX_DEVICE; d++)
-         if (mydevice[d].name && !strcmp (mydevice[d].name, v))
-            return port_new_bus (i >> 8, i & 0xFF, 0, 0);
+      port_p p;
+      for (p = ports; p && (!p->name || p->port || strcmp (p->name, v)); p = p->next);
+      if (p)
+         return p;
    }
    // Parse the port
    unsigned int id = 0,
@@ -553,8 +547,6 @@ port_set_n (volatile port_p * w, int n, const char *v, unsigned char p, int i, c
       port_p id = port_parse (v, &v, i);
       if (!port_port (id) && p)
          id = port_new_bus (port_bus (id), port_id (id), port_isinput (id), p);
-      if (name)
-         id->name = name;
       w[q++] = id;
       int pd = port_device (id);
       int pp = port_port (id);
@@ -565,13 +557,13 @@ port_set_n (volatile port_p * w, int n, const char *v, unsigned char p, int i, c
             device[pd].ri[pp].response = 1;
          if (i == 1 && pp < MAX_INPUT)
          {
-            if (name && !mydevice[pd].input[pp].name)
-               asprintf (&mydevice[pd].input[pp].name, "%s-%s", door ? : mydevice[pd].name ? : tag, name);
+            if (name && !id->name)
+               asprintf ((char **) &id->name, "%s-%s", door ? : mydevice[pd].name ? : tag, name);
             mydevice[pd].input[pp].inuse = 1;
          } else if (i == 0 && pp < MAX_OUTPUT && mydevice[pd].output[pp].type >= STATES)
          {
-            if (name && !mydevice[pd].output[pp].name)
-               asprintf (&mydevice[pd].output[pp].name, "%s-%s", door ? : mydevice[pd].name ? : tag, name);
+            if (name && !id->name)
+               asprintf ((char **) &id->name, "%s-%s", door ? : mydevice[pd].name ? : tag, name);
             mydevice[pd].output[pp].type = STATES;
          }
       }
@@ -717,8 +709,8 @@ input_ws (xml_t root, port_p port)
       }
       if (mydevice[id].name)
          xml_add (x, "@device", mydevice[id].name);
-      if (mydevice[id].input[n].name)
-         xml_add (x, "@name", mydevice[id].input[n].name);
+      if (port->name)
+         xml_add (x, "@name", port->name);
       xml_addf (x, "@dev", "%.6s", port_name (port));
       xml_addf (x, "@port", "%d", port_port (port));
       if (device[id].type == TYPE_RIO)
@@ -768,8 +760,8 @@ output_ws (xml_t root, port_p port)
       }
       if (mydevice[id].name)
          xml_add (x, "@device", mydevice[id].name);
-      if (mydevice[id].output[n].name)
-         xml_add (x, "@name", mydevice[id].output[n].name);
+      if (port->name)
+         xml_add (x, "@name", port->name);
       xml_addf (x, "@dev", "%.6s", port_name (port));
       xml_addf (x, "@port", "%d", port_port (port));
       if (device[id].type == TYPE_RIO)
@@ -895,6 +887,11 @@ load_config (const char *configfile)
                dolog (ALL_GROUPS, "CONFIG", NULL, port_name (p), "Input with bad port");
                continue;
             }
+            if (p->name)
+            {
+               dolog (ALL_GROUPS, "CONFIG", NULL, port_name (p), "Input duplicate name %d", p->name);
+               continue;
+            }
             n--;
             p->a = atoi (xml_get (x, "@a") ? : "");
             p->x = atoi (xml_get (x, "@x") ? : "");
@@ -907,7 +904,7 @@ load_config (const char *configfile)
             if (p->a || p->x || p->y || p->t)
                p->onplan = 1;
             mydevice[id].input[n].inuse = 1;
-            mydevice[id].input[n].name = xml_copy (x, "@name");
+            p->name = xml_copy (x, "@name");
             // triggers
             int t;
             for (t = 0; t < STATE_TRIGGERS; t++)
@@ -1000,6 +997,11 @@ load_config (const char *configfile)
                dolog (ALL_GROUPS, "CONFIG", NULL, port_name (p), "Output with bad port");
                continue;
             }
+	    if(p->name)
+	    {
+               dolog (ALL_GROUPS, "CONFIG", NULL, port_name (p), "Output with duplicate name %s",p->name);
+               continue;
+	    }
             n--;
             p->a = atoi (xml_get (x, "@a") ? : "");
             p->x = atoi (xml_get (x, "@x") ? : "");
@@ -1012,7 +1014,7 @@ load_config (const char *configfile)
             if (p->a || p->x || p->y || p->t)
                p->onplan = 1;
             mydevice[id].output[n].type = state_parse (xml_get (x, "@type"));
-            mydevice[id].output[n].name = xml_copy (x, "@name");
+            p->name = xml_copy (x, "@name");
             mydevice[id].output[n].group = group_parse (xml_get (x, "@groups") ? : "*");
             if ((v = xml_get (x, "@polarity")) && toupper (*v) == 'N')
                device[id].invert |= (1 << n);
@@ -1822,7 +1824,8 @@ next_log (long long usec)
    fd_set readfds;
    FD_ZERO (&readfds);
    FD_SET (logpipe[0], &readfds);
-   struct timeval timeout = { 0
+   struct timeval timeout = {
+      0
    };
    timeout.tv_sec = usec / 1000000ULL;
    timeout.tv_usec = usec % 1000000ULL;
@@ -2071,8 +2074,7 @@ dologger (CURL * curl, log_t * l)
             char *msg = strchr (v, ' ');
             if (msg)
                *msg++ = 0;
-            int e = mosquitto_publish (iot, NULL, v, strlen (msg ? : ""), msg, 1,
-                                       0);
+            int e = mosquitto_publish (iot, NULL, v, strlen (msg ? : ""), msg, 1, 0);
             if (e)
             {
                syslog (LOG_INFO, "IoT MQTT publish to %s failed (%s)", v, mosquitto_strerror (e));
@@ -2112,11 +2114,10 @@ dologger (CURL * curl, log_t * l)
                add ("da", n);
                add ("oa", xml_get (system, "@name"));
                char *ud;
-               asprintf (&ud, "%s\t%s\n%.*s\n%s\t%s\n%s\n%s",
-                         l->type ? : "?", l->msg ? : "", MAX_GROUP, groups, l->port ? : "", name ? : "", l->user ? : "", when);
+               asprintf (&ud, "%s\t%s\n%.*s\n%s\t%s\n%s\n%s", l->type ? : "?", l->msg ? : "", MAX_GROUP, groups, l->port ? : "",
+                         name ? : "", l->user ? : "", when);
                add ("ud", ud);
-               const char *server = xml_get (system,
-                                             "@sms-host") ? : "https://sms.aa.net.uk/";
+               const char *server = xml_get (system, "@sms-host") ? : "https://sms.aa.net.uk/";
                curl_easy_setopt (curl, CURLOPT_URL, server);
                curl_easy_setopt (curl, CURLOPT_HTTPPOST, fi);
                CURLcode result = curl_easy_perform (curl);
@@ -2418,7 +2419,6 @@ do_keypad_update (keypad_t * k, char key)
       return NULL;
    }
    device[n].silent = 0;
-
    // PIN entry?
    if (k->pininput || isdigit (key))
    {
@@ -2864,7 +2864,7 @@ doevent (event_t * e)
             break;
          i--;
          const char *port = port_name (e->port);
-         const char *name = mydevice[id].input[i].name ? : mydevice[id].name;
+         const char *name = e->port->name ? : mydevice[id].name;
          if (e->state)
          {                      // on
             mydevice[id].inputs |= (1 << i);
@@ -2928,7 +2928,7 @@ doevent (event_t * e)
          i--;
          if (i < MAX_INPUT)
          {
-            char *name = mydevice[id].input[i].name ? : mydevice[id].name;
+            const char *name = port ? : mydevice[id].name;
             group_t g = 0;
             int s;
             for (s = 0; s < STATE_TRIGGERS; s++)
@@ -3105,7 +3105,8 @@ doevent (event_t * e)
                   {
                      // disarm is the groups that can be disarmed by this user on this door.
                      group_t disarm = ((u->group_arm & mydoor[d].group_arm & state[STATE_ARM]) | (port_name (e->port),
-                                                                                                  u->group_disarm &
+                                                                                                  u->
+                                                                                                  group_disarm &
                                                                                                   mydoor[d].group_disarm &
                                                                                                   state[STATE_SET]));
                      if (door[d].state == DOOR_PROPPED || door[d].state == DOOR_OPEN || door[d].state == DOOR_PROPPEDOK)
@@ -3509,7 +3510,7 @@ do_wscallback (websocket_t * w, xml_t head, xml_t data)
             if (t)
             {
                if (p->t)
-                  free ((void*)p->t);
+                  free ((void *) p->t);
                p->t = strdup (t);
             }
             if (a >= 0 || x >= 0 || y >= 0 || t)
@@ -3539,7 +3540,7 @@ do_wscallback (websocket_t * w, xml_t head, xml_t data)
             if (t)
             {
                if (p->t)
-                  free ((void*)p->t);
+                  free ((void *) p->t);
                p->t = strdup (t);
             }
             if (a >= 0 || x >= 0 || y >= 0 || t)
@@ -3628,8 +3629,7 @@ main (int argc, const char *argv[])
          {
           "config", 'c', POPT_ARG_STRING, &configfile, 0, "Config", "filename"},
          {
-          "set-file", 's', POPT_ARG_STRING | POPT_ARGFLAG_SHOW_DEFAULT, &setfile,
-          0, "File holding set state", "filename"},
+          "set-file", 's', POPT_ARG_STRING | POPT_ARGFLAG_SHOW_DEFAULT, &setfile, 0, "File holding set state", "filename"},
          {
           "max-from", 0, POPT_ARG_STRING, &maxfrom, 0, "Max from port", "ID"},
          {
