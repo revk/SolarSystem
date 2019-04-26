@@ -579,7 +579,7 @@ port_set_n (volatile port_p * w, int n, const char *v, unsigned char p, int i, c
       const char *tag = v;
       port_p id = port_parse (v, &v, i);
       if (!port_bits (id))
-         id->busid |= p;        // default port
+         id = port_new_bus ((port_device (id) << 8) | p);       // Default port
       w[q++] = id;
       int pd = port_device (id);
       int pi = port_id (id);
@@ -2565,7 +2565,7 @@ do_keypad_update (keypad_t * k, char key)
             if (t == STATE_FAULT || t == STATE_TAMPER)
             {
                port_p p = port_parse (s->port, NULL, -2);
-               if (port_bits(p) && device[port_device (p)].type == TYPE_RIO)
+               if (port_bits (p) && device[port_device (p)].type == TYPE_RIO)
                {
                   unsigned int v = device[port_device (p)].ri[port_id (p)].resistance;
                   if (v)
@@ -2655,13 +2655,12 @@ doevent (event_t * e)
    gettimeofday (&now, NULL);
    unsigned int id = port_device (e->port);
    unsigned char type = device[id].type;
-   //if (e->event == EVENT_KEEPALIVE) syslog (LOG_INFO, "Bus %d KA OK (tx %d)", (e->port >> 16) + 1, e->tx);
    if (debug)
    {                            // Debug logging
       if (e->event == EVENT_DOOR)
          printf ("DOOR%02d %s", e->door, door_name[e->state]);
       else if (e->event == EVENT_KEEPALIVE)
-         printf ("BUS%d %s ", (port_device(e->port) >> 8) + 1, event_name[e->event]);
+         printf ("BUS%d %s ", (port_device (e->port) >> 8) + 1, event_name[e->event]);
       else
          printf ("%s %s ", port_name (e->port), event_name[e->event]);
       if (e->event == EVENT_KEEPALIVE)
@@ -2876,12 +2875,13 @@ doevent (event_t * e)
          for (i = 0; i < MAX_INPUT && e->changed; i++)
             if (e->changed & (1 << i))
             {
+               port_p p = port_new_bus ((port_device (e->port) << 8) + (1 << i));       // TODO messy
 #ifdef	LIBWS
-               input_ws (root, e->port + (1 << i));
+               input_ws (root, p);
 #endif
                int s;
                e->changed &= ~(1 << i);
-               char *port = port_name (e->port + (1 << i));
+               char *port = port_name (p);
                char *name = mydevice[id].input[i].name ? : mydevice[id].name;
                if ((e->status & (1 << i)))
                {                // on
@@ -2947,11 +2947,12 @@ doevent (event_t * e)
          for (i = 0; i < MAX_INPUT && e->changed; i++)
             if (e->changed & (1 << i))
             {
+               port_p p = port_new_bus ((port_device (e->port) << 8) + (1 << i));       // TODO messy
 #ifdef	LIBWS
-               input_ws (root, e->port + (1 << i));
+               input_ws (root, p);
 #endif
                e->changed &= ~(1 << i);
-               char *port = port_name (e->port + (1 << i));
+               char *port = port_name (p);
                char *name = mydevice[id].input[i].name ? : mydevice[id].name;
                group_t g = 0;
                int s;
@@ -3015,11 +3016,12 @@ doevent (event_t * e)
          for (i = 0; i < MAX_INPUT && e->changed; i++)
             if (e->changed & (1 << i))
             {
+               port_p p = port_new_bus ((port_device (e->port) << 8) + (1 << i));       // TODO messy
 #ifdef	LIBWS
-               input_ws (root, e->port + (1 << i));
+               input_ws (root, p);
 #endif
                e->changed &= ~(1 << i);
-               char *port = port_name (e->port + (1 << i));
+               char *port = port_name (p);
                char *name = mydevice[id].name;
                group_t g = 0;
                int s;
@@ -3410,11 +3412,11 @@ do_wscallback (websocket_t * w, xml_t head, xml_t data)
       for (d = 0; d < MAX_DOOR; d++)
          door_ws (root, d);
       port_p p;
-      for(p=ports;p;p=p->next)
-         {
-               output_ws (root, p);
-               input_ws (root, p);
-         }
+      for (p = ports; p; p = p->next)
+      {
+         output_ws (root, p);
+         input_ws (root, p);
+      }
       websocket_send (1, &w, root);
       pthread_mutex_unlock (&eventmutex);
       xml_tree_delete (root);
@@ -3860,11 +3862,11 @@ main (int argc, const char *argv[])
          dolog (groups, "CONFIG", NULL, NULL, "max-from invalid");
       else if (!t || device[port_device (t)].type != TYPE_MAX)
          dolog (groups, "CONFIG", NULL, NULL, "max-to invalid");
-      else if ((port_device(f) >> 8) != (port_device(t) >> 8))
+      else if ((port_device (f) >> 8) != (port_device (t) >> 8))
          dolog (groups, "CONFIG", NULL, NULL, "max-from and max-to on different buses");
       else
       {
-         device[port_device (f)].newid = port_device(t);
+         device[port_device (f)].newid = port_device (t);
          device[port_device (f)].config = 1;
          dolog (groups, "CONFIG", NULL, NULL, "Max renumber planned");
       }

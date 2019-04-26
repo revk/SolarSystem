@@ -109,11 +109,12 @@ const rio_threshold_t rio_thresholds[3] = {
    {"4k7", 37, 42, 55, 65, 190},
 };
 
-int port_valid (port_p w)
+int
+port_valid (port_p w)
 {
-	   if (!w || port_device (w) >= MAX_DEVICE || !device[port_device (w)].type)
-		         return 0;                 // Not valid
-	      return 1;
+   if (!w || port_device (w) >= MAX_DEVICE || !device[port_device (w)].type)
+      return 0;                 // Not valid
+   return 1;
 }
 
 pthread_t doorthread;
@@ -164,8 +165,8 @@ door_led (int d, unsigned char state)
       {
          if (device[port_device (door[d].o_led[n])].type == TYPE_MAX)
             device[port_device (door[d].o_led[n])].led =
-               ((device[port_device (door[d].o_led[n])].
-                 led & ~port_bits (door[d].o_led[n])) | (led & port_bits (door[d].o_led[n])));
+               ((device[port_device (door[d].o_led[n])].led & ~port_bits (door[d].o_led[n])) |
+                (led & port_bits (door[d].o_led[n])));
          else if (device[port_device (door[d].o_led[n])].type == TYPE_PAD)
             snprintf ((char *) device[port_device (door[d].o_led[n])].text[0], 17, "%-15s", door_name[state]);
       }
@@ -215,7 +216,7 @@ port_tamper_n (volatile port_p * w, int n)
 {
    int q = 0;
    while (n--)
-      if (port_valid (w[n]) && (device[port_device (w[n])].tamper & port_bits(w[n]  )))
+      if (port_valid (w[n]) && (device[port_device (w[n])].tamper & port_bits (w[n])))
          q++;
    return q;
 }
@@ -236,7 +237,7 @@ port_input_n (volatile port_p * w, int n)
 {
    int q = 0;
    while (n--)
-      if (port_valid (w[n]) && (device[port_device (w[n])].input & port_bits(w[n])))
+      if (port_valid (w[n]) && (device[port_device (w[n])].input & port_bits (w[n])))
          q++;
    return q;
 }
@@ -580,7 +581,7 @@ poller (void *d)
    struct timezone tz = { 0
    };
    unsigned char id = 0,
-      idleid = 0;;
+      idleid = 0;
    unsigned char idlecheck = 0;
    event_t *newevent (int etype)
    {
@@ -588,8 +589,11 @@ poller (void *d)
       if (!e)
          errx (1, "malloc");
       memset ((void *) e, 0, sizeof (*e));
+      unsigned int did = ((busid << 8) + id);
+      if (!device[did].port)
+         device[did].port = port_new_bus (did << 8);
       e->when = now;
-      e->port = port_new_bus(((busid << 8) + (int) id) << 8);
+      e->port = device[did].port;
       e->event = etype;
       return e;
    }
@@ -1080,10 +1084,8 @@ poller (void *d)
                      cmd[++cmdlen] = 0x0C;
                      // The logic here is not 100% clear, seems we have to send the toggle on and off to latch something. Seems to work now
                      cmd[++cmdlen] =
-                        ((mydev[id].
-                          toggle0C ? 0x09 : 0x00) | (((mydev[id].output ^ mydev[id].invert ^ 2) & 3) << 1) | ((mydev[id].
-                                                                                                               disable) ? 0 :
-                                                                                                              0x80));
+                        ((mydev[id].toggle0C ? 0x09 : 0x00) | (((mydev[id].output ^ mydev[id].invert ^ 2) & 3) << 1) |
+                         ((mydev[id].disable) ? 0 : 0x80));
                      cmd[++cmdlen] = dev[id].led;
                      mydev[id].send07 = 0;      // Includes LED
                      mydev[id].toggle0C ^= 1;
