@@ -199,6 +199,9 @@ struct port_app_s
          unsigned char inuse:1; // Mentioned in config at all
          unsigned char isexit:1;        // Door related input
          unsigned char isbell:1;        // Door related input
+         unsigned char tamper:1;        // Known tamper state
+         unsigned char fault:1; // Known fault state
+         unsigned char input:1; // Known input state
          group_t trigger[STATE_TRIGGERS];       // If this input applies to a state
       };
       struct
@@ -339,10 +342,6 @@ static struct
 {                               // Per device settings
    const char *name;            // TODO this is device level
    unsigned char missing:1;     // Device is AWOL
-   // Updated states from events
-   input_t inputs;              // Bit map of inputs
-   fault_t faults;              // Bit map of faults
-   tamper_t tampers;            // Bit map of tampers (device tamper is 1<<8)
 } mydevice[MAX_DEVICE] =
 {
 };
@@ -702,6 +701,7 @@ input_ws (xml_t root, port_p port)
    int n = port_port (port);
    if (!n || n > MAX_INPUT)
       return NULL;
+   port_app_t *app = port_app (port);
    n--;
    if (!((device[id].type == TYPE_MAX && n < 4) || device[id].type == TYPE_RIO))
       return NULL;
@@ -709,12 +709,12 @@ input_ws (xml_t root, port_p port)
    xml_add (x, "@id", port_name (port));
    if (xml_get (root, "@full-data"))
    {
-      if (port_app (port)->onplan)
+      if (app->onplan)
       {
-         xml_addf (x, "@-a", "%d", port_app (port)->a);
-         xml_addf (x, "@-x", "%d", port_app (port)->x);
-         xml_addf (x, "@-y", "%d", port_app (port)->y);
-         xml_add (x, "@t", port_app (port)->t);
+         xml_addf (x, "@-a", "%d", app->a);
+         xml_addf (x, "@-x", "%d", app->x);
+         xml_addf (x, "@-y", "%d", app->y);
+         xml_add (x, "@t", app->t);
       }
       if (mydevice[id].name)
          xml_add (x, "@device", mydevice[id].name);
@@ -727,11 +727,11 @@ input_ws (xml_t root, port_p port)
       else if (device[id].type == TYPE_MAX)
          xml_add (x, "@type", "max");
    }
-   if (mydevice[id].inputs & (1 << n))
+   if (app->input)
       xml_add (x, "@-active", "true");
-   if (mydevice[id].tampers & (1 << n))
+   if (app->tamper)
       xml_add (x, "@-tamper", "true");
-   if (mydevice[id].faults & (1 << n))
+   if (app->fault)
       xml_add (x, "@-fault", "true");
    if (device[id].type == TYPE_RIO)
    {                            // Voltage...
@@ -751,21 +751,22 @@ output_ws (xml_t root, port_p port)
    int n = port_port (port);
    if (!n || n > MAX_OUTPUT)
       return NULL;
+   port_app_t *app = port_app (port);
    n--;
    if (!((device[id].type == TYPE_MAX && n < 2) || device[id].type == TYPE_RIO))
       return NULL;
-   if (port_app (port)->type == (state_t) - 1)
+   if (app->type == (state_t) - 1)
       return NULL;              // Not in use
    xml_t x = xml_element_add (root, "output");
    xml_add (x, "@id", port_name (port));
    if (xml_get (root, "@full-data"))
    {
-      if (port_app (port)->onplan)
+      if (app->onplan)
       {
-         xml_addf (x, "@-a", "%d", port_app (port)->a);
-         xml_addf (x, "@-x", "%d", port_app (port)->x);
-         xml_addf (x, "@-y", "%d", port_app (port)->y);
-         xml_add (x, "@t", port_app (port)->t);
+         xml_addf (x, "@-a", "%d", app->a);
+         xml_addf (x, "@-x", "%d", app->x);
+         xml_addf (x, "@-y", "%d", app->y);
+         xml_add (x, "@t", app->t);
       }
       if (mydevice[id].name)
          xml_add (x, "@device", mydevice[id].name);
@@ -2867,14 +2868,14 @@ doevent (event_t * e)
          const char *name = e->port->name ? : mydevice[id].name;
          if (e->state)
          {                      // on
-            mydevice[id].inputs |= (1 << i);
+            app->input = 1;
             if (walkthrough)
                syslog (LOG_INFO, "+%s(%s)", port, name ? : "");
             for (s = 0; s < STATE_TRIGGERS; s++)
                add_state (app->trigger[s], port, name, s);
          } else
          {                      // off
-            mydevice[id].inputs &= ~(1 << i);
+            app->input = 0;
             if (walkthrough)
                syslog (LOG_INFO, "-%s(%s)", port, name ? : "");
             for (s = 0; s < STATE_TRIGGERS; s++)
@@ -2936,13 +2937,13 @@ doevent (event_t * e)
                g |= app->trigger[s];
             if (e->state)
             {
-               mydevice[id].tampers |= (1 << i);
+               app->tamper = 1;
                if (walkthrough)
                   syslog (LOG_INFO, "+%s(%s) Tamper", port, name ? : "");
                add_tamper (g, port, name);
             } else
             {
-               mydevice[id].tampers &= ~(1 << i);
+               app->tamper = 0;
                if (walkthrough)
                   syslog (LOG_INFO, "-%s(%s) Tamper", port, name ? : "");
                rem_tamper (g, port, name);
@@ -2970,11 +2971,11 @@ doevent (event_t * e)
                g = groups;
             if (e->state)
             {
-               mydevice[id].tampers |= (1 << i);
+               app->tamper = 1;
                add_tamper (g, port, name);
             } else
             {
-               mydevice[id].tampers &= ~(1 << i);
+               app->tamper = 0;
                rem_tamper (g, port, name);
             }
          }
@@ -2988,11 +2989,11 @@ doevent (event_t * e)
       break;
    case EVENT_FAULT:
       {
-         const char *port = port_name (e->port);
-         const char *name = mydevice[id].name;
          int i = port_port (e->port);
          if (!i)
             break;
+         const char *port = port_name (e->port);
+         const char *name = mydevice[id].name;
          port_app_t *app = port_app (e->port);
          i--;
          group_t g = 0;
@@ -3001,13 +3002,13 @@ doevent (event_t * e)
             g |= app->trigger[s];
          if (e->state)
          {
-            mydevice[id].faults |= (1 << i);
+            app->fault = 1;
             if (walkthrough)
                syslog (LOG_INFO, "+%s(%s) Fault", port, name ? : "");
             add_fault (g, port, name);
          } else
          {
-            mydevice[id].faults &= ~(1 << i);
+            app->fault = 0;
             if (walkthrough)
                syslog (LOG_INFO, "-%s(%s) Fault", port, name ? : "");
             rem_fault (g, port, name);
