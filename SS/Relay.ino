@@ -6,23 +6,25 @@
 #include <ESP8266RevK.h>
 #include "relay.h"
 
-boolean relay_setting(const char *setting, const byte *value, size_t len)
+const char* relay_setting(const char *tag, const byte *value, size_t len)
 { // Called for settings retrieved from EEPROM
-  return false; // Done
+  return NULL; // Done
 }
 
-boolean relay_cmnd(const char*suffix, const byte *message, size_t len)
+boolean relay_command(const char*tag, const byte *message, size_t len)
 { // Called for incoming MQTT messages
   return false;
 }
 
-void relay_setup(ESP8266RevK&revk)
+boolean relay_setup(ESP8266RevK&revk)
 {
 #ifndef REVKDEBUG
   Serial.begin(9600);	// Serial relay control uses 9600
 #endif
+  return false;
 }
 
-void relay_loop(ESP8266RevK&revk)
+boolean relay_loop(ESP8266RevK&revk)
 {
+  return false;
 }

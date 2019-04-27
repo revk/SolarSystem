@@ -15,7 +15,7 @@
 
 #include <ESP8266RevK.h>
 
-extern boolean reader522_setting(const char *setting, const byte *value, size_t len);
-extern boolean reader522_cmnd(const char*suffix, const byte *message, size_t len);
-extern void reader522_setup(ESP8266RevK&);
-extern void reader522_loop(ESP8266RevK&);
+extern const char * reader522_setting(const char *tag, const byte *value, size_t len);
+extern boolean reader522_command(const char*tag, const byte *message, size_t len);
+extern boolean reader522_setup(ESP8266RevK&);
+extern boolean reader522_loop(ESP8266RevK&);

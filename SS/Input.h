@@ -11,7 +11,7 @@
 
 #include <ESP8266RevK.h>
 
-extern boolean input_setting(const char *setting, const byte *value, size_t len);
-extern boolean input_cmnd(const char*suffix, const byte *message, size_t len);
-extern void input_setup(ESP8266RevK&);
-extern void input_loop(ESP8266RevK&);
+extern const char * input_setting(const char *tag, const byte *value, size_t len);
+extern boolean input_command(const char*tag, const byte *message, size_t len);
+extern boolean input_setup(ESP8266RevK&);
+extern boolean input_loop(ESP8266RevK&);

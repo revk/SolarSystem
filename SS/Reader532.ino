@@ -19,41 +19,42 @@
 PN532_SPI pn532spi(SPI, 16);
 PN532 nfc(pn532spi);
 
-boolean reader532_setting(const char *setting, const byte *value, size_t len)
+static boolean nfcok = false;
+
+const char* reader532_setting(const char *tag, const byte *value, size_t len)
 { // Called for settings retrieved from EEPROM
-  return false; // Done
+  return NULL; // Done
 }
 
-boolean reader532_cmnd(const char*suffix, const byte *message, size_t len)
+boolean reader532_command(const char*tag, const byte *message, size_t len)
 { // Called for incoming MQTT messages
   return false;
 }
 
-void reader532_setup(ESP8266RevK&revk)
+boolean reader532_setup(ESP8266RevK&revk)
 {
-  Serial.begin(115200);
   nfc.begin();
   uint32_t versiondata = nfc.getFirmwareVersion();
-  if (! versiondata) {
-    Serial.println("Didn't find PN53x board");
-    while (1); // halt
-  }
+  if (versiondata)return false;
+  nfcok = true;
   nfc.setPassiveActivationRetries(1);
   nfc.SAMConfig();
+  return true;
 }
 
 static byte lastlen = 0;
 static byte lastuid[7] = {};
-static void report(const char *tag)
+static void report(const __FlashStringHelper *tag)
 {
   char tid[15];
   int n;
   for (n = 0; n < lastlen && n * 2 < sizeof(tid); n++)sprintf(tid + n * 2, "%02X", lastuid[n]);
-  revk.stat(tag, tid);
+  revk.state(tag, F("%s"), tid);
 }
 
-void reader532_loop(ESP8266RevK&revk)
+boolean reader532_loop(ESP8266RevK&revk)
 {
+  if (!nfcok)return false;
   long now = (millis() ? : 1); // Allowing for wrap, and using 0 to mean not set
   static long cardcheck = 0;
   if ((int)(cardcheck - now) < 0)
@@ -69,23 +70,24 @@ void reader532_loop(ESP8266RevK&revk)
       if (!first || uidlen != lastlen || memcmp(lastuid, uid, uidlen))
       {
         if (held)
-          report("gone");
+          report(F("gone"));
         first = now;
         held = false;
         memcpy(lastuid, uid, lastlen = uidlen);
-        report("id");
+        report(F("id"));
       } else if (!held && first && (int)(now - first) > HOLDTIME)
       {
         held = true;
-        report("held");
+        report(F("held"));
       }
     } else if (last && (int)(now - last) > RELEASETIME)
     {
       if (held)
-        report("gone");
+        report(F("gone"));
       first = 0;
       last = 0;
       held = false;
     }
   }
+  return true;
 }

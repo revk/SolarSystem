@@ -6,20 +6,22 @@
 #include <ESP8266RevK.h>
 #include "Ranger.h"
 
-boolean ranger_setting(const char *setting, const byte *value, size_t len)
+const char* ranger_setting(const char *tag, const byte *value, size_t len)
 { // Called for settings retrieved from EEPROM
-  return false; // Done
+  return NULL; // Done
 }
 
-boolean ranger_cmnd(const char*suffix, const byte *message, size_t len)
+boolean ranger_command(const char*tag, const byte *message, size_t len)
 { // Called for incoming MQTT messages
   return false;
 }
 
-void ranger_setup(ESP8266RevK&revk)
+boolean ranger_setup(ESP8266RevK&revk)
 {
+  return false;
 }
 
-void ranger_loop(ESP8266RevK&revk)
+boolean ranger_loop(ESP8266RevK&revk)
 {
+  return false;
 }

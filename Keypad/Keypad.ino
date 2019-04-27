@@ -4,9 +4,7 @@
 // Keypad / display
 // ESP-01 based with RS485 board fits in Galaxy keypad/display module
 
-
-
-//#define DEBUG // log message (header bytes)
+#define DEBUG // log message (header bytes)
 
 #include <ESP8266RevK.h>
 
@@ -26,14 +24,14 @@ ESP8266RevK revk(__FILE__, __DATE__ " " __TIME__);
   commands
 #undef  f
 
-  boolean app_setting(const char *setting, const byte *value, size_t len)
+  const char* app_setting(const char *setting, const byte *value, size_t len)
   { // Called for commands retrieved from EEPROM
-    return false; // Done
+    return NULL; // Done
   }
 
-  boolean app_cmnd(const char*suffix, const byte *message, size_t len)
+  boolean app_command(const char*suffix, const byte *message, size_t len)
   { // Called for incoming MQTT messages
-#define f(i,n,l,d) if(!strcasecmp(suffix,#n)&&len<=l){memcpy(n,message,len);n##_len=len;if(len<l)memset(n+len,0,l-len);send##i=true;return true;}
+#define f(i,n,l,d) if(!strcasecmp_P(suffix,PSTR(#n))&&len<=l){memcpy(n,message,len);n##_len=len;if(len<l)memset(n+len,0,l-len);send##i=true;return true;}
     commands
 #undef f
     return false;
@@ -148,7 +146,7 @@ ESP8266RevK revk(__FILE__, __DATE__ " " __TIME__);
       }
 #ifdef DEBUG
       if (buf[1] != 0x06)
-        revk.stat("Tx", "%d: %02X %02X %02X %02X", p, buf[0], buf[1], buf[2], buf[3]);
+        revk.info(F("Tx"), F("%d: %02X %02X %02X %02X"), p, buf[0], buf[1], buf[2], buf[3]);
 #endif
       byte cmd = buf[1];
       digitalWrite(RTS, HIGH);
@@ -164,7 +162,7 @@ ESP8266RevK revk(__FILE__, __DATE__ " " __TIME__);
         p += Serial.readBytes(buf + p, sizeof(buf) - p);
 #ifdef DEBUG
         if (buf[1] != 0xFE)
-          revk.stat("Rx", "%d: %02X %02X %02X %02X", p, buf[0], buf[1], buf[2], buf[3]);
+          revk.info(F("Rx"), F("%d: %02X %02X %02X %02X"), p, buf[0], buf[1], buf[2], buf[3]);
 #endif
         unsigned int c = 0xAA, n;
         for (n = 0; n < p - 1; n++)
@@ -175,7 +173,7 @@ ESP8266RevK revk(__FILE__, __DATE__ " " __TIME__);
         {
           if (!fault)
           {
-            revk.stat("fault", "1");
+            revk.state(F("fault"), F("1"));
             fault = true;
           }
         }
@@ -183,7 +181,7 @@ ESP8266RevK revk(__FILE__, __DATE__ " " __TIME__);
         {
           if (fault)
           {
-            revk.stat("fault", "0");
+            revk.state(F("fault"), F("0"));
             fault = false;
           }
           if (cmd == 0x00 && buf[1] == 0xFF && p > 5)
@@ -203,17 +201,17 @@ ESP8266RevK revk(__FILE__, __DATE__ " " __TIME__);
             }
           } else if (buf[1] == 0xFE)
           { // Idle, no tamper
-            if (tamper)revk.stat("tamper", "0");
+            if (tamper)revk.state(F("tamper"), F("0"));
             tamper = false;
           } else if (cmd == 0x06 && buf[1] == 0xF4 && p > 3)
           { // Status
             if (buf[2] & 0x40)
             {
-              if (!tamper)revk.stat("tamper", "1");
+              if (!tamper)revk.state(F("tamper"), F("1"));
               tamper = true;
             } else
             {
-              if (tamper)revk.stat("tamper", "0");
+              if (tamper)revk.state(F("tamper"), F("0"));
               tamper = false;
             }
             if (!send0B && buf[2] != 0x7F)
@@ -221,7 +219,7 @@ ESP8266RevK revk(__FILE__, __DATE__ " " __TIME__);
               send0B = true;
               // Note mapping and key held bit...
               // TODO why duplicates?
-              revk.stat(buf[2] & 0x80 ? "hold" : "key", "%c", "0123456789BA\n\e*#"[buf[2] & 0x0F]);
+              revk.event(buf[2] & 0x80 ? F("hold") : F("key"), F("%c"), "0123456789BA\n\e*#"[buf[2] & 0x0F]);
             }
           }
           next = ((millis() + 20) ? : 1);
@@ -231,7 +229,7 @@ ESP8266RevK revk(__FILE__, __DATE__ " " __TIME__);
         if (!fault)
         {
           fault = true;
-          revk.stat("fault", "1");
+          revk.state(F("fault"), F("1"));
         }
         online = false;
       }

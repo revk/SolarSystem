@@ -19,23 +19,24 @@
 #define SS 16 // SPI
 MFRC522 rfid(SS, RST); // Instance of the class
 
-boolean reader522_setting(const char *setting, const byte *value, size_t len)
+const char* reader522_setting(const char *tag, const byte *value, size_t len)
 { // Called for settings retrieved from EEPROM
-  return false; // Done
+  return NULL; // Done
 }
 
-boolean reader522_cmnd(const char*suffix, const byte *message, size_t len)
+boolean reader522_command(const char*tag, const byte *message, size_t len)
 { // Called for incoming MQTT messages
   return false;
 }
 
-void reader522_setup(ESP8266RevK&revk)
+boolean reader522_setup(ESP8266RevK&revk)
 {
   SPI.begin(); // Init SPI bus
   rfid.PCD_Init(); // Init MFRC522
+  return true;
 }
 
-void reader522_loop(ESP8266RevK&revk)
+boolean reader522_loop(ESP8266RevK&revk)
 {
   long now = (millis() ? : 1); // Allowing for wrap, and using 0 to mean not set
   static long cardcheck = 0;
@@ -53,23 +54,24 @@ void reader522_loop(ESP8266RevK&revk)
       if (!first || memcmp(id, rfid.uid.uidByte, 4))
       {
         if (held)
-          revk.stat("gone", "%02X%02X%02X%02X", id[0], id[1], id[2], id[3]); // Edge case of change card after hold before release time
+          revk.state(F("gone"), F("%02X%02X%02X%02X"), id[0], id[1], id[2], id[3]); // Edge case of change card after hold before release time
         first = now;
         held = false;
         memcpy(id, rfid.uid.uidByte, 4);
-        revk.stat("id", "%02X%02X%02X%02X", id[0], id[1], id[2], id[3]);
+        revk.state(F("id"), F("%02X%02X%02X%02X"), id[0], id[1], id[2], id[3]);
       } else if (!held && first && (int)(now - first) > HOLDTIME)
       {
         held = true;
-        revk.stat( "held", "%02X%02X%02X%02X", id[0], id[1], id[2], id[3]);
+        revk.state(F("held"), F("%02X%02X%02X%02X"), id[0], id[1], id[2], id[3]);
       }
     } else if (last && (int)(now - last) > RELEASETIME)
     {
       if (held)
-        revk.stat("gone", "%02X%02X%02X%02X", id[0], id[1], id[2], id[3]);
+        revk.state(F("gone"), F("%02X%02X%02X%02X"), id[0], id[1], id[2], id[3]);
       first = 0;
       last = 0;
       held = false;
     }
   }
+  return true;
 }
