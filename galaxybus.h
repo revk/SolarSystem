@@ -126,7 +126,7 @@ typedef volatile struct event_s event_t;
 
 struct device_s
 {                               // Device on the bus...
-   port_p port[MAX_TAMPER + 1]; // Device ports in use for event reporting (base devivce ID, and then inputs and extra tampers)
+   port_p port[MAX_TAMPER + 1]; // Device ports in use for event reporting (base device ID, and then inputs and extra tampers)
    input_t input;               // Bit map of inputs
    input_t inhibit;             // Inhibited inputs
    output_t output;             // Bit map of outputs
@@ -205,7 +205,7 @@ struct event_s
       struct
       {                         // EVENT DOOR
          unsigned char door;    // Which door for DOOR event
-         unsigned char state;   // The state of the door or input
+         unsigned char state;   // The state of the door (or state for input/tamper/fault)
       };
       struct
       {                         // EVENT_FOB / EVENT_FOB_HELD
@@ -241,11 +241,11 @@ void door_lock (int d);         // Lock the door
 void door_deadlock (int d);     // Deadlock the door
 void door_unlock (int d);       // Un deadlock the door
 event_t *bus_event (long long usec);    // Get next event, wait up to usec if none ready
-void postevent (event_t * e);
+void postevent (event_t * e);   // Post an event (updates input/tamper/fault on port from state)
 
 // Access to devices for door control, etc
 int device_found (int id);      // Check device exists
 void device_urgent (int id);    // Mark device urgent
 void device_output (int id, int port, int value);       // Set output
 void device_led (int id, int led);
-int device_input (int id, int port); // Read input
+int device_input (int id, int port);    // Read input

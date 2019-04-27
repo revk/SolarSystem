@@ -26,12 +26,13 @@ struct port_s
    // MQTT based device
    const char *mqtt;            // MQTT Device ID (NULL for bus based)
    // Bus based port/device
-   unsigned char bus;           // Bus ID
-   unsigned char id;            // Bus ID
-   unsigned char port;          // Port number - from 1 - 0 means not a port (i.e. device level entry)
+   unsigned char bus;           // Bus ID (0 for MQTT)
+   unsigned char id;            // Bus ID (0 for MQTT)
+   // Port info
+   unsigned char port;          // Port number - from 1. 0 means not a port (i.e. device level record for things like tamper/fault)
    unsigned char isinput:1;     // This is an input port
    // Actual state
-   unsigned char state:1;       // Current actual state
+   unsigned char state:1;       // Current actual state (updated on post event)
    unsigned char fault:1;       //
    unsigned char tamper:1;      //
    // Application data
