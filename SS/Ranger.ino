@@ -11,7 +11,7 @@
 VL53L0X sensor;
 
 #define MAXRANGE 2000
-#define MARGIN 10
+#define MARGIN 20
 
 #define app_settings  \
   s(ranger);   \
