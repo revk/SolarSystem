@@ -11,6 +11,7 @@
 VL53L0X sensor;
 
 #define MAXRANGE 2000
+#define MARGIN 10
 
 #define app_settings  \
   s(ranger);   \
@@ -52,7 +53,6 @@ VL53L0X sensor;
     long now = millis();
     if (!ranger)return false; // Ranger not configured
     static long next = 0;
-    static unsigned int margin = 100;
     static unsigned int rangemax = 200;
     static boolean buttonshort = 0;
     static boolean buttonlong = 0;
@@ -75,7 +75,7 @@ VL53L0X sensor;
       {
         buttonshort = true;
         revk.state(F("ranger0"), F("1 %u %u"), range, ranger);
-      } else if (range > ranger + margin && buttonshort)
+      } else if (range > ranger + MARGIN && buttonshort)
       {
         buttonshort = false;
         revk.state(F("ranger0"), F("0 %u %u"), range, ranger);
@@ -84,11 +84,11 @@ VL53L0X sensor;
         rangemax = range;
       else
         rangemax = (rangemax * 999 + range) / 1000;
-      if (range + margin * 2 < rangemax && !buttonlong)
+      if (range + MARGIN * 2 < rangemax && !buttonlong)
       {
         buttonlong = true;
         revk.state(F("ranger1"), F("1 %u %u"), range, rangemax);
-      } else if (range + margin > rangemax && buttonlong)
+      } else if (range + MARGIN > rangemax && buttonlong)
       {
         buttonlong = false;
         revk.state(F("ranger1"), F("0 %u %u"), range, rangemax);
