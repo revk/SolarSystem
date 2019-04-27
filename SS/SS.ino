@@ -83,7 +83,7 @@ void setup()
 
 void loop()
 {
-  revk.loop();
+  if (!revk.loop())return;
 #ifdef USE_READER532
   reader532_loop(revk);
 #endif
