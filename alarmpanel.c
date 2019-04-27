@@ -37,7 +37,6 @@
 #include <ctype.h>
 #include <err.h>
 #include <signal.h>
-#include <execinfo.h>
 #include <pthread.h>
 #include <curl/curl.h>
 #include <galaxybus.h>
@@ -3548,6 +3547,7 @@ wscallback (websocket_t * w, xml_t head, xml_t data)
 int
 main (int argc, const char *argv[])
 {
+   port_start();
 #ifdef	LIBWS
    char *d = strrchr (argv[0], '/');
    if (d)
@@ -3561,7 +3561,6 @@ main (int argc, const char *argv[])
    port_output_callback = ws_port_output_callback;
 #endif
    const char *configfile = NULL;
-#include <trace.h>
    {
       int c;
       poptContext optCon;       // context for parsing command-line options

@@ -17,6 +17,7 @@
 #include "Relay.h"
 #include "Input.h"
 #include "Ranger.h"
+#include "Keypad.h"
 
 ESP8266RevK revk(__FILE__, __DATE__ " " __TIME__);
 
@@ -35,6 +36,9 @@ const char* app_setting(const char *tag, const byte *value, size_t len)
 #ifdef	USE_RANGER
   if ((ret = ranger_setting(tag, value, len)))return ret;
 #endif
+#ifdef  USE_KEYPAD
+  if ((ret = keypad_setting(tag, value, len)))return ret;
+#endif
   return false; // Failed
 }
 
@@ -51,6 +55,9 @@ boolean app_command(const char*tag, const byte *message, size_t len)
 #endif
 #ifdef	USE_RANGER
   if (ranger_command(tag, message, len))return true;
+#endif
+#ifdef  USE_KEYPAD
+  if (keypad_command(tag, message, len))return true;
 #endif
   return false; // Failed
 }
@@ -69,6 +76,9 @@ void setup()
 #ifdef USE_RANGER
   ranger_setup(revk);
 #endif
+#ifdef USE_KEYPAD
+  keypad_setup(revk);
+#endif
 }
 
 void loop()
@@ -86,4 +96,8 @@ void loop()
 #ifdef USE_RANGER
   ranger_loop(revk);
 #endif
+#ifdef USE_KEYPAD
+  keypad_loop(revk);
+#endif
+  delay(1);
 }

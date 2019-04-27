@@ -8,11 +8,9 @@
 
 #include <ESP8266RevK.h>
 
-ESP8266RevK revk(__FILE__, __DATE__ " " __TIME__);
-
 #define RTS 2
 
-#define commands  \
+#define app_commands  \
   f(07,display,32,0) \
   f(19,keyclick,1,5) \
   f(0C,beep,2,0) \
@@ -20,36 +18,48 @@ ESP8266RevK revk(__FILE__, __DATE__ " " __TIME__);
   f(07a,cursor,2,0) \
   f(07b,blink,1,0) \
 
+#define app_settings  \
+  s(keypad);   \
+
 #define f(id,name,len,def) static byte name[len]={def};boolean send##id=false;byte name##_len=0;
-  commands
+  app_commands
 #undef  f
 
-  const char* app_setting(const char *setting, const byte *value, size_t len)
+#define s(n) const char *n=NULL
+  app_settings
+#undef s
+
+  const char* keypad_setting(const char *tag, const byte *value, size_t len)
   { // Called for commands retrieved from EEPROM
+#define s(n) do{const char *t=PSTR(#n);if(!strcmp_P(tag,t)){n=(const char *)value;return t;}}while(0)
+    app_settings
+#undef s
     return NULL; // Done
   }
 
-  boolean app_command(const char*suffix, const byte *message, size_t len)
+  boolean keypad_command(const char*tag, const byte *message, size_t len)
   { // Called for incoming MQTT messages
-#define f(i,n,l,d) if(!strcasecmp_P(suffix,PSTR(#n))&&len<=l){memcpy(n,message,len);n##_len=len;if(len<l)memset(n+len,0,l-len);send##i=true;return true;}
-    commands
+    if (!keypad)return false; // Not running keypad
+#define f(i,n,l,d) if(!strcasecmp_P(tag,PSTR(#n))&&len<=l){memcpy(n,message,len);n##_len=len;if(len<l)memset(n+len,0,l-len);send##i=true;return true;}
+    app_commands
 #undef f
     return false;
   }
 
-  void setup()
+  boolean keypad_setup(ESP8266RevK &revk)
   {
+    if (!keypad)return false; // Not running keypad
 #ifndef REVKDEBUG
     Serial.begin(9600);	// Galaxy uses 9600 8N2
 #endif
     digitalWrite(RTS, LOW);
     pinMode(RTS, OUTPUT);
-
+    return true;
   }
 
-  void loop()
+  boolean keypad_loop(ESP8266RevK &revk)
   {
-    if (!revk.loop())return; // Not connected
+    if (!keypad)return false; // Not running keypad
     long now = millis();
     static long next = 0;
     if ((int)(next - now) < 0)
@@ -233,6 +243,6 @@ ESP8266RevK revk(__FILE__, __DATE__ " " __TIME__);
         }
         online = false;
       }
-      delay(1);
     }
+    return true;
   }

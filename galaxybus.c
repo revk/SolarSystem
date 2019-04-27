@@ -42,7 +42,6 @@
 #include <ctype.h>
 #include <err.h>
 #include <signal.h>
-#include <execinfo.h>
 #include <sys/ioctl.h>
 #include <termios.h>
 #include <pthread.h>
@@ -180,7 +179,6 @@ void *
 poller (void *d)
 {
    char *argv[] = { "alarmpanel" };
-#include <trace.h>
    int busid = (long) d;
    if (busid < 0 || busid >= MAX_BUS)
       errx (1, "Bad bus ID to start %d", busid);

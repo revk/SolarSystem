@@ -41,6 +41,7 @@ struct port_s
 
 extern port_p ports;
 
+void port_start(void);
 port_p port_new_bus (unsigned char bus, // Bus ID (from 0)
                      unsigned char id,  // Device ID on bus
                      unsigned char isinput,     // 1 if input
