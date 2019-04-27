@@ -130,11 +130,13 @@ device_output (int id, int port, int value)
    pthread_mutex_unlock (&outputmutex);
 }
 
-int device_input (int id,int port)
+int
+device_input (int id, int port)
 {
    if (id < 0 || id >= MAX_DEVICE || port < 1 || port >= MAX_INPUT)
       return -1;
-   if(device[id].input&(1<<(port-1)))return 1;
+   if (device[id].input & (1 << (port - 1)))
+      return 1;
    return 0;
 }
 
@@ -151,6 +153,15 @@ postevent (event_t * e)
 {
    if (e)
    {
+      if (e->port)
+      {                         // Reflect states in  port object
+         if (e->event == EVENT_INPUT)
+            e->port->state = e->state;
+         if (e->event == EVENT_TAMPER)
+            e->port->tamper = e->state;
+         if (e->event == EVENT_FAULT)
+            e->port->fault = e->state;
+      }
       pthread_mutex_lock (&qmutex);
       if (event)
          *eventp = e;
@@ -272,10 +283,13 @@ poller (void *d)
          errx (1, "malloc");
       memset ((void *) e, 0, sizeof (*e));
       unsigned int did = ((busid << 8) + id);
-      if (!device[did].port[port])
-         device[did].port[port] = port_new_bus (busid, id, isinput, port);
+      if (port < sizeof (device[did].port) / sizeof (device[did].port[0]))
+      {                         // Port ID reporting
+         if (!device[did].port[port])
+            device[did].port[port] = port_new_bus (busid, id, isinput, port);
+         e->port = device[did].port[port];
+      }
       e->when = now;
-      e->port = device[did].port[port];
       e->event = etype;
       return e;
    }

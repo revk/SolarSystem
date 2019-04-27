@@ -3047,8 +3047,10 @@ doevent (event_t * e)
                   {
                      // disarm is the groups that can be disarmed by this user on this door.
                      group_t disarm = ((u->group_arm & mydoor[d].group_arm & state[STATE_ARM]) | (port_name (e->port),
-                                                                                                  u->group_disarm & mydoor[d].
-                                                                                                  group_disarm & state[STATE_SET]));
+                                                                                                  u->
+                                                                                                  group_disarm &
+                                                                                                  mydoor[d].group_disarm &
+                                                                                                  state[STATE_SET]));
                      if (door[d].state == DOOR_PROPPED || door[d].state == DOOR_OPEN || door[d].state == DOOR_PROPPEDOK)
                      {
                         if (disarm && alarm_unset (u->name, port_name (e->port), disarm))
@@ -3678,7 +3680,7 @@ main (int argc, const char *argv[])
                {
                   if (g & ~iot_arm)
                      dolog (g & ~iot_arm, "IOT", NULL, NULL, "Attempting cancel of invalid groups");
-		  g &= state[STATE_ARM]; // Must be arming
+                  g &= state[STATE_ARM];        // Must be arming
                   g &= iot_arm;
                   pthread_mutex_lock (&eventmutex);
                   alarm_unset ("IOT", NULL, g);
