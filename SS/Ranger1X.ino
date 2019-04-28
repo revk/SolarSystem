@@ -8,13 +8,8 @@
 #include <Wire.h>
 #include <VL53L1X.h>
 
-#ifdef ARDUINO_ESP8266_NODEMCU
-#define SDA 4
-#define SCL 5
-#else
-#define SDA 2
+#define SDA 2 // Use these, even on ESP-12F as we don't want to leave GPIO0 as general input
 #define SCL 0
-#endif
 
 #define PINS ((1<<SDA) | (1<<SCK))
 
