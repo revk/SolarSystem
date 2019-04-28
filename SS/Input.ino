@@ -34,7 +34,7 @@
     return true;
   }
 
-  boolean input_loop(ESP8266RevK&revk)
+  boolean input_loop(ESP8266RevK&revk, boolean force)
   {
     if (!input)return false; // No inputs defined
     // TODO

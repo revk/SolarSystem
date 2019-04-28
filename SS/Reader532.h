@@ -18,4 +18,4 @@
 extern const char* reader532_setting(const char *tag, const byte *value, size_t len);
 extern boolean reader532_command(const char*tag, const byte *message, size_t len);
 extern boolean reader532_setup(ESP8266RevK&);
-extern boolean reader532_loop(ESP8266RevK&);
+extern boolean reader532_loop(ESP8266RevK&, boolean);

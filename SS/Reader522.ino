@@ -16,7 +16,7 @@
 #include <MFRC522.h>
 
 #define app_settings  \
-  s(reader532);   \
+  s(reader522);   \
 
 #define s(n) const char *n=NULL
   app_settings
@@ -36,21 +36,28 @@
 
   boolean reader522_command(const char*tag, const byte *message, size_t len)
   { // Called for incoming MQTT messages
-    if (!reader532)return false; // Not configured
+    if (!reader522)return false; // Not configured
     return false;
   }
 
   boolean reader522_setup(ESP8266RevK&revk)
   {
-    if (!reader532)return false; // Not configured
+    if (!reader522)return false; // Not configured
     SPI.begin(); // Init SPI bus
     rfid.PCD_Init(); // Init MFRC522
+    int v = rfid.PCD_ReadRegister(rfid.VersionReg);
+    if (!v || v == 0xFF)
+    { // Failed
+      revk.error(F("reader522"), F("RC522 not present"));
+      reader522 = NULL;
+      return false;
+    }
     return true;
   }
 
   boolean reader522_loop(ESP8266RevK&revk)
   {
-    if (!reader532)return false; // Not configured
+    if (!reader522)return false; // Not configured
     long now = (millis() ? : 1); // Allowing for wrap, and using 0 to mean not set
     static long cardcheck = 0;
     if ((int)(cardcheck - now) < 0)

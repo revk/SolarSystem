@@ -36,7 +36,7 @@
     return true;
   }
 
-  boolean relay_loop(ESP8266RevK&revk)
+  boolean relay_loop(ESP8266RevK&revk, boolean force)
   {
     if (!relay)return false; // Relay not configured
     return true;

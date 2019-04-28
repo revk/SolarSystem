@@ -57,7 +57,7 @@
     return true;
   }
 
-  boolean keypad_loop(ESP8266RevK &revk)
+  boolean keypad_loop(ESP8266RevK &revk, boolean force)
   {
     if (!keypad)return false; // Not running keypad
     long now = millis();
