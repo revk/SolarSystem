@@ -5,6 +5,7 @@
 
 #include <ESP8266RevK.h>
 #include "relay.h"
+boolean relayfault = false;
 
 #define app_settings  \
   s(relay);   \

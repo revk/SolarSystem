@@ -3,6 +3,9 @@
 
 // RFID Card reader for Solar System using PN532 via SPI
 
+#define  USE_READER532
+extern boolean reader532fault;
+
 #ifndef	HOLDTIME
 #define HOLDTIME 3000
 #endif
@@ -11,7 +14,6 @@
 #define RELEASETIME 1000
 #endif
 
-#define	USE_READER532
 
 #include <ESP8266RevK.h>
 

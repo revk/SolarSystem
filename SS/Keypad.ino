@@ -4,6 +4,9 @@
 // Keypad / display
 // ESP-01 based with RS485 board fits in Galaxy keypad/display module
 
+#include "keypad.h"
+boolean keypadfault = false;
+
 #define DEBUG // log message (header bytes)
 
 #include <ESP8266RevK.h>
@@ -70,7 +73,6 @@
       static boolean toggle07 = false;
       static boolean online = false;
       static boolean tamper = false;
-      static boolean fault = false;
       byte buf[100], p = 0;
       if (!online)
       { // Init
@@ -181,18 +183,18 @@
           c = (c >> 8) + (c & 0xFF);
         if (p < 2 || buf[n] != c || buf[0] != 0x11 || buf[1] == 0xF2)
         {
-          if (!fault)
+          if (!keypadfault)
           {
-            revk.state(F("fault"), F("1"));
-            fault = true;
+            keypadfault = true;
+            faultset = true;
           }
         }
         else
         {
-          if (fault)
+          if (keypadfault)
           {
-            revk.state(F("fault"), F("0"));
-            fault = false;
+            keypadfault = false;
+            faultset = true;
           }
           if (cmd == 0x00 && buf[1] == 0xFF && p > 5)
           { // Set up response
@@ -236,10 +238,10 @@
         }
       } else
       {
-        if (!fault)
+        if (!keypadfault)
         {
-          fault = true;
-          revk.state(F("fault"), F("1"));
+          keypadfault = true;
+          faultset = true;
         }
         online = false;
       }

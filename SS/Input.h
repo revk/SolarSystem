@@ -3,11 +3,8 @@
 
 // Input button logic
 
-#ifndef	INPUTS
-#define INPUTS 1
-#endif
-
 #define USE_INPUT
+extern boolean inputfault;
 
 #include <ESP8266RevK.h>
 

@@ -5,6 +5,7 @@
 
 #include <ESP8266RevK.h>
 #include "Input.h"
+boolean inputfault = false;
 
 #define app_settings  \
   s(input);   \

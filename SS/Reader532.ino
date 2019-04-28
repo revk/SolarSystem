@@ -18,6 +18,8 @@
 
 PN532_SPI pn532spi(SPI, 16);
 PN532 nfc(pn532spi);
+boolean reader532ok = false;
+boolean reader532fault = false;
 
 #define app_settings  \
   s(reader532);   \
@@ -36,6 +38,7 @@ PN532 nfc(pn532spi);
 
   boolean reader532_command(const char*tag, const byte *message, size_t len)
   { // Called for incoming MQTT messages
+    if (!reader532ok)return false; // Not configured
     return false;
   }
 
@@ -46,12 +49,16 @@ PN532 nfc(pn532spi);
     uint32_t versiondata = nfc.getFirmwareVersion();
     if (!versiondata)
     { // no reader
-      revk.error(F("reader532"), F("NP532 not present"));
+      debug("PN532 failed");
+      reader532fault = true;
       reader532 = NULL;
       return false;
     }
     nfc.setPassiveActivationRetries(1);
     nfc.SAMConfig();
+
+    debug("PN532 OK");
+    reader532ok = true;
     return true;
   }
 
@@ -67,7 +74,7 @@ PN532 nfc(pn532spi);
 
   boolean reader532_loop(ESP8266RevK&revk, boolean force)
   {
-    if (!reader532)return false; // Not configured
+    if (!reader532ok)return false; // Not configured
     long now = (millis() ? : 1); // Allowing for wrap, and using 0 to mean not set
     static long cardcheck = 0;
     if ((int)(cardcheck - now) < 0)

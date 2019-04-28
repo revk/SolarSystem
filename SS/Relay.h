@@ -3,11 +3,8 @@
 
 // Relay output logic
 
-#ifndef	RELAYS
-#define RELAYS 1
-#endif
-
-#define	USE_RELAY
+#define  USE_RELAY
+extern boolean relayfault;
 
 #include <ESP8266RevK.h>
 

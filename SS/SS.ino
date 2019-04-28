@@ -21,12 +21,14 @@
 #include "Keypad.h"
 
 static boolean force = true;
+boolean faultset = false;
 
 ESP8266RevK revk(__FILE__, __DATE__ " " __TIME__);
 
 const char* app_setting(const char *tag, const byte *value, size_t len)
 { // Called for settings retrieved from EEPROM, return true if setting is OK
   const char *ret;
+  revk.restart(3000); // Any setting change means restart
 #ifdef	USE_READER522
   if ((ret = reader522_setting(tag, value, len)))return ret;
 #endif
@@ -48,6 +50,8 @@ const char* app_setting(const char *tag, const byte *value, size_t len)
 #ifdef  USE_KEYPAD
   if ((ret = keypad_setting(tag, value, len)))return ret;
 #endif
+  debug("Bad setting");
+  revk.restart(-1); // cancel restart - unknown/invalid setting
   return false; // Failed
 }
 
@@ -106,6 +110,30 @@ void setup()
 void loop()
 {
   revk.loop();
+  if (force || faultset)revk.state(F("fault"), 0
+#ifdef USE_READER522
+                                     || reader522fault
+#endif
+#ifdef USE_READER532
+                                     || reader532fault
+#endif
+#ifdef USE_RELAY
+                                     || relayfault
+#endif
+#ifdef USE_INPUT
+                                     || inputfault
+#endif
+#ifdef USE_RANGER0X
+                                     || ranger0xfault
+#endif
+#ifdef USE_RANGER1X
+                                     || ranger1xfault
+#endif
+#ifdef USE_KEYPAD
+                                     || keypadfault
+#endif
+                                     ? F("1") : F("0"));
+  faultset = false;
 #ifdef USE_READER522
   reader522_loop(revk, force);
 #endif

@@ -24,7 +24,10 @@
 
 #define RST 2 // SPI
 #define SS 16 // SPI
+
   MFRC522 rfid(SS, RST); // Instance of the class
+  boolean reader522ok = false;
+  boolean reader522fault = false;
 
   const char* reader522_setting(const char *tag, const byte *value, size_t len)
   { // Called for settings retrieved from EEPROM
@@ -36,7 +39,7 @@
 
   boolean reader522_command(const char*tag, const byte *message, size_t len)
   { // Called for incoming MQTT messages
-    if (!reader522)return false; // Not configured
+    if (!reader522ok)return false; // Not configured
     return false;
   }
 
@@ -48,16 +51,20 @@
     int v = rfid.PCD_ReadRegister(rfid.VersionReg);
     if (!v || v == 0xFF)
     { // Failed
-      revk.error(F("reader522"), F("RC522 not present"));
+      debug("RC522 failed");
+      reader522fault = true;
       reader522 = NULL;
       return false;
     }
+
+    debug("RC522 OK");
+    reader522ok = true;
     return true;
   }
 
   boolean reader522_loop(ESP8266RevK&revk)
   {
-    if (!reader522)return false; // Not configured
+    if (!reader522ok)return false; // Not configured
     long now = (millis() ? : 1); // Allowing for wrap, and using 0 to mean not set
     static long cardcheck = 0;
     if ((int)(cardcheck - now) < 0)

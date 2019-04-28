@@ -9,10 +9,14 @@
 #include <VL53L1X.h>
 
 VL53L1X sensor1x;
+boolean ranger1xok = false;
+boolean ranger1xfault = false;
 
-#define MAXRANGE 2000	// Maximum range
+#define MAXRANGE 5000	// Maximum range
 #define LONGHOLD 1000	// How long to hold movement input
 #define MARGIN 50	// Movement margin
+
+#define BUDGET 50 // ms
 
 #define app_settings  \
   s(ranger1x);   \
@@ -31,7 +35,7 @@ VL53L1X sensor1x;
 
   boolean ranger1x_command(const char*tag, const byte *message, size_t len)
   { // Called for incoming MQTT messages
-    if (!ranger1x)return false; // Ranger not configured
+    if (!ranger1xok)return false; // Ranger not configured
     return false;
   }
 
@@ -39,57 +43,71 @@ VL53L1X sensor1x;
   {
     if (!ranger1x)return false; // Ranger not configured
 
+#ifdef ARDUINO_ESP8266_NODEMCU
     Wire.begin();
+#else
+    Wire.begin(2, 0);
+#endif
 
+    Wire.setClock(400000); // use 400 kHz I2C
+
+    sensor1x.setTimeout(1000);
     if (!sensor1x.init())
-    { revk.error(F("ranger1x"), F("VL53L1X not present"));
+    {
+      debug("VL53L1X failed");
+      ranger1xfault = true;
       ranger1x = NULL;
       return false;
     }
-    //sensor1x.setAddress(1x29);
-    sensor1x.setTimeout(500);
-    sensor1x.setMeasurementTimingBudget(50000);
     sensor1x.setDistanceMode(VL53L1X::Long);
+    sensor1x.setMeasurementTimingBudget(BUDGET * 1000);
+    sensor1x.startContinuous(BUDGET);
+    sensor1x.setTimeout(BUDGET);
+
+    debug("VL53L1X OK");
+    ranger1xok = true;
     return true;
   }
 
   boolean ranger1x_loop(ESP8266RevK&revk, boolean force)
   {
-    if (!ranger1x)return false; // Ranger not configured
+    if (!ranger1xok)return false; // Ranger not configured
     long now = millis();
     static long next = 0;
     if ((int)(next - now) < 0)
     {
-      next = now + 10;
+      next = now + BUDGET;
       static boolean buttonshort = 0;
       static boolean buttonlong = 0;
-      static boolean fault = false;
       static unsigned int last = 0;
       static long endlong = 0;
-      unsigned int range = sensor1x.read();
-      if (range == 65535 && !fault)
+      unsigned int range = sensor1x.read(false);
+      if (sensor1x.timeoutOccurred())
       {
-        fault = true;
-        revk.state(F("fault"), F("0"));
-      } else if (range != 65535 && fault)
+        if (!ranger1xfault)
+        {
+          ranger1xfault = true;
+          faultset = true;
+        }
+      } else if (ranger1xfault)
       {
-        fault = false;
-        revk.state(F("fault"), F("0"));
+        ranger1xfault = false;
+        faultset = true;
       }
-      if (range > MAXRANGE)range = MAXRANGE;
+      if (!range || range > MAXRANGE)range = MAXRANGE;
       if (range < ranger1x)
       {
         if (force || !buttonshort)
         {
           buttonshort = true;
-          revk.state(F("ranger0"), F("1"));
+          revk.state(F("input7"), F("1"));
         }
       } else if (force || range > ranger1x + MARGIN)
       {
         if (force || buttonshort)
         {
           buttonshort = false;
-          revk.state(F("ranger0"), F("0"));
+          revk.state(F("input7"), F("0"));
         }
       }
       if (range > last + MARGIN || last > range + MARGIN)
@@ -97,7 +115,7 @@ VL53L1X sensor1x;
         if (force || !buttonlong)
         {
           buttonlong = true;
-          revk.state(F("ranger1"), F("1"));
+          revk.state(F("input8"), F("1"));
         }
         endlong = now + LONGHOLD;
       } else if ((int)(endlong - now) < 0)
@@ -105,7 +123,7 @@ VL53L1X sensor1x;
         if (force || buttonlong)
         {
           buttonlong = false;
-          revk.state(F("ranger1"), F("0"));
+          revk.state(F("input8"), F("0"));
         }
       }
       last = range;
