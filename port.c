@@ -46,7 +46,7 @@ port_new (const char *mqtt, unsigned char isinput, unsigned char port)
 {
    pthread_mutex_lock (&portmutex);
    port_p p;
-   for (p = ports; p && (!p->mqtt || p->port != port || p->isinput != isinput || (p->mqtt != mqtt && strcmp (p->mqtt, mqtt)));
+   for (p = ports; p && (!p->mqtt || p->port != port || p->isinput != isinput || strcmp (p->mqtt, mqtt));
         p = p->next);
    if (!p)
    {
@@ -54,7 +54,7 @@ port_new (const char *mqtt, unsigned char isinput, unsigned char port)
       memset (p, 0, sizeof (*p));
       if (!p)
          errx (1, "malloc");
-      p->mqtt = mqtt;
+      p->mqtt = strdup(mqtt);
       p->isinput = isinput;
       p->port = port;
       p->next = ports;
@@ -62,6 +62,14 @@ port_new (const char *mqtt, unsigned char isinput, unsigned char port)
    }
    pthread_mutex_unlock (&portmutex);
    return p;
+}
+
+port_p
+port_new_base (port_p parent, unsigned char isinput, unsigned char port)
+{
+   if (parent->mqtt)
+      return port_new (parent->mqtt, isinput, port);
+   return port_new_bus (parent->bus, parent->id, isinput, port);
 }
 
 void

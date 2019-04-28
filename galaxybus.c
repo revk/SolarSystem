@@ -178,7 +178,6 @@ postevent (event_t * e)
 void *
 poller (void *d)
 {
-   char *argv[] = { "alarmpanel" };
    int busid = (long) d;
    if (busid < 0 || busid >= MAX_BUS)
       errx (1, "Bad bus ID to start %d", busid);
@@ -1283,7 +1282,6 @@ bus_event (long long usec)
 int
 main (int argc, const char *argv[])
 {
-#include <trace.h>
    {
       int c;
       poptContext optCon;       // context for parsing command-line options

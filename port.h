@@ -49,6 +49,7 @@ port_p port_new_bus (unsigned char bus, // Bus ID (from 0)
 port_p port_new (const char *mqtt,      // Device id (6 char hex normally)
                  unsigned char isinput, // 1 if input
                  unsigned char port);   // port number, from 1 (0 means device level)
+port_p port_new_base (port_p parent, unsigned char isinput, unsigned char port); // Based on parent port
 
 #define port_defined(w) port_defined_n((volatile port_p*)&(w),sizeof(w)/sizeof(port_p))
 int port_defined_n (volatile port_p * w, int n);

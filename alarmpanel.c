@@ -356,7 +356,7 @@ static void *dolog (group_t g, const char *type, const char *user, const char *p
 static keypad_t *keypad_new (port_p p);
 static void keypads_message (group_t g, const char *msg);
 static void state_change (group_t g);
-#define	port_name(p) real_port_name(alloca(20),p)
+#define	port_name(p) real_port_name(alloca(30),p)
 static const char *real_port_name (char *v, port_p p);
 
 static int
@@ -427,29 +427,41 @@ port_parse (const char *v, const char **ep, int i)
       v = n;
    } else if (ep)
       *ep = NULL;               // Last word
-   if (i == 0)
+   int port = 0;
+   if (l > 2 && v[l - 2] == '#' && isdigit (v[l - 1]))
+   {                            // Port
+      if (i < 0)
+         return NULL;           // After device only
+      port = v[l - 1] - '0';
+      l -= 2;
+      ((char *) v)[l] = 0;
+   }
+   if (!port && i == 0)
    {                            // Check output port names
       port_p p;
       for (p = ports; p && (!p->name || !p->port || p->isinput || strcmp (p->name, v)); p = p->next);
       if (p)
          return p;
-   } else if (i == 1)
+   } else if (!port && i == 1)
    {                            // Check input port names
       port_p p;
       for (p = ports; p && (!p->name || !p->port || !p->isinput || strcmp (p->name, v)); p = p->next);
       if (p)
          return p;
-   } else if (i == -1)
+   } else if (port || i == -1)
    {                            // Reference device
       port_p p;
       for (p = ports; p && (!p->name || p->port || strcmp (p->name, v)); p = p->next);
       if (p)
+      {
+         if (port)
+            return port_new_base (p, i, port);
          return p;
+      }
    }
    // Parse the port
    unsigned int id = 0,
-      type = 0,
-      port = 0;
+      type = 0;
    while (type < MAX_TYPE && strncmp (type_name[type], v, strlen (type_name[type])))
       type++;
    if (type < MAX_TYPE)
@@ -460,7 +472,11 @@ port_parse (const char *v, const char **ep, int i)
          id = ((*v - '1') << 8) + (((isalpha (v[1]) ? 9 : 0) + (v[1] & 0xF)) << 4) + ((isalpha (v[2]) ? 9 : 0) + (v[2] & 0xF));
          v += 3;
          if (*v > '0' && *v <= '9')
+         {
+            if (port)
+               return NULL;     // silly as # as well
             port = *v - '0';
+         }
       }
       while (*v && !isspace (*v) && *v != ',')
          v++;
@@ -479,6 +495,10 @@ port_parse (const char *v, const char **ep, int i)
             device[id].disabled = 1;
          }
       }
+      if (!port && i >= 0)
+         return NULL;           // Expecting a port
+      if (port && i < 0)
+         return NULL;           // Expecting base device
       return port_new_bus (id >> 8, id & 0xFF, i, port);
    }
    if (strlen (v) < 6 || !isxdigit (v[0]) || !isxdigit (v[1]) || !isxdigit (v[2]) || !isxdigit (v[3]) || !isxdigit (v[4])
@@ -486,11 +506,15 @@ port_parse (const char *v, const char **ep, int i)
       return NULL;
    if (v[6] == 'I')
    {
+      if (port)
+         return NULL;           // # and I
       if (i != 1 || !isdigit (v[7]) || v[8])
          return NULL;
       port = v[7] - '0';
    } else if (v[6] == 'O')
    {
+      if (port)
+         return NULL;           // # and O
       if (i != 0 || !isdigit (v[7]) || v[8])
          return NULL;
       port = v[7] - '0';
@@ -537,12 +561,18 @@ real_port_name (char *v, port_p p)
 {                               // Port name
    if (!p)
       return "?";
-   if (p->mqtt)
-      return p->mqtt;
    if (p->id == US)
       return "PANEL";
    unsigned int id = port_device (p);
+   int port = port_port (p);
    char *o = v;
+   if (p->mqtt)
+   {
+      o += sprintf (o, "%.6s", p->mqtt);
+      if (port)
+         o += sprintf (o, "#%d", port);
+      return v;
+   }
    if (id >= MAX_DEVICE)
       o += sprintf (o, "???");
    else
@@ -581,9 +611,13 @@ port_set_n (volatile port_p * w, int n, const char *v, unsigned char p, int i, c
    while (v && *v && q < n)
    {
       const char *tag = v;
-      port_p port = port_parse (v, &v, i);
-      if (!port_port (port) && p)
-         port = port_new_bus (port_bus (port), port_id (port), i, p);
+      port_p port = port_parse (tag, &v, i);
+      if (p && !port)
+         port = port_parse (tag, &v, -1);
+      if (p && port && !port_port (port))
+         port = port_new_base (port, i, p);
+      if (!port)
+         continue;
       w[q++] = port;
       int pd = port_device (port);
       p = port_port (port);
@@ -594,7 +628,6 @@ port_set_n (volatile port_p * w, int n, const char *v, unsigned char p, int i, c
          if (i == 0 && port_app (port)->type >= STATES)
             port_app (port)->type = STATES;
       }
-      fprintf (stderr, "Setting for %s/%s existing %s %d/%d\n", door, name, port->name, i, port->isinput);
       if (p && name && !port->name)
          asprintf ((char **) &port->name, "%s-%s", door ? : tag, name);
    }
@@ -883,6 +916,27 @@ load_config (const char *configfile)
       }
    }
    if (debug)
+      warnx ("Config check devices");
+   while ((x = xml_element_next_by_name (config, x, "device")))
+   {
+      if (!(pl = xml_get (x, "@id")) || !*pl)
+         dolog (ALL_GROUPS, "CONFIG", NULL, NULL, "Device with no id");
+      else
+         while (pl)
+         {
+            port_p p = port_parse (pl, &pl, -1);
+            if (!p)
+               continue;
+            port_app_t *app = port_app (p);
+            if (app->config)
+            {
+               dolog (ALL_GROUPS, "CONFIG", NULL, port_name (p), "Device duplicate %s", p->name);
+               continue;
+            }
+            app->config = x;
+         }
+   }
+   if (debug)
       warnx ("Config check inputs");
    while ((x = xml_element_next_by_name (config, x, "input")))
    {                            // Scan inputs, get names
@@ -892,16 +946,20 @@ load_config (const char *configfile)
          while (pl)
          {
             port_p p = port_parse (pl, &pl, 1);
+            if (!p)
+               continue;
+            port_app_t *app = port_app (p);
+            if (app->config)
+            {
+               dolog (ALL_GROUPS, "CONFIG", NULL, port_name (p), "Input duplicate %s", p->name);
+               continue;
+            }
+            app->config = x;
             unsigned int id = port_device (p);
             int n = port_port (p);
             if (!n)
             {
                dolog (ALL_GROUPS, "CONFIG", NULL, port_name (p), "Input with bad port");
-               continue;
-            }
-            if (p->name)
-            {
-               dolog (ALL_GROUPS, "CONFIG", NULL, port_name (p), "Input duplicate name %d", p->name);
                continue;
             }
             n--;
@@ -987,6 +1045,8 @@ load_config (const char *configfile)
          while (pl)
          {
             port_p p = port_parse (pl, &pl, 0);
+            if (!p)
+               continue;
             unsigned int id = port_device (p);
             if (!id)
                dolog (ALL_GROUPS, "CONFIG", NULL, NULL, "Bad address for RF RIO");
@@ -1003,16 +1063,20 @@ load_config (const char *configfile)
          while (pl)
          {
             port_p p = port_parse (pl, &pl, 0);
+            if (!p)
+               continue;
+            port_app_t *app = port_app (p);
+            if (app->config)
+            {
+               dolog (ALL_GROUPS, "CONFIG", NULL, port_name (p), "Output duplicate %s", p->name);
+               continue;
+            }
+            app->config = x;
             unsigned int id = port_device (p);
             int n = port_port (p);
             if (!n)
             {
                dolog (ALL_GROUPS, "CONFIG", NULL, port_name (p), "Output with bad port");
-               continue;
-            }
-            if (p->name)
-            {
-               dolog (ALL_GROUPS, "CONFIG", NULL, port_name (p), "Output with duplicate name %s", p->name);
                continue;
             }
             n--;
@@ -1053,6 +1117,15 @@ load_config (const char *configfile)
          while (pl)
          {
             port_p p = port_parse (pl, &pl, -1);
+            if (!p)
+               continue;
+            port_app_t *app = port_app (p);
+            if (app->config)
+            {
+               dolog (ALL_GROUPS, "CONFIG", NULL, port_name (p), "Max duplicate %s", p->name);
+               continue;
+            }
+            app->config = x;
             if ((v = xml_get (x, "@fob-held")))
                device[port_device (p)].fob_hold = atoi (v) * 10;
          }
@@ -1069,6 +1142,15 @@ load_config (const char *configfile)
          while (pl)
          {
             port_p p = port_parse (pl, &pl, -1);
+            if (!p)
+               continue;
+            port_app_t *app = port_app (p);
+            if (app->config)
+            {
+               dolog (ALL_GROUPS, "CONFIG", NULL, port_name (p), "Keypad duplicate %s", p->name);
+               continue;
+            }
+            app->config = x;
             keypad_t *k = keypad_new (p);
             k->port = p;
             k->name = xml_copy (x, "@name");
@@ -1315,11 +1397,17 @@ load_config (const char *configfile)
       for (p = ports; p; p = p->next)
          if (p->port)
          {
+            port_p parent = port_new_base (p, 0, 0);
             if (!p->isinput)
+            {
                port_app (p)->group &= groups;
-            else
+               port_app (parent)->group |= port_app (p)->group;
+            } else
                for (s = 0; s < STATE_TRIGGERS; s++)
+               {
                   port_app (p)->trigger[s] &= groups;
+                  port_app (parent)->group |= port_app (p)->trigger[s];
+               }
          }
       for (s = 0; s < STATES; s++)
          state[s] &= groups;
@@ -2651,7 +2739,9 @@ doevent (event_t * e)
 {                               // Handle an event
    gettimeofday (&now, NULL);
    unsigned int id = port_device (e->port);
-   unsigned char type = device[id].type;
+   unsigned char type = 0;
+   if (id > 0 && id < MAX_DEVICE)
+      type = device[id].type;
    if (debug)
    {                            // Debug logging
       if (e->event == EVENT_DOOR)
@@ -2677,12 +2767,6 @@ doevent (event_t * e)
    {
       if (debug)
          printf ("Bad door %d\n", e->door);
-      return;
-   }
-   if (id >= MAX_DEVICE)
-   {
-      if (debug)
-         printf ("Bad id %d\n", id);
       return;
    }
    port_app_t *app = port_app (e->port);
@@ -3172,7 +3256,6 @@ doevent (event_t * e)
       }
       break;
    }
-
    free ((void *) e);
 }
 
@@ -3768,35 +3851,54 @@ main (int argc, const char *argv[])
                   tag = NULL;
                id[6] = 0;
                port_t *port = NULL;
-               if (tag && !strncmp (t, "state", 5) && !strncmp (tag, "input", 5) && isdigit (tag[5]))
-                  port = port_new (id, 1, tag[5] - '0');
-               else
-                  port = port_new (id, 0, 0);
+               if (tag)
+               {
+                  char *e = tag + strlen (tag);
+                  if (e > tag && isdigit (e[-1]))
+                     port = port_new (id, 1, e[-1] - '0');      // Input port
+                  else
+                     port = port_new (id, 0, 0);        // Device
+               } else
+                  port = port_new (id, 0, 0);   // Device
                port_app_t *app = port_app (port);
-               if (!strncmp (t, "state", 5) && msg->payloadlen >= 1)
+               if (port && !strncmp (t, "state", 5) && msg->payloadlen >= 1)
                {
                   int state = (((char *) msg->payload)[0] > '0' ? 1 : 0);
-                  if (state != port->state)
-                  {
-                     port->state = state;
-                     if (!tag)
-                     {          // Device level
-                        // TODO bus level events - BUSMISSING
-                        if (!app->config)
-                        {       // Add to config
-                           app->config = xml_element_add (config, "device");
-                           xml_add (app->config, "@id", id);
-                           configchanged = 1;
-                        }
-                        if (port->state)
-                        {       // Send settings
-				// TODO
-
-                        }
-                     }
+                  if (!tag && !app->config)
+                  {             // New device
+                     app->config = xml_element_add (config, "device");
+                     xml_add (app->config, "@id", id);
+                     configchanged = 1;
                   }
+                  if (!tag && !port->state && state)
+                  {             // Load settings
+                     // TODO
+                  }
+                  int etype = 0;
+                  if (!tag && port->state != state)
+                     etype = (state ? EVENT_FOUND : EVENT_MISSING);
+                  else if (!strncmp (tag, "input", 5) && port->state != state)
+                     etype = EVENT_INPUT;
+                  else if (!strncmp (tag, "fault", 5) && port->state != state)
+                     etype = EVENT_FAULT;
+                  else if (!strncmp (tag, "tamper", 6) && port->state != state)
+                     etype = EVENT_TAMPER;
+                  if (etype)
+                  {             // Send event
+                     event_t *e = malloc (sizeof (*e));
+                     if (!e)
+                        errx (1, "malloc");
+                     memset ((void *) e, 0, sizeof (*e));
+                     e->event = etype;
+                     e->port = port;
+                     e->state = state;
+                     struct timezone tz;
+                     gettimeofday ((void*)&e->when, &tz);
+                     postevent (e);
+                  }
+                  return;
                }
-               return;
+               // TODO events
             }
             dolog (groups, "MQTT", NULL, NULL, "Unexpected message %s", msg->topic);
          }
