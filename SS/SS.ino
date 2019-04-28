@@ -127,5 +127,6 @@ void loop()
 #ifdef USE_KEYPAD
   keypad_loop(revk, force);
 #endif
+  force = false;
   delay(1);
 }
