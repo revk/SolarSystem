@@ -11,6 +11,8 @@
 // GPIO14 SCK (CLK)
 // GPIO16 SDA (SS)
 
+#define PINS  ((1 << 12) | (1 << 13) | (1 << 14) | (1 << 16))
+
 #include <ESP8266RevK.h>
 #include "Reader532.h"
 #include <PN532_SPI.h>
@@ -45,6 +47,15 @@ boolean reader532fault = false;
   boolean reader532_setup(ESP8266RevK&revk)
   {
     if (!reader532)return false; // Not configured
+    if ((gpiomap & PINS) != PINS)
+    {
+      debug("Reader532 pins (SPI) not available");
+      reader532fault = true;
+      faultset = true;
+      reader532 = NULL;
+      return false;
+    }
+    gpiomap &= ~PINS;
     nfc.begin();
     uint32_t versiondata = nfc.getFirmwareVersion();
     if (!versiondata)

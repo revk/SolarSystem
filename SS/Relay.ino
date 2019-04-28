@@ -7,6 +7,8 @@
 #include "relay.h"
 boolean relayfault = false;
 
+#define PINs  ((1<<1))  // Tx (GPIO1)
+
 #define app_settings  \
   s(relay);   \
 
@@ -41,9 +43,19 @@ boolean relayfault = false;
   boolean relay_setup(ESP8266RevK&revk)
   {
     if (!relay)return false; // Relay not configured
+    if ((gpiomap & PINS) != PINS)
+    {
+      debug("Relay pin (Tx) not available");
+      relayfault = true;
+      faultset = true;
+      relay = NULL;
+      return false;
+    }
+    gpiomap &= ~PINS;
 #ifndef REVKDEBUG
     Serial.begin(9600);	// Serial relay control uses 9600
 #endif
+    debug("Relay OK");
     return true;
   }
 
@@ -57,7 +69,7 @@ boolean relayfault = false;
       unsigned long relays = output;
       if (!revk.mqttconnected)relays = 0; // Off if not on-line
       int n;
-      for (n = 0; n < relay; n++)
+      for (n = 0; n < relay && n < 8; n++)
       {
         byte msg[5];
         msg[0] = 0xA0;

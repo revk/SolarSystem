@@ -10,6 +10,11 @@
 // GPIO14 SCK (CLK)
 // GPIO16 SDA (SS)
 
+#define RST 2 // SPI
+#define SS 16 // SPI
+
+#define PINS  ((1<<2) | (1 << 12) | (1 << 13) | (1 << 14) | (1 << 16))
+
 #include <ESP8266RevK.h>
 #include "Reader522.h"
 #include <SPI.h>
@@ -22,8 +27,6 @@
   app_settings
 #undef s
 
-#define RST 2 // SPI
-#define SS 16 // SPI
 
   MFRC522 rfid(SS, RST); // Instance of the class
   boolean reader522ok = false;
@@ -46,6 +49,15 @@
   boolean reader522_setup(ESP8266RevK&revk)
   {
     if (!reader522)return false; // Not configured
+    if ((gpiomap & PINS) != PINS)
+    {
+      debug("Reader522 pins (SPI) not available");
+      reader522fault = true;
+      faultset = true;
+      reader522 = NULL;
+      return false;
+    }
+    gpiomap &= ~PINS;
     SPI.begin(); // Init SPI bus
     rfid.PCD_Init(); // Init MFRC522
     int v = rfid.PCD_ReadRegister(rfid.VersionReg);

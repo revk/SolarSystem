@@ -8,6 +8,16 @@
 #include <Wire.h>
 #include <VL53L0X.h>
 
+#ifdef ARDUINO_ESP8266_NODEMCU
+#define SDA 4
+#define SCL 5
+#else
+#define SDA 2
+#define SCL 0
+#endif
+
+#define PINS ((1<<SDA) | (1<<SCK))
+
 VL53L0X sensor0x;
 boolean ranger0xok = false;
 boolean ranger0xfault = false;
@@ -42,12 +52,16 @@ boolean ranger0xfault = false;
   boolean ranger0x_setup(ESP8266RevK&revk)
   {
     if (!ranger0x)return false; // Ranger not configured
-
-#ifdef ARDUINO_ESP8266_NODEMCU
-    Wire.begin();
-#else
-    Wire.begin(2, 0);
-#endif
+    if ((gpiomap & PINS) != PINS)
+    {
+      debug("Ranger0x pins (I2C) not available");
+      ranger0xfault = true;
+      faultset = true;
+      keypad = NULL;
+      return false;
+    }
+    gpiomap &= ~PINS;
+    Wire.begin(SDA, SCL);
     sensor0x.setTimeout(1000);
     if (!sensor0x.init())
     {

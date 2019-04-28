@@ -7,6 +7,8 @@
 #include "keypad.h"
 boolean keypadfault = false;
 
+#define PINS ((1<<1) | (1<<3))  // Tx and Rx
+
 #define DEBUG // log message (header bytes)
 
 #include <ESP8266RevK.h>
@@ -52,11 +54,21 @@ boolean keypadfault = false;
   boolean keypad_setup(ESP8266RevK &revk)
   {
     if (!keypad)return false; // Not running keypad
+    if ((gpiomap & PINS) != PINS)
+    {
+      debug("Keypad pins (Tx/Rx) not available");
+      keypadfault = true;
+      faultset = true;
+      keypad = NULL;
+      return false;
+    }
+    gpiomap &= ~PINS;
 #ifndef REVKDEBUG
     Serial.begin(9600);	// Galaxy uses 9600 8N2
 #endif
     digitalWrite(RTS, LOW);
     pinMode(RTS, OUTPUT);
+    debug("Keypad OK");
     return true;
   }
 

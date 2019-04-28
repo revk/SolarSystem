@@ -13,7 +13,11 @@
 // SPI devices only on ESP-12F
 #include "Reader532.h"
 #include "Reader532.h"
+unsigned int gpiomap = 0x1703F; // Pins available (ESP-12F)
+#else
+unsigned int gpiomap = 0xF; // Pins available (ESP-01)
 #endif
+
 #include "Relay.h"
 #include "Input.h"
 #include "Ranger0X.h"
@@ -38,9 +42,7 @@ const char* app_setting(const char *tag, const byte *value, size_t len)
 #ifdef	USE_RELAY
   if ((ret = relay_setting(tag, value, len)))return ret;
 #endif
-#ifdef	USE_INPUT
-  if ((ret = input_setting(tag, value, len)))return ret;
-#endif
+
 #ifdef	USE_RANGER0X
   if ((ret = ranger0x_setting(tag, value, len)))return ret;
 #endif
@@ -49,6 +51,9 @@ const char* app_setting(const char *tag, const byte *value, size_t len)
 #endif
 #ifdef  USE_KEYPAD
   if ((ret = keypad_setting(tag, value, len)))return ret;
+#endif
+#ifdef  USE_INPUT
+  if ((ret = input_setting(tag, value, len)))return ret;
 #endif
   debug("Bad setting");
   revk.restart(-1); // cancel restart - unknown/invalid setting
@@ -67,9 +72,6 @@ boolean app_command(const char*tag, const byte *message, size_t len)
 #ifdef	USE_RELAY
   if (relay_command(tag, message, len))return true;
 #endif
-#ifdef	USE_INPUTS
-  if (input_command(tag, message, len))return true;
-#endif
 #ifdef	USE_RANGER0X
   if (ranger0x_command(tag, message, len))return true;
 #endif
@@ -78,6 +80,9 @@ boolean app_command(const char*tag, const byte *message, size_t len)
 #endif
 #ifdef  USE_KEYPAD
   if (keypad_command(tag, message, len))return true;
+#endif
+#ifdef  USE_INPUT
+  if (input_command(tag, message, len))return true;
 #endif
   return false; // Failed
 }
@@ -93,9 +98,6 @@ void setup()
 #ifdef USE_RELAY
   relay_setup(revk);
 #endif
-#ifdef USE_INPUT
-  input_setup(revk);
-#endif
 #ifdef USE_RANGER0X
   ranger0x_setup(revk);
 #endif
@@ -104,6 +106,10 @@ void setup()
 #endif
 #ifdef USE_KEYPAD
   keypad_setup(revk);
+#endif
+  // Leave until last as needs to know which GPIO are available
+#ifdef USE_INPUT
+  input_setup(revk);
 #endif
 }
 
@@ -120,9 +126,6 @@ void loop()
 #ifdef USE_RELAY
                                      || relayfault
 #endif
-#ifdef USE_INPUT
-                                     || inputfault
-#endif
 #ifdef USE_RANGER0X
                                      || ranger0xfault
 #endif
@@ -131,6 +134,9 @@ void loop()
 #endif
 #ifdef USE_KEYPAD
                                      || keypadfault
+#endif
+#ifdef USE_INPUT
+                                     || inputfault
 #endif
                                      ? F("1") : F("0"));
   faultset = false;
@@ -143,9 +149,6 @@ void loop()
 #ifdef USE_RELAY
   relay_loop(revk, force);
 #endif
-#ifdef USE_INPUT
-  input_loop(revk, force);
-#endif
 #ifdef USE_RANGER0X
   ranger0x_loop(revk, force);
 #endif
@@ -154,6 +157,9 @@ void loop()
 #endif
 #ifdef USE_KEYPAD
   keypad_loop(revk, force);
+#endif
+#ifdef USE_INPUT
+  input_loop(revk, force);
 #endif
   force = false;
   delay(1);
