@@ -17,7 +17,7 @@
 
 typedef struct port_app_s port_app_t;
 typedef struct port_s port_t;
-typedef port_t *port_p;
+typedef volatile port_t *port_p;
 struct port_s
 {
    port_p next;
@@ -41,7 +41,7 @@ struct port_s
 
 extern port_p ports;
 
-void port_start(void);
+void port_start (void);
 port_p port_new_bus (unsigned char bus, // Bus ID (from 0)
                      unsigned char id,  // Device ID on bus
                      unsigned char isinput,     // 1 if input
@@ -49,7 +49,7 @@ port_p port_new_bus (unsigned char bus, // Bus ID (from 0)
 port_p port_new (const char *mqtt,      // Device id (6 char hex normally)
                  unsigned char isinput, // 1 if input
                  unsigned char port);   // port number, from 1 (0 means device level)
-port_p port_new_base (port_p parent, unsigned char isinput, unsigned char port); // Based on parent port
+port_p port_new_base (port_p parent, unsigned char isinput, unsigned char port);        // Based on parent port
 
 #define port_defined(w) port_defined_n((volatile port_p*)&(w),sizeof(w)/sizeof(port_p))
 int port_defined_n (volatile port_p * w, int n);

@@ -359,6 +359,21 @@ static void state_change (group_t g);
 #define	port_name(p) real_port_name(alloca(30),p)
 static const char *real_port_name (char *v, port_p p);
 
+void
+mqtt_output (port_p p, int v)
+{                               // Send output via MQTT
+   if (!p || !p->mqtt)
+      return;
+   int port = port_port (p);
+   if (!port)
+      return;
+   char *topic;
+   asprintf (&topic, "command/SS/%s/output%d", p->mqtt, port);
+   char msg = v + '0';
+   mosquitto_publish (mqtt, NULL, topic, 1, &msg, 1, 1);
+   free (topic);
+}
+
 static int
 parse_time (const char *v, int min, int max)
 {
@@ -413,20 +428,16 @@ port_parse (const char *v, const char **ep, int i)
    int l = 0;
    while (v[l] && v[l] != ',' && !isspace (v[l]))
       l++;
-   if (v[l])
-   {                            // One word at a time
-      char *n = alloca (l + 1);
-      memcpy (n, v, l);
-      n[l] = 0;
-      if (v[l] == ',')
-         l++;
-      while (isspace (v[l]))
-         l++;
-      if (ep)
-         *ep = v + l;
-      v = n;
-   } else if (ep)
-      *ep = NULL;               // Last word
+   char *n = alloca (l + 1);
+   memcpy (n, v, l);
+   n[l] = 0;
+   if (v[l] == ',')
+      l++;
+   while (isspace (v[l]))
+      l++;
+   if (ep)
+      *ep = (v[l] ? v + l : NULL);
+   v = n;
    int port = 0;
    if (l > 2 && v[l - 2] == '#' && isdigit (v[l - 1]))
    {                            // Port
@@ -520,6 +531,10 @@ port_parse (const char *v, const char **ep, int i)
       port = v[7] - '0';
    }
    ((char *) v)[6] = 0;
+   if (!port && i >= 0)
+      return NULL;              // Expecting a port
+   if (port && i < 0)
+      return NULL;              // Expecting base device
    return port_new (v, i, port);
 }
 
@@ -777,7 +792,7 @@ input_ws (xml_t root, port_p port)
       xml_add (x, "@-fault", "true");
    if (device[id].type == TYPE_RIO)
    {                            // Voltage...
-      // TODO
+      // Meh, one day
    }
    return NULL;
 }
@@ -3252,7 +3267,7 @@ doevent (event_t * e)
       break;
    case EVENT_RF:
       {
-         // TODO
+         // Meh, one day
       }
       break;
    }
@@ -3850,11 +3865,11 @@ main (int argc, const char *argv[])
                else
                   tag = NULL;
                id[6] = 0;
-               port_t *port = NULL;
+               port_p port = NULL;
                if (tag)
                {
                   char *e = tag + strlen (tag);
-                  if (e > tag && isdigit (e[-1]))
+                  if (e > tag && isdigit (e[-1]) && e[-1] > '0')
                      port = port_new (id, 1, e[-1] - '0');      // Input port
                   else
                      port = port_new (id, 0, 0);        // Device
@@ -3872,16 +3887,32 @@ main (int argc, const char *argv[])
                   }
                   if (!tag && !port->state && state)
                   {             // Load settings
-                     // TODO
+                     xml_attribute_t a = NULL;
+                     while ((a = xml_attribute_next (app->config, a)))
+                     {
+                        char *n = xml_attribute_name (a);
+                        char *v = xml_attribute_content (a);
+                        if (!strcmp (n, "id"))
+                           continue;
+                        if (!strcmp (n, "name"))
+                           continue;
+                        char *topic;
+                        asprintf (&topic, "setting/SS/%s/%s", port->mqtt, n);
+                        mosquitto_publish (mqtt, NULL, topic, strlen (v ? : ""), v, 1, 1);
+                     }
+                     port_p o;
+                     for (o = ports; o; o = o->next)
+                        if (o->mqtt && port_isoutput (o) && !strcmp (o->mqtt, id))
+                           mqtt_output (o, o->state);
                   }
                   int etype = 0;
                   if (!tag && port->state != state)
                      etype = (state ? EVENT_FOUND : EVENT_MISSING);
-                  else if (!strncmp (tag, "input", 5) && port->state != state)
+                  else if (tag && !strncmp (tag, "input", 5) && port->state != state)
                      etype = EVENT_INPUT;
-                  else if (!strncmp (tag, "fault", 5) && port->state != state)
+                  else if (tag && !strncmp (tag, "fault", 5) && port->state != state)
                      etype = EVENT_FAULT;
-                  else if (!strncmp (tag, "tamper", 6) && port->state != state)
+                  else if (tag && !strncmp (tag, "tamper", 6) && port->state != state)
                      etype = EVENT_TAMPER;
                   if (etype)
                   {             // Send event
@@ -3893,7 +3924,7 @@ main (int argc, const char *argv[])
                      e->port = port;
                      e->state = state;
                      struct timezone tz;
-                     gettimeofday ((void*)&e->when, &tz);
+                     gettimeofday ((void *) &e->when, &tz);
                      postevent (e);
                   }
                   return;

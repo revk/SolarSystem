@@ -12,6 +12,8 @@ port_p ports = NULL;
 
 pthread_mutex_t portmutex;
 
+extern void mqtt_output (port_p, int);
+
 void
 port_start (void)
 {
@@ -21,13 +23,15 @@ port_start (void)
 port_p
 port_new_bus (unsigned char bus, unsigned char id, unsigned char isinput, unsigned char port)
 {
+   if (!port)
+      isinput = 0;
    pthread_mutex_lock (&portmutex);
    port_p p;
    for (p = ports; p && (p->mqtt || p->bus != bus || p->id != id || p->port != port || p->isinput != isinput); p = p->next);
    if (!p)
    {
       p = malloc (sizeof (*p));
-      memset (p, 0, sizeof (*p));
+      memset ((void *) p, 0, sizeof (*p));
       if (!p)
          errx (1, "malloc");
       p->bus = bus;
@@ -44,17 +48,18 @@ port_new_bus (unsigned char bus, unsigned char id, unsigned char isinput, unsign
 port_p
 port_new (const char *mqtt, unsigned char isinput, unsigned char port)
 {
+   if (!port)
+      isinput = 0;
    pthread_mutex_lock (&portmutex);
    port_p p;
-   for (p = ports; p && (!p->mqtt || p->port != port || p->isinput != isinput || strcmp (p->mqtt, mqtt));
-        p = p->next);
+   for (p = ports; p && (!p->mqtt || p->port != port || p->isinput != isinput || strcmp (p->mqtt, mqtt)); p = p->next);
    if (!p)
    {
       p = malloc (sizeof (*p));
-      memset (p, 0, sizeof (*p));
+      memset ((void *) p, 0, sizeof (*p));
       if (!p)
          errx (1, "malloc");
-      p->mqtt = strdup(mqtt);
+      p->mqtt = strdup (mqtt);
       p->isinput = isinput;
       p->port = port;
       p->next = ports;
@@ -93,6 +98,8 @@ port_output_n (volatile port_p * w, int n, int v)
                w[n]->state = 1;
                if (port_device (w[n]))
                   device_output (port_device (w[n]), port_port (w[n]), 1);
+               else
+                  mqtt_output (w[n], 1);
                if (port_output_callback)
                   port_output_callback (w[n]);
             }
@@ -103,6 +110,8 @@ port_output_n (volatile port_p * w, int n, int v)
                w[n]->state = 0;
                if (port_device (w[n]))
                   device_output (port_device (w[n]), port_port (w[n]), 0);
+               else
+                  mqtt_output (w[n], 0);
                if (port_output_callback)
                   port_output_callback (w[n]);
             }
