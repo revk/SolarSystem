@@ -4,61 +4,63 @@
 #include <string.h>
 #include <malloc.h>
 #include <err.h>
+#include <pthread.h>
 #include "port.h"
 #include "galaxybus.h"
 
 port_p ports = NULL;
 
-pthread_mutex_t logmutex;
+pthread_mutex_t portmutex;
 
-void port_start(void)
+void
+port_start (void)
 {
-	pthread_mutex_init (&portmutex, 0);
+   pthread_mutex_init (&portmutex, 0);
 }
 
 port_p
 port_new_bus (unsigned char bus, unsigned char id, unsigned char isinput, unsigned char port)
 {
-	pthread_mutex_lock (&portmutex);
+   pthread_mutex_lock (&portmutex);
    port_p p;
    for (p = ports; p && (p->mqtt || p->bus != bus || p->id != id || p->port != port || p->isinput != isinput); p = p->next);
    if (!p)
    {
-   p = malloc (sizeof (*p));
-   memset (p, 0, sizeof (*p));
-   if (!p)
-      errx (1, "malloc");
-   p->bus = bus;
-   p->id = id;
-   p->port = port;
-   p->isinput = isinput;
-   p->next = ports;
-   ports = p;
-}
-	pthread_mutex_unlock (&portmutex);
+      p = malloc (sizeof (*p));
+      memset (p, 0, sizeof (*p));
+      if (!p)
+         errx (1, "malloc");
+      p->bus = bus;
+      p->id = id;
+      p->port = port;
+      p->isinput = isinput;
+      p->next = ports;
+      ports = p;
+   }
+   pthread_mutex_unlock (&portmutex);
    return p;
 }
 
 port_p
 port_new (const char *mqtt, unsigned char isinput, unsigned char port)
 {
-	  pthread_mutex_lock (&portmutex);
+   pthread_mutex_lock (&portmutex);
    port_p p;
    for (p = ports; p && (!p->mqtt || p->port != port || p->isinput != isinput || (p->mqtt != mqtt && strcmp (p->mqtt, mqtt)));
         p = p->next);
    if (!p)
    {
-   p = malloc (sizeof (*p));
-   memset (p, 0, sizeof (*p));
-   if (!p)
-      errx (1, "malloc");
-   p->mqtt = mqtt;
-   p->isinput = isinput;
-   p->port = port;
-   p->next = ports;
-   ports = p;
+      p = malloc (sizeof (*p));
+      memset (p, 0, sizeof (*p));
+      if (!p)
+         errx (1, "malloc");
+      p->mqtt = mqtt;
+      p->isinput = isinput;
+      p->port = port;
+      p->next = ports;
+      ports = p;
    }
-    pthread_mutex_unlock (&portmutex);
+   pthread_mutex_unlock (&portmutex);
    return p;
 }
 

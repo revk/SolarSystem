@@ -55,7 +55,7 @@
 xml_t config = NULL;
 const char *maxfrom = NULL,
    *maxto = NULL;
-int configchanged = 0;
+volatile int configchanged = 0;
 pthread_mutex_t eventmutex;;
 #ifdef LIBMQTT
 struct mosquitto *iot = NULL;
@@ -186,6 +186,7 @@ typedef unsigned char state_t;
 
 struct port_app_s
 {
+   xml_t config;                // The XML config
    int a,
      x,
      y;                         // Location on floor plan
@@ -452,32 +453,50 @@ port_parse (const char *v, const char **ep, int i)
    while (type < MAX_TYPE && strncmp (type_name[type], v, strlen (type_name[type])))
       type++;
    if (type < MAX_TYPE)
+   {                            // Bus based port
       v += strlen (type_name[type]);
-   if (*v > '0' && *v <= '0' + MAX_BUS && isxdigit (v[1]) && isxdigit (v[2]))
-   {                            //  Device
-      id = ((*v - '1') << 8) + (((isalpha (v[1]) ? 9 : 0) + (v[1] & 0xF)) << 4) + ((isalpha (v[2]) ? 9 : 0) + (v[2] & 0xF));
-      v += 3;
-      if (*v > '0' && *v <= '9')
-         port = *v - '0';
-   }
-   while (*v && !isspace (*v) && *v != ',')
-      v++;
-   if (type && id && id < MAX_DEVICE)
-   {
-      if (!device[id].type)
-      {
-         device[id].type = type;
-         if (type == TYPE_MAX)
-            device[id].fob_hold = 30;   // 3 second default
-         buses |= (1 << (id >> 8));
-      } else if (device[id].type != type)
-      {
-         dolog (groups, "CONFIG", NULL, NULL, "Device type clash port %s %s/%s, device disabled", v, type_name[device[id].type],
-                type_name[type]);
-         device[id].disabled = 1;
+      if (*v > '0' && *v <= '0' + MAX_BUS && isxdigit (v[1]) && isxdigit (v[2]))
+      {                         //  Device
+         id = ((*v - '1') << 8) + (((isalpha (v[1]) ? 9 : 0) + (v[1] & 0xF)) << 4) + ((isalpha (v[2]) ? 9 : 0) + (v[2] & 0xF));
+         v += 3;
+         if (*v > '0' && *v <= '9')
+            port = *v - '0';
       }
+      while (*v && !isspace (*v) && *v != ',')
+         v++;
+      if (type && id && id < MAX_DEVICE)
+      {
+         if (!device[id].type)
+         {
+            device[id].type = type;
+            if (type == TYPE_MAX)
+               device[id].fob_hold = 30;        // 3 second default
+            buses |= (1 << (id >> 8));
+         } else if (device[id].type != type)
+         {
+            dolog (groups, "CONFIG", NULL, NULL, "Device type clash port %s %s/%s, device disabled", v, type_name[device[id].type],
+                   type_name[type]);
+            device[id].disabled = 1;
+         }
+      }
+      return port_new_bus (id >> 8, id & 0xFF, i, port);
    }
-   return port_new_bus (id >> 8, id & 0xFF, i, port);
+   if (strlen (v) < 6 || !isxdigit (v[0]) || !isxdigit (v[1]) || !isxdigit (v[2]) || !isxdigit (v[3]) || !isxdigit (v[4])
+       || !isxdigit (v[5]))
+      return NULL;
+   if (v[6] == 'I')
+   {
+      if (i != 1 || !isdigit (v[7]) || v[8])
+         return NULL;
+      port = v[7] - '0';
+   } else if (v[6] == 'O')
+   {
+      if (i != 0 || !isdigit (v[7]) || v[8])
+         return NULL;
+      port = v[7] - '0';
+   }
+   ((char *) v)[6] = 0;
+   return port_new (v, i, port);
 }
 
 static group_t
@@ -1373,15 +1392,13 @@ output_state (group_t g)
       {
          if ((port_app (port)->group & g) && port_app (port)->type < STATES)
          {
-            int p = port_device (port);
-            int o = port_bits (port);
             if (state[port_app (port)->type] & g)
             {
-               if (!(device[p].output & o))
+               if (!port->state)
                   port_output (port, 1);
             } else
             {
-               if (device[p].output & o)
+               if (port->state)
                   port_output (port, 0);
             }
          }
@@ -3046,8 +3063,7 @@ doevent (event_t * e)
                   {
                      // disarm is the groups that can be disarmed by this user on this door.
                      group_t disarm = ((u->group_arm & mydoor[d].group_arm & state[STATE_ARM]) | (port_name (e->port),
-                                                                                                  u->
-                                                                                                  group_disarm &
+                                                                                                  u->group_disarm &
                                                                                                   mydoor[d].group_disarm &
                                                                                                   state[STATE_SET]));
                      if (door[d].state == DOOR_PROPPED || door[d].state == DOOR_OPEN || door[d].state == DOOR_PROPPEDOK)
@@ -3547,7 +3563,7 @@ wscallback (websocket_t * w, xml_t head, xml_t data)
 int
 main (int argc, const char *argv[])
 {
-   port_start();
+   port_start ();
 #ifdef	LIBWS
    char *d = strrchr (argv[0], '/');
    if (d)
@@ -3731,9 +3747,9 @@ main (int argc, const char *argv[])
          void mqtt_connected (struct mosquitto *mqtt, void *obj, int rc)
          {
             obj = obj;
-            if (mosquitto_subscribe (mqtt, NULL, "stat/#", 0))
+            if (mosquitto_subscribe (mqtt, NULL, "state/SS/#", 0))
                dolog (groups, "MQTT", NULL, NULL, "Subscribe failed");
-            if (mosquitto_subscribe (mqtt, NULL, "tele/#", 0))
+            if (mosquitto_subscribe (mqtt, NULL, "event/SS/#", 0))
                dolog (groups, "MQTT", NULL, NULL, "Subscribe failed");
             dolog (groups, "MQTT", NULL, NULL, "Server connected %d", rc);
          }
@@ -3741,6 +3757,47 @@ main (int argc, const char *argv[])
          {
             mqtt = mqtt;
             obj = obj;
+            char *t = msg->topic;
+            if (msg && (!strncmp (t, "state/SS/", 9) || !strncmp (t, "event/SS/", 9)) && strlen (t + 9) >= 6)
+            {
+               char *id = t + 9;
+               char *tag = id + 6;
+               if (*tag == '/')
+                  tag++;
+               else
+                  tag = NULL;
+               id[6] = 0;
+               port_t *port = NULL;
+               if (tag && !strncmp (t, "state", 5) && !strncmp (tag, "input", 5) && isdigit (tag[5]))
+                  port = port_new (id, 1, tag[5] - '0');
+               else
+                  port = port_new (id, 0, 0);
+               port_app_t *app = port_app (port);
+               if (!strncmp (t, "state", 5) && msg->payloadlen >= 1)
+               {
+                  int state = (((char *) msg->payload)[0] > '0' ? 1 : 0);
+                  if (state != port->state)
+                  {
+                     port->state = state;
+                     if (!tag)
+                     {          // Device level
+                        // TODO bus level events - BUSMISSING
+                        if (!app->config)
+                        {       // Add to config
+                           app->config = xml_element_add (config, "device");
+                           xml_add (app->config, "@id", id);
+                           configchanged = 1;
+                        }
+                        if (port->state)
+                        {       // Send settings
+				// TODO
+
+                        }
+                     }
+                  }
+               }
+               return;
+            }
             dolog (groups, "MQTT", NULL, NULL, "Unexpected message %s", msg->topic);
          }
          void mqtt_disconnected (struct mosquitto *mqtt, void *obj, int rc)
