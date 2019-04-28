@@ -755,15 +755,11 @@ input_ws (xml_t root, port_p port)
    if (!port || !port->isinput || !port->port)
       return NULL;
    int id = port_device (port);
-   if (id < 0 || id > MAX_DEVICE || !device[id].type)
-      return NULL;
    int n = port_port (port);
    if (!n)
       return NULL;
    port_app_t *app = port_app (port);
    n--;
-   if (!((device[id].type == TYPE_MAX && n < 4) || device[id].type == TYPE_RIO))
-      return NULL;
    xml_t x = xml_element_add (root, "input");
    xml_add (x, "@id", port_name (port));
    if (xml_get (root, "@full-data"))
@@ -777,11 +773,16 @@ input_ws (xml_t root, port_p port)
       }
       if (port_name (port))
          xml_add (x, "@name", port->name ? : port_name (port));
-      xml_addf (x, "@dev", "%s%d%02X", type_name[device[port_device (port)].type], port_bus (port) + 1, port_id (port));
+      if (port->mqtt)
+         xml_add (x, "@dev", port->mqtt);
+      else if (id)
+         xml_addf (x, "@dev", "%s%d%02X", type_name[device[port_device (port)].type], port_bus (port) + 1, port_id (port));
       xml_addf (x, "@port", "%d", port_port (port));
-      if (device[id].type == TYPE_RIO)
+      if (port->mqtt)
+         xml_add (x, "@type", "esp");
+      else if (id && device[id].type == TYPE_RIO)
          xml_add (x, "@type", "rio");
-      else if (device[id].type == TYPE_MAX)
+      else if (id && device[id].type == TYPE_MAX)
          xml_add (x, "@type", "max");
    }
    if (app->input)
@@ -790,28 +791,18 @@ input_ws (xml_t root, port_p port)
       xml_add (x, "@-tamper", "true");
    if (app->fault)
       xml_add (x, "@-fault", "true");
-   if (device[id].type == TYPE_RIO)
-   {                            // Voltage...
-      // Meh, one day
-   }
    return NULL;
 }
 
 xml_t
 output_ws (xml_t root, port_p port)
 {
-   if (!port || port->isinput || !port->port)
+   if (!port)
       return NULL;
    int id = port_device (port);
-   if (id < 0 || id > MAX_DEVICE || !device[id].type)
-      return NULL;
    int n = port_port (port);
-   if (!n)
-      return NULL;
    port_app_t *app = port_app (port);
    n--;
-   if (!((device[id].type == TYPE_MAX && n < 2) || device[id].type == TYPE_RIO))
-      return NULL;
    if (app->type == (state_t) - 1)
       return NULL;              // Not in use
    xml_t x = xml_element_add (root, "output");
@@ -827,11 +818,16 @@ output_ws (xml_t root, port_p port)
       }
       if (port_name (port))
          xml_add (x, "@name", port->name ? : port_name (port));
+      if (port->mqtt)
+         xml_add (x, "@dev", port->mqtt);
+      else if(id)
       xml_addf (x, "@dev", "%s%d%02X", type_name[device[port_device (port)].type], port_bus (port) + 1, port_id (port));
       xml_addf (x, "@port", "%d", port_port (port));
-      if (device[id].type == TYPE_RIO)
+      if(port->mqtt)xml_add(x,"@type","esp");
+      else
+      if (id&&device[id].type == TYPE_RIO)
          xml_add (x, "@type", "rio");
-      else if (device[id].type == TYPE_MAX)
+      else if (id&&device[id].type == TYPE_MAX)
          xml_add (x, "@type", "max");
    }
    if (device[id].output & (1 << n))
@@ -2784,7 +2780,8 @@ doevent (event_t * e)
          printf ("Bad door %d\n", e->door);
       return;
    }
-   port_app_t *app = port_app (e->port);
+   port_p port = e->port;
+   port_app_t *app = port_app (port);
    // Handle event
    switch (e->event)
    {
@@ -2818,31 +2815,31 @@ doevent (event_t * e)
       }
       break;
    case EVENT_CONFIG:
-      dolog (groups, "BUSCONFIG", NULL, port_name (e->port), "Device config started");
+      dolog (groups, "BUSCONFIG", NULL, port_name (port), "Device config started");
       break;
    case EVENT_FOUND:
       {
-         dolog (groups, "BUSFOUND", NULL, port_name (e->port), "Device found on bus");
+         dolog (groups, "BUSFOUND", NULL, port_name (port), "Device found on bus");
          if (app && app->missing)
          {
             app->missing = 0;
-            rem_tamper (groups, port_name (e->port), e->port->name);
+            rem_tamper (groups, port_name (port), port->name);
          }
          if (type == TYPE_PAD)
-            keypad_new (e->port);
+            keypad_new (port);
       }
       break;
    case EVENT_MISSING:
       if (app && !app->missing)
       {
          app->missing = 1;
-         dolog (groups, "BUSMISSING", NULL, port_name (e->port), "Device missing from bus");
-         add_tamper (groups, port_name (e->port), e->port->name);
+         dolog (groups, "BUSMISSING", NULL, port_name (port), "Device missing from bus");
+         add_tamper (groups, port_name (port), port->name);
       }
       break;
    case EVENT_DISABLED:
       {
-         dolog (groups, "BUSDISABLED", NULL, port_name (e->port), "Device disabled on bus");
+         dolog (groups, "BUSDISABLED", NULL, port_name (port), "Device disabled on bus");
       }
       break;
    case EVENT_DOOR:
@@ -2963,25 +2960,25 @@ doevent (event_t * e)
       break;
    case EVENT_INPUT:
       {
-         if (!app || !port_isinput (e->port))
+         if (!app || !port_isinput (port))
             break;
          int s;
-         const char *port = port_name (e->port);
-         const char *name = e->port->name ? : port;
+         const char *tag = port_name (port);
+         const char *name = port->name ? : tag;
          if (e->state)
          {                      // on
             app->input = 1;
             if (walkthrough)
-               syslog (LOG_INFO, "+%s(%s)", port, name ? : "");
+               syslog (LOG_INFO, "+%s(%s)", tag, name ? : "");
             for (s = 0; s < STATE_TRIGGERS; s++)
-               add_state (app->trigger[s], port, name, s);
+               add_state (app->trigger[s], tag, name, s);
          } else
          {                      // off
             app->input = 0;
             if (walkthrough)
-               syslog (LOG_INFO, "-%s(%s)", port, name ? : "");
+               syslog (LOG_INFO, "-%s(%s)", tag, name ? : "");
             for (s = 0; s < STATE_TRIGGERS; s++)
-               rem_state (app->trigger[s], port, name, s);
+               rem_state (app->trigger[s], tag, name, s);
          }
          if (app->isexit && e->state)
          {
@@ -3016,7 +3013,7 @@ doevent (event_t * e)
          }
 #ifdef	LIBWS
          xml_t root = xml_tree_new (NULL);
-         input_ws (root, e->port);
+         input_ws (root, port);
          websocket_send_all (root);
          xml_tree_delete (root);
 #endif
@@ -3024,10 +3021,10 @@ doevent (event_t * e)
       break;
    case EVENT_TAMPER:
       {
-         if (!app || !port_isinput (e->port))
+         if (!app)
             break;
-         const char *port = port_name (e->port);
-         const char *name = e->port->name ? : port;
+         const char *tag = port_name (port);
+         const char *name = port->name ? : tag;
          group_t g = 0;
          int s;
          for (s = 0; s < STATE_TRIGGERS; s++)
@@ -3036,18 +3033,18 @@ doevent (event_t * e)
          {
             app->tamper = 1;
             if (walkthrough)
-               syslog (LOG_INFO, "+%s(%s) Tamper", port, name ? : "");
-            add_tamper (g, port, name);
+               syslog (LOG_INFO, "+%s(%s) Tamper", tag, name ? : "");
+            add_tamper (g, tag, name);
          } else
          {
             app->tamper = 0;
             if (walkthrough)
-               syslog (LOG_INFO, "-%s(%s) Tamper", port, name ? : "");
-            rem_tamper (g, port, name);
+               syslog (LOG_INFO, "-%s(%s) Tamper", tag, name ? : "");
+            rem_tamper (g, tag, name);
          }
 #ifdef	LIBWS
          xml_t root = xml_tree_new (NULL);
-         input_ws (root, e->port);
+         input_ws (root, port);
          websocket_send_all (root);
          xml_tree_delete (root);
 #endif
@@ -3055,12 +3052,10 @@ doevent (event_t * e)
       break;
    case EVENT_FAULT:
       {
-         if (!app || !port_isinput (e->port))
+         if (!app)
             break;
-         int i = port_port (e->port) - 1;
-         const char *port = port_name (e->port);
-         const char *name = e->port->name ? : port;
-         i--;
+         const char *tag = port_name (port);
+         const char *name = port->name ? : tag;
          group_t g = 0;
          int s;
          for (s = 0; s < STATE_TRIGGERS; s++)
@@ -3069,48 +3064,49 @@ doevent (event_t * e)
          {
             app->fault = 1;
             if (walkthrough)
-               syslog (LOG_INFO, "+%s(%s) Fault", port, name ? : "");
-            add_fault (g, port, name);
+               syslog (LOG_INFO, "+%s(%s) Fault", tag, name ? : "");
+            add_fault (g, tag, name);
          } else
          {
             app->fault = 0;
             if (walkthrough)
-               syslog (LOG_INFO, "-%s(%s) Fault", port, name ? : "");
-            rem_fault (g, port, name);
+               syslog (LOG_INFO, "-%s(%s) Fault", tag, name ? : "");
+            rem_fault (g, tag, name);
          }
          if (id && device[id].type == TYPE_RIO)
          {
+            int i = port_port (port) - 1;
             if (i == FAULT_RIO_NO_PWR)
             {
-               char port[20];
-               snprintf (port, sizeof (port), "%sNOPWR", port_name (e->port));
+               char tag[20];
+               snprintf (tag, sizeof (tag), "%sNOPWR", port_name (port));
                if (e->state)
-                  add_warning (g, port, name);
+                  add_warning (g, tag, name);
                else
-                  rem_warning (g, port, name);
+                  rem_warning (g, tag, name);
             }
             if (i == FAULT_RIO_NO_BAT)
             {
-               char port[20];
-               snprintf (port, sizeof (port), "%sNOBAT", port_name (e->port));
+               char tag[20];
+               snprintf (tag, sizeof (tag), "%sNOBAT", port_name (port));
                if (e->state)
-                  add_warning (g, port, name);
+                  add_warning (g, tag, name);
                else
-                  rem_warning (g, port, name);
+                  rem_warning (g, tag, name);
             }
             if (i == FAULT_RIO_BAD_BAT)
             {
-               char port[20];
-               snprintf (port, sizeof (port), "%sBADBAT", port_name (e->port));
+               char tag[20];
+               snprintf (tag, sizeof (tag), "%sBADBAT", port_name (port));
                if (e->state)
-                  add_warning (g, port, name);
+                  add_warning (g, tag, name);
                else
-                  rem_warning (g, port, name);
+                  rem_warning (g, tag, name);
             }
          }
 #ifdef	LIBWS
          xml_t root = xml_tree_new (NULL);
-         input_ws (root, e->port);
+         input_ws (root, port);
          websocket_send_all (root);
          xml_tree_delete (root);
 #endif
@@ -3132,15 +3128,15 @@ doevent (event_t * e)
          if (device[id].pad)
          {                      // Prox for keypad, so somewhat different
             if (!u)
-               dolog (groups, "FOBBAD", NULL, port_name (e->port), "Unrecognised fob %lu", e->fob);
+               dolog (groups, "FOBBAD", NULL, port_name (port), "Unrecognised fob %lu", e->fob);
             else
             {
                keypad_t *k;
-               for (k = keypad; k && k->prox != e->port; k = k->next);
+               for (k = keypad; k && k->prox != port; k = k->next);
                if (k)
-                  keypad_login (k, u, port_name (e->port));
+                  keypad_login (k, u, port_name (port));
                else
-                  dolog (groups, "FOBBAD", NULL, port_name (e->port), "Prox not linked to keypad, fob %lu", e->fob);
+                  dolog (groups, "FOBBAD", NULL, port_name (port), "Prox not linked to keypad, fob %lu", e->fob);
             }
             return;
          }
@@ -3161,13 +3157,13 @@ doevent (event_t * e)
                   } else if (e->event == EVENT_FOB)
                   {
                      // disarm is the groups that can be disarmed by this user on this door.
-                     group_t disarm = ((u->group_arm & mydoor[d].group_arm & state[STATE_ARM]) | (port_name (e->port),
+                     group_t disarm = ((u->group_arm & mydoor[d].group_arm & state[STATE_ARM]) | (port_name (port),
                                                                                                   u->group_disarm &
                                                                                                   mydoor[d].group_disarm &
                                                                                                   state[STATE_SET]));
                      if (door[d].state == DOOR_PROPPED || door[d].state == DOOR_OPEN || door[d].state == DOOR_PROPPEDOK)
                      {
-                        if (disarm && alarm_unset (u->name, port_name (e->port), disarm))
+                        if (disarm && alarm_unset (u->name, port_name (port), disarm))
                            door_confirm (d);
                         if (u->group_prop & mydoor[d].group_lock)
                         {
@@ -3185,7 +3181,7 @@ doevent (event_t * e)
                         }
                      } else if (door[d].state == DOOR_CLOSED)
                      {
-                        if (disarm && alarm_unset (u->name, port_name (e->port), disarm))
+                        if (disarm && alarm_unset (u->name, port_name (port), disarm))
                            door_confirm (d);
                         door_lock (d);  // Cancel open
                         dolog (mydoor[d].group_lock, "DOORCANCEL", u->name, doorno, "Door open cancelled by fob %lu", e->fob);
@@ -3212,7 +3208,7 @@ doevent (event_t * e)
                               door_error (d);
                            } else
                            {    // Allowed to be opened
-                              if (disarm && alarm_unset (u->name, port_name (e->port), disarm))
+                              if (disarm && alarm_unset (u->name, port_name (port), disarm))
                                  door_confirm (d);
                               if (door[d].state != DOOR_OPEN && door[d].state != DOOR_UNLOCKING)
                               { // Open it
@@ -3236,7 +3232,7 @@ doevent (event_t * e)
                      {
                         door_confirm (d);
                         door_lock (d);
-                        alarm_arm (u->name, port_name (e->port), set, mydoor[d].time_set);
+                        alarm_arm (u->name, port_name (port), set, mydoor[d].time_set);
                      } else
                      {
                         dolog (mydoor[d].group_lock, "FOBHELDIGNORED", u->name, doorno,
@@ -3252,7 +3248,7 @@ doevent (event_t * e)
                }
          if (!found)
          {                      // Unassociated max reader
-            dolog (groups, e->event == EVENT_FOB_HELD ? "FOBHELDIGNORE" : "FOBIGNORED", u ? u->name : NULL, port_name (e->port),
+            dolog (groups, e->event == EVENT_FOB_HELD ? "FOBHELDIGNORE" : "FOBIGNORED", u ? u->name : NULL, port_name (port),
                    "Ignored fob %lu as reader not linked to a door", e->fob);
          }
       }
@@ -3260,7 +3256,7 @@ doevent (event_t * e)
    case EVENT_KEY:
       {                         // Key
          keypad_t *k;
-         for (k = keypad; k && k->port != e->port; k = k->next);
+         for (k = keypad; k && k->port != port; k = k->next);
          if (k)
             keypad_update (k, e->key);
       }
