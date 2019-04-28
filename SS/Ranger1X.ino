@@ -100,14 +100,14 @@ boolean ranger1xfault = false;
         if (force || !buttonshort)
         {
           buttonshort = true;
-          revk.state(F("input7"), F("1"));
+          revk.state(F("input8"), F("1"));
         }
       } else if (force || range > ranger1x + MARGIN)
       {
         if (force || buttonshort)
         {
           buttonshort = false;
-          revk.state(F("input7"), F("0"));
+          revk.state(F("input8"), F("0"));
         }
       }
       if (range > last + MARGIN || last > range + MARGIN)
@@ -115,7 +115,7 @@ boolean ranger1xfault = false;
         if (force || !buttonlong)
         {
           buttonlong = true;
-          revk.state(F("input8"), F("1"));
+          revk.state(F("input9"), F("1"));
         }
         endlong = now + LONGHOLD;
       } else if ((int)(endlong - now) < 0)
@@ -123,7 +123,7 @@ boolean ranger1xfault = false;
         if (force || buttonlong)
         {
           buttonlong = false;
-          revk.state(F("input8"), F("0"));
+          revk.state(F("input9"), F("0"));
         }
       }
       last = range;
