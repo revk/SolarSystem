@@ -105,12 +105,12 @@ const char* reader532_fault = false;
           held = false;
           memcpy(lastuid, uid, lastlen = uidlen);
           report(F("id"));
-        } else if (!held && first && (int)(now - first) > HOLDTIME)
+        } else if (!held && first && (int)(now - first) > holdtime)
         {
           held = true;
           report(F("held"));
         }
-      } else if (last && (int)(now - last) > RELEASETIME)
+      } else if (last && (int)(now - last) > releasetime)
       {
         if (held)
           report(F("gone"));

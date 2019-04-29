@@ -6,15 +6,6 @@
 #define  USE_READER532
 extern const char* reader532_fault;
 
-#ifndef	HOLDTIME
-#define HOLDTIME 3000
-#endif
-
-#ifndef	REALASETIME
-#define RELEASETIME 1000
-#endif
-
-
 #include <ESP8266RevK.h>
 
 extern const char* reader532_setting(const char *tag, const byte *value, size_t len);
