@@ -4,7 +4,7 @@
 // Input button logic
 
 #define USE_INPUT
-extern const char* inputfault;
+extern const char* input_fault;
 
 #include <ESP8266RevK.h>
 

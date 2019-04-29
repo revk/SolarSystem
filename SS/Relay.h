@@ -4,7 +4,7 @@
 // Relay output logic
 
 #define  USE_RELAY
-extern const char* relayfault;
+extern const char* relay_fault;
 
 #include <ESP8266RevK.h>
 

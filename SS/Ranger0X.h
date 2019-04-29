@@ -4,7 +4,7 @@
 // Laser ranger as button
 
 #define	USE_RANGER0X
-extern const char* ranger0xfault;
+extern const char* ranger0x_fault;
 
 #include <ESP8266RevK.h>
 

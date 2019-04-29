@@ -4,7 +4,7 @@
 // RFID Card reader for Solar System using PN532 via SPI
 
 #define  USE_READER532
-extern const char* reader532fault;
+extern const char* reader532_fault;
 
 #ifndef	HOLDTIME
 #define HOLDTIME 3000

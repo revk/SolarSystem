@@ -5,7 +5,7 @@
 
 #include <ESP8266RevK.h>
 #include "Input.h"
-const char* inputfault = false;
+const char* input_fault = false;
 
 #define MAX_PIN 17
 #define PINHOLD 250
@@ -14,18 +14,18 @@ int pin[MAX_PIN] = {};
 unsigned long inputs = 0;
 
 #define app_settings  \
-  s(input,0);   \
-  s(input1,-1);   \
-  s(input2,-1);   \
-  s(input3,-1);   \
+  s(input);   \
+  s(input1);   \
+  s(input2);   \
+  s(input3);   \
 
-#define s(n,d) unsigned int n=d;
+#define s(n) unsigned int n=0;
   app_settings
 #undef s
 
   const char* input_setting(const char *tag, const byte *value, size_t len)
   { // Called for settings retrieved from EEPROM
-#define s(n,d) do{const char *t=PSTR(#n);if(!strcmp_P(tag,t)){n=(value?atoi((char*)value):0);return t;}}while(0)
+#define s(n) do{const char *t=PSTR(#n);if(!strcmp_P(tag,t)){n=(value?atoi((char*)value):0);return t;}}while(0)
     app_settings
 #undef s
     return NULL; // Done
@@ -43,19 +43,25 @@ unsigned long inputs = 0;
     debugf("GPIO available %X for %d inputs", gpiomap, input);
     gpiomap &= ~(1 << 0); // Dont use GPIO0 as general input because flash mode
     int i;
+    pin[0] = input1; // Presets (0 means not preset as we don't use 0 anyway)
+    pin[1] = input2;
+    pin[2] = input3;
     for (i = 0; i < input; i++)
     {
       if (!gpiomap)
       {
-        inputfault = PSTR("Input pins not available");
+        input_fault = PSTR("Input pins not available");
         input = NULL;
         return false;
       }
-      int p;
-      if (i == 0 && input1 >= 0)p = input1; // presets
-      else if (i == 1 && input2 >= 0)p = input2;
-      else if (i == 2 && input3 >= 0)p = input3;
-      else for (p = 0; p < MAX_PIN && !(gpiomap & (1 << p)); p++); // Find a pin
+      int p = pin[i];
+      if (!p) for (p = 1; p < MAX_PIN && !(gpiomap & (1 << p)); p++); // Find a pin
+      if (!(gpiomap & (1 << p)))
+      {
+        input_fault = PSTR("Input pins assignment available");
+        input = NULL;
+        return false;
+      }
       pin[i] = p;
       debugf("Input %d pin %d", i + 1, p);
       gpiomap &= ~(1 << p);

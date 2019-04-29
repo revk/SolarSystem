@@ -19,10 +19,11 @@ unsigned int gpiomap = 0xF; // Pins available (ESP-01)
 #endif
 
 #include "Relay.h"
-#include "Input.h"
 #include "Ranger0X.h"
 #include "Ranger1X.h"
 #include "Keypad.h"
+#include "Beep.h"
+#include "Input.h"
 
 static boolean force = true;
 
@@ -32,6 +33,7 @@ static boolean force = true;
   s(scl,2);   \
   s(ss,16);   \
   s(rst,2); \
+  s(beeper,0); \
 
 #define s(n,d) unsigned int n=d;
   app_settings
@@ -65,6 +67,9 @@ static boolean force = true;
 #ifdef  USE_KEYPAD
     if ((ret = keypad_setting(tag, value, len)))return ret;
 #endif
+#ifdef  USE_BEEP
+    if ((ret = beep_setting(tag, value, len)))return ret;
+#endif
 #ifdef  USE_INPUT
     if ((ret = input_setting(tag, value, len)))return ret;
 #endif
@@ -94,6 +99,9 @@ static boolean force = true;
 #ifdef  USE_KEYPAD
     if (keypad_command(tag, message, len))return true;
 #endif
+#ifdef  USE_BEEP
+    if (beep_command(tag, message, len))return true;
+#endif
 #ifdef  USE_INPUT
     if (input_command(tag, message, len))return true;
 #endif
@@ -121,6 +129,9 @@ static boolean force = true;
     keypad_setup(revk);
 #endif
     // Leave until last as needs to know which GPIO are available
+#ifdef USE_BEEP
+    beep_setup(revk);
+#endif
 #ifdef USE_INPUT
     input_setup(revk);
 #endif
@@ -132,25 +143,28 @@ static boolean force = true;
     { // Fault check
       const char*fault =
 #ifdef USE_READER522
-        reader522fault ? :
+        reader522_fault ? :
 #endif
 #ifdef USE_READER532
-        reader532fault ? :
+        reader532_fault ? :
 #endif
 #ifdef USE_RELAY
-        relayfault ? :
+        relay_fault ? :
 #endif
 #ifdef USE_RANGER0X
-        ranger0xfault ? :
+        ranger0x_fault ? :
 #endif
 #ifdef USE_RANGER1X
-        ranger1xfault ? :
+        ranger1x_fault ? :
 #endif
 #ifdef USE_KEYPAD
-        keypadfault ? :
+        keypad_fault ? :
+#endif
+#ifdef USE_BEEP
+        beep_fault ? :
 #endif
 #ifdef USE_INPUT
-        inputfault ? :
+        input_fault ? :
 #endif
         NULL;
       static const char *lastfault = NULL;
@@ -178,6 +192,9 @@ static boolean force = true;
 #endif
 #ifdef USE_KEYPAD
     keypad_loop(revk, force);
+#endif
+#ifdef USE_NEEP
+    beep_loop(revk, force);
 #endif
 #ifdef USE_INPUT
     input_loop(revk, force);

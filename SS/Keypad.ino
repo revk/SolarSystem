@@ -5,7 +5,7 @@
 // ESP-01 based with RS485 board fits in Galaxy keypad/display module
 
 #include "keypad.h"
-const char* keypadfault = false;
+const char* keypad_fault = false;
 
 #define PINS ((1<<1) | (1<<3))  // Tx and Rx
 
@@ -18,7 +18,7 @@ const char* keypadfault = false;
 #define app_commands  \
   f(07,display,32,0) \
   f(19,keyclick,1,5) \
-  f(0C,beep,2,0) \
+  f(0C,sounder,2,0) \
   f(0D,backlight,1,1) \
   f(07a,cursor,2,0) \
   f(07b,blink,1,0) \
@@ -57,7 +57,7 @@ const char* keypadfault = false;
     debugf("GPIO pin available %X for Keypad", gpiomap);
     if ((gpiomap & PINS) != PINS)
     {
-      keypadfault = PSTR("Keypad pins (Tx/Rx) not available");
+      keypad_fault = PSTR("Keypad pins (Tx/Rx) not available");
       keypad = NULL;
       return false;
     }
@@ -146,9 +146,9 @@ const char* keypadfault = false;
       } else if (send0C)
       { // Beeper
         buf[++p] = 0x0C;
-        buf[++p] = beep_len ? beep[1] ? 3 : 1 : 0;
-        buf[++p] = (beep[0] & 0x3F); // Time on
-        buf[++p] = (beep[1] & 0x3F); // Time off
+        buf[++p] = sounder_len ? sounder[1] ? 3 : 1 : 0;
+        buf[++p] = (sounder[0] & 0x3F); // Time on
+        buf[++p] = (sounder[1] & 0x3F); // Time off
         send0C = false;
       } else if (send0D)
       { // Light change
@@ -194,10 +194,10 @@ const char* keypadfault = false;
         while (c > 0xFF)
           c = (c >> 8) + (c & 0xFF);
         if (p < 2 || buf[n] != c || buf[0] != 0x11 || buf[1] == 0xF2)
-          keypadfault = PSTR("Bad response from keyboard");
+          keypad_fault = PSTR("Bad response from keyboard");
         else
         {
-          keypadfault = NULL;
+          keypad_fault = NULL;
           if (cmd == 0x00 && buf[1] == 0xFF && p > 5)
           { // Set up response
             if (!online)
@@ -240,7 +240,7 @@ const char* keypadfault = false;
         }
       } else
       {
-        keypadfault = PSTR("No response from keypad");
+        keypad_fault = PSTR("No response from keypad");
         online = false;
       }
     }
