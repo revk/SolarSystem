@@ -534,7 +534,7 @@ poller (void *d)
                      if (!(mydev[id].input & (1 << INPUT_MAX_FOB)))
                      {          // Fob starts
                         event_t *e = newevent (EVENT_FOB, 0, 0);
-                        e->fob = n;
+                        snprintf ((char *) e->fob, sizeof (e->fob), "%lu", n);
                         postevent (e);
                         mydev[id].input |= (1 << INPUT_MAX_FOB);
                         if (dev[id].fob_hold)
@@ -546,7 +546,7 @@ poller (void *d)
                         mydev[id].input |= (1 << INPUT_MAX_FOB_HELD);
                         mydev[id].fobheld = 0;
                         event_t *e = newevent (EVENT_FOB_HELD, 0, 0);
-                        e->fob = n;
+                        snprintf ((char *) e->fob, sizeof (e->fob), "%lu", n);
                         postevent (e);
                      }
                   } else

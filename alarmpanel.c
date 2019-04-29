@@ -820,14 +820,14 @@ output_ws (xml_t root, port_p port)
          xml_add (x, "@name", port->name ? : port_name (port));
       if (port->mqtt)
          xml_add (x, "@dev", port->mqtt);
-      else if(id)
-      xml_addf (x, "@dev", "%s%d%02X", type_name[device[port_device (port)].type], port_bus (port) + 1, port_id (port));
+      else if (id)
+         xml_addf (x, "@dev", "%s%d%02X", type_name[device[port_device (port)].type], port_bus (port) + 1, port_id (port));
       xml_addf (x, "@port", "%d", port_port (port));
-      if(port->mqtt)xml_add(x,"@type","esp");
-      else
-      if (id&&device[id].type == TYPE_RIO)
+      if (port->mqtt)
+         xml_add (x, "@type", "esp");
+      else if (id && device[id].type == TYPE_RIO)
          xml_add (x, "@type", "rio");
-      else if (id&&device[id].type == TYPE_MAX)
+      else if (id && device[id].type == TYPE_MAX)
          xml_add (x, "@type", "max");
    }
    if (device[id].output & (1 << n))
@@ -1202,32 +1202,36 @@ load_config (const char *configfile)
          unsigned int q = 0;
          while (*v && q < sizeof (u->fob) / sizeof (*u->fob))
          {
-            fob_t n = 0;
-            while (isdigit (*v))
-               n = n * 10 + *v++ - '0';
+            while (*v == '0')
+               v++;
+            fob_t f = { };
+            char *o = f;
+            while (isxdigit (*v) && o < f + sizeof (f) - 1)
+               *o++ = *v++;
+            *o = 0;
+            if (!*f)
+               dolog (ALL_GROUPS, "CONFIG", u->name, NULL, "User with zero fob");
+            else
+            {
+               user_t *o;
+               for (o = users; o; o = o->next)
+               {
+                  unsigned int z;
+                  for (z = 0; z < sizeof (o->fob) / sizeof (*o->fob) && strcmp (o->fob[z], f); z++);
+                  if (z < sizeof (o->fob) / sizeof (*o->fob))
+                     break;
+               }
+               if (o)
+                  dolog (ALL_GROUPS, "CONFIG", u->name, NULL, "User with duplicate fob", f);
+               else
+                  strcpy (u->fob[q++], f);
+            }
             if (*v == ',')
                v++;
             while (*v && isspace (*v))
                v++;
-            if (!n)
-               dolog (ALL_GROUPS, "CONFIG", u->name, NULL, "User with zero fob");
-            else
-            {                   // Check duplicates
-
-               user_t *f;
-               for (f = users; f; f = f->next)
-               {
-                  unsigned int z;
-                  for (z = 0; z < sizeof (u->fob) / sizeof (*u->fob) && f->fob[z] != n; z++);
-                  if (z < sizeof (u->fob) / sizeof (*u->fob))
-                     break;
-               }
-               if (f)
-                  dolog (ALL_GROUPS, "CONFIG", u->name, NULL, "User with duplicate fob", f->name ? : "?");
-            }
             if (*v && !isdigit (*v))
                break;
-            u->fob[q++] = n;
          }
          if (*v)
          {
@@ -1281,12 +1285,22 @@ load_config (const char *configfile)
             port_p maxport = port_parse (max, NULL, -2);
             if (maxport && !maxport->name)
                maxport->name = mydoor[d].name;
-            port_o_set (door[d].o_led, max, 0, doorname, "Max");
-            port_o_set (door[d].mainlock.o_unlock, max, 2, doorname, "Unlock");
-            port_i_set (door[d].i_open, max, 1, doorname, "Open");
-            port_o_set (door[d].o_beep, max, 1, doorname, "Beep");
-            port_exit_set (mydoor[d].i_exit, max, 2, doorname);
-            port_set (mydoor[d].i_fob, max, 0, doorname, "Max");
+            if (port_device (maxport))
+            {
+               port_set (mydoor[d].i_fob, max, 0, doorname, "Max");
+               port_o_set (door[d].o_led, max, 0, doorname, "Max");
+               port_o_set (door[d].mainlock.o_unlock, max, 2, doorname, "Unlock");
+               port_i_set (door[d].i_open, max, 1, doorname, "Open");
+               port_o_set (door[d].o_beep, max, 1, doorname, "Beep");
+               port_exit_set (mydoor[d].i_exit, max, 2, doorname);
+            } else
+            {                   // WiFi device - differect default port IDs
+               port_set (mydoor[d].i_fob, max, 0, doorname, "Reader");
+               port_o_set (door[d].mainlock.o_unlock, max, 1, doorname, "Unlock");
+               port_exit_set (mydoor[d].i_exit, max, 1, doorname);
+               port_i_set (door[d].i_open, max, 2, doorname, "Open");
+               port_i_set (door[d].mainlock.i_unlock, max, 3, doorname, "Unlock");
+            }
          }
          port_set (mydoor[d].i_fob, xml_get (x, "@fob"), 0, doorname, "Max");
          port_o_set (door[d].o_led, xml_get (x, "@o-led"), 0, doorname, "Max");
@@ -2768,7 +2782,7 @@ doevent (event_t * e)
       if (e->event == EVENT_KEY)
          printf ("%02X", e->key);
       if (e->event == EVENT_FOB || e->event == EVENT_FOB_HELD)
-         printf (" %09u", e->fob);
+         printf (" %s", e->fob);
       if (e->event == EVENT_RF)
          printf ("%08X %08X %02X %2d/10", e->rfserial, e->rfstatus, e->rftype, e->rfsignal);
       printf ("\n");
@@ -3121,14 +3135,14 @@ doevent (event_t * e)
          if (e->fob)
             for (u = users; u; u = u->next)
             {
-               for (n = 0; n < sizeof (u->fob) / sizeof (*u->fob) && u->fob[n] != e->fob; n++);
+               for (n = 0; n < sizeof (u->fob) / sizeof (*u->fob) && strcmp (u->fob[n], (char *) e->fob); n++);
                if (n < sizeof (u->fob) / sizeof (*u->fob))
                   break;
             }
          if (device[id].pad)
          {                      // Prox for keypad, so somewhat different
             if (!u)
-               dolog (groups, "FOBBAD", NULL, port_name (port), "Unrecognised fob %lu", e->fob);
+               dolog (groups, "FOBBAD", NULL, port_name (port), "Unrecognised fob %s", e->fob);
             else
             {
                keypad_t *k;
@@ -3136,7 +3150,7 @@ doevent (event_t * e)
                if (k)
                   keypad_login (k, u, port_name (port));
                else
-                  dolog (groups, "FOBBAD", NULL, port_name (port), "Prox not linked to keypad, fob %lu", e->fob);
+                  dolog (groups, "FOBBAD", NULL, port_name (port), "Prox not linked to keypad, fob %s", e->fob);
             }
             return;
          }
@@ -3144,7 +3158,7 @@ doevent (event_t * e)
          // We only do stuff for Max readers on doors - maybe we need some logic for stand alone max readers - or make a dummy door.
          for (d = 0; d < MAX_DOOR; d++)
             for (n = 0; n < sizeof (mydoor[0].i_fob) / sizeof (*mydoor[0].i_fob); n++)
-               if (port_device (mydoor[d].i_fob[n]) == id)
+               if (mydoor[d].i_fob[n] == port)
                {
                   found++;
                   char doorno[8];
@@ -3153,7 +3167,7 @@ doevent (event_t * e)
                   {
                      door_error (d);
                      door_lock (d);     // Cancel open
-                     dolog (mydoor[d].group_lock, "FOBBAD", NULL, doorno, "Unrecognised fob %lu", e->fob);
+                     dolog (mydoor[d].group_lock, "FOBBAD", NULL, doorno, "Unrecognised fob %s", e->fob);
                   } else if (e->event == EVENT_FOB)
                   {
                      // disarm is the groups that can be disarmed by this user on this door.
@@ -3170,13 +3184,13 @@ doevent (event_t * e)
                            door_auth (d);
                            if (door[d].state != DOOR_PROPPEDOK)
                            {
-                              dolog (mydoor[d].group_lock, "DOORHELD", u->name, doorno, "Door prop authorised by fob %lu", e->fob);
+                              dolog (mydoor[d].group_lock, "DOORHELD", u->name, doorno, "Door prop authorised by fob %s", e->fob);
                               door_confirm (d);
                            }
                         } else
                         {
                            dolog (mydoor[d].group_lock, "DOORSTILLPROPPED", u->name, doorno,
-                                  "Door prop not authorised by fob %lu as not allowed", e->fob);
+                                  "Door prop not authorised by fob %s as not allowed", e->fob);
                            door_error (d);
                         }
                      } else if (door[d].state == DOOR_CLOSED)
@@ -3184,7 +3198,7 @@ doevent (event_t * e)
                         if (disarm && alarm_unset (u->name, port_name (port), disarm))
                            door_confirm (d);
                         door_lock (d);  // Cancel open
-                        dolog (mydoor[d].group_lock, "DOORCANCEL", u->name, doorno, "Door open cancelled by fob %lu", e->fob);
+                        dolog (mydoor[d].group_lock, "DOORCANCEL", u->name, doorno, "Door open cancelled by fob %s", e->fob);
                         mydoor[d].opening = 0;  // Don't report not opened
                      } else
                      {
@@ -3194,17 +3208,17 @@ doevent (event_t * e)
                                && door[mydoor[d].airlock].state != DOOR_DEADLOCKED)
                            {
                               dolog (mydoor[d].group_lock, "DOORAIRLOCK", u->name, doorno,
-                                     "Airlock violation with DOOR%02d using fob %lu", mydoor[d].airlock, e->fob);
+                                     "Airlock violation with DOOR%02d using fob %s", mydoor[d].airlock, e->fob);
                               door_error (d);
                            } else if (mydoor[d].lockdown && (state[mydoor[d].lockdown] & mydoor[d].group_lock))
                            {    // Door in lockdown
                               dolog (mydoor[d].group_lock, "DOORLOCKDOWN", u->name, doorno,
-                                     "Lockdown violation with DOOR%02d using fob %lu", mydoor[d].airlock, e->fob);
+                                     "Lockdown violation with DOOR%02d using fob %s", mydoor[d].airlock, e->fob);
                               door_error (d);
                            } else if (mydoor[d].group_lock & ((state[STATE_SET] | state[STATE_ARM]) & ~disarm))
                            {
                               dolog (mydoor[d].group_lock, "DOORALARMED", u->name, doorno,
-                                     "Door is alarmed, not opening DOOR%02d using fob %lu", d, e->fob);
+                                     "Door is alarmed, not opening DOOR%02d using fob %s", d, e->fob);
                               door_error (d);
                            } else
                            {    // Allowed to be opened
@@ -3212,17 +3226,16 @@ doevent (event_t * e)
                                  door_confirm (d);
                               if (door[d].state != DOOR_OPEN && door[d].state != DOOR_UNLOCKING)
                               { // Open it
-                                 dolog (mydoor[d].group_lock, "DOOROPEN", u->name, doorno, "Door open by fob %lu", e->fob);
+                                 dolog (mydoor[d].group_lock, "DOOROPEN", u->name, doorno, "Door open by fob %s", e->fob);
                                  door_open (d); // Open the door
                               } else if (door[d].state == DOOR_OPEN)
-                                 dolog (mydoor[d].group_lock, "FOBIGNORED", u->name, doorno, "Ignored fob %lu as door open",
-                                        e->fob);
+                                 dolog (mydoor[d].group_lock, "FOBIGNORED", u->name, doorno, "Ignored fob %s as door open", e->fob);
                            }
                            // Other cases (unlocking) are transient and max will sometimes multiple read
                         } else
                         {
                            door_error (d);
-                           dolog (mydoor[d].group_lock, "FOBBAD", u->name, doorno, "Not allowed fob %lu", e->fob);
+                           dolog (mydoor[d].group_lock, "FOBBAD", u->name, doorno, "Not allowed fob %s", e->fob);
                         }
                      }
                   } else if (mydoor[d].time_set)
@@ -3236,20 +3249,20 @@ doevent (event_t * e)
                      } else
                      {
                         dolog (mydoor[d].group_lock, "FOBHELDIGNORED", u->name, doorno,
-                               "Ignored held fob %lu as no setting options", e->fob);
+                               "Ignored held fob %s as no setting options", e->fob);
                         door_error (d);
                      }
                   } else
                   {
                      dolog (mydoor[d].group_lock, "FOBHELDIGNORED", u->name, doorno,
-                            "Ignored held fob %lu as door cannot set alarm", e->fob);
+                            "Ignored held fob %s as door cannot set alarm", e->fob);
                      door_error (d);
                   }
                }
          if (!found)
          {                      // Unassociated max reader
             dolog (groups, e->event == EVENT_FOB_HELD ? "FOBHELDIGNORE" : "FOBIGNORED", u ? u->name : NULL, port_name (port),
-                   "Ignored fob %lu as reader not linked to a door", e->fob);
+                   "Ignored fob %s as reader not linked to a door", e->fob);
          }
       }
       break;
@@ -3894,7 +3907,7 @@ main (int argc, const char *argv[])
                            continue;
                         char *topic;
                         asprintf (&topic, "setting/SS/%s/%s", port->mqtt, n);
-                        mosquitto_publish (mqtt, NULL, topic, strlen (v ? : ""), v, 1, 1);
+                        mosquitto_publish (mqtt, NULL, topic, strlen (v ? : ""), v, 1, 0);
                      }
                      port_p o;
                      for (o = ports; o; o = o->next)
@@ -3925,7 +3938,28 @@ main (int argc, const char *argv[])
                   }
                   return;
                }
-               // TODO events
+               if (port && !strncmp (t, "event", 5) && msg->payloadlen >= 1)
+               {
+                  if (!strcmp (tag, "id") || !strcmp (tag, "held"))
+                  {             // Fob
+                     char *m = alloca (msg->payloadlen + 1);
+                     memcpy (m, msg->payload, msg->payloadlen);
+                     m[msg->payloadlen] = 0;
+                     while (*m == '0')
+                        m++;
+                     event_t *e = malloc (sizeof (*e));
+                     if (!e)
+                        errx (1, "malloc");
+                     memset ((void *) e, 0, sizeof (*e));
+                     e->event = (!strcmp (tag, "id") ? EVENT_FOB : EVENT_FOB_HELD);
+                     e->port = port;
+                     strncpy ((char *) e->fob, m, sizeof (e->fob));
+                     struct timezone tz;
+                     gettimeofday ((void *) &e->when, &tz);
+                     postevent (e);
+                     return;
+                  }
+               }
             }
             dolog (groups, "MQTT", NULL, NULL, "Unexpected message %s", msg->topic);
          }
