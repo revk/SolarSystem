@@ -40,6 +40,7 @@ function io(dir,e)
 			r.appendChild(c);
 			ps=8;
 			if(e.type=="max")ps=2;
+			if(e.type=="esp")ps=9;
 			for(p=0;p<ps;p++)
 			{
 				r=document.createElement("tr");
@@ -59,6 +60,7 @@ function io(dir,e)
 			r.appendChild(c);
 			ps=4;
 			if(e.type=="max")ps=2;
+			if(e.type=="esp")ps=9;
 			for(p=0;p<ps;p++)
 			{
 				r=document.createElement("tr");
@@ -74,7 +76,7 @@ function io(dir,e)
 		}
 		d=document.getElementById(dir+e.id);
 	}
-	if(e.dev)
+	if(d&&e.dev)
 	{
 		d.textContent=(e.name?e.name:e.id);
 		d.title=e.id;

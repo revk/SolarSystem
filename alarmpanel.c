@@ -585,7 +585,7 @@ real_port_name (char *v, port_p p)
    {
       o += sprintf (o, "%.6s", p->mqtt);
       if (port)
-         o += sprintf (o, "#%d", port);
+         o += sprintf (o, "%d", port);
       return v;
    }
    if (id >= MAX_DEVICE)
@@ -680,6 +680,29 @@ xml_copy (xml_t x, char *n)
 
 
 #ifdef	LIBWS
+xml_t
+device_ws (xml_t root, port_p p)
+{
+   port_app_t *app = p->app;
+   if (!app)
+      return NULL;
+   xml_t x = xml_element_add (root, "device");
+   xml_add (x, "@id", p->mqtt);
+   xml_add (x, "@dev", p->mqtt);
+   xml_add (x, "@name", p->name?:p->mqtt);
+   xml_t config = app->config;
+   if (config)
+   {
+      char *v = xml_get (config, "@input");
+      if (v)
+         xml_add (x, "@-input", v); // TODO ranger
+      v = xml_get (config, "@relay");
+      if (v)
+         xml_add (x, "@-output", v); // TODO beeper?
+   }
+   return x;
+}
+
 xml_t
 keypad_ws (xml_t root, keypad_t * k)
 {                               // Add keypad status to XML
@@ -3456,7 +3479,8 @@ do_wscallback (websocket_t * w, xml_t head, xml_t data)
                input_ws (root, p);
             else
                output_ws (root, p);
-         }
+         } else if (p->mqtt)
+            device_ws (root, p);
       websocket_send (1, &w, root);
       pthread_mutex_unlock (&eventmutex);
       xml_tree_delete (root);

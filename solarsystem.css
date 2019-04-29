@@ -131,6 +131,9 @@ div.groupid {
 	margin: 1px;
 }
 
+table.esp {
+	display:inline-block;
+}
 table.rio {
 	display:inline-block;
 }
