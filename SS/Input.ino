@@ -8,24 +8,24 @@
 const char* input_fault = false;
 
 #define MAX_PIN 17
-#define PINHOLD 250
 
 int pin[MAX_PIN] = {};
 unsigned long inputs = 0;
 
 #define app_settings  \
-  s(input);   \
-  s(input1);   \
-  s(input2);   \
-  s(input3);   \
+  s(input,0);   \
+  s(input1,0);   \
+  s(input2,0);   \
+  s(input3,0);   \
+  s(inputhold,500); \
 
-#define s(n) unsigned int n=0;
+#define s(n,d) unsigned int n=d;
   app_settings
 #undef s
 
   const char* input_setting(const char *tag, const byte *value, size_t len)
   { // Called for settings retrieved from EEPROM
-#define s(n) do{const char *t=PSTR(#n);if(!strcmp_P(tag,t)){n=(value?atoi((char*)value):0);return t;}}while(0)
+#define s(n,d) do{const char *t=PSTR(#n);if(!strcmp_P(tag,t)){n=(value?atoi((char*)value):0);return t;}}while(0)
     app_settings
 #undef s
     return NULL; // Done
@@ -77,8 +77,8 @@ unsigned long inputs = 0;
   {
     if (!input)return false; // No inputs defined
     unsigned long now = millis();
-    unsigned long pincheck = 0;
-    unsigned long pinhold[MAX_PIN] = {};
+    static unsigned long pincheck = 0;
+    static unsigned long pinhold[MAX_PIN] = {};
 
     if ((int)(pincheck - now) < 0)
     {
@@ -92,7 +92,7 @@ unsigned long inputs = 0;
           int r = digitalRead(pin[p]);
           if (force || r != ((inputs & (1 << p)) ? HIGH : LOW))
           {
-            pinhold[p] = ((now + PINHOLD) ? : 1);
+            pinhold[p] = ((now + inputhold) ? : 1);
             char tag[7];
             strcpy_P(tag, PSTR("inputX"));
             tag[5] = '1' + p;

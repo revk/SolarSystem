@@ -92,12 +92,12 @@
           held = false;
           memcpy(id, rfid.uid.uidByte, 4);
           revk.event(F("id"), F("%02X%02X%02X%02X"), id[0], id[1], id[2], id[3]);
-        } else if (!held && first && (int)(now - first) > HOLDTIME)
+        } else if (!held && first && (int)(now - first) > holdtime)
         {
           held = true;
           revk.event(F("held"), F("%02X%02X%02X%02X"), id[0], id[1], id[2], id[3]);
         }
-      } else if (last && (int)(now - last) > RELEASETIME)
+      } else if (last && (int)(now - last) > releasetime)
       {
         if (held)
           revk.state(F("gone"), F("%02X%02X%02X%02X"), id[0], id[1], id[2], id[3]);

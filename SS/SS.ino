@@ -27,13 +27,14 @@ unsigned int gpiomap = 0xF; // Pins available (ESP-01)
 
 static boolean force = true;
 
-
 #define app_settings  \
   s(sda,0);   \
   s(scl,2);   \
   s(ss,16);   \
   s(rst,2); \
   s(beeper,0); \
+  s(holdtime,3000); \
+  s(releasetime,1000); \
 
 #define s(n,d) unsigned int n=d;
   app_settings
