@@ -10,10 +10,7 @@
 // GPIO14 SCK (CLK)
 // GPIO16 SDA (SS)
 
-#define RST 2 // SPI
-#define SS 16 // SPI
-
-#define PINS  ((1<<2) | (1 << 12) | (1 << 13) | (1 << 14) | (1 << 16))
+#define PINS  ((1<<rst) | (1 << 12) | (1 << 13) | (1 << 14) | (1 << ss))
 
 #include <ESP8266RevK.h>
 #include "Reader522.h"
@@ -27,10 +24,9 @@
   app_settings
 #undef s
 
-
-  MFRC522 rfid(SS, RST); // Instance of the class
+  MFRC522 rfid(ss, rst); // Instance of the class
   boolean reader522ok = false;
-  boolean reader522fault = false;
+  const char* reader522_fault = false;
 
   const char* reader522_setting(const char *tag, const byte *value, size_t len)
   { // Called for settings retrieved from EEPROM
@@ -49,26 +45,24 @@
   boolean reader522_setup(ESP8266RevK&revk)
   {
     if (!reader522)return false; // Not configured
+    debugf("GPIO pin available %X for RC522", gpiomap);
     if ((gpiomap & PINS) != PINS)
     {
-      debug("Reader522 pins (SPI) not available");
-      reader522fault = true;
-      faultset = true;
+      reader522_fault = PSTR("Reader522 pins (SPI) not available");
       reader522 = NULL;
       return false;
     }
     gpiomap &= ~PINS;
+    debugf("GPIO remaining %X", gpiomap);
     SPI.begin(); // Init SPI bus
     rfid.PCD_Init(); // Init MFRC522
     int v = rfid.PCD_ReadRegister(rfid.VersionReg);
     if (!v || v == 0xFF)
     { // Failed
-      debug("RC522 failed");
-      reader522fault = true;
+      reader522_fault = PSTR("RC522 failed");
       reader522 = NULL;
       return false;
     }
-
     debug("RC522 OK");
     reader522ok = true;
     return true;
@@ -93,15 +87,15 @@
         if (!first || memcmp(id, rfid.uid.uidByte, 4))
         {
           if (held)
-            revk.state(F("gone"), F("%02X%02X%02X%02X"), id[0], id[1], id[2], id[3]); // Edge case of change card after hold before release time
+            revk.event(F("gone"), F("%02X%02X%02X%02X"), id[0], id[1], id[2], id[3]); // Edge case of change card after hold before release time
           first = now;
           held = false;
           memcpy(id, rfid.uid.uidByte, 4);
-          revk.state(F("id"), F("%02X%02X%02X%02X"), id[0], id[1], id[2], id[3]);
+          revk.event(F("id"), F("%02X%02X%02X%02X"), id[0], id[1], id[2], id[3]);
         } else if (!held && first && (int)(now - first) > HOLDTIME)
         {
           held = true;
-          revk.state(F("held"), F("%02X%02X%02X%02X"), id[0], id[1], id[2], id[3]);
+          revk.event(F("held"), F("%02X%02X%02X%02X"), id[0], id[1], id[2], id[3]);
         }
       } else if (last && (int)(now - last) > RELEASETIME)
       {

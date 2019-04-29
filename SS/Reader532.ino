@@ -11,17 +11,17 @@
 // GPIO14 SCK (CLK)
 // GPIO16 SDA (SS)
 
-#define PINS  ((1 << 12) | (1 << 13) | (1 << 14) | (1 << 16))
+#define PINS  ((1 << 12) | (1 << 13) | (1 << 14) | (1 << ss))
 
 #include <ESP8266RevK.h>
 #include "Reader532.h"
 #include <PN532_SPI.h>
 #include "PN532.h"
 
-PN532_SPI pn532spi(SPI, 16);
+PN532_SPI pn532spi(SPI, ss);
 PN532 nfc(pn532spi);
 boolean reader532ok = false;
-boolean reader532fault = false;
+const char* reader532_fault = false;
 
 #define app_settings  \
   s(reader532);   \
@@ -47,21 +47,20 @@ boolean reader532fault = false;
   boolean reader532_setup(ESP8266RevK&revk)
   {
     if (!reader532)return false; // Not configured
+    debugf("GPIO pin available %X for PN532", gpiomap);
     if ((gpiomap & PINS) != PINS)
     {
-      debug("Reader532 pins (SPI) not available");
-      reader532fault = true;
-      faultset = true;
+      reader532_fault = PSTR("Reader532 pins (SPI) not available");
       reader532 = NULL;
       return false;
     }
     gpiomap &= ~PINS;
+    debugf("GPIO remaining %X", gpiomap);
     nfc.begin();
     uint32_t versiondata = nfc.getFirmwareVersion();
     if (!versiondata)
     { // no reader
-      debug("PN532 failed");
-      reader532fault = true;
+      reader532_fault = PSTR("PN532 failed");
       reader532 = NULL;
       return false;
     }
@@ -80,7 +79,7 @@ boolean reader532fault = false;
     char tid[15];
     int n;
     for (n = 0; n < lastlen && n * 2 < sizeof(tid); n++)sprintf(tid + n * 2, "%02X", lastuid[n]);
-    revk.state(tag, F("%s"), tid);
+    revk.event(tag, F("%s"), tid);
   }
 
   boolean reader532_loop(ESP8266RevK&revk, boolean force)

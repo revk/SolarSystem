@@ -8,19 +8,11 @@
 #include <Wire.h>
 #include <VL53L1X.h>
 
-#ifdef ARDUINO_ESP8266_NODEMCU
-#define SDA 4
-#define SCL 5
-#else
-#define SDA 2
-#define SCL 0
-#endif
-
-#define PINS ((1<<SDA) | (1<<SCK))
+#define PINS ((1<<sda) | (1<<scl))
 
 VL53L1X sensor1x;
 boolean ranger1xok = false;
-boolean ranger1xfault = false;
+const char* ranger1x_fault = false;
 
 #define MAXRANGE 5000	// Maximum range
 #define LONGHOLD 1000	// How long to hold movement input
@@ -52,23 +44,22 @@ boolean ranger1xfault = false;
   boolean ranger1x_setup(ESP8266RevK&revk)
   {
     if (!ranger1x)return false; // Ranger not configured
+    debugf("GPIO pin available %X for VL53L1X", gpiomap);
     if ((gpiomap & PINS) != PINS)
     {
-      debug("Ranger1x pins (I2C) not available");
-      ranger1xfault = true;
-      faultset = true;
+      ranger1x_fault = PSTR("Ranger1x pins (I2C) not available");
       keypad = NULL;
       return false;
     }
     gpiomap &= ~PINS;
-    Wire.begin(SDA, SCL);
+    debugf("GPIO remaining %X after SDA=%d/SCL=%d", gpiomap, sda, scl);
+    Wire.begin(sda, scl);
     Wire.setClock(400000); // use 400 kHz I2C
 
     sensor1x.setTimeout(1000);
     if (!sensor1x.init())
     {
-      debug("VL53L1X failed");
-      ranger1xfault = true;
+      ranger1x_fault = PSTR("VL53L1X failed");
       ranger1x = NULL;
       return false;
     }
@@ -95,18 +86,8 @@ boolean ranger1xfault = false;
       static unsigned int last = 0;
       static long endlong = 0;
       unsigned int range = sensor1x.read(false);
-      if (sensor1x.timeoutOccurred())
-      {
-        if (!ranger1xfault)
-        {
-          ranger1xfault = true;
-          faultset = true;
-        }
-      } else if (ranger1xfault)
-      {
-        ranger1xfault = false;
-        faultset = true;
-      }
+      if (sensor1x.timeoutOccurred()) ranger1x_fault = PSTR("VL53L1X Timeout");
+      else ranger1x_fault = NULL;
       if (!range || range > MAXRANGE)range = MAXRANGE;
       if (range < ranger1x)
       {

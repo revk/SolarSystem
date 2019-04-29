@@ -19,148 +19,186 @@ unsigned int gpiomap = 0xF; // Pins available (ESP-01)
 #endif
 
 #include "Relay.h"
-#include "Input.h"
 #include "Ranger0X.h"
 #include "Ranger1X.h"
 #include "Keypad.h"
+#include "Beep.h"
+#include "Input.h"
 
 static boolean force = true;
-boolean faultset = false;
 
-ESP8266RevK revk(__FILE__, __DATE__ " " __TIME__);
 
-const char* app_setting(const char *tag, const byte *value, size_t len)
-{ // Called for settings retrieved from EEPROM, return true if setting is OK
-  const char *ret;
-  revk.restart(3000); // Any setting change means restart
+#define app_settings  \
+  s(sda,0);   \
+  s(scl,2);   \
+  s(ss,16);   \
+  s(rst,2); \
+  s(beeper,0); \
+
+#define s(n,d) unsigned int n=d;
+  app_settings
+#undef s
+
+  ESP8266RevK revk(__FILE__, __DATE__ " " __TIME__);
+
+  const char* app_setting(const char *tag, const byte *value, size_t len)
+  { // Called for settings retrieved from EEPROM, return true if setting is OK
+    const char *ret;
+    revk.restart(3000); // Any setting change means restart
+#define s(n,d) do{const char *t=PSTR(#n);if(!strcmp_P(tag,t)){n=(value?atoi((char*)value):0);return t;}}while(0)
+    app_settings
+#undef s
 #ifdef	USE_READER522
-  if ((ret = reader522_setting(tag, value, len)))return ret;
+    if ((ret = reader522_setting(tag, value, len)))return ret;
 #endif
 #ifdef	USE_READER532
-  if ((ret = reader532_setting(tag, value, len)))return ret;
+    if ((ret = reader532_setting(tag, value, len)))return ret;
 #endif
 #ifdef	USE_RELAY
-  if ((ret = relay_setting(tag, value, len)))return ret;
+    if ((ret = relay_setting(tag, value, len)))return ret;
 #endif
 
 #ifdef	USE_RANGER0X
-  if ((ret = ranger0x_setting(tag, value, len)))return ret;
+    if ((ret = ranger0x_setting(tag, value, len)))return ret;
 #endif
 #ifdef	USE_RANGER1X
-  if ((ret = ranger1x_setting(tag, value, len)))return ret;
+    if ((ret = ranger1x_setting(tag, value, len)))return ret;
 #endif
 #ifdef  USE_KEYPAD
-  if ((ret = keypad_setting(tag, value, len)))return ret;
+    if ((ret = keypad_setting(tag, value, len)))return ret;
+#endif
+#ifdef  USE_BEEP
+    if ((ret = beep_setting(tag, value, len)))return ret;
 #endif
 #ifdef  USE_INPUT
-  if ((ret = input_setting(tag, value, len)))return ret;
+    if ((ret = input_setting(tag, value, len)))return ret;
 #endif
-  debug("Bad setting");
-  revk.restart(-1); // cancel restart - unknown/invalid setting
-  return false; // Failed
-}
+    debug("Bad setting");
+    revk.restart(-1); // cancel restart - unknown/invalid setting
+    return false; // Failed
+  }
 
-boolean app_command(const char*tag, const byte *message, size_t len)
-{ // Called for incoming MQTT messages, return true if message is OK
-  if (!strcasecmp_P(tag, PSTR("connect")))force = true;
+  boolean app_command(const char*tag, const byte *message, size_t len)
+  { // Called for incoming MQTT messages, return true if message is OK
+    if (!strcasecmp_P(tag, PSTR("connect")))force = true;
 #ifdef	USE_READER522
-  if (reader522_command(tag, message, len))return true;
+    if (reader522_command(tag, message, len))return true;
 #endif
 #ifdef	USE_READER532
-  if (reader532_command(tag, message, len))return true;
+    if (reader532_command(tag, message, len))return true;
 #endif
 #ifdef	USE_RELAY
-  if (relay_command(tag, message, len))return true;
+    if (relay_command(tag, message, len))return true;
 #endif
 #ifdef	USE_RANGER0X
-  if (ranger0x_command(tag, message, len))return true;
+    if (ranger0x_command(tag, message, len))return true;
 #endif
 #ifdef	USE_RANGER1X
-  if (ranger1x_command(tag, message, len))return true;
+    if (ranger1x_command(tag, message, len))return true;
 #endif
 #ifdef  USE_KEYPAD
-  if (keypad_command(tag, message, len))return true;
+    if (keypad_command(tag, message, len))return true;
+#endif
+#ifdef  USE_BEEP
+    if (beep_command(tag, message, len))return true;
 #endif
 #ifdef  USE_INPUT
-  if (input_command(tag, message, len))return true;
+    if (input_command(tag, message, len))return true;
 #endif
-  return false; // Failed
-}
+    return false; // Failed
+  }
 
-void setup()
-{
+  void setup()
+  {
 #ifdef USE_READER522
-  reader522_setup(revk);
+    reader522_setup(revk);
 #endif
 #ifdef USE_READER532
-  reader532_setup(revk);
+    reader532_setup(revk);
 #endif
 #ifdef USE_RELAY
-  relay_setup(revk);
+    relay_setup(revk);
 #endif
 #ifdef USE_RANGER0X
-  ranger0x_setup(revk);
+    ranger0x_setup(revk);
 #endif
 #ifdef USE_RANGER1X
-  ranger1x_setup(revk);
+    ranger1x_setup(revk);
 #endif
 #ifdef USE_KEYPAD
-  keypad_setup(revk);
+    keypad_setup(revk);
 #endif
-  // Leave until last as needs to know which GPIO are available
+    // Leave until last as needs to know which GPIO are available
+#ifdef USE_BEEP
+    beep_setup(revk);
+#endif
 #ifdef USE_INPUT
-  input_setup(revk);
+    input_setup(revk);
 #endif
-}
+  }
 
-void loop()
-{
-  revk.loop();
-  if (force || faultset)revk.state(F("fault"), 0
+  void loop()
+  {
+    revk.loop();
+    { // Fault check
+      const char*fault =
 #ifdef USE_READER522
-                                     || reader522fault
+        reader522_fault ? :
 #endif
 #ifdef USE_READER532
-                                     || reader532fault
+        reader532_fault ? :
 #endif
 #ifdef USE_RELAY
-                                     || relayfault
+        relay_fault ? :
 #endif
 #ifdef USE_RANGER0X
-                                     || ranger0xfault
+        ranger0x_fault ? :
 #endif
 #ifdef USE_RANGER1X
-                                     || ranger1xfault
+        ranger1x_fault ? :
 #endif
 #ifdef USE_KEYPAD
-                                     || keypadfault
+        keypad_fault ? :
+#endif
+#ifdef USE_BEEP
+        beep_fault ? :
 #endif
 #ifdef USE_INPUT
-                                     || inputfault
+        input_fault ? :
 #endif
-                                     ? F("1") : F("0"));
-  faultset = false;
+        NULL;
+      static const char *lastfault = NULL;
+      if (force || fault != lastfault)
+      {
+        lastfault = fault;
+        if (fault)revk.state(F("fault"), F("1 %S"), fault);
+        else revk.state(F("fault"), F("0"));
+      }
+    }
 #ifdef USE_READER522
-  reader522_loop(revk, force);
+    reader522_loop(revk, force);
 #endif
 #ifdef USE_READER532
-  reader532_loop(revk, force);
+    reader532_loop(revk, force);
 #endif
 #ifdef USE_RELAY
-  relay_loop(revk, force);
+    relay_loop(revk, force);
 #endif
 #ifdef USE_RANGER0X
-  ranger0x_loop(revk, force);
+    ranger0x_loop(revk, force);
 #endif
 #ifdef USE_RANGER1X
-  ranger1x_loop(revk, force);
+    ranger1x_loop(revk, force);
 #endif
 #ifdef USE_KEYPAD
-  keypad_loop(revk, force);
+    keypad_loop(revk, force);
+#endif
+#ifdef USE_NEEP
+    beep_loop(revk, force);
 #endif
 #ifdef USE_INPUT
-  input_loop(revk, force);
+    input_loop(revk, force);
 #endif
-  force = false;
-  delay(1);
-}
+    force = false;
+    delay(1);
+  }

@@ -4,23 +4,15 @@
 // Laser ranger as button
 
 #include <ESP8266RevK.h>
-#include "Ranger0X.h"
 #include <Wire.h>
 #include <VL53L0X.h>
+#include "Ranger0X.h"
+const char* ranger0x_fault = false;
 
-#ifdef ARDUINO_ESP8266_NODEMCU
-#define SDA 4
-#define SCL 5
-#else
-#define SDA 2
-#define SCL 0
-#endif
-
-#define PINS ((1<<SDA) | (1<<SCK))
+#define PINS ((1<<sda) | (1<<scl))
 
 VL53L0X sensor0x;
 boolean ranger0xok = false;
-boolean ranger0xfault = false;
 
 #define MAXRANGE 2000	// Maximum range
 #define LONGHOLD 1000	// How long to hold movement input
@@ -52,21 +44,20 @@ boolean ranger0xfault = false;
   boolean ranger0x_setup(ESP8266RevK&revk)
   {
     if (!ranger0x)return false; // Ranger not configured
+    debugf("GPIO pin available %X for VL53L0X", gpiomap);
     if ((gpiomap & PINS) != PINS)
     {
-      debug("Ranger0x pins (I2C) not available");
-      ranger0xfault = true;
-      faultset = true;
+      ranger0x_fault = PSTR("Ranger0x pins (I2C) not available");
       keypad = NULL;
       return false;
     }
     gpiomap &= ~PINS;
-    Wire.begin(SDA, SCL);
+    debugf("GPIO remaining %X after SDA=%d/SCL=%d", gpiomap, sda, scl);
+    Wire.begin(sda, scl);
     sensor0x.setTimeout(1000);
     if (!sensor0x.init())
     {
-      debug("VL53L0X failed");
-      ranger0xfault = true;
+      ranger0x_fault = PSTR("VL53L0X failed");
       ranger0x = NULL;
       return false;
     }
@@ -93,19 +84,8 @@ boolean ranger0xfault = false;
       static unsigned int last = 0;
       static long endlong = 0;
       unsigned int range = sensor0x.readRangeContinuousMillimeters();
-      if (range == 65535)
-      {
-        if (!ranger0xfault)
-        {
-          ranger0xfault = true;
-          faultset = true;
-        }
-      }
-      else if (ranger0xfault)
-      {
-        ranger0xfault = false;
-        faultset = true;
-      }
+      if (range == 65535)ranger0x_fault = PSTR("VL53L0X read failed");
+      else ranger0x_fault = NULL;
       if (range > MAXRANGE)range = MAXRANGE;
       if (range < ranger0x)
       {

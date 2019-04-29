@@ -5,7 +5,7 @@
 
 #include <ESP8266RevK.h>
 #include "Input.h"
-boolean inputfault = false;
+const char* input_fault = false;
 
 #define MAX_PIN 17
 #define PINHOLD 250
@@ -15,6 +15,9 @@ unsigned long inputs = 0;
 
 #define app_settings  \
   s(input);   \
+  s(input1);   \
+  s(input2);   \
+  s(input3);   \
 
 #define s(n) unsigned int n=0;
   app_settings
@@ -37,24 +40,35 @@ unsigned long inputs = 0;
   boolean input_setup(ESP8266RevK&revk)
   {
     if (!input)return false; // No inputs defined
-    int i = input;
-    gpiomap &= ~(1 << 0); // Dont use GPIO0 as general input because flash mode
-    while (i--)
+    debugf("GPIO available %X for %d inputs", gpiomap, input);
+    gpiomap &= ~((1 << 0) | (1 << 2)); // Dont use GPIO0 or GPI2 as general input because flash mode. Cannot be grounded on boot up!
+    int i;
+    pin[0] = input1; // Presets (0 means not preset as we don't use 0 anyway)
+    pin[1] = input2;
+    pin[2] = input3;
+    for (i = 0; i < input; i++)
     {
       if (!gpiomap)
       {
-        debugf("Input pins not available (%d more needed)", i + 1);
-        inputfault = true;
-        faultset = true;
+        input_fault = PSTR("Input pins not available");
         input = NULL;
         return false;
       }
-      int p;
-      for (p = 0; p < MAX_PIN && !(gpiomap & (1 << p)); p++);
+      int p = pin[i];
+      if (!p) for (p = 1; p < MAX_PIN && !(gpiomap & (1 << p)); p++); // Find a pin
+      if (p == MAX_PIN || !(gpiomap & (1 << p)))
+      {
+        input_fault = PSTR("Input pins assignment available");
+        input = NULL;
+        return false;
+      }
       pin[i] = p;
+      debugf("Input %d pin %d", i + 1, p);
       gpiomap &= ~(1 << p);
-      pinMode(i, INPUT_PULLUP);
     }
+    debugf("GPIO remaining %X", gpiomap);
+    for (i = 0; i < input; i++)
+      pinMode(pin[i], INPUT_PULLUP);
     debug("Input OK");
     return true;
   }
@@ -81,7 +95,7 @@ unsigned long inputs = 0;
             pinhold[p] = ((now + PINHOLD) ? : 1);
             char tag[7];
             strcpy_P(tag, PSTR("inputX"));
-            tag[6] = '1' + p;
+            tag[5] = '1' + p;
             revk.state(tag, r == HIGH ? F("1") : F("0"));
             if (r == HIGH)inputs |= (1 << p);
             else inputs &= ~(1 << p);
