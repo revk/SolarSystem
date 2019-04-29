@@ -54,6 +54,7 @@ const char* keypadfault = false;
   boolean keypad_setup(ESP8266RevK &revk)
   {
     if (!keypad)return false; // Not running keypad
+    debugf("GPIO pin available %X for Keypad", gpiomap);
     if ((gpiomap & PINS) != PINS)
     {
       keypadfault = PSTR("Keypad pins (Tx/Rx) not available");
@@ -61,6 +62,7 @@ const char* keypadfault = false;
       return false;
     }
     gpiomap &= ~PINS;
+    debugf("GPIO remaining %X", gpiomap);
 #ifndef REVKDEBUG
     Serial.begin(9600);	// Galaxy uses 9600 8N2
 #endif

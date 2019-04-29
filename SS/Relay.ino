@@ -7,7 +7,7 @@
 #include "relay.h"
 const char* relayfault = false;
 
-#define PINs  ((1<<1))  // Tx (GPIO1)
+#define PINS  ((1<<1))  // Tx (GPIO1)
 
 #define app_settings  \
   s(relay);   \

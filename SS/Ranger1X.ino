@@ -8,10 +8,7 @@
 #include <Wire.h>
 #include <VL53L1X.h>
 
-#define SDA 2 // Use these, even on ESP-12F as we don't want to leave GPIO0 as general input
-#define SCL 0
-
-#define PINS ((1<<SDA) | (1<<SCK))
+#define PINS ((1<<sda) | (1<<scl))
 
 VL53L1X sensor1x;
 boolean ranger1xok = false;
@@ -47,6 +44,7 @@ const char* ranger1xfault = false;
   boolean ranger1x_setup(ESP8266RevK&revk)
   {
     if (!ranger1x)return false; // Ranger not configured
+    debugf("GPIO pin available %X for VL53L1X", gpiomap);
     if ((gpiomap & PINS) != PINS)
     {
       ranger1xfault = PSTR("Ranger1x pins (I2C) not available");
@@ -54,7 +52,8 @@ const char* ranger1xfault = false;
       return false;
     }
     gpiomap &= ~PINS;
-    Wire.begin(SDA, SCL);
+    debugf("GPIO remaining %X", gpiomap);
+    Wire.begin(sda, scl);
     Wire.setClock(400000); // use 400 kHz I2C
 
     sensor1x.setTimeout(1000);

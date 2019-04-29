@@ -8,10 +8,7 @@
 #include <Wire.h>
 #include <VL53L0X.h>
 
-#define SDA 2 // Use these, even on ESP-12F as we don't want to leave GPIO0 as general input
-#define SCL 0
-
-#define PINS ((1<<SDA) | (1<<SCK))
+#define PINS ((1<<sda) | (1<<scl))
 
 VL53L0X sensor0x;
 boolean ranger0xok = false;
@@ -47,6 +44,7 @@ const char* ranger0xfault = false;
   boolean ranger0x_setup(ESP8266RevK&revk)
   {
     if (!ranger0x)return false; // Ranger not configured
+    debugf("GPIO pin available %X for VL53L0X", gpiomap);
     if ((gpiomap & PINS) != PINS)
     {
       ranger0xfault = PSTR("Ranger0x pins (I2C) not available");
@@ -54,7 +52,8 @@ const char* ranger0xfault = false;
       return false;
     }
     gpiomap &= ~PINS;
-    Wire.begin(SDA, SCL);
+    debugf("GPIO remaining %X", gpiomap);
+    Wire.begin(sda, scl);
     sensor0x.setTimeout(1000);
     if (!sensor0x.init())
     {

@@ -14,15 +14,18 @@ int pin[MAX_PIN] = {};
 unsigned long inputs = 0;
 
 #define app_settings  \
-  s(input);   \
+  s(input,0);   \
+  s(input1,-1);   \
+  s(input2,-1);   \
+  s(input3,-1);   \
 
-#define s(n) unsigned int n=0;
+#define s(n,d) unsigned int n=d;
   app_settings
 #undef s
 
   const char* input_setting(const char *tag, const byte *value, size_t len)
   { // Called for settings retrieved from EEPROM
-#define s(n) do{const char *t=PSTR(#n);if(!strcmp_P(tag,t)){n=(value?atoi((char*)value):0);return t;}}while(0)
+#define s(n,d) do{const char *t=PSTR(#n);if(!strcmp_P(tag,t)){n=(value?atoi((char*)value):0);return t;}}while(0)
     app_settings
 #undef s
     return NULL; // Done
@@ -37,9 +40,10 @@ unsigned long inputs = 0;
   boolean input_setup(ESP8266RevK&revk)
   {
     if (!input)return false; // No inputs defined
-    int i = input;
+    debugf("GPIO available %X for %d inputs", gpiomap, input);
     gpiomap &= ~(1 << 0); // Dont use GPIO0 as general input because flash mode
-    while (i--)
+    int i;
+    for (i = 0; i < input; i++)
     {
       if (!gpiomap)
       {
@@ -48,11 +52,17 @@ unsigned long inputs = 0;
         return false;
       }
       int p;
-      for (p = 0; p < MAX_PIN && !(gpiomap & (1 << p)); p++);
+      if (i == 0 && input1 >= 0)p = input1; // presets
+      else if (i == 1 && input2 >= 0)p = input2;
+      else if (i == 2 && input3 >= 0)p = input3;
+      else for (p = 0; p < MAX_PIN && !(gpiomap & (1 << p)); p++); // Find a pin
       pin[i] = p;
+      debugf("Input %d pin %d", i + 1, p);
       gpiomap &= ~(1 << p);
-      pinMode(i, INPUT_PULLUP);
     }
+    debugf("GPIO remaining %X", gpiomap);
+    for (i = 0; i < input; i++)
+      pinMode(pin[i], INPUT_PULLUP);
     debug("Input OK");
     return true;
   }
