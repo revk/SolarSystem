@@ -68,6 +68,7 @@ module base()
         translate([-bhw/2,-bhh/2,-1])
         cube([bhw,bhh,wt+2]);
         for(y=[0,1])
+        mirror([0,y,0])
         translate([0,ss/2,-1])
         mirror([0,y,0])
         cylinder(d=sd,h=wt+2);

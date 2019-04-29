@@ -34,7 +34,7 @@ static boolean force = true;
   s(rst,2); \
   s(beeper,0); \
   s(holdtime,3000); \
-  s(releasetime,1000); \
+  s(releasetime,250); \
 
 #define s(n,d) unsigned int n=d;
   app_settings
