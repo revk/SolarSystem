@@ -52,7 +52,7 @@ boolean ranger0xok = false;
       return false;
     }
     gpiomap &= ~PINS;
-    debugf("GPIO remaining %X", gpiomap);
+    debugf("GPIO remaining %X after SDA=%d/SCL=%d", gpiomap, sda, scl);
     Wire.begin(sda, scl);
     sensor0x.setTimeout(1000);
     if (!sensor0x.init())

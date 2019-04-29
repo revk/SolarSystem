@@ -41,7 +41,7 @@ unsigned long inputs = 0;
   {
     if (!input)return false; // No inputs defined
     debugf("GPIO available %X for %d inputs", gpiomap, input);
-    gpiomap &= ~(1 << 0); // Dont use GPIO0 as general input because flash mode
+    gpiomap &= ~((1 << 0) | (1 << 2)); // Dont use GPIO0 or GPI2 as general input because flash mode. Cannot be grounded on boot up!
     int i;
     pin[0] = input1; // Presets (0 means not preset as we don't use 0 anyway)
     pin[1] = input2;
@@ -56,7 +56,7 @@ unsigned long inputs = 0;
       }
       int p = pin[i];
       if (!p) for (p = 1; p < MAX_PIN && !(gpiomap & (1 << p)); p++); // Find a pin
-      if (!(gpiomap & (1 << p)))
+      if (p == MAX_PIN || !(gpiomap & (1 << p)))
       {
         input_fault = PSTR("Input pins assignment available");
         input = NULL;

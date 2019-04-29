@@ -33,7 +33,7 @@ const char* beep_fault = false;
   boolean beep_setup(ESP8266RevK&revk)
   {
     if (!beep)return false; // No beeps defined
-    debugf("GPIO available %X for %d beeps", gpiomap, beep);
+    debugf("GPIO available %X for %d beeper", gpiomap, beep);
     gpiomap &= ~(1 << 0); // Dont use GPIO0 as general beep because flash mode
     if (!beeper) for (beeper = 1; beeper < MAX_PIN && !(gpiomap & (1 << beeper)); beeper++); // Find a pin
     if (!(gpiomap & (1 << beeper)))

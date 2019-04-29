@@ -52,7 +52,7 @@ const char* ranger1x_fault = false;
       return false;
     }
     gpiomap &= ~PINS;
-    debugf("GPIO remaining %X", gpiomap);
+    debugf("GPIO remaining %X after SDA=%d/SCL=%d", gpiomap, sda, scl);
     Wire.begin(sda, scl);
     Wire.setClock(400000); // use 400 kHz I2C
 
