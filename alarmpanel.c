@@ -3906,9 +3906,9 @@ main (int argc, const char *argv[])
                      etype = (state ? EVENT_FOUND : EVENT_MISSING);
                   else if (tag && !strncmp (tag, "input", 5) && port->state != state)
                      etype = EVENT_INPUT;
-                  else if (tag && !strncmp (tag, "fault", 5) && port->state != state)
+                  else if (tag && !strncmp (tag, "fault", 5) && port->fault != state)
                      etype = EVENT_FAULT;
-                  else if (tag && !strncmp (tag, "tamper", 6) && port->state != state)
+                  else if (tag && !strncmp (tag, "tamper", 6) && port->tamper != state)
                      etype = EVENT_TAMPER;
                   if (etype)
                   {             // Send event

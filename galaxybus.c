@@ -156,10 +156,14 @@ postevent (event_t * e)
       {                         // Reflect states in  port object
          if (e->event == EVENT_INPUT)
             e->port->state = e->state;
-         if (e->event == EVENT_TAMPER)
+         else if (e->event == EVENT_TAMPER)
             e->port->tamper = e->state;
-         if (e->event == EVENT_FAULT)
+         else if (e->event == EVENT_FAULT)
             e->port->fault = e->state;
+         else if (e->event == EVENT_FOUND)
+            e->port->state = 1;
+         else if (e->event == EVENT_MISSING)
+            e->port->state = 0;
       }
       pthread_mutex_lock (&qmutex);
       if (event)
