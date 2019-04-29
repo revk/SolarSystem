@@ -38,7 +38,7 @@ typedef unsigned short tamper_t;
 typedef unsigned short fault_t;
 typedef unsigned short voltage_t;
 
-typedef unsigned int fob_t;     // Fob number
+typedef char fob_t[15];	// Fob ID (text, leading zeros having been removed)
 
 extern char *WATCHDOG;          // Watchdog device if needed (default NULL)
 

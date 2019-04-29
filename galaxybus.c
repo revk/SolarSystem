@@ -156,10 +156,14 @@ postevent (event_t * e)
       {                         // Reflect states in  port object
          if (e->event == EVENT_INPUT)
             e->port->state = e->state;
-         if (e->event == EVENT_TAMPER)
+         else if (e->event == EVENT_TAMPER)
             e->port->tamper = e->state;
-         if (e->event == EVENT_FAULT)
+         else if (e->event == EVENT_FAULT)
             e->port->fault = e->state;
+         else if (e->event == EVENT_FOUND)
+            e->port->state = 1;
+         else if (e->event == EVENT_MISSING)
+            e->port->state = 0;
       }
       pthread_mutex_lock (&qmutex);
       if (event)
@@ -530,7 +534,7 @@ poller (void *d)
                      if (!(mydev[id].input & (1 << INPUT_MAX_FOB)))
                      {          // Fob starts
                         event_t *e = newevent (EVENT_FOB, 0, 0);
-                        e->fob = n;
+                        snprintf ((char *) e->fob, sizeof (e->fob), "%lu", n);
                         postevent (e);
                         mydev[id].input |= (1 << INPUT_MAX_FOB);
                         if (dev[id].fob_hold)
@@ -542,7 +546,7 @@ poller (void *d)
                         mydev[id].input |= (1 << INPUT_MAX_FOB_HELD);
                         mydev[id].fobheld = 0;
                         event_t *e = newevent (EVENT_FOB_HELD, 0, 0);
-                        e->fob = n;
+                        snprintf ((char *) e->fob, sizeof (e->fob), "%lu", n);
                         postevent (e);
                      }
                   } else
