@@ -193,6 +193,7 @@ struct port_app_s
    const char *t;               // Icon on floor plan
    unsigned char onplan:1;      // Is on floor plan
    unsigned char missing:1;     // Device missing
+   unsigned char invert:1;      // Invert logic
    union
    {
       struct
@@ -367,6 +368,8 @@ mqtt_output (port_p p, int v)
    int port = port_port (p);
    if (!port)
       return;
+   if (p->app && p->app->invert)
+      v = 1 - v;
    char *topic;
    asprintf (&topic, "command/SS/%s/output%d", p->mqtt, port);
    char msg = v + '0';
@@ -689,16 +692,16 @@ device_ws (xml_t root, port_p p)
    xml_t x = xml_element_add (root, "device");
    xml_add (x, "@id", p->mqtt);
    xml_add (x, "@dev", p->mqtt);
-   xml_add (x, "@name", p->name?:p->mqtt);
+   xml_add (x, "@name", p->name ? : p->mqtt);
    xml_t config = app->config;
    if (config)
    {
       char *v = xml_get (config, "@input");
       if (v)
-         xml_add (x, "@-input", v); // TODO ranger
+         xml_add (x, "@-input", v);     // TODO ranger
       v = xml_get (config, "@relay");
       if (v)
-         xml_add (x, "@-output", v); // TODO beeper?
+         xml_add (x, "@-output", v);    // TODO beeper?
    }
    return x;
 }
@@ -1066,6 +1069,11 @@ load_config (const char *configfile)
                   }
                }
             }
+            if ((v = xml_get (x, "@polarity")) && toupper (*v) == 'N')
+            {
+               device[id].invert |= (1 << n);
+               app->invert = 1;
+            }
          }
    }
    if (debug)
@@ -1128,7 +1136,10 @@ load_config (const char *configfile)
             p->name = xml_copy (x, "@name");
             port_app (p)->group = group_parse (xml_get (x, "@groups") ? : "*");
             if ((v = xml_get (x, "@polarity")) && toupper (*v) == 'N')
+            {
                device[id].invert |= (1 << n);
+               app->invert = 1;
+            }
          }
    }
    if (debug)
@@ -3912,6 +3923,8 @@ main (int argc, const char *argv[])
                if (port && !strncmp (t, "state", 5) && msg->payloadlen >= 1)
                {
                   int state = (((char *) msg->payload)[0] > '0' ? 1 : 0);
+                  if (app->invert)
+                     state = 1 - state;
                   if (!tag && !app->config)
                   {             // New device
                      app->config = xml_element_add (config, "device");
