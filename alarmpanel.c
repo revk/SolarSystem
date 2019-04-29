@@ -370,7 +370,7 @@ mqtt_output (port_p p, int v)
    char *topic;
    asprintf (&topic, "command/SS/%s/output%d", p->mqtt, port);
    char msg = v + '0';
-   mosquitto_publish (mqtt, NULL, topic, 1, &msg, 1, 1);
+   mosquitto_publish (mqtt, NULL, topic, 1, &msg, 1, 0);
    free (topic);
 }
 
