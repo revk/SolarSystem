@@ -8,7 +8,7 @@
 const char* input_fault = false;
 
 #define MAX_PIN 17
-#define PINHOLD 250
+#define PINHOLD 500
 
 int pin[MAX_PIN] = {};
 unsigned long inputs = 0;
@@ -77,8 +77,8 @@ unsigned long inputs = 0;
   {
     if (!input)return false; // No inputs defined
     unsigned long now = millis();
-    unsigned long pincheck = 0;
-    unsigned long pinhold[MAX_PIN] = {};
+    static unsigned long pincheck = 0;
+    static unsigned long pinhold[MAX_PIN] = {};
 
     if ((int)(pincheck - now) < 0)
     {
