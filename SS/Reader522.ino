@@ -87,15 +87,15 @@
         if (!first || memcmp(id, rfid.uid.uidByte, 4))
         {
           if (held)
-            revk.state(F("gone"), F("%02X%02X%02X%02X"), id[0], id[1], id[2], id[3]); // Edge case of change card after hold before release time
+            revk.event(F("gone"), F("%02X%02X%02X%02X"), id[0], id[1], id[2], id[3]); // Edge case of change card after hold before release time
           first = now;
           held = false;
           memcpy(id, rfid.uid.uidByte, 4);
-          revk.state(F("id"), F("%02X%02X%02X%02X"), id[0], id[1], id[2], id[3]);
+          revk.event(F("id"), F("%02X%02X%02X%02X"), id[0], id[1], id[2], id[3]);
         } else if (!held && first && (int)(now - first) > HOLDTIME)
         {
           held = true;
-          revk.state(F("held"), F("%02X%02X%02X%02X"), id[0], id[1], id[2], id[3]);
+          revk.event(F("held"), F("%02X%02X%02X%02X"), id[0], id[1], id[2], id[3]);
         }
       } else if (last && (int)(now - last) > RELEASETIME)
       {

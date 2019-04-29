@@ -79,7 +79,7 @@ const char* reader532fault = false;
     char tid[15];
     int n;
     for (n = 0; n < lastlen && n * 2 < sizeof(tid); n++)sprintf(tid + n * 2, "%02X", lastuid[n]);
-    revk.state(tag, F("%s"), tid);
+    revk.event(tag, F("%s"), tid);
   }
 
   boolean reader532_loop(ESP8266RevK&revk, boolean force)
