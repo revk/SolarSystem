@@ -1,25 +1,25 @@
 // Box for PN532 (wired back to door control)
 
 t=0.1;  // Print xy tolerance adjust to make fit
-tl=0.2; // Layer tolerance
+tl=0.4; // Layer tolerance
 
 wt=2;   // Wall thickness
 pw=41; // PCB size
-ph=44;
+ph=1.7*25.4;
 pt=1.5; // PCB thickness
 pc=2.5; // Component thickness
-pb=6-wt; // Back connector thickness
+pb=7-wt; // Back connector thickness
 hd=3; // Hole diameter
-hx=7.5; // Hold position
-hy=7.5;
+hx=0.3*25.4; // Hole position
+hy=hx;
 st=4; // Edge support thickness
 bw=ph+wt*2; // Box size
 bt=wt+pc+pt+pb;
 bh=75;
 sd=5; // Screw hold diameter
 ss=60; // SCrew hole spacing
-bhw=30;
-bhh=22;
+bhw=32;
+bhh=20;
 lip=0.1;
 ex=11; // exit hole for cable to match Max
 ey=20;
