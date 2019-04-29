@@ -136,6 +136,7 @@ static boolean force = true;
 #ifdef USE_INPUT
     input_setup(revk);
 #endif
+    wifi_set_sleep_type(LIGHT_SLEEP_T);
   }
 
   void loop()
@@ -201,5 +202,5 @@ static boolean force = true;
     input_loop(revk, force);
 #endif
     force = false;
-    delay(1);
+    //delay(1);
   }
