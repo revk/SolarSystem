@@ -4,7 +4,7 @@
 // RFID Card reader for Solar System using RC522 via SPI
 
 #define  USE_READER522
-extern boolean reader522fault;
+extern const char* reader522fault;
 
 #ifndef	HOLDTIME
 #define HOLDTIME 3000

@@ -25,7 +25,6 @@ unsigned int gpiomap = 0xF; // Pins available (ESP-01)
 #include "Keypad.h"
 
 static boolean force = true;
-boolean faultset = false;
 
 ESP8266RevK revk(__FILE__, __DATE__ " " __TIME__);
 
@@ -116,30 +115,38 @@ void setup()
 void loop()
 {
   revk.loop();
-  if (force || faultset)revk.state(F("fault"), 0
+  { // Fault check
+    const char*fault =
 #ifdef USE_READER522
-                                     || reader522fault
+      reader522fault ? :
 #endif
 #ifdef USE_READER532
-                                     || reader532fault
+      reader532fault ? :
 #endif
 #ifdef USE_RELAY
-                                     || relayfault
+      relayfault ? :
 #endif
 #ifdef USE_RANGER0X
-                                     || ranger0xfault
+      ranger0xfault ? :
 #endif
 #ifdef USE_RANGER1X
-                                     || ranger1xfault
+      ranger1xfault ? :
 #endif
 #ifdef USE_KEYPAD
-                                     || keypadfault
+      keypadfault ? :
 #endif
 #ifdef USE_INPUT
-                                     || inputfault
+      inputfault ? :
 #endif
-                                     ? F("1") : F("0"));
-  faultset = false;
+      NULL;
+    static const char *lastfault = NULL;
+    if (force || fault != lastfault)
+    {
+      lastfault = fault;
+      if (fault)revk.state(F("fault"), F("1 %S"), fault);
+      else revk.state(F("fault"), F("0"));
+    }
+  }
 #ifdef USE_READER522
   reader522_loop(revk, force);
 #endif

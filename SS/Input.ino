@@ -5,7 +5,7 @@
 
 #include <ESP8266RevK.h>
 #include "Input.h"
-boolean inputfault = false;
+const char* inputfault = false;
 
 #define MAX_PIN 17
 #define PINHOLD 250
@@ -43,9 +43,7 @@ unsigned long inputs = 0;
     {
       if (!gpiomap)
       {
-        debugf("Input pins not available (%d more needed)", i + 1);
-        inputfault = true;
-        faultset = true;
+        inputfault = PSTR("Input pins not available");
         input = NULL;
         return false;
       }
@@ -81,7 +79,7 @@ unsigned long inputs = 0;
             pinhold[p] = ((now + PINHOLD) ? : 1);
             char tag[7];
             strcpy_P(tag, PSTR("inputX"));
-            tag[6] = '1' + p;
+            tag[5] = '1' + p;
             revk.state(tag, r == HIGH ? F("1") : F("0"));
             if (r == HIGH)inputs |= (1 << p);
             else inputs &= ~(1 << p);

@@ -5,7 +5,7 @@
 // ESP-01 based with RS485 board fits in Galaxy keypad/display module
 
 #include "keypad.h"
-boolean keypadfault = false;
+const char* keypadfault = false;
 
 #define PINS ((1<<1) | (1<<3))  // Tx and Rx
 
@@ -56,9 +56,7 @@ boolean keypadfault = false;
     if (!keypad)return false; // Not running keypad
     if ((gpiomap & PINS) != PINS)
     {
-      debug("Keypad pins (Tx/Rx) not available");
-      keypadfault = true;
-      faultset = true;
+      keypadfault = PSTR("Keypad pins (Tx/Rx) not available");
       keypad = NULL;
       return false;
     }
@@ -194,20 +192,10 @@ boolean keypadfault = false;
         while (c > 0xFF)
           c = (c >> 8) + (c & 0xFF);
         if (p < 2 || buf[n] != c || buf[0] != 0x11 || buf[1] == 0xF2)
-        {
-          if (!keypadfault)
-          {
-            keypadfault = true;
-            faultset = true;
-          }
-        }
+          keypadfault = PSTR("Bad response from keyboard");
         else
         {
-          if (keypadfault)
-          {
-            keypadfault = false;
-            faultset = true;
-          }
+          keypadfault = NULL;
           if (cmd == 0x00 && buf[1] == 0xFF && p > 5)
           { // Set up response
             if (!online)
@@ -250,11 +238,7 @@ boolean keypadfault = false;
         }
       } else
       {
-        if (!keypadfault)
-        {
-          keypadfault = true;
-          faultset = true;
-        }
+        keypadfault = PSTR("No response from keypad");
         online = false;
       }
     }

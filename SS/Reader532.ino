@@ -21,7 +21,7 @@
 PN532_SPI pn532spi(SPI, 16);
 PN532 nfc(pn532spi);
 boolean reader532ok = false;
-boolean reader532fault = false;
+const char* reader532fault = false;
 
 #define app_settings  \
   s(reader532);   \
@@ -49,9 +49,7 @@ boolean reader532fault = false;
     if (!reader532)return false; // Not configured
     if ((gpiomap & PINS) != PINS)
     {
-      debug("Reader532 pins (SPI) not available");
-      reader532fault = true;
-      faultset = true;
+      reader532fault = PSTR("Reader532 pins (SPI) not available");
       reader532 = NULL;
       return false;
     }
@@ -60,8 +58,7 @@ boolean reader532fault = false;
     uint32_t versiondata = nfc.getFirmwareVersion();
     if (!versiondata)
     { // no reader
-      debug("PN532 failed");
-      reader532fault = true;
+      reader532fault = PSTR("PN532 failed");
       reader532 = NULL;
       return false;
     }

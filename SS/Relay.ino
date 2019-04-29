@@ -5,7 +5,7 @@
 
 #include <ESP8266RevK.h>
 #include "relay.h"
-boolean relayfault = false;
+const char* relayfault = false;
 
 #define PINs  ((1<<1))  // Tx (GPIO1)
 
@@ -45,9 +45,7 @@ boolean relayfault = false;
     if (!relay)return false; // Relay not configured
     if ((gpiomap & PINS) != PINS)
     {
-      debug("Relay pin (Tx) not available");
-      relayfault = true;
-      faultset = true;
+      relayfault = PSTR("Relay pin (Tx) not available");
       relay = NULL;
       return false;
     }

@@ -2,7 +2,7 @@
 // (c) Andrews & Arnold Ltd, Adrian Kennard, see LICENSE file (GPL)
 
 #define	USE_KEYPAD
-extern boolean keypadfault;
+extern const char* keypadfault;
 
 const char* keypad_setting(const char *tag, const byte *value, size_t len);
 boolean keypad_command(const char*tag, const byte *message, size_t len);

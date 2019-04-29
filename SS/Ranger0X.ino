@@ -15,7 +15,7 @@
 
 VL53L0X sensor0x;
 boolean ranger0xok = false;
-boolean ranger0xfault = false;
+const char* ranger0xfault = false;
 
 #define MAXRANGE 2000	// Maximum range
 #define LONGHOLD 1000	// How long to hold movement input
@@ -49,9 +49,7 @@ boolean ranger0xfault = false;
     if (!ranger0x)return false; // Ranger not configured
     if ((gpiomap & PINS) != PINS)
     {
-      debug("Ranger0x pins (I2C) not available");
-      ranger0xfault = true;
-      faultset = true;
+      ranger0xfault = PSTR("Ranger0x pins (I2C) not available");
       keypad = NULL;
       return false;
     }
@@ -60,8 +58,7 @@ boolean ranger0xfault = false;
     sensor0x.setTimeout(1000);
     if (!sensor0x.init())
     {
-      debug("VL53L0X failed");
-      ranger0xfault = true;
+      ranger0xfault = PSTR("VL53L0X failed");
       ranger0x = NULL;
       return false;
     }
@@ -88,19 +85,8 @@ boolean ranger0xfault = false;
       static unsigned int last = 0;
       static long endlong = 0;
       unsigned int range = sensor0x.readRangeContinuousMillimeters();
-      if (range == 65535)
-      {
-        if (!ranger0xfault)
-        {
-          ranger0xfault = true;
-          faultset = true;
-        }
-      }
-      else if (ranger0xfault)
-      {
-        ranger0xfault = false;
-        faultset = true;
-      }
+      if (range == 65535)ranger0xfault = PSTR("VL53L0X read failed");
+      else ranger0xfault = NULL;
       if (range > MAXRANGE)range = MAXRANGE;
       if (range < ranger0x)
       {

@@ -30,7 +30,7 @@
 
   MFRC522 rfid(SS, RST); // Instance of the class
   boolean reader522ok = false;
-  boolean reader522fault = false;
+  const char* reader522fault = false;
 
   const char* reader522_setting(const char *tag, const byte *value, size_t len)
   { // Called for settings retrieved from EEPROM
@@ -51,9 +51,7 @@
     if (!reader522)return false; // Not configured
     if ((gpiomap & PINS) != PINS)
     {
-      debug("Reader522 pins (SPI) not available");
-      reader522fault = true;
-      faultset = true;
+      reader522fault = PSTR("Reader522 pins (SPI) not available");
       reader522 = NULL;
       return false;
     }
@@ -63,8 +61,7 @@
     int v = rfid.PCD_ReadRegister(rfid.VersionReg);
     if (!v || v == 0xFF)
     { // Failed
-      debug("RC522 failed");
-      reader522fault = true;
+      reader522fault = PSTR("RC522 failed");
       reader522 = NULL;
       return false;
     }
