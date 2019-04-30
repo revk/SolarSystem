@@ -18,6 +18,16 @@ const char* relay_fault = false;
 
   unsigned long relaynext = 0;
   unsigned long output = 0;
+  unsigned long override = 0;
+
+  void relay_safe_relay(boolean enable)
+  { // Set relay safe mode operation
+    if (enable)
+      override = 1;
+    else
+      override = 0;
+    relaynext = millis();
+  }
 
   const char* relay_setting(const char *tag, const byte *value, size_t len)
   { // Called for settings retrieved from EEPROM
@@ -29,11 +39,14 @@ const char* relay_fault = false;
 
   boolean relay_command(const char*tag, const byte *message, size_t len)
   { // Called for incoming MQTT messages
-    if (!relay)return false; // Relay not configured
+    if (!relay)
+      return false; // Relay not configured
     if (!strncasecmp(tag, PSTR("output"), 6) && tag[6] > '0' && tag[6] <= '0' + relay)
     {
-      if (len && *message == '1')output |= (1 << (tag[6] - '1'));
-      else output &= ~(1 << (tag[6] - '1'));
+      if (len && *message == '1')
+        output |= (1 << (tag[6] - '1'));
+      else
+        output &= ~(1 << (tag[6] - '1'));
       relaynext = millis();
       return true;
     }
@@ -65,7 +78,7 @@ const char* relay_fault = false;
     {
       relaynext = now + 1000; // Periodically send all relays
       unsigned long relays = output;
-      if (!revk.mqttconnected)relays = 0; // Off if not on-line
+      if (insafemode)relays = override; // Safe mode, normall means relays off but can be overridden
       int n;
       for (n = 0; n < relay && n < 8; n++)
       {

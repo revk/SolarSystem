@@ -18,6 +18,7 @@ unsigned long inputs = 0;
   s(input2,0);   \
   s(input3,0);   \
   s(inputhold,500); \
+  s(inputpoll,10); \
 
 #define s(n,d) unsigned int n=d;
   app_settings
@@ -41,7 +42,7 @@ unsigned long inputs = 0;
   {
     if (!input)return false; // No inputs defined
     debugf("GPIO available %X for %d inputs", gpiomap, input);
-    gpiomap &= ~((1 << 0) | (1 << 2)); // Dont use GPIO0 or GPI2 as general input because flash mode. Cannot be grounded on boot up!
+    gpiomap &= ~((1 << 0) | (1 << 1) || (1 << 2)); // Dont use GPIO0, GPI1, nor GPI2 as general input because bad if tied low at boot.
     int i;
     pin[0] = input1; // Presets (0 means not preset as we don't use 0 anyway)
     pin[1] = input2;
@@ -82,7 +83,7 @@ unsigned long inputs = 0;
 
     if ((int)(pincheck - now) < 0)
     {
-      pincheck = now + 10;
+      pincheck = now + inputpoll;
       int p;
       for (p = 0; p < input; p++)
       {

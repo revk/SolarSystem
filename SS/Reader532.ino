@@ -17,6 +17,7 @@
 #include "Reader532.h"
 #include <PN532_SPI.h>
 #include "PN532.h"
+#include "Relay.h"
 
 PN532_SPI pn532spi(SPI, ss);
 PN532 nfc(pn532spi);
@@ -74,13 +75,7 @@ const char* reader532_fault = false;
 
   static byte lastlen = 0;
   static byte lastuid[7] = {};
-  static void report(const __FlashStringHelper *tag)
-  {
-    char tid[15];
-    int n;
-    for (n = 0; n < lastlen && n * 2 < sizeof(tid); n++)sprintf(tid + n * 2, "%02X", lastuid[n]);
-    revk.event(tag, F("%s"), tid);
-  }
+  static char tid[15] = {};
 
   boolean reader532_loop(ESP8266RevK&revk, boolean force)
   {
@@ -93,27 +88,37 @@ const char* reader532_fault = false;
       static long first = 0;
       static long last = 0;
       static boolean held = false;
+
       byte uid[7] = {}, uidlen = 0;
       if (nfc.readPassiveTargetID(PN532_MIFARE_ISO14443A, uid, &uidlen))
       {
+
+        int n;
+        for (n = 0; n < lastlen && n * 2 < sizeof(tid); n++)sprintf(tid + n * 2, "%02X", lastuid[n]);
         last = now;
         if (!first || uidlen != lastlen || memcmp(lastuid, uid, uidlen))
         {
+          if (fallback && !strcmp(fallback, tid))
+            relay_safe_relay(false);
           if (held)
-            report(F("gone"));
+            revk.event(F("gone"), F("%s"), tid);
           first = now;
           held = false;
           memcpy(lastuid, uid, lastlen = uidlen);
-          report(F("id"));
+          revk.event(F("id"), F("%s"), tid);
         } else if (!held && first && (int)(now - first) > holdtime)
         {
           held = true;
-          report(F("held"));
+          revk.event(F("held"), F("%s"), tid);
+          if (fallback && !strcmp(fallback, tid))
+            relay_safe_relay(true);
         }
       } else if (last && (int)(now - last) > releasetime)
       {
+        if (fallback && !strcmp(fallback, tid))
+          relay_safe_relay(false);
         if (held)
-          report(F("gone"));
+          revk.event(F("gone"), F("%s"), tid);
         first = 0;
         last = 0;
         held = false;
