@@ -34,7 +34,7 @@ static boolean force = true;
   s(rst,2); \
   s(beeper,0); \
   s(holdtime,3000); \
-  s(releasetime,1000); \
+  s(releasetime,250); \
 
 #define s(n,d) unsigned int n=d;
   app_settings
@@ -136,6 +136,7 @@ static boolean force = true;
 #ifdef USE_INPUT
     input_setup(revk);
 #endif
+    wifi_set_sleep_type(LIGHT_SLEEP_T);
   }
 
   void loop()
@@ -201,5 +202,5 @@ static boolean force = true;
     input_loop(revk, force);
 #endif
     force = false;
-    delay(1);
+    //delay(1);
   }
