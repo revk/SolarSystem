@@ -856,7 +856,7 @@ output_ws (xml_t root, port_p port)
       else if (id && device[id].type == TYPE_MAX)
          xml_add (x, "@type", "max");
    }
-   if (device[id].output & (1 << n))
+   if (port->state)
       xml_add (x, "@-active", "true");
    return NULL;
 }
