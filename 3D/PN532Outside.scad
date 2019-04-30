@@ -1,12 +1,13 @@
 // Box for PN532 (wired back to door control)
 
 t=0.1;  // Print xy tolerance adjust to make fit
-tl=0.4; // Layer tolerance
+
+tl=0.25; // Layer gap
 
 wt=2;   // Wall thickness
 pw=41; // PCB size
 ph=1.7*25.4;
-pt=1.5; // PCB thickness
+pt=1.5+t; // PCB thickness
 pc=2.5; // Component thickness
 pb=7-wt; // Back connector thickness
 hd=3; // Hole diameter
@@ -47,6 +48,9 @@ module lid()
         translate([-bw/2,bh/2-wt-lip,bt])
         cube([bw,wt,0.01]);
     }
+    for(y=[-ph/2-wt,ph/2+wt])
+    translate([-bw/2,y-wt,0.01])
+    cube([bw,wt*2,wt+pc+pt/2-tl/2]);
 }
 
 module base()
@@ -61,7 +65,7 @@ module base()
             cube([pw,ph,pb]);
             for(y=[-ph/2-wt,ph/2+wt])
             translate([-pw/2,y-wt,0.01])
-            cube([pw,wt*2,pb+pt-t]);
+            cube([pw,wt*2,pb+pt/2-tl/2]);
         }
         translate([st-pw/2,st-ph/2,wt-0.01])
         cube([pw-st*2,ph-st*2,pb+1]);
@@ -85,8 +89,8 @@ module base()
         difference()
         {
             cylinder(d=hd+wt,h=pb);
-            translate([0,0,1])
-            cylinder(d=hd-1,h=pb);
+            translate([0,0,-1])
+            cylinder(d=hd,h=pb+2,$fn=4);
         }
 }
 

@@ -26,6 +26,8 @@ unsigned int gpiomap = 0xF; // Pins available (ESP-01)
 #include "Input.h"
 
 static boolean force = true;
+boolean insafemode = false;
+unsigned safemodestart = 0;
 
 #define app_settings  \
   s(sda,0);   \
@@ -35,10 +37,14 @@ static boolean force = true;
   s(beeper,0); \
   s(holdtime,3000); \
   s(releasetime,250); \
+  s(safemode,0); \
+  t(fallback); \
 
 #define s(n,d) unsigned int n=d;
+#define t(n) const char*n=NULL;
   app_settings
 #undef s
+#undef t
 
   ESP8266RevK revk(__FILE__, __DATE__ " " __TIME__);
 
@@ -47,8 +53,10 @@ static boolean force = true;
     const char *ret;
     revk.restart(3000); // Any setting change means restart
 #define s(n,d) do{const char *t=PSTR(#n);if(!strcmp_P(tag,t)){n=(value?atoi((char*)value):0);return t;}}while(0)
+#define t(n) do{const char *t=PSTR(#n);if(!strcmp_P(tag,t)){n=(const char*)value;return t;}}while(0)
     app_settings
 #undef s
+#undef t
 #ifdef	USE_READER522
     if ((ret = reader522_setting(tag, value, len)))return ret;
 #endif
@@ -81,7 +89,17 @@ static boolean force = true;
 
   boolean app_command(const char*tag, const byte *message, size_t len)
   { // Called for incoming MQTT messages, return true if message is OK
-    if (!strcasecmp_P(tag, PSTR("connect")))force = true;
+    if (!strcasecmp_P(tag, PSTR("connect"))) {
+      force = true;
+      insafemode = false;
+      safemodestart = 0;
+      return true;
+    }
+    if (!strcasecmp_P(tag, PSTR("disconnect"))) {
+      if (safemode)
+        safemodestart = (millis() + safemode * 1000 ? : 1);
+      return true;
+    }
 #ifdef	USE_READER522
     if (reader522_command(tag, message, len))return true;
 #endif
@@ -136,7 +154,6 @@ static boolean force = true;
 #ifdef USE_INPUT
     input_setup(revk);
 #endif
-    wifi_set_sleep_type(LIGHT_SLEEP_T);
   }
 
   void loop()
@@ -176,6 +193,11 @@ static boolean force = true;
         if (fault)revk.state(F("fault"), F("1 %S"), fault);
         else revk.state(F("fault"), F("0"));
       }
+    }
+    if (safemodestart && (int)(safemodestart - millis()) < 0)
+    {
+      insafemode = true;
+      safemodestart = 0;
     }
 #ifdef USE_READER522
     reader522_loop(revk, force);

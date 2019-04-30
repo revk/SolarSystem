@@ -3,7 +3,7 @@
 
 // Beep button logic
 
-#define USE_INPUT
+#define USE_BEEP
 extern const char* beep_fault;
 
 #include <ESP8266RevK.h>

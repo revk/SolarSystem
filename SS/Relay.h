@@ -12,3 +12,4 @@ extern const char* relay_setting(const char *tag, const byte *value, size_t len)
 extern boolean relay_command(const char*tag, const byte *message, size_t len);
 extern boolean relay_setup(ESP8266RevK&);
 extern boolean relay_loop(ESP8266RevK&, boolean);
+extern void relay_safe_relay(boolean);

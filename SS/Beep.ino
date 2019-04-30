@@ -27,6 +27,14 @@ const char* beep_fault = false;
   boolean beep_command(const char*tag, const byte *message, size_t len)
   { // Called for incoming MQTT messages
     if (!beep)return false; // No beeps defined
+    if (!strcasecmp(tag, PSTR("output9")))
+    {
+      if (len && *message == '1')
+        analogWrite(beeper, PWMRANGE / 2);
+      else
+        analogWrite(beeper, 0);
+      return true;
+    }
     return false;
   }
 
@@ -36,13 +44,16 @@ const char* beep_fault = false;
     debugf("GPIO available %X for %d beeper", gpiomap, beep);
     gpiomap &= ~(1 << 0); // Dont use GPIO0 as general beep because flash mode
     if (!beeper) for (beeper = 1; beeper < MAX_PIN && !(gpiomap & (1 << beeper)); beeper++); // Find a pin
-    if (!(gpiomap & (1 << beeper)))
+    if (beeper >= MAX_PIN || !(gpiomap & (1 << beeper)))
     {
       beep_fault = PSTR("Beep pins assignment available");
       beep = NULL;
       return false;
     }
-    pinMode(beeper, OUTPUT);
+    if (beeper == 1)
+      Serial.end(); // Using Tx pin!
+    if (beep > 1)
+      analogWriteFreq(beep);
     debug("Beep OK");
     return true;
   }
@@ -50,6 +61,6 @@ const char* beep_fault = false;
   boolean beep_loop(ESP8266RevK&revk, boolean force)
   {
     if (!beep)return false; // No beeps defined
-    // TODO
+    // No need, done from commands
     return true;
   }
