@@ -1331,9 +1331,10 @@ load_config (const char *configfile)
             {                   // WiFi device - differect default port IDs
                port_set (mydoor[d].i_fob, max, 0, doorname, "Reader");
                port_o_set (door[d].mainlock.o_unlock, max, 1, doorname, "Unlock");
-               port_exit_set (mydoor[d].i_exit, max, 1, doorname);
+               port_exit_set (mydoor[d].i_exit, max, 1, doorname); // TODO invert?
+               port_exit_set (mydoor[d].i_exit, max, 8, doorname);
                port_i_set (door[d].i_open, max, 2, doorname, "Open");
-               port_i_set (door[d].mainlock.i_unlock, max, 3, doorname, "Unlock");
+               port_i_set (door[d].mainlock.i_unlock, max, 3, doorname, "Unlock"); // Expect people to wire to read switch
             }
          }
          port_set (mydoor[d].i_fob, xml_get (x, "@fob"), 0, doorname, "Max");
