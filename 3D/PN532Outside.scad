@@ -7,7 +7,7 @@ tl=0.25; // Layer gap
 wt=2;   // Wall thickness
 pw=41; // PCB size
 ph=1.7*25.4;
-pt=1.5; // PCB thickness
+pt=1.5+t; // PCB thickness
 pc=2.5; // Component thickness
 pb=7-wt; // Back connector thickness
 hd=3; // Hole diameter
@@ -89,8 +89,8 @@ module base()
         difference()
         {
             cylinder(d=hd+wt,h=pb);
-            translate([0,0,1])
-            cylinder(d=hd,h=pb,$fn=4);
+            translate([0,0,-1])
+            cylinder(d=hd,h=pb+2,$fn=4);
         }
 }
 

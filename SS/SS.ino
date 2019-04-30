@@ -154,7 +154,6 @@ unsigned safemodestart = 0;
 #ifdef USE_INPUT
     input_setup(revk);
 #endif
-    wifi_set_sleep_type(LIGHT_SLEEP_T);
   }
 
   void loop()
