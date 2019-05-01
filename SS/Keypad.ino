@@ -35,6 +35,8 @@ const char* keypad_fault = false;
 #undef n
 #undef s
 
+  const char keymap[] = "0123456789BA\n\e*#";
+
   const char* keypad_setting(const char *tag, const byte *value, size_t len)
   { // Called for commands retrieved from EEPROM
 #define s(n) do{const char *t=PSTR(#n);if(!strcmp_P(tag,t)){n=(const char *)value;return t;}}while(0)
@@ -79,6 +81,13 @@ const char* keypad_fault = false;
   {
     if (!keypad)return false; // Not running keypad
     long now = millis();
+    if (force)
+    { // Update all the shit
+      send07 = true;
+      send0C = true;
+      send0D = true;
+      send19 = true;
+    }
     static long next = 0;
     if ((int)(next - now) < 0)
     {
@@ -103,7 +112,14 @@ const char* keypad_fault = false;
       { // Text
         buf[++p] = 0x07;
         buf[++p] = 0x01 | ((blink[0] & 1) ? 0x08 : 0x00) | (toggle07 ? 0x80 : 0);
-        if (display_len)
+        byte len = display_len;
+        byte *dis = display;
+        if (!revk.mqttconnected)
+        { // Off line
+          dis = (byte*)"OFFLINE!";
+          len = 8;
+        }
+        if (len)
         {
           if (cursor[0])
           {
@@ -111,12 +127,16 @@ const char* keypad_fault = false;
             send07a = true; // send cursor when done
           }
           buf[++p] = 0x1F; //  home
-          int y, x;
-          for (y = 0; y < 2; y++)
+          int n;
+          for (n = 0; n < 32; n++)
           {
-            buf[++p] = 0x03; // Cursor
-            buf[++p] = (y ? 0x40 : 0);
-            for (x = 0; x < 16; x++)buf[++p] = (display[y * 16 + x] ? : ' ');
+            if (!(n & 0xF))
+            {
+              buf[++p] = 0x03; // Cursor
+              buf[++p] = (n ? 0x40 : 0);
+            }
+            if (n < len)buf[++p] = dis[n];
+            else buf[++p] = ' ';
           }
         }
         else buf[++p] = 0x17; // clear
@@ -143,20 +163,34 @@ const char* keypad_fault = false;
       } else if (send19)
       { // Key keyclicks
         buf[++p] = 0x19;
-        buf[++p] = (keyclick[0] & 0x7); // 0x03 (silent), 0x05 (quiet), or 0x01 (normal)
+        if (!revk.mqttconnected)
+          buf[++p] = 0x01; // Sound normal
+        else
+          buf[++p] = (keyclick[0] & 0x7); // 0x03 (silent), 0x05 (quiet), or 0x01 (normal)
         buf[++p] = 0;
         send19 = false;
       } else if (send0C)
       { // Beeper
+        byte *s = sounder;
+        byte len = sounder_len;
+        if (!revk.mqttconnected)
+        {
+          static const byte beepy[] = {1, 1};
+          s = (byte*)beepy;
+          len = 2;
+        }
         buf[++p] = 0x0C;
-        buf[++p] = sounder_len ? sounder[1] ? 3 : 1 : 0;
-        buf[++p] = (sounder[0] & 0x3F); // Time on
-        buf[++p] = (sounder[1] & 0x3F); // Time off
+        buf[++p] = len ? s[1] ? 3 : 1 : 0;
+        buf[++p] = (s[0] & 0x3F); // Time on
+        buf[++p] = (s[1] & 0x3F); // Time off
         send0C = false;
       } else if (send0D)
       { // Light change
         buf[++p] = 0x0D;
-        buf[++p] = (backlight[0] & 1);
+        if (!revk.mqttconnected)
+          buf[++p] = 1;
+        else
+          buf[++p] = (backlight[0] & 1);
         send0D = false;
       } else
         buf[++p] = 0x06; // Normal poll
@@ -171,7 +205,7 @@ const char* keypad_fault = false;
           c = (c >> 8) + (c & 0xFF);
         buf[p++] = c;
       }
-      if (keypaddebug&&buf[1] != 0x06)
+      if (keypaddebug && buf[1] != 0x06)
         revk.info(F("Tx"), F("%d: %02X %02X %02X %02X"), p, buf[0], buf[1], buf[2], buf[3]);
       byte cmd = buf[1];
       digitalWrite(RTS, HIGH);
@@ -185,7 +219,7 @@ const char* keypad_fault = false;
       {
         Serial.setTimeout(2);
         p += Serial.readBytes(buf + p, sizeof(buf) - p);
-        if (keypaddebug&&buf[1] != 0xFE)
+        if (keypaddebug && buf[1] != 0xFE)
           revk.info(F("Rx"), F("%d: %02X %02X %02X %02X"), p, buf[0], buf[1], buf[2], buf[3]);
         unsigned int c = 0xAA, n;
         for (n = 0; n < p - 1; n++)
@@ -197,6 +231,7 @@ const char* keypad_fault = false;
         else
         {
           keypad_fault = NULL;
+          static byte lastkey = 0;
           if (cmd == 0x00 && buf[1] == 0xFF && p > 5)
           { // Set up response
             if (!online)
@@ -216,6 +251,11 @@ const char* keypad_fault = false;
           { // Idle, no tamper
             if (tamper)revk.state(F("tamper"), F("0"));
             tamper = false;
+            if (!send0B && (lastkey & 0x80))
+            {
+              revk.event(F("gone"), F("%c"), keymap[lastkey & 0x0F]);
+              lastkey = 0x7F;
+            }
           } else if (cmd == 0x06 && buf[1] == 0xF4 && p > 3)
           { // Status
             if (buf[2] & 0x40)
@@ -227,12 +267,21 @@ const char* keypad_fault = false;
               if (tamper)revk.state(F("tamper"), F("0"));
               tamper = false;
             }
-            if (!send0B && buf[2] != 0x7F)
+            if (!send0B)
             { // Key
-              send0B = true;
-              // Note mapping and key held bit...
-              // TODO why duplicates?
-              revk.event(buf[2] & 0x80 ? F("hold") : F("key"), F("%c"), "0123456789BA\n\e*#"[buf[2] & 0x0F]);
+              if (buf[2] == 0x7F)
+              { // No key
+                if (lastkey & 0x80)
+                  revk.event(F("gone"), F("%c"), keymap[lastkey & 0x0F]);
+              } else
+              { // key
+                send0B = true;
+                if ((lastkey & 0x80) && buf[2] != lastkey)
+                  revk.event(F("gone"), F("%c"), keymap[lastkey & 0x0F]);
+                if (!(buf[2] & 0x80) || buf[2] != lastkey)
+                  revk.event(buf[2] & 0x80 ? F("hold") : F("key"), F("%c"), keymap[buf[2] & 0x0F]);
+              }
+              lastkey = buf[2];
             }
           }
           next = ((millis() + 20) ? : 1);
