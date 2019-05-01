@@ -9,8 +9,6 @@ const char* keypad_fault = false;
 
 #define PINS ((1<<1) | (1<<3))  // Tx and Rx
 
-#define DEBUG // log message (header bytes)
-
 #include <ESP8266RevK.h>
 
 #define RTS 2
@@ -25,19 +23,24 @@ const char* keypad_fault = false;
 
 #define app_settings  \
   s(keypad);   \
+  n(keypaddebug); \
 
 #define f(id,name,len,def) static byte name[len]={def};boolean send##id=false;byte name##_len=0;
   app_commands
 #undef  f
 
 #define s(n) const char *n=NULL
+#define n(n) int n=0;
   app_settings
+#undef n
 #undef s
 
   const char* keypad_setting(const char *tag, const byte *value, size_t len)
   { // Called for commands retrieved from EEPROM
 #define s(n) do{const char *t=PSTR(#n);if(!strcmp_P(tag,t)){n=(const char *)value;return t;}}while(0)
+#define n(n) do{const char *t=PSTR(#n);if(!strcmp_P(tag,t)){n=value?atoi((char*)value):0;return t;}}while(0)
     app_settings
+#undef n
 #undef s
     return NULL; // Done
   }
@@ -168,10 +171,8 @@ const char* keypad_fault = false;
           c = (c >> 8) + (c & 0xFF);
         buf[p++] = c;
       }
-#ifdef DEBUG
-      if (buf[1] != 0x06)
+      if (keypaddebug&&buf[1] != 0x06)
         revk.info(F("Tx"), F("%d: %02X %02X %02X %02X"), p, buf[0], buf[1], buf[2], buf[3]);
-#endif
       byte cmd = buf[1];
       digitalWrite(RTS, HIGH);
       delay(1);
@@ -184,10 +185,8 @@ const char* keypad_fault = false;
       {
         Serial.setTimeout(2);
         p += Serial.readBytes(buf + p, sizeof(buf) - p);
-#ifdef DEBUG
-        if (buf[1] != 0xFE)
+        if (keypaddebug&&buf[1] != 0xFE)
           revk.info(F("Rx"), F("%d: %02X %02X %02X %02X"), p, buf[0], buf[1], buf[2], buf[3]);
-#endif
         unsigned int c = 0xAA, n;
         for (n = 0; n < p - 1; n++)
           c += buf[n];

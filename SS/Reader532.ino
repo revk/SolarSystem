@@ -57,7 +57,9 @@ const char* reader532_fault = false;
     }
     gpiomap &= ~PINS;
     debugf("GPIO remaining %X", gpiomap);
+    SPI.begin();
     nfc.begin();
+    SPI.setFrequency(100000);
     uint32_t versiondata = nfc.getFirmwareVersion();
     if (!versiondata)
     { // no reader
@@ -73,9 +75,10 @@ const char* reader532_fault = false;
     return true;
   }
 
+#define MAX_UID 7
   static byte lastlen = 0;
-  static byte lastuid[7] = {};
-  static char tid[15] = {};
+  static byte lastuid[MAX_UID] = {};
+  static char tid[MAX_UID * 2 + 1] = {}; // text ID
 
   boolean reader532_loop(ESP8266RevK&revk, boolean force)
   {
@@ -84,27 +87,27 @@ const char* reader532_fault = false;
     static long cardcheck = 0;
     if ((int)(cardcheck - now) < 0)
     {
-      cardcheck = now + 100;
+      cardcheck = now + readerpoll;
       static long first = 0;
       static long last = 0;
       static boolean held = false;
 
-      byte uid[7] = {}, uidlen = 0;
+      byte uid[MAX_UID] = {}, uidlen = 0;
       if (nfc.readPassiveTargetID(PN532_MIFARE_ISO14443A, uid, &uidlen))
       {
-
-        int n;
-        for (n = 0; n < lastlen && n * 2 < sizeof(tid); n++)sprintf(tid + n * 2, "%02X", lastuid[n]);
         last = now;
         if (!first || uidlen != lastlen || memcmp(lastuid, uid, uidlen))
         {
+          if (held)
+            revk.event(F("gone"), F("%s"), tid); // Previous card gone
+          memcpy(lastuid, uid, lastlen = uidlen);
+          int n;
+          for (n = 0; n < uidlen && n * 2 < sizeof(tid); n++)sprintf(tid + n * 2, "%02X", uid[n]);
           if (fallback && !strcmp(fallback, tid))
             relay_safe_relay(false);
-          if (held)
-            revk.event(F("gone"), F("%s"), tid);
+
           first = now;
           held = false;
-          memcpy(lastuid, uid, lastlen = uidlen);
           revk.event(F("id"), F("%s"), tid);
         } else if (!held && first && (int)(now - first) > holdtime)
         {

@@ -39,6 +39,11 @@ unsigned safemodestart = 0;
   s(releasetime,250); \
   s(safemode,0); \
   t(fallback); \
+  s(rangerdebug,0); \
+  s(rangerpoll,100); \
+  s(rangerhold,1000); \
+  s(rangermargin,50); \
+  s(readerpoll,10); \
 
 #define s(n,d) unsigned int n=d;
 #define t(n) const char*n=NULL;
@@ -52,7 +57,7 @@ unsigned safemodestart = 0;
   { // Called for settings retrieved from EEPROM, return true if setting is OK
     const char *ret;
     revk.restart(3000); // Any setting change means restart
-#define s(n,d) do{const char *t=PSTR(#n);if(!strcmp_P(tag,t)){n=(value?atoi((char*)value):0);return t;}}while(0)
+#define s(n,d) do{const char *t=PSTR(#n);if(!strcmp_P(tag,t)){n=(value?atoi((char*)value):d);return t;}}while(0)
 #define t(n) do{const char *t=PSTR(#n);if(!strcmp_P(tag,t)){n=(const char*)value;return t;}}while(0)
     app_settings
 #undef s

@@ -56,6 +56,7 @@
     debugf("GPIO remaining %X", gpiomap);
     SPI.begin(); // Init SPI bus
     rfid.PCD_Init(); // Init MFRC522
+    SPI.setFrequency(100000);
     int v = rfid.PCD_ReadRegister(rfid.VersionReg);
     if (!v || v == 0xFF)
     { // Failed
@@ -75,7 +76,7 @@
     static long cardcheck = 0;
     if ((int)(cardcheck - now) < 0)
     {
-      cardcheck = now + 100;
+      cardcheck = now + readerpoll;
       static byte id[4] = {};
       static long first = 0;
       static long last = 0;
