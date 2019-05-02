@@ -35,8 +35,6 @@ const char* keypad_fault = false;
 #undef n
 #undef s
 
-  const char keymap[] = "0123456789BA\n\e*#";
-
   const char* keypad_setting(const char *tag, const byte *value, size_t len)
   { // Called for commands retrieved from EEPROM
 #define s(n) do{const char *t=PSTR(#n);if(!strcmp_P(tag,t)){n=(const char *)value;return t;}}while(0)
@@ -217,6 +215,7 @@ const char* keypad_fault = false;
       p = Serial.readBytes(buf, 1);
       if (p)
       {
+        static const char *keymap = PSTR("0123456789BA\n\e*#");
         Serial.setTimeout(2);
         p += Serial.readBytes(buf + p, sizeof(buf) - p);
         if (keypaddebug && buf[1] != 0xFE)
@@ -253,7 +252,7 @@ const char* keypad_fault = false;
             tamper = false;
             if (!send0B && (lastkey & 0x80))
             {
-              revk.event(F("gone"), F("%c"), keymap[lastkey & 0x0F]);
+              revk.event(F("gone"), F("%.1S"), keymap + (lastkey & 0x0F));
               lastkey = 0x7F;
             }
           } else if (cmd == 0x06 && buf[1] == 0xF4 && p > 3)
@@ -272,14 +271,14 @@ const char* keypad_fault = false;
               if (buf[2] == 0x7F)
               { // No key
                 if (lastkey & 0x80)
-                  revk.event(F("gone"), F("%c"), keymap[lastkey & 0x0F]);
+                  revk.event(F("gone"), F("%.1S"), keymap + (lastkey & 0x0F));
               } else
               { // key
                 send0B = true;
                 if ((lastkey & 0x80) && buf[2] != lastkey)
-                  revk.event(F("gone"), F("%c"), keymap[lastkey & 0x0F]);
+                  revk.event(F("gone"), F("%.1S"), keymap + (lastkey & 0x0F));
                 if (!(buf[2] & 0x80) || buf[2] != lastkey)
-                  revk.event(buf[2] & 0x80 ? F("hold") : F("key"), F("%c"), keymap[buf[2] & 0x0F]);
+                  revk.event(buf[2] & 0x80 ? F("hold") : F("key"), F("%.1S"), keymap + (buf[2] & 0x0F));
               }
               lastkey = buf[2];
             }
