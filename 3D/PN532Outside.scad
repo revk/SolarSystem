@@ -6,10 +6,10 @@ tl=0.25; // Layer gap
 
 wt=2;   // Wall thickness
 pw=41; // PCB size
-ph=1.7*25.4;
+ph=44;
 pt=1.5+t; // PCB thickness
 pc=2.5; // Component thickness
-pb=7-wt; // Back connector thickness
+pb=9.5-wt; // Back connector thickness
 hd=3; // Hole diameter
 hx=0.3*25.4; // Hole position
 hy=hx;

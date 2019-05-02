@@ -26,7 +26,7 @@ unsigned long inputs = 0;
 
   const char* input_setting(const char *tag, const byte *value, size_t len)
   { // Called for settings retrieved from EEPROM
-#define s(n,d) do{const char *t=PSTR(#n);if(!strcmp_P(tag,t)){n=(value?atoi((char*)value):0);return t;}}while(0)
+#define s(n,d) do{const char *t=PSTR(#n);if(!strcmp_P(tag,t)){n=(value?atoi((char*)value):d);return t;}}while(0)
     app_settings
 #undef s
     return NULL; // Done
