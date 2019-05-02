@@ -182,11 +182,13 @@ const char *state_name[STATES] = {
 #undef s
 };
 
+typedef struct keypad_s keypad_t;
 typedef unsigned char state_t;
 
 struct port_app_s
 {
    xml_t config;                // The XML config
+   keypad_t *keypad;            // If a keypad
    int a,
      x,
      y;                         // Location on floor plan
@@ -319,6 +321,8 @@ struct keypad_s
 {
    char *name;
    keypad_t *next;              // Linked list
+   keypad_data_t k;             // Display, etc
+   keypad_data_t kwas;
    port_p port;                 // The port it is on
    port_p prox;                 // Prox reader
    char *message;               // Display message
@@ -681,6 +685,67 @@ xml_copy (xml_t x, char *n)
    return v;
 }
 
+void
+keypad_send (keypad_t * k, int force)
+{
+   if (!k->port)
+      return;                   // WTF
+   int id = port_device (k->port);
+   if (id)
+   {                            // Bus based
+      memcpy ((void *) &device[id].k, (void *) &k->k, sizeof (k->k));
+      return;
+   }
+   if (!k->port->mqtt)
+      return;                   // WTF
+   char topic[50];
+   unsigned char message[50];
+   if (force || memcmp ((void *) &k->k.text, (void *) &k->kwas.text, sizeof (k->k.text)))
+   {
+      snprintf (topic, sizeof (topic), "command/SS/%s/display", k->port->mqtt);
+      memcpy (message, (void *) &k->k.text[0], 16);
+      memcpy (message + 16, (void *) &k->k.text[1], 16);
+      if (!k->k.cross)
+      {                         // Not crossed zeros
+         int n;
+         for (n = 0; n < 32; n++)
+            if (message[n] == '0')
+               message[n] = 'O';
+      }
+      mosquitto_publish (mqtt, NULL, topic, 32, message, 1, 0);
+   }
+   if (force || k->k.backlight != k->kwas.backlight)
+   {
+      snprintf (topic, sizeof (topic), "command/SS/%s/backlight", k->port->mqtt);
+      *message = '0' + k->k.backlight;
+      mosquitto_publish (mqtt, NULL, topic, 1, message, 1, 0);
+   }
+   if (force || k->k.blink != k->kwas.blink)
+   {
+      snprintf (topic, sizeof (topic), "command/SS/%s/blink", k->port->mqtt);
+      *message = '0' + k->k.blink;
+      mosquitto_publish (mqtt, NULL, topic, 1, message, 1, 0);
+   }
+   if (force || k->k.quiet != k->kwas.quiet || k->k.silent != k->kwas.silent)
+   {
+      snprintf (topic, sizeof (topic), "command/SS/%s/keyclick", k->port->mqtt);
+      *message = '0' + (k->k.silent ? 3 : k->k.quiet ? 5 : 1);
+      mosquitto_publish (mqtt, NULL, topic, 1, message, 1, 0);
+   }
+   if (force || k->k.cursor != k->kwas.cursor)
+   {
+      snprintf (topic, sizeof (topic), "command/SS/%s/blink", k->port->mqtt);
+      *message = k->k.cursor;
+      mosquitto_publish (mqtt, NULL, topic, 1, message, 1, 0);
+   }
+   if (force || memcmp ((void *) &k->k.beep, (void *) &k->kwas.beep, sizeof (k->k.beep)))
+   {
+      snprintf (topic, sizeof (topic), "command/SS/%s/sounder", k->port->mqtt);
+      memcpy (message, (void *) &k->k.beep, sizeof (k->k.beep));
+      mosquitto_publish (mqtt, NULL, topic, k->k.beep[0] ? sizeof (k->k.beep) : 0, message, 1, 0);
+   }
+   memcpy ((void *) &k->kwas, (void *) &k->k, sizeof (k->k));
+}
 
 #ifdef	LIBWS
 xml_t
@@ -693,16 +758,6 @@ device_ws (xml_t root, port_p p)
    xml_add (x, "@id", p->mqtt);
    xml_add (x, "@dev", p->mqtt);
    xml_add (x, "@name", p->name ? : p->mqtt);
-   xml_t config = app->config;
-   if (config)
-   {
-      char *v = xml_get (config, "@input");
-      if (v)
-         xml_add (x, "@-input", v);     // TODO ranger
-      v = xml_get (config, "@relay");
-      if (v)
-         xml_add (x, "@-output", v);    // TODO beeper?
-   }
    return x;
 }
 
@@ -716,16 +771,15 @@ keypad_ws (xml_t root, keypad_t * k)
       if (k->name)
          xml_add (x, "@name", k->name);
    }
-   unsigned int n = port_device (k->port);
-   xml_add (x, "+line", (char *) device[n].text[0]);
-   xml_add (x, "+line", (char *) device[n].text[1]);
-   xml_addf (x, "+-beep", "%d", device[n].beep[0]);
-   xml_addf (x, "+-beep", "%d", device[n].beep[1]);
-   if (device[n].cursor)
-      xml_addf (x, "+@-cursor", "%d", device[n].cursor);
-   if (device[n].silent)
+   xml_add (x, "+line", (char *) k->k.text[0]);
+   xml_add (x, "+line", (char *) k->k.text[1]);
+   xml_addf (x, "+-beep", "%d", k->k.beep[0]);
+   xml_addf (x, "+-beep", "%d", k->k.beep[1]);
+   if (k->k.cursor)
+      xml_addf (x, "+@-cursor", "%d", k->k.cursor);
+   if (k->k.silent)
       xml_add (x, "+@-silent", "true");
-   if (device[n].blink)
+   if (k->k.blink)
       xml_add (x, "+@-blink", "true");
    return x;
 }
@@ -1190,13 +1244,13 @@ load_config (const char *configfile)
             if (!p)
                continue;
             port_app_t *app = port_app (p);
-            if (app->config)
+            if (app->keypad)
             {
                dolog (ALL_GROUPS, "CONFIG", NULL, port_name (p), "Keypad duplicate %s", p->name);
                continue;
             }
-            app->config = x;
             keypad_t *k = keypad_new (p);
+            app->keypad = k;
             k->port = p;
             k->name = xml_copy (x, "@name");
             k->groups = group_parse (xml_get (x, "@groups") ? : "*");
@@ -1206,7 +1260,7 @@ load_config (const char *configfile)
             k->time_logout = atoi (xml_get (x, "@logout") ? : "60");
             k->message = xml_copy (x, "@message");
             if ((v = xml_get (x, "@crossed-zeros")) && !strcasecmp (v, "true"))
-               device[port_device (p)].cross = 1;
+               k->k.cross = 1;
          }
    }
    if (debug)
@@ -1331,10 +1385,10 @@ load_config (const char *configfile)
             {                   // WiFi device - differect default port IDs
                port_set (mydoor[d].i_fob, max, 0, doorname, "Reader");
                port_o_set (door[d].mainlock.o_unlock, max, 1, doorname, "Unlock");
-               port_exit_set (mydoor[d].i_exit, max, 1, doorname); // TODO invert?
+               port_exit_set (mydoor[d].i_exit, max, 1, doorname);      // TODO invert?
                port_exit_set (mydoor[d].i_exit, max, 8, doorname);
                port_i_set (door[d].i_open, max, 2, doorname, "Open");
-               port_i_set (door[d].mainlock.i_unlock, max, 3, doorname, "Unlock"); // Expect people to wire to read switch
+               port_i_set (door[d].mainlock.i_unlock, max, 3, doorname, "Unlock");      // Expect people to wire to read switch
             }
          }
          port_set (mydoor[d].i_fob, xml_get (x, "@fob"), 0, doorname, "Max");
@@ -1930,11 +1984,13 @@ keypad_new (port_p p)
       k = malloc (sizeof (*k));
       memset (k, 0, sizeof (*k));
       k->next = keypad;
-      device[port_device (p)].backlight = 1;
-      device[port_device (p)].output = 0;
+      k->k.backlight = 1;
+      //device[port_device (p)].output = 0;
       keypad = k;
    }
    k->port = p;
+   port_app (p)->keypad = k;
+   keypad_send (k, 1);
    return k;
 }
 
@@ -2384,10 +2440,9 @@ keypad_message (keypad_t * k, char *fmt, ...)
 {                               // Simple keypad message display
    if (!k)
       return NULL;
-   unsigned int n = port_device (k->port);
-   char *l1 = (char *) device[n].text[0];
-   char *l2 = (char *) device[n].text[1];
-   device[n].cursor = 0;
+   char *l1 = (char *) k->k.text[0];
+   char *l2 = (char *) k->k.text[1];
+   k->k.cursor = 0;
    // Format
    char *msg = NULL;
    va_list ap;
@@ -2404,30 +2459,31 @@ keypad_message (keypad_t * k, char *fmt, ...)
          if (*v == '\a')
          {
             v++;
-            device[n].beep[0] = 1;
-            device[n].beep[1] = 1;
+            k->k.beep[0] = 1;
+            k->k.beep[1] = 1;
          } else
          {
-            device[n].beep[0] = 10;
-            device[n].beep[1] = 10;
+            k->k.beep[0] = 10;
+            k->k.beep[1] = 10;
          }
       } else
       {
-         device[n].beep[0] = 10;
-         device[n].beep[1] = 0;
+         k->k.beep[0] = 10;
+         k->k.beep[1] = 0;
       }
    } else
    {
-      device[n].beep[0] = 0;
-      device[n].beep[1] = 0;
+      k->k.beep[0] = 0;
+      k->k.beep[1] = 0;
    }
    char *nl = strchr (v, '\n');
    if (nl)
       *nl++ = 0;
    snprintf (l1, 17, "%-16s", v);
    snprintf (l2, 17, "%-16s", nl ? : "");
-   k->when = now.tv_sec + (device[n].silent ? 10 : 3);
+   k->when = now.tv_sec + (k->k.silent ? 10 : 3);
    free (msg);
+   keypad_send (k, 0);
 #ifdef  LIBWS
    xml_t root = xml_tree_new (NULL);
    keypad_ws (root, k);
@@ -2459,9 +2515,8 @@ do_keypad_update (keypad_t * k, char key)
 {                               // Update keypad display / beep (key non 0 for key press).
    // Called either for a key, or when k->when passed.
    int p;
-   unsigned int n = port_device (k->port);
-   char *l1 = (char *) device[n].text[0];
-   char *l2 = (char *) device[n].text[1];
+   char *l1 = (char *) k->k.text[0];
+   char *l2 = (char *) k->k.text[1];
    k->when = (now.tv_sec + 60) / 60 * 60;       // Next update default if not set below
    if (k->user && k->when_logout)
    {                            // Auto logout
@@ -2488,10 +2543,10 @@ do_keypad_update (keypad_t * k, char key)
    {                            // Not in use at all!
       snprintf (l1, 17, "%-16s", k->message ? : "-- NOT IN USE --");
       snprintf (l2, 17, "%02d:%02d %10s", lnow.tm_hour, lnow.tm_min, port_name (k->port));
-      device[n].silent = 1;     // No keys
+      k->k.silent = 1;          // No keys
       return NULL;
    }
-   if (key && device[n].silent)
+   if (key && k->k.silent)
       return keypad_message (k, "Wait");
    int s;
    group_t trigger = 0;
@@ -2524,15 +2579,15 @@ do_keypad_update (keypad_t * k, char key)
       }
       if (!(k->groups & state[STATE_ARM]))
          return keypad_message (k, "CANCELLED SET");    // Nothing left to set
-      device[n].cursor = 0;
+      k->k.cursor = 0;
       if (k->groups & state[STATE_ARM] & trigger)
       {                         // Not setting
-         device[n].beep[0] = 0;
-         device[n].beep[1] = 1;
+         k->k.beep[0] = 0;
+         k->k.beep[1] = 1;
       } else
       {                         // Setting
-         device[n].beep[0] = 1;
-         device[n].beep[1] = 9;
+         k->k.beep[0] = 1;
+         k->k.beep[1] = 9;
       }
       int n,
         left = 99;
@@ -2571,7 +2626,7 @@ do_keypad_update (keypad_t * k, char key)
       k->when = now.tv_sec + 1;
       return NULL;
    }
-   device[n].silent = 0;
+   k->k.silent = 0;
    // PIN entry?
    if (k->pininput || isdigit (key))
    {
@@ -2583,7 +2638,7 @@ do_keypad_update (keypad_t * k, char key)
             for (u = users; u && u->pin != k->pin; u = u->next);
          if (!u)
          {                      // PIN 0 or user not valid
-            device[n].silent = 1;
+            k->k.silent = 1;
             return keypad_message (k, "INVALID CODE");
          }
          keypad_login (k, u, port_name (k->port));
@@ -2599,7 +2654,7 @@ do_keypad_update (keypad_t * k, char key)
          }
          for (p = 0; p < k->pininput; p++)
             l1[p] = '*';
-         device[n].cursor = 0x40 + p;
+         k->k.cursor = 0x40 + p;
          for (; p < 16; p++)
             l1[p] = ' ';
          for (p = 0; p < 16; p++)
@@ -2675,10 +2730,10 @@ do_keypad_update (keypad_t * k, char key)
    else if (k->user && k->groups & state[STATE_ENGINEERING])
       alert = "ENGINEERING MODE";
    if (alert && *alert == '\a')
-      device[n].blink = 1;      // Blink anyway, even if this is acked
+      k->k.blink = 1;           // Blink anyway, even if this is acked
    else
-      device[n].blink = 0;
-   device[n].cursor = 0;
+      k->k.blink = 0;
+   k->k.cursor = 0;
    if (k->alert != alert)
    {                            // New alert or end of alert
       k->alert = alert;
@@ -2689,8 +2744,8 @@ do_keypad_update (keypad_t * k, char key)
          alert++;               // Silence
    if (k->user)
    {                            // User logged in
-      device[n].beep[0] = 0;
-      device[n].beep[1] = 0;
+      k->k.beep[0] = 0;
+      k->k.beep[1] = 0;
       if (k->when_posn != now.tv_sec || k->posn < 0)
       {
          k->when_posn = now.tv_sec;
@@ -2759,19 +2814,19 @@ do_keypad_update (keypad_t * k, char key)
          snprintf (l2, 17, "RESET %-10s", state_name[s]);
          if (k->ack || (state[STATE_ENGINEERING] & state[STATE_TRIGGERS + s]))
          {                      // No beep, just blink
-            device[n].beep[0] = 0;
-            device[n].beep[1] = 0;
+            k->k.beep[0] = 0;
+            k->k.beep[1] = 0;
          } else
          {                      // Beep
-            device[n].beep[0] = 1;
-            device[n].beep[1] = 49;
+            k->k.beep[0] = 1;
+            k->k.beep[1] = 49;
          }
          return NULL;
       }
    }
    snprintf (l2, 17, "%04d-%02d-%02d %02d:%02d", lnow.tm_year + 1900, lnow.tm_mon + 1, lnow.tm_mday, lnow.tm_hour, lnow.tm_min);
-   device[n].beep[0] = 0;
-   device[n].beep[1] = 0;
+   k->k.beep[0] = 0;
+   k->k.beep[1] = 0;
    return NULL;
 }
 
@@ -2779,6 +2834,7 @@ static void *
 keypad_update (keypad_t * k, char key)
 {                               // Do keypad update, possibly with a key pressed
    void *ret = do_keypad_update (k, key);
+   keypad_send (k, 0);
 #ifdef	LIBWS
    xml_t root = xml_tree_new (NULL);
    xml_t x = keypad_ws (root, k);
@@ -2874,7 +2930,7 @@ doevent (event_t * e)
             app->missing = 0;
             rem_tamper (groups, port_name (port), port->name);
          }
-         if (type == TYPE_PAD)
+         if (type == TYPE_PAD || app->keypad)
             keypad_new (port);
       }
       break;
@@ -3167,14 +3223,15 @@ doevent (event_t * e)
          unsigned int d,
            n;
          user_t *u = NULL;
-         if (e->fob)
-            for (u = users; u; u = u->next)
-            {
-               for (n = 0; n < sizeof (u->fob) / sizeof (*u->fob) && strcmp (u->fob[n], (char *) e->fob); n++);
-               if (n < sizeof (u->fob) / sizeof (*u->fob))
-                  break;
-            }
-         if (device[id].pad)
+         if (!e->fob || !*e->fob)
+            break;
+         for (u = users; u; u = u->next)
+         {
+            for (n = 0; n < sizeof (u->fob) / sizeof (*u->fob) && strcmp (u->fob[n], (char *) e->fob); n++);
+            if (n < sizeof (u->fob) / sizeof (*u->fob))
+               break;
+         }
+         if (id && device[id].pad)
          {                      // Prox for keypad, so somewhat different
             if (!u)
                dolog (groups, "FOBBAD", NULL, port_name (port), "Unrecognised fob %s", e->fob);
@@ -3189,6 +3246,8 @@ doevent (event_t * e)
             }
             return;
          }
+         if (app->keypad)
+            keypad_login (app->keypad, u, port_name (port));
          int found = 0;
          // We only do stuff for Max readers on doors - maybe we need some logic for stand alone max readers - or make a dummy door.
          for (d = 0; d < MAX_DOOR; d++)
@@ -3992,6 +4051,20 @@ main (int argc, const char *argv[])
                      e->event = (!strcmp (tag, "id") ? EVENT_FOB : EVENT_FOB_HELD);
                      e->port = port;
                      strncpy ((char *) e->fob, m, sizeof (e->fob));
+                     struct timezone tz;
+                     gettimeofday ((void *) &e->when, &tz);
+                     postevent (e);
+                     return;
+                  }
+                  if (!strcmp (tag, "key") || !strcmp (tag, "held"))
+                  {
+                     event_t *e = malloc (sizeof (*e));
+                     if (!e)
+                        errx (1, "malloc");
+                     memset ((void *) e, 0, sizeof (*e));
+                     e->event = (!strcmp (tag, "key") ? EVENT_KEY : EVENT_KEY_HELD);
+                     e->port = port;
+                     e->key = *(char *) msg->payload;
                      struct timezone tz;
                      gettimeofday ((void *) &e->when, &tz);
                      postevent (e);
