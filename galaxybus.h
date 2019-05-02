@@ -38,7 +38,7 @@ typedef unsigned short tamper_t;
 typedef unsigned short fault_t;
 typedef unsigned short voltage_t;
 
-typedef char fob_t[15];	// Fob ID (text, leading zeros having been removed)
+typedef char fob_t[15];         // Fob ID (text, leading zeros having been removed)
 
 extern char *WATCHDOG;          // Watchdog device if needed (default NULL)
 
@@ -70,6 +70,7 @@ const char *type_name[MAX_TYPE];        // Device type name
 	e(TAMPER)	\
 	e(FAULT)	\
 	e(KEY)		\
+	e(KEY_HELD)		\
 	e(FOB)		\
 	e(FOB_HELD)	\
 	e(DOOR)		\
@@ -123,6 +124,19 @@ const rio_threshold_t rio_thresholds[3];
 
 typedef volatile struct device_s device_t;      // Device
 typedef volatile struct event_s event_t;
+typedef volatile struct keypad_data_s keypad_data_t;
+
+struct keypad_data_s
+{                               // Keypad
+   unsigned char backlight:1;   // Backlight
+   unsigned char blink:1;       // Blink led
+   unsigned char quiet:1;       // Quiet key beeps
+   unsigned char silent:1;      // Silent keybeeps
+   unsigned char cross:1;       // Crossed zeros
+   unsigned char beep[2];       // Beeping
+   unsigned char text[2][17];   // Display (display is 16, we have 17 to allow printf and the like)
+   unsigned char cursor;        // 0x80 for solid, 0x40 for underline, 0x10 for second line, 0x0P for position
+};
 
 struct device_s
 {                               // Device on the bus...
@@ -140,17 +154,7 @@ struct device_s
    unsigned char urgent:1;      // Device needs urgent update as time critical
    union
    {                            // type specific
-      struct
-      {                         // Keypad
-         unsigned char backlight:1;     // Backlight
-         unsigned char blink:1; // Blink led
-         unsigned char quiet:1; // Quiet key beeps
-         unsigned char silent:1;        // Silent keybeeps
-         unsigned char cross:1; // Crossed zeros
-         unsigned char beep[2]; // Beeping
-         unsigned char text[2][17];     // Display (display is 16, we have 17 to allow printf and the like)
-         unsigned char cursor;  // 0x80 for solid, 0x40 for underline, 0x10 for second line, 0x0P for position
-      };
+      struct keypad_data_s k;
       struct
       {                         // Max
          unsigned char disable:1;       // Disable reader

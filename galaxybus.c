@@ -241,17 +241,7 @@ poller (void *d)
       unsigned char toggle0C:1; // Toggle for 0x0C message
       union
       {
-         struct
-         {                      // keypad
-            unsigned char backlight:1;
-            unsigned char blink:1;      // Blink led
-            unsigned char quiet:1;
-            unsigned char silent:1;
-            unsigned char beep[2];
-// Current beeping confirmed state
-            unsigned char text[2][16];  // Current display text, 2 lines of 16 characters, confirmed state
-            unsigned char cursor;       // 0x80 for solid, 0x40 for underline, 0x10 for second line, 0x0P for position
-         };
+         struct keypad_data_s k;
          struct
          {                      // Max
             unsigned char disable:1;    // Reader disabled
@@ -567,7 +557,7 @@ poller (void *d)
                      mydev[id].tamper &= ~(1 << MAX_INPUT);
                   if (res[2] != 0x7F)
                   {             // key
-                     event_t *e = newevent (EVENT_KEY, 0, 0);
+                     event_t *e = newevent ((res[2] & 0x80) ? EVENT_KEY_HELD : EVENT_KEY, 0, 0);
                      e->key = "0123456789BA\n\e*#"[res[2] & 0x0F];
                      postevent (e);
                      // Acknowledge key
@@ -863,9 +853,9 @@ poller (void *d)
                      mydev[id].toggle0B ^= 1;
                   }
                }
-               if (mydev[id].send07 || mydev[id].blink != dev[id].blink || mydev[id].cursor != dev[id].cursor
-                   || memcmp (mydev[id].text[0], (void *) dev[id].text[0], 16)
-                   || memcmp (mydev[id].text[1], (void *) dev[id].text[1], 16))
+               if (mydev[id].send07 || mydev[id].k.blink != dev[id].k.blink || mydev[id].k.cursor != dev[id].k.cursor
+                   || memcmp (mydev[id].k.text[0], (void *) dev[id].k.text[0], 16)
+                   || memcmp (mydev[id].k.text[1], (void *) dev[id].k.text[1], 16))
                {                // Text change
                   int l,
                     p;
@@ -874,7 +864,7 @@ poller (void *d)
                   else
                   {             // Updating display, try to track the change in mydev text as we go and only send what we need to
                      cmd[++cmdlen] = 0x07;
-                     cmd[++cmdlen] = 0x01 | ((mydev[id].blink = dev[id].blink) ? 0x08 : 0x00) | (mydev[id].toggle07 ? 0x80 : 0);
+                     cmd[++cmdlen] = 0x01 | ((mydev[id].k.blink = dev[id].k.blink) ? 0x08 : 0x00) | (mydev[id].toggle07 ? 0x80 : 0);
                      unsigned int maketext (int dummy, int space)
                      {
                         int q = cmdlen;
@@ -882,7 +872,7 @@ poller (void *d)
                            cmd[++q] = 0x17;     // clear/home
                         for (l = 0; l < 2; l++)
                         {
-                           for (p = 0; p < 16 && (space ? : mydev[id].text[l][p]) == dev[id].text[l][p]; p++);  // First character changed
+                           for (p = 0; p < 16 && (space ? : mydev[id].k.text[l][p]) == dev[id].k.text[l][p]; p++);  // First character changed
                            if (p == 16)
                               continue; // Line not different
                            if (p < 2)
@@ -896,13 +886,13 @@ poller (void *d)
                               cmd[++q] = (l ? 0x40 : 0) + p;
                            }
                            int p2 = p;
-                           for (p2 = 15; p2 > p && (space ? : mydev[id].text[l][p2]) == dev[id].text[l][p2]; p2--);     // Last character changed
+                           for (p2 = 15; p2 > p && (space ? : mydev[id].k.text[l][p2]) == dev[id].k.text[l][p2]; p2--);     // Last character changed
                            while (p <= p2)
                            {
-                              unsigned char c = (dummy ? dev[id].text[l][p] : (mydev[id].text[l][p] = dev[id].text[l][p]));
+                              unsigned char c = (dummy ? dev[id].k.text[l][p] : (mydev[id].k.text[l][p] = dev[id].k.text[l][p]));
                               if (c < ' ')
                                  cmd[++q] = ' ';
-                              else if (c == '0' && !dev[id].cross)
+                              else if (c == '0' && !dev[id].k.cross)
                                  cmd[++q] = 'O';
                               else
                                  cmd[++q] = c;
@@ -912,25 +902,25 @@ poller (void *d)
                            {
                               // Record where we left cursor
                               if (p == 16)
-                                 mydev[id].cursor = (mydev[id].cursor & ~0x1F) | (l ? 0 : 0x10);        // wrapped
+                                 mydev[id].k.cursor = (mydev[id].k.cursor & ~0x1F) | (l ? 0 : 0x10);        // wrapped
                               else
-                                 mydev[id].cursor = (mydev[id].cursor & ~0x1F) | (l ? 0x10 : 0) | p;
+                                 mydev[id].k.cursor = (mydev[id].k.cursor & ~0x1F) | (l ? 0x10 : 0) | p;
                            }
                         }
                         return q;
                      }
-                     if (mydev[id].send07 || mydev[id].cursor)
+                     if (mydev[id].send07 || mydev[id].k.cursor)
                      {
                         cmd[++cmdlen] = 0x07;   // Cursor off
-                        mydev[id].cursor = 0x1F;        // Off
+                        mydev[id].k.cursor = 0x1F;        // Off
                      }
                      if (mydev[id].send07)
                      {
                         cmd[++cmdlen] = 0x17;   // clear/home
                         for (l = 0; l < 2; l++)
                            for (p = 0; p < 16; p++)
-                              mydev[id].text[l][p] = ' ';
-                        mydev[id].cursor &= ~0x1F;      // Home
+                              mydev[id].k.text[l][p] = ' ';
+                        mydev[id].k.cursor &= ~0x1F;      // Home
                         cmdlen = maketext (0, ' ');
                      } else
                      {          // Work out if clear/home would be worthwhile
@@ -940,16 +930,16 @@ poller (void *d)
                         {       // Work from blank
                            for (l = 0; l < 2; l++)
                               for (p = 0; p < 16; p++)
-                                 mydev[id].text[l][p] = ' ';
+                                 mydev[id].k.text[l][p] = ' ';
                            cmdlen = maketext (0, ' ');
                         } else
                            cmdlen = c2;
                      }
 
-                     unsigned char cursor = dev[id].cursor;
+                     unsigned char cursor = dev[id].k.cursor;
                      if (cursor)
                      {
-                        if ((cursor & 0x1F) != (mydev[id].cursor & 0x1F))
+                        if ((cursor & 0x1F) != (mydev[id].k.cursor & 0x1F))
                         {       // Move to right place
                            cmd[++cmdlen] = 0x03;
                            cmd[++cmdlen] = ((cursor & 0x10) ? 0x40 : 0) + (cursor & 0x0F);
@@ -959,53 +949,53 @@ poller (void *d)
                         else if (cursor & 0x40)
                            cmd[++cmdlen] = 0x10;        // Underline
                      }
-                     mydev[id].cursor = cursor;
+                     mydev[id].k.cursor = cursor;
                      if (!mydev[id].toggle07)
                         mydev[id].send07 = 0;   // Sends twice initially
                      mydev[id].toggle07 ^= 1;
                   }
                }
-               if (mydev[id].send19 || mydev[id].quiet != dev[id].quiet || mydev[id].silent != dev[id].silent)
+               if (mydev[id].send19 || mydev[id].k.quiet != dev[id].k.quiet || mydev[id].k.silent != dev[id].k.silent)
                {                // Settings changed
                   if (cmdlen)
                      more++;
                   else
                   {
-                     mydev[id].quiet = dev[id].quiet;
-                     mydev[id].silent = dev[id].silent;
+                     mydev[id].k.quiet = dev[id].k.quiet;
+                     mydev[id].k.silent = dev[id].k.silent;
                      cmd[++cmdlen] = 0x19;
-                     if (mydev[id].silent)
+                     if (mydev[id].k.silent)
                         cmd[++cmdlen] = 0x03;
-                     else if (dev[id].quiet)
+                     else if (dev[id].k.quiet)
                         cmd[++cmdlen] = 0x05;
                      else
                         cmd[++cmdlen] = 0x01;
                      mydev[id].send19 = 0;
                   }
                }
-               if (mydev[id].send0C || mydev[id].beep[0] != dev[id].beep[0] || mydev[id].beep[1] != dev[id].beep[1])
+               if (mydev[id].send0C || mydev[id].k.beep[0] != dev[id].k.beep[0] || mydev[id].k.beep[1] != dev[id].k.beep[1])
                {                // Beep change
                   if (cmdlen)
                      more++;
                   else
                   {
-                     mydev[id].beep[0] = dev[id].beep[0];
-                     mydev[id].beep[1] = dev[id].beep[1];
+                     mydev[id].k.beep[0] = dev[id].k.beep[0];
+                     mydev[id].k.beep[1] = dev[id].k.beep[1];
                      cmd[++cmdlen] = 0x0C;
-                     cmd[++cmdlen] = ((mydev[id].beep[0] || mydev[id].beep[1]) ? mydev[id].beep[1] ? 3 : 1 : 0);
-                     cmd[++cmdlen] = mydev[id].beep[0];
-                     cmd[++cmdlen] = mydev[id].beep[1];
+                     cmd[++cmdlen] = ((mydev[id].k.beep[0] || mydev[id].k.beep[1]) ? mydev[id].k.beep[1] ? 3 : 1 : 0);
+                     cmd[++cmdlen] = mydev[id].k.beep[0];
+                     cmd[++cmdlen] = mydev[id].k.beep[1];
                      mydev[id].send0C = 0;
                   }
                }
-               if (mydev[id].send0D || mydev[id].backlight != dev[id].backlight)
+               if (mydev[id].send0D || mydev[id].k.backlight != dev[id].k.backlight)
                {
                   if (cmdlen)
                      more++;
                   else
                   {
                      cmd[++cmdlen] = 0x0D;
-                     mydev[id].backlight = cmd[++cmdlen] = dev[id].backlight;
+                     mydev[id].k.backlight = cmd[++cmdlen] = dev[id].k.backlight;
                      mydev[id].send0D = 0;
                   }
                }
