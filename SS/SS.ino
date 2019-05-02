@@ -229,5 +229,5 @@ unsigned safemodestart = 0;
     input_loop(revk, force);
 #endif
     force = false;
-    //delay(1);
+    delay(1);
   }
