@@ -89,12 +89,13 @@ const char* keypad_fault = false;
     static long next = 0;
     if ((int)(next - now) < 0)
     {
-      next = ((now + 1000) ? : 1); // Default if nothing responding
       static boolean send0B = false;
       static boolean toggle0B = false;
       static boolean toggle07 = false;
       static boolean online = false;
       static boolean tamper = false;
+      static boolean send07c = false; // second send
+      next = ((now + 1000) ? : 1); // Default if nothing responding
       byte buf[100], p = 0;
       if (!online)
       { // Init
@@ -102,12 +103,17 @@ const char* keypad_fault = false;
         buf[++p] = 0x0E;
       } else    if (send0B)
       { // key confirm
+        send0B = false;
         buf[++p] = 0x0B;
         buf[++p] = toggle0B ? 2 : 0;
         toggle0B = !toggle0B;
-        send0B = false;
-      } else if (send07 || send07a || send07b)
+      } else if (send07 || send07a || send07b || send07c)
       { // Text
+        if (send07)
+          send07c = true; // always send twice
+        else
+          send07a = send07b = send07c = false; // sent
+        send07 = false;
         buf[++p] = 0x07;
         buf[++p] = 0x01 | ((blink[0] & 1) ? 0x08 : 0x00) | (toggle07 ? 0x80 : 0);
         byte len = display_len;
@@ -137,7 +143,8 @@ const char* keypad_fault = false;
             else buf[++p] = ' ';
           }
         }
-        else buf[++p] = 0x17; // clear
+        else
+          buf[++p] = 0x17; // clear
         if (send07a)
         { // cursor
           if (cursor_len)
@@ -151,24 +158,19 @@ const char* keypad_fault = false;
           }
           else buf[++p] = 0x07; // cursor off
         }
-        if (!toggle07)
-        { // send twice
-          send07a = false;
-          send07b = false;
-          send07 = false;
-        }
         toggle07 = !toggle07;
       } else if (send19)
       { // Key keyclicks
+        send19 = false;
         buf[++p] = 0x19;
         if (!revk.mqttconnected)
           buf[++p] = 0x01; // Sound normal
         else
           buf[++p] = (keyclick[0] & 0x7); // 0x03 (silent), 0x05 (quiet), or 0x01 (normal)
         buf[++p] = 0;
-        send19 = false;
       } else if (send0C)
       { // Beeper
+        send0C = false;
         byte *s = sounder;
         byte len = sounder_len;
         if (!revk.mqttconnected)
@@ -181,15 +183,14 @@ const char* keypad_fault = false;
         buf[++p] = len ? s[1] ? 3 : 1 : 0;
         buf[++p] = (s[0] & 0x3F); // Time on
         buf[++p] = (s[1] & 0x3F); // Time off
-        send0C = false;
       } else if (send0D)
       { // Light change
+        send0D = false;
         buf[++p] = 0x0D;
         if (!revk.mqttconnected)
           buf[++p] = 1;
         else
           buf[++p] = (backlight[0] & 1);
-        send0D = false;
       } else
         buf[++p] = 0x06; // Normal poll
       // Send
