@@ -15,7 +15,7 @@
 
 #include <ESP8266RevK.h>
 #include "Reader532.h"
-#include <PN532_SPI.h>
+#include <PN532_SPI.h>    // Elechouse library
 #include "PN532.h"
 #include "Relay.h"
 
