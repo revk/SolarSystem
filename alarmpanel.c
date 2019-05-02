@@ -698,6 +698,8 @@ keypad_send (keypad_t * k, int force)
    }
    if (!k->port->mqtt)
       return;                   // WTF
+   if (port_app (k->port)->missing)
+      return;                   // No point
    char topic[50];
    unsigned char message[50];
    if (force || memcmp ((void *) &k->k.text, (void *) &k->kwas.text, sizeof (k->k.text)))
@@ -737,7 +739,7 @@ keypad_send (keypad_t * k, int force)
    if (force || k->k.cursor != k->kwas.cursor)
    {
       snprintf (topic, sizeof (topic), "command/SS/%s/blink", k->port->mqtt);
-      *message = k->k.cursor;
+      *message = 0x20 + k->k.cursor;
       mosquitto_publish (mqtt, NULL, topic, 1, message, 1, 0);
    }
    if (force || memcmp ((void *) &k->k.beep, (void *) &k->kwas.beep, sizeof (k->k.beep)))
