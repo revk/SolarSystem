@@ -5,11 +5,11 @@ t=0.1;  // Print xy tolerance adjust to make fit
 tl=0.25; // Layer gap
 
 wt=2;   // Wall thickness
-pw=41; // PCB size
-ph=44;
+pw=40.4+t; // PCB size (genuine elechouse)
+ph=42.7+t;
 pt=1.5+t; // PCB thickness
 pc=2.5; // Component thickness
-pb=9.5-wt; // Back connector thickness
+pb=8-wt; // Back connector thickness
 hd=3; // Hole diameter
 hx=0.3*25.4; // Hole position
 hy=hx;
