@@ -1260,12 +1260,11 @@ load_config (const char *configfile)
                continue;
             }
             keypad_t *k = keypad_new (p);
-            k->port = p;
             k->name = xml_copy (x, "@name");
             k->groups = group_parse (xml_get (x, "@groups") ? : "*");
             k->group_arm = (group_parse (xml_get (x, "@arm") ? : "*") & k->groups);     // default is all groups covered
             k->group_reset = (group_parse (xml_get (x, "@reset") ? : "") & k->groups);  // default is no groups, i.e. needs login
-            k->prox = port_parse (xml_get (x, "@prox"), NULL, 0);
+            k->prox = port_parse (xml_get (x, "@prox"), NULL, -1);
             k->time_logout = atoi (xml_get (x, "@logout") ? : "60");
             k->message = xml_copy (x, "@message");
             if ((v = xml_get (x, "@crossed-zeros")) && !strcasecmp (v, "true"))
@@ -1999,8 +1998,8 @@ keypad_new (port_p p)
    {
       k = malloc (sizeof (*k));
       memset (k, 0, sizeof (*k));
-      k->next = keypad;
       //device[port_device (p)].output = 0;
+      k->next = keypad;
       keypad = k;
    }
    k->port = p;
