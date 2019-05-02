@@ -340,6 +340,7 @@ struct keypad_s
    time_t when_posn;            // List time
    const char *alert;           // Last alert state
    unsigned char ack:1;         // Alert acknowledged so do not beep
+   unsigned char block:1;	// Block input
 };
 static keypad_t *keypad = NULL;
 
@@ -777,14 +778,19 @@ keypad_ws (xml_t root, keypad_t * k)
    }
    xml_add (x, "+line", (char *) k->k.text[0]);
    xml_add (x, "+line", (char *) k->k.text[1]);
+   if(k->k.beep[0])
+   {
    xml_addf (x, "+-beep", "%d", k->k.beep[0]);
    xml_addf (x, "+-beep", "%d", k->k.beep[1]);
+   }
    if (k->k.cursor)
       xml_addf (x, "+@-cursor", "%d", k->k.cursor);
    if (k->k.silent)
       xml_add (x, "+@-silent", "true");
    if (k->k.blink)
       xml_add (x, "+@-blink", "true");
+   if (k->k.backlight)
+      xml_add (x, "+@-backlight", "true");
    return x;
 }
 
@@ -1264,6 +1270,12 @@ load_config (const char *configfile)
             k->message = xml_copy (x, "@message");
             if ((v = xml_get (x, "@crossed-zeros")) && !strcasecmp (v, "true"))
                k->k.cross = 1;
+            if ((v = xml_get (x, "@silent")) && !strcasecmp (v, "true"))
+               k->k.silent = 1;
+            if ((v = xml_get (x, "@quiet")) && !strcasecmp (v, "true"))
+               k->k.quiet = 1;
+            if (!(v = xml_get (x, "@dark")) || strcasecmp (v, "true"))
+               k->k.backlight = 1;
          }
    }
    if (debug)
@@ -1988,7 +2000,6 @@ keypad_new (port_p p)
       k = malloc (sizeof (*k));
       memset (k, 0, sizeof (*k));
       k->next = keypad;
-      k->k.backlight = 1;
       //device[port_device (p)].output = 0;
       keypad = k;
    }
@@ -2485,7 +2496,7 @@ keypad_message (keypad_t * k, char *fmt, ...)
       *nl++ = 0;
    snprintf (l1, 17, "%-16s", v);
    snprintf (l2, 17, "%-16s", nl ? : "");
-   k->when = now.tv_sec + (k->k.silent ? 10 : 3);
+   k->when = now.tv_sec + (k->block ? 10 : 3);
    free (msg);
    keypad_send (k, 0);
 #ifdef  LIBWS
@@ -2547,10 +2558,10 @@ do_keypad_update (keypad_t * k, char key)
    {                            // Not in use at all!
       snprintf (l1, 17, "%-16s", k->message ? : "-- NOT IN USE --");
       snprintf (l2, 17, "%02d:%02d %10s", lnow.tm_hour, lnow.tm_min, port_name (k->port));
-      k->k.silent = 1;          // No keys
+      k->block = 1;          // No keys
       return NULL;
    }
-   if (key && k->k.silent)
+   if (key && k->block)
       return keypad_message (k, "Wait");
    int s;
    group_t trigger = 0;
@@ -2630,7 +2641,7 @@ do_keypad_update (keypad_t * k, char key)
       k->when = now.tv_sec + 1;
       return NULL;
    }
-   k->k.silent = 0;
+   k->block = 0;
    // PIN entry?
    if (k->pininput || isdigit (key))
    {
@@ -2642,7 +2653,7 @@ do_keypad_update (keypad_t * k, char key)
             for (u = users; u && u->pin != k->pin; u = u->next);
          if (!u)
          {                      // PIN 0 or user not valid
-            k->k.silent = 1;
+            k->block = 1;
             return keypad_message (k, "INVALID CODE");
          }
          keypad_login (k, u, port_name (k->port));
