@@ -711,6 +711,8 @@ keypad_send (keypad_t * k, int force)
          for (n = 0; n < 32; n++)
             if (message[n] == '0')
                message[n] = 'O';
+            else if (message[n] < ' ')
+               message[n] = ' ';
       }
       mosquitto_publish (mqtt, NULL, topic, 32, message, 1, 0);
    }
@@ -1250,7 +1252,6 @@ load_config (const char *configfile)
                continue;
             }
             keypad_t *k = keypad_new (p);
-            app->keypad = k;
             k->port = p;
             k->name = xml_copy (x, "@name");
             k->groups = group_parse (xml_get (x, "@groups") ? : "*");
@@ -1977,8 +1978,9 @@ alarm_reset (const char *who, const char *where, group_t mask)
 static keypad_t *
 keypad_new (port_p p)
 {
-   keypad_t *k;
-   for (k = keypad; k && k->port != p; k = k->next);
+   keypad_t *k = port_app (p)->keypad;
+   if (!k)
+      for (k = keypad; k && k->port != p; k = k->next);
    if (!k)
    {
       k = malloc (sizeof (*k));
@@ -4012,7 +4014,7 @@ main (int argc, const char *argv[])
                            mqtt_output (o, o->state);
                   }
                   int etype = 0;
-                  if (!tag && port->state != state)
+                  if (!tag && (state || port->state != state))
                      etype = (state ? EVENT_FOUND : EVENT_MISSING);
                   else if (tag && !strncmp (tag, "input", 5) && port->state != state)
                      etype = EVENT_INPUT;
