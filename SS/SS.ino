@@ -134,6 +134,7 @@ unsigned safemodestart = 0;
 
   void setup()
   {
+    WiFi.setSleepMode(WIFI_NONE_SLEEP);
 #ifdef USE_READER522
     reader522_setup(revk);
 #endif
