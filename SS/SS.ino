@@ -18,12 +18,14 @@ unsigned int gpiomap = 0x1703F; // Pins available (ESP-12F)
 unsigned int gpiomap = 0xF; // Pins available (ESP-01)
 #endif
 
+
 #include "Relay.h"
 #include "Ranger0X.h"
 #include "Ranger1X.h"
 #include "Keypad.h"
 #include "Beep.h"
 #include "Input.h"
+#include "Output.h"
 
 static boolean force = true;
 boolean insafemode = false;
@@ -37,7 +39,7 @@ unsigned safemodestart = 0;
   s(beeper,0); \
   s(holdtime,3000); \
   s(releasetime,250); \
-  s(safemode,0); \
+  s(safemode,60); \
   t(fallback); \
   s(rangerdebug,0); \
   s(rangerpoll,100); \
@@ -84,6 +86,9 @@ unsigned safemodestart = 0;
 #ifdef  USE_BEEP
     if ((ret = beep_setting(tag, value, len)))return ret;
 #endif
+#ifdef  USE_OUTPUT
+    if ((ret = output_setting(tag, value, len)))return ret;
+#endif
 #ifdef  USE_INPUT
     if ((ret = input_setting(tag, value, len)))return ret;
 #endif
@@ -126,6 +131,9 @@ unsigned safemodestart = 0;
 #ifdef  USE_BEEP
     if (beep_command(tag, message, len))return true;
 #endif
+#ifdef  USE_OUTPUT
+    if (output_command(tag, message, len))return true;
+#endif
 #ifdef  USE_INPUT
     if (input_command(tag, message, len))return true;
 #endif
@@ -134,6 +142,7 @@ unsigned safemodestart = 0;
 
   void setup()
   {
+    WiFi.setSleepMode(WIFI_NONE_SLEEP);
 #ifdef USE_READER522
     reader522_setup(revk);
 #endif
@@ -155,6 +164,9 @@ unsigned safemodestart = 0;
     // Leave until last as needs to know which GPIO are available
 #ifdef USE_BEEP
     beep_setup(revk);
+#endif
+#ifdef USE_OUTPUT
+    output_setup(revk);
 #endif
 #ifdef USE_INPUT
     input_setup(revk);
@@ -187,6 +199,9 @@ unsigned safemodestart = 0;
 #ifdef USE_BEEP
         beep_fault ? :
 #endif
+#ifdef USE_OUTPUT
+        output_fault ? :
+#endif
 #ifdef USE_INPUT
         input_fault ? :
 #endif
@@ -201,6 +216,7 @@ unsigned safemodestart = 0;
     }
     if (safemodestart && (int)(safemodestart - millis()) < 0)
     {
+      force = true;
       insafemode = true;
       safemodestart = 0;
     }
@@ -224,6 +240,9 @@ unsigned safemodestart = 0;
 #endif
 #ifdef USE_NEEP
     beep_loop(revk, force);
+#endif
+#ifdef USE_OUTPUT
+    input_loop(revk, force);
 #endif
 #ifdef USE_INPUT
     input_loop(revk, force);

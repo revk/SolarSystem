@@ -173,7 +173,7 @@ const char* keypad_fault = false;
         send0C = false;
         byte *s = sounder;
         byte len = sounder_len;
-        if (!revk.mqttconnected)
+        if (insafemode)
         {
           static const byte beepy[] = {1, 1};
           s = (byte*)beepy;

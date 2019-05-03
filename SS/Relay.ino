@@ -1,7 +1,7 @@
 // Solar System
 // (c) Andrews & Arnold Ltd, Adrian Kennard, see LICENSE file (GPL)
 
-// Relay output
+// Relay output using ILS serial relay board
 
 #include <ESP8266RevK.h>
 #include "relay.h"
@@ -17,15 +17,15 @@ const char* relay_fault = false;
 #undef s
 
   unsigned long relaynext = 0;
-  unsigned long output = 0;
-  unsigned long override = 0;
+  unsigned long relayoutput = 0;
+  unsigned long relayoverride = 0;
 
-  void relay_safe_relay(boolean enable)
+  void relay_safe_set(boolean enable)
   { // Set relay safe mode operation
     if (enable)
-      override = 1;
+      relayoverride = 1;
     else
-      override = 0;
+      relayoverride = 0;
     relaynext = millis();
   }
 
@@ -44,9 +44,9 @@ const char* relay_fault = false;
     if (!strncasecmp(tag, PSTR("output"), 6) && tag[6] > '0' && tag[6] <= '0' + relay)
     {
       if (len && *message == '1')
-        output |= (1 << (tag[6] - '1'));
+        relayoutput |= (1 << (tag[6] - '1'));
       else
-        output &= ~(1 << (tag[6] - '1'));
+        relayoutput &= ~(1 << (tag[6] - '1'));
       relaynext = millis();
       return true;
     }
@@ -77,8 +77,8 @@ const char* relay_fault = false;
     if ((int)(relaynext - now) < 0)
     {
       relaynext = now + 1000; // Periodically send all relays
-      unsigned long relays = output;
-      if (insafemode)relays = override; // Safe mode, normall means relays off but can be overridden
+      unsigned long relays = relayoutput;
+      if (insafemode)relays = relayoverride; // Safe mode, normall means relays off but can be overridden
       int n;
       for (n = 0; n < relay && n < 8; n++)
       {

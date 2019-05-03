@@ -18,6 +18,7 @@
 #include <PN532_SPI.h>    // Elechouse library
 #include "PN532.h"
 #include "Relay.h"
+#include "Output.h"
 
 PN532_SPI pn532spi(SPI, ss);
 PN532 nfc(pn532spi);
@@ -102,10 +103,12 @@ const char* reader532_fault = false;
             revk.event(F("gone"), F("%s"), tid); // Previous card gone
           memcpy(lastuid, uid, lastlen = uidlen);
           int n;
-          for (n = 0; n < uidlen && n * 2 < sizeof(tid); n++)sprintf(tid + n * 2, "%02X", uid[n]);
+          for (n = 0; n < uidlen && n * 2 < sizeof(tid); n++)sprintf_P(tid + n * 2, PSTR("%02X"), uid[n]);
           if (fallback && !strcmp(fallback, tid))
-            relay_safe_relay(false);
-
+          {
+            relay_safe_set(false);
+            output_safe_set(false);
+          }
           first = now;
           held = false;
           revk.event(F("id"), F("%s"), tid);
@@ -114,12 +117,18 @@ const char* reader532_fault = false;
           held = true;
           revk.event(F("held"), F("%s"), tid);
           if (fallback && !strcmp(fallback, tid))
-            relay_safe_relay(true);
+          {
+            relay_safe_set(true);
+            output_safe_set(true);
+          }
         }
       } else if (last && (int)(now - last) > releasetime)
       {
         if (fallback && !strcmp(fallback, tid))
-          relay_safe_relay(false);
+        {
+          relay_safe_set(false);
+          output_safe_set(false);
+        }
         if (held)
           revk.event(F("gone"), F("%s"), tid);
         first = 0;
