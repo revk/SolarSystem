@@ -2638,21 +2638,7 @@ do_keypad_update (keypad_t * k, char key)
   // PIN entry?
   if (k->pininput || isdigit (key))
     {
-      if (key == '\n')
-	{			// End of PIN entry, do we login?
-	  k->pininput = 0;
-	  user_t *u = NULL;
-	  if (k->pin)
-	    for (u = users; u && u->pin != k->pin; u = u->next);
-	  if (!u)
-	    {			// PIN 0 or user not valid
-	      k->block = 1;
-	      return keypad_message (k, "INVALID CODE");
-	    }
-	  keypad_login (k, u, port_name (k->port));
-	  return NULL;
-	}
-      else if (isdigit (key))
+      if (isdigit (key))
 	{			// Digit
 	  if (k->pininput < 9)
 	    {
@@ -2669,6 +2655,21 @@ do_keypad_update (keypad_t * k, char key)
 	    l2[p] = ' ';
 	  k->when = k->when_logout = now.tv_sec + 10;	// Timeout
 	  return NULL;
+	}
+      if (key)
+	{			// End of PIN entry, do we login?
+	  k->pininput = 0;
+	  user_t *u = NULL;
+	  if (k->pin)
+	    for (u = users; u && u->pin != k->pin; u = u->next);
+	  if (!u)
+	    {			// PIN 0 or user not valid
+	      k->block = 1;
+	      return keypad_message (k, "INVALID CODE");
+	    }
+	  keypad_login (k, u, port_name (k->port));
+	  if (key == '\n')
+	    return NULL;
 	}
     }
   // Other keys
