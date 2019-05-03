@@ -194,6 +194,7 @@ struct port_app_s
      y;                         // Location on floor plan
    const char *t;               // Icon on floor plan
    unsigned char onplan:1;      // Is on floor plan
+   unsigned char found:1;       // Device has been seen
    unsigned char missing:1;     // Device missing
    unsigned char invert:1;      // Invert logic
    union
@@ -340,7 +341,7 @@ struct keypad_s
    time_t when_posn;            // List time
    const char *alert;           // Last alert state
    unsigned char ack:1;         // Alert acknowledged so do not beep
-   unsigned char block:1;	// Block input
+   unsigned char block:1;       // Block input
 };
 static keypad_t *keypad = NULL;
 
@@ -364,6 +365,7 @@ static void keypads_message (group_t g, const char *msg);
 static void state_change (group_t g);
 #define	port_name(p) real_port_name(alloca(30),p)
 static const char *real_port_name (char *v, port_p p);
+static port_app_t * port_app (port_p p);
 
 void
 mqtt_output (port_p p, int v)
@@ -380,6 +382,25 @@ mqtt_output (port_p p, int v)
    char msg = v + '0';
    mosquitto_publish (mqtt, NULL, topic, 1, &msg, 1, 0);
    free (topic);
+}
+
+void
+scan_missing (void)
+{
+   port_p p;
+   for (p = ports; p; p = p->next)
+      if (port_mqtt(p)&&!p->port && !port_app (p)->found && !port_app (p)->missing)
+      {
+         event_t *e = malloc (sizeof (*e));
+         if (!e)
+            errx (1, "malloc");
+         memset ((void *) e, 0, sizeof (*e));
+         e->event = EVENT_MISSING;
+         e->port = p;
+         struct timezone tz;
+         gettimeofday ((void *) &e->when, &tz);
+         postevent (e);
+      }
 }
 
 static int
@@ -589,9 +610,9 @@ real_port_name (char *v, port_p p)
    unsigned int id = port_device (p);
    int port = port_port (p);
    char *o = v;
-   if (p->mqtt)
+   if (port_mqtt (p))
    {
-      o += sprintf (o, "%.6s", p->mqtt);
+      o += sprintf (o, "%.6s", port_mqtt (p));
       if (port)
          o += sprintf (o, "%d", port);
       return v;
@@ -697,7 +718,7 @@ keypad_send (keypad_t * k, int force)
       memcpy ((void *) &device[id].k, (void *) &k->k, sizeof (k->k));
       return;
    }
-   if (!k->port->mqtt)
+   if (!port_mqtt (k->port))
       return;                   // WTF
    if (port_app (k->port)->missing)
       return;                   // No point
@@ -705,7 +726,7 @@ keypad_send (keypad_t * k, int force)
    unsigned char message[50];
    if (force || memcmp ((void *) &k->k.text, (void *) &k->kwas.text, sizeof (k->k.text)))
    {
-      snprintf (topic, sizeof (topic), "command/SS/%s/display", k->port->mqtt);
+      snprintf (topic, sizeof (topic), "command/SS/%s/display", port_mqtt (k->port));
       memcpy (message, (void *) &k->k.text[0], 16);
       memcpy (message + 16, (void *) &k->k.text[1], 16);
       if (!k->k.cross)
@@ -721,31 +742,31 @@ keypad_send (keypad_t * k, int force)
    }
    if (force || k->k.backlight != k->kwas.backlight)
    {
-      snprintf (topic, sizeof (topic), "command/SS/%s/backlight", k->port->mqtt);
+      snprintf (topic, sizeof (topic), "command/SS/%s/backlight", port_mqtt (k->port));
       *message = '0' + k->k.backlight;
       mosquitto_publish (mqtt, NULL, topic, 1, message, 1, 0);
    }
    if (force || k->k.blink != k->kwas.blink)
    {
-      snprintf (topic, sizeof (topic), "command/SS/%s/blink", k->port->mqtt);
+      snprintf (topic, sizeof (topic), "command/SS/%s/blink", port_mqtt (k->port));
       *message = '0' + k->k.blink;
       mosquitto_publish (mqtt, NULL, topic, 1, message, 1, 0);
    }
    if (force || k->k.quiet != k->kwas.quiet || k->k.silent != k->kwas.silent)
    {
-      snprintf (topic, sizeof (topic), "command/SS/%s/keyclick", k->port->mqtt);
+      snprintf (topic, sizeof (topic), "command/SS/%s/keyclick", port_mqtt (k->port));
       *message = '0' + (k->k.silent ? 3 : k->k.quiet ? 5 : 1);
       mosquitto_publish (mqtt, NULL, topic, 1, message, 1, 0);
    }
    if (force || k->k.cursor != k->kwas.cursor)
    {
-      snprintf (topic, sizeof (topic), "command/SS/%s/blink", k->port->mqtt);
+      snprintf (topic, sizeof (topic), "command/SS/%s/blink", port_mqtt (k->port));
       *message = 0x20 + k->k.cursor;
       mosquitto_publish (mqtt, NULL, topic, 1, message, 1, 0);
    }
    if (force || memcmp ((void *) &k->k.beep, (void *) &k->kwas.beep, sizeof (k->k.beep)))
    {
-      snprintf (topic, sizeof (topic), "command/SS/%s/sounder", k->port->mqtt);
+      snprintf (topic, sizeof (topic), "command/SS/%s/sounder", port_mqtt (k->port));
       memcpy (message, (void *) &k->k.beep, sizeof (k->k.beep));
       mosquitto_publish (mqtt, NULL, topic, k->k.beep[0] ? sizeof (k->k.beep) : 0, message, 1, 0);
    }
@@ -763,6 +784,12 @@ device_ws (xml_t root, port_p p)
    xml_add (x, "@id", p->mqtt);
    xml_add (x, "@dev", p->mqtt);
    xml_add (x, "@name", p->name ? : p->mqtt);
+   if (p->state)
+      xml_add (x, "@-active", "true");
+   if (app->tamper)
+      xml_add (x, "@-tamper", "true");
+   if (app->fault)
+      xml_add (x, "@-fault", "true");
    return x;
 }
 
@@ -778,10 +805,10 @@ keypad_ws (xml_t root, keypad_t * k)
    }
    xml_add (x, "+line", (char *) k->k.text[0]);
    xml_add (x, "+line", (char *) k->k.text[1]);
-   if(k->k.beep[0])
+   if (k->k.beep[0])
    {
-   xml_addf (x, "+-beep", "%d", k->k.beep[0]);
-   xml_addf (x, "+-beep", "%d", k->k.beep[1]);
+      xml_addf (x, "+-beep", "%d", k->k.beep[0]);
+      xml_addf (x, "+-beep", "%d", k->k.beep[1]);
    }
    if (k->k.cursor)
       xml_addf (x, "+@-cursor", "%d", k->k.cursor);
@@ -875,7 +902,7 @@ input_ws (xml_t root, port_p port)
       else if (id && device[id].type == TYPE_MAX)
          xml_add (x, "@type", "max");
    }
-   if (app->input)
+   if (port->state)
       xml_add (x, "@-active", "true");
    if (app->tamper)
       xml_add (x, "@-tamper", "true");
@@ -922,6 +949,10 @@ output_ws (xml_t root, port_p port)
    }
    if (port->state)
       xml_add (x, "@-active", "true");
+   if (app->tamper)
+      xml_add (x, "@-tamper", "true");
+   if (app->fault)
+      xml_add (x, "@-fault", "true");
    return NULL;
 }
 #endif
@@ -1260,12 +1291,11 @@ load_config (const char *configfile)
                continue;
             }
             keypad_t *k = keypad_new (p);
-            k->port = p;
             k->name = xml_copy (x, "@name");
             k->groups = group_parse (xml_get (x, "@groups") ? : "*");
             k->group_arm = (group_parse (xml_get (x, "@arm") ? : "*") & k->groups);     // default is all groups covered
             k->group_reset = (group_parse (xml_get (x, "@reset") ? : "") & k->groups);  // default is no groups, i.e. needs login
-            k->prox = port_parse (xml_get (x, "@prox"), NULL, 0);
+            k->prox = port_parse (xml_get (x, "@prox"), NULL, -1);
             k->time_logout = atoi (xml_get (x, "@logout") ? : "60");
             k->message = xml_copy (x, "@message");
             if ((v = xml_get (x, "@crossed-zeros")) && !strcasecmp (v, "true"))
@@ -1999,8 +2029,8 @@ keypad_new (port_p p)
    {
       k = malloc (sizeof (*k));
       memset (k, 0, sizeof (*k));
-      k->next = keypad;
       //device[port_device (p)].output = 0;
+      k->next = keypad;
       keypad = k;
    }
    k->port = p;
@@ -2558,7 +2588,7 @@ do_keypad_update (keypad_t * k, char key)
    {                            // Not in use at all!
       snprintf (l1, 17, "%-16s", k->message ? : "-- NOT IN USE --");
       snprintf (l2, 17, "%02d:%02d %10s", lnow.tm_hour, lnow.tm_min, port_name (k->port));
-      k->block = 1;          // No keys
+      k->block = 1;             // No keys
       return NULL;
    }
    if (key && k->block)
@@ -2645,21 +2675,7 @@ do_keypad_update (keypad_t * k, char key)
    // PIN entry?
    if (k->pininput || isdigit (key))
    {
-      if (!isdigit (key))
-      {                         // End of PIN entry, do we login?
-         k->pininput = 0;
-         user_t *u = NULL;
-         if (k->pin)
-            for (u = users; u && u->pin != k->pin; u = u->next);
-         if (!u)
-         {                      // PIN 0 or user not valid
-            k->block = 1;
-            return keypad_message (k, "INVALID CODE");
-         }
-         keypad_login (k, u, port_name (k->port));
-         if (key == '\n')
-            return NULL;
-      } else
+      if (isdigit (key))
       {                         // Digit
          if (k->pininput < 9)
          {
@@ -2676,6 +2692,21 @@ do_keypad_update (keypad_t * k, char key)
             l2[p] = ' ';
          k->when = k->when_logout = now.tv_sec + 10;    // Timeout
          return NULL;
+      }
+      if (key)
+      {                         // End of PIN entry, do we login?
+         k->pininput = 0;
+         user_t *u = NULL;
+         if (k->pin)
+            for (u = users; u && u->pin != k->pin; u = u->next);
+         if (!u)
+         {                      // PIN 0 or user not valid
+            k->block = 1;
+            return keypad_message (k, "INVALID CODE");
+         }
+         keypad_login (k, u, port_name (k->port));
+         if (key == '\n')
+            return NULL;
       }
    }
    // Other keys
@@ -2726,6 +2757,8 @@ do_keypad_update (keypad_t * k, char key)
             return keypad_message (k, "CANNOT SET");
       }
    }
+   if (k->pininput)
+      return NULL;
    // Status display
    const char *alert = NULL;
    if (k->groups & state[STATE_FIRE])
@@ -2942,6 +2975,7 @@ doevent (event_t * e)
          dolog (groups, "BUSFOUND", NULL, port_name (port), "Device found on bus");
          if (app && app->missing)
          {
+            app->found = 1;
             app->missing = 0;
             rem_tamper (groups, port_name (port), port->name);
          }
@@ -3281,7 +3315,8 @@ doevent (event_t * e)
                   {
                      // disarm is the groups that can be disarmed by this user on this door.
                      group_t disarm = ((u->group_arm & mydoor[d].group_arm & state[STATE_ARM]) | (port_name (port),
-                                                                                                  u->group_disarm &
+                                                                                                  u->
+                                                                                                  group_disarm &
                                                                                                   mydoor[d].group_disarm &
                                                                                                   state[STATE_SET]));
                      if (door[d].state == DOOR_PROPPED || door[d].state == DOOR_OPEN || door[d].state == DOOR_PROPPEDOK)
@@ -3357,14 +3392,14 @@ doevent (event_t * e)
                         alarm_arm (u->name, port_name (port), set, mydoor[d].time_set);
                      } else
                      {
-                        dolog (mydoor[d].group_lock, "FOBHELDIGNORED", u->name, doorno,
-                               "Ignored held fob %s as no setting options", e->fob);
+                        dolog (mydoor[d].group_lock, "FOBHELDIGNORED", u->name, doorno, "Ignored held fob %s as no setting options",
+                               e->fob);
                         door_error (d);
                      }
                   } else
                   {
-                     dolog (mydoor[d].group_lock, "FOBHELDIGNORED", u->name, doorno,
-                            "Ignored held fob %s as door cannot set alarm", e->fob);
+                     dolog (mydoor[d].group_lock, "FOBHELDIGNORED", u->name, doorno, "Ignored held fob %s as door cannot set alarm",
+                            e->fob);
                      door_error (d);
                   }
                }
@@ -3559,14 +3594,13 @@ do_wscallback (websocket_t * w, xml_t head, xml_t data)
          door_ws (root, d);
       port_p p;
       for (p = ports; p; p = p->next)
-         if (p->port)
-         {
-            if (p->isinput)
-               input_ws (root, p);
-            else
-               output_ws (root, p);
-         } else if (p->mqtt)
-            device_ws (root, p);
+         if (!p->port && p->mqtt)
+            device_ws (root, p);        // WiFi device level
+      for (p = ports; p; p = p->next)
+         if (port_isinput (p))
+            input_ws (root, p);
+         else if (port_isoutput (p))
+            output_ws (root, p);
       websocket_send (1, &w, root);
       pthread_mutex_unlock (&eventmutex);
       xml_tree_delete (root);
@@ -3578,7 +3612,7 @@ do_wscallback (websocket_t * w, xml_t head, xml_t data)
       if (!user)
          return "No user";
       // Process valid requests
-      pthread_mutex_lock (&eventmutex); // Stop simultaneous event processingx
+      pthread_mutex_lock (&eventmutex); // Stop simultaneous event processing
       xml_t root = xml_tree_new (NULL);
       xml_add (root, "@full-data", "true");     // Send name, etc.
       xml_t e;
@@ -4157,11 +4191,17 @@ main (int argc, const char *argv[])
       }
    }
    state_change (groups);
+   time_t checkmissing = time (0) + 10;
    time_t lastmin = time (0);
    while (1)
    {
       gettimeofday (&now, NULL);
       localtime_r (&now.tv_sec, &lnow);
+      if (checkmissing && now.tv_sec < checkmissing)
+      {
+         checkmissing = 0;
+         //scan_missing ();
+      }
       time_t nextpoll = (now.tv_sec + 60) / 60 * 60;
       if (nextpoll > lastmin)
       {                         // Every minute

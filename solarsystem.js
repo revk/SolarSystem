@@ -23,60 +23,34 @@ ws.onerror=function()
 }
 function io(dir,e)
 {
-	d=document.getElementById(dir+e.id);
-	if(!d)
-	{
-		d=document.getElementById(e.dev);
-		if(!d)
-		{
-			d=document.createElement("table");
-			d.id=e.dev;
-			d.className=e.type;
+	dev=document.getElementById(e.dev);
+	if(!dev)
+	{ // New device
+			dev=document.createElement("table");
+			dev.id=e.dev;
+			dev.className=e.type;
 			r=document.createElement("tr");
-			d.appendChild(r);
+			dev.appendChild(r);
 			c=document.createElement("th");
 			c.textContent=e.dev;
 			c.colSpan="2";
 			r.appendChild(c);
-			ps=8;
-			if(e.type=="max")ps=2;
-			if(e.type=="esp")ps=9;
-			for(p=0;p<ps;p++)
-			{
-				r=document.createElement("tr");
-				d.appendChild(r);
-				c=document.createElement("td");
-				c.textContent=p+1;
-				r.appendChild(c);
-				c=document.createElement("td");
-				c.id="I"+e.dev+(p+1);
-				r.appendChild(c);
-			}
-			r=document.createElement("tr");
-			d.appendChild(r);
-			c=document.createElement("td");
-			c.colSpan="2";
-			c.appendChild(document.createElement("hr"));
-			r.appendChild(c);
-			ps=4;
-			if(e.type=="max")ps=2;
-			if(e.type=="esp")ps=9;
-			for(p=0;p<ps;p++)
-			{
-				r=document.createElement("tr");
-				d.appendChild(r);
-				c=document.createElement("td");
-				c.textContent=p+1;
-				r.appendChild(c);
-				c=document.createElement("td");
-				c.id="O"+e.dev+(p+1);
-				r.appendChild(c);
-			}
-			document.getElementById("io").appendChild(d);
-		}
-		d=document.getElementById(dir+e.id);
+			document.getElementById("io").appendChild(dev);
 	}
-	if(d&&e.dev)
+	if(!dir)return dev; // Device level
+	d=document.getElementById(dir+e.id);
+	if(!d)
+	{ // New port
+		r=document.createElement("tr");
+		c=document.createElement("td");
+		c.textContent=e.port;
+		r.appendChild(c);
+		d=document.createElement("td");
+		d.id=dir+e.id;
+		r.appendChild(d);
+		dev.appendChild(r);
+	}
+	if(d)
 	{
 		d.textContent=(e.name?e.name:e.id);
 		d.title=e.id;
@@ -227,6 +201,11 @@ ws.onmessage=function(event)
 		}
 		x.children[1].src="door"+d.state+".png";
 		x.children[2].textContent=d.state;
+	});
+	if(o.device)o.device.forEach(function(o)
+	{	// Log updates
+		x=io(false,o);
+		if(!x.className) x.className=(o.active?"deviceactive":"deviceidle");
 	});
 	if(o.output)o.output.forEach(function(o)
 	{	// Log updates
