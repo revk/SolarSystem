@@ -50,7 +50,7 @@ function io(dir,e)
 		r.appendChild(d);
 		dev.appendChild(r);
 	}
-	if(d)
+	if(d&&!d.textContent)
 	{
 		d.textContent=(e.name?e.name:e.id);
 		d.title=e.id;

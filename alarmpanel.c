@@ -4197,10 +4197,10 @@ main (int argc, const char *argv[])
    {
       gettimeofday (&now, NULL);
       localtime_r (&now.tv_sec, &lnow);
-      if (checkmissing && now.tv_sec < checkmissing)
+      if (checkmissing && now.tv_sec > checkmissing)
       {
          checkmissing = 0;
-         //scan_missing ();
+         scan_missing ();
       }
       time_t nextpoll = (now.tv_sec + 60) / 60 * 60;
       if (nextpoll > lastmin)
