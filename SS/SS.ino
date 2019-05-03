@@ -37,7 +37,7 @@ unsigned safemodestart = 0;
   s(beeper,0); \
   s(holdtime,3000); \
   s(releasetime,250); \
-  s(safemode,0); \
+  s(safemode,60); \
   t(fallback); \
   s(rangerdebug,0); \
   s(rangerpoll,100); \
@@ -201,6 +201,7 @@ unsigned safemodestart = 0;
     }
     if (safemodestart && (int)(safemodestart - millis()) < 0)
     {
+      force = true;
       insafemode = true;
       safemodestart = 0;
     }
