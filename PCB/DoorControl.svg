@@ -25,9 +25,9 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="9.013261"
-     inkscape:cx="73.001923"
-     inkscape:cy="55.456537"
+     inkscape:zoom="6.373338"
+     inkscape:cx="53.031349"
+     inkscape:cy="54.115044"
      inkscape:document-units="mm"
      inkscape:current-layer="layer7"
      showgrid="true"
@@ -541,25 +541,25 @@
     <text
        xml:space="preserve"
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.11666656px;line-height:125%;font-family:Raleway;-inkscape-font-specification:'Raleway, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:center;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       x="34.999432"
+       x="40.342022"
        y="26.593693"
        id="text1038"><tspan
          sodipodi:role="line"
          id="tspan1036"
-         x="34.999432"
+         x="40.342022"
          y="26.593693"
          style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.11666656px;font-family:Raleway;-inkscape-font-specification:'Raleway, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:center;writing-mode:lr-tb;text-anchor:middle;stroke-width:0.26458332px">GND</tspan></text>
     <text
        xml:space="preserve"
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.11666656px;line-height:125%;font-family:Raleway;-inkscape-font-specification:'Raleway, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:center;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       x="40.307869"
-       y="26.438118"
+       x="34.759796"
+       y="26.443409"
        id="text1042"><tspan
          sodipodi:role="line"
          id="tspan1040"
-         x="40.307869"
-         y="26.438118"
-         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.11666656px;font-family:Raleway;-inkscape-font-specification:'Raleway, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:center;writing-mode:lr-tb;text-anchor:middle;stroke-width:0.26458332px">12V</tspan></text>
+         x="34.759796"
+         y="26.443409"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.11666656px;font-family:Raleway;-inkscape-font-specification:'Raleway, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:center;writing-mode:lr-tb;text-anchor:middle;stroke-width:0.26458332px">4-36V</tspan></text>
     <path
        style="opacity:1;fill:none;fill-opacity:0.50196078;fill-rule:evenodd;stroke:#00ff00;stroke-width:1;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
        d="M 24.67,3.8600116 V 14.020012"
@@ -589,9 +589,9 @@
     <path
        id="path944"
        style="opacity:1;fill:none;fill-opacity:0.50196078;fill-rule:evenodd;stroke:#ff0000;stroke-width:0.5;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
-       d="m 23.4,4.1199692 v 2.01759 M 41.179998,5.1300105 v 7.6200005 m -7.619997,-15.2399996 0,4.4450001 h 5.08 v 3.1750001 l 2.539999,-10e-7 m -7.619999,7.6200014 h 2.54 v 2.54 m 1.27,8.89 v -7.62 h -4.445 l -1.27,-1.27 h -0.635 v -2.54 h 2.54 v 2.54 l 9.524998,-1e-6 v 0 M 18.32,0.05001146 V -2.4899886 m -7.62,0 V 0.1199753 H 5.6199997 l 2e-7,-2.6099639 m -4.4450003,13.5979846 3.1749942,-10e-7 5.9e-6,-0.988026 h 4.4450001 m -7.6200002,-1.5582298 3.1749942,-10e-8 5.8e-6,-0.4417698 h 4.4450002 m -7.6200002,-2.0356686 3.1749942,2e-7 4.445006,2e-7 M 1.1749996,3.5151052 h 3.1749942 l 5.8e-6,0.6048639 H 8.7949998 V 12.115012 H 5.2279471 L 4.3499996,13.720043 H 1.1750054 M 11.97,21.005012 H 7.5249998 v -4.445 l 5.0800002,-2.54 V 0.1199753 H 23.4 v -0.70496386 h 5.08 V 1.9550115 l 2.539999,-10e-8 v -4.445 M 1.1749996,0.98470795 h 3.1749942 l 5.8e-6,1.13526125 H 10.7 V 12.750014 l -7.6200004,3.81 v 5.715 H 31.020001 V 18.465012 L 30.385,17.830012 H 28.48 l -1.905,-2.48799 -3.175,-0.05201 v -2.54 h 5.08 l -1e-6,2.54 1.270001,1.27 h 1.270001 l 1.269998,1.27 v 6.35 0 m -13.97004,-14.06004 h 18.415042 l 1.905,2.630039 2.53998,10e-7 m 2e-5,-2.54 -2.54,-1e-6 -1.905,-2.1035616 L 18.32,8.1199694 m -1.27,9.7100426 v 3.175 h -5.08 v -4.445 h 2.54 V 2.1199692 h 8.89 2.54 L 25.95298,1.9420391 H 28.48 M 17.05,17.830012 H 16.415 V 4.1199692 H 23.4 v -2 M 17.05,17.830012 h 5.08 v 3.175 h 4.445004 v -3.188944 h -2.54 l -0.05648,-1.256056 H 18.32 V 6.1199691 h 18.415001 l 1.905,1.5500416 H 41.18"
+       d="m 23.4,4.1199692 v 2.01759 M 41.179998,5.1300105 V 12.750011 M 33.560001,-2.4899886 v 4.4450001 h 5.08 v 3.1750001 l 2.539999,-10e-7 m -7.619999,7.6200014 h 2.54 v 2.54 M 18.32,0.05001146 V -2.4899886 m -7.62,0 V 0.1199753 H 5.6199997 l 2e-7,-2.6099639 m -4.4450003,13.5979846 3.1749942,-10e-7 5.9e-6,-0.988026 h 4.4450001 m -7.6200002,-1.5582298 3.1749942,-10e-8 5.8e-6,-0.4417698 h 4.4450002 m -7.6200002,-2.0356686 3.1749942,2e-7 4.445006,2e-7 M 1.1749996,3.5151052 h 3.1749942 l 5.8e-6,0.6048639 H 8.7949998 V 12.115012 H 5.2279471 L 4.3499996,13.720043 H 1.1750054 M 11.97,21.005012 H 7.5249998 v -4.445 l 5.0800002,-2.54 V 0.1199753 H 23.4 v -0.70496386 h 5.08 V 1.9550115 l 2.539999,-10e-8 v -4.445 M 18.319959,10.119972 h 18.415042 l 1.905,2.630039 2.53998,10e-7 m 2e-5,-2.54 -2.54,-1e-6 -1.905,-2.1035616 L 18.32,8.1199694 m -1.27,9.7100426 v 3.175 h -5.08 v -4.445 h 2.54 V 2.1199692 h 8.89 2.54 L 25.95298,1.9420391 H 28.48 M 17.05,17.830012 H 16.415 V 4.1199692 H 23.4 v -2 M 17.05,17.830012 h 5.08 v 3.175 h 4.445004 v -3.188944 h -2.54 l -0.05648,-1.256056 H 18.32 V 6.1199691 h 18.415001 l 1.905,1.5500416 H 41.18 M 31.020001,15.290012 v -2.54 h 2.54 v 2.54 h 3.81 v 8.89 M 1.1749996,0.98470795 h 3.1749942 l 5.8e-6,1.13526125 H 10.7 V 12.750014 l -7.6200004,3.81 v 5.715 H 31.020001 V 18.465012 L 30.385,17.830012 H 28.48 l -1.905,-2.48799 -3.175,-0.05201 v -2.54 h 5.08 l -1e-6,2.54 h 2.540002 v 1.27 h 1.905 l 0,7.62"
        inkscape:connector-curvature="0"
-       sodipodi:nodetypes="cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc" />
+       sodipodi:nodetypes="ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc" />
   </g>
   <g
      inkscape:groupmode="layer"
