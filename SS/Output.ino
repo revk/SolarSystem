@@ -9,7 +9,7 @@ const char* output_fault = false;
 
 #define MAX_PIN 17
 
-int outputpin[MAX_PIN] = {};
+char outputpin[MAX_PIN] = {};
 unsigned long outputs = 0;
 unsigned long outputnext = 0;
 unsigned long outputoverride = 0;
@@ -89,7 +89,10 @@ unsigned long outputoverride = 0;
     }
     debugf("GPIO remaining %X", gpiomap);
     for (i = 0; i < output; i++)
+    {
+      if (outputpin[i] == 1)Serial.end(); // Tx pin
       pinMode(outputpin[i], OUTPUT);
+    }
     debug("Output OK");
     return true;
   }
