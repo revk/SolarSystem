@@ -759,6 +759,10 @@ device_ws (xml_t root, port_p p)
   xml_add (x, "@id", p->mqtt);
   xml_add (x, "@dev", p->mqtt);
   xml_add (x, "@name", p->name ? : p->mqtt);
+  if (app->tamper)
+    xml_add (x, "@-tamper", "true");
+  if (app->fault)
+    xml_add (x, "@-fault", "true");
   return x;
 }
 
@@ -3567,15 +3571,13 @@ do_wscallback (websocket_t * w, xml_t head, xml_t data)
 	door_ws (root, d);
       port_p p;
       for (p = ports; p; p = p->next)
-	if (p->port)
-	  {
-	    if (p->isinput)
+	      if(!p->port&&p->mqtt)
+	  device_ws (root, p); // WiFi device level
+      for (p = ports; p; p = p->next)
+	    if (port_isinput(p))
 	      input_ws (root, p);
-	    else
+	    else if(port_isoutput(p))
 	      output_ws (root, p);
-	  }
-	else if (p->mqtt)
-	  device_ws (root, p);
       websocket_send (1, &w, root);
       pthread_mutex_unlock (&eventmutex);
       xml_tree_delete (root);
