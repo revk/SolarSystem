@@ -232,6 +232,7 @@ const char* keypad_fault = false;
         {
           keypad_fault = NULL;
           static byte lastkey = 0;
+          static long keyhold = 0;
           if (cmd == 0x00 && buf[1] == 0xFF && p > 5)
           { // Set up response
             if (!online)
@@ -251,7 +252,7 @@ const char* keypad_fault = false;
           { // Idle, no tamper
             if (tamper)revk.state(F("tamper"), F("0"));
             tamper = false;
-            if (!send0B && (lastkey & 0x80))
+            if (!send0B && (lastkey & 0x80) && (int)(keyhold - now) < 0)
             {
               revk.event(F("gone"), F("%.1S"), keymap + (lastkey & 0x0F));
               lastkey = 0x7F;
@@ -271,7 +272,7 @@ const char* keypad_fault = false;
             { // Key
               if (buf[2] == 0x7F)
               { // No key
-                if (lastkey & 0x80)
+                if ((lastkey & 0x80) && (int)(keyhold - now) < 0)
                   revk.event(F("gone"), F("%.1S"), keymap + (lastkey & 0x0F));
               } else
               { // key
@@ -280,6 +281,7 @@ const char* keypad_fault = false;
                   revk.event(F("gone"), F("%.1S"), keymap + (lastkey & 0x0F));
                 if (!(buf[2] & 0x80) || buf[2] != lastkey)
                   revk.event(buf[2] & 0x80 ? F("hold") : F("key"), F("%.1S"), keymap + (buf[2] & 0x0F));
+                if (buf[2] & 0x80)keyhold = now + 2000;
               }
               lastkey = buf[2];
             }
