@@ -202,6 +202,11 @@ ws.onmessage=function(event)
 		x.children[1].src="door"+d.state+".png";
 		x.children[2].textContent=d.state;
 	});
+	if(o.device)o.device.forEach(function(o)
+	{	// Log updates
+		x=io(false,o);
+		if(!x.className) x.className=(o.active?"deviceactive":"deviceidle");
+	});
 	if(o.output)o.output.forEach(function(o)
 	{	// Log updates
 		x=io("O",o);
