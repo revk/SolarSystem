@@ -71,7 +71,7 @@
     return true;
   }
 
-  boolean reader522_loop(ESP8266RevK&revk)
+  boolean reader522_loop(ESP8266RevK&revk, boolean force)
   {
     if (!reader522ok)return false; // Not configured
     long now = (millis() ? : 1); // Allowing for wrap, and using 0 to mean not set
@@ -79,21 +79,23 @@
     if ((int)(cardcheck - now) < 0)
     {
       cardcheck = now + readerpoll;
-      static byte id[4] = {};
+      static byte id[7] = {};
+      static byte lastlen = 0;
       static long first = 0;
       static long last = 0;
-      static char tid[9];
+      static char tid[15];
       static boolean held = false;
       if (rfid.PICC_IsNewCardPresent() && rfid.PICC_ReadCardSerial())
       {
         last = now;
         MFRC522::PICC_Type piccType = rfid.PICC_GetType(rfid.uid.sak);
-        if (!first || memcmp(id, rfid.uid.uidByte, 4))
+        if (!first || rfid.uid.size != lastlen || memcmp(id, rfid.uid.uidByte, rfid.uid.size))
         {
           if (held)
             revk.event(F("gone"), F("%s"), tid); // Edge case of change card after hold before release time
-          memcpy(id, rfid.uid.uidByte, 4);
-          snprintf_P(tid, sizeof(tid), PSTR("%s"), tid);
+          memcpy(id, rfid.uid.uidByte, lastlen = rfid.uid.size);
+          int n;
+          for (n = 0; n < lastlen && n * 2 < sizeof(tid); n++)sprintf_P(tid + n * 2, PSTR("%02X"), id[n]);
           if (fallback && !strcmp(fallback, tid))
           {
             relay_safe_set(false);
