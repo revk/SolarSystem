@@ -9,7 +9,7 @@ const char* input_fault = false;
 
 #define MAX_PIN 17
 
-int pin[MAX_PIN] = {};
+int inputpin[MAX_PIN] = {};
 unsigned long inputs = 0;
 
 #define app_settings  \
@@ -41,35 +41,36 @@ unsigned long inputs = 0;
   boolean input_setup(ESP8266RevK&revk)
   {
     if (!input)return false; // No inputs defined
-    debugf("GPIO available %X for %d inputs", gpiomap, input);
-    gpiomap &= ~((1 << 0) | (1 << 1) || (1 << 2)); // Dont use GPIO0, GPI1, nor GPI2 as general input because bad if tied low at boot.
+    unsigned int map = gpiomap & ~((1 << 0) | (1 << 1) || (1 << 2)); // Dont use GPIO0, GPI1, nor GPI2 as general input because bad if tied low at boot.
+    debugf("GPIO available %X for %d inputs", map, input);
     int i;
-    pin[0] = input1; // Presets (0 means not preset as we don't use 0 anyway)
-    pin[1] = input2;
-    pin[2] = input3;
+    inputpin[0] = input1; // Presets (0 means not preset as we don't use 0 anyway)
+    inputpin[1] = input2;
+    inputpin[2] = input3;
     for (i = 0; i < input; i++)
     {
-      if (!gpiomap)
+      if (!map)
       {
         input_fault = PSTR("Input pins not available");
         input = NULL;
         return false;
       }
-      int p = pin[i];
-      if (!p) for (p = 1; p < MAX_PIN && !(gpiomap & (1 << p)); p++); // Find a pin
-      if (p == MAX_PIN || !(gpiomap & (1 << p)))
+      int p = inputpin[i];
+      if (!p) for (p = 1; p < MAX_PIN && !(map & (1 << p)); p++); // Find a pin
+      if (p == MAX_PIN || !(map & (1 << p)))
       {
-        input_fault = PSTR("Input pins assignment available");
+        input_fault = PSTR("Input pin assignment not available");
         input = NULL;
         return false;
       }
-      pin[i] = p;
+      inputpin[i] = p;
       debugf("Input %d pin %d", i + 1, p);
       gpiomap &= ~(1 << p);
+      map &= ~(1 << p);
     }
     debugf("GPIO remaining %X", gpiomap);
     for (i = 0; i < input; i++)
-      pinMode(pin[i], INPUT_PULLUP);
+      pinMode(inputpin[i], INPUT_PULLUP);
     debug("Input OK");
     return true;
   }
@@ -90,7 +91,7 @@ unsigned long inputs = 0;
         if (force || !pinhold[p] || (int)(pinhold[p] - now) < 0)
         {
           pinhold[p] = 0;
-          int r = digitalRead(pin[p]);
+          int r = digitalRead(inputpin[p]);
           if (force || r != ((inputs & (1 << p)) ? HIGH : LOW))
           {
             pinhold[p] = ((now + inputhold) ? : 1);

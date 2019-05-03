@@ -16,6 +16,8 @@
 #include "Reader522.h"
 #include <SPI.h>
 #include <MFRC522.h>
+#include "Relay.h"
+#include "Output.h"
 
 #define app_settings  \
   s(reader522);   \
@@ -80,6 +82,7 @@
       static byte id[4] = {};
       static long first = 0;
       static long last = 0;
+      static char tid[9];
       static boolean held = false;
       if (rfid.PICC_IsNewCardPresent() && rfid.PICC_ReadCardSerial())
       {
@@ -88,20 +91,31 @@
         if (!first || memcmp(id, rfid.uid.uidByte, 4))
         {
           if (held)
-            revk.event(F("gone"), F("%02X%02X%02X%02X"), id[0], id[1], id[2], id[3]); // Edge case of change card after hold before release time
+            revk.event(F("gone"), F("%s"), tid); // Edge case of change card after hold before release time
+          memcpy(id, rfid.uid.uidByte, 4);
+          snprintf_P(tid, sizeof(tid), PSTR("%s"), tid);
+          if (fallback && !strcmp(fallback, tid))
+          {
+            relay_safe_set(false);
+            output_safe_set(false);
+          }
           first = now;
           held = false;
-          memcpy(id, rfid.uid.uidByte, 4);
-          revk.event(F("id"), F("%02X%02X%02X%02X"), id[0], id[1], id[2], id[3]);
+          revk.event(F("id"), F("%s"), tid);
         } else if (!held && first && (int)(now - first) > holdtime)
         {
           held = true;
-          revk.event(F("held"), F("%02X%02X%02X%02X"), id[0], id[1], id[2], id[3]);
+          revk.event(F("held"), F("%s"), tid);
         }
       } else if (last && (int)(now - last) > releasetime)
       {
         if (held)
-          revk.state(F("gone"), F("%02X%02X%02X%02X"), id[0], id[1], id[2], id[3]);
+          revk.state(F("gone"), F("%s"), tid);
+        if (fallback && !strcmp(fallback, tid))
+        {
+          relay_safe_set(false);
+          output_safe_set(false);
+        }
         first = 0;
         last = 0;
         held = false;
