@@ -4068,7 +4068,7 @@ main (int argc, const char *argv[])
 			    mqtt_output (o, o->state);
 		      }
 		    int etype = 0;
-		    if (!tag && (state || port->state != state))
+		    if (!tag)
 		      etype = (state ? EVENT_FOUND : EVENT_MISSING);
 		    else if (tag && !strncmp (tag, "input", 5) && port->state != state)
 		      etype = EVENT_INPUT;
