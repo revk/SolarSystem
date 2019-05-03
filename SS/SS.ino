@@ -86,11 +86,11 @@ unsigned safemodestart = 0;
 #ifdef  USE_BEEP
     if ((ret = beep_setting(tag, value, len)))return ret;
 #endif
-#ifdef  USE_OUTPUT
-    if ((ret = output_setting(tag, value, len)))return ret;
-#endif
 #ifdef  USE_INPUT
     if ((ret = input_setting(tag, value, len)))return ret;
+#endif
+#ifdef  USE_OUTPUT
+    if ((ret = output_setting(tag, value, len)))return ret;
 #endif
     debug("Bad setting");
     revk.restart(-1); // cancel restart - unknown/invalid setting
@@ -131,11 +131,11 @@ unsigned safemodestart = 0;
 #ifdef  USE_BEEP
     if (beep_command(tag, message, len))return true;
 #endif
-#ifdef  USE_OUTPUT
-    if (output_command(tag, message, len))return true;
-#endif
 #ifdef  USE_INPUT
     if (input_command(tag, message, len))return true;
+#endif
+#ifdef  USE_OUTPUT
+    if (output_command(tag, message, len))return true;
 #endif
     return false; // Failed
   }
@@ -165,11 +165,11 @@ unsigned safemodestart = 0;
 #ifdef USE_BEEP
     beep_setup(revk);
 #endif
-#ifdef USE_OUTPUT
-    output_setup(revk);
-#endif
 #ifdef USE_INPUT
     input_setup(revk);
+#endif
+#ifdef USE_OUTPUT
+    output_setup(revk);
 #endif
   }
 
@@ -199,11 +199,11 @@ unsigned safemodestart = 0;
 #ifdef USE_BEEP
         beep_fault ? :
 #endif
-#ifdef USE_OUTPUT
-        output_fault ? :
-#endif
 #ifdef USE_INPUT
         input_fault ? :
+#endif
+#ifdef USE_OUTPUT
+        output_fault ? :
 #endif
         NULL;
       static const char *lastfault = NULL;
