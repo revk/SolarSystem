@@ -1374,7 +1374,7 @@ load_config (const char *configfile)
                v++;
             while (*v && isspace (*v))
                v++;
-            if (*v && !isdigit (*v))
+            if (*v && !isxdigit (*v))
                break;
          }
          if (*v)
@@ -1424,6 +1424,8 @@ load_config (const char *configfile)
          mydoor[d].name = xml_copy (x, "@name");
          char *doorname = mydoor[d].name ? : doorno;
          const char *max = xml_get (x, "@max");
+         if (!max)
+            max = xml_get (x, "@min");  // Min Reader, LOL
          if (max)
          {                      // short cut to set based on max reader
             port_p maxport = port_parse (max, NULL, -2);
