@@ -26,10 +26,10 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="11.631819"
-     inkscape:cx="29.940585"
+     inkscape:cx="31.325205"
      inkscape:cy="38.352275"
      inkscape:document-units="mm"
-     inkscape:current-layer="layer6"
+     inkscape:current-layer="layer7"
      showgrid="true"
      units="mm"
      objecttolerance="20"
@@ -212,7 +212,7 @@
     <path
        id="path880"
        style="opacity:1;fill:none;fill-opacity:0.50196078;fill-rule:evenodd;stroke:#ff0000;stroke-width:0.5;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
-       d="m 11.97,-8.2049878 v 4.4449999 l 3.81,0 v 9.5250004 m -6.3500008,-13.9700003 5e-7,6.985 4.4450003,0 v 3.8100005 l -8.8900004,9e-7 v -3.17500136 l -5.09247123,1.5e-7 0.01247107,3.17499991 H -6.4450008 M 20.86,-15.824988 h -3.81 v 5.08 h -2.54 v 0 m 6.35,-2.54 h -6.35 v 2.54 l -10.1600009,0 2e-7,6.9850003 h 2.5400001 l -2e-7,-4.4450001 10.1600008,0 v 2.5400002 h 3.81"
+       d="m 14.51,-8.204988 v 4.4449999 l 1.27,2e-7 v 9.5250004 m -6.3500008,-13.9700003 5e-7,6.985 H 13.875 v 3.8100005 l -8.8900004,9e-7 v -3.17500136 l -5.09247123,1.5e-7 0.01247107,3.17499991 H -6.4450008 M 20.86,-15.824988 h -3.81 v 5.08 h -2.54 v 0 m 6.35,-2.54 h -6.35 v 2.54 H 4.3499991 l 2e-7,6.9850003 h 2.5400001 l -2e-7,-4.4450001 H 17.05 v 2.5400002 h 3.81"
        inkscape:connector-curvature="0"
        sodipodi:nodetypes="cccccccccccccccccccccccccccc" />
     <text
