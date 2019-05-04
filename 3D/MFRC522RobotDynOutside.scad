@@ -3,7 +3,7 @@
 // Connector type: Molex 8 way
 
 // Tolerances for your printer
-t=0.1;  // General xy tolerance/margin
+t=0.5;  // General xy tolerance/margin
 z=0.2;  // General z tolerance/margin
 clip=0.1;  // Clip size
 
@@ -18,7 +18,7 @@ screwv=61; // Spacing
 screwhd=8; // Screw head diameter
 screwht=3; // Screw head thickness
 egressx=-11; // Engress hole position relative to cenrte
-egressy=20;
+egressy=22;
 egressd=9; // Diameter
 
 // PCB size
@@ -46,7 +46,7 @@ boxw=sidet*2+t*2+pcbw;
 boxh=screwv+screwhd+t*2+sidet*2;
 boxt=frontt+t+pcbf+pcbt+connt;
 
-pcby=sidet+t-boxh/2+screwhd+t*2+sidet;
+pcby=-screwv/2+sidet+t+screwhd/2+sidet+t; // edge of PCB
 
 $fn=100;
 
@@ -74,17 +74,26 @@ module base()
         {
             translate([sidet+t-boxw/2,sidet+t-boxh/2,0])
             cube([boxw-sidet*2-t*2,boxh-sidet*2-t*2,backt]);
-            translate([-pcbw/2,pcby-sidet-t,0])
-            cube([pcbw,pcbh+sidet*2,connt+t+pcbt]);
+            hull()
+            {
+                translate([-pcbw/2,pcby-sidet-t,0])
+                cube([pcbw,pcbh+sidet*2+t*2,boxt-frontt-t]);
+                translate([-pcbw/2,pcby-sidet-t-connt+backt,0])
+                cube([pcbw,pcbh+sidet*2+t*2+(connt-backt)*2,backt]);
+            }
         }
         // Board
         hull()
         {
-            translate([-t*2-pcbw/2,pcby,connt+t])
+            translate([-t*2-pcbw/2,pcby-t,connt+t])
             cube([pcbw+t*4,pcbh+t*2,0.01]);
-            translate([-t*2-pcbw/2,pcby+clip,connt+t+pcbt])
-            cube([pcbw+t*4,pcbh-clip*2,1]);
+            translate([-t*2-pcbw/2,pcby+-t+clip,connt+t+pcbt])
+            cube([pcbw+t*4,pcbh+t*2-clip*2,0.01]);
         }
+        translate([-t*2-pcbw/2,pcby-t,connt+t+pcbt])
+        cube([pcbw+t*4,pcbh+t*2,boxt]);
+        translate([-t*2-pcbw/2+pcbm,pcby+pcbm-t,connt-pcbb])
+        cube([pcbw+t*2-pcbm*2,pcbh+t*2-pcbm*2,pcbb+1]);
         // Screws
         for(y=[-screwv/2,screwv/2])
         translate([0,y,-1])
