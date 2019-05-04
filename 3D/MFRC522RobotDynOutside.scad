@@ -3,7 +3,7 @@
 // Connector type: Molex 8 way
 
 // Tolerances for your printer
-t=0.5;  // General xy tolerance/margin
+t=0.1;  // General xy tolerance/margin
 z=0.2;  // General z tolerance/margin
 clip=0.1;  // Clip size
 
