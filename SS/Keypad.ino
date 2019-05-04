@@ -209,14 +209,14 @@ const char* keypad_fault = false;
         revk.info(F("Tx"), F("%d: %02X %02X %02X %02X"), p, buf[0], buf[1], buf[2], buf[3]);
       byte cmd = buf[1];
       digitalWrite(RTS, HIGH);
-      delay(1);
+      delay(1); // Messing with delays here as (a) we know we are waiting, and (b) it gives ESP a chance to stay on wifi, etc.
       Serial.write(buf, p);
-      delay(1);
       Serial.flush();
       digitalWrite(RTS, LOW);
-      delay(2);
+      delay(1);
       Serial.setTimeout(10);
       p = Serial.readBytes(buf, 1);
+      delay(1);
       if (p)
       {
         static const char *keymap = PSTR("0123456789BA\n\e*#");
