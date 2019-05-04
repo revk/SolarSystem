@@ -452,6 +452,8 @@ state_parse (const char *v)
 static port_p
 port_parse (const char *v, const char **ep, int i)
 {                               // Parse a port name/id, return 0 if invalid, port part 0 if no port
+   if (ep)
+      *ep = NULL;
    if (!v || !*v)
       return NULL;
    int l = 0;
@@ -649,8 +651,14 @@ port_app (port_p p)
 #define	port_o_set(w,v,p,door,name) port_set_n((volatile port_p*)&(w),sizeof(w)/sizeof(port_p),v,p,0,door,name)
 #define	port_set(w,v,p,door,name) port_set_n((volatile port_p*)&(w),sizeof(w)/sizeof(port_p),v,p,-1,door,name)
 static volatile port_p *
-port_set_n (volatile port_p * w, int n, const char *v, unsigned char p, int i, char *door, const char *name)
+port_set_n (volatile port_p * w, int n, const char *v, int p, int i, char *door, const char *name)
 {                               // Set up port
+   int inv = 0;
+   if (p < 0)
+   {                            // Inverted
+      p = 0 - p;
+      inv = 1;
+   }
    int q = 0;
    while (v && *v && q < n)
    {
@@ -674,6 +682,8 @@ port_set_n (volatile port_p * w, int n, const char *v, unsigned char p, int i, c
       }
       if (p && name && !port->name)
          asprintf ((char **) &port->name, "%s-%s", door ? : tag, name);
+      if (inv)
+         port_app (port)->invert = 1;
    }
    if (v)
       dolog (groups, "CONFIG", NULL, NULL, "Too many ports in list %s", v);
@@ -1429,12 +1439,24 @@ load_config (const char *configfile)
                port_exit_set (mydoor[d].i_exit, max, 2, doorname);
             } else
             {                   // WiFi device - differect default port IDs
-               port_set (mydoor[d].i_fob, max, 0, doorname, "Reader");
-               port_o_set (door[d].mainlock.o_unlock, max, 1, doorname, "Unlock");
-               port_exit_set (mydoor[d].i_exit, max, 1, doorname);      // TODO invert?
-               port_exit_set (mydoor[d].i_exit, max, 8, doorname);
-               port_i_set (door[d].i_open, max, 2, doorname, "Open");
-               port_i_set (door[d].mainlock.i_unlock, max, 3, doorname, "Unlock");      // Expect people to wire to read switch
+               xml_t c = port_app (maxport)->config;
+               if (c)
+               {
+                  int i = atoi (xml_get (c, "@input") ? : "");
+                  int o = atoi (xml_get (c, "@output") ? : "");
+                  if (xml_get (c, "@reader522") || xml_get (c, "@reader532"))
+                     port_set (mydoor[d].i_fob, max, 0, doorname, "Reader");
+                  if (o >= 1)
+                     port_o_set (door[d].mainlock.o_unlock, max, 1, doorname, "Unlock");
+                  if (xml_get (c, "@ranger0x"))
+                     port_exit_set (mydoor[d].i_exit, max, 8, doorname);        // Range exit
+                  else if (i >= 1)
+                     port_exit_set (mydoor[d].i_exit, max, -1, doorname);
+                  if (i >= 2)
+                     port_i_set (door[d].i_open, max, 2, doorname, "Open");
+                  if (i >= 3)
+                     port_i_set (door[d].mainlock.i_unlock, max, 3, doorname, "Unlock");
+               }
             }
          }
          port_set (mydoor[d].i_fob, xml_get (x, "@fob"), 0, doorname, "Max");
