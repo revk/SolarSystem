@@ -1306,7 +1306,7 @@ load_config (const char *configfile)
                k->k.quiet = 1;
             if (!(v = xml_get (x, "@dark")) || strcasecmp (v, "true"))
                k->k.backlight = 1;
-            port_app(p)->group |= k->groups;
+            port_app (p)->group |= k->groups;
          }
    }
    if (debug)
@@ -3180,22 +3180,25 @@ doevent (event_t * e)
             break;
          const char *tag = port_name (port);
          const char *name = port->name ? : tag;
-         group_t g = 0;
-         int s;
-         for (s = 0; s < STATE_TRIGGERS; s++)
-            g |= app->trigger[s];
+         group_t g = app->group;
          if (e->state)
          {
-            app->tamper = 1;
-            if (walkthrough)
-               syslog (LOG_INFO, "+%s(%s) Tamper", tag, name ? : "");
-            add_tamper (g, tag, name);
+            if (!app->tamper)
+            {
+               app->tamper = 1;
+               if (walkthrough)
+                  syslog (LOG_INFO, "+%s(%s) Tamper", tag, name ? : "");
+               add_tamper (g, tag, name);
+            }
          } else
          {
-            app->tamper = 0;
-            if (walkthrough)
-               syslog (LOG_INFO, "-%s(%s) Tamper", tag, name ? : "");
-            rem_tamper (g, tag, name);
+            if (app->tamper)
+            {
+               app->tamper = 0;
+               if (walkthrough)
+                  syslog (LOG_INFO, "-%s(%s) Tamper", tag, name ? : "");
+               rem_tamper (g, tag, name);
+            }
          }
 #ifdef	LIBWS
          xml_t root = xml_tree_new (NULL);
@@ -3316,8 +3319,7 @@ doevent (event_t * e)
                   {
                      // disarm is the groups that can be disarmed by this user on this door.
                      group_t disarm = ((u->group_arm & mydoor[d].group_arm & state[STATE_ARM]) | (port_name (port),
-                                                                                                  u->
-                                                                                                  group_disarm &
+                                                                                                  u->group_disarm &
                                                                                                   mydoor[d].group_disarm &
                                                                                                   state[STATE_SET]));
                      if (door[d].state == DOOR_PROPPED || door[d].state == DOOR_OPEN || door[d].state == DOOR_PROPPEDOK)
