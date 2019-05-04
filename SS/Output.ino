@@ -89,10 +89,7 @@ unsigned long outputoverride = 0;
     }
     debugf("GPIO remaining %X", gpiomap);
     for (i = 0; i < output; i++)
-    {
-      if (outputpin[i] == 1)Serial.end(); // Tx pin
       pinMode(outputpin[i], OUTPUT);
-    }
     debug("Output OK");
     return true;
   }
@@ -106,9 +103,9 @@ unsigned long outputoverride = 0;
       outputnext = now + 1000; // Periodically send all output
       unsigned long out = outputs;
       if (insafemode)outputs = outputoverride; // Safe mode, normall means relays off but can be overridden
-      int n;
-      for (n = 0; n < output && n < 8; n++)
-        digitalWrite(outputpin[n], (out & (1 << n)) ? 1 : 0);
+      int i;
+      for (i = 0; i < output && i < 8; i++)
+        digitalWrite(outputpin[i], (out & (1 << i)) ? 1 : 0);
     }
     return true;
   }

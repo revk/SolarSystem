@@ -241,7 +241,7 @@ unsigned safemodestart = 0;
     beep_loop(revk, force);
 #endif
 #ifdef USE_OUTPUT
-    input_loop(revk, force);
+    output_loop(revk, force);
 #endif
 #ifdef USE_INPUT
     input_loop(revk, force);
