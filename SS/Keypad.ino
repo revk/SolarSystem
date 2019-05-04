@@ -117,11 +117,12 @@ const char* keypad_fault = false;
         buf[++p] = 0x07;
         buf[++p] = 0x01 | ((blink[0] & 1) ? 0x08 : 0x00) | (toggle07 ? 0x80 : 0);
         byte len = display_len;
+        byte temp[33];
         byte *dis = display;
         if (!revk.mqttconnected)
         { // Off line
-          dis = (byte*)"OFFLINE!";
-          len = 8;
+          len = snprintf_P((char*)temp, sizeof(temp), PSTR("%-16.16s%-9.9s %6.6s"), revk.get_mqtthost(), revk.get_wifissid(), revk.chipid);
+          dis = temp;
         }
         if (len)
         {
@@ -210,8 +211,10 @@ const char* keypad_fault = false;
       digitalWrite(RTS, HIGH);
       delay(1);
       Serial.write(buf, p);
+      delay(1);
       Serial.flush();
       digitalWrite(RTS, LOW);
+      delay(2);
       Serial.setTimeout(10);
       p = Serial.readBytes(buf, 1);
       if (p)
@@ -282,6 +285,7 @@ const char* keypad_fault = false;
                 if (!(buf[2] & 0x80) || buf[2] != lastkey)
                   revk.event(buf[2] & 0x80 ? F("hold") : F("key"), F("%.1S"), keymap + (buf[2] & 0x0F));
                 if (buf[2] & 0x80)keyhold = now + 2000;
+                if (buf[2] == 0x8D && insafemode)revk.restart(); // ESC held in safe mode
               }
               lastkey = buf[2];
             }
