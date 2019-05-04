@@ -35,7 +35,7 @@ pcbm=5; // border margin with no components
 //fixv=31;
 
 // Connector
-connw=21;
+connw=24;
 connh=16;
 connt=6;
 connx=5.8; // position from edge of board

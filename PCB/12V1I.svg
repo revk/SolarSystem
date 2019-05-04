@@ -25,11 +25,11 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="10.546726"
-     inkscape:cx="29.942692"
-     inkscape:cy="37.425907"
+     inkscape:zoom="11.631819"
+     inkscape:cx="29.940585"
+     inkscape:cy="38.352275"
      inkscape:document-units="mm"
-     inkscape:current-layer="layer3"
+     inkscape:current-layer="layer6"
      showgrid="true"
      units="mm"
      objecttolerance="20"
@@ -74,51 +74,13 @@
      inkscape:groupmode="layer"
      id="layer6"
      inkscape:label="Parts"
-     style="display:inline;opacity:0.54769227"
+     style="display:inline;opacity:1"
      transform="translate(5.1750002,18.254986)">
-    <g
-       transform="translate(0.23500012,0.00500088)"
-       style="display:inline;opacity:0.54769227"
-       inkscape:label="Parts"
-       id="layer6-4">
-      <g
-         id="g834">
-        <rect
-           y="-5.1600003"
-           x="-18.259987"
-           height="24.75"
-           width="14.5"
-           id="rect934"
-           style="opacity:1;fill:#000000;fill-opacity:0.50196078;fill-rule:evenodd;stroke:none;stroke-width:1;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
-           transform="matrix(0,1,1,0,0,0)" />
-        <text
-           xml:space="preserve"
-           style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:4.23333311px;line-height:125%;font-family:Raleway;-inkscape-font-specification:'Raleway, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:center;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-           x="10.862607"
-           y="-1.3059756"
-           id="text892"
-           transform="rotate(-90)"><tspan
-             sodipodi:role="line"
-             id="tspan890"
-             x="10.862607"
-             y="-1.3059756"
-             style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:4.23333311px;font-family:Raleway;-inkscape-font-specification:'Raleway, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:center;writing-mode:lr-tb;text-anchor:middle;stroke-width:0.26458332px">ESP-01</tspan></text>
-        <path
-           style="opacity:1;fill:none;fill-opacity:0.50196078;fill-rule:evenodd;stroke:#ffff00;stroke-width:0.1;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
-           d="m 18.32,-14.554986 v 2.54 2.5399996 2.5400002"
-           id="path822"
-           inkscape:connector-curvature="0" />
-        <path
-           inkscape:connector-curvature="0"
-           id="path824"
-           d="m 15.779998,-14.554989 v 2.54 2.5399995 2.5400002"
-           style="opacity:1;fill:none;fill-opacity:0.50196078;fill-rule:evenodd;stroke:#ffff00;stroke-width:0.1;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1" />
-      </g>
-    </g>
     <g
        transform="translate(-16.451629,-142.55032)"
        id="layer1"
-       inkscape:label="Layer 1">
+       inkscape:label="Layer 1"
+       style="">
       <rect
          y="139.29533"
          x="26.276628"
@@ -135,7 +97,8 @@
     <g
        inkscape:label="Layer 1"
        id="g921"
-       transform="translate(-31.451629,-142.55032)">
+       transform="translate(-31.451629,-142.55032)"
+       style="">
       <rect
          style="opacity:1;fill:#000000;fill-opacity:0.50196078;fill-rule:evenodd;stroke:none;stroke-width:0.5;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
          id="rect917"
@@ -152,7 +115,8 @@
     <g
        transform="translate(-8.3499988,-105.81498)"
        id="layer1-3"
-       inkscape:label="Layer 1">
+       inkscape:label="Layer 1"
+       style="">
       <rect
          y="88.719994"
          x="12.699999"
@@ -177,6 +141,53 @@
            x="17.733646"
            id="tspan833"
            sodipodi:role="line">D24V5F3</tspan></text>
+    </g>
+    <g
+       transform="translate(0.235,0.2700022)"
+       style="display:inline;opacity:1"
+       inkscape:label="Parts"
+       id="layer6-2">
+      <g
+         id="g832">
+        <rect
+           y="-5.1600003"
+           x="-18.259987"
+           height="24.75"
+           width="14.5"
+           id="rect934-4"
+           style="opacity:1;fill:#000000;fill-opacity:0.50196078;fill-rule:evenodd;stroke:none;stroke-width:1;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+           transform="matrix(0,1,1,0,0,0)" />
+        <text
+           xml:space="preserve"
+           style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:4.23333311px;line-height:125%;font-family:Raleway;-inkscape-font-specification:'Raleway, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:center;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+           x="10.862607"
+           y="-1.3059756"
+           id="text892-8"
+           transform="rotate(-90)"><tspan
+             sodipodi:role="line"
+             id="tspan890-3"
+             x="10.862607"
+             y="-1.3059756"
+             style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:4.23333311px;font-family:Raleway;-inkscape-font-specification:'Raleway, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:center;writing-mode:lr-tb;text-anchor:middle;stroke-width:0.26458332px">ESP-01</tspan></text>
+        <path
+           style="opacity:1;fill:none;fill-opacity:0.50196078;fill-rule:evenodd;stroke:#ffff00;stroke-width:0.1;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+           d="m 18.32,-14.819987 v 2.54 2.5399997 2.5400002"
+           id="path822-9"
+           inkscape:connector-curvature="0" />
+        <path
+           inkscape:connector-curvature="0"
+           id="path824-0"
+           d="m 15.779998,-14.819987 v 2.54 2.5399997 2.5400002"
+           style="opacity:1;fill:none;fill-opacity:0.50196078;fill-rule:evenodd;stroke:#ffff00;stroke-width:0.1;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1" />
+        <rect
+           transform="matrix(0,1,1,0,0,0)"
+           style="opacity:1;fill:#000000;fill-opacity:0.50196078;fill-rule:evenodd;stroke:none;stroke-width:1;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+           id="rect822"
+           width="14.5"
+           height="6"
+           x="-18.259987"
+           y="-5.1600003" />
+      </g>
     </g>
   </g>
   <g
@@ -225,7 +236,7 @@
          y="8.1391182"
          x="2.6771619"
          id="tspan1064"
-         sodipodi:role="line">4-26V</tspan></text>
+         sodipodi:role="line">4-36V</tspan></text>
     <text
        xml:space="preserve"
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.11666656px;line-height:125%;font-family:Raleway;-inkscape-font-specification:'Raleway, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:center;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
