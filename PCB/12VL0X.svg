@@ -25,9 +25,9 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="7.2355322"
-     inkscape:cx="69.794451"
-     inkscape:cy="27.477203"
+     inkscape:zoom="14.05599"
+     inkscape:cx="68.07596"
+     inkscape:cy="32.125981"
      inkscape:document-units="mm"
      inkscape:current-layer="layer7"
      showgrid="true"
@@ -66,7 +66,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
+        <dc:title />
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -264,11 +264,9 @@
      style="display:inline"
      transform="translate(-8.1050029,21.764983)">
     <path
-       id="path913"
+       id="path884"
        style="opacity:1;fill:none;fill-opacity:0.50196078;fill-rule:evenodd;stroke:#ff0000;stroke-width:0.5;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
-       d="m 29.695003,-11.114983 h -2.54 v 2.5399997 m 2.54,-7.6199997 v -1.905 h 2.54 v 1.905 m -2.54,2.54 v -2.54 h 5.08 v 12.0649996 m -5.08,-6.9849996 1e-6,-2.54 h 3.81 l -10e-7,7.6199997 h -14.605 v -5.0799997 m 18.415,6.9849996 V -19.369984 l -13.335,10e-7 v 10.7949997 h 5.715 v -2.5399997 h 2.54 l 1e-6,3.8099999 -10.795001,-2e-7 v -3.8099997 h -7.62 v 6.9849996 M 7.4700029,-13.654984 H 19.535003 v -6.985 h 20.32 v 16.5100006"
-       inkscape:connector-curvature="0"
-       sodipodi:nodetypes="cccccccccccccccccccccccccccccccccc" />
+       d="m 27.155003,-11.114983 v -2.540001 h 2.54 m 0,2.540001 h -2.54 v 2.5399997 m 2.54,-7.6199997 v -1.905 h 2.54 v 1.905 m -2.54,2.54 v -2.54 h 5.08 v 12.0649996 m -5.08,-6.9849996 1e-6,-2.54 h 3.81 l -10e-7,7.6199997 h -14.605 v -5.0799997 m 18.415,6.9849996 V -19.369984 l -13.335,10e-7 v 10.7949997 h 5.715 v -2.5399997 h 2.54 l 1e-6,3.8099999 -10.795001,-2e-7 v -3.8099997 h -7.62 v 6.9849996 M 7.4700029,-13.654984 H 19.535003 v -6.985 h 20.32 v 16.5100006" />
   </g>
   <g
      inkscape:groupmode="layer"
