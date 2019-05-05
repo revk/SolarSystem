@@ -9,9 +9,9 @@ const char* keypad_fault = false;
 
 #define PINS ((1<<1) | (1<<3))  // Tx and Rx
 
-#define PRETX 5000  // Pre tx RTS - should overlap with end of drive from keypad
+#define PRETX 50000  // Pre tx RTS - should overlap with end of drive from keypad
 #define POSTTX 4000 // Post tx RTS - should overlap with start of drive from keypoad
-#define PRERX 20000  // Time to allow for rx
+#define PRERX 100000  // Time to allow for rx
 #define KEYPADBAUD  9600
 #define KEYPADBITS  10  // 8N1
 
@@ -93,13 +93,6 @@ const char* keypad_fault = false;
     if (!keypad)return false; // Not running keypad
     long now = micros();
 
-    if (force)
-    { // Update all the shit
-      send07 = true;
-      send0C = true;
-      send0D = true;
-      send19 = true;
-    }
     static byte buf[100], p = 0;
     static long txdone = 0;
     static long rxdone = 0;
@@ -125,6 +118,7 @@ const char* keypad_fault = false;
         txdone = 0;
         digitalWrite(RTS, LOW);
         rxdone = ((now + PRERX) ? : 1); // Timeout for first byte rx, for not responding
+        while (Serial.available())Serial.read(); // Should not be any waying, but best to flush.
       }
       return true;
     }
@@ -132,7 +126,7 @@ const char* keypad_fault = false;
     if (rxdone && Serial.available())
     { // Rx byte
       buf[p] = Serial.read();
-      if (p < sizeof(buf))p++;
+      if (p < sizeof(buf)) p++;
       if ((p == 3 && (buf[1] == 0xF2 || buf[1] == 0xFE)) || (p == 4 && buf[1] == 0xF4))
         digitalWrite(RTS, HIGH); // Overlap drive at end of message
       rxdone = ((now + 2 * KEYPADBITS * 1000000 / KEYPADBAUD) ? : 1); // Timeout for next byte rx
@@ -156,6 +150,7 @@ const char* keypad_fault = false;
             c = (c >> 8) + (c & 0xFF);
           if (p < 2 || buf[n] != c || buf[0] != 0x11 || buf[1] == 0xF2)
           {
+
             keypad_fault = PSTR("Bad response from keyboard");
             online = false;
           }
@@ -171,13 +166,6 @@ const char* keypad_fault = false;
                 online = true;
                 toggle0B = false;
                 toggle07 = true;
-                send07 = true;
-                send07a = true;
-                send07b = true;
-                send0B = true;
-                send0C = true;
-                send0D = true;
-                send19 = true;
               }
             } else if (buf[1] == 0xFE)
             { // Idle, no tamper
@@ -219,7 +207,8 @@ const char* keypad_fault = false;
               }
             }
           }
-        } else
+        }
+        else
         {
           keypad_fault = PSTR("No response from keypad");
           online = false;
@@ -229,6 +218,16 @@ const char* keypad_fault = false;
     }
 
     // Poll
+    if (force || !online)
+    { // Update all the shit
+      send07 = true;
+      send07a = true;
+      send07b = true;
+      send0B = true;
+      send0C = true;
+      send0D = true;
+      send19 = true;
+    }
     p = 0;
     if (!online)
     { // Init
