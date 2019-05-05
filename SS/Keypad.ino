@@ -10,10 +10,12 @@ const char* keypad_fault = false;
 #define PINS ((1<<1) | (1<<3))  // Tx and Rx
 
 #define PRETX 50000  // Pre tx RTS - should overlap with end of drive from keypad
-#define POSTTX 4000 // Post tx RTS - should overlap with start of drive from keypoad
+#define POSTTX 4000  // Post tx RTS - should overlap with start of drive from keypoad
 #define PRERX 10000  // Time to allow for rx
 #define KEYPADBAUD  9600
 #define KEYPADBITS  10  // 8N1
+
+#define KEYPADBODGE // Don't rely on poll being called fast enough (TODO handle with interrupts?)
 
 #include <ESP8266RevK.h>
 
@@ -104,6 +106,18 @@ const char* keypad_fault = false;
     static boolean tamper = false;
     static boolean send07c = false; // second send
 
+    // Poll
+    if (force || !online)
+    { // Update all the shit
+      send07 = true;
+      send07a = true;
+      send07b = true;
+      send0B = true;
+      send0C = true;
+      send0D = true;
+      send19 = true;
+    }
+    
     if (txdone)
     { // Sending
       if ((int)(txdone - now) < 0)
@@ -113,12 +127,16 @@ const char* keypad_fault = false;
           Serial.write(buf, p);
           txdone = ((now + p * KEYPADBITS * 1000000 / KEYPADBAUD + POSTTX) ? : 1);
           p = 0; // ready for rx
+#ifdef KEYPADBODGE
+          Serial.flush(); // Delay in situ for reliability
+          delay(1);
+          digitalWrite(RTS, LOW);
+#endif
           return true;
         }
         txdone = 0;
-        digitalWrite(RTS, LOW);
+
         rxdone = ((now + PRERX) ? : 1); // Timeout for first byte rx, for not responding
-        while (Serial.available())Serial.read(); // Should not be any waying, but best to flush.
       }
       return true;
     }
@@ -217,17 +235,6 @@ const char* keypad_fault = false;
       return true;
     }
 
-    // Poll
-    if (force || !online)
-    { // Update all the shit
-      send07 = true;
-      send07a = true;
-      send07b = true;
-      send0B = true;
-      send0C = true;
-      send0D = true;
-      send19 = true;
-    }
     p = 0;
     if (!online)
     { // Init
@@ -276,8 +283,7 @@ const char* keypad_fault = false;
           else buf[++p] = ' ';
         }
       }
-      else
-        buf[++p] = 0x17; // clear
+      else        buf[++p] = 0x17; // clear
       if (send07a)
       { // cursor
         if (cursor_len)
