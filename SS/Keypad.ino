@@ -9,9 +9,9 @@ const char* keypad_fault = false;
 
 #define PINS ((1<<1) | (1<<3))  // Tx and Rx
 
-#define PRETX 50000  // Pre tx RTS - should overlap with end of drive from keypad
+#define PRETX 25000  // Pre tx RTS - should overlap with end of drive from keypad
 #define POSTTX 4000 // Post tx RTS - should overlap with start of drive from keypoad
-#define PRERX 100000  // Time to allow for rx
+#define PRERX 10000  // Time to allow for rx
 #define KEYPADBAUD  9600
 #define KEYPADBITS  10  // 8N1
 
