@@ -65,6 +65,7 @@ const char* keypad_fault = false;
     {
       keypadbeepoverride = ((len && *message == '1') ? 1 : 0);
       send0C = true;
+      return true;
     }
     return false;
   }
@@ -314,7 +315,12 @@ const char* keypad_fault = false;
       byte len = sounder_len;
       if (insafemode)
       {
-        static const byte beepy[] = {1, 1};
+        const byte beepy[] = {1, 1};
+        s = (byte*)beepy;
+        len = 2;
+      } else if(keypadbeepoverride)
+      {
+        const byte beepy[] = {1, 0};
         s = (byte*)beepy;
         len = 2;
       }
