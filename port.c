@@ -20,17 +20,43 @@ port_start (void)
    pthread_mutex_init (&portmutex, 0);
 }
 
+int
+port_cmp (port_p a, const char *mqtt, unsigned char bus, unsigned char id, unsigned char isinput, unsigned char port)
+{                               // For port ordering
+   int i = strcmp (a->mqtt ? : "", mqtt ? : "");
+   if (i)
+      return i;
+   if (a->bus < bus)
+      return -1;
+   if (a->bus > bus)
+      return 1;
+   if (a->id < id)
+      return -1;
+   if (a->id > id)
+      return 1;
+   if (a->isinput < isinput)
+      return -1;
+   if (a->isinput > isinput)
+      return 1;
+   if (a->port < port)
+      return -1;
+   if (a->port > port)
+      return 1;
+   return 0;
+}
+
 port_p
 port_new_bus (unsigned char bus, unsigned char id, unsigned char isinput, unsigned char port)
 {
    if (!port)
       isinput = 0;
    pthread_mutex_lock (&portmutex);
-   port_p p;
-   for (p = ports; p && (p->mqtt || p->bus != bus || p->id != id || p->port != port || p->isinput != isinput); p = p->next);
-   if (!p)
+   port_p *pp;
+   int diff = 0;
+   for (pp = &ports; *pp && (diff = port_cmp (*pp, NULL, bus, id, isinput, port)) < 0; pp = &(*pp)->next);
+   if (!*pp || diff)
    {
-      p = malloc (sizeof (*p));
+      port_p p = malloc (sizeof (*p));
       memset ((void *) p, 0, sizeof (*p));
       if (!p)
          errx (1, "malloc");
@@ -38,11 +64,11 @@ port_new_bus (unsigned char bus, unsigned char id, unsigned char isinput, unsign
       p->id = id;
       p->port = port;
       p->isinput = isinput;
-      p->next = ports;
-      ports = p;
+      p->next = *pp;
+      *pp = p;
    }
    pthread_mutex_unlock (&portmutex);
-   return p;
+   return *pp;
 }
 
 port_p
@@ -51,22 +77,23 @@ port_new (const char *mqtt, unsigned char isinput, unsigned char port)
    if (!port)
       isinput = 0;
    pthread_mutex_lock (&portmutex);
-   port_p p;
-   for (p = ports; p && (!p->mqtt || p->port != port || p->isinput != isinput || strcmp (p->mqtt, mqtt)); p = p->next);
-   if (!p)
+   port_p *pp;
+   int diff = 0;
+   for (pp = &ports; *pp && (diff = port_cmp (*pp, mqtt, 0, 0, isinput, port)) < 0; pp = &(*pp)->next);
+   if (!*pp || diff)
    {
-      p = malloc (sizeof (*p));
+      port_p p = malloc (sizeof (*p));
       memset ((void *) p, 0, sizeof (*p));
       if (!p)
          errx (1, "malloc");
       p->mqtt = strdup (mqtt);
       p->isinput = isinput;
       p->port = port;
-      p->next = ports;
-      ports = p;
+      p->next = *pp;
+      *pp = p;
    }
    pthread_mutex_unlock (&portmutex);
-   return p;
+   return *pp;
 }
 
 port_p

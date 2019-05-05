@@ -207,15 +207,15 @@ ws.onmessage=function(event)
 		x=io(false,o);
 		if(!x.className) x.className=(o.active?"deviceactive":"deviceidle");
 	});
-	if(o.output)o.output.forEach(function(o)
-	{	// Log updates
-		x=io("O",o);
-		x.className=(o.active?"outputactive":"outputidle");
-	});
 	if(o.input)o.input.forEach(function(i)
 	{
 		x=io("I",i);
 		x.className="input"+(i.tamper?"tamper":i.fault?"fault":i.active?"active":"idle");
+	});
+	if(o.output)o.output.forEach(function(o)
+	{	// Log updates
+		x=io("O",o);
+		x.className=(o.active?"outputactive":"outputidle");
 	});
 }
 }

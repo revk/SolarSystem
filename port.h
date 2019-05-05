@@ -17,7 +17,7 @@
 
 typedef struct port_app_s port_app_t;
 typedef struct port_s port_t;
-typedef volatile port_t *port_p;
+typedef port_t *port_p;
 struct port_s
 {
    port_p next;

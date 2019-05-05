@@ -792,14 +792,18 @@ device_ws (xml_t root, port_p p)
       return NULL;
    xml_t x = xml_element_add (root, "device");
    xml_add (x, "@id", p->mqtt);
-   xml_add (x, "@dev", p->mqtt);
-   xml_add (x, "@name", p->name ? : p->mqtt);
+   if (xml_get (root, "@full-data"))
+   {
+      xml_add (x, "@dev", p->mqtt);
+      xml_add (x, "@name", p->name ? : p->mqtt);
+   }
    if (p->state)
       xml_add (x, "@-active", "true");
    if (app->tamper)
       xml_add (x, "@-tamper", "true");
    if (app->fault)
       xml_add (x, "@-fault", "true");
+   xml_add (x, "@groups", group_list (app->group));
    return x;
 }
 
@@ -918,6 +922,7 @@ input_ws (xml_t root, port_p port)
       xml_add (x, "@-tamper", "true");
    if (app->fault)
       xml_add (x, "@-fault", "true");
+   xml_add (x, "@groups", group_list (app->group));
    return NULL;
 }
 
@@ -962,7 +967,8 @@ output_ws (xml_t root, port_p port)
    if (app->tamper)
       xml_add (x, "@-tamper", "true");
    if (app->fault)
-      xml_add (x, "@-fault", "true");
+      xml_add (x, "@groups", group_list (app->group));
+   xml_add (x, "@-fault", "true");
    return NULL;
 }
 #endif
@@ -2993,32 +2999,41 @@ doevent (event_t * e)
       }
       break;
    case EVENT_CONFIG:
-      dolog (groups, "BUSCONFIG", NULL, port_name (port), "Device config started");
+      dolog (app->group, "BUSCONFIG", NULL, port_name (port), "Device config started");
       break;
    case EVENT_FOUND:
       {
-         dolog (groups, "BUSFOUND", NULL, port_name (port), "Device found on bus");
-         app->found = 1;
-         if (app && app->missing)
+         if (app->missing)
          {
+            dolog (groups, "BUSFOUND", NULL, port_name (port), "Device found on bus");
             app->missing = 0;
-            rem_tamper (groups, port_name (port), port->name);
+            if (port_mqtt (port))
+               rem_fault (app->group, port_name (port), port->name);
+            else
+               rem_tamper (app->group, port_name (port), port->name);
+         } else if (!app->found)
+         {
+            dolog (groups, "BUSFOUND", NULL, port_name (port), "Device on bus");
+            app->found = 1;
+            if (type == TYPE_PAD || app->keypad)
+               keypad_new (port);
          }
-         if (type == TYPE_PAD || app->keypad)
-            keypad_new (port);
       }
       break;
    case EVENT_MISSING:
       if (app && !app->missing)
       {
          app->missing = 1;
-         dolog (groups, "BUSMISSING", NULL, port_name (port), "Device missing from bus");
-         add_tamper (groups, port_name (port), port->name);
+         dolog (app->group, "BUSMISSING", NULL, port_name (port), "Device missing from bus");
+         if (port_mqtt (port))
+            add_fault (groups, port_name (port), port->name);
+         else
+            add_tamper (groups, port_name (port), port->name);
       }
       break;
    case EVENT_DISABLED:
       {
-         dolog (groups, "BUSDISABLED", NULL, port_name (port), "Device disabled on bus");
+         dolog (app->group, "BUSDISABLED", NULL, port_name (port), "Device disabled on bus");
       }
       break;
    case EVENT_DOOR:
@@ -3624,10 +3639,11 @@ do_wscallback (websocket_t * w, xml_t head, xml_t data)
          if (!p->port && p->mqtt)
             device_ws (root, p);        // WiFi device level
       for (p = ports; p; p = p->next)
+         if (port_isoutput (p))
+            output_ws (root, p);
+      for (p = ports; p; p = p->next)
          if (port_isinput (p))
             input_ws (root, p);
-         else if (port_isoutput (p))
-            output_ws (root, p);
       websocket_send (1, &w, root);
       pthread_mutex_unlock (&eventmutex);
       xml_tree_delete (root);
