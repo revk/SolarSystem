@@ -3253,22 +3253,18 @@ doevent (event_t * e)
             break;
          const char *tag = port_name (port);
          const char *name = port->name ? : tag;
-         group_t g = 0;
-         int s;
-         for (s = 0; s < STATE_TRIGGERS; s++)
-            g |= app->trigger[s];
          if (e->state)
          {
             app->fault = 1;
             if (walkthrough)
                syslog (LOG_INFO, "+%s(%s) Fault", tag, name ? : "");
-            add_fault (g, tag, name);
+            add_fault (app->group, tag, name);
          } else
          {
             app->fault = 0;
             if (walkthrough)
                syslog (LOG_INFO, "-%s(%s) Fault", tag, name ? : "");
-            rem_fault (g, tag, name);
+            rem_fault (app->group, tag, name);
          }
          if (id && device[id].type == TYPE_RIO)
          {
@@ -3278,27 +3274,27 @@ doevent (event_t * e)
                char tag[20];
                snprintf (tag, sizeof (tag), "%sNOPWR", port_name (port));
                if (e->state)
-                  add_warning (g, tag, name);
+                  add_warning (app->group, tag, name);
                else
-                  rem_warning (g, tag, name);
+                  rem_warning (app->group, tag, name);
             }
             if (i == FAULT_RIO_NO_BAT)
             {
                char tag[20];
                snprintf (tag, sizeof (tag), "%sNOBAT", port_name (port));
                if (e->state)
-                  add_warning (g, tag, name);
+                  add_warning (app->group, tag, name);
                else
-                  rem_warning (g, tag, name);
+                  rem_warning (app->group, tag, name);
             }
             if (i == FAULT_RIO_BAD_BAT)
             {
                char tag[20];
                snprintf (tag, sizeof (tag), "%sBADBAT", port_name (port));
                if (e->state)
-                  add_warning (g, tag, name);
+                  add_warning (app->group, tag, name);
                else
-                  rem_warning (g, tag, name);
+                  rem_warning (app->group, tag, name);
             }
          }
 #ifdef	LIBWS
