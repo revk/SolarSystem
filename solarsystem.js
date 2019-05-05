@@ -43,7 +43,7 @@ function io(dir,e)
 	{ // New port
 		r=document.createElement("tr");
 		c=document.createElement("td");
-		c.textContent=e.port;
+		c.textContent=dir+e.port;
 		r.appendChild(c);
 		d=document.createElement("td");
 		d.id=dir+e.id;
