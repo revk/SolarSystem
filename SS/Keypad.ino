@@ -11,7 +11,7 @@ const char* keypad_fault = false;
 
 #define PRETX 5000  // Pre tx RTS - should overlap with end of drive from keypad
 #define POSTTX 4000 // Post tx RTS - should overlap with start of drive from keypoad
-#define PRERX 10000  // Time to allow for rx
+#define PRERX 20000  // Time to allow for rx
 #define KEYPADBAUD  9600
 #define KEYPADBITS  10  // 8N1
 
