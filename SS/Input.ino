@@ -56,6 +56,9 @@ unsigned long inputs = 0;
         return false;
       }
       int p = inputpin[i];
+#ifdef ARDUINO_ESP8266_NODEMCU
+      if (!p) for (p = 1; p < MAX_PIN && !((map | (1 << 1) | (1 << 3)) & (1 << p)); p++); // Find a pin (skip tx/rx)
+#endif
       if (!p) for (p = 1; p < MAX_PIN && !(map & (1 << p)); p++); // Find a pin
       if (p == MAX_PIN || !(map & (1 << p)))
       {

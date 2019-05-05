@@ -76,6 +76,9 @@ unsigned long outputoverride = 0;
         return false;
       }
       int p = outputpin[i];
+#ifdef ARDUINO_ESP8266_NODEMCU
+      if (!p) for (p = 1; p < MAX_PIN && !((gpiomap | (1 << 1) | (1 << 3)) & (1 << p)); p++); // Find a pin (skip tx/rx)
+#endif
       if (p < 0) for (p = 0; p < MAX_PIN && !(gpiomap & (1 << p)); p++); // Find a pin
       if (p == MAX_PIN || !(gpiomap & (1 << p)))
       {
