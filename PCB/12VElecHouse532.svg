@@ -25,11 +25,11 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="5.2556419"
-     inkscape:cx="52.371772"
+     inkscape:zoom="8.694309"
+     inkscape:cx="55.88621"
      inkscape:cy="66.243954"
      inkscape:document-units="mm"
-     inkscape:current-layer="layer6"
+     inkscape:current-layer="layer7"
      showgrid="true"
      units="mm"
      objecttolerance="20"
@@ -462,7 +462,7 @@
      transform="translate(0,10.94999)">
     <path
        id="path1021"
-       style="opacity:1;fill:none;fill-opacity:0.50196078;fill-rule:evenodd;stroke:#ff0000;stroke-width:0.5;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+       style="opacity:1;fill:none;fill-opacity:0.50196078;fill-rule:evenodd;stroke:#ff0000;stroke-width:0.3;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
        d="M 1.9050001,18.069972 V -0.63499199 l 8.8899999,1.28e-6 V 8.0699722 H 24.765001 V 19.68501 h 12.065 v -3.175 h 4.445 M 8.2550003,9.5250107 4.4450001,9.5250096 v 4.5449624 l 17.1450009,-0.005 M 8.2550003,6.9850106 3.1750001,6.9850095 v 9.0849625 l 18.4150009,-0.005 M 1.9050001,4.4450083 l 6.3500002,1.1e-6 v 7.6200016 l 13.3350007,-1e-6 M 1.9050001,1.9050083 l 7.6199998,1.1e-6 v 8.1649626 l 12.0650011,0.09004 v 7.909962 H 1.9050001 v 11.140037 h 4.3964802 l 0.04852,-3.81 h 2.54 l 2e-6,3.81 h 7.6199987 l -10e-7,-2.539999 24.765001,-1e-6 M 14.665,2.5400094 v 3.5299708 h 6.925001 V 2.5400094 m 6.35,15.5299626 h 6.725 m -6.725,-4 v 2 h 6.725 v -2 m -6.725,-2.004962 v 2.004962 h 6.725 l 2.165,-0.09996 4.444999,2e-6 m -13.334999,-3.90004 v 1.995038 l 6.725,0.005 v -2 m 0,0 2.165,1.359998 H 41.275 M 27.940001,2.5400094 v 3.5299688 h 6.725 l 2.165,2.8200314 H 41.275 m 1e-6,12.7000004 H 8.8900002 v 3.81 M 27.940001,6.0699782 v 3.9999938 h 6.725 V 8.0699722 h -6.725"
        inkscape:connector-curvature="0"
        sodipodi:nodetypes="cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc" />

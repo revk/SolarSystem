@@ -25,11 +25,11 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="8.211508"
-     inkscape:cx="42.099899"
-     inkscape:cy="54.750858"
+     inkscape:zoom="9.6054392"
+     inkscape:cx="56.655122"
+     inkscape:cy="59.622067"
      inkscape:document-units="mm"
-     inkscape:current-layer="layer6"
+     inkscape:current-layer="layer7"
      showgrid="true"
      units="mm"
      objecttolerance="20"
@@ -66,7 +66,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
+        <dc:title />
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -74,7 +74,7 @@
      inkscape:groupmode="layer"
      id="layer6"
      inkscape:label="Parts"
-     style="display:inline;opacity:0.54769227"
+     style="display:inline;opacity:1"
      transform="translate(-1.8099996,1.8549882)">
     <rect
        style="display:inline;opacity:1;fill:#808080;fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:0.10000001;stroke-linecap:round;stroke-linejoin:bevel;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
@@ -85,11 +85,13 @@
        y="-1.5199696" />
     <g
        id="g951"
-       transform="translate(-9.9100008,3.0399593)">
+       transform="translate(-9.9100008,3.0399593)"
+       style="">
       <g
          inkscape:label="Layer 1"
          id="layer1-93"
-         transform="translate(-6.0064114,-101.10354)">
+         transform="translate(-6.0064114,-101.10354)"
+         style="">
         <rect
            style="opacity:1;fill:#c0c0c0;fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:0.11717501;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
            id="rect817"
@@ -124,7 +126,8 @@
              style="stroke-width:0.26458332px">ESP-12F</tspan></text>
         <g
            id="g953"
-           transform="translate(-2,-1.4530335e-6)">
+           transform="translate(-2,-1.4530335e-6)"
+           style="">
           <rect
              transform="scale(1,-1)"
              y="-111.80859"
@@ -192,7 +195,8 @@
         </g>
         <g
            id="g963"
-           transform="translate(-2,-1.4530335e-6)">
+           transform="translate(-2,-1.4530335e-6)"
+           style="">
           <rect
              style="opacity:1;fill:#ffe080;fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:0.06241878;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
              id="rect846"
@@ -267,7 +271,8 @@
            y="95.058586" />
         <g
            id="g997"
-           transform="translate(-2,-1.4530335e-6)">
+           transform="translate(-2,-1.4530335e-6)"
+           style="">
           <rect
              transform="scale(1,-1)"
              y="-113.05859"
@@ -318,7 +323,8 @@
              transform="scale(1,-1)" />
         </g>
         <g
-           id="g1225">
+           id="g1225"
+           style="">
           <path
              inkscape:connector-curvature="0"
              id="path871"
@@ -489,7 +495,7 @@
      transform="translate(-1.8099996,1.8549882)">
     <path
        id="path917"
-       style="opacity:1;fill:none;fill-opacity:1;fill-rule:evenodd;stroke:#ff0000;stroke-width:0.5;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+       style="opacity:1;fill:none;fill-opacity:1;fill-rule:evenodd;stroke:#ff0000;stroke-width:0.3;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
        d="m 24.67,5.1300116 h 0.635 V 8.1199694 M 18.32,0.05001134 V -2.4899886 m 6.35,6.6099578 H 16.415 V 17.830012 H 17.05 M 24.67,2.1199692 H 14.51 V 16.560012 h -2.54 v 4.445 h 5.08 v -3.175 m 10.16,-14.6050006 4.031824,2e-7 m 0,2.54 -4.031824,-2e-7 m 4.031824,2.5400003 -4.031824,-2e-7 M 10.7,-2.4899886 V 0.05001146 H 5.6199997 l 2e-7,-2.54000006 m -4.4450003,13.5979846 3.1749942,-10e-7 5.8e-6,-0.897986 4.4450002,3e-6 m -7.6200002,-1.6482728 3.1749942,-10e-8 5.8e-6,-0.4417698 h 4.4450002 m -7.6200002,-2.0356686 3.1749942,2e-7 4.445006,2e-7 M 1.1749996,3.5151052 h 3.1749942 l 5.8e-6,0.6048639 H 8.7949998 V 12.115012 H 5.2279471 L 4.3499996,13.720043 H 1.1750054 M 11.97,21.005012 H 7.5249998 v -4.445 l 5.0800002,-2.54 V 0.05001146 l 12.065,-1.2e-7 V 5.1170368 H 23.4 L 22.760584,5.7785317 22.765,6.1199691 H 18.32 V 16.560012 h 8.255 v 4.445 H 22.13 v -3.175 h -5.08 m 7.62,-17.14500052 2.54,-2.8e-7 V 12.750012 h -4.445 v 2.54 h 5.715 v 2.54 h 1.905001 v 4.445002 H 3.0799996 v -5.715 L 10.7,12.750014 V 2.1199692 H 4.3499996 l -5.8e-6,-1.13526125 H 1.1749996 M 18.32,8.1199694 h 4.451864 V 7.6700117 H 25.305 v 2.5400003 h -2.54 v -0.09004 H 18.32"
        inkscape:connector-curvature="0"
        sodipodi:nodetypes="cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc" />
