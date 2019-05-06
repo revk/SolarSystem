@@ -118,9 +118,9 @@ const char* keypad_fault = false;
       send0C = true;
       send0D = true;
       send19 = true;
-      revk.state(F("tamper"), tamper ? F("1") : F("0"));
+      if (force)
+        revk.state(F("tamper"), tamper ? F("1") : F("0"));
     }
-
     if (txdone)
     { // Sending
       if ((int)(txdone - now) < 0)
