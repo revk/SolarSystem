@@ -797,6 +797,7 @@ device_ws (xml_t root, port_p p)
    {
       xml_add (x, "@dev", p->mqtt);
       xml_add (x, "@name", p->name ? : p->mqtt);
+      xml_add (x, "@groups", group_list (app->group));
    }
    if (p->state)
       xml_add (x, "@-active", "true");
@@ -804,7 +805,6 @@ device_ws (xml_t root, port_p p)
       xml_add (x, "@-tamper", "true");
    if (app->fault)
       xml_add (x, "@-fault", "true");
-   xml_add (x, "@groups", group_list (app->group));
    return x;
 }
 
@@ -817,6 +817,7 @@ keypad_ws (xml_t root, keypad_t * k)
    {
       if (k->name)
          xml_add (x, "@name", k->name);
+      xml_add (x, "@groups", group_list (k->groups));
    }
    xml_add (x, "+line", (char *) k->k.text[0]);
    xml_add (x, "+line", (char *) k->k.text[1]);
@@ -855,6 +856,10 @@ door_ws (xml_t root, int d)
          xml_add (x, "@t", mydoor[d].t);
       if (mydoor[d].name)
          xml_add (x, "@name", mydoor[d].name);
+      xml_add (x, "@group-fire", group_list (mydoor[d].group_fire));
+      xml_add (x, "@group-lock", group_list (mydoor[d].group_lock));
+      xml_add (x, "@group-arm", group_list (mydoor[d].group_arm));
+      xml_add (x, "@group-disarm", group_list (mydoor[d].group_disarm));
    }
    xml_add (x, "@state", door_name[door[d].state]);
    return x;
@@ -916,6 +921,7 @@ input_ws (xml_t root, port_p port)
          xml_add (x, "@type", "rio");
       else if (id && device[id].type == TYPE_MAX)
          xml_add (x, "@type", "max");
+      xml_add (x, "@groups", group_list (app->group));
    }
    if (port->state)
       xml_add (x, "@-active", "true");
@@ -923,7 +929,6 @@ input_ws (xml_t root, port_p port)
       xml_add (x, "@-tamper", "true");
    if (app->fault)
       xml_add (x, "@-fault", "true");
-   xml_add (x, "@groups", group_list (app->group));
    return NULL;
 }
 
@@ -962,14 +967,14 @@ output_ws (xml_t root, port_p port)
          xml_add (x, "@type", "rio");
       else if (id && device[id].type == TYPE_MAX)
          xml_add (x, "@type", "max");
+      xml_add (x, "@groups", group_list (app->group));
    }
    if (port->state)
       xml_add (x, "@-active", "true");
    if (app->tamper)
       xml_add (x, "@-tamper", "true");
    if (app->fault)
-      xml_add (x, "@groups", group_list (app->group));
-   xml_add (x, "@-fault", "true");
+      xml_add (x, "@-fault", "true");
    return NULL;
 }
 #endif
