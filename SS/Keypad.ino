@@ -106,6 +106,7 @@ const char* keypad_fault = false;
     static boolean toggle07 = false;
     static boolean tamper = false;
     static boolean send07c = false; // second send
+    static byte lastkey = 0x7F;
 
     // Poll
     if (force || !online)
@@ -118,7 +119,7 @@ const char* keypad_fault = false;
       send0D = true;
       send19 = true;
     }
-    
+
     if (txdone)
     { // Sending
       if ((int)(txdone - now) < 0)
@@ -176,7 +177,6 @@ const char* keypad_fault = false;
           else
           {
             keypad_fault = NULL;
-            static byte lastkey = 0;
             static long keyhold = 0;
             if (cmd == 0x00 && buf[1] == 0xFF && p > 5)
             { // Set up response
@@ -187,7 +187,7 @@ const char* keypad_fault = false;
                 toggle07 = true;
               }
             } else if (buf[1] == 0xFE)
-            { // Idle, no tamper
+            { // Idle, no tamper, no key
               if (tamper)revk.state(F("tamper"), F("0"));
               tamper = false;
               if (!send0B && (lastkey & 0x80) && (int)(keyhold - now) < 0)
@@ -318,7 +318,7 @@ const char* keypad_fault = false;
         const byte beepy[] = {1, 1};
         s = (byte*)beepy;
         len = 2;
-      } else if(keypadbeepoverride)
+      } else if (keypadbeepoverride)
       {
         const byte beepy[] = {1, 0};
         s = (byte*)beepy;

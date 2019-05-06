@@ -25,9 +25,9 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="8.4356946"
-     inkscape:cx="80.881889"
-     inkscape:cy="22.642471"
+     inkscape:zoom="14.05599"
+     inkscape:cx="68.07596"
+     inkscape:cy="32.125981"
      inkscape:document-units="mm"
      inkscape:current-layer="g930"
      showgrid="true"
@@ -366,11 +366,6 @@
          style="opacity:1;fill:none;fill-opacity:1;fill-rule:evenodd;stroke:#00ffff;stroke-width:0.5;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1" />
       <path
          inkscape:connector-curvature="0"
-         id="path1021"
-         d="m 29.75,4.4950001 v 0.4999865 h 0.5 v -0.999975 h -1 v 0.999975 h 0.5"
-         style="opacity:1;fill:none;fill-opacity:1;fill-rule:evenodd;stroke:#00ffff;stroke-width:0.49999997;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1" />
-      <path
-         inkscape:connector-curvature="0"
          id="path1019"
          d="m 29.75,7.0350105 v 0.3499868 h 0.35 v -0.699975 h -0.7 v 0.699975 h 0.35"
          style="opacity:1;fill:none;fill-opacity:1;fill-rule:evenodd;stroke:#00ffff;stroke-width:0.5;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1" />
@@ -393,6 +388,11 @@
          style="opacity:1;fill:#6f9090;fill-opacity:0.22869933;fill-rule:evenodd;stroke:#00ffff;stroke-width:0.5;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
          d="m 27.21,9.5750118 h -0.349987 v 0.35 h 0.699975 v -0.7 h -0.699975 v 0.35"
          id="path920"
+         inkscape:connector-curvature="0" />
+      <path
+         style="opacity:1;fill:none;fill-opacity:1;fill-rule:evenodd;stroke:#00ffff;stroke-width:0.5;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+         d="m 29.75,4.4950117 v 0.3499868 h 0.35 v -0.699975 h -0.7 v 0.699975 h 0.35"
+         id="path880"
          inkscape:connector-curvature="0" />
     </g>
     <g

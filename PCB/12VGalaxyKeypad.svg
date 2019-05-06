@@ -25,8 +25,8 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="10.042956"
-     inkscape:cx="34.567399"
+     inkscape:zoom="11.83279"
+     inkscape:cx="19.355433"
      inkscape:cy="32.86701"
      inkscape:document-units="mm"
      inkscape:current-layer="g955"
@@ -228,11 +228,6 @@
          d="m 20.35,10.039996 v 0.299987 h 0.3 V 9.7400084 h -0.6 v 0.5999746 h 0.3"
          style="opacity:1;fill:none;fill-opacity:0.43355186;fill-rule:evenodd;stroke:#3effff;stroke-width:0.49999997;stroke-linecap:round;stroke-linejoin:bevel;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1" />
       <path
-         style="opacity:1;fill:none;fill-opacity:0.43355186;fill-rule:evenodd;stroke:#3effff;stroke-width:0.49999997;stroke-linecap:round;stroke-linejoin:bevel;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
-         d="m 22.89,10.039996 v 0.499987 h 0.5 V 9.5400084 h -1 v 0.9999746 h 0.5"
-         id="path915"
-         inkscape:connector-curvature="0" />
-      <path
          inkscape:connector-curvature="0"
          id="path917"
          d="m 20.35,12.579997 v 0.299987 h 0.3 v -0.599975 h -0.6 v 0.599975 h 0.3"
@@ -251,6 +246,11 @@
          inkscape:connector-curvature="0"
          id="path923"
          d="m 22.89,15.119997 v 0.299987 h 0.3 v -0.599975 h -0.6 v 0.599975 h 0.3"
+         style="opacity:1;fill:none;fill-opacity:0.43355186;fill-rule:evenodd;stroke:#3effff;stroke-width:0.49999997;stroke-linecap:round;stroke-linejoin:bevel;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1" />
+      <path
+         inkscape:connector-curvature="0"
+         id="path868"
+         d="m 22.890005,10.039998 v 0.299987 h 0.3 V 9.7400095 h -0.6 v 0.5999755 h 0.3"
          style="opacity:1;fill:none;fill-opacity:0.43355186;fill-rule:evenodd;stroke:#3effff;stroke-width:0.49999997;stroke-linecap:round;stroke-linejoin:bevel;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1" />
     </g>
     <g
