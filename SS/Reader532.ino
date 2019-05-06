@@ -4,6 +4,7 @@
 // RFID Card reader for Solar System
 // ESP-12F based for use with PN532
 
+
 // Wiring for ESP-12F
 // PN532 connnections (in addition to GND/3V3)
 // GPIO13 MOSI
