@@ -777,7 +777,8 @@ keypad_send (keypad_t * k, int force)
    if (force || memcmp ((void *) &k->k.beep, (void *) &k->kwas.beep, sizeof (k->k.beep)))
    {
       snprintf (topic, sizeof (topic), "command/SS/%s/sounder", port_mqtt (k->port));
-      memcpy (message, (void *) &k->k.beep, sizeof (k->k.beep));
+      message[0] = k->k.beep[0] + 0x40;
+      message[1] = k->k.beep[1] + 0x40;
       mosquitto_publish (mqtt, NULL, topic, k->k.beep[0] ? sizeof (k->k.beep) : 0, message, 1, 0);
    }
    memcpy ((void *) &k->kwas, (void *) &k->k, sizeof (k->k));
