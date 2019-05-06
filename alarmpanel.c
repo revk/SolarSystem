@@ -3021,9 +3021,9 @@ doevent (event_t * e)
          {
             dolog (groups, "BUSFOUND", NULL, port_name (port), "Device on bus");
             app->found = 1;
-            if (type == TYPE_PAD || app->keypad)
-               keypad_new (port);
          }
+         if (type == TYPE_PAD || app->keypad)
+            keypad_new (port);
       }
       break;
    case EVENT_MISSING:
