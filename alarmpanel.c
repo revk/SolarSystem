@@ -770,7 +770,7 @@ keypad_send (keypad_t * k, int force)
    }
    if (force || k->k.cursor != k->kwas.cursor)
    {
-      snprintf (topic, sizeof (topic), "command/SS/%s/blink", port_mqtt (k->port));
+      snprintf (topic, sizeof (topic), "command/SS/%s/cursor", port_mqtt (k->port));
       *message = 0x20 + k->k.cursor;
       mosquitto_publish (mqtt, NULL, topic, 1, message, 1, 0);
    }
@@ -1089,6 +1089,8 @@ load_config (const char *configfile)
             }
             app->config = x;
             p->name = xml_copy (x, "@name");
+            if ((v = xml_get (x, "@keypad")) && *v)
+               keypad_new (p);
          }
    }
    if (debug)
@@ -1308,12 +1310,12 @@ load_config (const char *configfile)
             if (!p)
                continue;
             port_app_t *app = port_app (p);
-            if (app->keypad)
+            keypad_t *k = keypad_new (p);
+            if (app->keypad && app->keypad != k)
             {
                dolog (ALL_GROUPS, "CONFIG", NULL, port_name (p), "Keypad duplicate %s", p->name);
                continue;
             }
-            keypad_t *k = keypad_new (p);
             k->name = xml_copy (x, "@name");
             k->groups = group_parse (xml_get (x, "@groups") ? : "*");
             k->group_arm = (group_parse (xml_get (x, "@arm") ? : "*") & k->groups);     // default is all groups covered
@@ -1452,7 +1454,7 @@ load_config (const char *configfile)
                port_i_set (door[d].i_open, max, 1, doorname, "Open");
                port_o_set (door[d].o_beep, max, 1, doorname, "Beep");
                port_exit_set (mydoor[d].i_exit, max, 2, doorname);
-            } else
+            } else if (maxport)
             {                   // WiFi device - differect default port IDs
                xml_t c = port_app (maxport)->config;
                if (c)
@@ -2650,12 +2652,12 @@ do_keypad_update (keypad_t * k, char key)
                alarm_arm (k->user ? k->user->name : k->name, port_name (k->port), g, 0);
             alarm_timed (state[STATE_ARM] & g, 0);
          }
-      } else if (key == '\e')   // Cancel
+      } else if (key == '\e' || key == 'X')     // Cancel
          alarm_unset (k->user ? k->user->name : k->name, port_name (k->port), k->groups & state[STATE_ARM]);
       else if (key == 'B')      // Part set
       {
          alarm_unset (k->user ? k->user->name : k->name, port_name (k->port), state[STATE_ARM] & ~(k->groups & trigger));
-      } else if (key == '\n')
+      } else if (key == '\n' || key == 'E')
       {                         // Set
          alarm_set (k->user ? k->user->name : k->name, port_name (k->port), k->groups & state[STATE_ARM]);
          return NULL;
@@ -2743,12 +2745,12 @@ do_keypad_update (keypad_t * k, char key)
             return keypad_message (k, "INVALID CODE");
          }
          keypad_login (k, u, port_name (k->port));
-         if (key == '\n')
+         if (key == '\n' || key == 'E')
             return NULL;
       }
    }
    // Other keys
-   if (key == '\e')
+   if (key == '\e' || key == 'X')
    {                            // ESC - logout
       k->ack = 1;               // Acknowledged - stop beeping
       if (k->user)
@@ -2758,7 +2760,7 @@ do_keypad_update (keypad_t * k, char key)
       }
       // No action for not logged in
    }
-   if (key == '\n')
+   if (key == '\n' || key == 'E')
    {                            // ENT - reset
       k->ack = 1;               // Acknowledged - stop beeping
       if (k->user)
@@ -2924,9 +2926,9 @@ keypad_update (keypad_t * k, char key)
 #ifdef	LIBWS
    xml_t root = xml_tree_new (NULL);
    xml_t x = keypad_ws (root, k);
-   if (key == '\e')
+   if (key == '\e' || key == 'X')
       xml_add (x, "@key", "esc");
-   else if (key == '\n')
+   else if (key == '\n' || key == 'E')
       xml_add (x, "@key", "ent");
    else if (key)
       xml_addf (x, "@key", "%c", key);
