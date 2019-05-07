@@ -107,6 +107,7 @@ const char* keypad_fault = false;
     static boolean tamper = false;
     static boolean send07c = false; // second send
     static byte lastkey = 0x7F;
+    static boolean sounderack = false;
 
     // Poll
     if (force || !online)
@@ -118,6 +119,7 @@ const char* keypad_fault = false;
       send0C = true;
       send0D = true;
       send19 = true;
+      sounderack = false;
       if (force)
         revk.state(F("tamper"), tamper ? F("1") : F("0"));
     }
@@ -163,7 +165,7 @@ const char* keypad_fault = false;
           revk.info(F("Rx"), F("%d: %02X %02X %02X %02X"), p, buf[0], buf[1], buf[2], buf[3]);
         if (p)
         {
-          static const char *keymap = PSTR("0123456789BA\n\e*#");
+          static const char *keymap = PSTR("0123456789BAEX*#");
           unsigned int c = 0xAA, n;
           for (n = 0; n < p - 1; n++)
             c += buf[n];
@@ -184,7 +186,7 @@ const char* keypad_fault = false;
               if (!online)
               {
                 online = true;
-                toggle0B = false;
+                toggle0B = true;
                 toggle07 = true;
               }
             } else if (buf[1] == 0xFE)
@@ -221,6 +223,11 @@ const char* keypad_fault = false;
                   if (!(buf[2] & 0x80) || buf[2] != lastkey)
                     revk.event(buf[2] & 0x80 ? F("hold") : F("key"), F("%.1S"), keymap + (buf[2] & 0x0F));
                   if (buf[2] & 0x80)keyhold = now + 2000;
+                  if (buf[2] == 0x0D && insafemode)
+                  { // ESC in safe mode, shut up
+                    sounderack = true;
+                    send19 = true;
+                  }
                   if (buf[2] == 0x8D && insafemode)revk.restart(); // ESC held in safe mode
                 }
                 lastkey = buf[2];
@@ -285,7 +292,8 @@ const char* keypad_fault = false;
           else buf[++p] = ' ';
         }
       }
-      else        buf[++p] = 0x17; // clear
+      else
+        buf[++p] = 0x17; // clear
       if (send07a)
       { // cursor
         if (cursor_len)
@@ -304,7 +312,9 @@ const char* keypad_fault = false;
     { // Key keyclicks
       send19 = false;
       buf[++p] = 0x19;
-      if (!revk.mqttconnected)
+      if (sounderack)
+        buf[++p] = 3; // silent
+      else if (insafemode)
         buf[++p] = 0x01; // Sound normal
       else
         buf[++p] = (keyclick[0] & 0x7); // 0x03 (silent), 0x05 (quiet), or 0x01 (normal)
@@ -326,7 +336,7 @@ const char* keypad_fault = false;
         len = 2;
       }
       buf[++p] = 0x0C;
-      buf[++p] = len ? s[1] ? 3 : 1 : 0;
+      buf[++p] = (len ? s[1] ? 3 : 1 : 0);
       buf[++p] = (s[0] & 0x3F); // Time on
       buf[++p] = (s[1] & 0x3F); // Time off
     } else if (send0D)

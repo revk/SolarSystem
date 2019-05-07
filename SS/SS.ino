@@ -170,6 +170,8 @@ unsigned safemodestart = 0;
 #ifdef USE_OUTPUT
     output_setup(revk);
 #endif
+    if (safemode)
+      safemodestart = (millis() + safemode * 1000 ? : 1);
   }
 
   void loop()
