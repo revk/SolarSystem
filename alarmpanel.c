@@ -1088,6 +1088,7 @@ load_config (const char *configfile)
                continue;
             }
             app->config = x;
+            p->name = xml_copy (x, "@name");
          }
    }
    if (debug)
