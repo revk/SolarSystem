@@ -673,7 +673,7 @@ port_set_n (volatile port_p * w, int n, const char *v, int p, int i, char *door,
       w[q++] = port;
       int pd = port_device (port);
       p = port_port (port);
-      if (p && pd < MAX_DEVICE)
+      if (p && pd && pd < MAX_DEVICE)
       {                         // port
          if (i == 1 && device[pd].type == TYPE_RIO)
             device[pd].ri[p].response = 1;
