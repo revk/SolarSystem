@@ -9,9 +9,9 @@
    xmlns="http://www.w3.org/2000/svg"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   width="40mm"
-   height="32mm"
-   viewBox="0 0 40.000001 32.000002"
+   width="42mm"
+   height="34mm"
+   viewBox="0 0 42.000001 34.000002"
    version="1.1"
    id="svg926"
    inkscape:version="0.92.2 5c3e80d, 2017-08-06"
@@ -25,11 +25,11 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="6.2634263"
-     inkscape:cx="76.896414"
-     inkscape:cy="56.622215"
+     inkscape:zoom="8.8578224"
+     inkscape:cx="80.675938"
+     inkscape:cy="60.401747"
      inkscape:document-units="mm"
-     inkscape:current-layer="layer7"
+     inkscape:current-layer="layer2"
      showgrid="true"
      units="mm"
      objecttolerance="20"
@@ -55,8 +55,8 @@
        spacingy="0.63500002"
        empspacing="4"
        snapvisiblegridlinesonly="true"
-       originx="0"
-       originy="0" />
+       originx="0.99999912"
+       originy="1.0000011" />
   </sodipodi:namedview>
   <metadata
      id="metadata923">
@@ -75,7 +75,7 @@
      id="layer6"
      inkscape:label="Parts"
      style="display:inline;opacity:1"
-     transform="translate(-1.8099996,8.454989)">
+     transform="translate(-0.8100005,9.4549878)">
     <rect
        style="display:inline;opacity:1;fill:#000000;fill-opacity:0.50196078;fill-rule:evenodd;stroke:none;stroke-width:0.10000001;stroke-linecap:round;stroke-linejoin:bevel;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
        id="rect1436"
@@ -654,7 +654,7 @@
      id="layer3"
      inkscape:label="Edge 1mm"
      style="display:inline"
-     transform="translate(-1.8099996,8.454989)">
+     transform="translate(-0.8100005,9.4549878)">
     <path
        style="opacity:1;fill:none;fill-opacity:0.50196078;fill-rule:evenodd;stroke:#ff00ff;stroke-width:1;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
        d="M 1.3100008,-2.4899889 H 25.305 v -6.464999 l 17.005,0.020467 V 24.045012 H 1.3100005 Z"
@@ -665,9 +665,9 @@
   <g
      inkscape:groupmode="layer"
      id="layer7"
-     inkscape:label="Track mill &lt; 0.5mm"
+     inkscape:label="Track mill &lt; 0.3mm"
      style="display:inline"
-     transform="translate(-1.8099996,8.454989)">
+     transform="translate(-0.8100005,9.4549878)">
     <g
        transform="matrix(0.2591343,0,0,0.2591343,33.146838,-70.901445)"
        id="layer1-938"
@@ -682,10 +682,22 @@
   </g>
   <g
      inkscape:groupmode="layer"
+     id="layer2"
+     inkscape:label="Track mill &lt; 0.5mm"
+     transform="translate(0.9999991,0.99999884)">
+    <path
+       transform="translate(-1.8099996,8.454989)"
+       style="color:#000000;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:medium;line-height:normal;font-family:sans-serif;font-variant-ligatures:normal;font-variant-position:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-alternates:normal;font-feature-settings:normal;text-indent:0;text-align:start;text-decoration:none;text-decoration-line:none;text-decoration-style:solid;text-decoration-color:#000000;letter-spacing:normal;word-spacing:normal;text-transform:none;writing-mode:lr-tb;direction:ltr;text-orientation:mixed;dominant-baseline:auto;baseline-shift:baseline;text-anchor:start;white-space:normal;shape-padding:0;clip-rule:nonzero;display:inline;overflow:visible;visibility:visible;opacity:1;isolation:auto;mix-blend-mode:normal;color-interpolation:sRGB;color-interpolation-filters:linearRGB;solid-color:#000000;solid-opacity:1;vector-effect:none;fill:none;fill-opacity:1;fill-rule:evenodd;stroke:#ff0000;stroke-width:0.5;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;color-rendering:auto;image-rendering:auto;shape-rendering:auto;text-rendering:auto;enable-background:accumulate"
+       d="m 25.804688,-8.4550781 16.005859,0.019531 V 23.544922 H 1.8105469 V -1.9902344 H 25.304688 a 0.50005,0.50005 0 0 0 0.5,-0.5 z"
+       id="path951"
+       inkscape:connector-curvature="0" />
+  </g>
+  <g
+     inkscape:groupmode="layer"
      id="layer4"
      inkscape:label="Drill 0.5mm"
      style="display:inline"
-     transform="translate(-1.8099996,8.454989)">
+     transform="translate(-0.8100005,9.4549878)">
     <g
        id="g940"
        transform="translate(3.4050019,-9.1349946)"
