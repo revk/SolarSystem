@@ -193,10 +193,17 @@ const char* keypad_fault = false;
             { // Idle, no tamper, no key
               if (tamper)revk.state(F("tamper"), F("0"));
               tamper = false;
-              if (!send0B && (lastkey & 0x80) && (int)(keyhold - now) < 0)
+              if (!send0B)
               {
-                revk.event(F("gone"), F("%.1S"), keymap + (lastkey & 0x0F));
-                lastkey = 0x7F;
+                if (lastkey & 0x80)
+                {
+                  if ((int)(keyhold - now) < 0)
+                  {
+                    revk.event(F("gone"), F("%.1S"), keymap + (lastkey & 0x0F));
+                    lastkey = 0x7F;
+                  }
+                } else
+                  lastkey = 0x7F;
               }
             } else if (cmd == 0x06 && buf[1] == 0xF4 && p > 3)
             { // Status
@@ -213,17 +220,24 @@ const char* keypad_fault = false;
               { // Key
                 if (buf[2] == 0x7F)
                 { // No key
-                  if ((lastkey & 0x80) && (int)(keyhold - now) < 0)
-                    revk.event(F("gone"), F("%.1S"), keymap + (lastkey & 0x0F));
+                  if (lastkey & 0x80)
+                  {
+                    if ((int)(keyhold - now) < 0)
+                    {
+                      revk.event(F("gone"), F("%.1S"), keymap + (lastkey & 0x0F));
+                      lastkey = 0x7F;
+                    }
+                  } else
+                    lastkey = 0x7F;
                 } else
                 { // key
                   send0B = true;
                   if ((lastkey & 0x80) && buf[2] != lastkey)
                     revk.event(F("gone"), F("%.1S"), keymap + (lastkey & 0x0F));
                   if (!(buf[2] & 0x80) || buf[2] != lastkey)
-                    revk.event(buf[2] & 0x80 ? F("hold") : F("key"), F("%.1S"), keymap + (buf[2] & 0x0F));
+                    revk.event((buf[2] & 0x80) ? F("hold") : F("key"), F("%.1S"), keymap + (buf[2] & 0x0F));
                   if (buf[2] & 0x80)
-                    keyhold = now + 2000;
+                    keyhold = now + 2000000;
                   if (insafemode)
                   { // Special case for safe mode (off line)
                     if (buf[2] == 0x0D)
@@ -231,10 +245,11 @@ const char* keypad_fault = false;
                       sounderack = true;
                       send19 = true;
                     }
-                    if (buf[2] == 0x8D)revk.restart(); // ESC held in safe mode
+                    if (buf[2] == 0x8D)
+                      revk.restart(); // ESC held in safe mode
                   }
+                  lastkey = buf[2];
                 }
-                lastkey = buf[2];
               }
             }
           }
