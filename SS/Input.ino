@@ -76,7 +76,7 @@ unsigned long inputs = 0;
     }
     debugf("GPIO remaining %X", gpiomap);
     for (i = 0; i < input; i++)
-      pinMode(inputpin[i], INPUT_PULLUP);
+      pinMode(inputpin[i], inputpin[i] == 16 ? INPUT_PULLDOWN_16 : INPUT_PULLUP);
     debug("Input OK");
     return true;
   }
@@ -97,9 +97,9 @@ unsigned long inputs = 0;
         if (force || !pinhold[p] || (int)(pinhold[p] - now) < 0)
         {
           pinhold[p] = 0;
-          int r = digitalRead(inputpin[p]);
+          int r = (digitalRead(inputpin[p]) == HIGH ? 1 : 0);
           if (inputinvert & (1 << p))r = 1 - r;
-          if (force || r != ((inputs & (1 << p)) ? HIGH : LOW))
+          if (force || r != ((inputs & (1 << p)) ? 1 : 0))
           {
             pinhold[p] = ((now + inputhold) ? : 1);
             char tag[7];
