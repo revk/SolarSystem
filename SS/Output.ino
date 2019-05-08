@@ -19,6 +19,7 @@ unsigned long outputoverride = 0;
   s(output1,-1);   \
   s(output2,-1);   \
   s(output3,-1);   \
+  s(output4,-1);   \
   s(outputhold,500); \
   s(outputpoll,10); \
   s(outputinvert,0); \
@@ -68,6 +69,7 @@ unsigned long outputoverride = 0;
     outputpin[0] = output1; // Presets (0 means not preset as we don't use 0 anyway)
     outputpin[1] = output2;
     outputpin[2] = output3;
+    outputpin[3] = output4;
     for (i = 0; i < output; i++)
     {
       if (!gpiomap)

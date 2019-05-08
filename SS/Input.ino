@@ -17,6 +17,7 @@ unsigned long inputs = 0;
   s(input1,0);   \
   s(input2,0);   \
   s(input3,0);   \
+  s(input4,0);   \
   s(inputhold,500); \
   s(inputpoll,10); \
   s(inputinvert,0); \
@@ -48,6 +49,7 @@ unsigned long inputs = 0;
     inputpin[0] = input1; // Presets (0 means not preset as we don't use 0 anyway)
     inputpin[1] = input2;
     inputpin[2] = input3;
+    inputpin[3] = input4;
     for (i = 0; i < input; i++)
     {
       if (!map)
