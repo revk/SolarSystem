@@ -502,46 +502,50 @@ port_parse (const char *v, const char **ep, int i)
       }
    }
    // Parse the port
-   unsigned int id = 0,
-      type = 0;
-   while (type < MAX_TYPE && strncmp (type_name[type], v, strlen (type_name[type])))
-      type++;
-   if (type < MAX_TYPE)
-   {                            // Bus based port
-      v += strlen (type_name[type]);
-      if (*v > '0' && *v <= '0' + MAX_BUS && isxdigit (v[1]) && isxdigit (v[2]))
-      {                         //  Device
-         id = ((*v - '1') << 8) + (((isalpha (v[1]) ? 9 : 0) + (v[1] & 0xF)) << 4) + ((isalpha (v[2]) ? 9 : 0) + (v[2] & 0xF));
-         v += 3;
-         if (*v > '0' && *v <= '9')
-         {
-            if (port)
-               return NULL;     // silly as # as well
-            port = *v - '0';
+   if (isalpha (v[0]) && isalpha (v[1]) && isalpha (v[2]) && v[3] > '0' && v[3] <= '0' + MAX_BUS && isxdigit (v[4])
+       && isxdigit (v[5]))
+   {
+      unsigned int id = 0,
+         type = 0;
+      while (type < MAX_TYPE && strncmp (type_name[type], v, strlen (type_name[type])))
+         type++;
+      if (type < MAX_TYPE)
+      {                         // Bus based port
+         v += strlen (type_name[type]);
+         if (*v > '0' && *v <= '0' + MAX_BUS && isxdigit (v[1]) && isxdigit (v[2]))
+         {                      //  Device
+            id = ((*v - '1') << 8) + (((isalpha (v[1]) ? 9 : 0) + (v[1] & 0xF)) << 4) + ((isalpha (v[2]) ? 9 : 0) + (v[2] & 0xF));
+            v += 3;
+            if (*v > '0' && *v <= '9')
+            {
+               if (port)
+                  return NULL;  // silly as # as well
+               port = *v - '0';
+            }
          }
-      }
-      while (*v && !isspace (*v) && *v != ',')
-         v++;
-      if (type && id && id < MAX_DEVICE)
-      {
-         if (!device[id].type)
+         while (*v && !isspace (*v) && *v != ',')
+            v++;
+         if (type && id && id < MAX_DEVICE)
          {
-            device[id].type = type;
-            if (type == TYPE_MAX)
-               device[id].fob_hold = 30;        // 3 second default
-            buses |= (1 << (id >> 8));
-         } else if (device[id].type != type)
-         {
-            dolog (groups, "CONFIG", NULL, NULL, "Device type clash port %s %s/%s, device disabled", v, type_name[device[id].type],
-                   type_name[type]);
-            device[id].disabled = 1;
+            if (!device[id].type)
+            {
+               device[id].type = type;
+               if (type == TYPE_MAX)
+                  device[id].fob_hold = 30;     // 3 second default
+               buses |= (1 << (id >> 8));
+            } else if (device[id].type != type)
+            {
+               dolog (groups, "CONFIG", NULL, NULL, "Device type clash port %s %s/%s, device disabled", v,
+                      type_name[device[id].type], type_name[type]);
+               device[id].disabled = 1;
+            }
          }
+         if (!port && i >= 0)
+            return NULL;        // Expecting a port
+         if (port && i < 0)
+            return NULL;        // Expecting base device
+         return port_new_bus (id >> 8, id & 0xFF, i, port);
       }
-      if (!port && i >= 0)
-         return NULL;           // Expecting a port
-      if (port && i < 0)
-         return NULL;           // Expecting base device
-      return port_new_bus (id >> 8, id & 0xFF, i, port);
    }
    if (strlen (v) < 6 || !isxdigit (v[0]) || !isxdigit (v[1]) || !isxdigit (v[2]) || !isxdigit (v[3]) || !isxdigit (v[4])
        || !isxdigit (v[5]))
@@ -1443,7 +1447,7 @@ load_config (const char *configfile)
             max = xml_get (x, "@min");  // Min Reader, LOL
          if (max)
          {                      // short cut to set based on max reader
-            port_p maxport = port_parse (max, NULL, -2);
+            port_p maxport = port_parse (max, NULL, -1);
             if (maxport && !maxport->name)
                maxport->name = mydoor[d].name;
             if (port_device (maxport))
@@ -2184,7 +2188,7 @@ dologger (CURL * curl, log_t * l)
       port_p p;
       if (!strncmp (l->port, "DOOR", 4))
          name = mydoor[atoi (l->port + 4)].name;
-      else if ((p = port_parse (l->port, NULL, -2)))
+      else if ((p = port_parse (l->port, NULL, -1)))
          name = p->name;
    }
    // Syslog (except boring keepalives)
@@ -2852,7 +2856,7 @@ do_keypad_update (keypad_t * k, char key)
             snprintf (l1, 17, "%-7s %-8s", s->port, s->name ? : "");
             if (t == STATE_FAULT || t == STATE_TAMPER)
             {
-               port_p p = port_parse (s->port, NULL, -2);
+               port_p p = port_parse (s->port, NULL, -1);
                if (port_bits (p) && device[port_device (p)].type == TYPE_RIO)
                {
                   unsigned int v = device[port_device (p)].ri[port_port (p) - 1].resistance;
