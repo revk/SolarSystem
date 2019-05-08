@@ -19,6 +19,7 @@ unsigned long inputs = 0;
   s(input3,0);   \
   s(inputhold,500); \
   s(inputpoll,10); \
+  s(inputinvert,0); \
 
 #define s(n,d) unsigned int n=d;
   app_settings
@@ -95,6 +96,7 @@ unsigned long inputs = 0;
         {
           pinhold[p] = 0;
           int r = digitalRead(inputpin[p]);
+          if (inputinvert & (1 << p))r = 1 - r;
           if (force || r != ((inputs & (1 << p)) ? HIGH : LOW))
           {
             pinhold[p] = ((now + inputhold) ? : 1);

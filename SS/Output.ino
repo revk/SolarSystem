@@ -21,6 +21,7 @@ unsigned long outputoverride = 0;
   s(output3,-1);   \
   s(outputhold,500); \
   s(outputpoll,10); \
+  s(outputinvert,0); \
 
 #define s(n,d) int n=d;
   app_settings
@@ -106,6 +107,7 @@ unsigned long outputoverride = 0;
       outputnext = now + 1000; // Periodically send all output
       unsigned long out = outputs;
       if (insafemode)outputs = outputoverride; // Safe mode, normall means relays off but can be overridden
+      out ^= outputinvert;
       int i;
       for (i = 0; i < output && i < 8; i++)
         digitalWrite(outputpin[i], (out & (1 << i)) ? 1 : 0);
