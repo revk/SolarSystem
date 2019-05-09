@@ -18,7 +18,7 @@
 #include "Reader532.h"
 #include <PN532_SPI.h>    // Elechouse library
 #include "PN532.h"
-#include "Relay.h"
+//#include "SerialRelay.h"
 #include "Output.h"
 
 PN532_SPI pn532spi(SPI, ss);
@@ -119,16 +119,24 @@ const char* reader532_fault = false;
           revk.event(F("held"), F("%s"), tid);
           if (fallback && !strcmp(fallback, tid))
           {
+#ifdef USE_RELAY
             relay_safe_set(true);
+#endif
+#ifdef USE_OUTPUT
             output_safe_set(true);
+#endif
           }
         }
       } else if (last && (int)(now - last) > releasetime)
       {
         if (fallback && !strcmp(fallback, tid))
         {
+#ifdef USE_RELAY
           relay_safe_set(false);
+#endif
+#ifdef USE_OUTPUT
           output_safe_set(false);
+#endif
         }
         if (held)
           revk.event(F("gone"), F("%s"), tid);

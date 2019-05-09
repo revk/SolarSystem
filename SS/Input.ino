@@ -8,19 +8,17 @@
 const char* input_fault = false;
 
 #define MAX_PIN 17
+#define MAX_INPUT 9
 
-int inputpin[MAX_PIN] = {};
-unsigned long inputs = 0;
+byte inputpin[MAX_INPUT] = {};
+unsigned int inputinvert = 0;
+unsigned int inputactive = 0;
+unsigned int inputstate = 0;
 
 #define app_settings  \
   s(input,0);   \
-  s(input1,0);   \
-  s(input2,0);   \
-  s(input3,0);   \
-  s(input4,0);   \
   s(inputhold,500); \
   s(inputpoll,10); \
-  s(inputinvert,0); \
 
 #define s(n,d) unsigned int n=d;
   app_settings
@@ -28,6 +26,40 @@ unsigned long inputs = 0;
 
   const char* input_setting(const char *tag, const byte *value, size_t len)
   { // Called for settings retrieved from EEPROM
+    if (!strncmp(tag, PSTR("input"), 5) && isdigit(tag[5]))
+    { // Define input pin
+      int i = atoi(tag + 5) - 1;
+      if (i < 0 || i >= MAX_INPUT)
+        return NULL;
+      if (!len)
+      { // inactive
+        inputactive &= ~(1 << i);
+        return NULL;
+      }
+      inputinvert &= ~(1 << i);
+      if (*value == '+' || *value == '-')
+      { // active
+        if (*value == '-')
+          inputinvert |= (1 << i);
+        value++;
+        len--;
+      }
+      if (!len)
+        return NULL;
+      int p = 0;
+      while (len && isdigit(*value))
+      {
+        p = p * 10 + *value++ -'0';
+        len--;
+      }
+      if (len || p >= MAX_PIN)
+        return NULL;
+      inputpin[i] = p;
+      inputactive |= (1 << i);
+      // Messy...
+      const char*tagname[] = {PSTR("input1"), PSTR("input2"), PSTR("input3"), PSTR("input4"), PSTR("input5"), PSTR("input6"), PSTR("input7"), PSTR("input8"), PSTR("input9")};
+      return tagname[i];
+    }
 #define s(n,d) do{const char *t=PSTR(#n);if(!strcmp_P(tag,t)){n=(value?atoi((char*)value):d);return t;}}while(0)
     app_settings
 #undef s
@@ -36,81 +68,80 @@ unsigned long inputs = 0;
 
   boolean input_command(const char*tag, const byte *message, size_t len)
   { // Called for incoming MQTT messages
-    if (!input)return false; // No inputs defined
+    if (!inputactive)return false; // No inputs defined
     return false;
   }
 
   boolean input_setup(ESP8266RevK&revk)
   {
-    if (!input)return false; // No inputs defined
-    unsigned int map = gpiomap & ~((1 << 0) | (1 << 1) || (1 << 2)); // Dont use GPIO0, GPI1, nor GPI2 as general input because bad if tied low at boot.
-    debugf("GPIO available %X for %d inputs", map, input);
+    if (!inputactive && !input)return false; // No inputs defined
+    debugf("GPIO available %X for %d inputs", gpiomap, input);
     int i;
-    inputpin[0] = input1; // Presets (0 means not preset as we don't use 0 anyway)
-    inputpin[1] = input2;
-    inputpin[2] = input3;
-    inputpin[3] = input4;
-    for (i = 0; i < input; i++)
-    {
-      if (!map)
+    // Check assigned pins
+    for (i = 0; i < MAX_INPUT; i++)
+      if (inputactive & (1 << i))
       {
-        input_fault = PSTR("Input pins not available");
-        input = NULL;
-        return false;
+        if (inputpin[i] < 3 || !(gpiomap & (1 << inputpin[i])))
+        { // Unusable
+          input_fault = PSTR("Input pin assignment not available");
+          inputactive &= ~(1 << i);
+          continue;
+        }
+        gpiomap &= ~(1 << inputpin[i]);
       }
-      int p = inputpin[i];
-#ifdef ARDUINO_ESP8266_NODEMCU
-      if (!p) for (p = 1; p < MAX_PIN && !((map | (1 << 1) | (1 << 3)) & (1 << p)); p++); // Find a pin (skip tx/rx)
-#endif
-      if (!p) for (p = 1; p < MAX_PIN && !(map & (1 << p)); p++); // Find a pin
-      if (p == MAX_PIN || !(map & (1 << p)))
-      {
-        input_fault = PSTR("Input pin assignment not available");
-        input = NULL;
-        return false;
-      }
-      inputpin[i] = p;
-      debugf("Input %d pin %d", i + 1, p);
-      gpiomap &= ~(1 << p);
-      map &= ~(1 << p);
+    if (input)
+    { // Auto assign some pins (deprecated)
+      for (i = 0; i < input; i++)
+        if (!(inputactive & (1 << i)))
+        {
+          int p;
+          for (p = 3; p < MAX_PIN && !(gpiomap & (1 << p)); p++); // Find a pin
+          if (p == MAX_PIN)
+          {
+            input_fault = PSTR("No input pins available to assign");
+            break;
+          }
+          inputpin[i] = p;
+          inputactive |= (1 << i);
+          gpiomap &= ~(1 << inputpin[i]);
+        }
     }
     debugf("GPIO remaining %X", gpiomap);
-    for (i = 0; i < input; i++)
-      pinMode(inputpin[i], inputpin[i] == 16 ? INPUT_PULLDOWN_16 : INPUT_PULLUP);
+    for (i = 0; i < MAX_INPUT; i++)
+      if (inputactive & (1 << i))
+        pinMode(inputpin[i], (inputpin[i] == 16) ? INPUT_PULLDOWN_16 : INPUT_PULLUP);
     debug("Input OK");
     return true;
   }
 
   boolean input_loop(ESP8266RevK&revk, boolean force)
   {
-    if (!input)return false; // No inputs defined
+    if (!inputactive)return false; // No inputs defined
     unsigned long now = millis();
     static unsigned long pincheck = 0;
-    static unsigned long pinhold[MAX_PIN] = {};
-
-    if ((int)(pincheck - now) < 0)
+    static unsigned long pinhold[MAX_INPUT] = {};
+    if (force || (int)(pincheck - now) < 0)
     {
       pincheck = now + inputpoll;
-      int p;
-      for (p = 0; p < input; p++)
-      {
-        if (force || !pinhold[p] || (int)(pinhold[p] - now) < 0)
-        {
-          pinhold[p] = 0;
-          int r = (digitalRead(inputpin[p]) == HIGH ? 1 : 0);
-          if (inputinvert & (1 << p))r = 1 - r;
-          if (force || r != ((inputs & (1 << p)) ? 1 : 0))
+      int i;
+      for (i = 0; i < MAX_INPUT; i++)
+        if (inputactive & (1 << i))
+          if (force || !pinhold[i] || (int)(pinhold[i] - now) < 0)
           {
-            pinhold[p] = ((now + inputhold) ? : 1);
-            char tag[7];
-            strcpy_P(tag, PSTR("inputX"));
-            tag[5] = '1' + p;
-            revk.state(tag, r == HIGH ? F("1") : F("0"));
-            if (r == HIGH)inputs |= (1 << p);
-            else inputs &= ~(1 << p);
+            pinhold[i] = 0;
+            int r = (digitalRead(inputpin[i]) ? 1 : 0);
+            if (inputinvert & (1 << i))
+              r = 1 - r;
+            if (force || r != ((inputstate & (1 << i)) ? 1 : 0))
+            {
+              if (r)inputstate |= (1 << i);
+              else inputstate &= ~(1 << i);
+              pinhold[i] = ((now + inputhold) ? : 1);
+              char tag[8];
+              snprintf_P(tag, sizeof(tag), "input%d", i + 1);
+              revk.state(tag, F("%d"), r);
+            }
           }
-        }
-      }
     }
     return true;
   }

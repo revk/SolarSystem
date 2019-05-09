@@ -25,9 +25,9 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="14.72181"
+     inkscape:zoom="14.663506"
      inkscape:cx="42.262386"
-     inkscape:cy="27.07628"
+     inkscape:cy="26.735123"
      inkscape:document-units="mm"
      inkscape:current-layer="layer7"
      showgrid="true"
@@ -236,6 +236,17 @@
        d="M 10.065,-5.5212103 V -7.569988 h 2.54 v 2.0487777 m 0,8.1112224 h 3.175 v 3.1750001 m -8.2550003,2e-7 V 0.05001196 H 10.065 V 2.5900123 l 2.54,-2e-7 v -7.1347507 h -2.54 l -2.5400005,10e-8 2e-7,2.0547506 M 10.065,-4.5447387 v 2.0547508 H 7.5249997 v 0 H 4.9849995 v 5.7150003 l -2.5400001,-2e-7 M -2.6350007,5.7650124 V 0.68501206 h 2.54000012 V 3.2250122 l 2.54000008,2e-7 -1e-7,-8.7462227 H 10.065 h 2.54 1.27 v 3.0312225 h 7.62"
        inkscape:connector-curvature="0"
        sodipodi:nodetypes="cccccccccccccccccccccccccccccccccc" />
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.52777767px;line-height:125%;font-family:Raleway;-inkscape-font-specification:'Raleway, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:center;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       x="-4.0562935"
+       y="8.3176575"
+       id="text871"><tspan
+         sodipodi:role="line"
+         id="tspan869"
+         x="-4.0562935"
+         y="8.3176575"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.52777767px;font-family:Raleway;-inkscape-font-specification:'Raleway, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:center;writing-mode:lr-tb;text-anchor:middle;stroke-width:0.26458332px">3</tspan></text>
   </g>
   <g
      inkscape:groupmode="layer"

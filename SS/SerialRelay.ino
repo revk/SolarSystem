@@ -4,7 +4,7 @@
 // Relay output using ILS serial relay board
 
 #include <ESP8266RevK.h>
-#include "relay.h"
+#include "SerialRelay.h"
 const char* relay_fault = false;
 
 #define PINS  ((1<<1))  // Tx (GPIO1)

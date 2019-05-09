@@ -16,7 +16,7 @@
 #include "Reader522.h"
 #include <SPI.h>
 #include <MFRC522.h>
-#include "Relay.h"
+//#include "SerialRelay.h"
 #include "Output.h"
 
 #define app_settings  \
@@ -98,8 +98,12 @@
           for (n = 0; n < lastlen && n * 2 < sizeof(tid); n++)sprintf_P(tid + n * 2, PSTR("%02X"), id[n]);
           if (fallback && !strcmp(fallback, tid))
           {
-            relay_safe_set(false);
-            output_safe_set(false);
+#ifdef USE_RELAY
+            relay_safe_set(true);
+#endif
+#ifdef USE_OUTPUT
+            output_safe_set(true);
+#endif
           }
           first = now;
           held = false;
@@ -115,8 +119,12 @@
           revk.state(F("gone"), F("%s"), tid);
         if (fallback && !strcmp(fallback, tid))
         {
+#ifdef USE_RELAY
           relay_safe_set(false);
+#endif
+#ifdef USE_OUTPUT
           output_safe_set(false);
+#endif
         }
         first = 0;
         last = 0;
