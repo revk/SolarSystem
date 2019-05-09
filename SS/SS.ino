@@ -18,11 +18,9 @@ unsigned int gpiomap = 0x1703F; // Pins available (ESP-12F)
 unsigned int gpiomap = 0xF; // Pins available (ESP-01)
 #endif
 
-//#include "SerialRelay.h"
 #include "Ranger0X.h"
 #include "Ranger1X.h"
 #include "Keypad.h"
-#include "Beep.h"
 #include "Input.h"
 #include "Output.h"
 

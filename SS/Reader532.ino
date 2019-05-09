@@ -18,7 +18,6 @@
 #include "Reader532.h"
 #include <PN532_SPI.h>    // Elechouse library
 #include "PN532.h"
-//#include "SerialRelay.h"
 #include "Output.h"
 
 PN532_SPI pn532spi(SPI, ss);
@@ -105,11 +104,10 @@ const char* reader532_fault = false;
           memcpy(lastuid, uid, lastlen = uidlen);
           int n;
           for (n = 0; n < uidlen && n * 2 < sizeof(tid); n++)sprintf_P(tid + n * 2, PSTR("%02X"), uid[n]);
+#ifdef USE_OUTPUT
           if (fallback && !strcmp(fallback, tid))
-          {
-            relay_safe_set(false);
             output_safe_set(false);
-          }
+#endif
           first = now;
           held = false;
           revk.event(F("id"), F("%s"), tid);
@@ -117,27 +115,17 @@ const char* reader532_fault = false;
         {
           held = true;
           revk.event(F("held"), F("%s"), tid);
-          if (fallback && !strcmp(fallback, tid))
-          {
-#ifdef USE_RELAY
-            relay_safe_set(true);
-#endif
 #ifdef USE_OUTPUT
+          if (fallback && !strcmp(fallback, tid))
             output_safe_set(true);
 #endif
-          }
         }
       } else if (last && (int)(now - last) > releasetime)
       {
-        if (fallback && !strcmp(fallback, tid))
-        {
-#ifdef USE_RELAY
-          relay_safe_set(false);
-#endif
 #ifdef USE_OUTPUT
+        if (fallback && !strcmp(fallback, tid))
           output_safe_set(false);
 #endif
-        }
         if (held)
           revk.event(F("gone"), F("%s"), tid);
         first = 0;
