@@ -17,8 +17,10 @@ unsigned long inputs = 0;
   s(input1,0);   \
   s(input2,0);   \
   s(input3,0);   \
+  s(input4,0);   \
   s(inputhold,500); \
   s(inputpoll,10); \
+  s(inputinvert,0); \
 
 #define s(n,d) unsigned int n=d;
   app_settings
@@ -47,6 +49,7 @@ unsigned long inputs = 0;
     inputpin[0] = input1; // Presets (0 means not preset as we don't use 0 anyway)
     inputpin[1] = input2;
     inputpin[2] = input3;
+    inputpin[3] = input4;
     for (i = 0; i < input; i++)
     {
       if (!map)
@@ -73,7 +76,7 @@ unsigned long inputs = 0;
     }
     debugf("GPIO remaining %X", gpiomap);
     for (i = 0; i < input; i++)
-      pinMode(inputpin[i], INPUT_PULLUP);
+      pinMode(inputpin[i], inputpin[i] == 16 ? INPUT_PULLDOWN_16 : INPUT_PULLUP);
     debug("Input OK");
     return true;
   }
@@ -94,8 +97,9 @@ unsigned long inputs = 0;
         if (force || !pinhold[p] || (int)(pinhold[p] - now) < 0)
         {
           pinhold[p] = 0;
-          int r = digitalRead(inputpin[p]);
-          if (force || r != ((inputs & (1 << p)) ? HIGH : LOW))
+          int r = (digitalRead(inputpin[p]) == HIGH ? 1 : 0);
+          if (inputinvert & (1 << p))r = 1 - r;
+          if (force || r != ((inputs & (1 << p)) ? 1 : 0))
           {
             pinhold[p] = ((now + inputhold) ? : 1);
             char tag[7];

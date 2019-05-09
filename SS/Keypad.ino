@@ -243,7 +243,7 @@ const char* keypad_fault = false;
                     if (buf[2] == 0x0D)
                     { // ESC in safe mode, shut up
                       sounderack = true;
-                      send19 = true;
+                      send0C = true;
                     }
                     if (buf[2] == 0x8D)
                       revk.restart(); // ESC held in safe mode
@@ -324,9 +324,7 @@ const char* keypad_fault = false;
     { // Key keyclicks
       send19 = false;
       buf[++p] = 0x19;
-      if (sounderack)
-        buf[++p] = 3; // silent
-      else if (insafemode)
+      if (insafemode)
         buf[++p] = 0x01; // Sound normal
       else
         buf[++p] = (keyclick[0] & 0x7); // 0x03 (silent), 0x05 (quiet), or 0x01 (normal)
@@ -338,9 +336,14 @@ const char* keypad_fault = false;
       byte len = sounder_len;
       if (insafemode)
       {
-        const byte beepy[] = {1, 1};
-        s = (byte*)beepy;
-        len = 2;
+        if (sounderack)
+          len = 0; // quiet
+        else
+        {
+          const byte beepy[] = {1, 1};
+          s = (byte*)beepy;
+          len = 2;
+        }
       } else if (keypadbeepoverride)
       {
         const byte beepy[] = {1, 0};

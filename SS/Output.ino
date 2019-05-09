@@ -19,8 +19,10 @@ unsigned long outputoverride = 0;
   s(output1,-1);   \
   s(output2,-1);   \
   s(output3,-1);   \
+  s(output4,-1);   \
   s(outputhold,500); \
   s(outputpoll,10); \
+  s(outputinvert,0); \
 
 #define s(n,d) int n=d;
   app_settings
@@ -67,6 +69,7 @@ unsigned long outputoverride = 0;
     outputpin[0] = output1; // Presets (0 means not preset as we don't use 0 anyway)
     outputpin[1] = output2;
     outputpin[2] = output3;
+    outputpin[3] = output4;
     for (i = 0; i < output; i++)
     {
       if (!gpiomap)
@@ -77,7 +80,7 @@ unsigned long outputoverride = 0;
       }
       int p = outputpin[i];
 #ifdef ARDUINO_ESP8266_NODEMCU
-      if (!p) for (p = 1; p < MAX_PIN && !((gpiomap | (1 << 1) | (1 << 3)) & (1 << p)); p++); // Find a pin (skip tx/rx)
+      if (p < 0) for (p = 0; p < MAX_PIN && !((gpiomap | (1 << 1) | (1 << 3)) & (1 << p)); p++); // Find a pin (skip tx/rx)
 #endif
       if (p < 0) for (p = 0; p < MAX_PIN && !(gpiomap & (1 << p)); p++); // Find a pin
       if (p == MAX_PIN || !(gpiomap & (1 << p)))
@@ -106,6 +109,7 @@ unsigned long outputoverride = 0;
       outputnext = now + 1000; // Periodically send all output
       unsigned long out = outputs;
       if (insafemode)outputs = outputoverride; // Safe mode, normall means relays off but can be overridden
+      out ^= outputinvert;
       int i;
       for (i = 0; i < output && i < 8; i++)
         digitalWrite(outputpin[i], (out & (1 << i)) ? 1 : 0);
