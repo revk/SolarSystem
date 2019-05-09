@@ -31,31 +31,30 @@ unsigned int inputstate = 0;
       int i = atoi(tag + 5) - 1;
       if (i < 0 || i >= MAX_INPUT)
         return NULL;
-      if (!len)
-      { // inactive
-        inputactive &= ~(1 << i);
-        return NULL;
-      }
+      inputactive &= ~(1 << i);
       inputinvert &= ~(1 << i);
-      if (*value == '+' || *value == '-')
-      { // active
-        if (*value == '-')
-          inputinvert |= (1 << i);
-        value++;
-        len--;
-      }
-      if (!len)
-        return NULL;
-      int p = 0;
-      while (len && isdigit(*value))
+      if (len)
       {
-        p = p * 10 + *value++ -'0';
-        len--;
+        if (*value == '+' || *value == '-')
+        { // active
+          if (*value == '-')
+            inputinvert |= (1 << i);
+          value++;
+          len--;
+        }
+        if (!len)
+          return NULL;
+        int p = 0;
+        while (len && isdigit(*value))
+        {
+          p = p * 10 + *value++ -'0';
+          len--;
+        }
+        if (len || p >= MAX_PIN)
+          return NULL;
+        inputpin[i] = p;
+        inputactive |= (1 << i);
       }
-      if (len || p >= MAX_PIN)
-        return NULL;
-      inputpin[i] = p;
-      inputactive |= (1 << i);
       // Messy...
       const char*tagname[] = {PSTR("input1"), PSTR("input2"), PSTR("input3"), PSTR("input4"), PSTR("input5"), PSTR("input6"), PSTR("input7"), PSTR("input8"), PSTR("input9")};
       return tagname[i];

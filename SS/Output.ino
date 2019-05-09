@@ -48,37 +48,38 @@ unsigned long outputnext = 0;
       outputbeep &= ~(1 << i);
       outputrelay &= ~(1 << i);
       outputinvert &= ~(1 << i);
-      if (!len)
-        return NULL; // Not active
-      if (*value == '+' || *value == '-')
-      { // Polarity
-        if (*value == '-')
-          outputinvert |= (1 << i);
-        value++;
-        len--;
-      }
-      if (!len)
-        return NULL;
-      byte prefix = 0;
-      if (!isdigit(*value))
+      if (len)
       {
-        prefix = *value++;
-        len--;
+        if (*value == '+' || *value == '-')
+        { // Polarity
+          if (*value == '-')
+            outputinvert |= (1 << i);
+          value++;
+          len--;
+        }
+        if (!len)
+          return NULL;
+        byte prefix = 0;
+        if (!isdigit(*value))
+        {
+          prefix = *value++;
+          len--;
+        }
+        if (!len)return NULL;
+        int p = 0;
+        while (len && isdigit(*value))
+        {
+          p = p * 10 + *value++ -'0';
+          len--;
+        }
+        if (len || p > 255)return NULL;
+        if (prefix == 'R')
+          outputrelay |= (1 << i); // Relay
+        else if (prefix == 'B')
+          outputbeep |= (1 << i);
+        outputpin[i] = p;
+        outputactive |= (1 << i);
       }
-      if (!len)return NULL;
-      int p = 0;
-      while (len && isdigit(*value))
-      {
-        p = p * 10 + *value++ -'0';
-        len--;
-      }
-      if (len || p > 255)return NULL;
-      if (prefix == 'R')
-        outputrelay |= (1 << i); // Relay
-      else if (prefix == 'B')
-        outputbeep |= (1 << i);
-      outputpin[i] = p;
-      outputactive |= (1 << i);
       // Messy...
       const char*tagname[] = {PSTR("output1"), PSTR("output2"), PSTR("output3"), PSTR("output4"), PSTR("output5"), PSTR("output6"), PSTR("output7"), PSTR("output8"), PSTR("output9")};
       return tagname[i];
