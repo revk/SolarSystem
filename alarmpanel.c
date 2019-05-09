@@ -1467,15 +1467,15 @@ load_config (const char *configfile)
                   int o = atoi (xml_get (c, "@output") ? : "");
                   if (xml_get (c, "@reader522") || xml_get (c, "@reader532"))
                      port_set (mydoor[d].i_fob, max, 0, doorname, "Reader");
-                  if (o >= 1)
+                  if (o >= 1 || ((v = xml_get (c, "@output1")) && *v))
                      port_o_set (door[d].mainlock.o_unlock, max, 1, doorname, "Unlock");
                   if (xml_get (c, "@ranger0x"))
                      port_exit_set (mydoor[d].i_exit, max, 8, doorname);        // Range exit
-                  else if (i >= 1)
+                  else if (i >= 1 || ((v = xml_get (c, "@input1")) && *v))
                      port_exit_set (mydoor[d].i_exit, max, -1, doorname);
-                  if (i >= 2)
+                  if (i >= 2 || ((v = xml_get (c, "@input2")) && *v))
                      port_i_set (door[d].i_open, max, 2, doorname, "Open");
-                  if (i >= 3)
+                  if (i >= 3 || ((v = xml_get (c, "@input3")) && *v))
                      port_i_set (door[d].mainlock.i_unlock, max, 3, doorname, "Unlock");
                }
             }
@@ -1733,8 +1733,8 @@ add_state (group_t g, const char *port, const char *name, state_t which)
    void addtolist (group_t g, int which)
    {
       statelist_t *s = NULL;
-      for (s = statelist; s && (s->type != which || strcmp (s->port ? : "", port ? : "") || strcmp (s->name ? : "", name ? : ""));
-           s = s->next);
+      for (s = statelist;
+           s && (s->type != which || strcmp (s->port ? : "", port ? : "") || strcmp (s->name ? : "", name ? : "")); s = s->next);
       if (!s)
       {                         // New
          s = malloc (sizeof (*s));
@@ -1788,8 +1788,8 @@ rem_state (group_t g, const char *port, const char *name, int which)
    if (!g)
       return;
    statelist_t *s;
-   for (s = statelist; s && (s->type != which || strcmp (s->port ? : "", port ? : "") || strcmp (s->name ? : "", name ? : ""));
-        s = s->next);
+   for (s = statelist;
+        s && (s->type != which || strcmp (s->port ? : "", port ? : "") || strcmp (s->name ? : "", name ? : "")); s = s->next);
    if (s)
       del_state (g, s);
    group_t changed = 0;
@@ -2193,11 +2193,11 @@ dologger (CURL * curl, log_t * l)
    }
    // Syslog (except boring keepalives)
    if (!l->type || strcasecmp (l->type, "KEEPALIVE"))
-      syslog (LOG_INFO, "%*s %s %s %s %s %s", MAX_GROUP, groups, l->type ? : "?", l->port ? : "", name ? : "", l->user ? : "",
-              l->msg ? : "");
+      syslog (LOG_INFO, "%*s %s %s %s %s %s", MAX_GROUP, groups, l->type ? : "?", l->port ? : "", name ? : "",
+              l->user ? : "", l->msg ? : "");
    if (debug)
-      printf ("%*s\t%s\t%s\t%s\t%s\t%s\n", MAX_GROUP, groups, l->type ? : "?", l->port ? : "", name ? : "", l->user ? : "",
-              l->msg ? : "");
+      printf ("%*s\t%s\t%s\t%s\t%s\t%s\n", MAX_GROUP, groups, l->type ? : "?", l->port ? : "",
+              name ? : "", l->user ? : "", l->msg ? : "");
    // Other logging
    xml_t c = NULL;
    while ((c = xml_element_next_by_name (config, c, "log")))
@@ -3449,15 +3449,15 @@ doevent (event_t * e)
                      }
                   } else
                   {
-                     dolog (mydoor[d].group_lock, "FOBHELDIGNORED", u->name, doorno, "Ignored held fob %s as door cannot set alarm",
-                            e->fob);
+                     dolog (mydoor[d].group_lock, "FOBHELDIGNORED", u->name, doorno,
+                            "Ignored held fob %s as door cannot set alarm", e->fob);
                      door_error (d);
                   }
                }
          if (!found)
          {                      // Unassociated max reader
-            dolog (groups, e->event == EVENT_FOB_HELD ? "FOBHELDIGNORE" : "FOBIGNORED", u ? u->name : NULL, port_name (port),
-                   "Ignored fob %s as reader not linked to a door", e->fob);
+            dolog (groups, e->event == EVENT_FOB_HELD ? "FOBHELDIGNORE" : "FOBIGNORED", u ? u->name : NULL,
+                   port_name (port), "Ignored fob %s as reader not linked to a door", e->fob);
          }
       }
       break;
@@ -3887,7 +3887,8 @@ main (int argc, const char *argv[])
          {
           "config", 'c', POPT_ARG_STRING, &configfile, 0, "Config", "filename"},
          {
-          "set-file", 's', POPT_ARG_STRING | POPT_ARGFLAG_SHOW_DEFAULT, &setfile, 0, "File holding set state", "filename"},
+          "set-file", 's', POPT_ARG_STRING | POPT_ARGFLAG_SHOW_DEFAULT, &setfile, 0, "File holding set state",
+          "filename"},
          {
           "max-from", 0, POPT_ARG_STRING, &maxfrom, 0, "Max from port", "ID"},
          {
