@@ -133,6 +133,7 @@ const char* keypad_fault = false;
           txdone = ((now + p * KEYPADBITS * 1000000 / KEYPADBAUD + POSTTX) ? : 1);
           p = 0; // ready for rx
 #ifdef KEYPADBODGE
+          delay(p);
           Serial.flush(); // Delay in situ for reliability
           delay(1);
           digitalWrite(RTS, LOW);

@@ -35,14 +35,13 @@ unsigned safemodestart = 0;
   s(rst,2); \
   s(beeper,0); \
   s(holdtime,3000); \
-  s(releasetime,250); \
   s(safemode,60); \
   t(fallback); \
   s(rangerdebug,0); \
   s(rangerpoll,100); \
   s(rangerhold,1000); \
   s(rangermargin,50); \
-  s(readerpoll,10); \
+  s(readerpoll,100); \
 
 #define s(n,d) unsigned int n=d;
 #define t(n) const char*n=NULL;

@@ -25,6 +25,8 @@
   app_settings
 #undef s
 
+#define releasetime 250 // ms not reading card ID
+
   MFRC522 rfid(ss, rst); // Instance of the class
   boolean reader522ok = false;
   const char* reader522_fault = false;
