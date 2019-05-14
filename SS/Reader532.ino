@@ -49,7 +49,7 @@ const char* reader532_fault = false;
       byte res[256], rlen;
       if (nfc.inDataExchange((byte*)message, len, res, &rlen))
         revk.info(F("nfc"), F("%.*s"), rlen, res);
-      else revk.error(F("tx"), F("failed"));
+      else revk.error(F("nfc"), F("failed"));
     }
     return false;
   }
@@ -99,7 +99,8 @@ const char* reader532_fault = false;
       static long found = 0;
       if (found)
       {
-        if (!nfc.diagnose6(readertimeout))
+        // TODO MIFARE 4 byte ID dont show as connected, and constantly show read target, grrr.
+        if (!nfc.diagnose6(readertimeout) || nfc.inListPassiveTarget())
         { // still here
           if (!held && (int)(now - found) > holdtime)
           {
