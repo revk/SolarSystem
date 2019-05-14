@@ -38,7 +38,7 @@ unsigned long outputnext = 0;
 
   const char* output_setting(const char *tag, const byte *value, size_t len)
   { // Called for settings retrieved from EEPROM
-    if (!strncmp(tag, PSTR("output"), 6) && isdigit(tag[6]))
+    if (!strncmp_P(tag, PSTR("output"), 6) && isdigit(tag[6]))
     { // Define output pin
       int i = atoi(tag + 6) - 1;
       if (i < 0 || i >= MAX_OUTPUT)
@@ -93,7 +93,7 @@ unsigned long outputnext = 0;
   boolean output_command(const char*tag, const byte *message, size_t len)
   { // Called for incoming MQTT messages
     if (!outputactive)return false; // No outputs defined
-    if (!strncasecmp(tag, PSTR("output"), 6) && tag[6] > '0' && tag[6] <= '0' + MAX_OUTPUT)
+    if (!strncasecmp_P(tag, PSTR("output"), 6) && tag[6] > '0' && tag[6] <= '0' + MAX_OUTPUT)
     {
       int i = tag[6] - '1';
       if (!(outputactive & (1 << i)))return false;

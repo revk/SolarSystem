@@ -138,7 +138,10 @@ unsigned safemodestart = 0;
 
   void setup()
   {
-    WiFi.setSleepMode(WIFI_NONE_SLEEP);
+    // Trying to find ways to make WiFi 100% reliable!
+    // WiFi.setSleepMode(WIFI_NONE_SLEEP);
+    // WiFi.setOutputPower(17);
+    // WiFi.setPhyMode(WIFI_PHY_MODE_11G);
 #ifdef USE_READER522
     reader522_setup(revk);
 #endif
