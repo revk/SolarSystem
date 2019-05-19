@@ -46,10 +46,12 @@ const char* reader532_fault = false;
     if (!reader532ok)return false; // Not configured
     if (!strcmp_P(tag, "nfc"))
     {
-      byte res[256], rlen;
-      if (nfc.inDataExchange((byte*)message, len, res, &rlen))
-        revk.info(F("nfc"), F("%.*s"), rlen, res);
-      else revk.error(F("nfc"), F("failed"));
+      byte res[100], rlen = sizeof(res);
+      byte ok = nfc.inData((byte*)message, len, res, &rlen);
+      if (!ok)
+        revk.info(F("nfc"), rlen, res);
+      else revk.error(F("nfc"), F("failed %02X (%d bytes sent %02X %02X %02X...)"), ok, len, message[0], message[1], message[2]);
+      return true;
     }
     return false;
   }

@@ -10,6 +10,9 @@ class PN532RevK : public PN532 {
     };
     uint8_t getGeneralStatus(int timeout = 0); // Returns number of cards
     uint8_t diagnose6(int timeout = 0); // Test 6 is card presence detection (0=OK/present)
+
+    uint8_t inData(uint8_t *send, uint8_t sendLength, uint8_t *response, uint8_t *responseLength,int timeout=0);
+
   private:
     PN532Interface *_interface;
 };
