@@ -9,9 +9,9 @@
    xmlns="http://www.w3.org/2000/svg"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   width="37mm"
-   height="17mm"
-   viewBox="0 0 36.999998 17"
+   width="39mm"
+   height="19mm"
+   viewBox="0 0 38.999998 19"
    version="1.1"
    id="svg926"
    inkscape:version="0.92.2 5c3e80d, 2017-08-06"
@@ -26,8 +26,8 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="11.929874"
-     inkscape:cx="80.881889"
-     inkscape:cy="32.125981"
+     inkscape:cx="84.661416"
+     inkscape:cy="35.905512"
      inkscape:document-units="mm"
      inkscape:current-layer="layer3"
      showgrid="true"
@@ -55,8 +55,8 @@
        spacingy="0.63500002"
        empspacing="4"
        snapvisiblegridlinesonly="true"
-       originx="0"
-       originy="0" />
+       originx="0.99999993"
+       originy="1.0000008" />
   </sodipodi:namedview>
   <metadata
      id="metadata923">
@@ -75,7 +75,7 @@
      id="layer6"
      inkscape:label="Parts"
      style="display:inline;opacity:1"
-     transform="translate(-8.1050029,21.764983)">
+     transform="translate(-7.1050029,22.764982)">
     <g
        transform="rotate(-180,23.372501,-12.332485)"
        style="display:inline;opacity:1"
@@ -203,7 +203,7 @@
      id="layer3"
      inkscape:label="Edge 1mm"
      style="display:inline"
-     transform="translate(-8.1050029,21.764983)">
+     transform="translate(-7.1050029,22.764982)">
     <rect
        style="opacity:1;fill:none;fill-opacity:1;fill-rule:evenodd;stroke:#ff00ff;stroke-width:1;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
        id="rect909"
@@ -217,7 +217,7 @@
      id="layer7"
      inkscape:label="Track mill &lt; 0.3mm"
      style="display:inline"
-     transform="translate(-8.1050029,21.764983)">
+     transform="translate(-7.1050029,22.764982)">
     <path
        id="path884"
        style="opacity:1;fill:none;fill-opacity:0.50196078;fill-rule:evenodd;stroke:#ff0000;stroke-width:0.30000001;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
@@ -226,7 +226,7 @@
        sodipodi:nodetypes="cccccccccccccccccccccccccccccccccc" />
   </g>
   <g
-     transform="translate(-8.1050029,21.764983)"
+     transform="translate(-7.1050029,22.764982)"
      style="display:inline"
      inkscape:label="Track mill &lt; 0.5mm"
      id="g872"
@@ -244,7 +244,7 @@
      id="layer4"
      inkscape:label="Drill 0.5mm"
      style="display:inline"
-     transform="translate(-8.1050029,21.764983)">
+     transform="translate(-7.1050029,22.764982)">
     <g
        id="g940"
        transform="translate(3.4050019,-9.1349946)"
