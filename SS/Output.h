@@ -6,10 +6,10 @@
 #define USE_OUTPUT
 extern const char* output_fault;
 
-#include <ESP8266RevK.h>
+#include <ESPRevK.h>
 
 extern const char * output_setting(const char *tag, const byte *value, size_t len);
 extern boolean output_command(const char*tag, const byte *message, size_t len);
-extern boolean output_setup(ESP8266RevK&);
-extern boolean output_loop(ESP8266RevK&, boolean);
+extern boolean output_setup(ESPRevK&);
+extern boolean output_loop(ESPRevK&, boolean);
 extern void output_safe_set(boolean);

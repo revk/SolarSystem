@@ -3,7 +3,7 @@
 
 // Laser ranger as button
 
-#include <ESP8266RevK.h>
+#include <ESPRevK.h>
 #include <Wire.h>
 #include <VL53L0X.h>
 #include "Ranger0X.h"
@@ -38,7 +38,7 @@ boolean ranger0xok = false;
     return false;
   }
 
-  boolean ranger0x_setup(ESP8266RevK&revk)
+  boolean ranger0x_setup(ESPRevK&revk)
   {
     if (!ranger0x)return false; // Ranger not configured
     debugf("GPIO pin available %X for VL53L0X", gpiomap);
@@ -68,7 +68,7 @@ boolean ranger0xok = false;
     return true;
   }
 
-  boolean ranger0x_loop(ESP8266RevK&revk, boolean force)
+  boolean ranger0x_loop(ESPRevK&revk, boolean force)
   {
     if (!ranger0xok)return false; // Ranger not configured
     long now = millis();

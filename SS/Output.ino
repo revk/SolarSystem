@@ -3,7 +3,7 @@
 
 // Direct digital outputs
 
-#include <ESP8266RevK.h>
+#include <ESPRevK.h>
 #include "Output.h"
 const char* output_fault = false;
 
@@ -107,7 +107,7 @@ unsigned long outputnext = 0;
     return false;
   }
 
-  boolean output_setup(ESP8266RevK&revk)
+  boolean output_setup(ESPRevK&revk)
   {
     if (!outputactive && !output)return false; // No outputs defined
     debugf("GPIO available %X for %d outputs", gpiomap, output);
@@ -159,7 +159,7 @@ unsigned long outputnext = 0;
     return true;
   }
 
-  boolean output_loop(ESP8266RevK&revk, boolean force)
+  boolean output_loop(ESPRevK&revk, boolean force)
   {
     if (!outputactive)return false; // No outputs defined
     unsigned long now = millis();

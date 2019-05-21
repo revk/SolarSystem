@@ -13,10 +13,10 @@
 
 #define PINS  ((1 << 12) | (1 << 13) | (1 << 14) | (1 << ss))
 
-#include <ESP8266RevK.h>
+#include <ESPRevK.h>
 #include "Reader532.h"
-#include "PN532RevK.h"
 #include "PN532_SPI.h"
+#include "PN532RevK.h"
 #include "Output.h"
 
 PN532_SPI pn532spi(SPI, ss);
@@ -47,7 +47,7 @@ const char* reader532_fault = false;
     if (!strcmp_P(tag, "nfc"))
     {
       byte res[100], rlen = sizeof(res);
-      byte ok = nfc.inData((byte*)message, len, res, &rlen);
+      byte ok = nfc.data(len, (byte*)message, rlen, res);
       if (!ok)
         revk.info(F("nfc"), rlen, res);
       else revk.error(F("nfc"), F("failed %02X (%d bytes sent %02X %02X %02X...)"), ok, len, message[0], message[1], message[2]);
@@ -56,7 +56,7 @@ const char* reader532_fault = false;
     return false;
   }
 
-  boolean reader532_setup(ESP8266RevK&revk)
+  boolean reader532_setup(ESPRevK&revk)
   {
     if (!reader532)return false; // Not configured
     debugf("GPIO pin available %X for PN532", gpiomap);
@@ -69,17 +69,13 @@ const char* reader532_fault = false;
     gpiomap &= ~PINS;
     debugf("GPIO remaining %X", gpiomap);
     SPI.begin();
-    nfc.begin();
     SPI.setFrequency(100000);
-    uint32_t versiondata = nfc.getFirmwareVersion();
-    if (!versiondata)
+    if (!nfc.begin())
     { // no reader
       reader532_fault = PSTR("PN532 failed");
       reader532 = NULL;
       return false;
     }
-    nfc.setPassiveActivationRetries(1);
-    nfc.SAMConfig();
 
     debug("PN532 OK");
     reader532ok = true;
@@ -89,7 +85,7 @@ const char* reader532_fault = false;
 #define MAX_UID 7
   static char tid[MAX_UID * 2 + 1] = {}; // text ID
 
-  boolean reader532_loop(ESP8266RevK&revk, boolean force)
+  boolean reader532_loop(ESPRevK&revk, boolean force)
   {
     if (!reader532ok)return false; // Not configured
     long now = (millis() ? : 1); // Allowing for wrap, and using 0 to mean not set
@@ -102,7 +98,8 @@ const char* reader532_fault = false;
       if (found)
       {
         // TODO MIFARE 4 byte ID dont show as connected, and constantly show read target, grrr.
-        if (!nfc.diagnose6(readertimeout) || nfc.inListPassiveTarget())
+        String id;
+        if (!nfc.inField(readertimeout) || nfc.getID(id))
         { // still here
           if (!held && (int)(now - found) > holdtime)
           {
@@ -127,12 +124,11 @@ const char* reader532_fault = false;
           found = 0;
         }
       } else {
-        byte uid[MAX_UID] = {}, uidlen = 0;
-        if (nfc.readPassiveTargetID(PN532_MIFARE_ISO14443A, uid, &uidlen, readertimeout))
+        String id;
+        if (nfc.getID(id))
         {
           found = (now ? : 1);
-          int n;
-          for (n = 0; n < uidlen && n * 2 < sizeof(tid); n++)sprintf_P(tid + n * 2, PSTR("%02X"), uid[n]);
+          strncpy(tid, id.c_str(), sizeof(tid));
           revk.event(F("id"), F("%s"), tid);
         }
       }

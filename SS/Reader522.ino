@@ -12,7 +12,7 @@
 
 #define PINS  ((1<<rst) | (1 << 12) | (1 << 13) | (1 << 14) | (1 << ss))
 
-#include <ESP8266RevK.h>
+#include <ESPRevK.h>
 #include "Reader522.h"
 #include <SPI.h>
 #include <MFRC522.h>
@@ -45,7 +45,7 @@
     return false;
   }
 
-  boolean reader522_setup(ESP8266RevK&revk)
+  boolean reader522_setup(ESPRevK&revk)
   {
     if (!reader522)return false; // Not configured
     debugf("GPIO pin available %X for RC522", gpiomap);
@@ -72,7 +72,7 @@
     return true;
   }
 
-  boolean reader522_loop(ESP8266RevK&revk, boolean force)
+  boolean reader522_loop(ESPRevK&revk, boolean force)
   {
     if (!reader522ok)return false; // Not configured
     long now = (millis() ? : 1); // Allowing for wrap, and using 0 to mean not set

@@ -3,7 +3,7 @@
 
 // Input buttons
 
-#include <ESP8266RevK.h>
+#include <ESPRevK.h>
 #include "Input.h"
 const char* input_fault = false;
 
@@ -71,7 +71,7 @@ unsigned int inputstate = 0;
     return false;
   }
 
-  boolean input_setup(ESP8266RevK&revk)
+  boolean input_setup(ESPRevK&revk)
   {
     if (!inputactive && !input)return false; // No inputs defined
     debugf("GPIO available %X for %d inputs", gpiomap, input);
@@ -113,7 +113,7 @@ unsigned int inputstate = 0;
     return true;
   }
 
-  boolean input_loop(ESP8266RevK&revk, boolean force)
+  boolean input_loop(ESPRevK&revk, boolean force)
   {
     if (!inputactive)return false; // No inputs defined
     unsigned long now = millis();

@@ -6,9 +6,9 @@
 #define  USE_READER522
 extern const char* reader522_fault;
 
-#include <ESP8266RevK.h>
+#include <ESPRevK.h>
 
 extern const char* reader522_setting(const char *tag, const byte *value, size_t len);
 extern boolean reader522_command(const char*tag, const byte *message, size_t len);
-extern boolean reader522_setup(ESP8266RevK&);
-extern boolean reader522_loop(ESP8266RevK&, boolean);
+extern boolean reader522_setup(ESPRevK&);
+extern boolean reader522_loop(ESPRevK&, boolean);

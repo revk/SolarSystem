@@ -27,9 +27,9 @@
      inkscape:pageshadow="2"
      inkscape:zoom="11.929874"
      inkscape:cx="84.661416"
-     inkscape:cy="35.905512"
+     inkscape:cy="35.905513"
      inkscape:document-units="mm"
-     inkscape:current-layer="layer3"
+     inkscape:current-layer="g1073"
      showgrid="true"
      units="mm"
      objecttolerance="20"
@@ -66,7 +66,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
+        <dc:title />
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -171,14 +171,14 @@
     </g>
     <g
        id="g1073"
-       transform="translate(15.820004,-7.3549958)">
+       transform="translate(15.820004,-6.7199945)">
       <rect
          style="opacity:1;fill:#000000;fill-opacity:0.50196078;fill-rule:evenodd;stroke:none;stroke-width:1;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
          id="rect853"
          width="10.16"
-         height="12.7"
+         height="13.572337"
          x="0.53999925"
-         y="-13.349978" />
+         y="-14.222316" />
       <text
          id="text1056"
          y="-10.90154"
@@ -365,7 +365,7 @@
          inkscape:connector-curvature="0" />
     </g>
     <g
-       transform="translate(-13.739985,-4.464996)"
+       transform="translate(-13.739985,-3.8299947)"
        id="g866">
       <path
          inkscape:connector-curvature="0"
@@ -384,7 +384,7 @@
          style="opacity:1;fill:#6f9090;fill-opacity:0.22869933;fill-rule:evenodd;stroke:#00ffff;stroke-width:0.5;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1" />
       <path
          style="opacity:1;fill:#6f9090;fill-opacity:0.22869933;fill-rule:evenodd;stroke:#00ffff;stroke-width:0.5;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
-         d="m 38.989988,-5.3149872 h -0.349987 v 0.35 h 0.699975 v -0.7 h -0.699975 v 0.35"
+         d="m 38.989988,-5.379987 h -0.349987 v 0.35 h 0.699975 v -0.7 h -0.699975 v 0.35"
          id="path868"
          inkscape:connector-curvature="0" />
     </g>

@@ -7,7 +7,7 @@
 // It includes NFC reader (only on ESP-12F as uses SPI)
 // It includes laser ranger as exit button using TX and GPIO0 for I2C)
 
-#include <ESP8266RevK.h>
+#include <ESPRevK.h>
 
 #ifdef ARDUINO_ESP8266_NODEMCU
 // SPI devices only on ESP-12F
@@ -49,7 +49,7 @@ unsigned safemodestart = 0;
 #undef s
 #undef t
 
-  ESP8266RevK revk(__FILE__, __DATE__ " " __TIME__);
+  ESPRevK revk(__FILE__, __DATE__ " " __TIME__);
 
   const char* app_setting(const char *tag, const byte *value, size_t len)
   { // Called for settings retrieved from EEPROM, return true if setting is OK

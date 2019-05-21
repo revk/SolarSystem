@@ -17,7 +17,7 @@ const char* keypad_fault = false;
 
 #define KEYPADBODGE // Don't rely on poll being called fast enough (TODO handle with interrupts?)
 
-#include <ESP8266RevK.h>
+#include <ESPRevK.h>
 
 #define RTS 2
 
@@ -70,7 +70,7 @@ const char* keypad_fault = false;
     return false;
   }
 
-  boolean keypad_setup(ESP8266RevK &revk)
+  boolean keypad_setup(ESPRevK &revk)
   {
     if (!keypad)return false; // Not running keypad
     debugf("GPIO pin available %X for Keypad", gpiomap);
@@ -91,7 +91,7 @@ const char* keypad_fault = false;
     return true;
   }
 
-  boolean keypad_loop(ESP8266RevK &revk, boolean force)
+  boolean keypad_loop(ESPRevK &revk, boolean force)
   {
     if (!keypad)return false; // Not running keypad
     long now = micros();
