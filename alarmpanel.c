@@ -3193,7 +3193,7 @@ doevent (event_t * e)
               n;
             for (d = 0; d < MAX_DOOR; d++)
                for (n = 0; n < sizeof (mydoor[d].i_exit) / sizeof (*mydoor[d].i_exit); n++)
-                  if (port_device (mydoor[d].i_exit[n]) == id)
+                  if (mydoor[d].i_exit[n] == port)
                   {
                      char doorno[8];
                      snprintf (doorno, sizeof (doorno), "DOOR%02u", d);
