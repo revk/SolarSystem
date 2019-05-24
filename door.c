@@ -98,17 +98,17 @@ door_led (int d, unsigned char state)
    }
    unsigned int n;
    for (n = 0; n < sizeof (door[d].o_led) / sizeof (*door[d].o_led); n++)
+   {
       if (port_device (door[d].o_led[n]))
       {
          device_led (port_device (door[d].o_led[n]), led);
          if (port_led_callback)
             port_led_callback (door[d].o_led[n], led);
-	 extern void mqtt_led(port_p,unsigned char);
-	 mqtt_led(door[d].o_led[n],led);
       }
+      extern void mqtt_led (port_p, unsigned char);
+      mqtt_led (door[d].o_led[n], led);
+   }
 }
-
-
 
 void
 door_error (int d)
