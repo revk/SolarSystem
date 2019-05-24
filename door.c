@@ -12,9 +12,11 @@
 
 door_t door[MAX_DOOR] = { };
 
-#define d(x) #x,
+#define d(x,l) #x,
 const char *door_name[DOOR_COUNT] = { DOOR };
-
+#undef d
+#define d(x,l) #l,
+const char *door_led_seq[]={DOOR};
 #undef d
 
 pthread_t doorthread;
@@ -80,15 +82,10 @@ static void
 door_led (int d, unsigned char state)
 {
   unsigned char led = 0;
-  const char *seq = "R";
   if (state == DOOR_TAMPER)
-    {
       led = -1;
-      seq = "R-";
-    }
   else
-    {
-	    // Max LED pattern
+    { // Max LED pattern
       if (!door[d].mainlock.locked)
 	led |= (1 << 0);
       if (door[d].mainlock.locked)
@@ -101,25 +98,6 @@ door_led (int d, unsigned char state)
 	led |= (1 << 4);
       if (door[d].deadlock.locked)
 	led |= (1 << 5);
-	// LED sequence
-      if (door[d].deadlock.locked)
-	seq = "R";
-      else if (state == DOOR_AJAR)
-	seq = "R-";
-      else if (state == DOOR_FAULT)
-	seq = "RGR-";
-      else if (state == DOOR_FORCED)
-	seq = "RRR-";
-      else if (state == DOOR_PROPPEDOK)
-	seq = "RGGG";
-      else if (state == DOOR_PROPPED)
-	seq = "RG";
-      else if (state != DOOR_OPEN && (door[d].mainlock.timer > 0 || door[d].deadlock.timer > 0))
-	seq = "G---";
-      else if (door[d].mainlock.locked)
-	seq = "R";
-      else
-	seq = "G";
     }
   unsigned int n;
   for (n = 0; n < sizeof (door[d].o_led) / sizeof (*door[d].o_led); n++)
@@ -131,7 +109,7 @@ door_led (int d, unsigned char state)
 	    port_led_callback (door[d].o_led[n], led);
 	}
       extern void mqtt_led (port_p, const char *);
-      mqtt_led (door[d].o_led[n], seq);
+      mqtt_led (door[d].o_led[n], door_led_seq[state]);
     }
 }
 

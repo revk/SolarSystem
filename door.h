@@ -8,22 +8,22 @@
 #define MAX_DOOR        30      // Maximum doors
 
 #define DOOR    \
-        d(UNUSED)       \
-        d(NEW)  \
-        d(DEADLOCKED) \
-        d(LOCKED) \
-        d(UNLOCKING) \
-        d(CLOSED) \
-        d(OPEN) \
-        d(LOCKING) \
-        d(PROPPED) \
-        d(PROPPEDOK) \
-        d(FORCED) \
-        d(AJAR) \
-        d(FAULT)\
-        d(TAMPER) \
+        d(UNUSED,)       \
+        d(NEW,)  \
+        d(DEADLOCKED,) \
+        d(LOCKED,R) \
+        d(UNLOCKING,R-) \
+        d(CLOSED,G-) \
+        d(OPEN,G) \
+        d(LOCKING,RR-) \
+        d(PROPPED,RG-) \
+        d(PROPPEDOK,GG-) \
+        d(FORCED,RG) \
+        d(AJAR,RG-) \
+        d(FAULT,RGR-)\
+        d(TAMPER,RGRG-) \
 
-#define d(x) DOOR_##x,
+#define d(x,l) DOOR_##x,
 enum
 {
    DOOR DOOR_COUNT
