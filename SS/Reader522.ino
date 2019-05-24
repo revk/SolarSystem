@@ -41,7 +41,10 @@
 
   boolean reader522_command(const char*tag, const byte *message, size_t len)
   { // Called for incoming MQTT messages
-    if (!reader522ok)return false; // Not configured
+    if (!reader522ok)
+      return false; // Not configured
+    if (!strcmp_P(tag, "led") && len)
+      return true; // Ignore
     return false;
   }
 

@@ -23,6 +23,7 @@ PN532_SPI pn532spi(SPI, ss);
 PN532RevK nfc(pn532spi);
 boolean reader532ok = false;
 const char* reader532_fault = false;
+char led[10];
 
 #define app_settings  \
   s(reader532);   \
@@ -43,14 +44,23 @@ const char* reader532_fault = false;
 
   boolean reader532_command(const char*tag, const byte *message, size_t len)
   { // Called for incoming MQTT messages
-    if (!reader532ok)return false; // Not configured
-    if (!strcmp_P(tag, "nfc"))
+    if (!reader532ok)
+      return false; // Not configured
+    if (!strcmp_P(tag, "nfc") && len)
     {
       byte res[100], rlen = sizeof(res);
       byte ok = nfc.data(len, (byte*)message, rlen, res);
       if (!ok)
         revk.info(F("nfc"), rlen, res);
       else revk.error(F("nfc"), F("failed %02X (%d bytes sent %02X %02X %02X...)"), ok, len, message[0], message[1], message[2]);
+      return true;
+    }
+    if (!strcmp_P(tag, "led") && len < sizeof(led))
+    { // Sequence of LED colours (R/G/-) to repeat
+      if (len)
+        memcpy((void*)led, (void*) message, len);
+      if (len < sizeof(led))
+        led[len] = 0;
       return true;
     }
     return false;
@@ -68,8 +78,6 @@ const char* reader532_fault = false;
     }
     gpiomap &= ~PINS;
     debugf("GPIO remaining %X", gpiomap);
-    SPI.begin();
-    SPI.setFrequency(100000);
     if (!nfc.begin())
     { // no reader
       reader532_fault = PSTR("PN532 failed");
@@ -79,16 +87,32 @@ const char* reader532_fault = false;
 
     debug("PN532 OK");
     reader532ok = true;
+    *led = 0;
     return true;
   }
 
-#define MAX_UID 7
+#define MAX_UID 10
   static char tid[MAX_UID * 2 + 1] = {}; // text ID
 
   boolean reader532_loop(ESPRevK&revk, boolean force)
   {
     if (!reader532ok)return false; // Not configured
     long now = (millis() ? : 1); // Allowing for wrap, and using 0 to mean not set
+    static long lednext = 0;
+    static byte ledlast = 0xFF;
+    static byte ledpos = 0;
+    if ((int)(lednext - now) <= 0)
+    {
+      lednext += 100;
+      ledpos++;
+      if (ledpos >= sizeof(led) || !led[ledpos])ledpos = 0;
+      byte newled = 0;
+      // We are assuming exactly two LEDs, one at a time (back to back) on P30 and P31
+      if (led[ledpos] == 'R')newled = 2;
+      else if (led[ledpos] == 'G')newled = 1;
+      if (newled != ledlast)
+        nfc.led(ledlast = newled);
+    }
     static long cardcheck = 0;
     static boolean held = false;
     if ((int)(cardcheck - now) < 0)
