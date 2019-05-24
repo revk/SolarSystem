@@ -18,11 +18,9 @@ unsigned int gpiomap = 0x1703F; // Pins available (ESP-12F)
 unsigned int gpiomap = 0xF; // Pins available (ESP-01)
 #endif
 
-//#include "SerialRelay.h"
 #include "Ranger0X.h"
 #include "Ranger1X.h"
 #include "Keypad.h"
-#include "Beep.h"
 #include "Input.h"
 #include "Output.h"
 
@@ -37,14 +35,13 @@ unsigned safemodestart = 0;
   s(rst,2); \
   s(beeper,0); \
   s(holdtime,3000); \
-  s(releasetime,250); \
   s(safemode,60); \
   t(fallback); \
   s(rangerdebug,0); \
   s(rangerpoll,100); \
   s(rangerhold,1000); \
   s(rangermargin,50); \
-  s(readerpoll,10); \
+  s(readerpoll,100); \
 
 #define s(n,d) unsigned int n=d;
 #define t(n) const char*n=NULL;
@@ -141,7 +138,10 @@ unsigned safemodestart = 0;
 
   void setup()
   {
-    WiFi.setSleepMode(WIFI_NONE_SLEEP);
+    // Trying to find ways to make WiFi 100% reliable!
+    // WiFi.setSleepMode(WIFI_NONE_SLEEP);
+    // WiFi.setOutputPower(17);
+    // WiFi.setPhyMode(WIFI_PHY_MODE_11G);
 #ifdef USE_READER522
     reader522_setup(revk);
 #endif

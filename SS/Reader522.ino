@@ -16,7 +16,6 @@
 #include "Reader522.h"
 #include <SPI.h>
 #include <MFRC522.h>
-//#include "SerialRelay.h"
 #include "Output.h"
 
 #define app_settings  \
@@ -25,6 +24,8 @@
 #define s(n) const char *n=NULL
   app_settings
 #undef s
+
+#define releasetime 250 // ms not reading card ID
 
   MFRC522 rfid(ss, rst); // Instance of the class
   boolean reader522ok = false;
@@ -96,15 +97,10 @@
           memcpy(id, rfid.uid.uidByte, lastlen = rfid.uid.size);
           int n;
           for (n = 0; n < lastlen && n * 2 < sizeof(tid); n++)sprintf_P(tid + n * 2, PSTR("%02X"), id[n]);
-          if (fallback && !strcmp(fallback, tid))
-          {
-#ifdef USE_RELAY
-            relay_safe_set(true);
-#endif
 #ifdef USE_OUTPUT
+          if (fallback && !strcmp(fallback, tid))
             output_safe_set(true);
 #endif
-          }
           first = now;
           held = false;
           revk.event(F("id"), F("%s"), tid);
@@ -117,15 +113,10 @@
       {
         if (held)
           revk.state(F("gone"), F("%s"), tid);
-        if (fallback && !strcmp(fallback, tid))
-        {
-#ifdef USE_RELAY
-          relay_safe_set(false);
-#endif
 #ifdef USE_OUTPUT
+        if (fallback && !strcmp(fallback, tid))
           output_safe_set(false);
 #endif
-        }
         first = 0;
         last = 0;
         held = false;

@@ -194,6 +194,7 @@ struct port_app_s
      y;                         // Location on floor plan
    const char *t;               // Icon on floor plan
    group_t group;               // Which groups it applies to
+   unsigned char led;           // LED state
    unsigned char onplan:1;      // Is on floor plan
    unsigned char found:1;       // Device has been seen
    unsigned char missing:1;     // Device missing
@@ -366,6 +367,21 @@ static void state_change (group_t g);
 #define	port_name(p) real_port_name(alloca(30),p)
 static const char *real_port_name (char *v, port_p p);
 static port_app_t *port_app (port_p p);
+
+void
+mqtt_led (port_p p, unsigned char led)
+{                               // Send LED via MQTT
+   if (!p || !p->mqtt || port_app (p)->led == led)
+      return;
+   port_app (p)->led = led;
+   char *topic,
+    *msg;
+   asprintf (&topic, "command/SS/%s/led", p->mqtt);
+   asprintf (&msg, "%d", led);
+   mosquitto_publish (mqtt, NULL, topic, strlen (msg), msg, 1, 0);
+   free (topic);
+   free (msg);
+}
 
 void
 mqtt_output (port_p p, int v)
@@ -1459,7 +1475,7 @@ load_config (const char *configfile)
                port_o_set (door[d].o_beep, max, 1, doorname, "Beep");
                port_exit_set (mydoor[d].i_exit, max, 2, doorname);
             } else if (maxport)
-            {                   // WiFi device - differect default port IDs
+            {                   // WiFi device - different default port IDs
                xml_t c = port_app (maxport)->config;
                if (c)
                {
@@ -1477,6 +1493,7 @@ load_config (const char *configfile)
                      port_i_set (door[d].i_open, max, 2, doorname, "Open");
                   if (i >= 3 || ((v = xml_get (c, "@input3")) && *v))
                      port_i_set (door[d].mainlock.i_unlock, max, 3, doorname, "Unlock");
+                  port_set (door[d].o_led, max, 0, doorname, "LED");
                }
             }
          }
@@ -3020,6 +3037,7 @@ doevent (event_t * e)
          {
             dolog (groups, "BUSFOUND", NULL, port_name (port), "Device found on bus");
             app->missing = 0;
+            app->led = 0;
             if (port_mqtt (port))
                rem_fault (app->group, port_name (port), port->name);
             else
