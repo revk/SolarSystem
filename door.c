@@ -104,12 +104,16 @@ door_led (int d, unsigned char state)
 	// LED sequence
       if (door[d].deadlock.locked)
 	seq = "R";
-      else if (state == DOOR_AJAR || state == DOOR_FAULT)
+      else if (state == DOOR_AJAR)
 	seq = "R-";
+      else if (state == DOOR_FAULT)
+	seq = "RGR-";
       else if (state == DOOR_FORCED)
 	seq = "RRR-";
+      else if (state == DOOR_PROPPEDOK)
+	seq = "RGGG";
       else if (state == DOOR_PROPPED)
-	seq = "RRGG";
+	seq = "RG";
       else if (state != DOOR_OPEN && (door[d].mainlock.timer > 0 || door[d].deadlock.timer > 0))
 	seq = "G---";
       else if (door[d].mainlock.locked)
