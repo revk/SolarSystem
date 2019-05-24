@@ -20,6 +20,7 @@ const char *door_name[DOOR_COUNT] = { DOOR };
 pthread_t doorthread;
 pthread_mutex_t lockmutex;
 port_output_callback_t *port_output_callback = NULL;
+port_led_callback_t *port_led_callback = NULL;
 
 static void
 lock_open (volatile lock_t * l)
@@ -98,7 +99,13 @@ door_led (int d, unsigned char state)
    unsigned int n;
    for (n = 0; n < sizeof (door[d].o_led) / sizeof (*door[d].o_led); n++)
       if (port_device (door[d].o_led[n]))
+      {
          device_led (port_device (door[d].o_led[n]), led);
+         if (port_led_callback)
+            port_led_callback (door[d].o_led[n], led);
+	 extern void mqtt_led(port_p,unsigned char);
+	 mqtt_led(door[d].o_led[n],led);
+      }
 }
 
 

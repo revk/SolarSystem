@@ -76,6 +76,9 @@ struct door_s
 typedef void port_output_callback_t (port_p);
 extern port_output_callback_t *port_output_callback;
 
+typedef void port_led_callback_t (port_p,unsigned char led);
+extern port_led_callback_t *port_led_callback;
+
 extern door_t door[MAX_DOOR];   // Door table
 
 void door_start (void);

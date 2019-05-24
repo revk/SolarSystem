@@ -368,6 +368,19 @@ static const char *real_port_name (char *v, port_p p);
 static port_app_t *port_app (port_p p);
 
 void
+mqtt_led (port_p p, unsigned char led)
+{                               // Send LED via MQTT
+   if (!p || !p->mqtt)
+      return;
+   char *topic,*msg;
+   asprintf (&topic, "command/SS/%s/led", p->mqtt);
+   asprintf(&msg,"%d",led);
+   mosquitto_publish (mqtt, NULL, topic, strlen(msg), &msg, 1, 0);
+   free (topic);
+   free(msg);
+}
+
+void
 mqtt_output (port_p p, int v)
 {                               // Send output via MQTT
    if (!p || !p->mqtt)
