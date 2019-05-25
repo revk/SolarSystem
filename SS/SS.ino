@@ -1,11 +1,13 @@
 // Solar System
 // (c) Andrews & Arnold Ltd, Adrian Kennard, see LICENSE file (GPL)
 
-// This is the general purpose ESP8266 application for use with Solar System
-// It includes inputs GPIO2 (and GPIO5 and GPIO4 on ESP-12F)
-// It includes relay outputs (via serial for relay module up to 4 relays)
-// It includes NFC reader (only on ESP-12F as uses SPI)
-// It includes laser ranger as exit button using TX and GPIO0 for I2C)
+// This is the general purpose ESP application for use with Solar System
+// Configurable inputs
+// Configurable outputs
+// Serial relay control outputs
+// I2C Range finder inputs for motion and touch free input (e.g. exit button)
+// RC522 and PN532 card readers on SPI
+
 
 #include <ESPRevK.h>
 
