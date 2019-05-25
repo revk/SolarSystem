@@ -8,22 +8,22 @@
 #define MAX_DOOR        30      // Maximum doors
 
 #define DOOR    \
-        d(UNUSED)       \
-        d(NEW)  \
-        d(DEADLOCKED) \
-        d(LOCKED) \
-        d(UNLOCKING) \
-        d(CLOSED) \
-        d(OPEN) \
-        d(LOCKING) \
-        d(PROPPED) \
-        d(PROPPEDOK) \
-        d(FORCED) \
-        d(AJAR) \
-        d(FAULT)\
-        d(TAMPER) \
+        d(UNUSED,)       \
+        d(NEW,)  \
+        d(DEADLOCKED,) \
+        d(LOCKED,R) \
+        d(UNLOCKING,R-) \
+        d(CLOSED,G-) \
+        d(OPEN,G) \
+        d(LOCKING,RR-) \
+        d(PROPPED,RG-) \
+        d(PROPPEDOK,GG-) \
+        d(FORCED,RG) \
+        d(AJAR,RG-) \
+        d(FAULT,RGR-)\
+        d(TAMPER,RGRG-) \
 
-#define d(x) DOOR_##x,
+#define d(x,l) DOOR_##x,
 enum
 {
    DOOR DOOR_COUNT
@@ -75,6 +75,9 @@ struct door_s
 // Reference to an RF device is 0x10000000+(serialno<<8) optionally +(1<<port)
 typedef void port_output_callback_t (port_p);
 extern port_output_callback_t *port_output_callback;
+
+typedef void port_led_callback_t (port_p,unsigned char led);
+extern port_led_callback_t *port_led_callback;
 
 extern door_t door[MAX_DOOR];   // Door table
 
