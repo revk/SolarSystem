@@ -140,6 +140,9 @@ table.rio {
 table.max {
 	display:inline-block;
 }
+table.device {
+	display:inline-block;
+}
 td {
 	margin:1px;
 	padding:1px;

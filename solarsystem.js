@@ -28,11 +28,11 @@ function io(dir,e)
 	{ // New device
 			dev=document.createElement("table");
 			dev.id=e.dev;
-			dev.className=e.type;
+			if(e.type)dev.className=e.type;
 			r=document.createElement("tr");
 			dev.appendChild(r);
 			c=document.createElement("th");
-			c.textContent=e.dev;
+			c.textContent=(e.name?e.name:e.dev);
 			c.colSpan="2";
 			r.appendChild(c);
 			document.getElementById("io").appendChild(dev);
@@ -202,10 +202,10 @@ ws.onmessage=function(event)
 		x.children[1].src="door"+d.state+".png";
 		x.children[2].textContent=d.state;
 	});
-	if(o.device)o.device.forEach(function(o)
+	if(o.device)o.device.forEach(function(d)
 	{	// Log updates
-		x=io(false,o);
-		if(!x.className) x.className=(o.active?"deviceactive":"deviceidle");
+		x=io(false,d);
+		if(!x.className) x.className="device";
 	});
 	if(o.input)o.input.forEach(function(i)
 	{
