@@ -17,7 +17,7 @@
         d(OPEN,G) \
         d(LOCKING,RR-) \
         d(PROPPED,RG-) \
-        d(PROPPEDOK,GG-) \
+        d(PROPPEDOK,GGGGGG-) \
         d(FORCED,RG) \
         d(AJAR,RG-) \
         d(FAULT,RGR-)\
