@@ -3297,17 +3297,23 @@ doevent (event_t * e)
 	const char *name = port->name ? : tag;
 	if (e->state)
 	  {
-	    app->fault = 1;
-	    if (walkthrough)
-	      syslog (LOG_INFO, "+%s(%s) Fault", tag, name ? : "");
-	    add_fault (app->group, tag, name);
+	    if (!app->fault)
+	      {
+		app->fault = 1;
+		if (walkthrough)
+		  syslog (LOG_INFO, "+%s(%s) Fault", tag, name ? : "");
+		add_fault (app->group, tag, name);
+	      }
 	  }
 	else
 	  {
-	    app->fault = 0;
-	    if (walkthrough)
-	      syslog (LOG_INFO, "-%s(%s) Fault", tag, name ? : "");
-	    rem_fault (app->group, tag, name);
+	    if (app->fault)
+	      {
+		app->fault = 0;
+		if (walkthrough)
+		  syslog (LOG_INFO, "-%s(%s) Fault", tag, name ? : "");
+		rem_fault (app->group, tag, name);
+	      }
 	  }
 	if (id && device[id].type == TYPE_RIO)
 	  {
