@@ -80,7 +80,7 @@ unsigned int inputstate = 0;
     for (i = 0; i < MAX_INPUT; i++)
       if (inputactive & (1 << i))
       {
-        if (inputpin[i] < 3 || !(gpiomap & (1 << inputpin[i])))
+        if (!(gpiomap & (1 << inputpin[i])))
         { // Unusable
           input_fault = PSTR("Input pin assignment not available");
           inputactive &= ~(1 << i);
@@ -89,12 +89,12 @@ unsigned int inputstate = 0;
         gpiomap &= ~(1 << inputpin[i]);
       }
     if (input)
-    { // Auto assign some pins (deprecated)
+    { // Auto assign some pins (deprecated) - does not allocate 0/1/2
       for (i = 0; i < input; i++)
         if (!(inputactive & (1 << i)))
         {
           int p;
-          for (p = 3; p < MAX_PIN && !(gpiomap & (1 << p)); p++); // Find a pin
+          for (p = 3; p < MAX_PIN && !(gpiomap & (1 << p)); p++); // Find a (safe) pin
           if (p == MAX_PIN)
           {
             input_fault = PSTR("No input pins available to assign");

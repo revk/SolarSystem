@@ -30,6 +30,11 @@ pcbf=2.5; // space on front for components
 pcbb=0; // space on back for components
 pcbm=3; // border margin with no components
 
+// LED
+ledx=10;
+ledy=10;
+ledd=5.1;
+
 // PCB fixings?
 //fixd=4; // Holes on PCB - need to allow in pcbf;
 //fixh=31;
@@ -64,6 +69,8 @@ module lid()
             translate([sidet-boxw/2,sidet+clip-boxh/2,boxt])
             cube([boxw-sidet*2,boxh-sidet*2-clip*2,1]);
         }
+        translate([boxw/2-ledx,boxh/2-ledy,-0.01])
+        cylinder(d=ledd,h=frontt+1);
     }
 }
 

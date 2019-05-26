@@ -1,25 +1,32 @@
 // Exit button front
 
-w=82;       // Width
+w=81.5;       // Width
 h=63.5;     // Height
-r=5;        // Round corners
-t=2;        // Thickness
+r=6.985;        // Round corners
+t=2.2;        // Thickness
 s=60;       // Screw spacing
-m=3;        // Screw hole size
+m=3.5;        // Screw hole size
 
 pcbw=13.9;
-pcbh=10.75;
+pcbh=10.9;
 pcbo=1;
-sensorx=9;
-sensory=2.8;
-sensorw=2.4;
-sensorh=4.4;
+
+sensorx=8.9;
+sensory=2.9;
+sensorw=2.75;
+sensorh=4.75;
+
 resx=8.2;
-resy=5.8;
-resw=1.1;
-resh=1.7;
+resy=6.5;
+resw=1.2;
+resh=2.3;
 rest=0.8;
 
+postx=2.54;
+posty=2.54;
+postd=2.5;
+
+padw=2.54;
 
 difference()
 {
@@ -49,4 +56,9 @@ difference()
         translate([resx-resw/2,resy-resh/2,pcbo-rest])
         cube([resw,resh,t]);
     }
+    translate([-sensorx,sensory-pcbh,pcbo-rest])
+    cube([padw,pcbh,t]);
 }
+
+translate([pcbw-sensorx-postx,sensory-pcbh+posty,0])
+cylinder(d=postd,h=t,$fn=100);
