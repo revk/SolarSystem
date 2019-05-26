@@ -7,7 +7,8 @@
 #include <Wire.h>
 #include <VL53L0X.h>
 #include "Ranger0X.h"
-const char* ranger0x_fault = false;
+const char* ranger0x_fault = NULL;
+const char* ranger0x_tamper = NULL;
 
 #define PINS ((1<<sda) | (1<<scl))
 

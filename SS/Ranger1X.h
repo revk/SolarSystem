@@ -5,6 +5,7 @@
 
 #define	USE_RANGER1X
 extern const char* ranger1x_fault;
+extern const char* ranger1x_tamper;
 
 #include <ESPRevK.h>
 

@@ -5,6 +5,7 @@
 
 #define USE_OUTPUT
 extern const char* output_fault;
+extern const char* output_tamper;
 
 #include <ESPRevK.h>
 

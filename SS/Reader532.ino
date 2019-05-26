@@ -22,7 +22,9 @@
 PN532_SPI pn532spi(SPI, ss);
 PN532RevK nfc(pn532spi);
 boolean reader532ok = false;
-const char* reader532_fault = false;
+const char* reader532_fault = NULL;
+const char* reader532_tamper = NULL;
+
 char led[10];
 
 #define app_settings  \
@@ -112,6 +114,22 @@ char led[10];
       else if (led[ledpos] == 'G')newled = 1;
       if (newled != ledlast)
         nfc.led(ledlast = newled);
+    }
+    static long tampercheck = 0;
+    if ((int)(tampercheck - now) <= 0)
+    {
+      tampercheck = now + 250;
+      int p3 = nfc.p3();
+      if (p3 < 0)
+        reader532_fault = PSTR("PN532");
+      else
+      { // INT1 connected via switch to VCC, so expected high
+        reader532_fault = NULL;
+        if (p3 & 0x08)
+          reader532_tamper = NULL;
+        else if (*reader532 == 'T')
+          reader532_tamper = PSTR("PN532");
+      }
     }
     static long cardcheck = 0;
     static boolean held = false;

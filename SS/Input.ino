@@ -5,7 +5,8 @@
 
 #include <ESPRevK.h>
 #include "Input.h"
-const char* input_fault = false;
+const char* input_fault = NULL;
+const char* input_tamper = NULL;
 
 #define MAX_PIN 17
 #define MAX_INPUT 9
@@ -108,7 +109,7 @@ unsigned int inputstate = 0;
     debugf("GPIO remaining %X", gpiomap);
     for (i = 0; i < MAX_INPUT; i++)
       if (inputactive & (1 << i))
-        pinMode(inputpin[i], (inputpin[i] == 16) ? INPUT_PULLDOWN_16 : INPUT_PULLUP);
+        pinMode(inputpin[i], inputpin[i] == 16 ? INPUT_PULLDOWN_16 : INPUT_PULLUP);
     debug("Input OK");
     return true;
   }

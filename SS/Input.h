@@ -5,6 +5,7 @@
 
 #define USE_INPUT
 extern const char* input_fault;
+extern const char* input_tamper;
 
 #include <ESPRevK.h>
 

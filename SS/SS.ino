@@ -217,6 +217,44 @@ unsigned safemodestart = 0;
         else revk.state(F("fault"), F("0"));
       }
     }
+    { // Tamper check
+      const char*tamper =
+#ifdef USE_READER522
+        reader522_tamper ? :
+#endif
+#ifdef USE_READER532
+        reader532_tamper ? :
+#endif
+#ifdef USE_RELAY
+        relay_tamper ? :
+#endif
+#ifdef USE_RANGER0X
+        ranger0x_tamper ? :
+#endif
+#ifdef USE_RANGER1X
+        ranger1x_tamper ? :
+#endif
+#ifdef USE_KEYPAD
+        keypad_tamper ? :
+#endif
+#ifdef USE_BEEP
+        beep_tamper ? :
+#endif
+#ifdef USE_INPUT
+        input_tamper ? :
+#endif
+#ifdef USE_OUTPUT
+        output_tamper ? :
+#endif
+        NULL;
+      static const char *lasttamper = NULL;
+      if (force || tamper != lasttamper)
+      {
+        lasttamper = tamper;
+        if (tamper)revk.state(F("tamper"), F("1 %S"), tamper);
+        else revk.state(F("tamper"), F("0"));
+      }
+    }
     if (safemodestart && (int)(safemodestart - millis()) < 0)
     {
       force = true;

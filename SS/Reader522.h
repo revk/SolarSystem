@@ -5,6 +5,7 @@
 
 #define  USE_READER522
 extern const char* reader522_fault;
+extern const char* reader522_tamper;
 
 #include <ESPRevK.h>
 

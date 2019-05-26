@@ -40,6 +40,13 @@ ledd=5.1;
 //fixh=31;
 //fixv=31;
 
+// Tamper switch
+tamperw=6;
+tamperh=6;
+tampert=4.7; // Height when contact closed
+tamperm=1; // Margin
+tampere=1;  // Edge
+
 // Connector
 connw=18;
 connh=22;
@@ -88,6 +95,13 @@ module base()
                 cube([pcbw,pcbh+sidet*2+t*2,boxt-frontt-t]);
                 translate([-pcbw/2,pcby-sidet-t-connt+backt,0])
                 cube([pcbw,pcbh+sidet*2+t*2+(connt-backt)*2,backt]);
+            }
+            translate([boxw/2-tamperw-sidet-t-tamperm-tampere,boxh/2-tamperh-sidet-t-tamperm-tampere*2,0])
+            difference()
+            {
+                cube([tamperw+tampere,tamperh+tampere*2,boxt-frontt-tampere]);
+                translate([-1,tampere,boxt-tampert-frontt])
+                cube([tamperw+1,tamperh,tampert]);
             }
         }
         // Board

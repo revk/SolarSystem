@@ -5,7 +5,8 @@
 
 #include <ESPRevK.h>
 #include "Output.h"
-const char* output_fault = false;
+const char* output_fault = NULL;
+const char* output_tamper = NULL;
 
 #define MAX_PIN 17
 #define MAX_OUTPUT 9

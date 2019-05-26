@@ -29,7 +29,8 @@
 
   MFRC522 rfid(ss, rst); // Instance of the class
   boolean reader522ok = false;
-  const char* reader522_fault = false;
+  const char* reader522_fault = NULL;
+  const char* reader522_tamper = NULL;
 
   const char* reader522_setting(const char *tag, const byte *value, size_t len)
   { // Called for settings retrieved from EEPROM
