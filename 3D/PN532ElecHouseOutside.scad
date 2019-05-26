@@ -135,8 +135,13 @@ module base()
             translate([-t*2-pcbw/2,pcby+-t+clip,connt+t+pcbt])
             cube([pcbw+t*4,pcbh+t*2-clip*2,0.01]);
         }
-        translate([-t*2-pcbw/2,pcby-t,connt+t+pcbt])
-        cube([pcbw+t*4,pcbh+t*2,boxt]);
+        hull()
+        { // Messy
+            translate([-t*2-pcbw/2,pcby,connt+t+pcbt])
+            cube([pcbw+t*4,pcbh+t,0.01]);
+            translate([-t*2-pcbw/2,pcby-t+lip,boxt-frontt])
+            cube([pcbw+t*4,pcbh+t*2-lip,0.01]);
+        }
         translate([-t*2-pcbw/2+pcbm,pcby+pcbm-t,connt-pcbb])
         cube([pcbw+t*2-pcbm*2,pcbh+t*2-pcbm*2,pcbb+1]);
         // Screws

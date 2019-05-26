@@ -86,41 +86,44 @@ const char* ranger1x_tamper = NULL;
       unsigned int range = sensor1x.read(false);
       if (sensor1x.timeoutOccurred()) ranger1x_fault = PSTR("VL53L1X Timeout");
       else ranger1x_fault = NULL;
-      if (!range || range > ranger1xmax)range = ranger1xmax;
-      if (range < ranger1x)
+      if (range)
       {
-        if (force || !buttonshort)
+        if (!range || range > ranger1xmax)range = ranger1xmax;
+        if (range < ranger1x)
         {
-          buttonshort = true;
-          revk.state(F("input8"), F("1"));
-        }
-      } else if (force || range > ranger1x + rangermargin)
-      {
-        if (force || buttonshort)
+          if (force || !buttonshort)
+          {
+            buttonshort = true;
+            revk.state(F("input8"), F("1"));
+          }
+        } else if (force || range > ranger1x + rangermargin)
         {
-          buttonshort = false;
-          revk.state(F("input8"), F("0"));
+          if (force || buttonshort)
+          {
+            buttonshort = false;
+            revk.state(F("input8"), F("0"));
+          }
         }
+        if (range > last + rangermargin || last > range + rangermargin)
+        {
+          if (force || !buttonlong)
+          {
+            buttonlong = true;
+            revk.state(F("input9"), F("1"));
+          }
+          endlong = now + rangerhold;
+        } else if ((int)(endlong - now) < 0)
+        {
+          if (force || buttonlong)
+          {
+            buttonlong = false;
+            revk.state(F("input9"), F("0"));
+          }
+        }
+        last = range;
+        if (rangerdebug && range < ranger1xmax)
+          revk.state(F("range"), F("%d"), range);
       }
-      if (range > last + rangermargin || last > range + rangermargin)
-      {
-        if (force || !buttonlong)
-        {
-          buttonlong = true;
-          revk.state(F("input9"), F("1"));
-        }
-        endlong = now + rangerhold;
-      } else if ((int)(endlong - now) < 0)
-      {
-        if (force || buttonlong)
-        {
-          buttonlong = false;
-          revk.state(F("input9"), F("0"));
-        }
-      }
-      last = range;
-      if (rangerdebug && range < ranger1xmax)
-        revk.state(F("range"), F("%d"), range);
     }
     return true;
   }
