@@ -80,12 +80,17 @@ module lid()
         translate([boxw/2-ledx,boxh/2-ledy,-0.01])
         cylinder(d=ledd,h=frontt+1);
     }
-    translate([-boxw/2,boxh/2-sidet,boxt-lip*2])
-    hull()
+    difference()
     {
-        cube([boxw,lip,lip]);
-        translate([0,-lip,lip])
-        cube([boxw,lip*2,lip]);
+        translate([-boxw/2,boxh/2-sidet,boxt-lip*2])
+        hull()
+        {
+            cube([boxw,lip,lip]);
+            translate([0,-lip,lip])
+            cube([boxw,lip*2,lip]);
+        }
+        translate([0,screwv/2,boxt-backt-lip*2])
+        cylinder(d=screwhd,h=backt+lip*2+t);
     }
 }
 
@@ -97,6 +102,9 @@ module base()
         {
             translate([sidet+t-boxw/2,sidet+t-boxh/2,0])
             cube([boxw-sidet*2-t*2,boxh-sidet*2-t*2-lip,backt]);
+            for(y=[-screwv/2,screwv/2])
+            translate([0,y,0])
+            cylinder(d=screwhd-t,h=backt+lip*2);
             hull()
             {
                 translate([-pcbw/2,pcby-sidet-t,0])

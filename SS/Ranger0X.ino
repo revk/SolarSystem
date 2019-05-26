@@ -117,7 +117,7 @@ boolean ranger0xok = false;
         }
       }
       last = range;
-      if (rangerdebug)
+      if (rangerdebug && range < ranger0xmax)
         revk.state(F("range"), F("%d"), range);
     }
     return true;
