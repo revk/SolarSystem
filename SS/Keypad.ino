@@ -5,7 +5,8 @@
 // ESP-01 based with RS485 board fits in Galaxy keypad/display module
 
 #include "keypad.h"
-const char* keypad_fault = false;
+const char* keypad_fault = NULL;
+const char* keypad_tamper = NULL;
 
 #define PINS ((1<<1) | (1<<3))  // Tx and Rx
 
@@ -104,7 +105,6 @@ const char* keypad_fault = false;
     static boolean send0B = false;
     static boolean toggle0B = false;
     static boolean toggle07 = false;
-    static boolean tamper = false;
     static boolean send07c = false; // second send
     static byte lastkey = 0x7F;
     static boolean sounderack = false;
@@ -120,8 +120,6 @@ const char* keypad_fault = false;
       send0D = true;
       send19 = true;
       sounderack = false;
-      if (force)
-        revk.state(F("tamper"), tamper ? F("1") : F("0"));
     }
     if (txdone)
     { // Sending
@@ -192,8 +190,7 @@ const char* keypad_fault = false;
               }
             } else if (buf[1] == 0xFE)
             { // Idle, no tamper, no key
-              if (tamper)revk.state(F("tamper"), F("0"));
-              tamper = false;
+              keypad_tamper = NULL;
               if (!send0B)
               {
                 if (lastkey & 0x80)
@@ -208,15 +205,10 @@ const char* keypad_fault = false;
               }
             } else if (cmd == 0x06 && buf[1] == 0xF4 && p > 3)
             { // Status
-              if (buf[2] & 0x40)
-              {
-                if (!tamper)revk.state(F("tamper"), F("1"));
-                tamper = true;
-              } else
-              {
-                if (tamper)revk.state(F("tamper"), F("0"));
-                tamper = false;
-              }
+              if (*keypad == 'T' && (buf[2] & 0x40))
+                keypad_tamper = PSTR("Keypad");
+              else
+                keypad_tamper = NULL;
               if (!send0B)
               { // Key
                 if (buf[2] == 0x7F)

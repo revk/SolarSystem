@@ -30,10 +30,22 @@ pcbf=2.5; // space on front for components
 pcbb=0; // space on back for components
 pcbm=3; // border margin with no components
 
+// LED hole (top left)
+ledx=10;
+ledy=10;
+ledd=5.1;
+
 // PCB fixings?
 //fixd=4; // Holes on PCB - need to allow in pcbf;
 //fixh=31;
 //fixv=31;
+
+// Tamper switch holder (top right)
+tamperw=6;
+tamperh=6;
+tampert=4.7; // Height when contact closed
+tamperm=1; // Margin
+tampere=1;  // Edge
 
 // Connector
 connw=18;
@@ -43,6 +55,7 @@ connx=11.5; // position from edge of board
 conny=5.3;
 
 // Box size
+lip=2;
 boxw=sidet*2+t*2+pcbw;
 boxh=screwv+screwhd+t*2+sidet*2;
 boxt=frontt+t+pcbf+pcbt+connt;
@@ -64,6 +77,15 @@ module lid()
             translate([sidet-boxw/2,sidet+clip-boxh/2,boxt])
             cube([boxw-sidet*2,boxh-sidet*2-clip*2,1]);
         }
+        translate([boxw/2-ledx,boxh/2-ledy,-0.01])
+        cylinder(d=ledd,h=frontt+1);
+    }
+    translate([-boxw/2,boxh/2-sidet,boxt-lip*2])
+    hull()
+    {
+        cube([boxw,lip,lip]);
+        translate([0,-lip,lip])
+        cube([boxw,lip*2,lip]);
     }
 }
 
@@ -74,13 +96,27 @@ module base()
         union()
         {
             translate([sidet+t-boxw/2,sidet+t-boxh/2,0])
-            cube([boxw-sidet*2-t*2,boxh-sidet*2-t*2,backt]);
+            cube([boxw-sidet*2-t*2,boxh-sidet*2-t*2-lip,backt]);
             hull()
             {
                 translate([-pcbw/2,pcby-sidet-t,0])
                 cube([pcbw,pcbh+sidet*2+t*2,boxt-frontt-t]);
                 translate([-pcbw/2,pcby-sidet-t-connt+backt,0])
                 cube([pcbw,pcbh+sidet*2+t*2+(connt-backt)*2,backt]);
+            }
+            translate([boxw/2-tamperw-sidet-t-tamperm-tampere,boxh/2-tamperh-sidet-t-tamperm-tampere*2-lip,0])
+            difference()
+            {
+                cube([tamperw+tampere,tamperh+tampere*2,boxt-frontt-tampere]);
+                translate([-1,tampere,boxt-tampert-frontt])
+                cube([tamperw+1,tamperh,tampert]);
+            }
+            translate([sidet+t-boxw/2,boxh/2-lip*2-sidet,lip])
+            hull()
+            {
+                cube([boxw-sidet*2-t*2,lip,lip]);
+                translate([0,lip,lip])
+                cube([boxw-sidet*2-t*2,lip,lip]);
             }
         }
         // Board

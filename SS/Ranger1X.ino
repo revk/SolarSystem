@@ -12,7 +12,8 @@
 
 VL53L1X sensor1x;
 boolean ranger1xok = false;
-const char* ranger1x_fault = false;
+const char* ranger1x_fault = NULL;
+const char* ranger1x_tamper = NULL;
 
 #define app_settings  \
   s(ranger1x,0);   \
