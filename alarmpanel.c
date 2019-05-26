@@ -3061,9 +3061,9 @@ doevent (event_t * e)
 	  app->missing = 1;
 	  dolog (app->group, "BUSMISSING", NULL, port_name (port), "Device missing from bus");
 	  if (port_mqtt (port))
-	    add_fault (groups, port_name (port), port->name);
+	    add_fault (app->group, port_name (port), port->name);
 	  else
-	    add_tamper (groups, port_name (port), port->name);
+	    add_tamper (app->group, port_name (port), port->name);
 	}
       break;
     case EVENT_DISABLED:
