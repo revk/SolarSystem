@@ -17,7 +17,6 @@ boolean ranger0xok = false;
 
 #define app_settings  \
   s(ranger0x,0);   \
-  s(ranger0xbudget,50); \
   s(ranger0xmax,2000); \
   s(ranger0xaddress,0x29); \
 
@@ -60,9 +59,11 @@ boolean ranger0xok = false;
       return false;
     }
     sensor0x.init();
-    sensor0x.setMeasurementTimingBudget(ranger0xbudget * 1000);
+    sensor0x.setMeasurementTimingBudget(rangerpoll * 1000);
+    sensor0x.setSignalRateLimit(0.25);
+    sensor0x.setVcselPulsePeriod(VL53L0X::VcselPeriodPreRange, 18);
+    sensor0x.setVcselPulsePeriod(VL53L0X::VcselPeriodFinalRange, 14);
     sensor0x.startContinuous(rangerpoll);
-    //sensor0x.setTimeout(20); // continuous so why a timeout?
 
     debug("VL53L0X OK");
     ranger0xok = true;

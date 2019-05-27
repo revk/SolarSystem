@@ -16,8 +16,9 @@ backt=2;
 // Fixings to match Max Reader
 screwd=4.5; // Diameter (screw hols top/bottom)
 screwv=61; // Spacing
-screwhd=8; // Screw head diameter
+screwhd=9; // Screw head diameter
 screwht=3; // Screw head thickness
+
 egressx=-11; // Engress hole position relative to cenrte
 egressy=22;
 egressd=9; // Diameter
