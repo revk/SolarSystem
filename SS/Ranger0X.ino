@@ -61,8 +61,8 @@ boolean ranger0xok = false;
     }
     sensor0x.init();
     sensor0x.setMeasurementTimingBudget(ranger0xbudget * 1000);
-    sensor0x.startContinuous();
-    sensor0x.setTimeout(10); // continuous
+    sensor0x.startContinuous(rangerpoll);
+    //sensor0x.setTimeout(20); // continuous so why a timeout?
 
     debug("VL53L0X OK");
     ranger0xok = true;
@@ -84,41 +84,44 @@ boolean ranger0xok = false;
       unsigned int range = sensor0x.readRangeContinuousMillimeters();
       if (range == 65535)ranger0x_fault = PSTR("VL53L0X read failed");
       else ranger0x_fault = NULL;
-      if (range > ranger0xmax)range = ranger0xmax;
-      if (range < ranger0x)
+      if (range)
       {
-        if (force || !buttonshort)
+        if (range > ranger0xmax)range = ranger0xmax;
+        if (range < ranger0x)
         {
-          buttonshort = true;
-          revk.state(F("input8"), F("1"));
-        }
-      } else if (force || range > ranger0x + rangermargin)
-      {
-        if (force || buttonshort)
+          if (force || !buttonshort)
+          {
+            buttonshort = true;
+            revk.state(F("input8"), F("1"));
+          }
+        } else if (force || range > ranger0x + rangermargin)
         {
-          buttonshort = false;
-          revk.state(F("input8"), F("0"));
+          if (force || buttonshort)
+          {
+            buttonshort = false;
+            revk.state(F("input8"), F("0"));
+          }
         }
+        if (range > last + rangermargin || last > range + rangermargin)
+        {
+          if (force || !buttonlong)
+          {
+            buttonlong = true;
+            revk.state(F("input9"), F("1"));
+          }
+          endlong = now + rangerhold;
+        } else if ((int)(endlong - now) < 0)
+        {
+          if (force || buttonlong)
+          {
+            buttonlong = false;
+            revk.state(F("input9"), F("0"));
+          }
+        }
+        last = range;
+        if (rangerdebug && range < ranger0xmax)
+          revk.state(F("range"), F("%d"), range);
       }
-      if (range > last + rangermargin || last > range + rangermargin)
-      {
-        if (force || !buttonlong)
-        {
-          buttonlong = true;
-          revk.state(F("input9"), F("1"));
-        }
-        endlong = now + rangerhold;
-      } else if ((int)(endlong - now) < 0)
-      {
-        if (force || buttonlong)
-        {
-          buttonlong = false;
-          revk.state(F("input9"), F("0"));
-        }
-      }
-      last = range;
-      if (rangerdebug)
-        revk.state(F("range"), F("%d"), range);
     }
     return true;
   }
