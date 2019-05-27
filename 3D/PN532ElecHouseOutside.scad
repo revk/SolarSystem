@@ -5,7 +5,7 @@
 
 // Tolerances for your printer
 t=0.1;  // General xy tolerance/margin
-z=0.2;  // General z tolerance/margin
+z=0.4;  // General z tolerance/margin
 clip=0.1;  // Clip size
 
 // Thickness of walls
@@ -108,7 +108,7 @@ module base()
             hull()
             {
                 translate([-pcbw/2,pcby-sidet-t,0])
-                cube([pcbw,pcbh+sidet*2+t*2,boxt-frontt-t]);
+                cube([pcbw,pcbh+sidet*2+t*2,boxt-frontt-z]);
                 translate([-pcbw/2,pcby-sidet-t-connt+backt,0])
                 cube([pcbw,pcbh+sidet*2+t*2+(connt-backt)*2,backt]);
             }
