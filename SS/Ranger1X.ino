@@ -17,7 +17,6 @@ const char* ranger1x_tamper = NULL;
 
 #define app_settings  \
   s(ranger1x,0);   \
-  s(ranger1xbudget,50); \
   s(ranger1xmax,2000); \
   s(ranger1xaddress,0x29); \
 
@@ -62,9 +61,8 @@ const char* ranger1x_tamper = NULL;
     }
     sensor1x.init();
     sensor1x.setDistanceMode(VL53L1X::Long);
-    sensor1x.setMeasurementTimingBudget(ranger1xbudget * 1000);
-    sensor1x.startContinuous(ranger1xbudget);
-    sensor1x.setTimeout(10);
+    sensor1x.setMeasurementTimingBudget(rangerpoll * 1000);
+    sensor1x.startContinuous(rangerpoll);
 
     debug("VL53L1X OK");
     ranger1xok = true;
