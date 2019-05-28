@@ -9,13 +9,13 @@
    xmlns="http://www.w3.org/2000/svg"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   width="19.78125mm"
-   height="27.664062mm"
-   viewBox="0 0 19.781249 27.664062"
+   width="26.128906mm"
+   height="19.228516mm"
+   viewBox="0 0 26.128905 19.228515"
    version="1.1"
    id="svg926"
    inkscape:version="0.92.2 5c3e80d, 2017-08-06"
-   sodipodi:docname="12VL0XV2.svg">
+   sodipodi:docname="12VL0XV3.svg">
   <defs
      id="defs920" />
   <sodipodi:namedview
@@ -25,11 +25,11 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="11.649139"
-     inkscape:cx="48.66275"
-     inkscape:cy="52.278543"
+     inkscape:zoom="12.532851"
+     inkscape:cx="54.506565"
+     inkscape:cy="27.445285"
      inkscape:document-units="mm"
-     inkscape:current-layer="layer7"
+     inkscape:current-layer="layer3"
      showgrid="true"
      units="mm"
      objecttolerance="20"
@@ -55,8 +55,8 @@
        spacingy="0.63500002"
        empspacing="4"
        snapvisiblegridlinesonly="true"
-       originx="-18.049293"
-       originy="10.524749" />
+       originx="-9.7953866"
+       originy="-0.41861028" />
   </sodipodi:namedview>
   <metadata
      id="metadata923">
@@ -75,7 +75,7 @@
      id="layer6"
      inkscape:label="Parts"
      style="display:inline;opacity:1"
-     transform="translate(-26.154297,21.904297)">
+     transform="translate(-17.900391,24.412109)">
     <g
        transform="rotate(-180,23.372501,-12.332485)"
        style="display:inline;opacity:1"
@@ -124,7 +124,7 @@
       </g>
     </g>
     <g
-       transform="rotate(-90,-40.869342,71.270988)"
+       transform="rotate(-90,-51.29934,68.920985)"
        id="layer1"
        inkscape:label="Layer 1">
       <rect
@@ -141,12 +141,12 @@
          style="opacity:1;fill:none;fill-opacity:0.50196078;fill-rule:evenodd;stroke:#ffff00;stroke-width:0.1;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1" />
     </g>
     <g
-       transform="translate(22.075005,-109.35997)"
+       transform="translate(22.075006,-110.62997)"
        id="layer1-3"
        inkscape:label="Layer 1">
       <rect
-         y="88.719994"
-         x="12.699999"
+         y="89.989998"
+         x="10.795"
          height="12.7"
          width="10.16"
          id="rect817-9"
@@ -171,7 +171,7 @@
     </g>
     <g
        id="g1073"
-       transform="rotate(-90,24.291168,-15.816151)">
+       transform="translate(22.805007,-19.117668)">
       <g
          id="g895"
          transform="rotate(-180,7.5249992,-2.3561474)">
@@ -207,32 +207,19 @@
      id="layer3"
      inkscape:label="Edge 1mm"
      style="display:inline"
-     transform="translate(-26.154297,21.904297)">
+     transform="translate(-17.900391,24.412109)">
     <path
        style="color:#000000;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:medium;line-height:normal;font-family:sans-serif;font-variant-ligatures:normal;font-variant-position:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-alternates:normal;font-feature-settings:normal;text-indent:0;text-align:start;text-decoration:none;text-decoration-line:none;text-decoration-style:solid;text-decoration-color:#000000;letter-spacing:normal;word-spacing:normal;text-transform:none;writing-mode:lr-tb;direction:ltr;text-orientation:mixed;dominant-baseline:auto;baseline-shift:baseline;text-anchor:start;white-space:normal;shape-padding:0;clip-rule:nonzero;display:inline;overflow:visible;visibility:visible;opacity:1;isolation:auto;mix-blend-mode:normal;color-interpolation:sRGB;color-interpolation-filters:linearRGB;solid-color:#000000;solid-opacity:1;vector-effect:none;fill:none;fill-opacity:1;fill-rule:evenodd;stroke:#ff00ff;stroke-width:1;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;color-rendering:auto;image-rendering:auto;shape-rendering:auto;text-rendering:auto;enable-background:accumulate"
-       d="m 27.154297,-21.404297 a 0.50005,0.50005 0 0 0 -0.5,0.5 V 4.7597656 a 0.50005,0.50005 0 0 0 0.5,0.5 h 17.78125 a 0.50005,0.50005 0 0 0 0.5,-0.5 V -20.904297 a 0.50005,0.50005 0 0 0 -0.5,-0.5 z"
-       id="path953"
+       d="m 18.900391,-23.912109 a 0.50005,0.50005 0 0 0 -0.5,0.5 v 17.2285152 a 0.50005,0.50005 0 0 0 0.5,0.5 h 24.128906 a 0.50005,0.50005 0 0 0 0.5,-0.5 V -23.412109 a 0.50005,0.50005 0 0 0 -0.5,-0.5 z"
+       id="path951"
        inkscape:connector-curvature="0" />
-  </g>
-  <g
-     transform="translate(-26.154297,21.904297)"
-     style="display:inline"
-     inkscape:label="Track mill &lt; 0.5mm"
-     id="g872"
-     inkscape:groupmode="layer">
-    <path
-       style="opacity:1;fill:none;fill-opacity:1;fill-rule:evenodd;stroke:#ff0000;stroke-width:0.5;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
-       d="m 27.155003,4.7600175 -1e-6,-25.6650005 h 17.780002 l 10e-7,25.6650002 z"
-       id="path944"
-       inkscape:connector-curvature="0"
-       sodipodi:nodetypes="ccccc" />
   </g>
   <g
      inkscape:groupmode="layer"
      id="layer4"
      inkscape:label="Drill 0.5mm"
      style="display:inline"
-     transform="translate(-26.154297,21.904297)">
+     transform="translate(-17.900391,24.412109)">
     <g
        id="g940"
        transform="translate(3.4050019,-9.1349946)"
@@ -275,7 +262,7 @@
        style="stroke:#00ffff;stroke-opacity:1" />
     <g
        id="g906"
-       transform="rotate(-90,13.662504,1.7975123)">
+       transform="rotate(-90,3.387511,-0.452482)">
       <path
          style="opacity:1;fill:none;fill-opacity:1;fill-rule:evenodd;stroke:#00ffff;stroke-width:0.5;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
          d="m 19.090012,19.235012 h 0.499987 v -0.5 h -0.999975 v 1 h 0.999975 v -0.5"
@@ -291,7 +278,7 @@
     </g>
     <g
        id="g858"
-       transform="rotate(-180,36.247496,-7.2949857)">
+       transform="rotate(-180,35.294996,-7.2949854)">
       <path
          style="opacity:1;fill:#6f9090;fill-opacity:0.22869933;fill-rule:evenodd;stroke:#00ffff;stroke-width:0.5;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
          d="m 31.369988,-5.3799872 h -0.349987 v 0.35 h 0.699975 v -0.7 h -0.699975 v 0.35"
@@ -353,7 +340,7 @@
          inkscape:connector-curvature="0" />
     </g>
     <g
-       transform="rotate(90,34.034993,-2.0999767)"
+       transform="rotate(-180,33.707496,-13.644986)"
        id="g866">
       <path
          inkscape:connector-curvature="0"
@@ -378,16 +365,34 @@
     </g>
   </g>
   <g
+     transform="translate(-17.900391,24.412109)"
+     style="display:inline"
+     inkscape:label="Track mill &lt; 0.5mm"
+     id="g872"
+     inkscape:groupmode="layer">
+    <path
+       style="opacity:1;fill:none;fill-opacity:1;fill-rule:evenodd;stroke:#ff0000;stroke-width:0.5;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+       d="M 43.030005,-23.412207 V -6.1842622 H 18.900004 V -23.412207 Z"
+       id="path908"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="ccccc" />
+  </g>
+  <g
      inkscape:groupmode="layer"
      id="layer7"
      inkscape:label="Track mill &lt; 0.3mm"
      style="display:inline"
-     transform="translate(-26.154297,21.904297)">
+     transform="translate(-17.900391,24.412109)">
+    <g
+       transform="matrix(0.29359113,0,0,0.29402661,32.65868,-99.533009)"
+       id="layer1-9"
+       inkscape:label="Layer 1"
+       style="stroke:#ff0000;stroke-width:1.02107239;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
     <path
-       id="path939"
+       id="path941"
        style="opacity:1;fill:none;fill-opacity:1;fill-rule:evenodd;stroke:#ff0000;stroke-width:0.30000001;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
-       d="m 26.520003,-8.574983 h 2.54 v -2.54 h -2.54 m 10.795,3.175 v 1.905 h 1.27 v 2.5399999 m -8.89,-12.6999999 h 5.08 m -4.445,5.08 h 1.905 v 5.0340183 l 0.635001,0.6809819 v 3.1750001 l 2.539999,-4e-7 v 1.27000001 h 3.175 V -3.4949831 l -4.444999,3e-7 v -2.54 l -0.635001,-0.6848736 v -6.9351266 h -3.81 m 10.16,3.175 h -2.54 v 2.54 h -2.54 v -10.795 h -5.08 l 1e-6,6.35 0.634999,0.635 v 3.81 l -1.27,1.2700001 v 5.71500022 l 5.08,-4.1e-7 V 1.5850171 h 6.985 m -1.27,-22.8600001 v 13.335 h 1.27 V 3.4900171 h -8.89 V 0.31501716 h -5.715"
+       d="m 35.410005,-11.749984 v -7.62 h 1.905 v -4.445 M 40.315126,-14.194 H 38.84717 m 3.229503,-2.058186 -1.761547,2.058186 1.761547,2.058187 m -4.697458,0 2.935911,-4.116373 v 4.116373 c 0,0.405965 -0.328613,0.735066 -0.733978,0.735066 -0.405365,0 -0.733978,-0.329101 -0.733978,-0.735066 m -6.612165,-7.869171 v 3.81 h -2.54 m 5.08,-7.62 v 3.175 h -0.635 v 6.985 h -4.445 m 0,-6.35 v 7.62 l 0.635,0.635 h 5.08 v 1.27 m -8.89,-0.635 h 2.54 l 0.635,0.635 m -11.430001,-3.175 h 6.350001 v 6.3500001 h 13.335 v -3.1750001 h -2.54 v 1.9050001 h -2.54 v -1.9050001 h -3.175 v 1.2700002 h -3.175 V -22.544984 h 3.175 v 2.54 h 2.54 v -3.81"
        inkscape:connector-curvature="0"
-       sodipodi:nodetypes="ccccccccccccccccccccccccccccccccccccccccccccc" />
+       sodipodi:nodetypes="cccccccccccsscccccccccccccccccccccccccccccccccc" />
   </g>
 </svg>
