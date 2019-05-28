@@ -52,8 +52,8 @@ char led[10];
     {
       byte res[100], rlen = sizeof(res);
       byte ok = nfc.data(len, (byte*)message, rlen, res);
-      if (!ok)
-        revk.info(F("nfc"), rlen, res);
+      if (!ok || !rlen)
+        revk.info(F("nfc"), rlen - 1, res + 1);
       else revk.error(F("nfc"), F("failed %02X (%d bytes sent %02X %02X %02X...)"), ok, len, message[0], message[1], message[2]);
       return true;
     }
@@ -124,6 +124,11 @@ char led[10];
         reader532_fault = PSTR("PN532");
       else
       { // INT1 connected via switch to VCC, so expected high
+        if (reader532_fault)
+        {
+          nfc.begin();
+          ledlast = 0xFF;
+        }
         reader532_fault = NULL;
         if (p3 & 0x08)
           reader532_tamper = NULL;
