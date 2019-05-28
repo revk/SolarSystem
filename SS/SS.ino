@@ -13,7 +13,7 @@
 
 #ifdef ARDUINO_ESP8266_NODEMCU
 // SPI devices only on ESP-12F
-#include "Reader522.h"
+//#include "Reader522.h"
 #include "Reader532.h"
 unsigned int gpiomap = 0x1703F; // Pins available (ESP-12F)
 #else
