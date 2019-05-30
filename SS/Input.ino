@@ -27,7 +27,7 @@ unsigned int inputstate = 0;
 
   const char* input_setting(const char *tag, const byte *value, size_t len)
   { // Called for settings retrieved from EEPROM
-    if (!strncmp_P(tag, PSTR("input"), 5) && isdigit(tag[5]))
+    if (!strncasecmp_P(tag, PSTR("input"), 5) && isdigit(tag[5]))
     { // Define input pin
       int i = atoi(tag + 5) - 1;
       if (i < 0 || i >= MAX_INPUT)

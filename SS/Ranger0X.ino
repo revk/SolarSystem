@@ -26,7 +26,7 @@ boolean ranger0xok = false;
 
   const char* ranger0x_setting(const char *tag, const byte *value, size_t len)
   { // Called for settings retrieved from EEPROM
-#define s(n,d) do{const char *t=PSTR(#n);if(!strcmp_P(tag,t)){n=(value?atoi((char*)value):d);return t;}}while(0)
+#define s(n,d) do{const char *t=PSTR(#n);if(!strcasecmp_P(tag,t)){n=(value?atoi((char*)value):d);return t;}}while(0)
     app_settings
 #undef s
     return NULL; // Done

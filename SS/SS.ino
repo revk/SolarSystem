@@ -6,15 +6,14 @@
 // Configurable outputs
 // Serial relay control outputs
 // I2C Range finder inputs for motion and touch free input (e.g. exit button)
-// RC522 and PN532 card readers on SPI
+// PN532 card readers on SPI
 
 
 #include <ESPRevK.h>
 
 #ifdef ARDUINO_ESP8266_NODEMCU
 // SPI devices only on ESP-12F
-//#include "Reader522.h"
-#include "Reader532.h"
+#include "nfc.h"
 unsigned int gpiomap = 0x1703F; // Pins available (ESP-12F)
 #else
 unsigned int gpiomap = 0xF; // Pins available (ESP-01)
@@ -34,7 +33,6 @@ unsigned safemodestart = 0;
   s(sda,0);   \
   s(scl,2);   \
   s(ss,16);   \
-  s(rst,2); \
   s(beeper,0); \
   s(holdtime,3000); \
   s(safemode,60); \
@@ -57,16 +55,13 @@ unsigned safemodestart = 0;
   { // Called for settings retrieved from EEPROM, return true if setting is OK
     const char *ret;
     revk.restart(3000); // Any setting change means restart
-#define s(n,d) do{const char *t=PSTR(#n);if(!strcmp_P(tag,t)){n=(value?atoi((char*)value):d);return t;}}while(0)
-#define t(n) do{const char *t=PSTR(#n);if(!strcmp_P(tag,t)){n=(const char*)value;return t;}}while(0)
+#define s(n,d) do{const char *t=PSTR(#n);if(!strcasecmp_P(tag,t)){n=(value?atoi((char*)value):d);return t;}}while(0)
+#define t(n) do{const char *t=PSTR(#n);if(!strcasecmp_P(tag,t)){n=(const char*)value;return t;}}while(0)
     app_settings
 #undef s
 #undef t
-#ifdef	USE_READER522
-    if ((ret = reader522_setting(tag, value, len)))return ret;
-#endif
-#ifdef	USE_READER532
-    if ((ret = reader532_setting(tag, value, len)))return ret;
+#ifdef	USE_NFC
+    if ((ret = nfc_setting(tag, value, len)))return ret;
 #endif
 #ifdef	USE_RELAY
     if ((ret = relay_setting(tag, value, len)))return ret;
@@ -108,11 +103,8 @@ unsigned safemodestart = 0;
         safemodestart = (millis() + safemode * 1000 ? : 1);
       return true;
     }
-#ifdef	USE_READER522
-    if (reader522_command(tag, message, len))return true;
-#endif
-#ifdef	USE_READER532
-    if (reader532_command(tag, message, len))return true;
+#ifdef	USE_NFC
+    if (nfc_command(tag, message, len))return true;
 #endif
 #ifdef	USE_RELAY
     if (relay_command(tag, message, len))return true;
@@ -144,11 +136,8 @@ unsigned safemodestart = 0;
     // WiFi.setSleepMode(WIFI_NONE_SLEEP);
     // WiFi.setOutputPower(17);
     // WiFi.setPhyMode(WIFI_PHY_MODE_11G);
-#ifdef USE_READER522
-    reader522_setup(revk);
-#endif
-#ifdef USE_READER532
-    reader532_setup(revk);
+#ifdef USE_NFC
+    nfc_setup(revk);
 #endif
 #ifdef USE_RELAY
     relay_setup(revk);
@@ -181,11 +170,8 @@ unsigned safemodestart = 0;
     revk.loop();
     { // Fault check
       const char*fault =
-#ifdef USE_READER522
-        reader522_fault ? :
-#endif
-#ifdef USE_READER532
-        reader532_fault ? :
+#ifdef USE_NFC
+        nfc_fault ? :
 #endif
 #ifdef USE_RELAY
         relay_fault ? :
@@ -219,11 +205,8 @@ unsigned safemodestart = 0;
     }
     { // Tamper check
       const char*tamper =
-#ifdef USE_READER522
-        reader522_tamper ? :
-#endif
-#ifdef USE_READER532
-        reader532_tamper ? :
+#ifdef USE_NFC
+        nfc_tamper ? :
 #endif
 #ifdef USE_RELAY
         relay_tamper ? :
@@ -261,11 +244,8 @@ unsigned safemodestart = 0;
       insafemode = true;
       safemodestart = 0;
     }
-#ifdef USE_READER522
-    reader522_loop(revk, force);
-#endif
-#ifdef USE_READER532
-    reader532_loop(revk, force);
+#ifdef USE_NFC
+    nfc_loop(revk, force);
 #endif
 #ifdef USE_RELAY
     relay_loop(revk, force);

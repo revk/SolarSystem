@@ -39,7 +39,7 @@ unsigned long outputnext = 0;
 
   const char* output_setting(const char *tag, const byte *value, size_t len)
   { // Called for settings retrieved from EEPROM
-    if (!strncmp_P(tag, PSTR("output"), 6) && isdigit(tag[6]))
+    if (!strncasecmp_P(tag, PSTR("output"), 6) && isdigit(tag[6]))
     { // Define output pin
       int i = atoi(tag + 6) - 1;
       if (i < 0 || i >= MAX_OUTPUT)

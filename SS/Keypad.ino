@@ -48,8 +48,8 @@ const char* keypad_tamper = NULL;
 
   const char* keypad_setting(const char *tag, const byte *value, size_t len)
   { // Called for commands retrieved from EEPROM
-#define s(n) do{const char *t=PSTR(#n);if(!strcmp_P(tag,t)){n=(const char *)value;return t;}}while(0)
-#define n(n) do{const char *t=PSTR(#n);if(!strcmp_P(tag,t)){n=value?atoi((char*)value):0;return t;}}while(0)
+#define s(n) do{const char *t=PSTR(#n);if(!strcasecmp_P(tag,t)){n=(const char *)value;return t;}}while(0)
+#define n(n) do{const char *t=PSTR(#n);if(!strcasecmp_P(tag,t)){n=value?atoi((char*)value):0;return t;}}while(0)
     app_settings
 #undef n
 #undef s
@@ -62,7 +62,7 @@ const char* keypad_tamper = NULL;
 #define f(i,n,l,d) if(!strcasecmp_P(tag,PSTR(#n))&&len<=l){memcpy(n,message,len);n##_len=len;if(len<l)memset(n+len,0,l-len);send##i=true;return true;}
     app_commands
 #undef f
-    if (!strcasecmp_P(tag, "output8"))
+    if (!strcasecmp_P(tag, PSTR( "output8")))
     {
       keypadbeepoverride = ((len && *message == '1') ? 1 : 0);
       send0C = true;
