@@ -61,10 +61,10 @@ char led[10];
     if (!strcasecmp_P(tag, PSTR("NFC")) && len)
     {
       byte res[100], rlen = sizeof(res);
-      byte ok = NFC.data(len, (byte*)message, rlen, res);
-      if (!ok || !rlen)
+      byte bad = NFC.data(len, (byte*)message, rlen, res);
+      if (!bad && rlen)
         revk.info(F("nfc"), rlen - 1, res + 1);
-      else revk.error(F("nfc"), F("failed %02X (%d bytes sent %02X %02X %02X...)"), ok, len, message[0], message[1], message[2]);
+      else revk.error(F("nfc"), F("failed %02X (%d bytes sent %02X %02X %02X...)"), bad, len, message[0], message[1], message[2]);
       return true;
     }
     if (!strcasecmp_P(tag, "led") && len < sizeof(led))
@@ -103,8 +103,7 @@ char led[10];
     return true;
   }
 
-#define MAX_UID 10
-  static char tid[MAX_UID * 2 + 1] = {}; // text ID
+  static char tid[100] = {}; // text ID
 
   boolean nfc_loop(ESPRevK&revk, boolean force)
   {
