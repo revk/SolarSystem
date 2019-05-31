@@ -103,7 +103,7 @@ char led[10];
     return true;
   }
 
-  static char tid[100] = {}; // text ID
+  String id;
 
   boolean nfc_loop(ESPRevK&revk, boolean force)
   {
@@ -154,16 +154,15 @@ char led[10];
       if (found)
       {
         // TODO MIFARE 4 byte ID dont show as connected, and constantly show read target, grrr.
-        String id;
         if (!NFC.inField(readertimeout) || NFC.getID(id))
         { // still here
           if (!held && (int)(now - found) > holdtime)
           {
 #ifdef USE_OUTPUT
-            if (fallback && !strcmp(fallback, tid))
+            if (fallback && !strcmp(fallback, id.c_str()))
               output_safe_set(true);
 #endif
-            revk.event(F("held"), F("%s"), tid); // Previous card gone
+            revk.event(F("held"), F("%s"), id.c_str()); // Previous card gone
             held = 1;
           }
         } else
@@ -171,10 +170,10 @@ char led[10];
           if (held)
           {
 #ifdef USE_OUTPUT
-            if (fallback && !strcmp(fallback, tid))
+            if (fallback && !strcmp(fallback, id.c_str()))
               output_safe_set(false);
 #endif
-            revk.event(F("gone"), F("%s"), tid); // Previous card gone
+            revk.event(F("gone"), F("%s"), id.c_str()); // Previous card gone
             held = false;
           }
           found = 0;
@@ -184,8 +183,7 @@ char led[10];
         if (NFC.getID(id))
         {
           found = (now ? : 1);
-          strncpy(tid, id.c_str(), sizeof(tid));
-          revk.event(F("id"), F("%s"), tid);
+          revk.event(F("id"), F("%s"), id.c_str());
         }
       }
     }
