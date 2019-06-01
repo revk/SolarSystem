@@ -151,11 +151,11 @@ char led[10];
     {
       cardcheck = now + readerpoll;
       static long found = 0;
-      String id;
+      String id,err;
       if (found)
       {
         // TODO MIFARE 4 byte ID dont show as connected, and constantly show read target, grrr.
-        if (!NFC.inField(readertimeout) || NFC.getID(id))
+        if (!NFC.inField(readertimeout) || NFC.getID(id,err))
         { // still here
           if (!held && (int)(now - found) > holdtime)
           {
@@ -180,13 +180,13 @@ char led[10];
           found = 0;
         }
       } else {
-        String id;
-        if (NFC.getID(id))
+        if (NFC.getID(id, err))
         {
           found = (now ? : 1);
-          strncpy(tid,id.c_str(),sizeof(tid));
+          strncpy(tid, id.c_str(), sizeof(tid));
           revk.event(F("id"), F("%s"), tid);
         }
+        if (*err.c_str())revk.error(F("id"), F("%s"), err.c_str());
       }
     }
     return true;
