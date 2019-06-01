@@ -29,6 +29,7 @@ char led[10];
 
 #define app_settings  \
   s(nfc);   \
+  s(nfccommit); \
 
 #define s(n) const char *n=NULL
   app_settings
@@ -151,16 +152,16 @@ char led[10];
     {
       cardcheck = now + readerpoll;
       static long found = 0;
-      String id,err;
+      String id, err;
       if (found)
       {
         // TODO MIFARE 4 byte ID dont show as connected, and constantly show read target, grrr.
-        if (!NFC.inField(readertimeout) || NFC.getID(id,err))
+        if (!NFC.inField(readertimeout) || NFC.getID(id, err))
         { // still here
           if (!held && (int)(now - found) > holdtime)
           {
 #ifdef USE_OUTPUT
-            if (fallback && !strcmp(fallback, tid))
+            if (fallback && !strcmp(fallback, tid) && (!NFC.aidset || NFC.secure))
               output_safe_set(true);
 #endif
             revk.event(F("held"), F("%s"), tid); // Previous card gone
@@ -184,9 +185,19 @@ char led[10];
         {
           found = (now ? : 1);
           strncpy(tid, id.c_str(), sizeof(tid));
-          revk.event(F("id"), F("%s"), tid);
+          if (nfccommit && NFC.secure)
+          { // Log and commit first, and ensure commit worked, before sending ID - this is noticably slower, so optional and not default
+            if (NFC.desfire_log(err) >= 0)
+              revk.event(F("id"), F("%s"), tid);
+          } else
+          { // Send ID first, then log to card, quicker, but could mean an access is not logged on the card if removed quickly enough
+            revk.event(F("id"), F("%s"), tid);
+            if (NFC.secure)
+              NFC.desfire_log(err);
+          }
+          if (*err.c_str())
+            revk.error(F("id"), F("%s"), err.c_str());
         }
-        if (*err.c_str())revk.error(F("id"), F("%s"), err.c_str());
       }
     }
     return true;
