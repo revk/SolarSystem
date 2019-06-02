@@ -3530,7 +3530,7 @@ doevent (event_t * e)
                         } else
                         {
                            door_error (d);
-                           dolog (mydoor[d].group_lock, "FOBBAD", u->name, doorno, "Not allowed fob %%ss", e->fob,
+                           dolog (mydoor[d].group_lock, "FOBBAD", u->name, doorno, "Not allowed fob %s%s", e->fob,
                                   secure ? " (secure)" : "");
                         }
                      }
