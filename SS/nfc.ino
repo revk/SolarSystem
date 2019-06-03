@@ -24,7 +24,7 @@ PN532RevK NFC(pn532spi);
 boolean nfcok = false;
 const char* nfc_fault = NULL;
 const char* nfc_tamper = NULL;
-
+boolean held = false;
 char led[10];
 
 #define app_settings  \
@@ -61,6 +61,7 @@ char led[10];
     }
     if (!strcasecmp_P(tag, PSTR("NFC")) && len)
     {
+      held = true; // Stops normal held, but sends gone so reader app knows card removed
       byte res[100], rlen = sizeof(res);
       byte bad = NFC.data(len, (byte*)message, rlen, res);
       if (!bad && rlen)
@@ -147,7 +148,6 @@ char led[10];
       }
     }
     static long cardcheck = 0;
-    static boolean held = false;
     if ((int)(cardcheck - now) < 0)
     {
       cardcheck = now + readerpoll;
@@ -155,8 +155,8 @@ char led[10];
       String id, err;
       if (found)
       {
-        // TODO MIFARE 4 byte ID dont show as connected, and constantly show read target, grrr.
-        if (!NFC.inField(readertimeout) || NFC.getID(id, err))
+        // TODO MIFARE Classic 4 byte ID don't show as in field, and constantly re-read ID, grrr.
+        if (!NFC.inField(readertimeout) || (!NFC.secure && NFC.getID(id, err)))
         { // still here
           if (!held && (int)(now - found) > holdtime)
           {
