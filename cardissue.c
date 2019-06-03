@@ -109,17 +109,22 @@ main (int argc, const char *argv[])
       const char *v;
       if (hexaid)
       {                         // Is this an AID in the config?
+         int found = 0;
          if ((v = xml_get (c, "system@aid")) && !strcasecmp (v, hexaid))
          {                      // Main AID
             v = xml_get (c, "system@aes");
             if (hexaes && v && strcasecmp (v, hexaes))
                errx (1, "Incorrect AES");
             hexaes = v;
-         } else
-         {                      // Check device specific aid
-            xml_t d = NULL;
-            while ((d = xml_element_next_by_name (c, d, "device")))
-               if (xml_get (d, "@nfc"))
+            found = 1;
+         }
+         xml_t d = NULL;
+         while ((d = xml_element_next_by_name (c, d, "device")))
+            if ((v = xml_get (d, "@nfc")))
+            {
+               if (*v == 'M' && !hexreader)
+                  hexreader = xml_get (d, "@id");       // "M" means management reader
+               if (!found)
                {
                   v = xml_get (d, "@aid");
                   if (v && !strcasecmp (v, hexaid))
@@ -130,12 +135,13 @@ main (int argc, const char *argv[])
                      hexaes = v;
                      if (!hexreader)
                         hexreader = xml_get (d, "@id");
-                     break;
+                     found = 1;
+                     found = 1;
                   }
                }
-            if (!d)
-               errx (1, "Specified AID not found in config");
-         }
+            }
+         if (!found)
+            errx (1, "Specified AID not found in config");
       } else
       {
          hexaid = xml_get (c, "system@aid");
