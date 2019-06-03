@@ -10,7 +10,7 @@ else
 LIBMQTT=
 endif
 
-all: git alarmpanel
+all: git alarmpanel cardissue
 
 update:
 	git submodule update --remote --merge
