@@ -28,6 +28,30 @@ unsigned long outputnext = 0;
   app_settings
 #undef s
 
+  void dooutput(int i)
+  {
+    unsigned long out = outputstate;
+    if (insafemode)out = outputoverride; // Safe mode, normally means outputs off but can be overridden
+    out ^= outputinvert;
+    if (outputactive & (1 << i))
+    {
+      if (outputrelay & (1 << i))
+      {
+        byte msg[5];
+        msg[0] = 0xA0;
+        msg[1] = outputpin[i];
+        msg[2] = ((out & (1 << i)) ? 1 : 0);
+        msg[3] = msg[0] + msg[1] + msg[2];
+        msg[4] = 0x0A;
+        Serial.write(msg, 5);
+      }
+      else                    if (outputbeep & (1 << i))
+        analogWrite(outputpin[i], (out & (1 << i)) ? PWMRANGE / 2 : 0);
+      else
+        digitalWrite(outputpin[i], (out & (1 << i)) ? 1 : 0);
+    }
+  }
+
   void output_safe_set(boolean enable)
   { // Set relay safe mode operation
     if (enable)
@@ -102,7 +126,7 @@ unsigned long outputnext = 0;
         outputstate |= (1 << i);
       else
         outputstate &= ~(1 << i);
-      outputnext = millis();
+      dooutput(i);
       return true;
     }
     return false;
@@ -167,28 +191,10 @@ unsigned long outputnext = 0;
     if ((int)(outputnext - now) < 0)
     {
       outputnext = now + 1000; // Periodically re-set all output just in case, not really necessary
-      unsigned long out = outputstate;
-      if (insafemode)out = outputoverride; // Safe mode, normally means outputs off but can be overridden
-      out ^= outputinvert;
+
       int i;
-      for (i = 0; i < MAX_OUTPUT; i++)
-        if (outputactive & (1 << i))
-        {
-          if (outputrelay & (1 << i))
-          {
-            byte msg[5];
-            msg[0] = 0xA0;
-            msg[1] = outputpin[i];
-            msg[2] = ((out & (1 << i)) ? 1 : 0);
-            msg[3] = msg[0] + msg[1] + msg[2];
-            msg[4] = 0x0A;
-            Serial.write(msg, 5);
-          }
-          else                    if (outputbeep & (1 << i))
-            analogWrite(outputpin[i], (out & (1 << i)) ? PWMRANGE / 2 : 0);
-          else
-            digitalWrite(outputpin[i], (out & (1 << i)) ? 1 : 0);
-        }
+      for (i = 0; i < MAX_OUTPUT; i++) dooutput(i);
+
     }
     return true;
   }
