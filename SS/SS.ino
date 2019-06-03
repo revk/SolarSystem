@@ -41,7 +41,7 @@ unsigned safemodestart = 0;
   s(rangerpoll,100); \
   s(rangerhold,1000); \
   s(rangermargin,50); \
-  s(readerpoll,50); \
+  s(readerpoll,20); \
 
 #define s(n,d) unsigned int n=d;
 #define t(n) const char*n=NULL;
