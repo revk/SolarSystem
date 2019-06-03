@@ -388,9 +388,9 @@ main (int argc, const char *argv[])
   else if (setname)
     {				// Set the name
       printf ("Setting name: %s\n", setname);
-      if ((e = df_create_file (&d, 0, 'D', comms, 0x1000, strlen (setname), 0, 0, 0, 0, 0)))
+      if ((e = df_create_file (&d, 0, 'D',comms, 0x1000, strlen (setname), 0, 0, 0, 0, 0)))
 	errx (1, "Create file: %s", e);
-      if ((e = df_write_data (&d, 0, 'D', comms, 0, strlen (setname), setname)))
+      if ((e = df_write_data (&d, 0, 'D',comms, 0, strlen (setname), setname)))
 	errx (1, "Write file: %s", e);
     }
 
