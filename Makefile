@@ -21,11 +21,11 @@ Dataformat/dataformat.o: Dataformat/dataformat.c
 	make -C Dataformat
 websocket/websocket.o: websocket/websocket.c
 	make -C websocket
-DESFireAES/DESFireAES.o: DESFireAES/DESFireAES.c
+DESFireAES/desfireaes.o: DESFireAES/desfireaes.c
 	make -C DESFireAES
 
-cardissue: cardsissue.c DESFIreAES/DESFireAES.o
-	cc -g -Wall -Wextra -O -o cardissue cardissue.c -I. -IDESFIreAES DESFIreAES/DESFireAES.o -lcrypto -lpopt -pthread
+cardissue: cardissue.c DESFireAES/desfireaes.o
+	cc -g -Wall -Wextra -O -o cardissue cardissue.c -I. -IDESFireAES DESFireAES/desfireaes.o -lcrypto -lpopt -pthread
 
 alarmpanel: alarmpanel.c galaxybus.o galaxybus.h port.o port.h door.o door.h AXL/axl.o Dataformat/dataformat.o websocket/websocket.o trace.h
 	cc -g -Wall -Wextra -O -o alarmpanel alarmpanel.c galaxybus.o port.o door.o -I. -IAXL -IDataformat -Iwebsocket AXL/axl.o Dataformat/dataformat.o websocket/websocket.o -lcurl -pthread -lpopt -DLIBWS ${LIBEMAIL} ${LIBMQTT} -lcrypto -lssl

@@ -20,19 +20,19 @@
 #include <stdio.h>
 #include <string.h>
 #include <popt.h>
+#include <err.h>
 
 int debug = 0;
 
 int
 main (int argc, const char *argv[])
 {
-#include <trace.h>
    {                            // POPT
       poptContext optCon;       // context for parsing command-line options
       const struct poptOption optionsTable[] = {
 //      {"string", 's', POPT_ARG_STRING, &string, 0, "String", "string"},
 //      {"string-default", 'S', POPT_ARG_STRING | POPT_ARGFLAG_SHOW_DEFAULT, &string, 0, "String", "string"},
-         {"debug", 'v', POPT_ARG_NONE, &debug, 0, "Debug"},
+         {"debug", 'v', POPT_ARG_NONE, &debug, 0, "Debug",0},
          POPT_AUTOHELP {}
       };
 
@@ -53,4 +53,4 @@ main (int argc, const char *argv[])
 
 
    return 0;
-}c
+}
