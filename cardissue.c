@@ -20,6 +20,8 @@
 // This can be used in one of two main ways...
 // If you have access to the config, specify the config file, this provides the MQTT details, AID, and AES
 // If you do not, then specify AID and MQTT details
+// You need to say which reader you are using as well
+// If a reader is set in config with nfc="M" then it is assumed to be the default "management" reader
 
 
 #define _GNU_SOURCE
@@ -107,46 +109,40 @@ main (int argc, const char *argv[])
       if (!c)
 	errx (1, "Cannot read %s", config);
       const char *v;
-      if (hexaid)
-      {                         // Is this an AID in the config?
-         int found = 0;
-         if ((v = xml_get (c, "system@aid")) && !strcasecmp (v, hexaid))
-         {                      // Main AID
-            v = xml_get (c, "system@aes");
-            if (hexaes && v && strcasecmp (v, hexaes))
-               errx (1, "Incorrect AES");
-            hexaes = v;
-            found = 1;
-         }
-         xml_t d = NULL;
-         while ((d = xml_element_next_by_name (c, d, "device")))
-            if ((v = xml_get (d, "@nfc")))
-            {
-               if (*v == 'M' && !hexreader)
-                  hexreader = xml_get (d, "@id");       // "M" means management reader
-               if (!found)
-               {
-                  v = xml_get (d, "@aid");
-                  if (v && !strcasecmp (v, hexaid))
-                  {             // Match
-                     v = xml_get (d, "@aes");
-                     if (hexaes && v && strcasecmp (v, hexaes))
-                        errx (1, "Incorrect AES");
-                     hexaes = v;
-                     if (!hexreader)
-                        hexreader = xml_get (d, "@id");
-                     found = 1;
-                  }
-               }
-            }
-         if (!found)
-            errx (1, "Specified AID not found in config");
-      } else
-      {
-         hexaid = xml_get (c, "system@aid");
-         if (!hexaes)
-            hexaes = xml_get (c, "system@aes");
-      }
+      int found = 0;
+      if ((v = xml_get (c, "system@aid")) && (!hexaid || !strcasecmp (v, hexaid)))
+	{			// Main AID
+	  if (!hexaid)
+	    hexaid = v;
+	  v = xml_get (c, "system@aes");
+	  if (hexaes && v && strcasecmp (v, hexaes))
+	    errx (1, "Incorrect AES");
+	  hexaes = v;
+	  found = 1;
+	}
+      xml_t d = NULL;
+      while ((d = xml_element_next_by_name (c, d, "device")))
+	if ((v = xml_get (d, "@nfc")))
+	  {
+	    if (*v == 'M' && !hexreader)
+	      hexreader = xml_get (d, "@id");	// "M" means management reader
+	    if (!found && hexaid)
+	      {
+		v = xml_get (d, "@aid");
+		if (v && !strcasecmp (v, hexaid))
+		  {		// Match
+		    v = xml_get (d, "@aes");
+		    if (hexaes && v && strcasecmp (v, hexaes))
+		      errx (1, "Incorrect AES");
+		    hexaes = v;
+		    if (!hexreader)
+		      hexreader = xml_get (d, "@id");
+		    found = 1;
+		  }
+	      }
+	  }
+      if (!found)
+	errx (1, "Specified AID not found in config");
       if (!mqtthost)
 	mqtthost = xml_get (c, "system@mqtt-host");
       if (!mqttuser)
