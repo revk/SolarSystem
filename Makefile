@@ -25,7 +25,7 @@ DESFireAES/desfireaes.o: DESFireAES/desfireaes.c
 	make -C DESFireAES
 
 cardissue: cardissue.c DESFireAES/desfireaes.o AXL/axl.o
-	cc -g -Wall -Wextra -O -o cardissue cardissue.c -I. -IDESFireAES DESFireAES/desfireaes.o -IAXL AXL/axl.o -lcrypto -lpopt -pthread -lcurl
+	cc -g -Wall -Wextra -O -o cardissue cardissue.c -I. -IDESFireAES DESFireAES/desfireaes.o -IAXL AXL/axl.o -lcrypto -lpopt -pthread -lcurl -lmosquitto
 
 alarmpanel: alarmpanel.c galaxybus.o galaxybus.h port.o port.h door.o door.h AXL/axl.o Dataformat/dataformat.o websocket/websocket.o trace.h
 	cc -g -Wall -Wextra -O -o alarmpanel alarmpanel.c galaxybus.o port.o door.o -I. -IAXL -IDataformat -Iwebsocket AXL/axl.o Dataformat/dataformat.o websocket/websocket.o -lcurl -pthread -lpopt -DLIBWS ${LIBEMAIL} ${LIBMQTT} -lcrypto -lssl
