@@ -91,6 +91,7 @@ main (int argc, const char *argv[])
 	else
 	  config = v;
       }
+
     if (poptPeekArg (optCon) && !hexreader)
       hexreader = poptGetArg (optCon);
 
@@ -142,7 +143,7 @@ main (int argc, const char *argv[])
 	      }
 	  }
       if (!found)
-	errx (1, "Specified AID not found in config");
+	warnx ("Specified AID not found in config");
       if (!mqtthost)
 	mqtthost = xml_get (c, "system@mqtt-host");
       if (!mqttuser)
@@ -156,19 +157,19 @@ main (int argc, const char *argv[])
     errx (1, "Specify AID or config file");
   unsigned char aid[3];
   if (df_hex (sizeof (aid), aid, hexaid) != sizeof (aid))
-    errx (1, "AID is hex XXXXXX");
+    errx (1, "AID is hex XXXXXX (%s)", hexaid);
   // TODO saved AES
 
   if (!hexaes)
     errx (1, "Specify AES or config file");
   unsigned char aes[16];
   if (df_hex (sizeof (aes), aes, hexaes) != sizeof (aes))
-    errx (1, "AES is hex XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX");
+    errx (1, "AES is hex XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX (%s)", hexaes);
   if (!hexreader)
     errx (1, "Specify Reader");
   unsigned char reader[3];
   if (df_hex (sizeof (reader), reader, hexreader) != sizeof (reader))
-    errx (1, "Reader is hex XXXXXX");
+    errx (1, "Reader is hex XXXXXX (%s)", hexreader);
 
 
   // Socket for responses
