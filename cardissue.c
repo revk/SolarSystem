@@ -28,11 +28,14 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <unistd.h>
 #include <popt.h>
 #include <err.h>
 #include <ctype.h>
+#include <sys/stat.h>
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <fcntl.h>
 #include <mosquitto.h>
 #include <openssl/evp.h>
 #include <desfireaes.h>
@@ -48,7 +51,7 @@ main (int argc, const char *argv[])
   const char *mqttpass = NULL;
   const char *mqttcert = NULL;
   const char *setname = NULL;
-  const char *hexaid = NULL;
+  char *hexaid = NULL;
   const char *hexaes = NULL;
   const char *hexreader = NULL;
   const char *config = NULL;
@@ -56,6 +59,8 @@ main (int argc, const char *argv[])
   int mqttport = 0;
   int comms = 0;
   int logs = 50;
+  int random = 0;
+  int lock = 0;
   {				// POPT
     poptContext optCon;		// context for parsing command-line options
     const struct poptOption optionsTable[] = {
@@ -72,6 +77,8 @@ main (int argc, const char *argv[])
       {"format", 0, POPT_ARG_NONE, &doformat, 0, "Format card", 0},
       {"logs", 0, POPT_ARG_INT | POPT_ARGFLAG_SHOW_DEFAULT, &logs, 0, "Log records", "N"},
       {"comms", 0, POPT_ARG_INT | POPT_ARGFLAG_SHOW_DEFAULT, &comms, 0, "File comms", "0/1/3"},
+      {"random", 0, POPT_ARG_NONE, &random, 0, "Random UID (when formatting)", 0},
+      {"lock", 0, POPT_ARG_NONE, &lock, 0, "Lock against further formatting (when formatting)", 0},
       {"debug", 'v', POPT_ARG_NONE, &debug, 0, "Debug", 0},
       POPT_AUTOHELP {}
     };
@@ -87,7 +94,7 @@ main (int argc, const char *argv[])
       {
 	const char *v = poptGetArg (optCon);
 	if (strlen (v) == 6 && df_hex (4, NULL, v) == 3)
-	  hexaid = v;
+	  hexaid = (char *) v;
 	else
 	  config = v;
       }
@@ -109,12 +116,21 @@ main (int argc, const char *argv[])
       c = xml_tree_read_file (config);
       if (!c)
 	errx (1, "Cannot read %s", config);
+      {				// Go to same directory
+	char *dir = strdupa (config);
+	char *f = strrchr (dir, '/');
+	if (f)
+	  {
+	    *f++ = 0;
+	    chdir (dir);
+	  }
+      }
       const char *v;
       int found = 0;
       if ((v = xml_get (c, "system@aid")) && (!hexaid || !strcasecmp (v, hexaid)))
 	{			// Main AID
 	  if (!hexaid)
-	    hexaid = v;
+	    hexaid = (char *) v;
 	  v = xml_get (c, "system@aes");
 	  if (hexaes && v && strcasecmp (v, hexaes))
 	    errx (1, "Incorrect AES");
@@ -158,8 +174,8 @@ main (int argc, const char *argv[])
   unsigned char aid[3];
   if (df_hex (sizeof (aid), aid, hexaid) != sizeof (aid))
     errx (1, "AID is hex XXXXXX (%s)", hexaid);
-  // TODO saved AES
-
+  if (asprintf (&hexaid, "%02X%02X%02X", aid[0], aid[1], aid[2]) < 0)
+    errx (1, "malloc");
   if (!hexaes)
     errx (1, "Specify AES or config file");
   unsigned char aes[16];
@@ -170,7 +186,6 @@ main (int argc, const char *argv[])
   unsigned char reader[3];
   if (df_hex (sizeof (reader), reader, hexreader) != sizeof (reader))
     errx (1, "Reader is hex XXXXXX (%s)", hexreader);
-
 
   // Socket for responses
   int sp[2];
@@ -194,8 +209,7 @@ main (int argc, const char *argv[])
       }
     if (!strcasecmp (m, "id"))
       {
-	if (debug)
-	  fprintf (stderr, "ID %.*s\n", msg->payloadlen, (char *) msg->payload);
+	printf ("Card found %.*s\n", msg->payloadlen, (char *) msg->payload);
 	send (sp[0], NULL, 0, 0);	// Indicate card gone
 	return;
       }
@@ -287,8 +301,6 @@ main (int argc, const char *argv[])
   if (recvt (sp[1], buf, sizeof (buf), 30) != 0)
     errx (1, "Giving up");
 
-  printf ("Card found\n");
-
   if ((e = df_select_application (&d, NULL)))
     errx (1, "Failed to select application: %s", e);
 
@@ -311,7 +323,7 @@ main (int argc, const char *argv[])
 	errx (1, "Master auth: %s", e);
       if ((e = df_change_key_settings (&d, 0x09)))
 	errx (1, "Change key settings: %s", e);
-      if ((e = df_set_configuration (&d, 0x02)))
+      if ((e = df_set_configuration (&d, (random ? 2 : 0) | (lock ? 1 : 0))))
 	errx (1, "Set config: %s", e);
     }
   else if ((e = df_authenticate (&d, 0, NULL)))
@@ -326,8 +338,34 @@ main (int argc, const char *argv[])
   sprintf (hexuid, "%02X%02X%02X%02X%02X%02X%02X", uid[0], uid[1], uid[2], uid[3], uid[4], uid[5], uid[6]);
   printf ("UID %s\n", hexuid);
 
-  // TODO per card key
+  if (chdir (hexaid) && (mkdir (hexaid, 0700) || chdir (hexaid)))
+    err (1, "Cannot make directory");
+
   unsigned char cardkey[16] = { 0 };
+  {				// Do we have a key
+    int f = open (hexuid, O_RDONLY);
+    if (f >= 0)
+      {
+	if (read (f, cardkey, 16) != 16)
+	  warn ("Failed to read card key");
+	close (f);
+      }
+    else
+      {
+	f = open ("/dev/urandom", O_RDONLY);
+	if (f < 0)
+	  err (1, "random");
+	if (read (f, cardkey, 16) != 16)
+	  err (1, "random");
+	close (f);
+	f = open (hexuid, O_CREAT | O_WRONLY, 0600);
+	if (f < 0)
+	  err (1, "Cannot make UID key file");
+	if (write (f, cardkey, 16) != 16)
+	  err (1, "Cannot write UID key file");
+	close (f);
+      }
+  }
 
   // Check if AID exists
   unsigned int n;
