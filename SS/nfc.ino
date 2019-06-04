@@ -98,7 +98,6 @@ char led[10];
       nfc = NULL;
       return false;
     }
-
     debug("PN532 OK");
     nfcok = true;
     *led = 0;
@@ -156,7 +155,7 @@ char led[10];
       if (found)
       {
         // TODO MIFARE Classic 4 byte ID don't show as in field, and constantly re-read ID, grrr.
-        if (!NFC.inField(readertimeout) || (!NFC.secure && NFC.getID(id, err)))
+        if (!NFC.inField(readertimeout) || (!NFC.secure && NFC.getID(id, err) && !strcmp(id.c_str(), tid)))
         { // still here
           if (!held && (int)(now - found) > holdtime)
           {
@@ -196,7 +195,10 @@ char led[10];
               NFC.desfire_log(err);
           }
           if (*err.c_str())
+          {
             revk.error(F("id"), F("%s"), err.c_str());
+            found = 0;
+          }
         }
       }
     }

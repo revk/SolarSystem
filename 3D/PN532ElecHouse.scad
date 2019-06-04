@@ -3,6 +3,8 @@
 // Connector type: Molex 6 way
 // Note, order genuine elechouse from china. NFC MODULE V4
 
+wire=5; // Build for desk not wall
+
 // Tolerances for your printer
 t=0.1;  // General xy tolerance/margin
 z=0.4;  // General z tolerance/margin
@@ -65,6 +67,20 @@ pcby=-screwv/2+sidet+t+screwhd/2+sidet+t; // edge of PCB
 
 $fn=100;
 
+module cable(x,z)
+{
+    if(wire)
+    translate([x,boxh/2+t,z])
+    hull()
+    {
+        rotate([90,0,0])
+        cylinder(d=wire,h=boxh/2-egressy);
+        translate([0,0,-wire/2])
+        rotate([90,0,0])
+        cylinder(d=wire,h=boxh/2-egressy);
+    }
+}
+
 module lid()
 {
     difference()
@@ -80,6 +96,8 @@ module lid()
         }
         translate([boxw/2-ledx,boxh/2-ledy,-0.01])
         cylinder(d=ledd,h=frontt+1);
+        cable(-egressx,boxt);
+
     }
     difference()
     {
@@ -90,8 +108,10 @@ module lid()
             translate([0,-lip,lip])
             cube([boxw,lip*2,lip]);
         }
+        if(!wire)
         translate([0,screwv/2,boxt-backt-lip*2])
         cylinder(d=screwhd,h=backt+lip*2+t);
+        cable(-egressx,boxt);
     }
 }
 
@@ -103,6 +123,7 @@ module base()
         {
             translate([sidet+t-boxw/2,sidet+t-boxh/2,0])
             cube([boxw-sidet*2-t*2,boxh-sidet*2-t*2-lip,backt]);
+            if(!wire)
             for(y=[-screwv/2,screwv/2])
             translate([0,y,0])
             cylinder(d=screwhd-t,h=backt+lip*2);
@@ -128,6 +149,7 @@ module base()
                 cube([boxw-sidet*2-t*2,lip,lip]);
             }
         }
+        cable(egressx,wire/2);
         // Board
         hull()
         {
@@ -146,6 +168,7 @@ module base()
         translate([-t*2-pcbw/2+pcbm,pcby+pcbm-t,connt-pcbb])
         cube([pcbw+t*2-pcbm*2,pcbh+t*2-pcbm*2,pcbb+1]);
         // Screws
+        if(!wire)
         for(y=[-screwv/2,screwv/2])
         translate([0,y,-1])
         {
