@@ -4,3 +4,4 @@ cardissue
 *~
 *.swp
 .DS_Store
+*/*.bin
