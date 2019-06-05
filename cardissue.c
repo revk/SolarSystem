@@ -321,7 +321,7 @@ main (int argc, const char *argv[])
   if (recvt (sp[1], buf, sizeof (buf), 30) != 0)
     errx (1, "Giving up");
   led ("G-");
-  usleep (100000);
+  usleep (250000);
 
   if ((e = df_select_application (&d, NULL)))
     errx (1, "Failed to select application: %s", e);
