@@ -4197,7 +4197,7 @@ main (int argc, const char *argv[])
 			xml_add (app->config, "@id", id);
 			configchanged = 1;
 		      }
-		    if (!tag && !port->state && state)
+		    if (!tag && state)
 		      {		// Load settings
 			xml_attribute_t a = NULL;
 			while ((a = xml_attribute_next (app->config, a)))
