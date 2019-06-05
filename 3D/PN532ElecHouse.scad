@@ -3,7 +3,7 @@
 // Connector type: Molex 6 way
 // Note, order genuine elechouse from china. NFC MODULE V4
 
-wire=5; // Build for desk not wall
+wire=5; // Build for desk not wall (0 for not)
 
 // Tolerances for your printer
 t=0.1;  // General xy tolerance/margin
@@ -21,7 +21,7 @@ screwv=61; // Spacing
 screwhd=9; // Screw head diameter
 screwht=3; // Screw head thickness
 
-egressx=-11; // Engress hole position relative to cenrte
+egressx=(wire?0:-11); // Engress hole position relative to cenrte
 egressy=22;
 egressd=9; // Diameter
 
@@ -33,10 +33,13 @@ pcbf=2.5; // space on front for components
 pcbb=0; // space on back for components
 pcbm=3; // border margin with no components
 
-// LED hole (top left)
-ledx=10;
+// LED hole (t[ 0.00, 0.00, 0.00 ]op left)
+ledx=10; // Hole (from corner)
 ledy=10;
 ledd=5.1;
+ledd2=3; // Wires
+ledx2=0; // Wires to PCB (from centre)
+ledy2=10;
 
 // PCB fixings?
 //fixd=4; // Holes on PCB - need to allow in pcbf;
@@ -75,7 +78,7 @@ module cable(x,z)
     {
         rotate([90,0,0])
         cylinder(d=wire,h=boxh/2-egressy);
-        translate([0,0,-wire/2])
+        translate([0,0,-wire/2-backt])
         rotate([90,0,0])
         cylinder(d=wire,h=boxh/2-egressy);
     }
@@ -97,7 +100,6 @@ module lid()
         translate([boxw/2-ledx,boxh/2-ledy,-0.01])
         cylinder(d=ledd,h=frontt+1);
         cable(-egressx,boxt);
-
     }
     difference()
     {
@@ -149,7 +151,7 @@ module base()
                 cube([boxw-sidet*2-t*2,lip,lip]);
             }
         }
-        cable(egressx,wire/2);
+        cable(egressx,wire/2+backt+lip*2);
         // Board
         hull()
         {
@@ -183,6 +185,15 @@ module base()
             cylinder(d=egressd,boxt);
             translate([connx-pcbw/2-t,pcby+conny-t,-1])
             cube([connw+t*2,connh+t*2,boxt]);
+        }
+        // LED
+        translate([0,0,connt+t+pcbt])
+        hull()
+        {
+            translate([ledx-boxw/2,boxh/2-ledy,0])
+            cylinder(d=ledd2,h=boxt);
+            translate([ledx2,ledy2,0])
+            cylinder(d=ledd2,h=boxt);
         }
     }
 }
