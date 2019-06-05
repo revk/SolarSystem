@@ -321,6 +321,7 @@ main (int argc, const char *argv[])
   if (recvt (sp[1], buf, sizeof (buf), 30) != 0)
     errx (1, "Giving up");
   led ("G-");
+  usleep (100000);
 
   if ((e = df_select_application (&d, NULL)))
     errx (1, "Failed to select application: %s", e);
@@ -470,7 +471,15 @@ main (int argc, const char *argv[])
 	  if ((e = df_read_records (&d, 1, comms, 0, recs, 10, buf)))
 	    errx (1, "Read data: %s", e);
 	  while (recs--)
-	    printf ("Log %02X%02X%02X on %02X%02X-%02X-%02X %02X:%02X:%02X\n", buf[recs * 10 + 0], buf[recs * 10 + 1], buf[recs * 10 + 2], buf[recs * 10 + 3], buf[recs * 10 + 4], buf[recs * 10 + 5], buf[recs * 10 + 6], buf[recs * 10 + 7], buf[recs * 10 + 8], buf[recs * 10 + 9]);
+	    {
+	      char r[7], *v;
+	      sprintf (r, "%02X%02X%02X", buf[recs * 10 + 0], buf[recs * 10 + 1], buf[recs * 10 + 2]);
+	      xml_t d = NULL;
+	      while ((d = xml_element_next_by_name (c, d, "device")))
+		if ((v = xml_get (d, "@id")) && !strcasecmp (v, r))
+		  break;
+	      printf ("Log %s on %02X%02X-%02X-%02X %02X:%02X:%02X %s\n", r, buf[recs * 10 + 3], buf[recs * 10 + 4], buf[recs * 10 + 5], buf[recs * 10 + 6], buf[recs * 10 + 7], buf[recs * 10 + 8], buf[recs * 10 + 9], d ? xml_get (d, "@name") ? : "" : "");
+	    }
 	}
     }
   else
