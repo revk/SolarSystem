@@ -288,7 +288,18 @@ main (int argc, const char *argv[])
       }
     int l = recv (fd, data, len, 0);
     if (l <= 0 || (*(unsigned char *) data && *(unsigned char *) data != 0xAF))
-      led ("R-");
+      {
+	if (debug)
+	  {
+	    if (!l)
+	      fprintf (stderr, "Card gone\n");
+	    else if (l < 0)
+	      fprintf (stderr, "Rx len %d\n", l);
+	    else
+	      fprintf (stderr, "Card status %02X\n", *(unsigned char *) data);
+	  }
+	led ("R-");
+      }
     return l;
   }
   // DESFire dx function
