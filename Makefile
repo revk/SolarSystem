@@ -14,6 +14,7 @@ all: git alarmpanel cardissue
 
 update:
 	git submodule update --remote --merge
+	git commit -a -m "Library update"
 
 AXL/axl.o: AXL/axl.c
 	make -C AXL
