@@ -263,7 +263,7 @@ main (int argc, const char *argv[])
     mosquitto_publish (mqtt, NULL, topic, strlen (led), led, 1, 0);
     free (topic);
   }
-
+  volatile int done = -1;
   // DESFire setup
   int recvt (int fd, void *data, size_t len, int timeout)
   {
@@ -291,14 +291,14 @@ main (int argc, const char *argv[])
       {
 	if (debug)
 	  {
-	    if (!l)
+	    if (!l && done >= 0)
 	      fprintf (stderr, "Card gone\n");
 	    else if (l < 0)
 	      fprintf (stderr, "Rx len %d\n", l);
-	    else
+	    else if (l > 0)
 	      fprintf (stderr, "Card status %02X\n", *(unsigned char *) data);
 	  }
-	led ("R-");
+	led (done ? "-" : "R-");
       }
     return l;
   }
@@ -325,6 +325,7 @@ main (int argc, const char *argv[])
   df_t d;
   if ((e = df_init (&d, NULL, &dx)))
     errx (1, "Init failed: %s", e);
+  done = 0;
 
   unsigned char buf[1024];
   led ("R");
@@ -526,10 +527,9 @@ main (int argc, const char *argv[])
   printf ("Remove card\n");
   led ("G");
 
+  done = 1;
   if (recvt (sp[1], buf, sizeof (buf), 30) != 0)
     errx (1, "Giving up");
-
-  led ("");
 
   if (c)
     xml_tree_delete (c);
