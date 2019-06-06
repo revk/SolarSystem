@@ -4243,7 +4243,11 @@ main (int argc, const char *argv[])
 				    free (topic);
 				  }
 			      }
-			    // TODO set LED?
+			    char *led = app->led;
+			    app->led = NULL;
+			    mqtt_led (port, led);
+			    if (led)
+			      free (led);
 			  }
 			port_p o;
 			for (o = ports; o; o = o->next)
