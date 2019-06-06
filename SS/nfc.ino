@@ -25,23 +25,30 @@ boolean nfcok = false;
 const char* nfc_fault = NULL;
 const char* nfc_tamper = NULL;
 boolean held = false;
-char led[10];
+char ledpattern[10];
 
 #define app_settings  \
   s(nfc);   \
   s(nfccommit); \
+  v(ledr,1); \
+  v(ledg,2); \
+
 
 #define s(n) const char *n=NULL
+#define v(n,d) byte n=d
   app_settings
 #undef s
+#undef v
 
 #define readertimeout 100
 
   const char* nfc_setting(const char *tag, const byte *value, size_t len)
   { // Called for settings retrieved from EEPROM
 #define s(n) do{const char *t=PSTR(#n);if(!strcasecmp_P(tag,t)){n=(const char *)value;return t;}}while(0)
+#define v(n,d) do{const char *t=PSTR(#n);if(!strcasecmp_P(tag,t)){n=(value?atoi((char*)value):d);return t;}}while(0)
     app_settings
 #undef s
+#undef v
     return NULL; // Done
   }
 
@@ -69,12 +76,12 @@ char led[10];
       else revk.error(F("nfc"), F("failed %02X (%d bytes sent %02X %02X %02X...)"), bad, len, message[0], message[1], message[2]);
       return true;
     }
-    if (!strcasecmp_P(tag, "led") && len < sizeof(led))
+    if (!strcasecmp_P(tag, "led") && len < sizeof(ledpattern))
     { // Sequence of LED colours (R/G/-) to repeat
       if (len)
-        memcpy((void*)led, (void*) message, len);
-      if (len < sizeof(led))
-        led[len] = 0;
+        memcpy((void*)ledpattern, (void*) message, len);
+      if (len < sizeof(ledpattern))
+        ledpattern[len] = 0;
       return true;
     }
     return false;
@@ -100,7 +107,7 @@ char led[10];
     }
     debug("PN532 OK");
     nfcok = true;
-    *led = 0;
+    *ledpattern = 0;
     return true;
   }
 
@@ -117,11 +124,11 @@ char led[10];
     {
       lednext += 100;
       ledpos++;
-      if (ledpos >= sizeof(led) || !led[ledpos])ledpos = 0;
+      if (ledpos >= sizeof(ledpattern) || !ledpattern[ledpos])ledpos = 0;
       byte newled = 0;
       // We are assuming exactly two LEDs, one at a time (back to back) on P30 and P31
-      if (led[ledpos] == 'R')newled = 2;
-      else if (led[ledpos] == 'G')newled = 1;
+      if (ledpattern[ledpos] == 'R')newled = ledr;
+      else if (ledpattern[ledpos] == 'G')newled = ledg;
       if (newled != ledlast)
         NFC.led(ledlast = newled);
     }
@@ -194,11 +201,11 @@ char led[10];
             if (NFC.secure)
               NFC.desfire_log(err);
           }
-          if (*err.c_str())
-          {
-            revk.error(F("id"), F("%s"), err.c_str());
-            found = 0;
-          }
+        }
+        if (*err.c_str())
+        {
+          revk.error(F("id"), F("%s"), err.c_str());
+          found = 0;
         }
       }
     }
