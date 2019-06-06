@@ -1,4 +1,4 @@
-// Case for Door controller PCB
+ // Case for Door controller PCB
 
 // Tolerances for your printer
 t=0.1;  // General xy tolerance/margin
@@ -9,10 +9,10 @@ lip=2; // Lip size
 // Thickness of walls
 sidet=2;
 frontt=1;
-backt=2;
+backt=1;
 
 // PCB
-pcbw=34;
+pcbw=33.7;
 pcbh=50;
 pcbt=1.5;
 pcbf=10.2;
@@ -26,6 +26,7 @@ screwsy=2.5-pcbh/2;
 screwsd=3.5;
 screwss=5;
 screwsn=10;
+label=["R","R","+","-","1","1","2","2","3","3"];
 
 // Wire size
 wire=5;
@@ -33,7 +34,7 @@ wire=5;
 // Box size
 boxw=sidet*2+t*2+pcbw+pcbm*2;
 boxh=sidet*2+t*2+pcbh+pcbm*2+lip*2;
-boxt=frontt+t+pcbf+pcbt+pcbb;
+boxt=frontt+t+pcbf+pcbt+pcbb+backt;
 
 $fn=100;
 
@@ -68,6 +69,11 @@ module lid()
         translate([0,0,boxt-backt-pcbb-pcbt-wire/2])
         rotate([90,0,0])
         cylinder(d=wire,h=pcbh);
+           for(n=[0:screwsn-1])
+        translate([screwsx+screwss,screwsy+n*screwss,-1])
+        linear_extrude(height=1.5)
+        mirror([1,0,0])
+        text(label[n],size=screwss*.8,halign="center",valign="center");
     }
     difference()
     {
@@ -103,13 +109,13 @@ module base()
         {
             translate([pcbe-pcbw/2,sidet+t+pcbm+pcbe-boxh/2,backt])
             cube([pcbw-pcbe*2,pcbh-pcbe*2,backt+pcbb]);
-            translate([-7,-7,t])
-            cube([7,7,pcbb+backt+t]);
+            translate([-7,-13,t])
+            cube([10,10,pcbb+backt+t]);
             translate([pcbw/2-2,sidet+pcbm+t-boxh/2,0])
             cube([7,pcbh,pcbb+backt+t]);
         }
-        translate([-boxw/2,0,backt])
-        cube([6,18,boxt]);
+        translate([-pcbw/2,-2,backt+pcbb-1])
+        cube([6,17,boxt]);
     }
 }
 
