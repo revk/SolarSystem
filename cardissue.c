@@ -334,6 +334,16 @@ main (int argc, const char *argv[])
     errx (1, "Giving up");
   led ("G-");
 
+  unsigned char ver[28];
+  if ((e = df_get_version (&d, ver)))
+    errx (1, "Version: %s", e);
+  printf ("Ver:");
+  unsigned int n;
+  for (n = 0; n < sizeof (ver); n++)
+    printf (" %02X", ver[n]);
+  printf ("\n");
+
+
   if ((e = df_select_application (&d, NULL)))
     errx (1, "Failed to select application: %s", e);
 
@@ -401,7 +411,6 @@ main (int argc, const char *argv[])
   }
 
   // Check if AID exists
-  unsigned int n;
   if ((e = df_get_application_ids (&d, &n, sizeof (buf), buf)))
     errx (1, "Application list: %s", e);
   while (n && memcmp (buf + n * 3 - 3, aid, 3))
@@ -532,8 +541,9 @@ main (int argc, const char *argv[])
     }
 
   unsigned int mem;
-  if((e=df_free_memory(&d,&mem)))errx(1,"Read mem: %s",e);
-  printf("Free memory: %u\n",mem);
+  if ((e = df_free_memory (&d, &mem)))
+    errx (1, "Read mem: %s", e);
+  printf ("Free memory: %u\n", mem);
 
 
   printf ("Remove card\n");
