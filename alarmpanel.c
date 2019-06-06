@@ -4197,7 +4197,7 @@ main (int argc, const char *argv[])
 			xml_add (app->config, "@id", id);
 			configchanged = 1;
 		      }
-		    if (!tag && !port->state && state)
+		    if (!tag && state)
 		      {		// Load settings
 			xml_attribute_t a = NULL;
 			while ((a = xml_attribute_next (app->config, a)))
@@ -4216,30 +4216,34 @@ main (int argc, const char *argv[])
 			    free (topic);
 			  }
 			char *v;
-			if ((v = xml_get (app->config, "@nfc")) && *v != 'M')
+			if ((v = xml_get (app->config, "@nfc")))
 			  {
-			    v = xml_get (app->config, "@aid") ? : xml_get (config, "system@aid");
-			    if (v && strlen (v) == 6)
-			      {
-				char *topic;
-				asprintf (&topic, "command/SS/%s/aid", port->mqtt);
-				unsigned char val[3], n;
-				for (n = 0; n < sizeof (val); n++)
-				  val[n] = (((v[n * 2] & 0xF) + (isalpha (v[n * 2]) ? 9 : 0)) << 4) + (v[n * 2 + 1] & 0xF) + (isalpha (v[n * 2 + 1]) ? 9 : 0);
-				mosquitto_publish (mqtt, NULL, topic, sizeof (val), val, 1, 0);
-				free (topic);
+			    if (*v != 'M')
+			      {	// Not "management" so send aid/aes
+				v = xml_get (app->config, "@aid") ? : xml_get (config, "system@aid");
+				if (v && strlen (v) == 6)
+				  {
+				    char *topic;
+				    asprintf (&topic, "command/SS/%s/aid", port->mqtt);
+				    unsigned char val[3], n;
+				    for (n = 0; n < sizeof (val); n++)
+				      val[n] = (((v[n * 2] & 0xF) + (isalpha (v[n * 2]) ? 9 : 0)) << 4) + (v[n * 2 + 1] & 0xF) + (isalpha (v[n * 2 + 1]) ? 9 : 0);
+				    mosquitto_publish (mqtt, NULL, topic, sizeof (val), val, 1, 0);
+				    free (topic);
+				  }
+				v = xml_get (app->config, "@aes") ? : xml_get (config, "system@aes");
+				if (v && strlen (v) == 32)
+				  {
+				    char *topic;
+				    asprintf (&topic, "command/SS/%s/aes", port->mqtt);
+				    unsigned char val[16], n;
+				    for (n = 0; n < sizeof (val); n++)
+				      val[n] = (((v[n * 2] & 0xF) + (isalpha (v[n * 2]) ? 9 : 0)) << 4) + (v[n * 2 + 1] & 0xF) + (isalpha (v[n * 2 + 1]) ? 9 : 0);
+				    mosquitto_publish (mqtt, NULL, topic, sizeof (val), val, 1, 0);
+				    free (topic);
+				  }
 			      }
-			    v = xml_get (app->config, "@aes") ? : xml_get (config, "system@aes");
-			    if (v && strlen (v) == 32)
-			      {
-				char *topic;
-				asprintf (&topic, "command/SS/%s/aes", port->mqtt);
-				unsigned char val[16], n;
-				for (n = 0; n < sizeof (val); n++)
-				  val[n] = (((v[n * 2] & 0xF) + (isalpha (v[n * 2]) ? 9 : 0)) << 4) + (v[n * 2 + 1] & 0xF) + (isalpha (v[n * 2 + 1]) ? 9 : 0);
-				mosquitto_publish (mqtt, NULL, topic, sizeof (val), val, 1, 0);
-				free (topic);
-			      }
+			    mqtt_led (port, "R");
 			  }
 			port_p o;
 			for (o = ports; o; o = o->next)
