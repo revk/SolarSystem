@@ -18,6 +18,7 @@ pcbt=1.5;
 pcbf=10.2;
 pcbb=3;
 pcbe=0.5;
+pcbm=1;
 
 // Screw contacts
 screwsx=4.5-pcbw/2;
@@ -30,8 +31,8 @@ screwsn=10;
 wire=5;
 
 // Box size
-boxw=sidet*2+t*2+pcbw;
-boxh=sidet*2+t*2+pcbh+lip*2;
+boxw=sidet*2+t*2+pcbw+pcbm*2;
+boxh=sidet*2+t*2+pcbh+pcbm*2+lip*2;
 boxt=frontt+t+pcbf+pcbt+pcbb;
 
 $fn=100;
@@ -87,7 +88,7 @@ module base()
         union()
         {
             translate([sidet+t-boxw/2,sidet+t-boxh/2,0])
-            cube([boxw-sidet*2-t*2,boxh-sidet*2-t*2-lip,backt+pcbb]);
+            cube([boxw-sidet*2-t*2,boxh-sidet*2-t*2-lip,backt+pcbb+pcbt]);
             translate([sidet+t-boxw/2,boxh/2-lip*2-sidet,lip])
             hull()
             {
@@ -96,13 +97,15 @@ module base()
                 cube([boxw-sidet*2-t*2,lip,lip]);
             }
         }
+        translate([-pcbw/2,sidet+t+pcbm-boxh/2,backt+pcbb])
+        cube([pcbw,pcbh,pcbt*2]);
         difference()
         {
-            translate([pcbe-pcbw/2,sidet+t+pcbe-boxh/2,backt])
+            translate([pcbe-pcbw/2,sidet+t+pcbm+pcbe-boxh/2,backt])
             cube([pcbw-pcbe*2,pcbh-pcbe*2,backt+pcbb]);
             translate([-7,-7,t])
             cube([7,7,pcbb+backt+t]);
-            translate([pcbw/2-2,sidet+t-boxh/2,0])
+            translate([pcbw/2-2,sidet+pcbm+t-boxh/2,0])
             cube([7,pcbh,pcbb+backt+t]);
         }
         translate([-boxw/2,0,backt])
