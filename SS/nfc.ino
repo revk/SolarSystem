@@ -31,7 +31,7 @@ char ledpattern[10];
   s(nfc);   \
   s(nfccommit); \
   v(ledr,1); \
-  v(ledg,2); \
+  v(ledg,0); \
 
 
 #define s(n) const char *n=NULL
@@ -127,8 +127,8 @@ char ledpattern[10];
       if (ledpos >= sizeof(ledpattern) || !ledpattern[ledpos])ledpos = 0;
       byte newled = 0;
       // We are assuming exactly two LEDs, one at a time (back to back) on P30 and P31
-      if (ledpattern[ledpos] == 'R')newled = ledr;
-      else if (ledpattern[ledpos] == 'G')newled = ledg;
+      if (ledpattern[ledpos] == 'R')newled = (1<<ledr);
+      else if (ledpattern[ledpos] == 'G')newled = (1<<ledg);
       if (newled != ledlast)
         NFC.led(ledlast = newled);
     }
