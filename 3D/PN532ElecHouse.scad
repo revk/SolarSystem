@@ -55,7 +55,7 @@ tamperw=6;
 tamperh=6;
 tampert=4.7; // Height when contact closed
 tamperm=1; // Margin
-tampere=1;  // Edge
+tampere=1.5;  // Edge
 
 // Connector
 connw=18;
