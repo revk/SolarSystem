@@ -453,9 +453,16 @@ main (int argc, const char *argv[])
 	if ((e = df_read_data (&d, 0, comms, 0, size, buf)))
 	  errx (1, "Read data: %s", e);
 	printf ("Name: %.*s\n", size, buf);
+	if (setname && strcmp (setname, (char *) buf))
+	  {
+	    printf ("Name wrong, deleting name\n");
+	    if ((e = df_delete_file (&d, 0)))
+	      errx (1, "Delete file: %s", e);
+	    fids &= ~(1 << 0);	// deleted
+	  }
       }
     }
-  else if (setname)
+  if (!(fids & (1 << 0)) && setname && *setname)
     {				// Set the name
       printf ("Setting name: %s\n", setname);
       if ((e = df_create_file (&d, 0, 'D', comms, 0x1000, strlen (setname), 0, 0, 0, 0, 0)))
@@ -523,6 +530,11 @@ main (int argc, const char *argv[])
       if ((e = df_create_file (&d, 2, 'V', comms, 0x0010, 0, 0, 0x7FFFFFFF, 0, 0, 0)))
 	errx (1, "Create file: %s", e);
     }
+
+  unsigned int mem;
+  if((e=df_free_memory(&d,&mem)))errx(1,"Read mem: %s",e);
+  printf("Free memory: %u\n",mem);
+
 
   printf ("Remove card\n");
   led ("G");
