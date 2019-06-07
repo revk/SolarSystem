@@ -555,6 +555,8 @@ main (int argc, const char *argv[])
 
   if (c)
     xml_tree_delete (c);
+  mosquitto_disconnect(mqtt);
+  mosquitto_loop_stop(mqtt,false);
   mosquitto_lib_cleanup ();
   return 0;
 }
