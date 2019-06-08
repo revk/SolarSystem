@@ -11,8 +11,6 @@
 // GPIO14 SCK (CLK)
 // GPIO16 SDA (SS)
 
-#define PINS  ((1 << 12) | (1 << 13) | (1 << 14) | (1 << ss))
-
 #include <ESPRevK.h>
 #include "nfc.h"
 #include "PN532_SPI.h"
@@ -93,14 +91,16 @@ char ledpattern[10];
   boolean nfc_setup(ESPRevK&revk)
   {
     if (!nfc)return false; // Not configured
+    unsigned int pins = ((1 << 12) | (1 << 13) | (1 << 14) | (1 << ss)); // SPI
+    if (*nfc == 'H')pins = ((1 << 1) | (1 << 3)); // HSU
     debugf("GPIO pin available %X for PN532", gpiomap);
-    if ((gpiomap & PINS) != PINS)
+    if ((gpiomap & pins) != pins)
     {
       nfc_fault = PSTR("NFC pins (SPI) not available");
       nfc = NULL;
       return false;
     }
-    gpiomap &= ~PINS;
+    gpiomap &= ~pins;
     debugf("GPIO remaining %X", gpiomap);
     if (*nfc == 'H')
     { // HSU mode rather than SPI
