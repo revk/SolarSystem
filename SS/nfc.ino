@@ -16,10 +16,12 @@
 #include <ESPRevK.h>
 #include "nfc.h"
 #include "PN532_SPI.h"
+#include "PN532_HSU.h"
 #include "PN532RevK.h"
 #include "Output.h"
 
 PN532_SPI pn532spi(SPI, ss);
+PN532_HSU pn532hsu(Serial);
 PN532RevK NFC(pn532spi);
 boolean nfcok = false;
 const char* nfc_fault = NULL;
@@ -30,12 +32,13 @@ char ledpattern[10];
 #define app_settings  \
   s(nfc);   \
   s(nfccommit); \
-  v(ledr,1); \
-  v(ledg,0); \
+  v(nfcred,1); \
+  v(nfcgreen,0); \
+  v(nfctamper,3); \
 
 
 #define s(n) const char *n=NULL
-#define v(n,d) byte n=d
+#define v(n,d) int8_t n=d
   app_settings
 #undef s
 #undef v
@@ -99,7 +102,19 @@ char ledpattern[10];
     }
     gpiomap &= ~PINS;
     debugf("GPIO remaining %X", gpiomap);
-    if (!NFC.begin())
+    if (*nfc == 'H')
+    { // HSU mode rather than SPI
+#ifdef REVKDEBUG
+      nfc_fault = PSTR("Cannot do serial debug and serial PN532");
+      nfc = NULL;
+      return false;
+#endif
+      NFC.set_interface(pn532hsu);
+    }
+    byte outputs = 0;
+    if (nfcred >= 0)outputs |= (1 << nfcred);
+    if (nfcgreen >= 0)outputs |= (1 << nfcgreen);
+    if (!NFC.begin(outputs))
     { // no reader
       nfc_fault = PSTR("PN532 failed");
       nfc = NULL;
@@ -127,8 +142,8 @@ char ledpattern[10];
       if (ledpos >= sizeof(ledpattern) || !ledpattern[ledpos])ledpos = 0;
       byte newled = 0;
       // We are assuming exactly two LEDs, one at a time (back to back) on P30 and P31
-      if (ledpattern[ledpos] == 'R')newled = (1<<ledr);
-      else if (ledpattern[ledpos] == 'G')newled = (1<<ledg);
+      if (nfcred >= 0 && ledpattern[ledpos] == 'R')newled = (1 << nfcred);
+      if (nfcgreen >= 0 && ledpattern[ledpos] == 'G')newled = (1 << nfcgreen);
       if (newled != ledlast)
         NFC.led(ledlast = newled);
     }
@@ -147,7 +162,7 @@ char ledpattern[10];
           ledlast = 0xFF;
         }
         nfc_fault = NULL;
-        if (p3 & 0x08)
+        if (nfctamper < 0 || (p3 & (1 << nfctamper)))
           nfc_tamper = NULL;
         else if (*nfc == 'T')
           nfc_tamper = PSTR("PN532");
