@@ -146,8 +146,8 @@ main (int argc, const char *argv[])
       while ((d = xml_element_next_by_name (c, d, "device")))
 	if ((v = xml_get (d, "@nfc")))
 	  {
-	    if (*v == 'M' && !hexreader)
-	      hexreader = xml_get (d, "@id");	// "M" means management reader
+	    if (!xml_get (d, "@input1") && !xml_get (d, "@output1") && !hexreader)
+	      hexreader = xml_get (d, "@id");	// Assume management reader as no input or output
 	    if (!found && hexaid)
 	      {
 		v = xml_get (d, "@aid");
@@ -555,8 +555,8 @@ main (int argc, const char *argv[])
 
   if (c)
     xml_tree_delete (c);
-  mosquitto_disconnect(mqtt);
-  mosquitto_loop_stop(mqtt,false);
+  mosquitto_disconnect (mqtt);
+  mosquitto_loop_stop (mqtt, false);
   mosquitto_lib_cleanup ();
   return 0;
 }
