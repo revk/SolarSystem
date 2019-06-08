@@ -23,6 +23,8 @@ pcby=2;
 
 // Wire size
 wire=5;
+wirex=18;
+wirey=2;
 
 // Box size
 boxw=sidet*2+t*2+pcbw+pcbm*2;
@@ -78,7 +80,7 @@ module lid()
             cylinder(d=screwsd,h=boxw);
         }
         // Wire slot
-        translate([boxw/2-10,0,boxt-backt-pcbb-pcbt-wire/2-z])
+        translate([boxw/2-wirex,0,boxt-backt-pcbb-pcbt-wire/2-z-wirey])
         rotate([90,0,0])
         hull()
         {
@@ -97,7 +99,8 @@ module lid()
     // Back support
     translate([boxw/2-sidet-7.9,boxh/2-sidet-26-lip,frontt-0.1])
     cube([8,25-lip,boxt-pcbt-pcbb-backt-z-frontt]);
-    // Lip    
+    translate([boxw/2-sidet-3,t+13-boxh/2,frontt-0.1])
+    cube([3+t,boxh-t*2-12-8,boxt-pcbt-pcbb-backt-z-frontt]);    // Lip    
     difference()
     {
         translate([-boxw/2,boxh/2-sidet,boxt-lip*2])
