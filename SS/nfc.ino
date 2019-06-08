@@ -164,7 +164,7 @@ char ledpattern[10];
         nfc_fault = NULL;
         if (nfctamper < 0 || (p3 & (1 << nfctamper)))
           nfc_tamper = NULL;
-        else if (*nfc == 'T')
+        else
           nfc_tamper = PSTR("PN532");
       }
     }
