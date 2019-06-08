@@ -30,12 +30,12 @@ boxh=sidet*2+t*2+pcbh+pcbm*2+lip*2;
 boxt=frontt+t+pcbf+pcbt+pcbb+backt;
 
 // Screw contacts
-screwsx=5-pcbw/2;
+screwsx=5.27-pcbw/2;
 screwsy=2.5+sidet+t+pcbm-boxh/2+pcby;
 screwsd=3.5;
 screwss=5;
 screwsn=10;
-screwst=5;
+screwst=4;
 
 $fn=100;
 
@@ -93,9 +93,11 @@ module lid()
         label(4.5,1.5,"1");      
         label(6.5,1.5,"2");
         label(8.5,1.5,"3");
-        }
+    }
+    // Back support
     translate([boxw/2-sidet-7.9,boxh/2-sidet-26-lip,frontt-0.1])
-    cube([8,25-lip,boxt-pcbt-pcbb-backt-z]);
+    cube([8,25-lip,boxt-pcbt-pcbb-backt-z-frontt]);
+    // Lip    
     difference()
     {
         translate([-boxw/2,boxh/2-sidet,boxt-lip*2])

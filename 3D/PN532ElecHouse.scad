@@ -58,10 +58,11 @@ tamperm=1; // Margin
 tampere=1.5;  // Edge
 
 // Connector
-connw=18;
+connw=17; // Connector size as fitted
 connh=22;
-connt=7;
-connx=11.5; // position from edge of board
+conne=8; // Extra to fit
+connt=7; // Thickness
+connx=12.75; // position from edge of board
 conny=5.3;
 
 // Box size
@@ -216,12 +217,14 @@ module base()
             }
         }
         // Egress + connector
+        translate([connx-pcbw/2-t,pcby+conny-t,-1])
+        cube([connw+t*2,connh+t*2,boxt]);
         hull()
         {
             translate([egressx,egressy,-1])
             cylinder(d=egressd,boxt);
-            translate([connx-pcbw/2-t,pcby+conny-t,-1])
-            cube([connw+t*2,connh+t*2,boxt]);
+            translate([connx-pcbw/2-t,pcby+conny+connh,-1])
+            cube([connw+t*2,conne+t,boxt]);
         }
         // LED
         hull()
