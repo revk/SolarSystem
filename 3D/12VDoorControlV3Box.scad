@@ -1,4 +1,6 @@
- // Case for Door controller PCB
+// Case for Door controller PCB
+
+ranger=1; // If to include ranger hole
 
 // Tolerances for your printer
 t=0.1;  // General xy tolerance/margin
@@ -101,6 +103,7 @@ module lid()
         label(6.5,1.5,"1");
         label(8.5,1.5,"R");
         // VL53L0X hole
+        if(ranger)
         translate([10-pcbw/2,-6,-t])
         cube([8,6,frontt+t*2]);
     }
