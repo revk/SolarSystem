@@ -4,6 +4,7 @@
 // Note, order genuine elechouse from china. NFC MODULE V4
 
 wire=5; // Build for desk not wall (0 for not)
+hsu=0;  // Set for smaller 4 pin connector
 
 // Tolerances for your printer
 t=0.1;  // General xy tolerance/margin
@@ -39,7 +40,7 @@ ledx=8; // Hole (from corner)
 ledy=8;
 ledd=5; // diameter
 ledd2=6.2; // base diameter
-ledd3=8.5; // support diameter
+ledd3=9.5; // support diameter
 ledt=8.7-1; // thickness (height) - allow for sticking out of top
 ledw=4; // Wires
 ledx2=0; // Wires to PCB (from centre)
@@ -55,14 +56,14 @@ tamperw=6;
 tamperh=6;
 tampert=4.7; // Height when contact closed
 tamperm=1; // Margin
-tampere=1.5;  // Edge
+tampere=2;  // Edge
 
 // Connector
-connw=17; // Connector size as fitted
+connw=17-(hsu?5.08:0); // Connector size as fitted
 connh=22;
 conne=8; // Extra to fit
 connt=7; // Thickness
-connx=12.75; // position from edge of board
+connx=12.75+(hsu?5.08:0); // position from edge of board
 conny=5.3;
 
 // Box size
