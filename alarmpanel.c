@@ -1684,6 +1684,8 @@ load_config (const char *configfile)
 	  configchanged = 1;
 	}
     }
+  if (xml_get (config, "system@insecure"))
+    securefobs = 0;		// Bodge
   if (debug)
     warnx ("Config check done");
   return NULL;
