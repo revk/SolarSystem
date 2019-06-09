@@ -23,8 +23,8 @@ pcby=2;
 
 // Wire size
 wire=5;
-wirex=18;
-wirey=2;
+wirex=12;
+wirey=0;
 
 // Box size
 boxw=sidet*2+t*2+pcbw+pcbm*2;
@@ -32,7 +32,7 @@ boxh=sidet*2+t*2+pcbh+pcbm*2+lip*2;
 boxt=frontt+t+pcbf+pcbt+pcbb+backt;
 
 // Screw contacts
-screwsx=5.27-pcbw/2;
+screwsx=4-pcbw/2;
 screwsy=2.5+sidet+t+pcbm-boxh/2+pcby;
 screwsd=3.5;
 screwss=5;
@@ -43,10 +43,22 @@ $fn=100;
 
 module label(p,s,t)
 {
-        translate([screwsx+screwss/2,screwsy+p*screwss,-1])
+        translate([5,screwsy+p*screwss,-1])
         linear_extrude(height=1.2)
         mirror([1,0,0])
         text(t,size=screwss*s,halign="right",valign="center");
+}
+
+module wirecut()
+{
+    translate([boxw/2-wirex,boxh,boxt-backt-pcbb-pcbt-wire/2-z-wirey])
+    rotate([90,0,0])
+    hull()
+    {
+        cylinder(d=wire,h=pcbh);
+        translate([0,boxt,0])
+        cylinder(d=wire,h=pcbh);
+    }   
 }
 
 module lid()
@@ -80,25 +92,21 @@ module lid()
             cylinder(d=screwsd,h=boxw);
         }
         // Wire slot
-        translate([boxw/2-wirex,0,boxt-backt-pcbb-pcbt-wire/2-z-wirey])
-        rotate([90,0,0])
-        hull()
-        {
-            cylinder(d=wire,h=pcbh);
-            translate([0,boxt,0])
-            cylinder(d=wire,h=pcbh);
-        }   
+        wirecut();
         // Screws text
-        label(0.5,1.5,"R");
-        label(1.95,1,"+");
-        label(2.85,1,"-");
-        label(4.5,1.5,"1");      
-        label(6.5,1.5,"2");
-        label(8.5,1.5,"3");
+        label(-0.15,1,"-");
+        label(0.95,1,"+");
+        label(2.5,1.5,"3");
+        label(4.5,1.5,"2");      
+        label(6.5,1.5,"1");
+        label(8.5,1.5,"R");
+        // VL53L0X hole
+        translate([9-pcbw/2,0,-t])
+        cube([8,6,frontt+t*2]);
     }
     // Back support
-    translate([boxw/2-sidet-3,t+13-boxh/2,frontt-0.1])
-    cube([3+t,boxh-t*2-12-8,boxt-pcbt-pcbb-backt-z-frontt]);    // Lip    
+    translate([boxw/2-sidet-5,t+sidet-boxh/2+pcby+16,frontt-0.1])
+    cube([5+t,32,boxt-pcbt-pcbb-backt-z-frontt]);    // Lip    
     difference()
     {
         translate([-boxw/2,boxh/2-sidet,boxt-lip*2])
@@ -108,6 +116,7 @@ module lid()
             translate([0,-lip,lip])
             cube([boxw,lip*2,lip]);
         }
+        wirecut();
     }
 }
 
@@ -137,7 +146,7 @@ module base()
             translate([pcbw/2-2,sidet+pcbm+t-boxh/2+pcby,0])
             cube([7,pcbh,pcbb+backt+t]);
         }
-        translate([-pcbw/2,pcby-2,backt+pcbb-1])
+        translate([-pcbw/2,pcby-8,backt+pcbb-1])
         cube([6,17,boxt]);
     }
 }
