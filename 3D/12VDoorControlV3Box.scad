@@ -101,7 +101,7 @@ module lid()
         label(6.5,1.5,"1");
         label(8.5,1.5,"R");
         // VL53L0X hole
-        translate([9-pcbw/2,0,-t])
+        translate([10-pcbw/2,-6,-t])
         cube([8,6,frontt+t*2]);
     }
     // Back support
