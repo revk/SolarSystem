@@ -9,4 +9,4 @@
 	url = https://github.com/revk/websocket
 [submodule "DESFireAES"]
 	path = DESFireAES
-	url = ssh://git@github.com/revk/DESFireAES
+	url = https://github.com/revk/DESFireAES
