@@ -120,6 +120,8 @@ module lid()
         translate([0,screwv/2,boxt-backt-lip*2])
         cylinder(d=screwhd,h=backt+lip*2+t);
         cable(-egressx,boxt);
+        translate([boxw/2-ledx,boxh/2-ledy,boxt-lip*2])
+        cylinder(d=ledd3,h=lip*3);
     }
 }
 
