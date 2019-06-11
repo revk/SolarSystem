@@ -9,9 +9,9 @@
    xmlns="http://www.w3.org/2000/svg"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   width="52.164066mm"
+   width="52.003906mm"
    height="33.75mm"
-   viewBox="0 0 52.164067 33.750002"
+   viewBox="0 0 52.003907 33.750002"
    version="1.1"
    id="svg926"
    inkscape:version="0.92.2 5c3e80d, 2017-08-06"
@@ -25,11 +25,11 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="7.9847433"
-     inkscape:cx="90.425199"
-     inkscape:cy="59.212066"
+     inkscape:zoom="8.910414"
+     inkscape:cx="70.224118"
+     inkscape:cy="59.212062"
      inkscape:document-units="mm"
-     inkscape:current-layer="layer7"
+     inkscape:current-layer="layer3"
      showgrid="true"
      units="mm"
      objecttolerance="20"
@@ -67,7 +67,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
+        <dc:title />
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -76,7 +76,7 @@
      id="layer6"
      inkscape:label="Parts"
      style="display:inline;opacity:1"
-     transform="translate(6.809141,11.744051)">
+     transform="translate(6.8091411,11.744052)">
     <g
        transform="rotate(-180,20.235817,80.150174)"
        id="layer1"
@@ -702,8 +702,8 @@
      inkscape:groupmode="layer"
      id="layer3"
      inkscape:label="Edge 1mm"
-     style="display:inline"
-     transform="translate(6.809141,11.744051)">
+     style="display:inline;opacity:1"
+     transform="translate(6.8091411,11.744052)">
     <path
        style="color:#000000;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:medium;line-height:normal;font-family:sans-serif;font-variant-ligatures:normal;font-variant-position:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-alternates:normal;font-feature-settings:normal;text-indent:0;text-align:start;text-decoration:none;text-decoration-line:none;text-decoration-style:solid;text-decoration-color:#000000;letter-spacing:normal;word-spacing:normal;text-transform:none;writing-mode:lr-tb;direction:ltr;text-orientation:mixed;dominant-baseline:auto;baseline-shift:baseline;text-anchor:start;white-space:normal;shape-padding:0;clip-rule:nonzero;display:inline;overflow:visible;visibility:visible;opacity:1;isolation:auto;mix-blend-mode:normal;color-interpolation:sRGB;color-interpolation-filters:linearRGB;solid-color:#000000;solid-opacity:1;vector-effect:none;fill:none;fill-opacity:1;fill-rule:evenodd;stroke:#ff00ff;stroke-width:1;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;color-rendering:auto;image-rendering:auto;shape-rendering:auto;text-rendering:auto;enable-background:accumulate"
        d="m -5.8091411,-11.244052 a 0.50005,0.50005 0 0 0 -0.5,0.5 v 31.750001 a 0.50005,0.50005 0 0 0 0.5,0.5 H 44.194766 a 0.50005,0.50005 0 0 0 0.5,-0.5 v -31.750001 a 0.50005,0.50005 0 0 0 -0.5,-0.5 H 27.21039 a 0.50005,0.50005 0 0 0 -0.44336,0.269532 l -3.035156,5.8515621 H 5.9232807 L 2.8881245,-10.97452 a 0.50005,0.50005 0 0 0 -0.4433594,-0.269532 z"
@@ -714,8 +714,8 @@
      inkscape:groupmode="layer"
      id="layer2"
      inkscape:label="Track mill &lt; 0.5mm"
-     transform="translate(8.6191406,3.289062)"
-     style="display:inline">
+     transform="translate(8.6191407,3.289063)"
+     style="display:inline;opacity:1">
     <path
        style="opacity:1;fill:none;fill-opacity:0.24176863;fill-rule:evenodd;stroke:#ff0000;stroke-width:0.5;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
        d="M -7.6200002,29.460002 H 42.384998 V -2.2899988 H 25.400001 l -3.175,6.1224038 H 3.81 L 0.63499983,-2.2899988 H -7.6200006 Z"
@@ -728,7 +728,7 @@
      id="layer7"
      inkscape:label="Track mill &lt; 0.3mm"
      style="display:inline"
-     transform="translate(6.809141,11.744051)">
+     transform="translate(6.8091411,11.744052)">
     <g
        transform="matrix(0,0.47624999,-0.47624999,0,128.92906,-16.49968)"
        id="layer1-1"
@@ -751,7 +751,7 @@
      id="layer4"
      inkscape:label="Drill 0.5mm"
      style="display:inline"
-     transform="translate(6.809141,11.744051)">
+     transform="translate(6.8091411,11.744052)">
     <g
        id="g940"
        transform="translate(3.4050019,-9.1349946)"

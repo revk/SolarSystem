@@ -5,7 +5,7 @@ ranger=exit; // If to include ranger hole
 
 // Tolerances for your printer
 t=0.1;  // General xy tolerance/margin
-z=0.4;  // General z tolerance/margin
+z=0.5;  // General z tolerance/margin
 clip=0.1;  // Clip size
 lip=2; // Lip size
 
@@ -17,7 +17,7 @@ backt=1;
 // PCB
 pcbw=31.75;
 pcbh=50;
-pcbt=1.6;
+pcbt=1.7;
 pcbf=11;
 pcbb=3;
 pcbe=0.5;
@@ -115,6 +115,7 @@ module lid()
             label(exitx+exitw/2,exity+exith/2+exith/4,exith/4,"EXIT");
         }
     }
+    else
     difference()
     {
         translate([-boxw/2,-boxh/2,0])
@@ -162,7 +163,6 @@ module lid()
         label(exitx+exitw/2,exity+exith/2+exith/4,exith/4,"EXIT");
         rangerhole();
     }
-
     // Back support
     translate([boxw/2-sidet-5,t+sidet-boxh/2+pcby+16,frontt-0.1])
     cube([5+t,32,boxt-pcbt-pcbb-backt-z-frontt]);

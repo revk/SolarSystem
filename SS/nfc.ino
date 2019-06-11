@@ -12,7 +12,6 @@
 // GPIO16 SDA (SS)
 
 #include <ESPRevK.h>
-#include "nfc.h"
 #include "PN532_SPI.h"
 #include "PN532_HSU.h"
 #include "PN532RevK.h"
