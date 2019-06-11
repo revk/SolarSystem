@@ -67,7 +67,7 @@ module label(x,y,s,t)
         linear_extrude(height=0.01)
         mirror([1,0,0])
         text(t,size=s,halign="center",valign="center",font="FiveByNineJTD:style=ExtraLight");
-        cylinder(d1=1,d2=0,h=frontt/2,$fn=8);
+        cylinder(d1=1,d2=0,h=frontt-0.2,$fn=8);
     }
 }
 
@@ -212,7 +212,9 @@ module base()
                     translate([0,lip,lip])
                     cube([boxw-sidet*2-t*2,lip,lip]);
                 }
-            }else{
+            }else
+            mirror([1,0,0])
+            {
                 translate([exitx+sidet+t,exity+sidet+t,0])
                 cube([exitw-sidet*2-t*2,exith-sidet*2-t*2-lip,lip]);
                 translate([exitx+sidet+t,exity+exith-lip*2-sidet,lip])
@@ -229,6 +231,7 @@ module base()
             }
         }
         if(exit)
+        mirror([1,0,0])
         translate([exitx+exitw/2,exity+exith/2,0])
         { // Screws and holes
             for(x=[-exitw/2+slot*1.5,exitw/2-slot*1.5])
@@ -257,5 +260,5 @@ module base()
     }
 }
 
-translate([(exit?exitw:boxw)+sidet,0,0])lid();
+translate([(exit?exitw-2*rangerx:boxw)+sidet,0,0])lid();
 base();
