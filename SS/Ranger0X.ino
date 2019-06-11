@@ -6,9 +6,8 @@
 #include <ESPRevK.h>
 #include <Wire.h>
 #include <VL53L0X.h>
-#include "Ranger0X.h"
-const char* ranger0x_fault = NULL;
-const char* ranger0x_tamper = NULL;
+const char* Ranger0X_fault = NULL;
+const char* Ranger0X_tamper = NULL;
 
 #define PINS ((1<<sda) | (1<<scl))
 
@@ -24,7 +23,7 @@ boolean ranger0xok = false;
   app_settings
 #undef s
 
-  const char* ranger0x_setting(const char *tag, const byte *value, size_t len)
+  const char* Ranger0X_setting(const char *tag, const byte *value, size_t len)
   { // Called for settings retrieved from EEPROM
 #define s(n,d) do{const char *t=PSTR(#n);if(!strcasecmp_P(tag,t)){n=(value?atoi((char*)value):d);return t;}}while(0)
     app_settings
@@ -32,20 +31,26 @@ boolean ranger0xok = false;
     return NULL; // Done
   }
 
-  boolean ranger0x_command(const char*tag, const byte *message, size_t len)
+  boolean Ranger0X_command(const char*tag, const byte *message, size_t len)
   { // Called for incoming MQTT messages
     if (!ranger0xok)return false; // Ranger not configured
     return false;
   }
 
-  boolean ranger0x_setup(ESPRevK&revk)
+  boolean Ranger0X_setup(ESPRevK&revk)
   {
     if (!ranger0x)return false; // Ranger not configured
+    if (sda < 0 || scl < 0 || sda == scl)
+    {
+      Ranger0X_fault = PSTR("Define SDA/SCL to use I2C");
+      ranger0x = NULL;
+      return false;
+    }
     debugf("GPIO pin available %X for VL53L0X", gpiomap);
     if ((gpiomap & PINS) != PINS)
     {
-      ranger0x_fault = PSTR("Ranger0x pins (I2C) not available");
-      keypad = NULL;
+      Ranger0X_fault = PSTR("Pins (I2C) not available");
+      ranger0x = NULL;
       return false;
     }
     gpiomap &= ~PINS;
@@ -54,7 +59,7 @@ boolean ranger0xok = false;
     Wire.beginTransmission((byte)ranger0xaddress);
     if (Wire.endTransmission())
     {
-      ranger0x_fault = PSTR("VL53L0X failed");
+      Ranger0X_fault = PSTR("VL53L0X failed");
       ranger0x = NULL;
       return false;
     }
@@ -70,7 +75,7 @@ boolean ranger0xok = false;
     return true;
   }
 
-  boolean ranger0x_loop(ESPRevK&revk, boolean force)
+  boolean Ranger0X_loop(ESPRevK&revk, boolean force)
   {
     if (!ranger0xok)return false; // Ranger not configured
     long now = millis();
@@ -83,8 +88,8 @@ boolean ranger0xok = false;
       static unsigned int last = 0;
       static long endlong = 0;
       unsigned int range = sensor0x.readRangeContinuousMillimeters();
-      if (range == 65535)ranger0x_fault = PSTR("VL53L0X read failed");
-      else ranger0x_fault = NULL;
+      if (range == 65535)Ranger0X_fault = PSTR("VL53L0X read failed");
+      else Ranger0X_fault = NULL;
       if (range)
       {
         if (range > ranger0xmax)range = ranger0xmax;

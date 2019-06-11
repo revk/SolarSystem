@@ -4,9 +4,8 @@
 // Keypad / display
 // ESP-01 based with RS485 board fits in Galaxy keypad/display module
 
-#include "keypad.h"
-const char* keypad_fault = NULL;
-const char* keypad_tamper = NULL;
+const char* Keypad_fault = NULL;
+const char* Keypad_tamper = NULL;
 
 #define PINS ((1<<1) | (1<<3))  // Tx and Rx
 
@@ -46,7 +45,7 @@ const char* keypad_tamper = NULL;
 
   static int keypadbeepoverride = 0;
 
-  const char* keypad_setting(const char *tag, const byte *value, size_t len)
+  const char* Keypad_setting(const char *tag, const byte *value, size_t len)
   { // Called for commands retrieved from EEPROM
 #define s(n) do{const char *t=PSTR(#n);if(!strcasecmp_P(tag,t)){n=(const char *)value;return t;}}while(0)
 #define n(n) do{const char *t=PSTR(#n);if(!strcasecmp_P(tag,t)){n=value?atoi((char*)value):0;return t;}}while(0)
@@ -56,7 +55,7 @@ const char* keypad_tamper = NULL;
     return NULL; // Done
   }
 
-  boolean keypad_command(const char*tag, const byte *message, size_t len)
+  boolean Keypad_command(const char*tag, const byte *message, size_t len)
   { // Called for incoming MQTT messages
     if (!keypad)return false; // Not running keypad
 #define f(i,n,l,d) if(!strcasecmp_P(tag,PSTR(#n))&&len<=l){memcpy(n,message,len);n##_len=len;if(len<l)memset(n+len,0,l-len);send##i=true;return true;}
@@ -71,13 +70,13 @@ const char* keypad_tamper = NULL;
     return false;
   }
 
-  boolean keypad_setup(ESPRevK &revk)
+  boolean Keypad_setup(ESPRevK &revk)
   {
     if (!keypad)return false; // Not running keypad
     debugf("GPIO pin available %X for Keypad", gpiomap);
     if ((gpiomap & PINS) != PINS)
     {
-      keypad_fault = PSTR("Keypad pins (Tx/Rx) not available");
+      Keypad_fault = PSTR("Pins (Tx/Rx) not available");
       keypad = NULL;
       return false;
     }
@@ -92,7 +91,7 @@ const char* keypad_tamper = NULL;
     return true;
   }
 
-  boolean keypad_loop(ESPRevK &revk, boolean force)
+  boolean Keypad_loop(ESPRevK &revk, boolean force)
   {
     if (!keypad)return false; // Not running keypad
     long now = micros();
@@ -173,12 +172,12 @@ const char* keypad_tamper = NULL;
           if (p < 2 || buf[n] != c || buf[0] != 0x11 || buf[1] == 0xF2)
           {
 
-            keypad_fault = PSTR("Bad response from keyboard");
+            Keypad_fault = PSTR("Bad response");
             online = false;
           }
           else
           {
-            keypad_fault = NULL;
+            Keypad_fault = NULL;
             static long keyhold = 0;
             if (cmd == 0x00 && buf[1] == 0xFF && p > 5)
             { // Set up response
@@ -190,7 +189,7 @@ const char* keypad_tamper = NULL;
               }
             } else if (buf[1] == 0xFE)
             { // Idle, no tamper, no key
-              keypad_tamper = NULL;
+              Keypad_tamper = NULL;
               if (!send0B)
               {
                 if (lastkey & 0x80)
@@ -206,9 +205,9 @@ const char* keypad_tamper = NULL;
             } else if (cmd == 0x06 && buf[1] == 0xF4 && p > 3)
             { // Status
               if (*keypad == 'T' && (buf[2] & 0x40))
-                keypad_tamper = PSTR("Keypad");
+                Keypad_tamper = PSTR("Open");
               else
-                keypad_tamper = NULL;
+                Keypad_tamper = NULL;
               if (!send0B)
               { // Key
                 if (buf[2] == 0x7F)
@@ -249,7 +248,7 @@ const char* keypad_tamper = NULL;
         }
         else
         {
-          keypad_fault = PSTR("No response from keypad");
+          Keypad_fault = PSTR("No response");
           online = false;
         }
       }

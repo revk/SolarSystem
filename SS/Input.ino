@@ -4,9 +4,8 @@
 // Input buttons
 
 #include <ESPRevK.h>
-#include "Input.h"
-const char* input_fault = NULL;
-const char* input_tamper = NULL;
+const char* Input_fault = NULL;
+const char* Input_tamper = NULL;
 
 #define MAX_PIN 17
 #define MAX_INPUT 9
@@ -25,7 +24,7 @@ unsigned int inputstate = 0;
   app_settings
 #undef s
 
-  const char* input_setting(const char *tag, const byte *value, size_t len)
+  const char* Input_setting(const char *tag, const byte *value, size_t len)
   { // Called for settings retrieved from EEPROM
     if (!strncasecmp_P(tag, PSTR("input"), 5) && isdigit(tag[5]))
     { // Define input pin
@@ -66,13 +65,13 @@ unsigned int inputstate = 0;
     return NULL; // Done
   }
 
-  boolean input_command(const char*tag, const byte *message, size_t len)
+  boolean Input_command(const char*tag, const byte *message, size_t len)
   { // Called for incoming MQTT messages
     if (!inputactive)return false; // No inputs defined
     return false;
   }
 
-  boolean input_setup(ESPRevK&revk)
+  boolean Input_setup(ESPRevK&revk)
   {
     if (!inputactive && !input)return false; // No inputs defined
     debugf("GPIO available %X for %d inputs", gpiomap, input);
@@ -83,7 +82,7 @@ unsigned int inputstate = 0;
       {
         if (!(gpiomap & (1 << inputpin[i])))
         { // Unusable
-          input_fault = PSTR("Input pin assignment not available");
+          Input_fault = PSTR("Pin assignment not available");
           inputactive &= ~(1 << i);
           continue;
         }
@@ -98,7 +97,7 @@ unsigned int inputstate = 0;
           for (p = 3; p < MAX_PIN && !(gpiomap & (1 << p)); p++); // Find a (safe) pin
           if (p == MAX_PIN)
           {
-            input_fault = PSTR("No input pins available to assign");
+            Input_fault = PSTR("No input pins available to assign");
             break;
           }
           inputpin[i] = p;
@@ -114,7 +113,7 @@ unsigned int inputstate = 0;
     return true;
   }
 
-  boolean input_loop(ESPRevK&revk, boolean force)
+  boolean Input_loop(ESPRevK&revk, boolean force)
   {
     if (!inputactive)return false; // No inputs defined
     unsigned long now = millis();

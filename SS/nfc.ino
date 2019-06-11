@@ -16,14 +16,13 @@
 #include "PN532_SPI.h"
 #include "PN532_HSU.h"
 #include "PN532RevK.h"
-#include "Output.h"
 
 PN532_SPI pn532spi(SPI, ss);
 PN532_HSU pn532hsu(Serial);
 PN532RevK NFC(pn532spi);
 boolean nfcok = false;
-const char* nfc_fault = NULL;
-const char* nfc_tamper = NULL;
+const char* NFC_fault = NULL;
+const char* NFC_tamper = NULL;
 boolean held = false;
 char ledpattern[10];
 
@@ -43,7 +42,7 @@ char ledpattern[10];
 
 #define readertimeout 100
 
-  const char* nfc_setting(const char *tag, const byte *value, size_t len)
+  const char* NFC_setting(const char *tag, const byte *value, size_t len)
   { // Called for settings retrieved from EEPROM
 #define s(n) do{const char *t=PSTR(#n);if(!strcasecmp_P(tag,t)){n=(const char *)value;return t;}}while(0)
 #define v(n,d) do{const char *t=PSTR(#n);if(!strcasecmp_P(tag,t)){n=(value?atoi((char*)value):d);return t;}}while(0)
@@ -53,7 +52,7 @@ char ledpattern[10];
     return NULL; // Done
   }
 
-  boolean nfc_command(const char*tag, const byte *message, size_t len)
+  boolean NFC_command(const char*tag, const byte *message, size_t len)
   { // Called for incoming MQTT messages
     if (!nfcok)
       return false; // Not configured
@@ -88,15 +87,21 @@ char ledpattern[10];
     return false;
   }
 
-  boolean nfc_setup(ESPRevK&revk)
+  boolean NFC_setup(ESPRevK&revk)
   {
     if (!nfc)return false; // Not configured
+    if (*nfc == 'S' && ss < 0)
+    {
+      NFC_fault = PSTR("Define SS for SPI");
+      nfc = NULL;
+      return false;
+    }
     unsigned int pins = ((1 << 12) | (1 << 13) | (1 << 14) | (1 << ss)); // SPI
     if (*nfc == 'H')pins = ((1 << 1) | (1 << 3)); // HSU
     debugf("GPIO pin available %X for PN532", gpiomap);
     if ((gpiomap & pins) != pins)
     {
-      nfc_fault = PSTR("NFC pins (SPI) not available");
+      NFC_fault = PSTR("SPI not available");
       nfc = NULL;
       return false;
     }
@@ -105,7 +110,7 @@ char ledpattern[10];
     if (*nfc == 'H')
     { // HSU mode rather than SPI
 #ifdef REVKDEBUG
-      nfc_fault = PSTR("Cannot do serial debug and serial PN532");
+      NFC_fault = PSTR("Cannot do serial debug and serial PN532");
       nfc = NULL;
       return false;
 #endif
@@ -116,7 +121,7 @@ char ledpattern[10];
     if (nfcgreen >= 0)outputs |= (1 << nfcgreen);
     if (!NFC.begin(outputs))
     { // no reader
-      nfc_fault = PSTR("PN532 failed");
+      NFC_fault = PSTR("PN532 failed");
       nfc = NULL;
       return false;
     }
@@ -128,7 +133,7 @@ char ledpattern[10];
 
   char tid[100]; // ID
 
-  boolean nfc_loop(ESPRevK&revk, boolean force)
+  boolean NFC_loop(ESPRevK&revk, boolean force)
   {
     if (!nfcok)return false; // Not configured
     long now = (millis() ? : 1); // Allowing for wrap, and using 0 to mean not set
@@ -153,19 +158,19 @@ char ledpattern[10];
       tampercheck = now + 250;
       int p3 = NFC.p3();
       if (p3 < 0)
-        nfc_fault = PSTR("PN532");
+        NFC_fault = PSTR("PN532");
       else
       { // INT1 connected via switch to VCC, so expected high
-        if (nfc_fault)
+        if (NFC_fault)
         {
           NFC.begin();
           ledlast = 0xFF;
         }
-        nfc_fault = NULL;
+        NFC_fault = NULL;
         if (nfctamper < 0 || (p3 & (1 << nfctamper)))
-          nfc_tamper = NULL;
+          NFC_tamper = NULL;
         else
-          nfc_tamper = PSTR("PN532");
+          NFC_tamper = PSTR("PN532");
       }
     }
     static long cardcheck = 0;

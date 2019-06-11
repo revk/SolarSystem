@@ -4,7 +4,6 @@
 // Laser ranger as button
 
 #include <ESPRevK.h>
-#include "Ranger1X.h"
 #include <Wire.h>
 #include <VL53L1X.h>
 
@@ -12,8 +11,8 @@
 
 VL53L1X sensor1x;
 boolean ranger1xok = false;
-const char* ranger1x_fault = NULL;
-const char* ranger1x_tamper = NULL;
+const char* Ranger1X_fault = NULL;
+const char* Ranger1X_tamper = NULL;
 
 #define app_settings  \
   s(ranger1x,0);   \
@@ -24,7 +23,7 @@ const char* ranger1x_tamper = NULL;
   app_settings
 #undef s
 
-  const char* ranger1x_setting(const char *tag, const byte *value, size_t len)
+  const char* Ranger1X_setting(const char *tag, const byte *value, size_t len)
   { // Called for settings retrieved from EEPROM
 #define s(n,d) do{const char *t=PSTR(#n);if(!strcasecmp_P(tag,t)){n=(value?atoi((char*)value):d);return t;}}while(0)
     app_settings
@@ -32,20 +31,26 @@ const char* ranger1x_tamper = NULL;
     return NULL; // Done
   }
 
-  boolean ranger1x_command(const char*tag, const byte *message, size_t len)
+  boolean Ranger1X_command(const char*tag, const byte *message, size_t len)
   { // Called for incoming MQTT messages
     if (!ranger1xok)return false; // Ranger not configured
     return false;
   }
 
-  boolean ranger1x_setup(ESPRevK&revk)
+  boolean Ranger1X_setup(ESPRevK&revk)
   {
     if (!ranger1x)return false; // Ranger not configured
+    if (sda < 0 || scl < 0 || sda == scl)
+    {
+      Ranger1X_fault = PSTR("Define SDA/SCL to use I2C");
+      ranger1x = NULL;
+      return false;
+    }
     debugf("GPIO pin available %X for VL53L1X", gpiomap);
     if ((gpiomap & PINS) != PINS)
     {
-      ranger1x_fault = PSTR("Ranger1x pins (I2C) not available");
-      keypad = NULL;
+      Ranger1X_fault = PSTR("Pins (I2C) not available");
+      ranger1x = NULL;
       return false;
     }
     gpiomap &= ~PINS;
@@ -55,7 +60,7 @@ const char* ranger1x_tamper = NULL;
     Wire.beginTransmission((byte)ranger1xaddress);
     if (Wire.endTransmission())
     {
-      ranger1x_fault = PSTR("VL53L1X failed");
+      Ranger1X_fault = PSTR("VL53L1X failed");
       ranger1x = NULL;
       return false;
     }
@@ -69,7 +74,7 @@ const char* ranger1x_tamper = NULL;
     return true;
   }
 
-  boolean ranger1x_loop(ESPRevK&revk, boolean force)
+  boolean Ranger1X_loop(ESPRevK&revk, boolean force)
   {
     if (!ranger1xok)return false; // Ranger not configured
     long now = millis();
@@ -82,8 +87,8 @@ const char* ranger1x_tamper = NULL;
       static unsigned int last = 0;
       static long endlong = 0;
       unsigned int range = sensor1x.read(false);
-      if (sensor1x.timeoutOccurred()) ranger1x_fault = PSTR("VL53L1X Timeout");
-      else ranger1x_fault = NULL;
+      if (sensor1x.timeoutOccurred()) Ranger1X_fault = PSTR("Timeout");
+      else Ranger1X_fault = NULL;
       if (range)
       {
         if (!range || range > ranger1xmax)range = ranger1xmax;

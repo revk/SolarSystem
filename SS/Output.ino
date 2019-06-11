@@ -4,9 +4,8 @@
 // Direct digital outputs
 
 #include <ESPRevK.h>
-#include "Output.h"
-const char* output_fault = NULL;
-const char* output_tamper = NULL;
+const char* Output_fault = NULL;
+const char* Output_tamper = NULL;
 
 #define MAX_PIN 17
 #define MAX_OUTPUT 9
@@ -61,7 +60,7 @@ unsigned long outputnext = 0;
     outputnext = millis();
   }
 
-  const char* output_setting(const char *tag, const byte *value, size_t len)
+  const char* Output_setting(const char *tag, const byte *value, size_t len)
   { // Called for settings retrieved from EEPROM
     if (!strncasecmp_P(tag, PSTR("output"), 6) && isdigit(tag[6]))
     { // Define output pin
@@ -115,7 +114,7 @@ unsigned long outputnext = 0;
     return NULL; // Done
   }
 
-  boolean output_command(const char*tag, const byte *message, size_t len)
+  boolean Output_command(const char*tag, const byte *message, size_t len)
   { // Called for incoming MQTT messages
     if (!outputactive)return false; // No outputs defined
     if (!strncasecmp_P(tag, PSTR("output"), 6) && tag[6] > '0' && tag[6] <= '0' + MAX_OUTPUT)
@@ -132,13 +131,13 @@ unsigned long outputnext = 0;
     return false;
   }
 
-  boolean output_setup(ESPRevK&revk)
+  boolean Output_setup(ESPRevK&revk)
   {
     if (!outputactive && !output)return false; // No outputs defined
     debugf("GPIO available %X for %d outputs", gpiomap, output);
     if (outputrelay && !(gpiomap & (1 << 1)))
     {
-      output_fault = PSTR("Output relay Tx not available");
+      Output_fault = PSTR("Relay Tx not available");
       outputrelay = 0;
     }
     if (outputrelay)gpiomap &= ~(1 << 1); // Tx used
@@ -149,7 +148,7 @@ unsigned long outputnext = 0;
       {
         if (!(gpiomap & (1 << outputpin[i])))
         { // Unusable
-          output_fault = PSTR("Output pin assignment not available");
+          Output_fault = PSTR("Pin assignment not available");
           outputactive &= ~(1 << i);
           continue;
         }
@@ -164,7 +163,7 @@ unsigned long outputnext = 0;
           for (p = 0; p < MAX_PIN && !(gpiomap & (1 << p)); p++); // Find a pin
           if (p == MAX_PIN)
           {
-            output_fault = PSTR("No output pins available to assign");
+            Output_fault = PSTR("No output pins available to assign");
             break;
           }
           outputpin[i] = p;
@@ -184,7 +183,7 @@ unsigned long outputnext = 0;
     return true;
   }
 
-  boolean output_loop(ESPRevK&revk, boolean force)
+  boolean Output_loop(ESPRevK&revk, boolean force)
   {
     if (!outputactive)return false; // No outputs defined
     unsigned long now = millis();
