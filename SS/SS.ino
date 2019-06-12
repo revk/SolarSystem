@@ -5,7 +5,7 @@
 // Configurable inputs and outputs, including serial relay control outputs
 // I2C Range finder inputs for motion and touch free input (e.g. exit button)
 // PN532 card readers on SPI or HSU
-// TODO RS485 for Galaxy bus
+// TODO - acting as Max Reader on Galaxy bus
 
 // List of modules
 #define modules \
@@ -27,7 +27,7 @@ modules
 #undef n
 
 #ifdef ARDUINO_ESP8266_NODEMCU
-unsigned int gpiomap = 0x1703F; // Pins available (ESP-12F/12S)
+unsigned int gpiomap = 0x1F03F; // Pins available (ESP-12F/12S)
 #else
 unsigned int gpiomap = 0xF; // Pins available (ESP-01)
 #endif
@@ -40,6 +40,9 @@ unsigned safemodestart = 0;
   s(sda,-1);   \
   s(scl,-1);   \
   s(ss,-1);   \
+  s(bustx,-1); \
+  s(busrx,-1); \
+  s(busde,-1); \
   s(holdtime,3000); \
   s(safemode,60); \
   t(fallback); \
@@ -49,7 +52,8 @@ unsigned safemodestart = 0;
   s(rangermargin,50); \
   s(readerpoll,50); \
 
-#define s(n,d) unsigned int n=d;
+
+#define s(n,d) int n=d;
 #define t(n) const char*n=NULL;
   app_settings
 #undef s
@@ -121,7 +125,7 @@ unsigned safemodestart = 0;
     }
     { // Tamper check
       const char*tamper = NULL, *prefix = NULL;
-#define m(n) do{if(!tamper&&n##_tamper){tamper=n##_fault;prefix=#n;}}while(0);
+#define m(n) do{if(!tamper&&n##_tamper){tamper=n##_tamper;prefix=#n;}}while(0);
       modules
 #undef m
       static const char *lasttamper = NULL;

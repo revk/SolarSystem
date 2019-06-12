@@ -89,7 +89,7 @@ char ledpattern[10];
   boolean NFC_setup(ESPRevK&revk)
   {
     if (!nfc)return false; // Not configured
-    if (*nfc == 'S' && ss < 0)
+    if (*nfc != 'H' && ss < 0)
     {
       NFC_fault = PSTR("Define SS for SPI");
       nfc = NULL;

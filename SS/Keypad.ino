@@ -7,19 +7,10 @@
 const char* Keypad_fault = NULL;
 const char* Keypad_tamper = NULL;
 
-#define PINS ((1<<1) | (1<<3))  // Tx and Rx
-
-#define PRETX 50000  // Pre tx RTS - should overlap with end of drive from keypad
-#define POSTTX 4000  // Post tx RTS - should overlap with start of drive from keypoad
-#define PRERX 10000  // Time to allow for rx
-#define KEYPADBAUD  9600
-#define KEYPADBITS  10  // 8N1
-
-#define KEYPADBODGE // Don't rely on poll being called fast enough (TODO handle with interrupts?)
-
 #include <ESPRevK.h>
+#include <RS485.h>
 
-#define RTS 2
+RS485 rs485(-1);
 
 #define app_commands  \
   f(07,display,32,0) \
@@ -73,20 +64,23 @@ const char* Keypad_tamper = NULL;
   boolean Keypad_setup(ESPRevK &revk)
   {
     if (!keypad)return false; // Not running keypad
-    debugf("GPIO pin available %X for Keypad", gpiomap);
-    if ((gpiomap & PINS) != PINS)
+    if (bustx < 0 || busrx < 0 || busde < 0)
     {
-      Keypad_fault = PSTR("Pins (Tx/Rx) not available");
+      Keypad_fault = PSTR("Define bustx/busrs/busde pins");
       keypad = NULL;
       return false;
     }
-    gpiomap &= ~PINS;
+    unsigned int pins = ((1 << bustx) | (1 << busrx) | (1 << busde));
+    debugf("GPIO pin available %X for Keypad", gpiomap);
+    if ((gpiomap & pins) != pins)
+    {
+      Keypad_fault = PSTR("Pins not available");
+      keypad = NULL;
+      return false;
+    }
+    gpiomap &= ~pins;
     debugf("GPIO remaining %X", gpiomap);
-#ifndef REVKDEBUG
-    Serial.begin(KEYPADBAUD);	// Galaxy uses 9600 8N2
-#endif
-    digitalWrite(RTS, LOW);
-    pinMode(RTS, OUTPUT);
+    rs485.SetPins(busde, bustx, busrx);
     debug("Keypad OK");
     return true;
   }
@@ -94,11 +88,9 @@ const char* Keypad_tamper = NULL;
   boolean Keypad_loop(ESPRevK &revk, boolean force)
   {
     if (!keypad)return false; // Not running keypad
-    long now = micros();
+    long now = millis();
 
     static byte buf[100], p = 0;
-    static long txdone = 0;
-    static long rxdone = 0;
     static byte cmd = 0;
     static boolean online = false;
     static boolean send0B = false;
@@ -120,141 +112,114 @@ const char* Keypad_tamper = NULL;
       send19 = true;
       sounderack = false;
     }
-    if (txdone)
-    { // Sending
-      if ((int)(txdone - now) < 0)
-      { // Sending done
-        if (p)
-        {
-          Serial.write(buf, p);
-          txdone = ((now + p * KEYPADBITS * 1000000 / KEYPADBAUD + POSTTX) ? : 1);
-          p = 0; // ready for rx
-#ifdef KEYPADBODGE
-          delay(p);
-          Serial.flush(); // Delay in situ for reliability
-          delay(1);
-          digitalWrite(RTS, LOW);
-#endif
-          return true;
-        }
-        txdone = 0;
 
-        rxdone = ((now + PRERX) ? : 1); // Timeout for first byte rx, for not responding
-      }
-      return true;
-    }
-
-    if (rxdone && Serial.available())
-    { // Rx byte
-      buf[p] = Serial.read();
-      if (p < sizeof(buf)) p++;
-      if ((p == 3 && (buf[1] == 0xF2 || buf[1] == 0xFE)) || (p == 4 && buf[1] == 0xF4))
-        digitalWrite(RTS, HIGH); // Overlap drive at end of message
-      rxdone = ((now + 2 * KEYPADBITS * 1000000 / KEYPADBAUD) ? : 1); // Timeout for next byte rx
-      return true;
-    }
-
-    if (rxdone)
+    static unsigned int rxwait = 0;
+    if (rs485.available())
     { // Receiving
-      if ((int)(rxdone - now) < 0)
-      { // Receiving done
-        rxdone = 0;
-        if (keypaddebug && (!online || p < 2 || buf[1] != 0xFE))
-          revk.info(F("Rx"), F("%d: %02X %02X %02X %02X"), p, buf[0], buf[1], buf[2], buf[3]);
-        if (p)
+      rxwait = 0;
+      int p = rs485.Rx(sizeof(buf), buf);
+      if (keypaddebug && (!online || p < 2 || buf[1] != 0xFE))
+        revk.info(F("Rx"), F("%d: %02X %02X %02X %02X"), p, buf[0], buf[1], buf[2], buf[3]);
+      static const char *keymap = PSTR("0123456789BAEX*#");
+      if (p < 2)
+      {
+        if (p != RS485MISSED)
         {
-          static const char *keymap = PSTR("0123456789BAEX*#");
-          unsigned int c = 0xAA, n;
-          for (n = 0; n < p - 1; n++)
-            c += buf[n];
-          while (c > 0xFF)
-            c = (c >> 8) + (c & 0xFF);
-          if (p < 2 || buf[n] != c || buf[0] != 0x11 || buf[1] == 0xF2)
-          {
-
-            Keypad_fault = PSTR("Bad response");
-            online = false;
-          }
+          if (p == RS485STOPBIT)
+            Keypad_fault = PSTR("RS485 Stop bit error");
+          else if (p == RS485CHECKSUM)
+            Keypad_fault = PSTR("RS485 Checksum error");
+          else if (p == RS485TOOBIG)
+            Keypad_fault = PSTR("RS485 Too big error");
           else
+            Keypad_fault = PSTR("Bad response");
+          online = false;
+        }
+        force = true;
+      }
+      else
+      {
+        Keypad_fault = NULL;
+        static long keyhold = 0;
+        if (cmd == 0x00 && buf[1] == 0xFF && p >= 5)
+        { // Set up response
+          if (!online)
           {
-            Keypad_fault = NULL;
-            static long keyhold = 0;
-            if (cmd == 0x00 && buf[1] == 0xFF && p > 5)
-            { // Set up response
-              if (!online)
+            online = true;
+            toggle0B = true;
+            toggle07 = true;
+          }
+        } else if (buf[1] == 0xFE)
+        { // Idle, no tamper, no key
+          Keypad_tamper = NULL;
+          if (!send0B)
+          {
+            if (lastkey & 0x80)
+            {
+              if ((int)(keyhold - now) < 0)
               {
-                online = true;
-                toggle0B = true;
-                toggle07 = true;
+                revk.event(F("gone"), F("%.1S"), keymap + (lastkey & 0x0F));
+                lastkey = 0x7F;
               }
-            } else if (buf[1] == 0xFE)
-            { // Idle, no tamper, no key
-              Keypad_tamper = NULL;
-              if (!send0B)
+            } else
+              lastkey = 0x7F;
+          }
+        } else if (cmd == 0x06 && buf[1] == 0xF4 && p >= 3)
+        { // Status
+          if (*keypad == 'T' && (buf[2] & 0x40))
+            Keypad_tamper = PSTR("Open");
+          else
+            Keypad_tamper = NULL;
+          if (!send0B)
+          { // Key
+            if (buf[2] == 0x7F)
+            { // No key
+              if (lastkey & 0x80)
               {
-                if (lastkey & 0x80)
+                if ((int)(keyhold - now) < 0)
                 {
-                  if ((int)(keyhold - now) < 0)
-                  {
-                    revk.event(F("gone"), F("%.1S"), keymap + (lastkey & 0x0F));
-                    lastkey = 0x7F;
-                  }
-                } else
+                  revk.event(F("gone"), F("%.1S"), keymap + (lastkey & 0x0F));
                   lastkey = 0x7F;
-              }
-            } else if (cmd == 0x06 && buf[1] == 0xF4 && p > 3)
-            { // Status
-              if (*keypad == 'T' && (buf[2] & 0x40))
-                Keypad_tamper = PSTR("Open");
-              else
-                Keypad_tamper = NULL;
-              if (!send0B)
-              { // Key
-                if (buf[2] == 0x7F)
-                { // No key
-                  if (lastkey & 0x80)
-                  {
-                    if ((int)(keyhold - now) < 0)
-                    {
-                      revk.event(F("gone"), F("%.1S"), keymap + (lastkey & 0x0F));
-                      lastkey = 0x7F;
-                    }
-                  } else
-                    lastkey = 0x7F;
-                } else
-                { // key
-                  send0B = true;
-                  if ((lastkey & 0x80) && buf[2] != lastkey)
-                    revk.event(F("gone"), F("%.1S"), keymap + (lastkey & 0x0F));
-                  if (!(buf[2] & 0x80) || buf[2] != lastkey)
-                    revk.event((buf[2] & 0x80) ? F("hold") : F("key"), F("%.1S"), keymap + (buf[2] & 0x0F));
-                  if (buf[2] & 0x80)
-                    keyhold = now + 2000000;
-                  if (insafemode)
-                  { // Special case for safe mode (off line)
-                    if (buf[2] == 0x0D)
-                    { // ESC in safe mode, shut up
-                      sounderack = true;
-                      send0C = true;
-                    }
-                    if (buf[2] == 0x8D)
-                      revk.restart(); // ESC held in safe mode
-                  }
-                  lastkey = buf[2];
                 }
+              } else
+                lastkey = 0x7F;
+            } else
+            { // key
+              send0B = true;
+              if ((lastkey & 0x80) && buf[2] != lastkey)
+                revk.event(F("gone"), F("%.1S"), keymap + (lastkey & 0x0F));
+              if (!(buf[2] & 0x80) || buf[2] != lastkey)
+                revk.event((buf[2] & 0x80) ? F("hold") : F("key"), F("%.1S"), keymap + (buf[2] & 0x0F));
+              if (buf[2] & 0x80)
+                keyhold = now + 2000;
+              if (insafemode)
+              { // Special case for safe mode (off line)
+                if (buf[2] == 0x0D)
+                { // ESC in safe mode, shut up
+                  sounderack = true;
+                  send0C = true;
+                }
+                if (buf[2] == 0x8D)
+                  revk.restart(); // ESC held in safe mode
               }
+              lastkey = buf[2];
             }
           }
         }
-        else
-        {
-          Keypad_fault = PSTR("No response");
-          online = false;
-        }
       }
-      return true;
     }
 
+    if (rxwait && ((int)rxwait - now) > 0)
+      return true; // Waiting
+
+    if (rxwait)
+    {
+      Keypad_fault = PSTR("No response");
+      online = false;
+    }
+
+    // Tx
+    rxwait = ((now + 1000) ? : 1);
     p = 0;
     if (!online)
     { // Init
@@ -359,18 +324,9 @@ const char* Keypad_tamper = NULL;
     // Send
     buf[0] = 0x10; // ID of display
     p++;
-    { // Checksum
-      unsigned int c = 0xAA, n;
-      for (n = 0; n < p; n++)
-        c += buf[n];
-      while (c > 0xFF)
-        c = (c >> 8) + (c & 0xFF);
-      buf[p++] = c;
-    }
     if (keypaddebug && buf[1] != 0x06)
       revk.info(F("Tx"), F("%d: %02X %02X %02X %02X"), p, buf[0], buf[1], buf[2], buf[3]);
     cmd = buf[1];
-    digitalWrite(RTS, HIGH);
-    txdone = ((now + PRETX) ? : 1); // 8N1 at 9600
+    rs485.Tx(p, buf);
     return true;
   }
