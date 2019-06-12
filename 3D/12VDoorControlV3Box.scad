@@ -17,7 +17,7 @@ backt=1;
 // PCB
 pcbw=31.75;
 pcbh=50;
-pcbt=1.7;
+pcbt=1.8;
 pcbf=11;
 pcbb=3;
 pcbe=0.5;

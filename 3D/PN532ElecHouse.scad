@@ -54,7 +54,7 @@ ledy2=10;
 // Tamper switch holder (top right)
 tamperw=6;
 tamperh=6;
-tampert=4.7; // Height when contact closed
+tampert=4.5; // Height when contact closed
 tamperm=1; // Margin
 tampere=2;  // Edge
 
