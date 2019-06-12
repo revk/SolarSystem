@@ -12,8 +12,8 @@
         d(NEW,)  \
         d(DEADLOCKED,) \
         d(LOCKED,R) \
-        d(UNLOCKING,R-) \
-        d(CLOSED,G-) \
+        d(UNLOCKING,--R) \
+        d(CLOSED,--G) \
         d(OPEN,G) \
         d(LOCKING,RR-) \
         d(PROPPED,RG-) \
@@ -22,6 +22,7 @@
         d(AJAR,RG-) \
         d(FAULT,RGR-)\
         d(TAMPER,RGRG-) \
+	d(BLIP,--------R) \
 
 #define d(x,l) DOOR_##x,
 enum

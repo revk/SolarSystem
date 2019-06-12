@@ -276,7 +276,7 @@ doorman (void *d)
 		door[d].blip--;
 		if (door[d].blip == 3 || door[d].blip == 9)
 		  {		// Start of blip
-		    door_led (d, DOOR_TAMPER);
+		    door_led (d, DOOR_BLIP);
 		    port_output (door[d].o_beep, 1);
 		    port_urgent (door[d].o_beep);
 		  }

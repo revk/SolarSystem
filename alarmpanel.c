@@ -3459,7 +3459,8 @@ doevent (event_t * e)
 		snprintf (doorno, sizeof (doorno), "DOOR%02u", d);
 		if (!u)
 		  {
-		    door_error (d);
+		    if (!securefobs || secure)
+		      door_error (d);
 		    door_lock (d);	// Cancel open
 		    dolog (mydoor[d].group_lock, "FOBBAD", NULL, doorno, "Unrecognised fob %s%s", e->fob, secure ? " (secure)" : "");
 		  }
