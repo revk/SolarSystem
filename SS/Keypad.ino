@@ -100,9 +100,9 @@ RS485 rs485(0x11, false);
     static boolean send07c = false; // second send
     static byte lastkey = 0x7F;
     static boolean sounderack = false;
-    static int rs485fault = 0;
-
+    static unsigned int rs485fault = 0;
     static unsigned int rxwait = 0;
+
     if (rs485.Available())
     { // Receiving
       rxwait = 0;
@@ -226,7 +226,7 @@ RS485 rs485(0x11, false);
       send19 = true;
       sounderack = false;
     }
-    rxwait = ((now + 1000) ? : 1);
+    rxwait = ((now + 250) ? : 1);
     p = 0;
     if (!online)
     { // Init
