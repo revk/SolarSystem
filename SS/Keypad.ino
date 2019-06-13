@@ -10,7 +10,7 @@ const char* Keypad_tamper = NULL;
 #include <ESPRevK.h>
 #include <RS485.h>
 
-RS485 rs485(-1);
+RS485 rs485(0x11, false);
 
 #define app_commands  \
   f(07,display,32,0) \
@@ -81,6 +81,7 @@ RS485 rs485(-1);
     gpiomap &= ~pins;
     debugf("GPIO remaining %X", gpiomap);
     rs485.SetPins(busde, bustx, busrx);
+    rs485.Start();
     debug("Keypad OK");
     return true;
   }
@@ -99,22 +100,10 @@ RS485 rs485(-1);
     static boolean send07c = false; // second send
     static byte lastkey = 0x7F;
     static boolean sounderack = false;
-
-    // Poll
-    if (force || !online)
-    { // Update all the shit
-      send07 = true;
-      send07a = true;
-      send07b = true;
-      send0B = true;
-      send0C = true;
-      send0D = true;
-      send19 = true;
-      sounderack = false;
-    }
+    static int rs485fault = 0;
 
     static unsigned int rxwait = 0;
-    if (rs485.available())
+    if (rs485.Available())
     { // Receiving
       rxwait = 0;
       int p = rs485.Rx(sizeof(buf), buf);
@@ -123,9 +112,11 @@ RS485 rs485(-1);
       static const char *keymap = PSTR("0123456789BAEX*#");
       if (p < 2)
       {
-        if (p != RS485MISSED)
+        if (rs485fault++ > 2)
         {
-          if (p == RS485STARTBIT)
+          if (p != RS485MISSED)
+            Keypad_fault = PSTR("RS485 Rx missed");
+          else if (p == RS485STARTBIT)
             Keypad_fault = PSTR("RS485 Start bit error");
           else if (p == RS485STOPBIT)
             Keypad_fault = PSTR("RS485 Stop bit error");
@@ -137,10 +128,10 @@ RS485 rs485(-1);
             Keypad_fault = PSTR("Bad response");
           online = false;
         }
-        force = true;
       }
       else
       {
+        rs485fault = 0;
         Keypad_fault = NULL;
         static long keyhold = 0;
         if (cmd == 0x00 && buf[1] == 0xFF && p >= 5)
@@ -216,11 +207,25 @@ RS485 rs485(-1);
 
     if (rxwait)
     {
-      Keypad_fault = PSTR("No response");
-      online = false;
+      if (rs485fault++ > 2)
+      {
+        Keypad_fault = PSTR("No response");
+        online = false;
+      }
     }
 
     // Tx
+    if (force || rs485fault || !online)
+    { // Update all the shit
+      send07 = true;
+      send07a = true;
+      send07b = true;
+      send0B = true;
+      send0C = true;
+      send0D = true;
+      send19 = true;
+      sounderack = false;
+    }
     rxwait = ((now + 1000) ? : 1);
     p = 0;
     if (!online)

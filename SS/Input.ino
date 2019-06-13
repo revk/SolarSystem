@@ -24,6 +24,13 @@ unsigned int inputstate = 0;
   app_settings
 #undef s
 
+  boolean Input_get(int i)
+  { // Read an input
+    if (!(inputactive & (1 << i)))return false;
+    if (inputstate & (1 << i))return true;
+    return false;
+  }
+
   const char* Input_setting(const char *tag, const byte *value, size_t len)
   { // Called for settings retrieved from EEPROM
     if (!strncasecmp_P(tag, PSTR("input"), 5) && isdigit(tag[5]))

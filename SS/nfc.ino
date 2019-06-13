@@ -15,6 +15,12 @@
 #include "PN532_SPI.h"
 #include "PN532_HSU.h"
 #include "PN532RevK.h"
+#include "RS485.h"
+
+RS485 bus(0x11, false);
+
+extern void Output_set(int, boolean);
+extern boolean Input_get(int);
 
 PN532_SPI pn532spi(SPI, ss);
 PN532_HSU pn532hsu(Serial);
@@ -31,7 +37,7 @@ char ledpattern[10];
   v(nfcred,1); \
   v(nfcgreen,0); \
   v(nfctamper,3); \
-
+  v(nfcmax,-1); \
 
 #define s(n) const char *n=NULL
 #define v(n,d) int8_t n=d
@@ -97,6 +103,16 @@ char ledpattern[10];
     }
     unsigned int pins = ((1 << 12) | (1 << 13) | (1 << 14) | (1 << ss)); // SPI
     if (*nfc == 'H')pins = ((1 << 1) | (1 << 3)); // HSU
+    if (nfcmax >= 0)
+    {
+      if (bustx < 0 || busrx < 0 || busde < 0)
+      {
+        Keypad_fault = PSTR("Define bustx/busrs/busde pins");
+        keypad = NULL;
+        return false;
+      }
+      pins |= ((1 << bustx) | (1 << busrx) | (1 << busde));
+    }
     debugf("GPIO pin available %X for PN532", gpiomap);
     if ((gpiomap & pins) != pins)
     {
@@ -225,6 +241,24 @@ char ledpattern[10];
         {
           revk.error(F("id"), F("%s"), err.c_str());
           found = 0;
+        }
+      }
+    }
+    if (nfcmax >= 0)
+    { // Pretending to be a max reader
+      if (bus.Available())
+      {
+        byte buf[RS485MAX];
+        int l = bus.Rx(sizeof(buf), buf);
+        if (l >= 2)
+        {
+          if (buf[1] == 0x0E)
+          { // Init response
+            // TODO
+          } else
+          { // Status response
+            // TODO
+          }
         }
       }
     }
