@@ -10,7 +10,10 @@ const char* Keypad_tamper = NULL;
 #include <ESPRevK.h>
 #include <RS485.h>
 
-RS485 rs485(0x11, false);
+#define MASTER 0x11
+#define KEYPAD 0x10
+
+RS485 rs485(MASTER, false);
 
 #define app_commands  \
   f(07,display,32,0) \
@@ -57,6 +60,15 @@ RS485 rs485(0x11, false);
       keypadbeepoverride = ((len && *message == '1') ? 1 : 0);
       send0C = true;
       return true;
+    }
+    if (!strcasecmp_P(tag, PSTR( "restart")))
+    { // We are shutting down - keep keypad quiet during upgrade for example (not sure it works, I think something turns off int)
+      rs485.SetAddress(MASTER, true); // Slave means we keep sending poll in response to reply
+      byte buf[2];
+      buf[0] = KEYPAD;
+      buf[1] = 0x06;
+      rs485.Tx(2, buf); // Simple poll to keep keypad quiet.
+      return false;
     }
     return false;
   }
@@ -329,7 +341,7 @@ RS485 rs485(0x11, false);
     } else
       buf[++p] = 0x06; // Normal poll
     // Send
-    buf[0] = 0x10; // ID of display
+    buf[0] = KEYPAD; // ID of display
     p++;
     if (keypaddebug && buf[1] != 0x06)
       revk.info(F("Tx"), F("%d: %02X %02X %02X %02X"), p, buf[0], buf[1], buf[2], buf[3]);
