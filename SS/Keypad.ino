@@ -125,7 +125,9 @@ RS485 rs485(-1);
       {
         if (p != RS485MISSED)
         {
-          if (p == RS485STOPBIT)
+          if (p == RS485STARTBIT)
+            Keypad_fault = PSTR("RS485 Start bit error");
+          else if (p == RS485STOPBIT)
             Keypad_fault = PSTR("RS485 Stop bit error");
           else if (p == RS485CHECKSUM)
             Keypad_fault = PSTR("RS485 Checksum error");
