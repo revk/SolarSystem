@@ -53,6 +53,7 @@ unsigned long outputnext = 0;
 
   void Output_set(int o, boolean v)
   { // Set an output externally
+    o--; // Starts from 1
     if (!(outputactive & (1 << o)))return;
     if (v)outputstate |= (1 << o);
     else outputstate &= ~(1 << o);
@@ -127,8 +128,8 @@ unsigned long outputnext = 0;
     if (!outputactive)return false; // No outputs defined
     if (!strncasecmp_P(tag, PSTR("output"), 6) && tag[6] > '0' && tag[6] <= '0' + MAX_OUTPUT)
     {
-      int i = tag[6] - '1';
-      if (!(outputactive & (1 << i)))return false;
+      int i = tag[6] - '0';
+      if (!i || !(outputactive & (1 << (i - 1))))return false;
       if (len && *message == '1')
         Output_set(i, true);
       else
