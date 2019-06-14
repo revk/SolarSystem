@@ -37,11 +37,13 @@ char ledpattern[10];
   v(nfcred,1); \
   v(nfcgreen,0); \
   v(nfctamper,3); \
-  v(nfcmax,-1); \
+  h(nfcbus,0xFF); \
 
 #define s(n) const char *n=NULL
 #define v(n,d) int8_t n=d
+#define h(n,d) byte n=d;
   app_settings
+#undef h
 #undef s
 #undef v
 
@@ -51,7 +53,9 @@ char ledpattern[10];
   { // Called for settings retrieved from EEPROM
 #define s(n) do{const char *t=PSTR(#n);if(!strcasecmp_P(tag,t)){n=(const char *)value;return t;}}while(0)
 #define v(n,d) do{const char *t=PSTR(#n);if(!strcasecmp_P(tag,t)){n=(value?atoi((char*)value):d);return t;}}while(0)
+#define h(n,d) do{const char *t=PSTR(#n);if(!strcasecmp_P(tag,t)){if(len==2)n=(((value[0]&15)+(value[0]>='A'?9:0))<<4)+((value[1]&15)+(value[1]>='A'?9:0));else n=d; return t;}}while(0)
     app_settings
+#undef h
 #undef s
 #undef v
     return NULL; // Done
@@ -103,7 +107,7 @@ char ledpattern[10];
     }
     unsigned int pins = ((1 << 12) | (1 << 13) | (1 << 14) | (1 << ss)); // SPI
     if (*nfc == 'H')pins = ((1 << 1) | (1 << 3)); // HSU
-    if (nfcmax >= 0)
+    if (nfcbus != 0xFF)
     {
       if (bustx < 0 || busrx < 0 || busde < 0)
       {
@@ -140,10 +144,10 @@ char ledpattern[10];
       nfc = NULL;
       return false;
     }
-    if (nfcmax >= 0)
+    if (nfcbus != 0xFF)
     {
       bus.SetPins(busde, bustx, busrx);
-      bus.SetAddress(0x90 + nfcmax, true);
+      bus.SetAddress(nfcbus, true);
       bus.Start();
     }
     debug("PN532 OK");
@@ -251,7 +255,7 @@ char ledpattern[10];
         }
       }
     }
-    if (nfcmax >= 0)
+    if (nfcbus != 0xFF)
     { // Pretending to be a max reader
       if (bus.Available())
       {
