@@ -213,7 +213,7 @@ char ledpattern[10];
           if (!held && (int)(now - found) > holdtime)
           {
 #ifdef USE_OUTPUT
-            if (fallback && !strcmp(fallback, tid) && (!NFC.aidset || NFC.secure))
+            if (fallback && !strncmp(fallback, tid, 14) && (!NFC.aidset || NFC.secure))
               output_safe_set(true);
 #endif
             revk.event(F("held"), F("%s"), tid); // Previous card gone
@@ -301,6 +301,8 @@ char ledpattern[10];
             { // TODO secure ID mandate?
               int p;
               for (p = 0; p < 4; p++)buf[3 + p] = bid[p] ^ bid[p + 4];
+              if (NFC.secure)buf[3] |= 0x80; // Ensure different tags when secure
+              else buf[3] &= ~0x80;
               rs485.Tx(7, buf);
             } else rs485.Tx(3, buf);
           }
