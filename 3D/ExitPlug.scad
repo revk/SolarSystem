@@ -23,10 +23,14 @@ difference()
         }
         cylinder(d=d,h=t0+t+t1);
     }
-    translate([0,-2,5])
-    rotate([180,30,0])
+    translate([1,-2.2,5])
     {
-        vl53l0x();
-        #vl53l0x(false,false); // Shows location
+        rotate([180,30,0])
+        {
+            vl53l0x(25,60);
+            #vl53l0x(false,false); // Shows location
+        }
+        translate([-17.5,-5.5,1.5])
+        cube([10,11,10]);
     }
 }

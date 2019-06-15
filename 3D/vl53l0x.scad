@@ -1,38 +1,44 @@
 // VL53L0X template
 
 
-module vl53l0x(front=true,back=true)
-{
-    a=30; // spec says 25 degrees
-    e=100;
+module vl53l0x(front=25,back=90)
+{ // Front is angle for sensor (25 degrees in spec). back is angle for back
+    e=10;
     pw=14; // Size of PCB
+    pw2=pw-e*tan(90-back);
     ph=11;
     pt=1.5;
     // PCB
     t=(back?e:pt);
-    translate([-pw/2,-ph/2,pt-t])
-    cube([pw,ph,t]);
+    hull()
+    {
+        translate([-pw/2,-ph/2,0])
+        cube([pw,ph,pt]);
+        if(back)
+        translate([-pw/2,-ph/2,-e])
+        cube([pw2,ph,pt]);
+    }
     // sensor
     sw=2.5; // Size of sensor
     sh=4.5;
     st=1.5;
-    sx=9;
-    sy=3.5;
-    w2=sw+e*sin(a);
-    h2=sh+e*sin(a);
+    sx=8.8;
+    sy=3.25;
+    w2=sw+e*tan(front);
+    h2=sh+e*tan(front);
     hull()
     {
         translate([sx-pw/2-sw/2,sy-ph/2-sh/2,0])
-        cube([sw,sh,pt+t]);
+        cube([sw,sh,pt+st]);
         if(front)
-            translate([sx-pw/2-w2/2,sy-ph/2-h2/2,st+e])
-            cube([w2,h2,t]);
+        translate([sx-pw/2-w2/2,sy-ph/2-h2/2,st+e])
+        cube([w2,h2,pt]);
     }
     // cap
     cw=1;
     ch=2;
-    cx=8.5;
-    cy=6.5;
+    cx=sx-0.8;
+    cy=sy+3.3;
     ct=1.5;
     translate([cx-pw/2-cw/2,cy-ph/2-ch/2,0])
     cube([cw,ch,pt+ct]);
@@ -57,4 +63,4 @@ module vl53l0x(front=true,back=true)
     }
 }
 
-vl53l0x(false,false);
+vl53l0x();

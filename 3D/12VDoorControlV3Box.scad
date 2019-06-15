@@ -51,8 +51,8 @@ rangery=-4.5;
 
 // Header hole
 headerw=11;
-headerh=5.5;
-headerx=15.875; // Centre of header
+headerh=5.5+0.5;
+headerx=15.875-0.5; // Centre of header
 headery=13.175+0.87;
 
 // Exit box
@@ -170,7 +170,7 @@ module lid()
         label(exitx+exitw/2,exity+exith/2+exith/4,exith/4,"EXIT");
         rangerhole();
         if(header)
-        translate([headerx-pcbw/2-headerw/2,pcby+headery-pcbh/2-headerh/2,-1])
+        translate([headerx-pcbw/2-headerw/2,sidet+t+pcbm-boxh/2+pcby+headery-headerh/2,-1])
         cube([headerw,headerh,frontt+2]);
     }
     // Back support
