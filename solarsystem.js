@@ -170,6 +170,11 @@ ws.onmessage=function(event)
 		x.children[1].textContent=k.line[0];
 		x.children[2].textContent=k.line[1];
 	});
+	if(o.device)o.device.forEach(function(d)
+	{	// Log updates
+		x=io(false,d);
+		if(!x.className) x.className="device";
+	});
 	if(o.door)o.door.forEach(function(d)
 	{
 		x=document.getElementById(d.id);
@@ -201,11 +206,6 @@ ws.onmessage=function(event)
 		}
 		x.children[1].src="door"+d.state+".png";
 		x.children[2].textContent=d.state;
-	});
-	if(o.device)o.device.forEach(function(d)
-	{	// Log updates
-		x=io(false,d);
-		if(!x.className) x.className="device";
 	});
 	if(o.input)o.input.forEach(function(i)
 	{
