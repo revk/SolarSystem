@@ -27,7 +27,7 @@ unsigned long outputnext = 0;
   app_settings
 #undef s
 
-  void dooutput(int i)
+  static void dooutput(int i)
   {
     unsigned long out = outputstate;
     if (insafemode)out = outputoverride; // Safe mode, normally means outputs off but can be overridden
@@ -49,6 +49,15 @@ unsigned long outputnext = 0;
       else
         digitalWrite(outputpin[i], (out & (1 << i)) ? 1 : 0);
     }
+  }
+
+  void Output_set(int o, boolean v)
+  { // Set an output externally
+    o--; // Starts from 1
+    if (!(outputactive & (1 << o)))return;
+    if (v)outputstate |= (1 << o);
+    else outputstate &= ~(1 << o);
+    dooutput(o);
   }
 
   void output_safe_set(boolean enable)
@@ -119,13 +128,12 @@ unsigned long outputnext = 0;
     if (!outputactive)return false; // No outputs defined
     if (!strncasecmp_P(tag, PSTR("output"), 6) && tag[6] > '0' && tag[6] <= '0' + MAX_OUTPUT)
     {
-      int i = tag[6] - '1';
-      if (!(outputactive & (1 << i)))return false;
+      int i = tag[6] - '0';
+      if (!i || !(outputactive & (1 << (i - 1))))return false;
       if (len && *message == '1')
-        outputstate |= (1 << i);
+        Output_set(i, true);
       else
-        outputstate &= ~(1 << i);
-      dooutput(i);
+        Output_set(i, false);
       return true;
     }
     return false;

@@ -2,6 +2,7 @@
 
 exit=0; // Make exit box
 ranger=exit; // If to include ranger hole
+header=1;   // How for 4 pin header for ranger
 
 // Tolerances for your printer
 t=0.1;  // General xy tolerance/margin
@@ -17,7 +18,7 @@ backt=1;
 // PCB
 pcbw=31.75;
 pcbh=50;
-pcbt=1.7;
+pcbt=1.8;
 pcbf=11;
 pcbb=3;
 pcbe=0.5;
@@ -48,6 +49,12 @@ rangerh=6;
 rangerx=-3;
 rangery=-4.5;
 
+// Header hole
+headerw=11;
+headerh=5.5+0.5;
+headerx=15.875-0.5; // Centre of header
+headery=13.175+0.87;
+
 // Exit box
 exitw=90;
 exith=exitw;
@@ -73,7 +80,7 @@ module label(x,y,s,t)
 
 module screwlabel(p,s,t)
 {
-    label(-5,screwsy+p*screwss,screwss*s,t);
+    label(12,screwsy+p*screwss,screwss*s,t);
 }
 
 module wirecut()
@@ -162,6 +169,9 @@ module lid()
         else
         label(exitx+exitw/2,exity+exith/2+exith/4,exith/4,"EXIT");
         rangerhole();
+        if(header)
+        translate([headerx-pcbw/2-headerw/2,sidet+t+pcbm-boxh/2+pcby+headery-headerh/2,-1])
+        cube([headerw,headerh,frontt+2]);
     }
     // Back support
     translate([boxw/2-sidet-5,t+sidet-boxh/2+pcby+16,frontt-0.1])

@@ -15,6 +15,12 @@
 #include "PN532_SPI.h"
 #include "PN532_HSU.h"
 #include "PN532RevK.h"
+#include "RS485.h"
+
+RS485 bus(0x11, false);
+
+extern void Output_set(int, boolean);
+extern boolean Input_get(int);
 
 PN532_SPI pn532spi(SPI, ss);
 PN532_HSU pn532hsu(Serial);
@@ -31,11 +37,13 @@ char ledpattern[10];
   v(nfcred,1); \
   v(nfcgreen,0); \
   v(nfctamper,3); \
-
+  h(nfcbus,0xFF); \
 
 #define s(n) const char *n=NULL
 #define v(n,d) int8_t n=d
+#define h(n,d) byte n=d;
   app_settings
+#undef h
 #undef s
 #undef v
 
@@ -45,7 +53,9 @@ char ledpattern[10];
   { // Called for settings retrieved from EEPROM
 #define s(n) do{const char *t=PSTR(#n);if(!strcasecmp_P(tag,t)){n=(const char *)value;return t;}}while(0)
 #define v(n,d) do{const char *t=PSTR(#n);if(!strcasecmp_P(tag,t)){n=(value?atoi((char*)value):d);return t;}}while(0)
+#define h(n,d) do{const char *t=PSTR(#n);if(!strcasecmp_P(tag,t)){if(len==2)n=(((value[0]&15)+(value[0]>='A'?9:0))<<4)+((value[1]&15)+(value[1]>='A'?9:0));else n=d; return t;}}while(0)
     app_settings
+#undef h
 #undef s
 #undef v
     return NULL; // Done
@@ -89,7 +99,7 @@ char ledpattern[10];
   boolean NFC_setup(ESPRevK&revk)
   {
     if (!nfc)return false; // Not configured
-    if (*nfc == 'S' && ss < 0)
+    if (*nfc != 'H' && ss < 0)
     {
       NFC_fault = PSTR("Define SS for SPI");
       nfc = NULL;
@@ -97,6 +107,16 @@ char ledpattern[10];
     }
     unsigned int pins = ((1 << 12) | (1 << 13) | (1 << 14) | (1 << ss)); // SPI
     if (*nfc == 'H')pins = ((1 << 1) | (1 << 3)); // HSU
+    if (nfcbus != 0xFF)
+    {
+      if (bustx < 0 || busrx < 0 || busde < 0)
+      {
+        Keypad_fault = PSTR("Define bustx/busrs/busde pins");
+        keypad = NULL;
+        return false;
+      }
+      pins |= ((1 << bustx) | (1 << busrx) | (1 << busde));
+    }
     debugf("GPIO pin available %X for PN532", gpiomap);
     if ((gpiomap & pins) != pins)
     {
@@ -124,6 +144,12 @@ char ledpattern[10];
       nfc = NULL;
       return false;
     }
+    if (nfcbus != 0xFF)
+    {
+      bus.SetPins(busde, bustx, busrx);
+      bus.SetAddress(nfcbus, true);
+      bus.Start();
+    }
     debug("PN532 OK");
     nfcok = true;
     *ledpattern = 0;
@@ -131,6 +157,7 @@ char ledpattern[10];
   }
 
   char tid[100]; // ID
+  byte bid[10]; // Binary ID
 
   boolean NFC_loop(ESPRevK&revk, boolean force)
   {
@@ -172,21 +199,21 @@ char ledpattern[10];
           NFC_tamper = PSTR("PN532");
       }
     }
+    static long found = 0;
     static long cardcheck = 0;
     if ((int)(cardcheck - now) < 0)
     {
       cardcheck = now + readerpoll;
-      static long found = 0;
       String id, err;
       if (found)
       {
         // TODO MIFARE Classic 4 byte ID don't show as in field, and constantly re-read ID, grrr.
-        if (!NFC.inField(readertimeout) || (!NFC.secure && NFC.getID(id, err) && !strcmp(id.c_str(), tid)))
+        if (!NFC.inField(readertimeout) || (!NFC.secure && NFC.getID(id, err, 100, bid) && !strcmp(id.c_str(), tid)))
         { // still here
           if (!held && (int)(now - found) > holdtime)
           {
 #ifdef USE_OUTPUT
-            if (fallback && !strcmp(fallback, tid) && (!NFC.aidset || NFC.secure))
+            if (fallback && !strncmp(fallback, tid, 14) && (!NFC.aidset || NFC.secure))
               output_safe_set(true);
 #endif
             revk.event(F("held"), F("%s"), tid); // Previous card gone
@@ -206,7 +233,7 @@ char ledpattern[10];
           found = 0;
         }
       } else {
-        if (NFC.getID(id, err))
+        if (NFC.getID(id, err, 100, bid))
         {
           found = (now ? : 1);
           strncpy(tid, id.c_str(), sizeof(tid));
@@ -225,6 +252,60 @@ char ledpattern[10];
         {
           revk.error(F("id"), F("%s"), err.c_str());
           found = 0;
+        }
+      }
+    }
+    if (nfcbus != 0xFF)
+    { // Pretending to be a max reader
+      if (bus.Available())
+      {
+        byte buf[RS485MAX];
+        int l = bus.Rx(sizeof(buf), buf);
+        revk.event(F("Rx"), F("%d"), l);
+        if (l >= 2)
+        {
+          if (buf[1] == 0x0E)
+          { // Init response (what a max sends)
+            byte buf[5];
+            buf[0] = 0x11;
+            buf[1] = 0xFF;
+            buf[2] = 0x00;
+            buf[3] = 0x00;
+            buf[4] = 0xB1;
+            rs485.Tx(5, buf);
+          } else
+          { // Status response
+            if (buf[1] == 0x0C && l >= 3)
+            { // Output
+              static byte last = 0;
+              if ((last ^ buf[2]) & 0x02)Output_set(1, buf[2] & 0x02);
+              if ((last ^ buf[2]) & 0x04)Output_set(2, buf[2] & 0x04);
+              last = buf[2];
+            }
+            if (buf[1] == 0x07 && l >= 3)
+            { // LED (may need some work)
+              char *p = ledpattern;
+              if (buf[2] & (1 << 5))*p++ = '-';
+              if (buf[2] & (1 << 4))*p++ = 'R';
+              if (buf[2] & (1 << 3))*p++ = 'R';
+              if (buf[2] & (1 << 2))*p++ = 'R';
+              if (buf[2] & (1 << 1))*p++ = 'R';
+              if (buf[2] & (1 << 0))*p++ = 'G';
+              *p = 0;
+            }
+            // Status response
+            buf[0] = 0x11;
+            buf[1] = (NFC_tamper ? 0xFC : 0xF4);
+            buf[2] = (Input_get(1) ? 0x20 : 0) + (Input_get(2) ? 0x10 : 0) + (Input_get(3) ? 0x40 : 0); // Exit, Close, and an extra one for lock engaged
+            if (found)
+            { // TODO secure ID mandate?
+              int p;
+              for (p = 0; p < 4; p++)buf[3 + p] = bid[p] ^ bid[p + 4];
+              if (NFC.secure)buf[3] |= 0x80; // Ensure different tags when secure
+              else buf[3] &= ~0x80;
+              rs485.Tx(7, buf);
+            } else rs485.Tx(3, buf);
+          }
         }
       }
     }
