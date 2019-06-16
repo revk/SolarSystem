@@ -50,9 +50,9 @@ rangerx=-3;
 rangery=-4.5;
 
 // Header hole
-headerw=11;
-headerh=5.5+0.5;
-headerx=15.875-0.5; // Centre of header
+headerw=11+1;
+headerh=5.5+1;
+headerx=15.875; // Centre of header
 headery=13.175+0.87;
 
 // Exit box
