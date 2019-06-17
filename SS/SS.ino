@@ -47,7 +47,7 @@ unsigned safemodestart = 0;
   s(safemode,60); \
   t(fallback); \
   s(rangerdebug,0); \
-  s(rangerpoll,100); \
+  s(rangerpoll,50); \
   s(rangerhold,1000); \
   s(rangermargin,50); \
   s(readerpoll,50); \

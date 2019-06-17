@@ -261,7 +261,7 @@ char ledpattern[10];
       {
         byte buf[RS485MAX];
         int l = bus.Rx(sizeof(buf), buf);
-        revk.event(F("Rx"), F("%d"), l);
+        //revk.event(F("Rx"), F("%d %02X %02X %02X"), l, buf[0], buf[1], buf[2]);
         if (l >= 2)
         {
           if (buf[1] == 0x0E)
@@ -282,7 +282,7 @@ char ledpattern[10];
               if ((last ^ buf[2]) & 0x04)Output_set(2, buf[2] & 0x04);
               last = buf[2];
             }
-            if (buf[1] == 0x07 && l >= 3)
+            else if (buf[1] == 0x07 && l >= 3)
             { // LED (may need some work)
               char *p = ledpattern;
               if (buf[2] & (1 << 5))*p++ = '-';
@@ -297,6 +297,7 @@ char ledpattern[10];
             buf[0] = 0x11;
             buf[1] = (NFC_tamper ? 0xFC : 0xF4);
             buf[2] = (Input_get(1) ? 0x20 : 0) + (Input_get(2) ? 0x10 : 0) + (Input_get(3) ? 0x40 : 0); // Exit, Close, and an extra one for lock engaged
+            //revk.event(F("Tx"), F("%02X %02X %02X"), buf[0], buf[1], buf[2]);
             if (found)
             { // TODO secure ID mandate?
               int p;

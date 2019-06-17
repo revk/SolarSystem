@@ -16,7 +16,7 @@ boolean ranger0xok = false;
 
 #define app_settings  \
   s(ranger0x,0);   \
-  s(ranger0xmax,2000); \
+  s(ranger0xmax,1000); \
   s(ranger0xaddress,0x29); \
 
 #define s(n,d) unsigned int n=d;
@@ -65,9 +65,9 @@ boolean ranger0xok = false;
     }
     sensor0x.init();
     sensor0x.setMeasurementTimingBudget(rangerpoll * 1000);
-    sensor0x.setSignalRateLimit(0.25);
-    sensor0x.setVcselPulsePeriod(VL53L0X::VcselPeriodPreRange, 18);
-    sensor0x.setVcselPulsePeriod(VL53L0X::VcselPeriodFinalRange, 14);
+    //sensor0x.setSignalRateLimit(0.25);
+    //sensor0x.setVcselPulsePeriod(VL53L0X::VcselPeriodPreRange, 18);
+    //sensor0x.setVcselPulsePeriod(VL53L0X::VcselPeriodFinalRange, 14);
     sensor0x.startContinuous(rangerpoll);
 
     debug("VL53L0X OK");
@@ -90,26 +90,26 @@ boolean ranger0xok = false;
       unsigned int range = sensor0x.readRangeContinuousMillimeters();
       if (range == 65535)Ranger0X_fault = PSTR("VL53L0X read failed");
       else Ranger0X_fault = NULL;
-      if (range)
+      if (!sensor0x.timeoutOccurred())
       {
-        if (range > ranger0xmax)range = ranger0xmax;
-        if (range < ranger0x)
+        if (range)
         {
-          if (force || !buttonshort)
+          if (range > ranger0xmax)range = ranger0xmax;
+          if (range < ranger0x)
           {
-            buttonshort = true;
-            revk.state(F("input8"), F("1 %dmm"), range);
-          }
-        } else if (force || range > ranger0x + rangermargin)
-        {
-          if (force || buttonshort)
+            if (force || !buttonshort)
+            {
+              buttonshort = true;
+              revk.state(F("input8"), F("1 %dmm"), range);
+            }
+          } else if (force || range > ranger0x + rangermargin)
           {
-            buttonshort = false;
-            revk.state(F("input8"), F("0 %dmm"), range);
+            if (force || buttonshort)
+            {
+              buttonshort = false;
+              revk.state(F("input8"), F("0 %dmm"), range);
+            }
           }
-        }
-        if (range != ranger0xmax)
-        { // Max also timeout which can happen
           if (range > last + rangermargin || last > range + rangermargin)
           {
             if (force || !buttonlong)
@@ -129,6 +129,7 @@ boolean ranger0xok = false;
           last = range;
           if (rangerdebug)
             revk.state(F("range"), F("%d"), range);
+
         }
       }
     }
