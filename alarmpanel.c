@@ -3459,13 +3459,15 @@ doevent (event_t * e)
 		snprintf (doorno, sizeof (doorno), "DOOR%02u", d);
 		if (!u)
 		  {
+		    door_error (d);
 		    door_lock (d);	// Cancel open
 		    dolog (mydoor[d].group_lock, "FOBBAD", NULL, doorno, "Unrecognised fob %s%s", e->fob, secure ? " (secure)" : "");
 		  }
 		else if (e->event == EVENT_FOB)
 		  {
 		    // disarm is the groups that can be disarmed by this user on this door.
-		    group_t disarm = ((u->group_arm[secure] & mydoor[d].group_arm & state[STATE_ARM]) | (port_name (port), u->group_disarm[secure] & mydoor[d].group_disarm & state[STATE_SET]));
+		    group_t disarm = ((u->group_arm[secure] & mydoor[d].group_arm & state[STATE_ARM]) | (port_name (port),
+													 u->group_disarm[secure] & mydoor[d].group_disarm & state[STATE_SET]));
 		    if (door[d].state == DOOR_PROPPED || door[d].state == DOOR_OPEN || door[d].state == DOOR_PROPPEDOK)
 		      {
 			if (disarm && alarm_unset (u->name, port_name (port), disarm))
@@ -3528,8 +3530,6 @@ doevent (event_t * e)
 			  }
 			else
 			  {
-			    if (!securefobs || secure)
-			      door_error (d);
 			    door_error (d);
 			    dolog (mydoor[d].group_lock, "FOBBAD", u->name, doorno, "Not allowed fob %s%s", e->fob, secure ? " (secure)" : "");
 			  }
@@ -3556,7 +3556,6 @@ doevent (event_t * e)
 		    door_error (d);
 		  }
 	      }
-
 	if (!found)
 	  {			// Unassociated max reader
 	    dolog (groups, e->event == EVENT_FOB_HELD ? "FOBHELDIGNORE" : "FOBIGNORED", u ? u->name : NULL, port_name (port), "Ignored fob %s%s as reader not linked to a door", e->fob, secure ? " (secure)" : "");

@@ -98,35 +98,38 @@ boolean ranger0xok = false;
           if (force || !buttonshort)
           {
             buttonshort = true;
-            revk.state(F("input8"), F("1"));
+            revk.state(F("input8"), F("1 %dmm"), range);
           }
         } else if (force || range > ranger0x + rangermargin)
         {
           if (force || buttonshort)
           {
             buttonshort = false;
-            revk.state(F("input8"), F("0"));
+            revk.state(F("input8"), F("0 %dmm"), range);
           }
         }
-        if (range > last + rangermargin || last > range + rangermargin)
-        {
-          if (force || !buttonlong)
+        if (range != ranger0xmax)
+        { // Max also timeout which can happen
+          if (range > last + rangermargin || last > range + rangermargin)
           {
-            buttonlong = true;
-            revk.state(F("input9"), F("1"));
-          }
-          endlong = now + rangerhold;
-        } else if ((int)(endlong - now) < 0)
-        {
-          if (force || buttonlong)
+            if (force || !buttonlong)
+            {
+              buttonlong = true;
+              revk.state(F("input9"), F("1 %dmm"), range);
+            }
+            endlong = now + rangerhold;
+          } else if ((int)(endlong - now) < 0)
           {
-            buttonlong = false;
-            revk.state(F("input9"), F("0"));
+            if (force || buttonlong)
+            {
+              buttonlong = false;
+              revk.state(F("input9"), F("0 %dmm"), range);
+            }
           }
+          last = range;
+          if (rangerdebug)
+            revk.state(F("range"), F("%d"), range);
         }
-        last = range;
-        if (rangerdebug && range < ranger0xmax)
-          revk.state(F("range"), F("%d"), range);
       }
     }
     return true;

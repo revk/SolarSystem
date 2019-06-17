@@ -30,7 +30,7 @@ difference()
             vl53l0x(25,60);
             #vl53l0x(false,false); // Shows location
         }
-        translate([-17.5,-5.5,1.5])
+        translate([-17.6,-5.5,1.5])
         cube([10,11,10]);
     }
 }
