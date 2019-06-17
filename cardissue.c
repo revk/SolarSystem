@@ -215,6 +215,16 @@ main (int argc, const char *argv[])
     if (!strcasecmp (m, "id"))
       {
 	printf ("Card found %.*s\n", msg->payloadlen, (char *) msg->payload);
+	int n;
+	unsigned int id = 0, v;
+	for (n = 0; n < msg->payloadlen; n += 2)
+	  {
+	    sscanf ((char *) msg->payload + n, "%02X", &v);
+	    id ^= (v << (((n / 2) & 3) * 8));
+	  }
+	printf ("Fob ID as Max %08u\n", id % 100000000);
+	id ^= 0x80000000;
+	printf ("Fob ID as Max %08u (secure)\n", id % 100000000);
 	send (sp[0], NULL, 0, 0);	// Indicate card gone
 	return;
       }
