@@ -97,14 +97,14 @@ const char* Ranger1X_tamper = NULL;
           if (force || !buttonshort)
           {
             buttonshort = true;
-            revk.state(F("input8"), F("1"));
+            revk.state(F("input8"), F("1 %dmm"), range);
           }
         } else if (force || range > ranger1x + rangermargin)
         {
           if (force || buttonshort)
           {
             buttonshort = false;
-            revk.state(F("input8"), F("0"));
+            revk.state(F("input8"), F("0 %dmm"), range);
           }
         }
         if (range > last + rangermargin || last > range + rangermargin)
@@ -112,7 +112,7 @@ const char* Ranger1X_tamper = NULL;
           if (force || !buttonlong)
           {
             buttonlong = true;
-            revk.state(F("input9"), F("1"));
+            revk.state(F("input9"), F("1 %dmm"), range);
           }
           endlong = now + rangerhold;
         } else if ((int)(endlong - now) < 0)
@@ -120,7 +120,7 @@ const char* Ranger1X_tamper = NULL;
           if (force || buttonlong)
           {
             buttonlong = false;
-            revk.state(F("input9"), F("0"));
+            revk.state(F("input9"), F("0 %dmm"), range);
           }
         }
         last = range;

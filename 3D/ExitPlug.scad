@@ -27,7 +27,7 @@ difference()
     {
         rotate([180,30,0])
         {
-            vl53l0x(25,60);
+            vl53l0x(30,60); // Spec is 25, but 30 is safer
             #vl53l0x(false,false); // Shows location
         }
         translate([-17.6,-5.5,1.5])
