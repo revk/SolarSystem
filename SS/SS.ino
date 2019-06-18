@@ -51,6 +51,7 @@ unsigned safemodestart = 0;
   s(rangerhold,1000); \
   s(rangermargin,50); \
   s(readerpoll,50); \
+  s(pwm,1000); \
 
 
 #define s(n,d) int n=d;
@@ -103,6 +104,7 @@ unsigned safemodestart = 0;
 #define m(n)     n##_setup(revk);
     modules
 #undef m
+    analogWriteFreq(pwm);
     if (safemode)
       safemodestart = (millis() + safemode * 1000 ? : 1);
   }
