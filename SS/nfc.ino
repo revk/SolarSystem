@@ -299,11 +299,14 @@ char ledpattern[10];
             buf[2] = (Input_get(1) ? 0x20 : 0) + (Input_get(2) ? 0x10 : 0) + (Input_get(3) ? 0x40 : 0); // Exit, Close, and an extra one for lock engaged
             //revk.event(F("Tx"), F("%02X %02X %02X"), buf[0], buf[1], buf[2]);
             if (found)
-            { // TODO secure ID mandate?
-              int p;
-              for (p = 0; p < 4; p++)buf[3 + p] = bid[p] ^ bid[p + 4];
-              if (NFC.secure)buf[3] |= 0x80; // Ensure different tags when secure
-              else buf[3] &= ~0x80;
+            { // Make an ID (8 digit BCD coded)
+              unsigned int p, v = 0;;
+              for (p = 0; p < 7; p++)v ^= (bid[p] << ((p & 3) * 8));
+              if (NFC.secure)v ^= 0x80000000;
+              buf[3] = ((v / 10000000) % 10) * 16 + ((v / 1000000) % 10);
+              buf[4] = ((v / 100000) % 10) * 16 + ((v / 10000) % 10);
+              buf[5] = ((v / 1000) % 10) * 16 + ((v / 100) % 10);
+              buf[6] = ((v / 10) % 10) * 16 + ((v / 1) % 10);
               rs485.Tx(7, buf);
             } else rs485.Tx(3, buf);
           }
