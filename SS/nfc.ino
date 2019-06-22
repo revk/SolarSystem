@@ -199,6 +199,7 @@ char ledpattern[10];
           NFC_tamper = PSTR("PN532");
       }
     }
+    static byte ids = 0;
     static long found = 0;
     static long cardcheck = 0;
     if ((int)(cardcheck - now) < 0)
@@ -208,7 +209,7 @@ char ledpattern[10];
       if (found)
       {
         // TODO MIFARE Classic 4 byte ID don't show as in field, and constantly re-read ID, grrr.
-        if (!NFC.inField(readertimeout) || (!NFC.secure && NFC.getID(id, err, 100, bid) && !strcmp(id.c_str(), tid)))
+        if (!NFC.inField(readertimeout) || (!NFC.secure && (ids = NFC.getID(id, err, 100, bid)) && !strcmp(id.c_str(), tid)))
         { // still here
           if (!held && (int)(now - found) > holdtime)
           {
@@ -233,10 +234,13 @@ char ledpattern[10];
           found = 0;
         }
       } else {
-        if (NFC.getID(id, err, 100, bid))
+        if ((ids = NFC.getID(id, err, 100, bid)))
         {
           found = (now ? : 1);
-          strncpy(tid, id.c_str(), sizeof(tid));
+          if (ids > 1)
+            strncpy_P(tid, PSTR("Multiple"), sizeof(tid));
+          else
+            strncpy(tid, id.c_str(), sizeof(tid));
           if (nfccommit && NFC.secure)
           { // Log and commit first, and ensure commit worked, before sending ID - this is noticably slower, so optional and not default
             if (NFC.desfire_log(err) >= 0)
