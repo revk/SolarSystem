@@ -50,7 +50,7 @@ module holes()
     }
     for(y=[0:7])
     translate([4.14-w/2,2.75-h/2+y*3.5,b+e+t])
-    cylinder(d=3.2,h=f+s*2);
+    cylinder(d=3.3,h=f+s*2);
     // Large screws
     translate([w/2-4,2.5-h/2,b+e+t+2.5])
     rotate([0,90,0])
@@ -67,7 +67,7 @@ module holes()
     translate([24.746-w/2,12.705-h/2,b+e+t])
     cube([6.65,6.3,f+e*2]);
     if(v4a)
-    translate([12.09-w/2,22.873-h/2,b+e+t])
+    translate([11.915-w/2,22.539-h/2,b+e+t])
     cube([6.65,6.3,f+e*2]);
     // Wire
     if(!v4a)
