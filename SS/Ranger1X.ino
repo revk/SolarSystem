@@ -123,9 +123,9 @@ const char* Ranger1X_tamper = NULL;
             revk.state(F("input9"), F("0 %dmm"), range);
           }
         }
-        last = range;
-        if (rangerdebug && range < ranger1xmax)
+        if (rangerdebug && (range < ranger1xmax || last < ranger1xmax))
           revk.state(F("range"), F("%d"), range);
+        last = range;
       }
     }
     return true;

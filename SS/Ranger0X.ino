@@ -87,7 +87,7 @@ boolean ranger0xok = false;
       static boolean buttonlong = 0;
       static unsigned int last = 0;
       static long endlong = 0;
-      unsigned int range = sensor0x.readRangeContinuousMillimeters();
+      int range = sensor0x.readRangeContinuousMillimeters();
       if (range == 65535)Ranger0X_fault = PSTR("VL53L0X read failed");
       else Ranger0X_fault = NULL;
       if (!sensor0x.timeoutOccurred())
@@ -95,7 +95,7 @@ boolean ranger0xok = false;
         if (range)
         {
           if (range > ranger0xmax)range = ranger0xmax;
-          if (range < ranger0x)
+          if (range < ranger0x && last < ranger0x)
           {
             if (force || !buttonshort)
             {
@@ -110,7 +110,9 @@ boolean ranger0xok = false;
               revk.state(F("input8"), F("0 %dmm"), range);
             }
           }
-          if (range > last + rangermargin || last > range + rangermargin)
+          static int lastdelta = 0;
+          int delta = range - last;
+          if ((delta > rangermargin && lastdelta > 0) || (delta < rangermargin && lastdelta < 0))
           {
             if (force || !buttonlong)
             {
@@ -126,10 +128,10 @@ boolean ranger0xok = false;
               revk.state(F("input9"), F("0 %dmm"), range);
             }
           }
+          if (rangerdebug && (range < ranger0xmax || last < ranger0xmax))
+            revk.state(F("range"), F("%dmm"), range);
           last = range;
-          if (rangerdebug)
-            revk.state(F("range"), F("%d"), range);
-
+          lastdelta = delta;
         }
       }
     }
