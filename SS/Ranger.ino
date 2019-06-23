@@ -117,47 +117,50 @@ VL53L1X sensor1x;
       else range = sensor1x.readRangeContinuousMillimeters();
       if (range == 65535)Ranger_fault = PSTR("Read failed");
       else Ranger_fault = NULL;
-      if (range)
-      {
-        if (range > rangermax)range = rangermax;
-        if (range < rangerset && last < rangerset)
+      if (range > rangermax)range = rangermax;
+      boolean change = force;
+      if (range < rangerset && last < rangerset)
+      { // Two polls below set for input 8
+        if (!buttonshort)
         {
-          if (force || !buttonshort)
-          {
-            buttonshort = true;
-            revk.state(F("input8"), F("1 %dmm"), range);
-          }
-        } else if (force || range > ranger + rangermargin)
-        {
-          if (force || buttonshort)
-          {
-            buttonshort = false;
-            revk.state(F("input8"), F("0 %dmm"), range);
-          }
+          buttonshort = true;
+          change = true;
         }
-        static int lastdelta = 0;
-        int delta = range - last;
-        if ((delta > 0 && lastdelta > 0 && delta + lastdelta >= rangermargin) || (delta < 0 && lastdelta < 0 && delta + lastdelta <= -rangermargin))
-        { // Moved (consistently) rangermargin over two polls
-          if (force || !buttonlong)
-          {
-            buttonlong = true;
-            revk.state(F("input9"), F("1 %dmm"), range);
-          }
-          endlong = now + rangerhold;
-        } else if ((int)(endlong - now) < 0)
+      } else if (range > rangerset && last > rangerset)
+      { // Two polls above, so unset input 8
+        if (force || buttonshort)
         {
-          if (force || buttonlong)
-          {
-            buttonlong = false;
-            revk.state(F("input9"), F("0 %dmm"), range);
-          }
+          buttonshort = false;
+          change = true;
         }
-        if (rangerdebug && (range < rangermax || last < rangermax))
-          revk.state(F("range"), F("%dmm"), range);
-        last = range;
-        lastdelta = delta;
       }
+      if (change)
+        revk.state(F("input8"), F("%d %dmm"), buttonshort ? 1 : 0, range);
+      change = force;
+      static int lastdelta = 0;
+      int delta = range - last;
+      if ((delta > 0 && lastdelta > 0 && delta + lastdelta >= rangermargin) || (delta < 0 && lastdelta < 0 && delta + lastdelta <= -rangermargin))
+      { // Moved (consistently) rangermargin over two polls
+        if (!buttonlong)
+        {
+          buttonlong = true;
+          change = true;
+        }
+        endlong = now + rangerhold;
+      } else if ((int)(endlong - now) < 0)
+      { // Not moved, and we have reached timeout for motion
+        if (buttonlong)
+        {
+          buttonlong = false;
+          change = true;
+        }
+      }
+      if (change)
+        revk.state(F("input9"), F("%d %dmm"), buttonlong ? 1 : 0, range);
+      if (rangerdebug && (range < rangermax || last < rangermax))
+        revk.state(F("range"), F("%dmm"), range);
+      last = range;
+      lastdelta = delta;
     }
     return true;
   }
