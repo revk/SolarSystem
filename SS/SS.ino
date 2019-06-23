@@ -10,8 +10,7 @@
 // List of modules
 #define modules \
   m(NFC);    \
-  m(Ranger0X); \
-  m(Ranger1X); \
+  m(Ranger); \
   m(Keypad); \
   m(Input); \
   m(Output);
@@ -46,13 +45,7 @@ unsigned safemodestart = 0;
   s(holdtime,3000); \
   s(safemode,60); \
   t(fallback); \
-  s(rangerdebug,0); \
-  s(rangerpoll,50); \
-  s(rangerhold,1000); \
-  s(rangermargin,50); \
-  s(readerpoll,50); \
   s(pwm,1000); \
-
 
 #define s(n,d) int n=d;
 #define t(n) const char*n=NULL;

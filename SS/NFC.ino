@@ -37,6 +37,7 @@ char ledpattern[10];
   v(nfcred,1); \
   v(nfcgreen,0); \
   v(nfctamper,3); \
+  v(nfcpoll,50); \
   h(nfcbus,0xFF); \
 
 #define s(n) const char *n=NULL
@@ -204,7 +205,7 @@ char ledpattern[10];
     static long cardcheck = 0;
     if ((int)(cardcheck - now) < 0)
     {
-      cardcheck = now + readerpoll;
+      cardcheck = now + nfcpoll;
       String id, err;
       if (found)
       {
