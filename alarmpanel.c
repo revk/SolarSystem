@@ -1500,7 +1500,7 @@ load_config (const char *configfile)
 		      port_set (g, mydoor[d].i_fob, max, 0, doorname, "Reader");
 		    if (o >= 1 || ((v = xml_get (c, "@output1")) && *v))
 		      port_o_set (g, door[d].mainlock.o_unlock, max, 1, doorname, "Unlock");
-		    if (xml_get (c, "@ranger0x"))
+		    if (xml_get (c, "@ranger"))
 		      port_exit_set (g, mydoor[d].i_exit, max, 8, doorname);	// Range exit
 		    else if (i >= 1 || ((v = xml_get (c, "@input1")) && *v))
 		      port_exit_set (g, mydoor[d].i_exit, max, -1, doorname);
