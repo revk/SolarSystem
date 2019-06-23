@@ -25,7 +25,9 @@ VL53L1X sensor1x;
   s(rangeraddress,0x29); \
   s(ranger,-1);   \
 
-#define s(n,d) unsigned int n=d;
+  boolean rangerok = false; // ALlow for change to ranger, etc after start up!
+
+#define s(n,d) int n=d;
   app_settings
 #undef s
 
@@ -71,24 +73,36 @@ VL53L1X sensor1x;
     }
     if (ranger == 0)
     {
-      sensor0x.init();
+      if (!sensor0x.init())
+      {
+        Ranger_fault = PSTR("Init failed");
+        ranger = -1;
+        return false;
+      }
       sensor0x.setMeasurementTimingBudget(rangerpoll * 1000);
       sensor0x.startContinuous(rangerpoll);
       debug("VL53L0X OK");
     } else
     {
-      sensor1x.init();
+      sensor1x.setTimeout(100);
+      if (!sensor1x.init())
+      {
+        Ranger_fault = PSTR("Init failed");
+        ranger = -1;
+        return false;
+      }
       sensor1x.setDistanceMode(VL53L1X::Long);
       sensor1x.setMeasurementTimingBudget(rangerpoll * 1000);
       sensor1x.startContinuous(rangerpoll);
       debug("VL53L1X OK");
     }
+    rangerok = true;
     return true;
   }
 
   boolean Ranger_loop(ESPRevK&revk, boolean force)
   {
-    if (ranger < 0)return false; // Ranger not configured
+    if (!rangerok)return false; // Ranger not configured
     long now = millis();
     static long next = 0;
     if ((int)(next - now) < 0)
@@ -106,7 +120,7 @@ VL53L1X sensor1x;
       if (range)
       {
         if (range > rangermax)range = rangermax;
-        if (range < ranger && last < ranger)
+        if (range < rangerset && last < rangerset)
         {
           if (force || !buttonshort)
           {
@@ -123,8 +137,8 @@ VL53L1X sensor1x;
         }
         static int lastdelta = 0;
         int delta = range - last;
-        if ((delta > 0 && lastdelta > 0 && delta + lastdelta >= rangermargin) || (delta < 0 && lastdelta < 0 && delta + lastdelta <= rangermargin))
-        {
+        if ((delta > 0 && lastdelta > 0 && delta + lastdelta >= rangermargin) || (delta < 0 && lastdelta < 0 && delta + lastdelta <= -rangermargin))
+        { // Moved (consistently) rangermargin over two polls
           if (force || !buttonlong)
           {
             buttonlong = true;
