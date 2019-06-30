@@ -4250,7 +4250,7 @@ main (int argc, const char *argv[])
 			    }
 			}
 			char *v;
-			if ((v = xml_get (app->config, "@nfc")))
+			if ((v = xml_get (app->config, "@nfc")) && *v)
 			  {
 			    if (xml_get (app->config, "@input1") || xml_get (app->config, "@output1"))
 			      {	// Had inputs and outputs, so not a management reader
