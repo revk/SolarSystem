@@ -4201,6 +4201,13 @@ main (int argc, const char *argv[])
 		      }
 		    if (!tag && state)
 		      {		// Load settings
+			void set (const char *tag, const char *val)
+			{
+			  char *topic;
+			  asprintf (&topic, "setting/SS/%s/%s", port->mqtt, tag);
+			  mosquitto_publish (mqtt, NULL, topic, strlen (val ? : ""), val, 1, 0);
+			  free (topic);
+			}
 			xml_attribute_t a = NULL;
 			while ((a = xml_attribute_next (app->config, a)))
 			  {
@@ -4212,11 +4219,36 @@ main (int argc, const char *argv[])
 			      continue;
 			    if (!strcmp (n, "name"))
 			      continue;
-			    char *topic;
-			    asprintf (&topic, "setting/SS/%s/%s", port->mqtt, n);
-			    mosquitto_publish (mqtt, NULL, topic, strlen (v ? : ""), v, 1, 0);
-			    free (topic);
+			    set (n, v);
 			  }
+			{	// Top level settings, which can be overridden per device
+			  const char *settings[] = {
+			    "@mqttreset",
+			    "@wifissid",
+			    "@wifipass",
+			    "@wifissid2",
+			    "@wifipass2",
+			    "@wifissid3",
+			    "@wifipass3",
+			    "@mqtthost2",
+			    "@fallback",
+			    "@safemode",
+			    "@rangerdebug",
+			    "@rangerpoll",
+			    "@raangerhold",
+			    "@rangermax",
+			    "@rangerset",
+			  };
+			  xml_t system = xml_element_next_by_name (config, NULL, "system");
+			  if (system)
+			    {
+			      const char *v;
+			      unsigned int n;
+			      for (n = 0; n < sizeof (settings) / sizeof (*settings); n++)
+				if (!xml_get (app->config, settings[n]) && (v = xml_get (system, settings[n])))
+				  set (settings[n] + 1, v);
+			    }
+			}
 			char *v;
 			if ((v = xml_get (app->config, "@nfc")))
 			  {
