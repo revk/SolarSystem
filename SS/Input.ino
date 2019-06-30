@@ -24,12 +24,27 @@ unsigned int inputstate = 0;
   app_settings
 #undef s
 
+  boolean Input_active(int i)
+  { // If input is in use
+    i--; // Starts from 1
+    if (!(inputactive & (1 << i)))return false;
+    return true;
+  }
+
   boolean Input_get(int i)
   { // Read an input
     i--; // Starts from 1
     if (!(inputactive & (1 << i)))return false;
     if (inputstate & (1 << i))return true;
     return false;
+  }
+  
+  void Input_set(int o, boolean v)
+  { // Set an input externally
+    o--; // Starts from 1
+    if (!(inputactive & (1 << o)))return;
+    if (v)inputstate |= (1 << o);
+    else inputstate &= ~(1 << o);
   }
 
   const char* Input_setting(const char *tag, const byte *value, size_t len)

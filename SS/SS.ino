@@ -4,8 +4,8 @@
 // This is the general purpose ESP application for use with Solar System
 // Configurable inputs and outputs, including serial relay control outputs
 // I2C Range finder inputs for motion and touch free input (e.g. exit button)
-// PN532 card readers on SPI or HSU
-// TODO - acting as Max Reader on Galaxy bus
+// PN532 card readers on SPI or HSU, including acting as device on RS485 bus
+// Autonomous door control module
 
 // List of modules
 #define modules \
@@ -13,7 +13,8 @@
   m(Ranger); \
   m(Keypad); \
   m(Input); \
-  m(Output);
+  m(Output); \
+  m(Door); \
 
 #include <ESPRevK.h>
 

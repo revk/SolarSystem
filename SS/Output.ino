@@ -60,6 +60,21 @@ unsigned long outputnext = 0;
     dooutput(o);
   }
 
+  boolean Output_active(int o)
+  { // Return if output is active
+    o--; // Starts from 1
+    if (!(outputactive & (1 << o)))return false;
+    return true;
+  }
+
+  boolean Output_get(int i)
+  { // Read an output state
+    i--; // Starts from 1
+    if (!(outputactive & (1 << i)))return false;
+    if (outputstate & (1 << i))return true;
+    return false;
+  }
+
   void output_safe_set(boolean enable)
   { // Set relay safe mode operation
     if (enable)
