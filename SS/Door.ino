@@ -25,6 +25,7 @@ const char* Door_tamper = NULL;
   s(dooropen,5000); \
   s(doorprop,30000); \
   s(doorpoll,100); \
+  s(doordebug,0); \
 
 #define s(n,d) unsigned int n=d;
   app_settings
@@ -76,8 +77,11 @@ const char* Door_tamper = NULL;
 
   struct
   {
+    boolean olast;
+    boolean ilast;
     unsigned char state;
-  } door_lock[2];
+    unsigned long timeout;
+  } lock[2];
   unsigned char doorstate = -1;
 
   void Door_open()
@@ -151,14 +155,23 @@ const char* Door_tamper = NULL;
     if ((int)(doornext - now) < 0)
     {
       doornext = now + doorpoll;
-      // Check locks
-      // TODO
+      {
+        // Check locks
+        int l;
+        for (l = 0; l < 2; l++)
+        {
+          unsigned char last = lock[l].state;
+          // TODO
+          if (doordebug && last != lock[l].state)
+            revk.state(l ? F("deadlock") : F("lock"), F("%s"), lockstates[lock[l].state]);
+        }
+      }
       // Check state changes
       // TODO
       if (doorstate != lastdoor)
       {
         lastdoor = doorstate;
-        revk.event(F("door"), F("%s"), doorstates[doorstate]);
+        revk.state(F("door"), F("%s"), doorstates[doorstate]);
       }
     }
     return true;
