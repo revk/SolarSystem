@@ -80,7 +80,7 @@ char ledpattern[10];
     {
       held = true; // Stops normal held, but sends gone so reader app knows card removed
       byte res[100], rlen = sizeof(res);
-      byte bad = NFC.data(len, (byte*)message, rlen, res);
+      byte bad = NFC.data(len, (byte*)message, rlen, res, 2000);
       if (!bad && rlen)
         revk.info(F("nfc"), rlen - 1, res + 1);
       else revk.error(F("nfc"), F("failed %02X (%d bytes sent %02X %02X %02X...)"), bad, len, message[0], message[1], message[2]);
@@ -168,7 +168,9 @@ char ledpattern[10];
     static byte ledlast = 0xFF;
     static byte ledpos = 0;
     if ((int)(lednext - now) <= 0)
-    {
+    { // LED
+      // Note this is simply a pattern or R, G, or - now, at 100ms
+      // Plan to allow digits to control timing in multiples of 100ms, and also allow R+G, etc, combinations, and maybe R, A, G LEDs.
       lednext += 100;
       ledpos++;
       if (ledpos >= sizeof(ledpattern) || !ledpattern[ledpos])ledpos = 0;
@@ -188,12 +190,11 @@ char ledpattern[10];
         NFC_fault = PSTR("PN532");
       else
       { // INT1 connected via switch to VCC, so expected high
-        if (NFC_fault)
-        {
-          NFC.begin();
+        if (NFC_fault && NFC.begin())
+        { // Reset
           ledlast = 0xFF;
+          NFC_fault = NULL;
         }
-        NFC_fault = NULL;
         if (nfctamper < 0 || (p3 & (1 << nfctamper)))
           NFC_tamper = NULL;
         else
