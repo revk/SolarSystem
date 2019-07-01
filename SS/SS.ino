@@ -4,8 +4,8 @@
 // This is the general purpose ESP application for use with Solar System
 // Configurable inputs and outputs, including serial relay control outputs
 // I2C Range finder inputs for motion and touch free input (e.g. exit button)
-// PN532 card readers on SPI or HSU
-// TODO - acting as Max Reader on Galaxy bus
+// PN532 card readers on SPI or HSU, including acting as device on RS485 bus
+// Autonomous door control module
 
 // List of modules
 #define modules \
@@ -13,7 +13,8 @@
   m(Ranger); \
   m(Keypad); \
   m(Input); \
-  m(Output);
+  m(Output); \
+  m(Door); \
 
 #include <ESPRevK.h>
 
@@ -22,18 +23,18 @@
   extern boolean n##_command(const char*tag, const byte *message, size_t len); \
   extern boolean n##_setup(ESPRevK&); \
   extern boolean n##_loop(ESPRevK&, boolean);
-modules
+  modules
 #undef n
 
 #ifdef ARDUINO_ESP8266_NODEMCU
-unsigned int gpiomap = 0x1F03F; // Pins available (ESP-12F/12S)
+  unsigned int gpiomap = 0x1F03F; // Pins available (ESP-12F/12S)
 #else
-unsigned int gpiomap = 0xF; // Pins available (ESP-01)
+  unsigned int gpiomap = 0xF; // Pins available (ESP-01)
 #endif
 
-static boolean force = true;
-boolean insafemode = false;
-unsigned safemodestart = 0;
+  static boolean force = true;
+  boolean insafemode = false;
+  unsigned safemodestart = 0;
 
 #define app_settings  \
   s(sda,-1);   \

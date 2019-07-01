@@ -55,13 +55,13 @@ RS485 rs485(MASTER, false);
 #define f(i,n,l,d) if(!strcasecmp_P(tag,PSTR(#n))&&len<=l){memcpy(n,message,len);n##_len=len;if(len<l)memset(n+len,0,l-len);send##i=true;return true;}
     app_commands
 #undef f
-    if (!strcasecmp_P(tag, PSTR( "output8")))
+    if (!strcasecmp_P(tag, PSTR("output8")))
     {
       keypadbeepoverride = ((len && *message == '1') ? 1 : 0);
       send0C = true;
       return true;
     }
-    if (!strcasecmp_P(tag, PSTR( "restart")))
+    if (!strcasecmp_P(tag, PSTR("restart")))
     { // We are shutting down - keep keypad quiet during upgrade for example (not sure it works, I think something turns off int)
       rs485.SetAddress(MASTER, true); // Slave means we keep sending poll in response to reply
       byte buf[2];

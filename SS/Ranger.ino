@@ -17,7 +17,7 @@ VL53L1X sensor1x;
 
 #define app_settings  \
   s(rangerdebug,0); \
-  s(rangerpoll,50); \
+  s(rangerpoll,40); \
   s(rangerhold,1000); \
   s(rangermargin,50); \
   s(rangerset,300); \
@@ -79,7 +79,7 @@ VL53L1X sensor1x;
         ranger = -1;
         return false;
       }
-      sensor0x.setSignalRateLimit(1); // This helps avoid sunlight / errors, default is 0.25 (MCPS)
+      sensor0x.setSignalRateLimit(2); // This helps avoid sunlight / errors, default is 0.25 (MCPS)
       sensor0x.setMeasurementTimingBudget(rangerpoll * 950);
       sensor0x.startContinuous(rangerpoll);
       debug("VL53L0X OK");
@@ -142,7 +142,10 @@ VL53L1X sensor1x;
           }
         }
         if (change)
+        {
           revk.state(F("input8"), F("%d %dmm"), buttonshort ? 1 : 0, range);
+          Input_set(8, buttonshort);
+        }
         change = force;
         static int lastdelta = 0;
         int delta = range - last;
@@ -163,7 +166,10 @@ VL53L1X sensor1x;
           }
         }
         if (change)
+        {
           revk.state(F("input9"), F("%d %dmm"), buttonlong ? 1 : 0, range);
+          Input_set(9, buttonlong);
+        }
         if (rangerdebug && (range < rangermax || last < rangermax))
           revk.state(F("range"), F("%dmm"), range);
         last = range;
