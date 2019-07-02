@@ -162,13 +162,13 @@ const char* Door_tamper = NULL;
         {
           unsigned char last = lock[l].state;
           // TODO
-          if (doordebug && last != lock[l].state)
+          if (doordebug && (force || last != lock[l].state))
             revk.state(l ? F("deadlock") : F("lock"), F("%s"), lockstates[lock[l].state]);
         }
       }
       // Check state changes
       // TODO
-      if (doorstate != lastdoor)
+      if (force || doorstate != lastdoor)
       {
         lastdoor = doorstate;
         revk.state(F("door"), F("%s"), doorstates[doorstate]);
