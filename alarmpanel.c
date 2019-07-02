@@ -2968,15 +2968,16 @@ do_keypad_update (keypad_t * k, char key)
       return NULL;
     }
   if (alert)
-    return keypad_message (k, "%s", alert);
+    return keypad_message (k, "%s\n%04d-%02d-%02d %02d:%02d", alert, lnow.tm_year + 1900, lnow.tm_mon + 1, lnow.tm_mday, lnow.tm_hour, lnow.tm_min);
   // Not logged in
   snprintf (l1, 17, "%-16s", k->message ? : "SolarSystem");
+  snprintf (l2, 17, "%04d-%02d-%02d %02d:%02d", lnow.tm_year + 1900, lnow.tm_mon + 1, lnow.tm_mday, lnow.tm_hour, lnow.tm_min);
   {				// Reset required??
     int s;
     for (s = 0; s < STATE_LATCHED && !state[STATE_TRIGGERS + s]; s++);
     if (s < STATE_LATCHED)
       {				// Something needs resetting
-	snprintf (l2, 17, "RESET %-10s", state_name[s]);
+	snprintf (l1, 17, "RESET %-10s", state_name[s]);
 	if (k->ack || (state[STATE_ENGINEERING] & state[STATE_TRIGGERS + s]))
 	  {			// No beep, just blink
 	    k->k.beep[0] = 0;
@@ -2990,7 +2991,6 @@ do_keypad_update (keypad_t * k, char key)
 	return NULL;
       }
   }
-  snprintf (l2, 17, "%04d-%02d-%02d %02d:%02d", lnow.tm_year + 1900, lnow.tm_mon + 1, lnow.tm_mday, lnow.tm_hour, lnow.tm_min);
   k->k.beep[0] = 0;
   k->k.beep[1] = 0;
   return NULL;
