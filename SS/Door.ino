@@ -233,7 +233,11 @@ const char* Door_tamper = NULL;
       { // timeout
         Output_set(OBEEP, 0);
         doortimeout = 0;
-        if (doorstate == DOOR_OPEN && !doorpropable)doorstate = DOOR_PROPPED;
+        if (doorstate == DOOR_OPEN && !doorpropable)
+        {
+          doorstate = DOOR_PROPPED;
+          doortimeout = (now + doorcycle ? : 1);
+        }
         else if (doorstate == DOOR_UNLOCKED && doordeadlock)Door_deadlock();
         else if (doorstate == DOOR_UNLOCKED)Door_lock();
       } else if (doortimeout && (doorstate == DOOR_AJAR || doorstate == DOOR_PROPPED || doorforced))
