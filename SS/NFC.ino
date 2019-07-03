@@ -246,9 +246,14 @@ char ledpattern[10];
           if (nfccommit && NFC.secure)
           { // Log and commit first, and ensure commit worked, before sending ID - this is noticably slower, so optional and not default
             if (NFC.desfire_log(err) >= 0)
+            {
               revk.event(F("id"), F("%s"), tid);
+              Door_fob(tid);
+            }
           } else
           { // Send ID first, then log to card, quicker, but could mean an access is not logged on the card if removed quickly enough
+            if (NFC.secure)
+              Door_fob(tid);
             revk.event(F("id"), F("%s"), tid);
             if (NFC.secure)
               NFC.desfire_log(err);
