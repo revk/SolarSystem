@@ -47,14 +47,14 @@ const char* Door_tamper = NULL;
   l(FORCED) \
 
 #define door_states \
-  d(DEADLOCKED) \
-  d(LOCKED) \
-  d(UNLOCKING) \
-  d(UNLOCKED) \
-  d(OPEN) \
-  d(LOCKING) \
-  d(PROPPED) \
-  d(AJAR) \
+  d(DEADLOCKED,) \
+  d(LOCKED,R) \
+  d(UNLOCKING,--R) \
+  d(UNLOCKED,--G) \
+  d(OPEN,G) \
+  d(LOCKING,RR-) \
+  d(PROPPED,RG-) \
+  d(AJAR,RG-) \
 
 #define l(n) LOCK_##n,
   enum {
@@ -68,14 +68,20 @@ const char* Door_tamper = NULL;
   };
 #undef l
 
-#define d(n) DOOR_##n,
+#define d(n,l) DOOR_##n,
   enum {
     door_states
   };
 #undef d
 
-#define d(n) #n,
+#define d(n,l) #n,
   const char *doorstates[] = {
+    door_states
+  };
+#undef d
+
+#define d(n,l) #l,
+  const char *doorled[] = {
     door_states
   };
 #undef d
@@ -223,6 +229,7 @@ const char* Door_tamper = NULL;
       else if (doorstate != DOOR_PROPPED || doorpropable)doorstate = DOOR_OPEN;
       if (doorstate != lastdoorstate)
       { // State change
+        NFC_led(doorled[doorstate]);
         if (doorstate == DOOR_AJAR || doorstate == DOOR_PROPPED || doorforced)doortimeout = (now + doorcycle ? : 1);
         else if (doorstate == DOOR_OPEN) doortimeout = (now + doorprop ? : 1);
         else if (doorstate == DOOR_UNLOCKED && lastdoorstate == DOOR_OPEN) doortimeout = (now + doorclose ? : 1);

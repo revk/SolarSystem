@@ -50,6 +50,16 @@ char ledpattern[10];
 
 #define readertimeout 100
 
+  void NFC_led(const char *led)
+  {
+    int len = strlen(led);
+    if (len > sizeof(ledpattern))len = sizeof(ledpattern);
+    if (len)
+      memcpy((void*)ledpattern, led, len);
+    if (len < sizeof(ledpattern))
+      ledpattern[len] = 0;
+  }
+
   const char* NFC_setting(const char *tag, const byte *value, size_t len)
   { // Called for settings retrieved from EEPROM
 #define s(n) do{const char *t=PSTR(#n);if(!strcasecmp_P(tag,t)){n=(const char *)value;return t;}}while(0)
@@ -88,10 +98,7 @@ char ledpattern[10];
     }
     if (!strcasecmp_P(tag, "led") && len < sizeof(ledpattern))
     { // Sequence of LED colours (R/G/-) to repeat
-      if (len)
-        memcpy((void*)ledpattern, (void*) message, len);
-      if (len < sizeof(ledpattern))
-        ledpattern[len] = 0;
+      NFC_led((const char*)message);
       return true;
     }
     return false;
