@@ -3098,7 +3098,7 @@ doevent (event_t * e)
 	      free (app->led);
 	    app->led = NULL;
 	    if (port_mqtt (port))
-	      rem_fault (app->group, port_name (port), port->name);
+	      rem_warning (app->group, port_name (port), port->name);
 	    else
 	      rem_tamper (app->group, port_name (port), port->name);
 	  }
@@ -3117,7 +3117,7 @@ doevent (event_t * e)
 	  app->missing = 1;
 	  dolog (app->group, "BUSMISSING", NULL, port_name (port), "Device missing from bus");
 	  if (port_mqtt (port))
-	    add_fault (app->group, port_name (port), port->name);
+	    add_warning (app->group, port_name (port), port->name);
 	  else
 	    add_tamper (app->group, port_name (port), port->name);
 	}
