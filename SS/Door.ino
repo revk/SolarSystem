@@ -23,7 +23,9 @@ const char* Door_tamper = NULL;
   s(doorunlock,1000); \
   s(doorlock,1000); \
   s(dooropen,5000); \
+  s(doorclose,0); \
   s(doorprop,30000); \
+  s(doorexit,10000); \
   s(doorpoll,100); \
   s(doordebug,0); \
 
@@ -39,16 +41,16 @@ const char* Door_tamper = NULL;
   l(UNLOCKED) \
   l(LOCKFAIL) \
   l(UNLOCKFAIL) \
+  l(FORCED) \
 
 #define door_states \
   d(DEADLOCKED) \
   d(LOCKED) \
   d(UNLOCKING) \
-  d(CLOSED) \
+  d(UNLOCKED) \
   d(OPEN) \
   d(LOCKING) \
   d(PROPPED) \
-  d(FORCED) \
   d(AJAR) \
 
 #define l(n) LOCK_##n,
@@ -77,31 +79,38 @@ const char* Door_tamper = NULL;
 
   struct
   {
-    boolean olast;
-    boolean ilast;
-    unsigned char state;
+    boolean o, i;
+    byte state;
     unsigned long timeout;
-  } lock[2];
-  unsigned char doorstate = -1;
+  } lock[2] = {0};
+  byte doorstate = -1;
+  boolean doordeadlock = true;
+  boolean doorprod = false;
 
-  void Door_open()
+  void Door_unlock()
   { // Unlock the door - i.e. exit button, entry allowed, etc.
-    // TODO
+    doordeadlock = false;
+    Output_set(OUNLOCK + 0, 1);
+    Output_set(OUNLOCK + 1, 1);
   }
 
   void Door_deadlock()
   { // Deadlock the door - i.e. move to alarm armed, no exit/entry
-    // TODO
+    doordeadlock = true;
+    Output_set(OUNLOCK + 0, 0);
+    Output_set(OUNLOCK + 1, 0);
   }
 
   void Door_lock()
   { // Lock the door - i.e. move to normal locked operation
-    // TODO
+    doordeadlock = false;
+    Output_set(OUNLOCK + 0, 0);
+    Output_set(OUNLOCK + 1, 1);
   }
 
   void Door_prop()
   { // Allow door propping
-    // TODO
+    doorprop = true;
   }
 
   const char* Door_setting(const char *tag, const byte *value, size_t len)
@@ -125,9 +134,9 @@ const char* Door_tamper = NULL;
       Door_lock();
       return true;
     }
-    if (!strcasecmp_P(tag, PSTR("open")))
+    if (!strcasecmp_P(tag, PSTR("unlock")))
     {
-      Door_open();
+      Door_unlock();
       return true;
     }
     if (!strcasecmp_P(tag, PSTR("prop")))
@@ -151,7 +160,7 @@ const char* Door_tamper = NULL;
     if (!door)return false; // No door control in operation
     unsigned long now = millis();
     static unsigned long doornext = 0;
-    static unsigned char lastdoor = -1;
+    static byte lastdoorstate = -1;
     if ((int)(doornext - now) < 0)
     {
       doornext = now + doorpoll;
@@ -160,17 +169,52 @@ const char* Door_tamper = NULL;
         int l;
         for (l = 0; l < 2; l++)
         {
-          unsigned char last = lock[l].state;
-          // TODO
+          byte last = lock[l].state;
+          boolean o = false, i = false;
+          if (Input_get(IOPEN) || (Output_active(OUNLOCK + l) && Output_get(OUNLOCK + l)))o = true;
+          if (Input_get(IUNLOCK + l))i = true;
+          if (lock[l].o && !o)
+          { // Change to lock
+            lock[l].timeout = ((now + doorlock) ? : 1);
+            lock[l].state = LOCK_LOCKING;
+          } else if (o && !lock[l].o)
+          { // Change to unlock
+            lock[l].timeout = ((now + doorunlock) ? : 1);
+            lock[l].state = LOCK_UNLOCKING;
+          }
+          if (!lock[l].i && i && lock[l].state == LOCK_LOCKED)lock[l].state = LOCK_FORCED;
+          if (lock[l].timeout && ((Input_active(IUNLOCK + l) && i == o) || (int)(lock[l].timeout - now) <= 0))
+            lock[l].timeout = 0;
+          if (!lock[l].timeout && (!i || lock[l].state != LOCK_FORCED))
+          {
+            if (Input_active(IUNLOCK + l) && i != o)lock[l].state = (o ? LOCK_UNLOCKFAIL : LOCK_LOCKFAIL);
+            else lock[l].state = (o ? LOCK_UNLOCKED : LOCK_LOCKED);
+          }
+          lock[l].o = o;
+          lock[l].i = i;
           if (doordebug && (force || last != lock[l].state))
-            revk.state(l ? F("deadlock") : F("lock"), F("%s"), lockstates[lock[l].state]);
+            revk.state(l ? F("deadlock") : F("lock"), lock[l].timeout ? F("%s %dms") : F("%s"), lockstates[lock[l].state], (int)(lock[l].timeout - now));
         }
       }
       // Check state changes
+      if (lock[0].state == LOCK_LOCKING || lock[1].state == LOCK_LOCKING)doorstate = DOOR_LOCKING;
+      else if (lock[0].state == LOCK_UNLOCKING || lock[1].state == LOCK_UNLOCKING)doorstate = DOOR_UNLOCKING;
+      else if (lock[1].state == LOCK_LOCKED)doorstate = DOOR_DEADLOCKED;
+      else if (lock[0].state == LOCK_LOCKED)doorstate = DOOR_LOCKED;
+      else if (!Input_get(IOPEN) && lock[0].state == LOCK_LOCKFAIL && (lock[1].state == LOCK_NOLOCK || lock[1].state == LOCK_UNLOCKED))doorstate = DOOR_AJAR;
+      else if (!Input_get(IOPEN))doorstate = DOOR_UNLOCKED;
+      else doorstate = DOOR_OPEN;
+      // TODO PROPPED state
+      // TODO engage lock when closed
+      // Check faults
       // TODO
-      if (force || doorstate != lastdoor)
+      // Check tampers
+      // TODO
+      // Check exit button
+      // TODO
+      if (force || doorstate != lastdoorstate)
       {
-        lastdoor = doorstate;
+        lastdoorstate = doorstate;
         revk.state(F("door"), F("%s"), doorstates[doorstate]);
       }
     }
