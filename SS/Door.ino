@@ -27,7 +27,7 @@ const char* Door_tamper = NULL;
   s(doorclose,0); \
   s(doorprop,30000); \
   s(doorcycle,60000); \
-  s(doorexit,10000); \
+  s(doorexit,60000); \
   s(doorpoll,100); \
   s(doordebug,0); \
   s(doorbeep,1); \
@@ -257,19 +257,21 @@ const char* Door_tamper = NULL;
       {
         if (!exit1)
         {
-          exit1 = now + doorexit;
+          exit1 = (now + doorexit ? : 1);
           if (door >= 2 && !doordeadlock)Door_unlock();
         }
-      } exit1 = 0;
+      } else
+        exit1 = 0;
       static long exit2 = 0;
       if (Input_get(IEXIT2))
       {
         if (!exit2)
         {
-          exit2 = now + doorexit;
+          exit2 = (now + doorexit ? : 1);
           if (door >= 2 && !doordeadlock)Door_unlock();
         }
-      } exit2 = 0;
+      } else
+        exit2 = 0;
       // Check faults
       if (lock[0].state == LOCK_UNLOCKFAIL)Door_fault = PSTR("Lock stuck");
       else if (lock[1].state == LOCK_UNLOCKFAIL)Door_fault = PSTR("Deadlock stuck");
