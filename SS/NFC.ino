@@ -43,7 +43,7 @@ char ledpattern[10];
   l(aid); \
 
 #define s(n) const char *n=NULL
-#define v(n,d) int8_t n=d
+#define v(n,d) int n=d
 #define h(n,d) byte n=d;
 #define l(n) const byte *n=NULL; int n##_len=0;
   app_settings
@@ -179,41 +179,44 @@ char ledpattern[10];
   {
     if (!nfcok)return false; // Not configured
     long now = (millis() ? : 1); // Allowing for wrap, and using 0 to mean not set
-    static long lednext = 0;
-    static byte ledlast = 0xFF;
-    static byte ledpos = 0;
-    if ((int)(lednext - now) <= 0)
-    { // LED
-      // Note this is simply a pattern or R, G, or - now, at 100ms
-      // Plan to allow digits to control timing in multiples of 100ms, and also allow R+G, etc, combinations, and maybe R, A, G LEDs.
-      lednext += 100;
-      ledpos++;
-      if (ledpos >= sizeof(ledpattern) || !ledpattern[ledpos])ledpos = 0;
-      byte newled = 0;
-      // We are assuming exactly two LEDs, one at a time (back to back) on P30 and P31
-      if (nfcred >= 0 && ledpattern[ledpos] == 'R')newled = (1 << nfcred);
-      if (nfcgreen >= 0 && ledpattern[ledpos] == 'G')newled = (1 << nfcgreen);
-      if (newled != ledlast)
-        NFC.led(ledlast = newled);
-    }
-    static long tampercheck = 0;
-    if ((int)(tampercheck - now) <= 0)
-    {
-      tampercheck = now + 250;
-      int p3 = NFC.p3();
-      if (p3 < 0)
-        NFC_fault = PSTR("PN532");
-      else
-      { // INT1 connected via switch to VCC, so expected high
-        if (NFC_fault && NFC.begin())
-        { // Reset
-          ledlast = 0xFF;
-          NFC_fault = NULL;
-        }
-        if (nfctamper < 0 || (p3 & (1 << nfctamper)))
-          NFC_tamper = NULL;
+    if (nfcpoll < 1000)
+    { // Normal working, setting poll to >=1s means test/debug so only do the polling not the led / tamper
+      static long lednext = 0;
+      static byte ledlast = 0xFF;
+      static byte ledpos = 0;
+      if ((int)(lednext - now) <= 0)
+      { // LED
+        // Note this is simply a pattern or R, G, or - now, at 100ms
+        // Plan to allow digits to control timing in multiples of 100ms, and also allow R+G, etc, combinations, and maybe R, A, G LEDs.
+        lednext += 100;
+        ledpos++;
+        if (ledpos >= sizeof(ledpattern) || !ledpattern[ledpos])ledpos = 0;
+        byte newled = 0;
+        // We are assuming exactly two LEDs, one at a time (back to back) on P30 and P31
+        if (nfcred >= 0 && ledpattern[ledpos] == 'R')newled = (1 << nfcred);
+        if (nfcgreen >= 0 && ledpattern[ledpos] == 'G')newled = (1 << nfcgreen);
+        if (newled != ledlast)
+          NFC.led(ledlast = newled);
+      }
+      static long tampercheck = 0;
+      if ((int)(tampercheck - now) <= 0)
+      {
+        tampercheck = now + 250;
+        int p3 = NFC.p3();
+        if (p3 < 0)
+          NFC_fault = PSTR("PN532");
         else
-          NFC_tamper = PSTR("PN532");
+        { // INT1 connected via switch to VCC, so expected high
+          if (NFC_fault && NFC.begin())
+          { // Reset
+            ledlast = 0xFF;
+            NFC_fault = NULL;
+          }
+          if (nfctamper < 0 || (p3 & (1 << nfctamper)))
+            NFC_tamper = NULL;
+          else
+            NFC_tamper = PSTR("PN532");
+        }
       }
     }
     static byte ids = 0;
