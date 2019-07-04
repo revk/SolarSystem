@@ -124,7 +124,7 @@ const char* Door_tamper = NULL;
 
   void Door_fob(char *id)
   {
-    if (door >= 3 || (insafemode && fallback && !strncmp(id, fallback, 14)))Door_unlock();
+    if ((door >= 3 && !doordeadlock) || (insafemode && fallback && !strncmp(id, fallback, 14)))Door_unlock();
   }
 
   const char* Door_setting(const char *tag, const byte *value, size_t len)
