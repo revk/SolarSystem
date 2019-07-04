@@ -26,7 +26,6 @@ const char* Door_tamper = NULL;
   s(dooropen,5000); \
   s(doorclose,0); \
   s(doorprop,30000); \
-  s(doorcycle,60000); \
   s(doorexit,60000); \
   s(doorpoll,100); \
   s(doordebug,0); \
@@ -125,7 +124,7 @@ const char* Door_tamper = NULL;
 
   void Door_fob(char *id)
   {
-    if (door >= 3)Door_unlock();
+    if (door >= 3 || (fallback && !strncmp(id, fallback, 14)))Door_unlock();
   }
 
   const char* Door_setting(const char *tag, const byte *value, size_t len)
@@ -188,7 +187,7 @@ const char* Door_tamper = NULL;
           boolean o = false, i = false;
           if (Output_active(OUNLOCK + l) && Output_get(OUNLOCK + l))o = true;
           if (Input_get(IUNLOCK + l))i = true;
-          if ((Input_get(IOPEN) || lock[l].o) && !o)
+          if ((Input_get(IOPEN) || lock[l].o) && !o && last != LOCK_FORCED)
           { // Change to lock
             lock[l].timeout = ((now + doorlock) ? : 1);
             lock[l].state = LOCK_LOCKING;
@@ -233,8 +232,7 @@ const char* Door_tamper = NULL;
       if (doorstate != lastdoorstate)
       { // State change
         NFC_led(doorled[doorstate]);
-        if (doorstate == DOOR_AJAR || doorstate == DOOR_PROPPED || doorforced)doortimeout = (now + doorcycle ? : 1);
-        else if (doorstate == DOOR_OPEN) doortimeout = (now + doorprop ? : 1);
+        if (doorstate == DOOR_OPEN) doortimeout = (now + doorprop ? : 1);
         else if (doorstate == DOOR_UNLOCKED && lastdoorstate == DOOR_OPEN) doortimeout = (now + doorclose ? : 1);
         else if (doorstate == DOOR_UNLOCKED)doortimeout = (now + dooropen ? : 1);
         else doortimeout = 0;
@@ -243,15 +241,10 @@ const char* Door_tamper = NULL;
       { // timeout
         Output_set(OBEEP, 0);
         doortimeout = 0;
-        if (doorstate == DOOR_OPEN && !doorpropable)
-        {
-          doorstate = DOOR_PROPPED;
-          doortimeout = (now + doorcycle ? : 1);
-        }
+        if (doorstate == DOOR_OPEN && !doorpropable)doorstate = DOOR_PROPPED;
         else if (doorstate == DOOR_UNLOCKED && doordeadlock)Door_deadlock();
         else if (doorstate == DOOR_UNLOCKED)Door_lock();
-      } else if (Door_tamper || Door_fault || (doortimeout && (doorstate == DOOR_AJAR || doorstate == DOOR_PROPPED || doorforced)))
-        Output_set(OBEEP, ((now - doortimeout) & 512) ? 1 : 0);
+      }
       static long exit1 = 0;
       if (Input_get(IEXIT1))
       {
@@ -285,6 +278,9 @@ const char* Door_tamper = NULL;
       else if (lock[0].state == LOCK_FORCED)Door_tamper = PSTR("Lock forced");
       else if (lock[1].state == LOCK_FORCED)Door_tamper = PSTR("Deadlock forced");
       else Door_tamper = NULL;
+      // Beep
+      if (Door_tamper || Door_fault || doorstate == DOOR_AJAR || doorstate == DOOR_PROPPED || doorforced)
+        Output_set(OBEEP, ((now - doortimeout) & 512) ? 1 : 0);
       if (force || doorstate != lastdoorstate)
       {
         lastdoorstate = doorstate;
