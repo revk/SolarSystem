@@ -222,6 +222,8 @@ const char* Door_tamper = NULL;
       if (Input_get(IOPEN))
       { // Open, so door is propper or open state only
         if (doorstate != DOOR_PROPPED || doorpropable)doorstate = DOOR_OPEN;
+        Output_set(OUNLOCK + 0, 1); // No point trying to lock when door is open
+        Output_set(OUNLOCK + 1, 1);
       } else if (doorstate != DOOR_AJAR && (lock[0].state == LOCK_LOCKING || lock[1].state == LOCK_LOCKING))doorstate = DOOR_LOCKING;
       else if (doorstate != DOOR_AJAR && (lock[0].state == LOCK_UNLOCKING || lock[1].state == LOCK_UNLOCKING))doorstate = DOOR_UNLOCKING;
       else if ((lock[0].state == LOCK_LOCKED || lock[0].state == LOCK_UNLOCKFAIL) &&
