@@ -125,7 +125,7 @@ const char* Door_tamper = NULL;
 
   void Door_fob(char *id)
   {
-    if (door > 3)Door_unlock();
+    if (door >= 3)Door_unlock();
   }
 
   const char* Door_setting(const char *tag, const byte *value, size_t len)
@@ -186,9 +186,9 @@ const char* Door_tamper = NULL;
         {
           byte last = lock[l].state;
           boolean o = false, i = false;
-          if (Input_get(IOPEN) || (Output_active(OUNLOCK + l) && Output_get(OUNLOCK + l)))o = true;
+          if (Output_active(OUNLOCK + l) && Output_get(OUNLOCK + l))o = true;
           if (Input_get(IUNLOCK + l))i = true;
-          if (lock[l].o && !o)
+          if ((Input_get(IOPEN) || lock[l].o) && !o)
           { // Change to lock
             lock[l].timeout = ((now + doorlock) ? : 1);
             lock[l].state = LOCK_LOCKING;
@@ -220,13 +220,16 @@ const char* Door_tamper = NULL;
         doorpropable = false;
       }
       // Door states
-      if (doorstate != DOOR_AJAR && (lock[0].state == LOCK_LOCKING || lock[1].state == LOCK_LOCKING))doorstate = DOOR_LOCKING;
-      else if (lock[0].state == LOCK_UNLOCKING || lock[1].state == LOCK_UNLOCKING)doorstate = DOOR_UNLOCKING;
-      else if (lock[0].state == LOCK_LOCKED && lock[1].state == LOCK_LOCKED)doorstate = DOOR_DEADLOCKED;
-      else if (lock[0].state == LOCK_LOCKED)doorstate = DOOR_LOCKED;
-      else if (!Input_get(IOPEN) && lock[0].state == LOCK_LOCKFAIL && (lock[1].state == LOCK_NOLOCK || lock[1].state == LOCK_UNLOCKED))doorstate = DOOR_AJAR;
-      else if (!Input_get(IOPEN)) doorstate = DOOR_UNLOCKED;
-      else if (doorstate != DOOR_PROPPED || doorpropable)doorstate = DOOR_OPEN;
+      if (Input_get(IOPEN))
+      { // Open, so door is propper or open state only
+        if (doorstate != DOOR_PROPPED || doorpropable)doorstate = DOOR_OPEN;
+      } else if (doorstate != DOOR_AJAR && (lock[0].state == LOCK_LOCKING || lock[1].state == LOCK_LOCKING))doorstate = DOOR_LOCKING;
+      else if (doorstate != DOOR_AJAR && (lock[0].state == LOCK_UNLOCKING || lock[1].state == LOCK_UNLOCKING))doorstate = DOOR_UNLOCKING;
+      else if ((lock[0].state == LOCK_LOCKED || lock[0].state == LOCK_UNLOCKFAIL) &&
+               ((doordeadlock && lock[1].state == LOCK_NOLOCK) || lock[1].state == LOCK_LOCKED || lock[1].state == LOCK_UNLOCKFAIL))doorstate = DOOR_DEADLOCKED;
+      else if (lock[0].state == LOCK_LOCKED || lock[0].state == LOCK_UNLOCKFAIL)doorstate = DOOR_LOCKED;
+      else if (lock[0].state == LOCK_LOCKFAIL && (lock[1].state == LOCK_NOLOCK || lock[1].state == LOCK_UNLOCKED))doorstate = DOOR_AJAR;
+      else if (doorstate != DOOR_AJAR)doorstate = DOOR_UNLOCKED;
       if (doorstate != lastdoorstate)
       { // State change
         NFC_led(doorled[doorstate]);

@@ -39,11 +39,15 @@ char ledpattern[10];
   v(nfctamper,3); \
   v(nfcpoll,50); \
   h(nfcbus,0xFF); \
+  l(aes); \
+  l(aid); \
 
 #define s(n) const char *n=NULL
 #define v(n,d) int8_t n=d
 #define h(n,d) byte n=d;
+#define l(n) const byte *n=NULL; int n##_len=0;
   app_settings
+#undef l
 #undef h
 #undef s
 #undef v
@@ -65,7 +69,9 @@ char ledpattern[10];
 #define s(n) do{const char *t=PSTR(#n);if(!strcasecmp_P(tag,t)){n=(const char *)value;return t;}}while(0)
 #define v(n,d) do{const char *t=PSTR(#n);if(!strcasecmp_P(tag,t)){n=(value?atoi((char*)value):d);return t;}}while(0)
 #define h(n,d) do{const char *t=PSTR(#n);if(!strcasecmp_P(tag,t)){if(len==2)n=(((value[0]&15)+(value[0]>='A'?9:0))<<4)+((value[1]&15)+(value[1]>='A'?9:0));else n=d; return t;}}while(0)
+#define l(n) do{const char *t=PSTR(#n);if(!strcasecmp_P(tag,t)){n=value;n##_len=len;return t;}}while(0)
     app_settings
+#undef l
 #undef h
 #undef s
 #undef v
@@ -161,6 +167,8 @@ char ledpattern[10];
     debug("PN532 OK");
     nfcok = true;
     *ledpattern = 0;
+    if (aid_len == 3)NFC.set_aid(aid);
+    if (aes_len == 16)NFC.set_aes(aes);
     return true;
   }
 
