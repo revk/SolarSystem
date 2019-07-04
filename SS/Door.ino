@@ -21,8 +21,8 @@ const char* Door_tamper = NULL;
 
 #define app_settings  \
   s(door,0);   \
-  s(doorunlock,1000); \
-  s(doorlock,1000); \
+  s(doorunlock,2000); \
+  s(doorlock,2000); \
   s(dooropen,5000); \
   s(doorclose,0); \
   s(doorprop,30000); \
@@ -250,11 +250,8 @@ const char* Door_tamper = NULL;
         }
         else if (doorstate == DOOR_UNLOCKED && doordeadlock)Door_deadlock();
         else if (doorstate == DOOR_UNLOCKED)Door_lock();
-      } else if (doortimeout && (doorstate == DOOR_AJAR || doorstate == DOOR_PROPPED || doorforced))
-      { // cycle lock and beep
+      } else if (Door_tamper || Door_fault || (doortimeout && (doorstate == DOOR_AJAR || doorstate == DOOR_PROPPED || doorforced)))
         Output_set(OBEEP, ((now - doortimeout) & 512) ? 1 : 0);
-        Output_set(OUNLOCK, ((now - doortimeout) & 512) ? 1 : 0);
-      }
       static long exit1 = 0;
       if (Input_get(IEXIT1))
       {
