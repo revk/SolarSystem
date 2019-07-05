@@ -55,6 +55,7 @@ main (int argc, const char *argv[])
   const char *hexaes = NULL;
   const char *hexreader = NULL;
   const char *config = NULL;
+  const char *username = NULL;
   int doformat = 0;
   int mqttport = 0;
   int comms = 0;
@@ -64,27 +65,37 @@ main (int argc, const char *argv[])
   {				// POPT
     poptContext optCon;		// context for parsing command-line options
     const struct poptOption optionsTable[] = {
-      {"mqtt-host", 'h', POPT_ARG_STRING, &mqtthost, 0, "MQTT host", "hostname"},
-      {"mqtt-user", 'U', POPT_ARG_STRING, &mqttuser, 0, "MQTT user", "username"},
-      {"mqtt-pass", 'P', POPT_ARG_STRING, &mqttpass, 0, "MQTT pass", "password"},
-      {"mqtt-cert", 'C', POPT_ARG_STRING, &mqttcert, 0, "MQTT CA", "filename"},
+      {"mqtt-host", 'h', POPT_ARG_STRING, &mqtthost, 0, "MQTT host",
+       "hostname"},
+      {"mqtt-user", 'U', POPT_ARG_STRING, &mqttuser, 0, "MQTT user",
+       "username"},
+      {"mqtt-pass", 'P', POPT_ARG_STRING, &mqttpass, 0, "MQTT pass",
+       "password"},
+      {"mqtt-cert", 'C', POPT_ARG_STRING, &mqttcert, 0, "MQTT CA",
+       "filename"},
       {"mqtt-port", 'p', POPT_ARG_INT, &mqttport, 0, "MQTT port", "port"},
+      {"user", 'u', POPT_ARG_STRING, &username, 0, "Username", "username"},
       {"name", 'n', POPT_ARG_STRING, &setname, 0, "Users name", "Full name"},
       {"config", 'c', POPT_ARG_STRING, &config, 0, "Config", "filename"},
       {"aid", 'a', POPT_ARG_STRING, &hexaid, 0, "AID", "XXXXXX"},
-      {"aes", 'A', POPT_ARG_STRING, &hexaes, 0, "AES", "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"},
+      {"aes", 'A', POPT_ARG_STRING, &hexaes, 0, "AES",
+       "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"},
       {"reader", 'r', POPT_ARG_STRING, &hexreader, 0, "Reader", "XXXXXX"},
       {"format", 0, POPT_ARG_NONE, &doformat, 0, "Format card", 0},
-      {"logs", 0, POPT_ARG_INT | POPT_ARGFLAG_SHOW_DEFAULT, &logs, 0, "Log records", "N"},
-      {"comms", 0, POPT_ARG_INT | POPT_ARGFLAG_SHOW_DEFAULT, &comms, 0, "File comms", "0/1/3"},
-      {"random", 0, POPT_ARG_NONE, &random, 0, "Random UID (when formatting)", 0},
-      {"lock", 0, POPT_ARG_NONE, &lock, 0, "Lock against further formatting (when formatting)", 0},
+      {"logs", 0, POPT_ARG_INT | POPT_ARGFLAG_SHOW_DEFAULT, &logs, 0,
+       "Log records", "N"},
+      {"comms", 0, POPT_ARG_INT | POPT_ARGFLAG_SHOW_DEFAULT, &comms, 0,
+       "File comms", "0/1/3"},
+      {"random", 0, POPT_ARG_NONE, &random, 0, "Random UID (when formatting)",
+       0},
+      {"lock", 0, POPT_ARG_NONE, &lock, 0,
+       "Lock against further formatting (when formatting)", 0},
       {"debug", 'v', POPT_ARG_NONE, &debug, 0, "Debug", 0},
       POPT_AUTOHELP {}
     };
 
     optCon = poptGetContext (NULL, argc, argv, optionsTable, 0);
-    poptSetOtherOptionHelp (optCon, "[aid/config] [reader]");
+    poptSetOtherOptionHelp (optCon, "[aid/config] [reader] [username]");
 
     int c;
     if ((c = poptGetNextOpt (optCon)) < -1)
@@ -107,6 +118,8 @@ main (int argc, const char *argv[])
 	  break;
       }
 
+    if (poptPeekArg (optCon) && !username)
+      username = poptGetArg (optCon);
     if (poptPeekArg (optCon))
       {
 	poptPrintUsage (optCon, stderr, 0);
@@ -192,6 +205,19 @@ main (int argc, const char *argv[])
   if (df_hex (sizeof (reader), reader, hexreader) != sizeof (reader))
     errx (1, "Reader is hex XXXXXX (%s)", hexreader);
 
+  if (username && config)
+    {
+      xml_t u = NULL;
+      while ((u = xml_element_next_by_name (c, u, "user")))
+	if (!strcasecmp (xml_get (u, "@name") ? : "", username))
+	  break;
+      if (!u)
+	errx (1, "Cannot fine user %s", username);
+      if (!setname)
+	setname = xml_get (u, "@full-name");
+    }
+  char *fob = NULL;
+
   // Socket for responses
   int sp[2];
   if (socketpair (AF_LOCAL, SOCK_DGRAM, 0, sp) < 0)
@@ -214,7 +240,8 @@ main (int argc, const char *argv[])
       }
     if (!strcasecmp (m, "id"))
       {
-	printf ("Card found %.*s\n", msg->payloadlen, (char *) msg->payload);
+	asprintf (&fob, "%.*s", msg->payloadlen, (char *) msg->payload);
+	printf ("Card found %s\n", fob);
 	int n;
 	unsigned int id = 0, v;
 	for (n = 0; n < msg->payloadlen; n += 2)
@@ -222,10 +249,8 @@ main (int argc, const char *argv[])
 	    sscanf ((char *) msg->payload + n, "%02X", &v);
 	    id ^= (v << (((n / 2) & 3) * 8));
 	  }
-	id &=~0x80000000;
+	id &= ~0x80000000;
 	printf ("Fob ID as Max %08u\n", id % 100000000);
-	id |= 0x80000000;
-	printf ("Fob ID as Max %08u (secure)\n", id % 100000000);
 	send (sp[0], NULL, 0, 0);	// Indicate card gone
 	return;
       }
@@ -388,16 +413,25 @@ main (int argc, const char *argv[])
   if ((e = df_get_uid (&d, uid)))
     errx (1, "Getting UID: %s", e);
 
-  char hexuid[15];
-  sprintf (hexuid, "%02X%02X%02X%02X%02X%02X%02X", uid[0], uid[1], uid[2], uid[3], uid[4], uid[5], uid[6]);
-  printf ("UID %s\n", hexuid);
+  if (fob)
+    free (fob);
+  asprintf (&fob, "%02X%02X%02X%02X%02X%02X%02X", uid[0], uid[1], uid[2], uid[3], uid[4], uid[5], uid[6]);
+  printf ("UID %s\n", fob);
+  {				// Max reader ID
+    int n;
+    unsigned int id = 0;
+    for (n = 0; n < 7; n++)
+      id ^= (uid[n] << (((n / 2) & 3) * 8));
+    id |= 0x80000000;
+    printf ("Fob ID as Max %08u (secure)\n", id % 100000000);
+  }
 
   if (chdir (hexaid) && (mkdir (hexaid, 0700) || chdir (hexaid)))
     err (1, "Cannot make directory");
 
   unsigned char cardkey[16] = { 0 };
   {				// Do we have a key
-    int f = open (hexuid, O_RDONLY);
+    int f = open (fob, O_RDONLY);
     if (f >= 0)
       {
 	if (read (f, cardkey, 16) != 16)
@@ -412,7 +446,7 @@ main (int argc, const char *argv[])
 	if (read (f, cardkey, 16) != 16)
 	  err (1, "random");
 	close (f);
-	f = open (hexuid, O_CREAT | O_WRONLY, 0600);
+	f = open (fob, O_CREAT | O_WRONLY, 0600);
 	if (f < 0)
 	  err (1, "Cannot make UID key file");
 	if (write (f, cardkey, 16) != 16)
@@ -556,6 +590,58 @@ main (int argc, const char *argv[])
     errx (1, "Read mem: %s", e);
   printf ("Free memory: %u\n", mem);
 
+  if (config)
+    {
+      int l = strlen (fob);
+      xml_t u = NULL;
+      while ((u = xml_element_next_by_name (c, u, "user")))
+	{
+	  const char *f = xml_get (u, "@fob");
+	  if (f)
+	    {
+	      while (*f)
+		{
+		  if (!strncasecmp (f, fob, l) && (!f[l] || isspace (f[l])))
+		    break;
+		  while (*f && !isspace (*f))
+		    f++;
+		  while (*f && isspace (*f))
+		    f++;
+		}
+	      if (*f)
+		break;
+	    }
+	}
+      if (u)
+	{			// Found
+	  const char *n = xml_get (u, "@name");
+	  if (n)
+	    {
+	      if (!username)
+		printf ("Fob is for user %s\n", n);
+	      else if (strcasecmp (xml_get (u, "@name") ? : "", username))
+		errx (1, "Fob is already on user %s", n);
+	    }
+	}
+      else
+	{			// Find user and add fob
+	  while ((u = xml_element_next_by_name (c, u, "user")))
+	    if (!strcasecmp (xml_get (u, "@name") ? : "", username))
+	      break;
+	  {
+	    const char *f = xml_get (u, "@fob");
+	    if (f && !*f)
+	      f = NULL;
+	    xml_addf (u, "@fob", "%s%s%s", f ? " " : "", f ? : "");
+	  }
+	  // Write new config
+	  FILE *f = fopen (config, "w");
+	  if (!f)
+	    err (1, "Can't open %s", config);
+	  xml_write (f, c);
+	  fclose (f);
+	}
+    }
 
   printf ("Remove card\n");
   led ("G");
