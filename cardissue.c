@@ -632,7 +632,7 @@ main (int argc, const char *argv[])
 	    const char *f = xml_get (u, "@fob");
 	    if (f && !*f)
 	      f = NULL;
-	    xml_addf (u, "@fob", "%s%s%s", f ? " " : "", f ? : "");
+	    xml_addf (u, "@fob", "%s%s%s", fob ? " " : "", f ? : "");
 	  }
 	  // Write new config
 	  FILE *f = fopen (config, "w");
