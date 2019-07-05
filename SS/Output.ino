@@ -27,27 +27,27 @@ unsigned long outputnext = 0;
   app_settings
 #undef s
 
-  static void dooutput(int i)
+  static void dooutput(int o)
   {
     unsigned long out = outputstate;
     if (insafemode)out = outputoverride; // Safe mode, normally means outputs off but can be overridden
     out ^= outputinvert;
-    if (outputactive & (1 << i))
+    if (outputactive & (1 << o))
     {
-      if (outputrelay & (1 << i))
+      if (outputrelay & (1 << o))
       {
         byte msg[5];
         msg[0] = 0xA0;
-        msg[1] = outputpin[i];
-        msg[2] = ((out & (1 << i)) ? 1 : 0);
+        msg[1] = outputpin[o];
+        msg[2] = ((out & (1 << o)) ? 1 : 0);
         msg[3] = msg[0] + msg[1] + msg[2];
         msg[4] = 0x0A;
         Serial.write(msg, 5);
       }
-      else                    if (outputbeep & (1 << i))
-        analogWrite(outputpin[i], (out & (1 << i)) ? PWMRANGE / 2 : 0);
+      else if (outputbeep & (1 << o))
+        analogWrite(outputpin[o], (out & (1 << o)) ? PWMRANGE / 2 : 0);
       else
-        digitalWrite(outputpin[i], (out & (1 << i)) ? 1 : 0);
+        digitalWrite(outputpin[o], (out & (1 << o)) ? 1 : 0);
     }
   }
 
@@ -55,9 +55,22 @@ unsigned long outputnext = 0;
   { // Set an output externally
     o--; // Starts from 1
     if (!(outputactive & (1 << o)))return;
-    if (v)outputstate |= (1 << o);
-    else outputstate &= ~(1 << o);
-    dooutput(o);
+    if (v)
+    {
+      if (!(outputstate & (1 << o)))
+      {
+        outputstate |= (1 << o);
+        dooutput(o);
+      }
+    }
+    else
+    {
+      if (outputstate & (1 << o))
+      {
+        outputstate &= ~(1 << o);
+        dooutput(o);
+      }
+    }
   }
 
   boolean Output_active(int o)
@@ -67,11 +80,11 @@ unsigned long outputnext = 0;
     return true;
   }
 
-  boolean Output_get(int i)
+  boolean Output_get(int o)
   { // Read an output state
-    i--; // Starts from 1
-    if (!(outputactive & (1 << i)))return false;
-    if (outputstate & (1 << i))return true;
+    o--; // Starts from 1
+    if (!(outputactive & (1 << o)))return false;
+    if (outputstate & (1 << o))return true;
     return false;
   }
 
