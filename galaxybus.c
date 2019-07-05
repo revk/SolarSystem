@@ -445,7 +445,7 @@ poller (void *d)
       {
          if (!mydev[id].polling)
          {                      // Started responding
-            mydev[id].polling = 1;      // poll it now
+            //mydev[id].polling = 1;      // poll it now
             mydev[id].restart = 1;      // update it completely
          }
          if (cmd[1] == 0x00 && cmdlen == 4 && res[1] == 0xFF && reslen > 5)

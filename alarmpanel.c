@@ -366,6 +366,17 @@ static const char *real_port_name (char *v, port_p p);
 static port_app_t *port_app (port_p p);
 
 void
+mqtt_command (port_p p, const char *command)
+{ // Send door command
+  if (!p || !p->mqtt)
+    return;
+  char *topic;
+  asprintf (&topic, "command/SS/%s/%s", p->mqtt,command);
+  mosquitto_publish (mqtt, NULL, topic, 0, NULL, 1, 0);
+  free (topic);
+}
+
+void
 mqtt_led (port_p p, const char *seq)
 {				// Send LED via MQTT
   if (!p || !p->mqtt)
@@ -1478,6 +1489,7 @@ load_config (const char *configfile)
 	if (max)
 	  {			// short cut to set based on max reader
 	    port_p maxport = port_parse (max, NULL, -1);
+	    door[d].reader=maxport;
 	    if (maxport && !maxport->name)
 	      maxport->name = mydoor[d].name;
 	    if (port_device (maxport))
@@ -1494,6 +1506,10 @@ load_config (const char *configfile)
 		xml_t c = port_app (maxport)->config;
 		if (c)
 		  {
+		    int d= atoi (xml_get (c, "@door") ? : "");
+		    if(d)door[d].autonomous=d; // Auonomous door control
+		    else
+		    { // We control the door
 		    int i = atoi (xml_get (c, "@input") ? : "");
 		    int o = atoi (xml_get (c, "@output") ? : "");
 		    if (xml_get (c, "@nfc"))
@@ -1509,6 +1525,7 @@ load_config (const char *configfile)
 		    if (i >= 3 || ((v = xml_get (c, "@input3")) && *v))
 		      port_i_set (g, door[d].mainlock.i_unlock, max, 3, doorname, "Unlock");
 		    port_set (g, door[d].o_led, max, 0, doorname, "LED");
+		    }
 		  }
 	      }
 	  }
@@ -3136,7 +3153,7 @@ doevent (event_t * e)
 	if (d->group_fire & state[STATE_FIRE])
 	  door_open (e->door);	// fire alarm override
 	// Log some states
-	if (e->state == DOOR_CLOSED)
+	if (e->state == DOOR_UNLOCKED)
 	  d->opening = 1;
 	else if (e->state == DOOR_OPEN)
 	  d->opening = 0;
@@ -3487,7 +3504,7 @@ doevent (event_t * e)
 			    door_error (d);
 			  }
 		      }
-		    else if (door[d].state == DOOR_CLOSED)
+		    else if (door[d].state == DOOR_UNLOCKED)
 		      {
 			if (disarm && alarm_unset (u->name, port_name (port), disarm))
 			  door_confirm (d);
@@ -3922,7 +3939,7 @@ do_wscallback (websocket_t * w, xml_t head, xml_t data)
 	    continue;
 	  if (!(mydoor[d].group_lock & user->group_open[1]))
 	    continue;		// Not allowed
-	  if (door[d].state == DOOR_CLOSED)
+	  if (door[d].state == DOOR_UNLOCKED)
 	    door_lock (d);
 	  else if (door[d].state != DOOR_DEADLOCKED)
 	    door_open (d);
@@ -4297,6 +4314,14 @@ main (int argc, const char *argv[])
 		      etype = EVENT_FAULT;
 		    else if (!strncmp (tag, "tamper", 6) && port->tamper != state)
 		      etype = EVENT_TAMPER;
+		    else if (!strncmp (tag, "door", 6))
+		    {
+		      etype = EVENT_DOOR;
+		      state=0;
+#define d(n,l) if(!strncmp(msg->payload,#n,msg->payloadlen))state=DOOR_##n;
+		      DOOR
+#undef d
+		    }
 		    if (etype)
 		      {		// Send event
 			event_t *e = malloc (sizeof (*e));

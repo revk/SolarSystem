@@ -13,7 +13,7 @@
         d(DEADLOCKED,) \
         d(LOCKED,R) \
         d(UNLOCKING,--R) \
-        d(CLOSED,--G) \
+        d(UNLOCKED,--G) \
         d(OPEN,G) \
         d(LOCKING,RR-) \
         d(PROPPED,RG-) \
@@ -55,6 +55,7 @@ struct door_s
    port_p o_led[2];             // Max readers on which to show LED status. port is mask of LEDs we se
    port_p o_beep[2];            // Outputs for beep
    port_p i_open;               // Input for open
+   port_p reader;	// Device for reader
    unsigned char open_quiet:1;  // Don't beep on opening, just use LEDs
    // Times in 10th of a second
    unsigned int time_open;      // Time to allow for door to be opened once unlocked
@@ -63,6 +64,7 @@ struct door_s
    // Status - managed by library
    unsigned int timer;          // Ticks in current state
    unsigned int force_timer;    // Ticks delayed force state
+   unsigned char autonomous;	// Autonomous operation setting
    unsigned char state;         // Door state as last reported
    unsigned char blip;          // Blip counter
    unsigned char beep:2;        // Beep required (1=continuous, 2=intermittent)
