@@ -697,34 +697,39 @@ port_set_n (group_t g, volatile port_p * w, int n, const char *v, int p, int i, 
       inv = 1;
    }
    int q = 0;
-   while (v && *v && q < n)
-   {
-      const char *tag = v;
-      port_p port = port_parse (tag, &v, i);
-      if (p && !port)
-         port = port_parse (tag, &v, -1);
-      if (p && port && !port_port (port))
-         port = port_new_base (port, i, p);
-      if (!port)
-         continue;
-      port_app (port)->group |= g;
-      w[q++] = port;
-      int pd = port_device (port);
-      p = port_port (port);
-      if (p && pd && pd < MAX_DEVICE)
-      {                         // port
-         if (i == 1 && device[pd].type == TYPE_RIO)
-            device[pd].ri[p].response = 1;
-      }
-      if (i == 0)
-         port_app (port)->type = STATES;        // Not general output
-      if (p && name && !port->name)
-         asprintf ((char **) &port->name, "%s-%s", door ? : tag, name);
-      if (inv)
-         port_app (port)->invert = 1;
-   }
    if (v)
-      dolog (groups, "CONFIG", NULL, NULL, "Too many ports in list %s", v);
+   {
+      while (v && *v && q < n)
+      {
+         const char *tag = v;
+         port_p port = port_parse (tag, &v, i);
+         if (p && !port)
+            port = port_parse (tag, &v, -1);
+         if (p && port && !port_port (port))
+            port = port_new_base (port, i, p);
+         if (!port)
+            continue;
+         port_app (port)->group |= g;
+         w[q++] = port;
+         int pd = port_device (port);
+         p = port_port (port);
+         if (p && pd && pd < MAX_DEVICE)
+         {                      // port
+            if (i == 1 && device[pd].type == TYPE_RIO)
+               device[pd].ri[p].response = 1;
+         }
+         if (i == 0)
+            port_app (port)->type = STATES;     // Not general output
+         if (p && name && !port->name)
+            asprintf ((char **) &port->name, "%s-%s", door ? : tag, name);
+         if (inv)
+            port_app (port)->invert = 1;
+      }
+      if (v)
+         dolog (groups, "CONFIG", NULL, NULL, "Too many ports in list %s", v);
+      while (q < n)
+         w[q++] = NULL;
+   }
    return w;
 }
 
