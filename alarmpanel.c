@@ -1512,10 +1512,12 @@ load_config (const char *configfile)
                xml_t c = port_app (maxport)->config;
                if (c)
                {
+#if 0
                   int d = atoi (xml_get (c, "@door") ? : "");
                   if (d)
                      door[d].autonomous = d;    // Auonomous door control
                   else
+#endif
                   {             // We control the door
                      int i = atoi (xml_get (c, "@input") ? : "");
                      int o = atoi (xml_get (c, "@output") ? : "");
