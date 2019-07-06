@@ -54,9 +54,8 @@ char ledpattern[10];
 
 #define readertimeout 100
 
-  void NFC_led(const char *led)
+  void NFC_led(int len, const char *led)
   {
-    int len = strlen(led);
     if (len > sizeof(ledpattern))len = sizeof(ledpattern);
     if (len)
       memcpy((void*)ledpattern, led, len);
@@ -104,7 +103,7 @@ char ledpattern[10];
     }
     if (!strcasecmp_P(tag, "led") && len < sizeof(ledpattern))
     { // Sequence of LED colours (R/G/-) to repeat
-      NFC_led((const char*)message);
+      NFC_led(len, (const char*)message);
       return true;
     }
     return false;

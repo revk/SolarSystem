@@ -235,7 +235,7 @@ const char* Door_tamper = NULL;
       else if (doorstate != DOOR_AJAR)doorstate = DOOR_UNLOCKED;
       if (doorstate != lastdoorstate)
       { // State change
-        NFC_led(doorled[doorstate]);
+        NFC_led(strlen(doorled[doorstate]),doorled[doorstate]);
         if (doorstate == DOOR_OPEN) doortimeout = (now + doorprop ? : 1);
         else if (doorstate == DOOR_UNLOCKED && lastdoorstate == DOOR_OPEN) doortimeout = (now + doorclose ? : 1);
         else if (doorstate == DOOR_UNLOCKED)doortimeout = (now + dooropen ? : 1);
