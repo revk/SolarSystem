@@ -3,8 +3,9 @@
 // Connector type: Molex 6 way
 // Note, order genuine elechouse from china. NFC MODULE V4
 
-wire=5; // Build for desk not wall (0 for not)
+wire=0; // Build for desk not wall (0 for not)
 hsu=0;  // Set for smaller 4 pin connector
+spacer=10; // Spacer (if mounting on metal door)
 
 // Tolerances for your printer
 t=0.1;  // General xy tolerance/margin
@@ -127,118 +128,130 @@ module lid()
 
 module base()
 {
-    difference()
+
+    translate([0,0,spacer])
     {
-        union()
+        difference()
         {
-            translate([sidet+t-boxw/2,sidet+t-boxh/2,0])
-            cube([boxw-sidet*2-t*2,boxh-sidet*2-t*2-lip,backt]);
+            union()
+            {
+                if(spacer)
+                hull()
+                {
+                    translate([-boxw/2,-boxh/2,-spacer])
+                    cube([boxw,boxh,spacer]);
+                    translate([-boxw/2-spacer/2,-boxh/2-spacer/2,-spacer])
+                    cube([boxw+spacer,boxh+spacer,backt]);
+                }
+                translate([sidet+t-boxw/2,sidet+t-boxh/2,0])
+                cube([boxw-sidet*2-t*2,boxh-sidet*2-t*2-lip,backt]);
+                if(!wire)
+                translate([0,screwv/2,0])
+                cylinder(d=screwhd-t,h=backt+lip*2);
+                hull()
+                {
+                    translate([-pcbw/2,pcby-sidet-t,0])
+                    cube([pcbw,pcbh+sidet*2+t*2,boxt-frontt-z]);
+                    translate([-pcbw/2,pcby-sidet-t-connt+backt,0])
+                    cube([pcbw,pcbh+sidet*2+t*2+(connt-backt)*2,backt]);
+                }
+                // Tamper base
+                translate([boxw/2-tamperw-sidet-t-tamperm-tampere,boxh/2-tamperh-sidet-t-tamperm-tampere*2-lip,0])
+                difference()
+                {
+                    cube([tamperw+tampere,tamperh+tampere*2,boxt-frontt-tampere]);
+                    translate([-1,tampere,boxt-tampert-frontt])
+                    cube([tamperw+1,tamperh,tampert]);
+                }
+                // Lip
+                translate([sidet+t-boxw/2,boxh/2-lip*2-sidet,lip])
+                hull()
+                {
+                    cube([boxw-sidet*2-t*2,lip,lip]);
+                    translate([0,lip,lip])
+                    cube([boxw-sidet*2-t*2,lip,lip]);
+                }
+                // LED base
+                translate([ledx-boxw/2,boxh/2-ledy,0])
+                cylinder(d=ledd3,h=boxt-frontt-z);
+            }
+            translate([ledx-boxw/2,boxh/2-ledy,boxt-ledt])
+            cylinder(d=ledd2,h=boxt);  
+            // Wires for tamper
+            hull()
+            {
+                translate([boxw/2-tamperw-sidet-t-tamperm-tampere-3,boxh/2-tamperh/2-sidet-t-tamperm-tampere*2-lip,connt+pcbt])
+                cylinder(d=2,h=boxt);
+                translate([boxw/2-tamperw-sidet-t-tamperm-tampere-3,0,connt+pcbt])
+                cylinder(d=2,h=boxt);
+                
+            }
+            cable(egressx,wire/2+backt+lip*2);
+            // Board
+            hull()
+            {
+                translate([-t*2-pcbw/2,pcby-t,connt+t])
+                cube([pcbw+t*4,pcbh+t*2,0.01]);
+                translate([-t*2-pcbw/2,pcby+-t+clip,connt+t+pcbt])
+                cube([pcbw+t*4,pcbh+t*2-clip*2,0.01]);
+            }
+            hull()
+            { // Messy
+                translate([-t*2-pcbw/2,pcby,connt+t+pcbt])
+                cube([pcbw+t*4,pcbh+t,0.01]);
+                translate([-t*2-pcbw/2,pcby-t+lip,boxt-frontt])
+                cube([pcbw+t*4,pcbh+t*2-lip,0.01]);
+            }
+            translate([-t*2-pcbw/2+pcbm,pcby+pcbm-t,connt-pcbb])
+            cube([pcbw+t*2-pcbm*2,pcbh+t*2-pcbm*2,pcbb+1]);
+            // Screws
             if(!wire)
-            translate([0,screwv/2,0])
-            cylinder(d=screwhd-t,h=backt+lip*2);
-            hull()
             {
-                translate([-pcbw/2,pcby-sidet-t,0])
-                cube([pcbw,pcbh+sidet*2+t*2,boxt-frontt-z]);
-                translate([-pcbw/2,pcby-sidet-t-connt+backt,0])
-                cube([pcbw,pcbh+sidet*2+t*2+(connt-backt)*2,backt]);
-            }
-            // Tamper base
-            translate([boxw/2-tamperw-sidet-t-tamperm-tampere,boxh/2-tamperh-sidet-t-tamperm-tampere*2-lip,0])
-            difference()
-            {
-                cube([tamperw+tampere,tamperh+tampere*2,boxt-frontt-tampere]);
-                translate([-1,tampere,boxt-tampert-frontt])
-                cube([tamperw+1,tamperh,tampert]);
-            }
-            // Lip
-            translate([sidet+t-boxw/2,boxh/2-lip*2-sidet,lip])
-            hull()
-            {
-                cube([boxw-sidet*2-t*2,lip,lip]);
-                translate([0,lip,lip])
-                cube([boxw-sidet*2-t*2,lip,lip]);
-            }
-            // LED base
-            translate([ledx-boxw/2,boxh/2-ledy,0])
-            cylinder(d=ledd3,h=boxt-frontt-z);
-        }
-        translate([ledx-boxw/2,boxh/2-ledy,boxt-ledt])
-        cylinder(d=ledd2,h=boxt);  
-        // Wires for tamper
-        hull()
-        {
-            translate([boxw/2-tamperw-sidet-t-tamperm-tampere-3,boxh/2-tamperh/2-sidet-t-tamperm-tampere*2-lip,connt+pcbt])
-            cylinder(d=2,h=boxt);
-            translate([boxw/2-tamperw-sidet-t-tamperm-tampere-3,0,connt+pcbt])
-            cylinder(d=2,h=boxt);
-            
-        }
-        cable(egressx,wire/2+backt+lip*2);
-        // Board
-        hull()
-        {
-            translate([-t*2-pcbw/2,pcby-t,connt+t])
-            cube([pcbw+t*4,pcbh+t*2,0.01]);
-            translate([-t*2-pcbw/2,pcby+-t+clip,connt+t+pcbt])
-            cube([pcbw+t*4,pcbh+t*2-clip*2,0.01]);
-        }
-        hull()
-        { // Messy
-            translate([-t*2-pcbw/2,pcby,connt+t+pcbt])
-            cube([pcbw+t*4,pcbh+t,0.01]);
-            translate([-t*2-pcbw/2,pcby-t+lip,boxt-frontt])
-            cube([pcbw+t*4,pcbh+t*2-lip,0.01]);
-        }
-        translate([-t*2-pcbw/2+pcbm,pcby+pcbm-t,connt-pcbb])
-        cube([pcbw+t*2-pcbm*2,pcbh+t*2-pcbm*2,pcbb+1]);
-        // Screws
-        if(!wire)
-        {
-            translate([0,screwv/2,-1])
-            {
-                cylinder(d=screwd,h=boxt);
-                translate([0,0,1.01+backt])
-                cylinder(d=screwhd,h=boxt);
-            }
-            translate([0,-screwv/2,-1])
-            {
-                hull()
+                translate([0,screwv/2,-1-spacer])
                 {
-                    translate([-screwl,0,0])
-                    cylinder(d=screwd,h=boxt);
-                    translate([screwl,0,0])
-                    cylinder(d=screwd,h=boxt);
-                }
-                hull()
-                {
-                    translate([-screwl,0,1.01+backt])
-                    cylinder(d=screwhd,h=boxt);
-                    translate([screwl,0,1.01+backt])
+                    cylinder(d=screwd,h=boxt+spacer);
+                    translate([0,0,1.01+backt+spacer])
                     cylinder(d=screwhd,h=boxt);
                 }
+                translate([0,-screwv/2,-1-spacer])
+                {
+                    hull()
+                    {
+                        translate([-screwl,0,0])
+                        cylinder(d=screwd,h=boxt+spacer);
+                        translate([screwl,0,0])
+                        cylinder(d=screwd,h=boxt+spacer);
+                    }
+                    hull()
+                    {
+                        translate([-screwl,0,1.01+backt+spacer])
+                        cylinder(d=screwhd,h=boxt);
+                        translate([screwl,0,1.01+backt+spacer])
+                        cylinder(d=screwhd,h=boxt);
+                    }
+                }
             }
-        }
-        // Egress + connector
-        translate([connx-pcbw/2-t,pcby+conny-t,-1])
-        cube([connw+t*2,connh+t*2,boxt]);
-        hull()
-        {
-            translate([egressx,egressy,-1])
-            cylinder(d=egressd,boxt);
-            translate([connx-pcbw/2-t,pcby+conny+connh,-1])
-            cube([connw+t*2,conne+t,boxt]);
-        }
-        // LED
-        hull()
-        {
-            translate([ledx-boxw/2,boxh/2-ledy,boxt-ledt-2])
-            cylinder(d=ledw,h=boxt);
-            translate([ledx2,ledy2,connt-ledw])
-            cylinder(d=ledw,h=boxt);
+            // Egress + connector
+            translate([connx-pcbw/2-t,pcby+conny-t,-1-spacer])
+            cube([connw+t*2,connh+t*2,boxt+spacer]);
+            hull()
+            {
+                translate([egressx,egressy,-1-spacer])
+                cylinder(d=egressd,boxt+spacer);
+                translate([connx-pcbw/2-t,pcby+conny+connh,-1-spacer])
+                cube([connw+t*2,conne+t,boxt+spacer]);
+            }
+            // LED
+            hull()
+            {
+                translate([ledx-boxw/2,boxh/2-ledy,boxt-ledt-2])
+                cylinder(d=ledw,h=boxt);
+                translate([ledx2,ledy2,connt-ledw])
+                cylinder(d=ledw,h=boxt);
+            }
         }
     }
 }
 
-translate([boxw+sidet,0,0])lid();
+translate([boxw+sidet+spacer/2,0,0])lid();
 base();
