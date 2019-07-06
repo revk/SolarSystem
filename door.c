@@ -126,14 +126,14 @@ door_confirm (int d)
    door[d].blip = 10;
 }
 
-extern void mqtt_command (port_p, const char *);
+extern void mqtt_door (int, const char *);
 
 void
 door_open (int d)
 {                               // Unlock deadlock and lock, unless unlocked or actually open!
    if (door[d].autonomous)
    {                            // Send door lock control
-      mqtt_command (door[d].reader, "unlock");
+      mqtt_door (d, "unlock");
       return;
    }
    if (door[d].mainlock.locked && !port_input (door[d].i_open))
@@ -151,7 +151,7 @@ door_auth (int d)
 {                               // Stop beep (authorised door prop)
    if (door[d].autonomous)
    {
-      mqtt_command (door[d].reader, "prop");
+      mqtt_door (d, "prop");
       return;
    }
    door[d].auth = 1;
@@ -162,7 +162,7 @@ door_lock (int d)
 {                               // Lock
    if (door[d].autonomous)
    {
-      mqtt_command (door[d].reader, "lock");
+      mqtt_door (d, "lock");
       return;
    }
    if (!door[d].state)
@@ -175,7 +175,7 @@ door_deadlock (int d)
 {                               // Lock and deadlock
    if (door[d].autonomous)
    {
-      mqtt_command (door[d].reader, "deadlock");
+      mqtt_door (d, "deadlock");
       return;
    }
    lock_lock (&door[d].mainlock);
@@ -187,7 +187,7 @@ door_unlock (int d)
 {                               // Un deadlock
    if (door[d].autonomous)
    {
-      mqtt_command (door[d].reader, "lock");
+      mqtt_door (d, "lock");
       return;
    }
    lock_open (&door[d].deadlock);

@@ -195,6 +195,7 @@ struct port_app_s
      y;                         // Location on floor plan
    const char *t;               // Icon on floor plan
    group_t group;               // Which groups it applies to
+   int door;                    // Related door
    char *led;                   // LED state
    unsigned char onplan:1;      // Is on floor plan
    unsigned char found:1;       // Device has been seen
@@ -371,14 +372,20 @@ static const char *real_port_name (char *v, port_p p);
 static port_app_t *port_app (port_p p);
 
 void
-mqtt_command (port_p p, const char *command)
+mqtt_door (int d, const char *command)
 {                               // Send door command
-   if (!p || !p->mqtt)
-      return;
-   char *topic;
-   asprintf (&topic, "command/SS/%s/%s", p->mqtt, command);
-   mosquitto_publish (mqtt, NULL, topic, 0, NULL, 1, 0);
-   free (topic);
+   unsigned int n;
+   for (n = 0; n < sizeof (mydoor[0].i_fob) / sizeof (*mydoor[0].i_fob); n++)
+      if (mydoor[d].i_fob[n])
+      {
+         port_p p = mydoor[d].i_fob[n];
+         if (!p || !p->mqtt)
+            continue;
+         char *topic;
+         asprintf (&topic, "command/SS/%s/%s", p->mqtt, command);
+         mosquitto_publish (mqtt, NULL, topic, 0, NULL, 1, 0);
+         free (topic);
+      }
 }
 
 void
@@ -678,6 +685,7 @@ port_app (port_p p)
       if (!p->app)
          errx (1, "malloc");
       memset (p->app, 0, sizeof (*p->app));
+      p->app->door = -1;
    }
    return p->app;
 }
@@ -1501,7 +1509,6 @@ load_config (const char *configfile)
          if (max)
          {                      // short cut to set based on max reader
             port_p maxport = port_parse (max, NULL, -1);
-            door[d].reader = maxport;
             if (maxport && !maxport->name)
                maxport->name = mydoor[d].name;
             if (port_device (maxport))
@@ -1517,17 +1524,15 @@ load_config (const char *configfile)
                xml_t c = port_app (maxport)->config;
                if (c)
                {
-#if 0
+                  if ((v = xml_get (c, "@nfc")) && *v)
+                     port_set (g, mydoor[d].i_fob, max, 0, doorname, "Reader");
                   int d = atoi (xml_get (c, "@door") ? : "");
                   if (d)
                      door[d].autonomous = d;    // Auonomous door control
                   else
-#endif
-                  {             // We control the door
-                     int i = atoi (xml_get (c, "@input") ? : "");
-                     int o = atoi (xml_get (c, "@output") ? : "");
-                     if (xml_get (c, "@nfc"))
-                        port_set (g, mydoor[d].i_fob, max, 0, doorname, "Reader");
+                  {             // We control the door - set up inputs, outputs, and LED controls
+                     int i = atoi (xml_get (c, "@input") ? : "");       // Old style inputs count
+                     int o = atoi (xml_get (c, "@output") ? : "");      // Old style outputs count
                      if (o >= 1 || ((v = xml_get (c, "@output1")) && *v))
                         port_o_set (g, door[d].mainlock.o_unlock, max, 1, doorname, "Unlock");
                      if (xml_get (c, "@ranger"))
@@ -1569,6 +1574,10 @@ load_config (const char *configfile)
          else if (!strcasecmp (v, "set"))
             mydoor[d].lock_set = 1;
          mydoor[d].lockdown = state_parse (xml_get (x, "@lock-down"));
+         unsigned int n;
+         for (n = 0; n < sizeof (mydoor[0].i_fob) / sizeof (*mydoor[0].i_fob); n++)
+            if (mydoor[d].i_fob[n])
+               port_app (mydoor[d].i_fob[n])->door = d;
          door_lock (d);
          d++;
       }
@@ -4332,7 +4341,7 @@ main (int argc, const char *argv[])
                      etype = EVENT_FAULT;
                   else if (!strncmp (tag, "tamper", 6) && port->tamper != state)
                      etype = EVENT_TAMPER;
-                  else if (!strncmp (tag, "door", 6))
+                  else if (!strncmp (tag, "door", 4) && app->door != -1)
                   {
                      etype = EVENT_DOOR;
                      state = 0;
@@ -4353,9 +4362,11 @@ main (int argc, const char *argv[])
                      gettimeofday ((void *) &e->when, &tz);
                      if (etype == EVENT_DOOR)
                      {          // Which door
-                        int d;
-                        for (d = 0; d < MAX_DOOR && door[d].reader != port; d++);
+                        int d = app->door;
                         e->door = d;
+                        if (d < MAX_DOOR)
+                           door[d].state = state;
+                        syslog (LOG_INFO, "Door");      // TODO
                      }
                      postevent (e);
                   }
