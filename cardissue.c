@@ -623,7 +623,7 @@ main (int argc, const char *argv[])
 		errx (1, "Fob is already on user %s", n);
 	    }
 	}
-      else
+      else if(username)
 	{			// Find user and add fob
 	  while ((u = xml_element_next_by_name (c, u, "user")))
 	    if (!strcasecmp (xml_get (u, "@name") ? : "", username))
