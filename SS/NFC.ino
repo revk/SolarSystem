@@ -330,7 +330,8 @@ char ledpattern[10];
             { // Make an ID (8 digit BCD coded)
               unsigned int p, v = 0;;
               for (p = 0; p < 7; p++)v ^= (bid[p] << ((p & 3) * 8));
-              if (NFC.secure)v ^= 0x80000000;
+	      v&=~0x80000001;
+              if (NFC.secure)v |= 0x80000001;
               buf[3] = ((v / 10000000) % 10) * 16 + ((v / 1000000) % 10);
               buf[4] = ((v / 100000) % 10) * 16 + ((v / 10000) % 10);
               buf[5] = ((v / 1000) % 10) * 16 + ((v / 100) % 10);

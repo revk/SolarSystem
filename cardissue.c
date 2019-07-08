@@ -249,7 +249,7 @@ main (int argc, const char *argv[])
 	    sscanf ((char *) msg->payload + n, "%02X", &v);
 	    id ^= (v << (((n / 2) & 3) * 8));
 	  }
-	id &= ~0x80000000;
+	id &= ~0x80000001;
 	printf ("Fob ID as Max %08u\n", id % 100000000);
 	send (sp[0], NULL, 0, 0);	// Indicate card gone
 	return;
@@ -422,7 +422,7 @@ main (int argc, const char *argv[])
     unsigned int id = 0;
     for (n = 0; n < 7; n++)
       id ^= (uid[n] << (((n / 2) & 3) * 8));
-    id |= 0x80000000;
+    id |= 0x80000001;
     printf ("Fob ID as Max %08u (secure)\n", id % 100000000);
   }
 
