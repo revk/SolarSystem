@@ -1526,12 +1526,10 @@ load_config (const char *configfile)
                {
                   if ((v = xml_get (c, "@nfc")) && *v)
                      port_set (g, mydoor[d].i_fob, max, 0, doorname, "Reader");
-#if 0
-                  int d = atoi (xml_get (c, "@door") ? : "");
-                  if (d)
-                     door[d].autonomous = d;    // Auonomous door control
+                  int da = atoi (xml_get (c, "@door") ? : "");
+                  if (da)
+                     door[d].autonomous = da;    // Autonomous door control
                   else
-#endif
                   {             // We control the door - set up inputs, outputs, and LED controls
                      int i = atoi (xml_get (c, "@input") ? : "");       // Old style inputs count
                      int o = atoi (xml_get (c, "@output") ? : "");      // Old style outputs count
