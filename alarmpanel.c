@@ -3566,6 +3566,11 @@ doevent (event_t * e)
                                         secure ? " (secure)" : "");
                            }
                            // Other cases (unlocking) are transient and max will sometimes multiple read
+                        } else if (u->group_open[1] & mydoor[d].group_lock)
+                        {
+                           door_error (d);
+                           dolog (mydoor[d].group_lock, "FOBINSECURE", u->name, doorno, "Insecure fob %s%s", e->fob,
+                                  secure ? " (secure)" : "");
                         } else
                         {
                            door_error (d);
