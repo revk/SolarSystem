@@ -34,7 +34,6 @@ unsigned int inputstate = 0;
   boolean Input_get(int i)
   { // Read an input
     i--; // Starts from 1
-    if (!(inputactive & (1 << i)))return false;
     if (inputstate & (1 << i))return true;
     return false;
   }
