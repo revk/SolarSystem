@@ -55,7 +55,6 @@ struct door_s
    port_p o_led[2];             // Max readers on which to show LED status. port is mask of LEDs we se
    port_p o_beep[2];            // Outputs for beep
    port_p i_open;               // Input for open
-   port_p reader;	// Device for reader
    unsigned char open_quiet:1;  // Don't beep on opening, just use LEDs
    // Times in 10th of a second
    unsigned int time_open;      // Time to allow for door to be opened once unlocked
