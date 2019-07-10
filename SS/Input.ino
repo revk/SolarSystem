@@ -42,7 +42,6 @@ unsigned int inputstate = 0;
   void Input_set(int o, boolean v)
   { // Set an input externally
     o--; // Starts from 1
-    if (!(inputactive & (1 << o)))return;
     if (v)inputstate |= (1 << o);
     else inputstate &= ~(1 << o);
   }

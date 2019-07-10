@@ -177,12 +177,11 @@ char ledpattern[10];
   boolean NFC_loop(ESPRevK&revk, boolean force)
   {
     if (!nfcok)return false; // Not configured
-    long now = (millis() ? : 1); // Allowing for wrap, and using 0 to mean not set
+    static long lednext = 0;
+    static byte ledlast = 0xFF;
+    static byte ledpos = 0;    long now = (millis() ? : 1); // Allowing for wrap, and using 0 to mean not set
     if (nfcpoll < 1000)
     { // Normal working, setting poll to >=1s means test/debug so only do the polling not the led / tamper
-      static long lednext = 0;
-      static byte ledlast = 0xFF;
-      static byte ledpos = 0;
       if ((int)(lednext - now) <= 0)
       { // LED
         // Note this is simply a pattern or R, G, or - now, at 100ms
@@ -264,11 +263,13 @@ char ledpattern[10];
           { // Log and commit first, and ensure commit worked, before sending ID - this is noticably slower, so optional and not default
             if (NFC.desfire_log(err) >= 0)
             {
+              NFC.led(ledlast = 0);
               revk.event(F("id"), F("%s"), tid);
               Door_fob(tid);
             }
           } else
           { // Send ID first, then log to card, quicker, but could mean an access is not logged on the card if removed quickly enough
+            NFC.led(ledlast = 0);
             if (NFC.secure)
               Door_fob(tid);
             revk.event(F("id"), F("%s"), tid);
