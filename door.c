@@ -206,7 +206,7 @@ doorman (void *d)
       // Scan doors
       int d;
       for (d = 0; d < MAX_DOOR; d++)
-         if (door[d].state)
+         if (door[d].state&&!door[d].autonomous)
          {
             unsigned char state = door[d].state;        // State
             int open = port_input (door[d].i_open);

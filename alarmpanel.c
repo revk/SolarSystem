@@ -891,7 +891,7 @@ keypad_ws (xml_t root, keypad_t * k)
 xml_t
 door_ws (xml_t root, int d)
 {                               // Add door status to XML
-   if (!door[d].state)
+   if (!door[d].state && !door[d].autonomous)
       return NULL;              // Not active
    xml_t x = xml_element_add (root, "door");
    xml_addf (x, "@id", "DOOR%02d", d);
@@ -1488,7 +1488,6 @@ load_config (const char *configfile)
          }
          char doorno[8];
          snprintf (doorno, sizeof (doorno), "DOOR%02u", d);
-         //if (!xml_get (x, "@id"))
          xml_add (x, "@id", doorno);
          mydoor[d].a = atoi (xml_get (x, "@a") ? : "");
          mydoor[d].x = atoi (xml_get (x, "@x") ? : "");
@@ -1528,7 +1527,7 @@ load_config (const char *configfile)
                      port_set (g, mydoor[d].i_fob, max, 0, doorname, "Reader");
                   int da = atoi (xml_get (c, "@door") ? : "");
                   if (da)
-                     door[d].autonomous = da;    // Autonomous door control
+                     door[d].autonomous = da;   // Autonomous door control
                   else
                   {             // We control the door - set up inputs, outputs, and LED controls
                      int i = atoi (xml_get (c, "@input") ? : "");       // Old style inputs count
@@ -3174,25 +3173,27 @@ doevent (event_t * e)
          char *doorname = d->name;
          if (d->group_fire & state[STATE_FIRE])
             door_open (e->door);        // fire alarm override
-         // Log some states
-         if (e->state == DOOR_UNLOCKED)
-            d->opening = 1;
-         else if (e->state == DOOR_OPEN)
-            d->opening = 0;
-         else if (e->state == DOOR_LOCKING && d->opening)
-            dolog (d->group_lock, "DOORNOTOPEN", NULL, doorno, "Door was not opened");
-         else if (e->state == DOOR_AJAR)
-            dolog (d->group_lock, "DOORAJAR", NULL, doorno, "Door ajar (lock not engaged)");
-         else if (e->state == DOOR_FORCED)
-            dolog (d->group_lock, "DOORFORCED", NULL, doorno, "Door forced");
-         else if (e->state == DOOR_TAMPER)
-            dolog (d->group_lock, "DOORTAMPER", NULL, doorno, "Door tamper");
-         else if (e->state == DOOR_FAULT)
-            dolog (d->group_lock, "DOORFAULT", NULL, doorno, "Door fault");
-         else if (e->state == DOOR_PROPPED)
-            dolog (d->group_lock, "DOORPROPPED", NULL, doorno, "Door propped");
-         else if (e->state == DOOR_PROPPEDOK)
-            dolog (d->group_lock, "DOORPROPPEDOK", NULL, doorno, "Door prop authorised");
+         if (!door[e->door].autonomous)
+         {                      // Log some states
+            if (e->state == DOOR_UNLOCKED)
+               d->opening = 1;
+            else if (e->state == DOOR_OPEN)
+               d->opening = 0;
+            else if (e->state == DOOR_LOCKING && d->opening)
+               dolog (d->group_lock, "DOORNOTOPEN", NULL, doorno, "Door was not opened");
+            else if (e->state == DOOR_AJAR)
+               dolog (d->group_lock, "DOORAJAR", NULL, doorno, "Door ajar (lock not engaged)");
+            else if (e->state == DOOR_FORCED)
+               dolog (d->group_lock, "DOORFORCED", NULL, doorno, "Door forced");
+            else if (e->state == DOOR_TAMPER)
+               dolog (d->group_lock, "DOORTAMPER", NULL, doorno, "Door tamper");
+            else if (e->state == DOOR_FAULT)
+               dolog (d->group_lock, "DOORFAULT", NULL, doorno, "Door fault");
+            else if (e->state == DOOR_PROPPED)
+               dolog (d->group_lock, "DOORPROPPED", NULL, doorno, "Door propped");
+            else if (e->state == DOOR_PROPPEDOK)
+               dolog (d->group_lock, "DOORPROPPEDOK", NULL, doorno, "Door prop authorised");
+         }
          // Update alarm state linked to doors
          // Entry
          if (e->state == DOOR_OPEN)
@@ -3304,36 +3305,30 @@ doevent (event_t * e)
             for (s = 0; s < STATE_TRIGGERS; s++)
                rem_state (app->trigger[s], tag, name, s);
          }
-         if (app->isexit && e->state)
+         if (app->isexit && e->state && app->door >= 0)
          {
-            unsigned int d,
-              n;
-            for (d = 0; d < MAX_DOOR; d++)
-               for (n = 0; n < sizeof (mydoor[d].i_exit) / sizeof (*mydoor[d].i_exit); n++)
-                  if (mydoor[d].i_exit[n] == port)
-                  {
-                     char doorno[8];
-                     snprintf (doorno, sizeof (doorno), "DOOR%02u", d);
-                     if (!door_locked (d))
-                     {
-                        if (mydoor[d].airlock >= 0 && door[mydoor[d].airlock].state != DOOR_LOCKED
-                            && door[mydoor[d].airlock].state != DOOR_DEADLOCKED)
-                        {
-                           dolog (mydoor[d].group_lock, "DOORAIRLOCK", NULL, doorno,
-                                  "Airlock violation with DOOR%02d, exit rejected", mydoor[d].airlock);
-                           door_error (d);
-                        } else if (mydoor[d].lockdown && (state[mydoor[d].lockdown] & mydoor[d].group_lock))
-                        {       // Door in lockdown
-                           dolog (mydoor[d].group_lock, "DOORLOCKDOWN", NULL, doorno, "Lockdown violation, exit rejected");
-                           door_error (d);
-                        } else
-                           door_open (d);
-                     } else
-                     {
-                        dolog (mydoor[d].group_lock, "DOORREJECT", NULL, doorno, "Door is deadlocked, exit rejected");
-                        door_error (d);
-                     }
-                  }
+            unsigned int d = app->door;
+            char doorno[8];
+            snprintf (doorno, sizeof (doorno), "DOOR%02u", d);
+            if (!door_locked (d))
+            {
+               if (mydoor[d].airlock >= 0 && door[mydoor[d].airlock].state != DOOR_LOCKED
+                   && door[mydoor[d].airlock].state != DOOR_DEADLOCKED)
+               {
+                  dolog (mydoor[d].group_lock, "DOORAIRLOCK", NULL, doorno,
+                         "Airlock violation with DOOR%02d, exit rejected", mydoor[d].airlock);
+                  door_error (d);
+               } else if (mydoor[d].lockdown && (state[mydoor[d].lockdown] & mydoor[d].group_lock))
+               {                // Door in lockdown
+                  dolog (mydoor[d].group_lock, "DOORLOCKDOWN", NULL, doorno, "Lockdown violation, exit rejected");
+                  door_error (d);
+               } else
+                  door_open (d);
+            } else
+            {
+               dolog (mydoor[d].group_lock, "DOORREJECT", NULL, doorno, "Door is deadlocked, exit rejected");
+               door_error (d);
+            }
          }
 #ifdef	LIBWS
          xml_t root = xml_tree_new (NULL);
@@ -4350,9 +4345,10 @@ main (int argc, const char *argv[])
                   {
                      etype = EVENT_DOOR;
                      state = 0;
-#define d(n,l) if(!strncmp(msg->payload,#n,msg->payloadlen))state=DOOR_##n;
+#define d(n,l) {const char s[]=#n;if((unsigned)msg->payloadlen>=sizeof(s)-1&&!strncmp(msg->payload,#n,sizeof(s)-1))state=DOOR_##n;}
                      DOOR
 #undef d
+                        //syslog (LOG_INFO, "Door %d state %s [%.*s]", app->door, door_name[state], (int) msg->payloadlen, (char *) msg->payload);        // TODO
                   }
                   if (etype)
                   {             // Send event
@@ -4371,7 +4367,6 @@ main (int argc, const char *argv[])
                         e->door = d;
                         if (d < MAX_DOOR)
                            door[d].state = state;
-                        syslog (LOG_INFO, "Door");      // TODO
                      }
                      postevent (e);
                   }
