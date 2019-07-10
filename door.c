@@ -164,7 +164,7 @@ door_lock (int d)
 {				// Lock
   if (door[d].autonomous)
     {
-      if (door[d].state != DOOR_LOCKED)
+      if (door[d].state != DOOR_LOCKED && door[d].state != DOOR_LOCKING)
 	mqtt_door (d, "lock");
       return;
     }
@@ -191,7 +191,7 @@ door_unlock (int d)
 {				// Un deadlock
   if (door[d].autonomous)
     {
-      if (door[d].state != DOOR_LOCKED)
+      if (door[d].state != DOOR_LOCKED && door[d].state != DOOR_LOCKING)
 	mqtt_door (d, "lock");
       return;
     }
