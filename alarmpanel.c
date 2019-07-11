@@ -3479,8 +3479,8 @@ doevent (event_t * e)
    case EVENT_FOB_HELD:
    case EVENT_FOB_ACCESS:
       {                         // Check users, doors?
-         unsigned int d,
-           n;
+         int d;
+	 unsigned int n;
          user_t *u = NULL;
          if (!e->fob || !*e->fob)
             break;
@@ -3559,7 +3559,7 @@ doevent (event_t * e)
             keypad_login (app->keypad, u, port_name (port), secure);
          // We only do stuff for Max readers on doors - maybe we need some logic for stand alone max readers - or make a dummy door.
          d = app->door;
-         if (d)
+         if (d >= 0)
          {
             char doorno[8];
             snprintf (doorno, sizeof (doorno), "DOOR%02u", d);
