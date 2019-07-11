@@ -307,6 +307,7 @@ typedef struct user_s user_t;
 struct user_s
 {
    user_t *next;
+   xml_t config;
    char *name;
    char *fullname;
    char *hash;
@@ -1397,6 +1398,7 @@ load_config (const char *configfile)
    {                            // Scan users
       user_t *u = malloc (sizeof (*u));
       memset (u, 0, sizeof (*u));
+      u->config = x;
       u->name = xml_copy (x, "@name");
       u->fullname = xml_copy (x, "@full-name");
       if ((v = xml_get (x, "@pin")))
@@ -3080,7 +3082,7 @@ doevent (event_t * e)
          printf ("%d", e->state);
       if (e->event == EVENT_KEY)
          printf ("%02X", e->key);
-      if (e->event == EVENT_FOB || e->event == EVENT_FOB_HELD)
+      if (e->event == EVENT_FOB || e->event == EVENT_FOB_HELD || e->event == EVENT_FOB_ACCESS || e->event == EVENT_FOB_GONE)
          printf (" %s", e->fob);
       if (e->event == EVENT_RF)
          printf ("%08X %08X %02X %2d/10", e->rfserial, e->rfstatus, e->rftype, e->rfsignal);
@@ -3441,6 +3443,7 @@ doevent (event_t * e)
       break;
    case EVENT_FOB:
    case EVENT_FOB_HELD:
+   case EVENT_FOB_ACCESS:
       {                         // Check users, doors?
          unsigned int d,
            n;
@@ -3461,6 +3464,45 @@ doevent (event_t * e)
             if (n < sizeof (u->fob) / sizeof (*u->fob))
                break;
          }
+         if (u)
+         {                      // Time constraints
+            const char *from = xml_get (u->config, "@time-from");
+            const char *to = xml_get (u->config, "@time-to");
+            if (from || to)
+            {
+               struct tm t;
+               {
+                  time_t now = time (0);
+                  localtime_r (&now, &t);
+               }
+               if (from && strlen (from) == 28)
+                  from += t.tm_wday * 4;
+               else if (from && strlen (from) == 8 && t.tm_wday && t.tm_wday != 6)
+                  from += 4;
+               else if (from && strlen (from) != 4)
+                  from = NULL;
+               if (to && strlen (to) == 28)
+                  to += t.tm_wday * 4;
+               else if (to && strlen (to) == 8 && t.tm_wday && t.tm_wday != 6)
+                  to += 4;
+               else if (to && strlen (to) != 4)
+                  to = NULL;
+               char now[5];
+               sprintf (now, "%02d%02d", t.tm_hour, t.tm_min);
+               int fok = 0,
+                  tok = 0;
+               if (!from || strncmp (now, from, 4) > 0)
+                  fok = 1;
+               if (!to || strncmp (to, now, 4) > 0)
+                  tok = 1;
+               if (!((from && to && strncmp (from, to, 4) > 0 && (fok || tok)) || (fok && tok)))
+               {
+                  dolog (groups, "FOBTIME", NULL, port_name (port), "Out of time fob %s%s %.4s %.4s %.4s", e->fob,
+                         secure ? " (secure)" : "", from ? : "0000", now, to ? : "2400");
+                  return;
+               }
+            }
+         }
          if (id && device[id].pad)
          {                      // Prox for keypad, so somewhat different
             if (!u)
@@ -3479,129 +3521,128 @@ doevent (event_t * e)
          }
          if (app->keypad)
             keypad_login (app->keypad, u, port_name (port), secure);
-         int found = 0;
          // We only do stuff for Max readers on doors - maybe we need some logic for stand alone max readers - or make a dummy door.
-         for (d = 0; d < MAX_DOOR; d++)
-            for (n = 0; n < sizeof (mydoor[0].i_fob) / sizeof (*mydoor[0].i_fob); n++)
-               if (mydoor[d].i_fob[n] == port)
+         d = app->door;
+         if (d)
+         {
+            char doorno[8];
+            snprintf (doorno, sizeof (doorno), "DOOR%02u", d);
+            if (!u)
+            {
+               door_error (d);
+               door_lock (d);   // Cancel open
+               dolog (mydoor[d].group_lock, "FOBBAD", NULL, doorno, "Unrecognised fob %s%s", e->fob, secure ? " (secure)" : "");
+            } else if (e->event == EVENT_FOB)
+            {
+               // disarm is the groups that can be disarmed by this user on this door.
+               group_t disarm = ((u->group_arm[secure] & mydoor[d].group_arm & state[STATE_ARM]) | (port_name (port),
+                                                                                                    u->group_disarm[secure] &
+                                                                                                    mydoor[d].group_disarm &
+                                                                                                    state[STATE_SET]));
+               if (door[d].state == DOOR_PROPPED || door[d].state == DOOR_OPEN || door[d].state == DOOR_PROPPEDOK)
                {
-                  found++;
-                  char doorno[8];
-                  snprintf (doorno, sizeof (doorno), "DOOR%02u", d);
-                  if (!u)
+                  if (disarm && alarm_unset (u->name, port_name (port), disarm))
+                     door_confirm (d);
+                  if (u->group_prop[secure] & mydoor[d].group_lock)
                   {
-                     door_error (d);
-                     door_lock (d);     // Cancel open
-                     dolog (mydoor[d].group_lock, "FOBBAD", NULL, doorno, "Unrecognised fob %s%s", e->fob,
-                            secure ? " (secure)" : "");
-                  } else if (e->event == EVENT_FOB)
-                  {
-                     // disarm is the groups that can be disarmed by this user on this door.
-                     group_t disarm = ((u->group_arm[secure] & mydoor[d].group_arm & state[STATE_ARM]) | (port_name (port),
-                                                                                                          u->group_disarm[secure] &
-                                                                                                          mydoor[d].group_disarm &
-                                                                                                          state[STATE_SET]));
-                     if (door[d].state == DOOR_PROPPED || door[d].state == DOOR_OPEN || door[d].state == DOOR_PROPPEDOK)
+                     door_auth (d);
+                     if (door[d].state != DOOR_PROPPEDOK)
                      {
-                        if (disarm && alarm_unset (u->name, port_name (port), disarm))
-                           door_confirm (d);
-                        if (u->group_prop[secure] & mydoor[d].group_lock)
-                        {
-                           door_auth (d);
-                           if (door[d].state != DOOR_PROPPEDOK)
-                           {
-                              dolog (mydoor[d].group_lock, "DOORHELD", u->name, doorno, "Door prop authorised by fob %s%s", e->fob,
-                                     secure ? " (secure)" : "");
-                              door_confirm (d);
-                           }
-                        } else
-                        {
-                           dolog (mydoor[d].group_lock, "DOORSTILLPROPPED", u->name, doorno,
-                                  "Door prop not authorised by fob %s as not allowed", e->fob, secure ? " (secure)" : "");
-                           door_error (d);
-                        }
-                     } else if (door[d].state == DOOR_UNLOCKED)
-                     {
-                        if (disarm && alarm_unset (u->name, port_name (port), disarm))
-                           door_confirm (d);
-                        door_lock (d);  // Cancel open
-                        dolog (mydoor[d].group_lock, "DOORCANCEL", u->name, doorno, "Door open cancelled by fob %s%s", e->fob,
+                        dolog (mydoor[d].group_lock, "DOORHELD", u->name, doorno, "Door prop authorised by fob %s%s", e->fob,
                                secure ? " (secure)" : "");
-                        mydoor[d].opening = 0;  // Don' t report not opened
-                     } else
-                     {
-                        if (u->group_open[secure] & mydoor[d].group_lock)
-                        {
-                           if (mydoor[d].airlock >= 0 && door[mydoor[d].airlock].state != DOOR_LOCKED
-                               && door[mydoor[d].airlock].state != DOOR_DEADLOCKED)
-                           {
-                              dolog (mydoor[d].group_lock, "DOORAIRLOCK", u->name, doorno,
-                                     "Airlock violation with DOOR%02d using fob %s%s", mydoor[d].airlock, e->fob,
-                                     secure ? " (secure)" : "");
-                              door_error (d);
-                           } else if (mydoor[d].lockdown && (state[mydoor[d].lockdown] & mydoor[d].group_lock))
-                           {    // Door in lockdown
-                              dolog (mydoor[d].group_lock, "DOORLOCKDOWN", u->name, doorno,
-                                     "Lockdown violation with DOOR%02d using fob %s%s", mydoor[d].airlock, e->fob,
-                                     secure ? " (secure)" : "");
-                              door_error (d);
-                           } else if (mydoor[d].group_lock & ((state[STATE_SET] | state[STATE_ARM]) & ~disarm))
-                           {
-                              dolog (mydoor[d].group_lock, "DOORALARMED", u->name, doorno,
-                                     "Door is alarmed, not opening DOOR%02d using fob %s%s", d, e->fob, secure ? " (secure)" : "");
-                              door_error (d);
-                           } else
-                           {    // Allowed to be opened
-                              if (disarm && alarm_unset (u->name, port_name (port), disarm))
-                                 door_confirm (d);
-                              if (door[d].state != DOOR_OPEN && door[d].state != DOOR_UNLOCKING)
-                              { // Open it
-                                 dolog (mydoor[d].group_lock, "DOOROPEN", u->name, doorno, "Door open by fob %s%s", e->fob,
-                                        secure ? " (secure)" : "");
-                                 door_open (d); // Open the door
-                              } else if (door[d].state == DOOR_OPEN)
-                                 dolog (mydoor[d].group_lock, "FOBIGNORED", u->name, doorno, "Ignored fob %s as door open", e->fob,
-                                        secure ? " (secure)" : "");
-                           }
-                           // Other cases (unlocking) are transient and max will sometimes multiple read
-                        } else if (u->group_open[1] & mydoor[d].group_lock)
-                        {
-                           door_error (d);
-                           dolog (mydoor[d].group_lock, "FOBINSECURE", u->name, doorno, "Insecure fob %s%s", e->fob,
-                                  secure ? " (secure)" : "");
-                        } else
-                        {
-                           door_error (d);
-                           dolog (mydoor[d].group_lock, "FOBBAD", u->name, doorno, "Not allowed fob %s%s", e->fob,
-                                  secure ? " (secure)" : "");
-                        }
-                     }
-                  } else if (mydoor[d].time_set)
-                  {             // Held and we are allowed to set
-                     group_t set = (mydoor[d].group_arm & u->group_arm[secure] & ~state[STATE_SET] & ~state[STATE_ARM]);
-                     if (set)
-                     {
                         door_confirm (d);
-                        door_lock (d);
-                        alarm_arm (u->name, port_name (port), set, mydoor[d].time_set);
-                     } else
-                     {
-                        dolog (mydoor[d].group_lock, "FOBHELDIGNORED", u->name, doorno,
-                               "Ignored held fob %s%s as no setting options", e->fob, secure ? " (secure)" : "");
-                        door_error (d);
                      }
                   } else
                   {
-                     dolog (mydoor[d].group_lock, "FOBHELDIGNORED", u->name, doorno,
-                            "Ignored held fob %s%s as door cannot set alarm", e->fob, secure ? " (secure)" : "");
+                     dolog (mydoor[d].group_lock, "DOORSTILLPROPPED", u->name, doorno,
+                            "Door prop not authorised by fob %s as not allowed", e->fob, secure ? " (secure)" : "");
                      door_error (d);
                   }
+               } else if (door[d].state == DOOR_UNLOCKED)
+               {
+                  if (disarm && alarm_unset (u->name, port_name (port), disarm))
+                     door_confirm (d);
+                  door_lock (d);        // Cancel open
+                  dolog (mydoor[d].group_lock, "DOORCANCEL", u->name, doorno, "Door open cancelled by fob %s%s", e->fob,
+                         secure ? " (secure)" : "");
+                  mydoor[d].opening = 0;        // Don' t report not opened
+               } else
+               {
+                  if (u->group_open[secure] & mydoor[d].group_lock)
+                  {
+                     if (mydoor[d].airlock >= 0 && door[mydoor[d].airlock].state != DOOR_LOCKED
+                         && door[mydoor[d].airlock].state != DOOR_DEADLOCKED)
+                     {
+                        dolog (mydoor[d].group_lock, "DOORAIRLOCK", u->name, doorno,
+                               "Airlock violation with DOOR%02d using fob %s%s", mydoor[d].airlock, e->fob,
+                               secure ? " (secure)" : "");
+                        door_error (d);
+                     } else if (mydoor[d].lockdown && (state[mydoor[d].lockdown] & mydoor[d].group_lock))
+                     {          // Door in lockdown
+                        dolog (mydoor[d].group_lock, "DOORLOCKDOWN", u->name, doorno,
+                               "Lockdown violation with DOOR%02d using fob %s%s", mydoor[d].airlock, e->fob,
+                               secure ? " (secure)" : "");
+                        door_error (d);
+                     } else if (mydoor[d].group_lock & ((state[STATE_SET] | state[STATE_ARM]) & ~disarm))
+                     {
+                        dolog (mydoor[d].group_lock, "DOORALARMED", u->name, doorno,
+                               "Door is alarmed, not opening DOOR%02d using fob %s%s", d, e->fob, secure ? " (secure)" : "");
+                        door_error (d);
+                     } else
+                     {          // Allowed to be opened
+                        if (disarm && alarm_unset (u->name, port_name (port), disarm))
+                           door_confirm (d);
+                        if (door[d].state != DOOR_OPEN && door[d].state != DOOR_UNLOCKING)
+                        {       // Open it
+                           dolog (mydoor[d].group_lock, "DOOROPEN", u->name, doorno, "Door open by fob %s%s", e->fob,
+                                  secure ? " (secure)" : "");
+                           door_open (d);       // Open the door
+                        } else if (door[d].state == DOOR_OPEN)
+                           dolog (mydoor[d].group_lock, "FOBIGNORED", u->name, doorno, "Ignored fob %s as door open", e->fob,
+                                  secure ? " (secure)" : "");
+                     }
+                     // Other cases (unlocking) are transient and max will sometimes multiple read
+                  } else if (u->group_open[1] & mydoor[d].group_lock)
+                  {
+                     door_error (d);
+                     dolog (mydoor[d].group_lock, "FOBINSECURE", u->name, doorno, "Insecure fob %s%s", e->fob,
+                            secure ? " (secure)" : "");
+                  } else
+                  {
+                     door_error (d);
+                     dolog (mydoor[d].group_lock, "FOBBAD", u->name, doorno, "Not allowed fob %s%s", e->fob,
+                            secure ? " (secure)" : "");
+                  }
                }
-         if (!found)
-         {                      // Unassociated max reader
+            } else if (e->event == EVENT_FOB_ACCESS)
+            {
+               dolog (mydoor[d].group_lock, "FOBACCESS", u->name, doorno, "Access by fob %s%s", e->fob, secure ? " (secure)" : "");
+            } else if (mydoor[d].time_set)
+            {                   // Held and we are allowed to set
+               group_t set = (mydoor[d].group_arm & u->group_arm[secure] & ~state[STATE_SET] & ~state[STATE_ARM]);
+               if (set)
+               {
+                  door_confirm (d);
+                  door_lock (d);
+                  alarm_arm (u->name, port_name (port), set, mydoor[d].time_set);
+               } else
+               {
+                  dolog (mydoor[d].group_lock, "FOBHELDIGNORED", u->name, doorno,
+                         "Ignored held fob %s%s as no setting options", e->fob, secure ? " (secure)" : "");
+                  door_error (d);
+               }
+            } else
+            {
+               dolog (mydoor[d].group_lock, "FOBHELDIGNORED", u->name, doorno,
+                      "Ignored held fob %s%s as door cannot set alarm", e->fob, secure ? " (secure)" : "");
+               door_error (d);
+            }
+         } else if (e->event == EVENT_FOB_ACCESS)
+            dolog (mydoor[d].group_lock, "FOBACCESS", u ? u->name : NULL,
+                   port_name (port), "Access by fob %s%s", e->fob, secure ? " (secure)" : "");
+         else
             dolog (groups, e->event == EVENT_FOB_HELD ? "FOBHELDIGNORE" : "FOBIGNORED", u ? u->name : NULL, port_name (port),
                    "Ignored fob %s%s as reader not linked to a door", e->fob, secure ? " (secure)" : "");
-         }
       }
 
       break;
@@ -4034,8 +4075,7 @@ main (int argc, const char *argv[])
          {
           "config", 'c', POPT_ARG_STRING, &configfile, 0, "Config", "filename"},
          {
-          "set-file", 's', POPT_ARG_STRING | POPT_ARGFLAG_SHOW_DEFAULT, &setfile, 0, "File holding set state",
-          "filename"},
+          "set-file", 's', POPT_ARG_STRING | POPT_ARGFLAG_SHOW_DEFAULT, &setfile, 0, "File holding set state", "filename"},
          {
           "max-from", 0, POPT_ARG_STRING, &maxfrom, 0, "Max from port", "ID"},
          {
@@ -4287,8 +4327,7 @@ main (int argc, const char *argv[])
                            "@rangerdebug",
                            "@rangerpoll",
                            "@raangerhold",
-                           "@rangermax",
-                           "@rangerset",
+                           "@rangermax", "@rangerset",
                         };
                         xml_t system = xml_element_next_by_name (config, NULL, "system");
                         if (system)
@@ -4362,7 +4401,7 @@ main (int argc, const char *argv[])
                }
                if (port && !strncmp (t, "event", 5) && msg->payloadlen >= 1)
                {
-                  if (!strcmp (tag, "id") || !strcmp (tag, "held"))
+                  if (!strcmp (tag, "id") || !strcmp (tag, "held") || !strcmp (tag, "access") || !strcmp (tag, "gone"))
                   {             // Fob
                      char *m = alloca (msg->payloadlen + 1);
                      memcpy (m, msg->payload, msg->payloadlen);
@@ -4371,7 +4410,14 @@ main (int argc, const char *argv[])
                      if (!e)
                         errx (1, "malloc");
                      memset ((void *) e, 0, sizeof (*e));
-                     e->event = (!strcmp (tag, "id") ? EVENT_FOB : EVENT_FOB_HELD);
+                     if (!strcmp (tag, "id"))
+                        e->event = EVENT_FOB;
+                     else if (!strcmp (tag, "held"))
+                        e->event = EVENT_FOB_HELD;
+                     else if (!strcmp (tag, "access"))
+                        e->event = EVENT_FOB_ACCESS;
+                     else if (!strcmp (tag, "gone"))
+                        e->event = EVENT_FOB_GONE;
                      e->port = port;
                      strncpy ((char *) e->fob, m, sizeof (e->fob));
                      struct timezone tz;
