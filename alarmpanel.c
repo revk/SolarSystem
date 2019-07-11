@@ -29,6 +29,7 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <openssl/sha.h>
+#include <sys/stat.h>
 #include <fcntl.h>
 #include <netdb.h>
 #include <stdlib.h>
@@ -1033,6 +1034,39 @@ output_ws (xml_t root, port_p port)
    return NULL;
 }
 #endif
+
+time_t configtime = 0;
+static int
+config_time_check (const char *configfile)
+{                               // Check config timestamp changed - non zero if it has
+   struct stat s;
+   if (stat (configfile, &s) < 0)
+      err (1, "Config file error %s", configfile);
+   if (s.st_mtime != configtime)
+   {
+      configtime = s.st_mtime;
+      return 1;
+   }
+   return 0;
+}
+
+int settimezone = 0;
+static int
+timezone_check (void)
+{                               // Check timezone changed - non zero if it has
+   time_t now = time (0);
+   struct tm t;
+   localtime_r (&now, &t);
+   t.tm_isdst = 0;
+   time_t now2 = mktime (&t);
+   int diff = now2 - now;
+   if (diff != settimezone)
+   {
+      settimezone = diff;
+      return 1;
+   }
+   return 0;
+}
 
 static void
 save_config (const char *configfile)
@@ -4292,14 +4326,9 @@ main (int argc, const char *argv[])
                         mosquitto_publish (mqtt, NULL, topic, strlen (val ? : ""), val, 1, 0);
                         free (topic);
                      }
-                     {
-                        time_t now = time (0);
-                        struct tm t;
-                        localtime_r (&now, &t);
-                        t.tm_isdst = 0;
-                        time_t now2 = mktime (&t);
+                     {          // Set timezone
                         char tz[10];
-                        sprintf (tz, "%ld", now2 - now);
+                        sprintf (tz, "%d", settimezone);
                         set ("timezone", tz);
                      }
                      xml_attribute_t a = NULL;
@@ -4516,6 +4545,8 @@ main (int argc, const char *argv[])
    state_change (groups);
    time_t checkmissing = time (0) + 10;
    time_t lastmin = time (0);
+   config_time_check (configfile);
+   timezone_check ();
    while (1)
    {
       gettimeofday (&now, NULL);
@@ -4528,7 +4559,22 @@ main (int argc, const char *argv[])
       time_t nextpoll = (now.tv_sec + 60) / 60 * 60;
       if (nextpoll > lastmin)
       {                         // Every minute
-         save_config (configfile);
+         unsigned int d;
+         for (d = 0; d < MAX_DOOR && (!door[d].state || door[d].state == DOOR_LOCKED || door[d].state == DOOR_DEADLOCKED); d++);
+         if (d == MAX_DOOR)
+         {                      // Stable, check changes, save config...
+            if (config_time_check (configfile))
+            {
+               syslog (LOG_INFO, "Config file changed, exiting");
+               break;           // Exit as config has changed externally
+            }
+            if (timezone_check ())
+            {
+               syslog (LOG_INFO, "Time zone changed, exiting");
+               break;           // Exit as timezone has changed
+            }
+            save_config (configfile);
+         }
          lastmin = nextpoll;
          if (commfailcount)
          {
