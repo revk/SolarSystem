@@ -21,11 +21,11 @@ const char* Door_tamper = NULL;
 
 #define app_settings  \
   s(door,0);   \
-  s(doorunlock,2000); \
-  s(doorlock,2000); \
+  s(doorunlock,1000); \
+  s(doorlock,3000); \
   s(dooropen,5000); \
-  s(doorclose,0); \
-  s(doorprop,30000); \
+  s(doorclose,500); \
+  s(doorprop,60000); \
   s(doorexit,60000); \
   s(doorpoll,100); \
   s(doordebug,0); \
@@ -166,6 +166,8 @@ const char* Door_tamper = NULL;
     if (!door)return false; // No door control in operation
     if (Input_active(IOPEN) && Input_get(IOPEN)) doorstate = DOOR_OPEN;
     else doorstate = DOOR_LOCKING;
+    lock[0].timeout = 1000;
+    lock[1].timeout = 1000;
     return true;
   }
 
@@ -235,7 +237,7 @@ const char* Door_tamper = NULL;
       else if (doorstate != DOOR_AJAR)doorstate = DOOR_UNLOCKED;
       if (doorstate != lastdoorstate)
       { // State change
-        NFC_led(strlen(doorled[doorstate]),doorled[doorstate]);
+        NFC_led(strlen(doorled[doorstate]), doorled[doorstate]);
         if (doorstate == DOOR_OPEN) doortimeout = (now + doorprop ? : 1);
         else if (doorstate == DOOR_UNLOCKED && lastdoorstate == DOOR_OPEN) doortimeout = (now + doorclose ? : 1);
         else if (doorstate == DOOR_UNLOCKED)doortimeout = (now + dooropen ? : 1);
