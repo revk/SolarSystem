@@ -370,6 +370,9 @@ main (int argc, const char *argv[])
     errx (1, "Giving up");
   led ("G-");
 
+  if ((e = df_select_application (&d, NULL)))
+    errx (1, "Failed to select application: %s", e);
+
   unsigned char ver[28];
   if ((e = df_get_version (&d, ver)))
     errx (1, "Version: %s", e);
@@ -378,10 +381,6 @@ main (int argc, const char *argv[])
   for (n = 0; n < sizeof (ver); n++)
     printf (" %02X", ver[n]);
   printf ("\n");
-
-
-  if ((e = df_select_application (&d, NULL)))
-    errx (1, "Failed to select application: %s", e);
 
   // Check if card needs formatting
   if (!doformat)
