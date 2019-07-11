@@ -46,6 +46,7 @@
   s(holdtime,3000); \
   s(safemode,60); \
   t(fallback); \
+  t(blacklist); \
   s(pwm,1000); \
 
 #define s(n,d) int n=d;

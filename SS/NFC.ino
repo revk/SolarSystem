@@ -264,15 +264,12 @@ char ledpattern[10];
             if (NFC.desfire_log(err) >= 0)
             {
               NFC.led(ledlast = 0);
-              revk.event(F("id"), F("%s"), tid);
-              Door_fob(tid);
+              revk.event(Door_fob(tid) ? F("access") : F("id"), F("%s"), tid);
             }
           } else
           { // Send ID first, then log to card, quicker, but could mean an access is not logged on the card if removed quickly enough
             NFC.led(ledlast = 0);
-            if (NFC.secure)
-              Door_fob(tid);
-            revk.event(F("id"), F("%s"), tid);
+            revk.event(Door_fob(tid) ? F("access") : F("id"), F("%s"), tid);
             if (NFC.secure)
               NFC.desfire_log(err);
           }
@@ -331,7 +328,7 @@ char ledpattern[10];
             { // Make an ID (8 digit BCD coded)
               unsigned int p, v = 0;;
               for (p = 0; p < 7; p++)v ^= (bid[p] << ((p & 3) * 8));
-	      v&=~0x80000001;
+              v &= ~0x80000001;
               if (NFC.secure)v |= 0x80000001;
               buf[3] = ((v / 10000000) % 10) * 16 + ((v / 1000000) % 10);
               buf[4] = ((v / 100000) % 10) * 16 + ((v / 10000) % 10);

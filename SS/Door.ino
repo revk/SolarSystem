@@ -16,6 +16,9 @@
 #define OUNLOCK 1
 #define OBEEP 3
 
+#include "PN532RevK.h"
+extern PN532RevK NFC;
+
 const char* Door_fault = NULL;
 const char* Door_tamper = NULL;
 
@@ -51,6 +54,7 @@ const char* Door_tamper = NULL;
   d(UNLOCKING,--R) \
   d(UNLOCKED,--G) \
   d(OPEN,G) \
+  d(CLOSED,--G) \
   d(LOCKING,RR-) \
   d(PROPPED,RG-) \
   d(AJAR,RG-) \
@@ -122,9 +126,22 @@ const char* Door_tamper = NULL;
     doorpropable = true;
   }
 
-  void Door_fob(char *id)
-  {
-    if ((door >= 3 && !doordeadlock) || (insafemode && fallback && !strncmp(id, fallback, 14)))Door_unlock();
+  boolean Door_fob(char *id)
+  { // Consider fob, and return true if we are opening door
+    boolean ret = false;
+    if (blacklist)
+    { // Check blacklist
+      // TODO
+    }
+    if (doorstate == DOOR_OPEN)return false; // Door is open!
+    if (door >= 4 && NFC.secure)
+    { // Autonomous door control logic - check access file and times, etc
+      // TODO
+    }
+    else if (door == 3 && NFC.secure && !doordeadlock) ret = true;
+    else if (insafemode && fallback && !strncmp(id, fallback, 14)) ret = true;
+    if (ret)Door_unlock(); // Open the door
+    return ret;
   }
 
   const char* Door_setting(const char *tag, const byte *value, size_t len)
@@ -234,22 +251,26 @@ const char* Door_tamper = NULL;
                ((doordeadlock && lock[1].state == LOCK_NOLOCK) || lock[1].state == LOCK_LOCKED || lock[1].state == LOCK_UNLOCKFAIL))doorstate = DOOR_DEADLOCKED;
       else if (lock[0].state == LOCK_LOCKED || lock[0].state == LOCK_UNLOCKFAIL)doorstate = DOOR_LOCKED;
       else if (lock[0].state == LOCK_LOCKFAIL && (lock[1].state == LOCK_NOLOCK || lock[1].state == LOCK_UNLOCKED))doorstate = DOOR_AJAR;
-      else if (doorstate != DOOR_AJAR)doorstate = DOOR_UNLOCKED;
+      else if (doorstate == DOOR_OPEN)doorstate = DOOR_CLOSED;
+      else if (doorstate != DOOR_AJAR && doorstate != DOOR_CLOSED)doorstate = DOOR_UNLOCKED;
       if (doorstate != lastdoorstate)
       { // State change
         NFC_led(strlen(doorled[doorstate]), doorled[doorstate]);
         if (doorstate == DOOR_OPEN) doortimeout = (now + doorprop ? : 1);
-        else if (doorstate == DOOR_UNLOCKED && lastdoorstate == DOOR_OPEN) doortimeout = (now + doorclose ? : 1);
+        else if (doorstate == DOOR_CLOSED) doortimeout = (now + doorclose ? : 1);
         else if (doorstate == DOOR_UNLOCKED)doortimeout = (now + dooropen ? : 1);
         else doortimeout = 0;
-        Output_set(OBEEP, lastdoorstate != DOOR_OPEN && doorstate == DOOR_UNLOCKED && doorbeep ? 1 : 0);
+        Output_set(OBEEP, doorstate == DOOR_UNLOCKED && doorbeep ? 1 : 0);
       } else if (doortimeout && (int)(doortimeout - now) < 0)
       { // timeout
         Output_set(OBEEP, 0);
         doortimeout = 0;
         if (doorstate == DOOR_OPEN && !doorpropable)doorstate = DOOR_PROPPED;
-        else if (doorstate == DOOR_UNLOCKED && doordeadlock)Door_deadlock();
-        else if (doorstate == DOOR_UNLOCKED)Door_lock();
+        else if (doorstate == DOOR_UNLOCKED || doorstate == DOOR_CLOSED)
+        {
+          if (doordeadlock)Door_deadlock();
+          else Door_lock();
+        }
       }
       static long exit1 = 0; // Main exit button
       if (Input_get(IEXIT1))
