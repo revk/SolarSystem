@@ -243,7 +243,8 @@ void door_open (int d);         // Open the door
 void door_auth (int d);         // Auth propped
 void door_lock (int d);         // Lock the door
 void door_deadlock (int d);     // Deadlock the door
-void door_unlock (int d);       // Un deadlock the door
+void door_unlock (int d);       // Unlock the door
+void door_undeadlock (int d);       // Un deadlock the door
 event_t *bus_event (long long usec);    // Get next event, wait up to usec if none ready
 void postevent (event_t * e);   // Post an event (updates input/tamper/fault on port from state)
 
