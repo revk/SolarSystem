@@ -4303,15 +4303,12 @@ main (int argc, const char *argv[])
                      char *v;
                      if ((v = xml_get (app->config, "@nfc")) && *v)
                      {
-                        if (xml_get (app->config, "@input1") || xml_get (app->config, "@output1"))
-                        {       // Had inputs and outputs, so not a management reader
-                           v = xml_get (app->config, "@aid") ? : xml_get (config, "system@aid");
-                           if (v && strlen (v) == 6)
-                              set ("0xaid", v);
-                           v = xml_get (app->config, "@aes") ? : xml_get (config, "system@aes");
-                           if (v && strlen (v) == 32)
-                              set ("0xaes", v);
-                        }
+                        v = xml_get (app->config, "@aid") ? : xml_get (config, "system@aid");
+                        if (v && strlen (v) == 6)
+                           set ("0xaid", v);
+                        v = xml_get (app->config, "@aes") ? : xml_get (config, "system@aes");
+                        if (v && strlen (v) == 32)
+                           set ("0xaes", v);
                         char *led = app->led;
                         app->led = NULL;
                         mqtt_led (port, led);
