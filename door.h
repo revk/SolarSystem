@@ -15,6 +15,7 @@
         d(UNLOCKING,--R) \
         d(UNLOCKED,--G) \
         d(OPEN,G) \
+        d(CLOSED,--G) \
         d(LOCKING,RR-) \
         d(PROPPED,RG-) \
         d(PROPPEDOK,GGGGGG-) \
