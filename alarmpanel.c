@@ -3491,14 +3491,15 @@ doevent (event_t * e)
                sprintf (now, "%02d%02d", t.tm_hour, t.tm_min);
                int fok = 0,
                   tok = 0;
-               if (!from || strncmp (now, from, 4) > 0)
+               if (!from || strncmp (now, from, 4) >= 0)
                   fok = 1;
                if (!to || strncmp (to, now, 4) > 0)
                   tok = 1;
                if (!((from && to && strncmp (from, to, 4) > 0 && (fok || tok)) || (fok && tok)))
                {
-                  dolog (groups, "FOBTIME", NULL, port_name (port), "Out of time fob %s%s %.4s %.4s %.4s", e->fob,
-                         secure ? " (secure)" : "", from ? : "0000", now, to ? : "2400");
+                  dolog (groups, e->event == EVENT_FOB_ACCESS ? "FOBTIMEALLOWED" : "FOBTIME", NULL, port_name (port),
+                         "Out of time fob %s%s %.4s %.4s %.4s", e->fob, secure ? " (secure)" : "", from ? : "0000", now,
+                         to ? : "2400");
                   return;
                }
             }
@@ -3506,7 +3507,8 @@ doevent (event_t * e)
          if (id && device[id].pad)
          {                      // Prox for keypad, so somewhat different
             if (!u)
-               dolog (groups, "FOBBAD", NULL, port_name (port), "Unrecognised fob %s%s", e->fob, secure ? " (secure)" : "");
+               dolog (groups, e->event == EVENT_FOB_ACCESS ? "FOBBADALLOWED" : "FOBBAD", NULL, port_name (port),
+                      "Unrecognised fob %s%s", e->fob, secure ? " (secure)" : "");
             else
             {
                keypad_t *k;
@@ -3514,8 +3516,8 @@ doevent (event_t * e)
                if (k)
                   keypad_login (k, u, port_name (port), secure);
                else
-                  dolog (groups, "FOBBAD", NULL, port_name (port), "Prox not linked to keypad, fob %s%s", e->fob,
-                         secure ? " (secure)" : "");
+                  dolog (groups, e->event == EVENT_FOB_ACCESS ? "FOBBADALLOWED" : "FOBBAD", NULL, port_name (port),
+                         "Prox not linked to keypad, fob %s%s", e->fob, secure ? " (secure)" : "");
             }
             return;
          }
@@ -3531,7 +3533,8 @@ doevent (event_t * e)
             {
                door_error (d);
                door_lock (d);   // Cancel open
-               dolog (mydoor[d].group_lock, "FOBBAD", NULL, doorno, "Unrecognised fob %s%s", e->fob, secure ? " (secure)" : "");
+               dolog (mydoor[d].group_lock, e->event == EVENT_FOB_ACCESS ? "FOBBADALLOWED" : "FOBBAD", NULL, doorno,
+                      "Unrecognised fob %s%s", e->fob, secure ? " (secure)" : "");
             } else if (e->event == EVENT_FOB)
             {
                // disarm is the groups that can be disarmed by this user on this door.
