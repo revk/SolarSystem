@@ -3500,7 +3500,7 @@ doevent (event_t * e)
             if (n < sizeof (u->fob) / sizeof (*u->fob))
                break;
          }
-         if (u)
+         if (u && e->event != EVENT_FOB_HELD)
          {                      // Time constraints
             const char *from = xml_get (u->config, "@time-from");
             const char *to = xml_get (u->config, "@time-to");
@@ -3533,7 +3533,9 @@ doevent (event_t * e)
                   tok = 1;
                if (!((from && to && strncmp (from, to, 4) > 0 && (fok || tok)) || (fok && tok)))
                {
-                  dolog (groups, e->event == EVENT_FOB_ACCESS ? "FOBTIMEALLOWED" : "FOBTIME", NULL, port_name (port),
+                  if (app->door >= 0)
+                     door_lock (app->door);     // Override
+                  dolog (groups, e->event == EVENT_FOB_ACCESS ? "FOBBADACCESS" : "FOBTIME", NULL, port_name (port),
                          "Out of time fob %s%s %.4s %.4s %.4s", e->fob, secure ? " (secure)" : "", from ? : "0000", now,
                          to ? : "2400");
                   return;
@@ -3543,7 +3545,7 @@ doevent (event_t * e)
          if (id && device[id].pad)
          {                      // Prox for keypad, so somewhat different
             if (!u)
-               dolog (groups, e->event == EVENT_FOB_ACCESS ? "FOBBADALLOWED" : "FOBBAD", NULL, port_name (port),
+               dolog (groups, e->event == EVENT_FOB_ACCESS ? "FOBBADACCESS" : "FOBBAD", NULL, port_name (port),
                       "Unrecognised fob %s%s", e->fob, secure ? " (secure)" : "");
             else
             {
@@ -3552,7 +3554,7 @@ doevent (event_t * e)
                if (k)
                   keypad_login (k, u, port_name (port), secure);
                else
-                  dolog (groups, e->event == EVENT_FOB_ACCESS ? "FOBBADALLOWED" : "FOBBAD", NULL, port_name (port),
+                  dolog (groups, e->event == EVENT_FOB_ACCESS ? "FOBBADACCESS" : "FOBBAD", NULL, port_name (port),
                          "Prox not linked to keypad, fob %s%s", e->fob, secure ? " (secure)" : "");
             }
             return;
@@ -3569,7 +3571,7 @@ doevent (event_t * e)
             {
                door_error (d);
                door_lock (d);   // Cancel open
-               dolog (mydoor[d].group_lock, e->event == EVENT_FOB_ACCESS ? "FOBBADALLOWED" : "FOBBAD", NULL, doorno,
+               dolog (mydoor[d].group_lock, e->event == EVENT_FOB_ACCESS ? "FOBBADACCESS" : "FOBBAD", NULL, doorno,
                       "Unrecognised fob %s%s", e->fob, secure ? " (secure)" : "");
             } else if (e->event == EVENT_FOB)
             {
