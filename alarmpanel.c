@@ -198,9 +198,10 @@ struct port_app_s
    group_t group;               // Which groups it applies to
    int door;                    // Related door
    char *led;                   // LED state
+   time_t missing;              // When missing
+   unsigned char missed:1;      // Reported missing
    unsigned char onplan:1;      // Is on floor plan
    unsigned char found:1;       // Device has been seen
-   unsigned char missing:1;     // Device missing
    unsigned char invert:1;      // Invert logic
    unsigned char tamper:1;      // Known tamper state
    unsigned char fault:1;       // Known fault state
@@ -424,25 +425,6 @@ mqtt_output (port_p p, int v)
    char msg = v + '0';
    mosquitto_publish (mqtt, NULL, topic, 1, &msg, 1, 0);
    free (topic);
-}
-
-void
-scan_missing (void)
-{
-   port_p p;
-   for (p = ports; p; p = p->next)
-      if (port_mqtt (p) && !p->port && !port_app (p)->found && !port_app (p)->missing)
-      {
-         event_t *e = malloc (sizeof (*e));
-         if (!e)
-            errx (1, "malloc");
-         memset ((void *) e, 0, sizeof (*e));
-         e->event = EVENT_MISSING;
-         e->port = p;
-         struct timezone tz;
-         gettimeofday ((void *) &e->when, &tz);
-         postevent (e);
-      }
 }
 
 static int
@@ -688,6 +670,7 @@ port_app (port_p p)
          errx (1, "malloc");
       memset (p->app, 0, sizeof (*p->app));
       p->app->door = -1;
+      p->app->missing = time (0);
    }
    return p->app;
 }
@@ -1937,6 +1920,21 @@ add_state (group_t g, const char *port, const char *name, state_t which)
 }
 
 static void
+scan_missing (void)
+{
+   time_t old = time (0) - 300;
+   port_app_t *app;
+   port_p p;
+   for (p = ports; p; p = p->next)
+      if (port_mqtt (p) && !p->port && !(app = port_app (p))->missed && app->missing && app->missing < old)
+      {
+         app->missed = 1;
+         add_tamper (app->group, port_name (p), p->name);
+      }
+}
+
+
+static void
 rem_state (group_t g, const char *port, const char *name, int which)
 {
    if (!g)
@@ -3179,10 +3177,9 @@ doevent (event_t * e)
             if (app->led)
                free (app->led);
             app->led = NULL;
-            if (port_mqtt (port))
-               rem_warning (app->group, port_name (port), port->name);
-            else
+            if (!port_mqtt (port) || app->missed)
                rem_tamper (app->group, port_name (port), port->name);
+            app->missed = 0;
          } else if (!app->found)
          {
             dolog (groups, "BUSFOUND", NULL, port_name (port), "Device on bus");
@@ -3195,11 +3192,9 @@ doevent (event_t * e)
    case EVENT_MISSING:
       if (app && !app->missing)
       {
-         app->missing = 1;
+         app->missing = time (0);
          dolog (app->group, "BUSMISSING", NULL, port_name (port), "Device missing from bus");
-         if (port_mqtt (port))
-            add_warning (app->group, port_name (port), port->name);
-         else
+         if (!port_mqtt (port))
             add_tamper (app->group, port_name (port), port->name);
       }
       break;
@@ -3217,9 +3212,13 @@ doevent (event_t * e)
          // Log some states (not all apply if autonomous operation)
          if (e->state == DOOR_UNLOCKED)
             d->opening = 1;
-         else if (e->state == DOOR_OPEN || e->state == DOOR_OFFLINE)
+         else if (e->state == DOOR_OPEN)
             d->opening = 0;
-         else if (e->state == DOOR_LOCKING && d->opening)
+         else if (e->state == DOOR_OFFLINE)
+         {
+            d->opening = 0;
+            dolog (d->group_lock, "DOOROFFLINE", NULL, doorno, "Door had gone off line");
+         } else if (e->state == DOOR_LOCKING && d->opening)
             dolog (d->group_lock, "DOORNOTOPEN", NULL, doorno, "Door was not opened");
          else if (e->state == DOOR_AJAR)
             dolog (d->group_lock, "DOORAJAR", NULL, doorno, "Door ajar (lock not engaged)");
@@ -4365,7 +4364,8 @@ main (int argc, const char *argv[])
                            "@wifipass3",
                            "@mqtthost2",
                            "@fallback",
-                           "@safemode",
+			   "@blacklist",
+                           "@offline",
                            "@rangerdebug",
                            "@rangerpoll",
                            "@raangerhold",
@@ -4558,7 +4558,6 @@ main (int argc, const char *argv[])
       }
    }
    state_change (groups);
-   time_t checkmissing = time (0) + 10;
    time_t lastmin = time (0);
    config_time_check (configfile);
    timezone_check ();
@@ -4566,14 +4565,10 @@ main (int argc, const char *argv[])
    {
       gettimeofday (&now, NULL);
       localtime_r (&now.tv_sec, &lnow);
-      if (checkmissing && now.tv_sec > checkmissing)
-      {
-         checkmissing = 0;
-         scan_missing ();
-      }
       time_t nextpoll = (now.tv_sec + 60) / 60 * 60;
       if (nextpoll > lastmin)
       {                         // Every minute
+         scan_missing ();
          unsigned int d;
          for (d = 0; d < MAX_DOOR && (!door[d].state || door[d].state == DOOR_LOCKED || door[d].state == DOOR_DEADLOCKED); d++);
          if (d == MAX_DOOR)
