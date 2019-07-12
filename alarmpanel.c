@@ -1850,18 +1850,18 @@ del_state (group_t g, statelist_t * s)
    free (s);
 }
 
-#define add_entry(g,p,n)	add_state(g,p,n,STATE_ENTRY)
-#define rem_entry(g,p,n)	rem_state(g,p,n,STATE_ENTRY)
-#define add_intruder(g,p,n)	add_state(g,p,n,STATE_ZONE)
-#define rem_intruder(g,p,n)	rem_state(g,p,n,STATE_ZONE)
-#define add_tamper(g,p,n)	add_state(g,p,n,STATE_TAMPER)
-#define rem_tamper(g,p,n)	rem_state(g,p,n,STATE_TAMPER)
-#define add_fault(g,p,n)	add_state(g,p,n,STATE_FAULT)
-#define rem_fault(g,p,n)	rem_state(g,p,n,STATE_FAULT)
-#define add_warning(g,p,n)	add_state(g,p,n,STATE_WARNING)
-#define rem_warning(g,p,n)	rem_state(g,p,n,STATE_WARNING)
+#define add_entry(g,p,n,m)	add_state(g,p,n,m,STATE_ENTRY)
+#define rem_entry(g,p,n,m)	rem_state(g,p,n,m,STATE_ENTRY)
+#define add_intruder(g,p,n,m)	add_state(g,p,n,m,STATE_ZONE)
+#define rem_intruder(g,p,n,m)	rem_state(g,p,n,m,STATE_ZONE)
+#define add_tamper(g,p,n,m)	add_state(g,p,n,m,STATE_TAMPER)
+#define rem_tamper(g,p,n,m)	rem_state(g,p,n,m,STATE_TAMPER)
+#define add_fault(g,p,n,m)	add_state(g,p,n,m,STATE_FAULT)
+#define rem_fault(g,p,n,m)	rem_state(g,p,n,m,STATE_FAULT)
+#define add_warning(g,p,n,m)	add_state(g,p,n,m,STATE_WARNING)
+#define rem_warning(g,p,n,m)	rem_state(g,p,n,m,STATE_WARNING)
 static void
-add_state (group_t g, const char *port, const char *name, state_t which)
+add_state (group_t g, const char *port, const char *name, const char *message, state_t which)
 {                               // alarms=1 means just latches, alarms=2 means alarms
    if (!g)
       return;
@@ -1915,7 +1915,7 @@ add_state (group_t g, const char *port, const char *name, state_t which)
          //if (debug) printf ("Group %d %s=%d %s\n", n, state_name[which], group[n].count[which], port ? : "");
       }
    if (logging)
-      dolog (logging, state_name[which], NULL, port, "%s", name ? : "");
+      dolog (logging, state_name[which], NULL, port, "%s %s", name ? : "", message ? : "");
    state_change (changed);
 }
 
@@ -1929,14 +1929,15 @@ scan_missing (void)
       if (port_mqtt (p) && !p->port && !(app = port_app (p))->missed && app->missing && app->missing < old)
       {
          app->missed = 1;
-         add_tamper (app->group, port_name (p), p->name);
+         add_tamper (app->group, port_name (p), p->name, NULL);
       }
 }
 
 
 static void
-rem_state (group_t g, const char *port, const char *name, int which)
+rem_state (group_t g, const char *port, const char *name, const char *message, int which)
 {
+   message = message;
    if (!g)
       return;
    statelist_t *s;
@@ -3122,6 +3123,8 @@ doevent (event_t * e)
          printf (" %s", e->fob);
       if (e->event == EVENT_RF)
          printf ("%08X %08X %02X %2d/10", e->rfserial, e->rfstatus, e->rftype, e->rfsignal);
+      if (e->message)
+         printf (" %s", e->message);
       printf ("\n");
    }
    // Simple sanity checks
@@ -3149,7 +3152,7 @@ doevent (event_t * e)
             if (!mybus[n].fault)
             {
                mybus[n].fault = 1;
-               add_fault (groups, busno, NULL);
+               add_fault (groups, busno, NULL, e->message);
             }
             dolog (groups, "BUSERROR", NULL, busno, "Bus reports errors:%d stalled:%d retries:%d tx:%d rx:%d", e->errors,
                    e->stalled, e->retries, e->tx, e->rx);
@@ -3158,7 +3161,7 @@ doevent (event_t * e)
             if (mybus[n].fault)
             {
                mybus[n].fault = 0;
-               rem_fault (groups, busno, NULL);
+               rem_fault (groups, busno, NULL, e->message);
             }
             if (e->retries > 5)
                syslog (LOG_INFO, "%s retries: %d", busno, e->retries);
@@ -3178,7 +3181,7 @@ doevent (event_t * e)
                free (app->led);
             app->led = NULL;
             if (!port_mqtt (port) || app->missed)
-               rem_tamper (app->group, port_name (port), port->name);
+               rem_tamper (app->group, port_name (port), port->name, e->message);
             app->missed = 0;
          } else if (!app->found)
          {
@@ -3195,7 +3198,7 @@ doevent (event_t * e)
          app->missing = time (0);
          dolog (app->group, "BUSMISSING", NULL, port_name (port), "Device missing from bus");
          if (!port_mqtt (port))
-            add_tamper (app->group, port_name (port), port->name);
+            add_tamper (app->group, port_name (port), port->name, e->message);
       }
       break;
    case EVENT_DISABLED:
@@ -3239,14 +3242,14 @@ doevent (event_t * e)
             if (!d->entry)
             {
                d->entry = 1;
-               add_entry (d->group_lock, doorno, doorname);
+               add_entry (d->group_lock, doorno, doorname, e->message);
             }
          } else
          {
             if (d->entry)
             {
                d->entry = 0;
-               rem_entry (d->group_lock, doorno, doorname);
+               rem_entry (d->group_lock, doorno, doorname, e->message);
             }
          }
          // Intruder
@@ -3255,14 +3258,14 @@ doevent (event_t * e)
             if (!d->intruder)
             {
                d->intruder = 1;
-               add_intruder (d->group_lock, doorno, doorname);
+               add_intruder (d->group_lock, doorno, doorname, e->message);
             }
          } else
          {
             if (d->intruder)
             {
                d->intruder = 0;
-               rem_intruder (d->group_lock, doorno, doorname);
+               rem_intruder (d->group_lock, doorno, doorname, e->message);
             }
          }
          // Tamper
@@ -3271,14 +3274,14 @@ doevent (event_t * e)
             if (!d->tamper)
             {
                d->tamper = 1;
-               add_tamper (d->group_lock, doorno, doorname);
+               add_tamper (d->group_lock, doorno, doorname, e->message);
             }
          } else
          {
             if (d->tamper)
             {
                d->tamper = 0;
-               rem_tamper (d->group_lock, doorno, doorname);
+               rem_tamper (d->group_lock, doorno, doorname, e->message);
             }
          }
          // Warning
@@ -3287,14 +3290,14 @@ doevent (event_t * e)
             if (!d->warning)
             {
                d->warning = 1;
-               add_warning (d->group_lock, doorno, doorname);
+               add_warning (d->group_lock, doorno, doorname, e->message);
             }
          } else
          {
             if (d->warning)
             {
                d->warning = 0;
-               rem_warning (d->group_lock, doorno, doorname);
+               rem_warning (d->group_lock, doorno, doorname, e->message);
             }
          }
          // Fault
@@ -3303,14 +3306,14 @@ doevent (event_t * e)
             if (!d->fault)
             {
                d->fault = 1;
-               add_fault (d->group_lock, doorno, doorname);
+               add_fault (d->group_lock, doorno, doorname, e->message);
             }
          } else
          {
             if (d->fault)
             {
                d->fault = 0;
-               rem_fault (d->group_lock, doorno, doorname);
+               rem_fault (d->group_lock, doorno, doorname, e->message);
             }
          }
 #ifdef	LIBWS
@@ -3336,14 +3339,14 @@ doevent (event_t * e)
             if (walkthrough)
                syslog (LOG_INFO, "+%s(%s)", tag, name ? : "");
             for (s = 0; s < STATE_TRIGGERS; s++)
-               add_state (app->trigger[s], tag, name, s);
+               add_state (app->trigger[s], tag, name, e->message, s);
          } else
          {                      // off
             app->input = 0;
             if (walkthrough)
                syslog (LOG_INFO, "-%s(%s)", tag, name ? : "");
             for (s = 0; s < STATE_TRIGGERS; s++)
-               rem_state (app->trigger[s], tag, name, s);
+               rem_state (app->trigger[s], tag, name, e->message, s);
          }
          if (app->isexit && e->state && app->door >= 0)
          {
@@ -3391,8 +3394,8 @@ doevent (event_t * e)
             {
                app->tamper = 1;
                if (walkthrough)
-                  syslog (LOG_INFO, "+%s(%s) Tamper", tag, name ? : "");
-               add_tamper (g, tag, name);
+                  syslog (LOG_INFO, "+%s(%s) Tamper %s", tag, name ? : "", e->message ? : "");
+               add_tamper (g, tag, name, e->message);
             }
          } else
          {
@@ -3400,8 +3403,8 @@ doevent (event_t * e)
             {
                app->tamper = 0;
                if (walkthrough)
-                  syslog (LOG_INFO, "-%s(%s) Tamper", tag, name ? : "");
-               rem_tamper (g, tag, name);
+                  syslog (LOG_INFO, "-%s(%s) Tamper %s", tag, name ? : "", e->message ? : "");
+               rem_tamper (g, tag, name, e->message);
             }
          }
 #ifdef	LIBWS
@@ -3424,8 +3427,8 @@ doevent (event_t * e)
             {
                app->fault = 1;
                if (walkthrough)
-                  syslog (LOG_INFO, "+%s(%s) Fault", tag, name ? : "");
-               add_fault (app->group, tag, name);
+                  syslog (LOG_INFO, "+%s(%s) Fault %s", tag, name ? : "", e->message ? : "");
+               add_fault (app->group, tag, name, e->message);
             }
          } else
          {
@@ -3433,8 +3436,8 @@ doevent (event_t * e)
             {
                app->fault = 0;
                if (walkthrough)
-                  syslog (LOG_INFO, "-%s(%s) Fault", tag, name ? : "");
-               rem_fault (app->group, tag, name);
+                  syslog (LOG_INFO, "-%s(%s) Fault %s", tag, name ? : "", e->message ? : "");
+               rem_fault (app->group, tag, name, e->message);
             }
          }
          if (id && device[id].type == TYPE_RIO)
@@ -3445,27 +3448,27 @@ doevent (event_t * e)
                char tag[20];
                snprintf (tag, sizeof (tag), "%sNOPWR", port_name (port));
                if (e->state)
-                  add_warning (app->group, tag, name);
+                  add_warning (app->group, tag, name, e->message);
                else
-                  rem_warning (app->group, tag, name);
+                  rem_warning (app->group, tag, name, e->message);
             }
             if (i == FAULT_RIO_NO_BAT)
             {
                char tag[20];
                snprintf (tag, sizeof (tag), "%sNOBAT", port_name (port));
                if (e->state)
-                  add_warning (app->group, tag, name);
+                  add_warning (app->group, tag, name, e->message);
                else
-                  rem_warning (app->group, tag, name);
+                  rem_warning (app->group, tag, name, e->message);
             }
             if (i == FAULT_RIO_BAD_BAT)
             {
                char tag[20];
                snprintf (tag, sizeof (tag), "%sBADBAT", port_name (port));
                if (e->state)
-                  add_warning (app->group, tag, name);
+                  add_warning (app->group, tag, name, e->message);
                else
-                  rem_warning (app->group, tag, name);
+                  rem_warning (app->group, tag, name, e->message);
             }
          }
 #ifdef	LIBWS
@@ -3705,11 +3708,8 @@ doevent (event_t * e)
       {
          // Meh, one day
       }
-
       break;
    }
-
-   free ((void *) e);
 }
 
 static void
@@ -4364,7 +4364,7 @@ main (int argc, const char *argv[])
                            "@wifipass3",
                            "@mqtthost2",
                            "@fallback",
-			   "@blacklist",
+                           "@blacklist",
                            "@offline",
                            "@rangerdebug",
                            "@rangerpoll",
@@ -4413,6 +4413,7 @@ main (int argc, const char *argv[])
                      e->event = etype;
                      e->port = port;
                      e->state = state;
+                     asprintf ((char **) &e->message, "%.*s", msg->payloadlen, (char *) msg->payload);
                      struct timezone tz;
                      gettimeofday ((void *) &e->when, &tz);
                      if (etype == EVENT_DOOR)
@@ -4592,12 +4593,12 @@ main (int argc, const char *argv[])
             if (!commfailreported)
             {
                commfailreported = 1;
-               add_warning (groups, "COMMS", NULL);
+               add_warning (groups, "COMMS", NULL, NULL);
             }
          } else if (commfailreported)
          {
             commfailreported = 0;
-            rem_warning (groups, "COMMS", NULL);
+            rem_warning (groups, "COMMS", NULL, NULL);
          }
          profile_check ();
       }
@@ -4715,6 +4716,9 @@ main (int argc, const char *argv[])
       {
          pthread_mutex_lock (&eventmutex);
          doevent (e);
+         if (e->message)
+            free (e->message);
+         free ((void *) e);
          pthread_mutex_unlock (&eventmutex);
       }
    }
