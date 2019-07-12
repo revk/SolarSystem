@@ -33,8 +33,8 @@
 #endif
 
   static boolean force = true;
-  boolean insafemode = false;
-  unsigned safemodestart = 0;
+  boolean offlinemode = false;
+  unsigned offlinestart = 0;
 
 #define app_settings  \
   s(sda,-1);   \
@@ -44,9 +44,7 @@
   s(busrx,-1); \
   s(busde,-1); \
   s(holdtime,3000); \
-  s(safemode,60); \
-  t(fallback); \
-  t(blacklist); \
+  s(offline,60); \
   s(pwm,1000); \
 
 #define s(n,d) int n=d;
@@ -78,13 +76,13 @@
   { // Called for incoming MQTT messages, return true if message is OK
     if (!strcasecmp_P(tag, PSTR("connect"))) {
       force = true;
-      insafemode = false;
-      safemodestart = 0;
+      offlinemode = false;
+      offlinestart = 0;
       return true;
     }
     if (!strcasecmp_P(tag, PSTR("disconnect"))) {
-      if (safemode)
-        safemodestart = (millis() + safemode * 1000 ? : 1);
+      if (offline)
+        offlinestart = (millis() + offline * 1000 ? : 1);
       return true;
     }
 #define m(n) if(n##_command(tag,message,len))return true;
@@ -100,8 +98,8 @@
     modules
 #undef m
     analogWriteFreq(pwm);
-    if (safemode)
-      safemodestart = (millis() + safemode * 1000 ? : 1);
+    if (offline)
+      offlinestart = (millis() + offline * 1000 ? : 1);
   }
 
   void loop()
@@ -133,11 +131,11 @@
         else revk.state(F("tamper"), F("0"));
       }
     }
-    if (safemodestart && (int)(safemodestart - millis()) < 0)
+    if (offlinestart && (int)(offlinestart - millis()) < 0)
     {
       force = true;
-      insafemode = true;
-      safemodestart = 0;
+      offlinemode = true;
+      offlinestart = 0;
     }
 #define m(n) n##_loop(revk,force);
     modules

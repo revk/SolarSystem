@@ -16,7 +16,6 @@ unsigned int outputactive = 0;
 unsigned int outputstate = 0;
 unsigned int outputrelay = 0;
 unsigned int outputbeep = 0;
-unsigned int outputoverride = 0;
 
 unsigned long outputnext = 0;
 
@@ -30,7 +29,6 @@ unsigned long outputnext = 0;
   static void dooutput(int o)
   {
     unsigned long out = outputstate;
-    if (insafemode)out = outputoverride; // Safe mode, normally means outputs off but can be overridden
     out ^= outputinvert;
     if (outputactive & (1 << o))
     {
@@ -86,15 +84,6 @@ unsigned long outputnext = 0;
     if (!(outputactive & (1 << o)))return false;
     if (outputstate & (1 << o))return true;
     return false;
-  }
-
-  void output_safe_set(boolean enable)
-  { // Set relay safe mode operation
-    if (enable)
-      outputoverride = 1;
-    else
-      outputoverride = 0;
-    outputnext = millis();
   }
 
   const char* Output_setting(const char *tag, const byte *value, size_t len)

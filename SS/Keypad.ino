@@ -197,7 +197,7 @@ RS485 rs485(MASTER, false);
                 revk.event((buf[2] & 0x80) ? F("hold") : F("key"), F("%.1S"), keymap + (buf[2] & 0x0F));
               if (buf[2] & 0x80)
                 keyhold = now + 2000;
-              if (insafemode)
+              if (offlinemode)
               { // Special case for safe mode (off line)
                 if (buf[2] == 0x0D)
                 { // ESC in safe mode, shut up
@@ -300,7 +300,7 @@ RS485 rs485(MASTER, false);
     { // Key keyclicks
       send19 = false;
       buf[++p] = 0x19;
-      if (insafemode)
+      if (offlinemode)
         buf[++p] = 0x01; // Sound normal
       else
         buf[++p] = (keyclick[0] & 0x7); // 0x03 (silent), 0x05 (quiet), or 0x01 (normal)
@@ -310,7 +310,7 @@ RS485 rs485(MASTER, false);
       send0C = false;
       byte *s = sounder;
       byte len = sounder_len;
-      if (insafemode)
+      if (offlinemode)
       {
         if (sounderack)
           len = 0; // quiet
