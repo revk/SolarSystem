@@ -34,10 +34,10 @@ alarmpanel: alarmpanel.c galaxybus.o galaxybus.h port.o port.h door.o door.h AXL
 galaxybus.o: galaxybus.c galaxybus.h port.h
 	cc -g -Wall -Wextra -O -c -o galaxybus.o galaxybus.c -I. -DLIB -pthread
 
-door.o: door.c door.h
+door.o: door.c door.h galaxybus.h
 	cc -g -Wall -Wextra -O -c -o door.o door.c -I. -DLIB -pthread
 
-port.o: port.c port.h
+port.o: port.c port.h galaxybus.h
 	cc -g -Wall -Wextra -O -c -o port.o port.c -I. -DLIB -pthread
 
 clean:

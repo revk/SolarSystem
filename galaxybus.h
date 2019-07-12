@@ -194,6 +194,7 @@ struct event_s
    struct timeval when;
    unsigned char event;
    port_p port;                 // The device/port
+   char *message;
    union
    {
       struct
