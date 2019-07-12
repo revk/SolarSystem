@@ -367,7 +367,7 @@ main (int argc, const char *argv[])
       errx (1, "Init failed: %s", e);
    done = 0;
 
-   unsigned char buf[1024];
+   unsigned char buf[10240];
    led ("R");
    printf ("Waiting for card at reader %s\n", hexreader);
    if (recvt (sp[1], buf, sizeof (buf), 30) != 0)
@@ -513,6 +513,18 @@ main (int argc, const char *argv[])
             if ((e = df_delete_file (&d, 0)))
                errx (1, "Delete file: %s", e);
             fids &= ~(1 << 0);  // deleted
+         } else if (config && !username && *buf)
+         {
+            xml_t u = NULL;
+            while ((u = xml_element_next_by_name (c, u, "user")))
+               if (!strcasecmp (xml_get (u, "@full-name") ? : "", (char*)buf))
+                  break;
+            if (u)
+            {                   // Found
+               if (!setname)
+                  setname = xml_get (u, "@full-name");
+               user = u;
+            }
          }
       }
    }
@@ -727,7 +739,6 @@ main (int argc, const char *argv[])
                fids &= ~(1 << 3);
             } else
             {
-               unsigned char buf[afilelen];
                if ((e = df_read_data (&d, 3, comms, 0, afilelen, buf)))
                   errx (1, "File read: %s", e);
                if (memcmp (buf, afile, afilelen))
