@@ -62,6 +62,7 @@ main (int argc, const char *argv[])
    int logs = 50;
    int random = 0;
    int lock = 0;
+   int forceallow = 0;
    {                            // POPT
       poptContext optCon;       // context for parsing command-line options
       const struct poptOption optionsTable[] = {
@@ -88,8 +89,8 @@ main (int argc, const char *argv[])
           "File comms", "0/1/3"},
          {"random", 0, POPT_ARG_NONE, &random, 0, "Random UID (when formatting)",
           0},
-         {"lock", 0, POPT_ARG_NONE, &lock, 0,
-          "Lock against further formatting (when formatting)", 0},
+         {"lock", 0, POPT_ARG_NONE, &lock, 0, "Lock against further formatting (when formatting)", 0},
+         {"allow", 0, POPT_ARG_NONE, &forceallow, 0, "Force door allow list setting", 0},
          {"debug", 'v', POPT_ARG_NONE, &debug, 0, "Debug", 0},
          POPT_AUTOHELP {}
       };
@@ -205,6 +206,7 @@ main (int argc, const char *argv[])
    if (df_hex (sizeof (reader), reader, hexreader) != sizeof (reader))
       errx (1, "Reader is hex XXXXXX (%s)", hexreader);
 
+   xml_t user = NULL;
    if (username && config)
    {
       xml_t u = NULL;
@@ -215,6 +217,7 @@ main (int argc, const char *argv[])
          errx (1, "Cannot fine user %s", username);
       if (!setname)
          setname = xml_get (u, "@full-name");
+      user = u;
    }
    char *fob = NULL;
 
@@ -582,6 +585,176 @@ main (int argc, const char *argv[])
       printf ("Creating counter file\n");
       if ((e = df_create_file (&d, 2, 'V', comms, 0x0010, 0, 0, 0x7FFFFFFF, 0, 0, 0)))
          errx (1, "Create file: %s", e);
+   }
+
+   if (user)
+   {                            // Access file
+      char *allow = NULL,
+         *deny = NULL,
+         *afile = NULL;
+      size_t allowlen = 0,
+         denylen = 0,
+         afilelen = 0;
+      FILE *allowf = open_memstream (&allow, &allowlen);
+      FILE *denyf = open_memstream (&deny, &denylen);
+      FILE *afilef = open_memstream (&afile, &afilelen);
+      // Check doors
+      const char *open = xml_get (user, "@open") ? : "*";
+      xml_t door = NULL;
+      while ((door = xml_element_next_by_name (c, door, "door")))
+      {
+         const char *devname = xml_get (door, "@max");
+         if (!devname)
+            devname = xml_get (door, "@min");
+         if (!devname)
+            devname = xml_get (door, "@i_fob");
+         if (!devname)
+            break;
+         xml_t device = NULL;
+         while ((device = xml_element_next_by_name (c, device, "device")))
+            if (!strcasecmp (xml_get (device, "@id") ? : "", devname) || !strcasecmp (xml_get (device, "@name") ? : "", devname))
+               break;
+         if (!device)
+            break;
+         const char *devid = xml_get (device, "@id");
+         if (!devid)
+            break;
+         unsigned char id[3];
+         if (df_hex (3, id, devid) != 3)
+            break;
+         const char *lock = xml_get (door, "@lock");
+         if (!lock)
+            lock = xml_get (door, "@groups");
+         if (lock && *open != '*')
+         {                      // Check if allowed
+            const char *c;
+            for (c = open; *c && !strchr (lock, *c); c++);
+            if (!*c)
+               lock = NULL;     // Not allowed
+         }
+         if (*open == '*' || lock)
+         {
+            if (debug)
+               fprintf (stderr, "Allow %s\n", devid);
+            fwrite (id, 3, 1, allowf);
+         } else
+         {
+            if (debug)
+               fprintf (stderr, "Deny  %s\n", devid);
+            fwrite (id, 3, 1, denyf);
+         }
+      }
+      fclose (allowf);
+      fclose (denyf);
+      if (!allowlen)
+         warnx ("User is not allowed to use any doors");
+      if (allowlen < denylen)
+         forceallow = 1;        // Allow list is shorter
+      if (!allowlen || denylen)
+      {
+         char *devs = allow;
+         int devslen = allowlen;
+         if (!forceallow)
+         {                      // Set allowed
+            devs = deny;
+            devslen = denylen;
+         }
+         while (devslen)
+         {
+            int l = devslen;
+            if (l > 14)
+               l = 14;
+            char tag = (forceallow ? 0x10 : 0x00) + l;
+            fwrite (&tag, 1, 1, afilef);
+            fwrite (devs, l, 1, afilef);
+            devslen -= l;
+            devs += l;
+         }
+      }
+      // Times
+      const char *t = xml_get (user, "@time-from");
+      if (t && *t)
+      {
+         unsigned char times[14];
+         int l = df_hex (sizeof (times), times, t);
+         if (l == 2 || l == 4 || l == 14)
+         {
+            char tag = 0xF0 + l;
+            fwrite (&tag, 1, 1, afilef);
+            fwrite (times, l, 1, afilef);
+         }
+      }
+      t = xml_get (user, "@time-to");
+      if (t && *t)
+      {
+         unsigned char times[14];
+         int l = df_hex (sizeof (times), times, t);
+         if (l == 2 || l == 4 || l == 14)
+         {
+            char tag = 0x20 + l;
+            fwrite (&tag, 1, 1, afilef);
+            fwrite (times, l, 1, afilef);
+         }
+      }
+      // TODO admin?
+
+      fclose (afilef);
+      if (debug)
+      {
+         size_t p;
+         fprintf (stderr, "Access");
+         for (p = 0; p < afilelen; p++)
+            fprintf (stderr, " %02X", afile[p]);
+         fprintf (stderr, "\n");
+      }
+
+      if (fids & (1 << 3))
+      {                         // Access file
+         char type;
+         unsigned char comms;
+         unsigned int size = 0;
+         if ((e = df_get_file_settings (&d, 3, &type, &comms, NULL, &size, NULL, NULL, NULL, NULL, NULL)))
+            errx (1, "File settings: %s", e);
+         if (type != 'D')
+            printf ("Access file wrong type (%c)\n", type);
+         else
+         {                      // Check content
+            if (size != afilelen)
+            {
+               printf ("Access file wrong size (%d!=%d)\n", size, afilelen);
+               if ((e = df_delete_file (&d, 3)))
+                  errx (1, "Delete file: %s", e);
+               fids &= ~(1 << 3);
+            } else
+            {
+               unsigned char buf[afilelen];
+               if ((e = df_read_data (&d, 3, comms, 0, afilelen, buf)))
+                  errx (1, "File read: %s", e);
+               if (memcmp (buf, afile, afilelen))
+               {
+                  printf ("Access file wrong content.\n");
+                  if ((e = df_delete_file (&d, 3)))
+                     errx (1, "Delete file: %s", e);
+                  fids &= ~(1 << 3);
+               }
+            }
+         }
+      }
+      if (!(fids & (1 << 3)))
+      {                         // Create access file
+         printf ("Creating access file\n");
+         if ((e = df_create_file (&d, 3, 'D', comms, 0x1000, afilelen, 0, 0, 0, 0, 0)))
+            errx (1, "Create file: %s", e);
+         if ((e = df_write_data (&d, 3, 'D', comms, 0, afilelen, afile)))
+            errx (1, "Write file: %s", e);
+      }
+
+      if (allow)
+         free (allow);
+      if (deny)
+         free (deny);
+      if (afile)
+         free (afile);
    }
 
    unsigned int mem;
