@@ -4045,7 +4045,7 @@ do_wscallback (websocket_t * w, xml_t head, xml_t data)
             continue;
          if (!(mydoor[d].group_lock & user->group_open[1]))
             continue;           // Not allowed
-         if (door[d].state == DOOR_UNLOCKED)
+         if (door[d].state == DOOR_UNLOCKED || door[d].state == DOOR_CLOSED)
             door_lock (d);
          else if (door[d].state != DOOR_DEADLOCKED)
             door_open (d);
@@ -4382,7 +4382,7 @@ main (int argc, const char *argv[])
                         v = xml_get (app->config, "@aes") ? : xml_get (config, "system@aes");
                         if (v && strlen (v) == 32)
                            set ("0xaes", v);
-                        if (app->door < 0)
+                        if (app->door < 0 || !door[app->door].autonomous)
                         {
                            char *led = app->led;
                            app->led = NULL;
