@@ -33,9 +33,13 @@ const char* Door_tamper = NULL;
   s(doorpoll,100); \
   s(doordebug,0); \
   s(doorbeep,1); \
+  t(fallback); \
+  t(blacklist); \
 
 #define s(n,d) unsigned int n=d;
+#define t(n) const char*n=NULL;
   app_settings
+#undef t
 #undef s
 
 #define lock_states \
@@ -126,20 +130,34 @@ const char* Door_tamper = NULL;
     doorpropable = true;
   }
 
+  static int checkfob(const char *fobs, const char *id)
+  { // is fob in list
+    if (!fobs || !id)return 0;
+    int l = strlen(id), n = 0;
+    while (*fobs)
+    {
+      n++;
+      const char *p = fobs;
+      while (*p && *p != ' ')p++;
+      if (p - fobs == l && !memcmp(fobs, id, l))return n;
+      while (*p && *p == ' ')p++;
+      fobs = p;
+    }
+    return 0;
+  }
+
   boolean Door_fob(char *id)
   { // Consider fob, and return true if we are opening door
+    if (!door)return false;
     boolean ret = false;
-    if (blacklist)
-    { // Check blacklist
-      // TODO
-    }
+    if (blacklist && checkfob(blacklist, id)) return false;
     if (doorstate == DOOR_OPEN)return false; // Door is open!
     if (door >= 4 && NFC.secure)
     { // Autonomous door control logic - check access file and times, etc
       // TODO
     }
     else if (door == 3 && NFC.secure && !doordeadlock) ret = true;
-    else if (insafemode && fallback && !strncmp(id, fallback, 14)) ret = true;
+    else if (offlinemode && fallback && checkfob(fallback, id)) ret = true;
     if (ret)Door_unlock(); // Open the door
     return ret;
   }
@@ -147,7 +165,9 @@ const char* Door_tamper = NULL;
   const char* Door_setting(const char *tag, const byte *value, size_t len)
   { // Called for commands retrieved from EEPROM
 #define s(n,d) do{const char *t=PSTR(#n);if(!strcmp_P(tag,t)){n=(value?atoi((char*)value):d);return t;}}while(0)
+#define t(n) do{const char *t=PSTR(#n);if(!strcasecmp_P(tag,t)){n=(const char*)value;return t;}}while(0)
     app_settings
+#undef t
 #undef s
     return NULL; // Done
   }

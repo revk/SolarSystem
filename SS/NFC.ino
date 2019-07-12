@@ -231,10 +231,6 @@ char ledpattern[10];
         { // still here
           if (!held && (int)(now - found) > holdtime)
           {
-#ifdef USE_OUTPUT
-            if (fallback && !strncmp(fallback, tid, 14) && (!NFC.aidset || NFC.secure))
-              output_safe_set(true);
-#endif
             revk.event(F("held"), F("%s"), tid); // Previous card gone
             held = 1;
           }
@@ -242,10 +238,6 @@ char ledpattern[10];
         { // gone
           if (held)
           {
-#ifdef USE_OUTPUT
-            if (fallback && !strcmp(fallback, tid))
-              output_safe_set(false);
-#endif
             revk.event(F("gone"), F("%s"), tid); // Previous card gone
             held = false;
           }
