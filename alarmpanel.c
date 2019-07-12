@@ -3212,9 +3212,13 @@ doevent (event_t * e)
          // Log some states (not all apply if autonomous operation)
          if (e->state == DOOR_UNLOCKED)
             d->opening = 1;
-         else if (e->state == DOOR_OPEN || e->state == DOOR_OFFLINE)
+         else if (e->state == DOOR_OPEN)
             d->opening = 0;
-         else if (e->state == DOOR_LOCKING && d->opening)
+         else if (e->state == DOOR_OFFLINE)
+         {
+            d->opening = 0;
+            dolog (d->group_lock, "DOOROFFLINE", NULL, doorno, "Door had gone off line");
+         } else if (e->state == DOOR_LOCKING && d->opening)
             dolog (d->group_lock, "DOORNOTOPEN", NULL, doorno, "Door was not opened");
          else if (e->state == DOOR_AJAR)
             dolog (d->group_lock, "DOORAJAR", NULL, doorno, "Door ajar (lock not engaged)");
