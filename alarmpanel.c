@@ -1058,7 +1058,7 @@ timezone_check (void)
    struct tm t;
    localtime_r (&now, &t);
    t.tm_isdst = 0;
-   time_t now2 = mktime (&t);
+   time_t now2 = timegm (&t);
    int diff = now2 - now;
    if (diff != settimezone)
    {
