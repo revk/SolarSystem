@@ -252,7 +252,11 @@ char ledpattern[10];
           else
             strncpy(tid, id.c_str(), sizeof(tid));
           const char *d = Door_fob(tid, err);
-          if (!d)Door_unlock(); // Door system was happy with fob, let 'em in
+          if (!d)
+          { // Allowed in by door system
+            revk.event( F("access"), F("%s"), tid);
+            Door_unlock(); // Door system was happy with fob, let 'em in
+          }
           else if (strcmp_P("", d))revk.info(F("door"), F("%s not allowed %S"), tid, d); // Log why not allowed
           if (!*err.c_str())
           {
@@ -261,12 +265,12 @@ char ledpattern[10];
               if (NFC.desfire_log(err) >= 0)
               {
                 NFC.led(ledlast = 0);
-                revk.event(d ? F("id") : F("access"), F("%s"), tid);
+                if (d)revk.event( F("id") , F("%s"), tid);
               }
             } else
             { // Send ID first, then log to card, quicker, but could mean an access is not logged on the card if removed quickly enough
               NFC.led(ledlast = 0);
-              revk.event(d ? F("id") : F("access"), F("%s"), tid);
+              if (d)revk.event(F("id") , F("%s"), tid);
               if (NFC.secure && !*err.c_str())
                 NFC.desfire_log(err);
             }
