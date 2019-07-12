@@ -1786,19 +1786,23 @@ door_locked (int d)
 }
 
 static void
+door_state_d (int d)
+{
+   if (door_locked (d))
+      door_deadlock (d);        // No point if deadlocked as will set of intruder alarm
+   else if (state[STATE_FIRE] & mydoor[d].group_fire)
+      door_open (d);            // Fire alarm
+   else
+      door_undeadlock (d);
+}
+
+static void
 door_state (group_t g)
 {                               // Update door locking state after state change
    int d;
    for (d = 0; d < MAX_DOOR; d++)
       if ((mydoor[d].group_lock | mydoor[d].group_fire) & g)
-      {
-         if (door_locked (d))
-            door_deadlock (d);  // No point if deadlocked as will set of intruder alarm
-         else if (state[STATE_FIRE] & mydoor[d].group_fire)
-            door_open (d);      // Fire alarm
-         else
-            door_undeadlock (d);
-      }
+         door_state_d (d);
 }
 
 static void
@@ -3210,29 +3214,25 @@ doevent (event_t * e)
          char doorno[8];
          snprintf (doorno, sizeof (doorno), "DOOR%02u", e->door);
          char *doorname = d->name;
-         if (d->group_fire & state[STATE_FIRE])
-            door_open (e->door);        // fire alarm override
-         if (!door[e->door].autonomous)
-         {                      // Log some states
-            if (e->state == DOOR_UNLOCKED)
-               d->opening = 1;
-            else if (e->state == DOOR_OPEN)
-               d->opening = 0;
-            else if (e->state == DOOR_LOCKING && d->opening)
-               dolog (d->group_lock, "DOORNOTOPEN", NULL, doorno, "Door was not opened");
-            else if (e->state == DOOR_AJAR)
-               dolog (d->group_lock, "DOORAJAR", NULL, doorno, "Door ajar (lock not engaged)");
-            else if (e->state == DOOR_FORCED)
-               dolog (d->group_lock, "DOORFORCED", NULL, doorno, "Door forced");
-            else if (e->state == DOOR_TAMPER)
-               dolog (d->group_lock, "DOORTAMPER", NULL, doorno, "Door tamper");
-            else if (e->state == DOOR_FAULT)
-               dolog (d->group_lock, "DOORFAULT", NULL, doorno, "Door fault");
-            else if (e->state == DOOR_PROPPED)
-               dolog (d->group_lock, "DOORPROPPED", NULL, doorno, "Door propped");
-            else if (e->state == DOOR_PROPPEDOK)
-               dolog (d->group_lock, "DOORPROPPEDOK", NULL, doorno, "Door prop authorised");
-         }
+         // Log some states (not all apply if autonomous operation)
+         if (e->state == DOOR_UNLOCKED)
+            d->opening = 1;
+         else if (e->state == DOOR_OPEN || e->state == DOOR_OFFLINE)
+            d->opening = 0;
+         else if (e->state == DOOR_LOCKING && d->opening)
+            dolog (d->group_lock, "DOORNOTOPEN", NULL, doorno, "Door was not opened");
+         else if (e->state == DOOR_AJAR)
+            dolog (d->group_lock, "DOORAJAR", NULL, doorno, "Door ajar (lock not engaged)");
+         else if (e->state == DOOR_FORCED)
+            dolog (d->group_lock, "DOORFORCED", NULL, doorno, "Door forced");
+         else if (e->state == DOOR_TAMPER)
+            dolog (d->group_lock, "DOORTAMPER", NULL, doorno, "Door tamper");
+         else if (e->state == DOOR_FAULT)
+            dolog (d->group_lock, "DOORFAULT", NULL, doorno, "Door fault");
+         else if (e->state == DOOR_PROPPED)
+            dolog (d->group_lock, "DOORPROPPED", NULL, doorno, "Door propped");
+         else if (e->state == DOOR_PROPPEDOK)
+            dolog (d->group_lock, "DOORPROPPEDOK", NULL, doorno, "Door prop authorised");
          // Update alarm state linked to doors
          // Entry
          if (e->state == DOOR_OPEN)
@@ -3320,6 +3320,8 @@ doevent (event_t * e)
             websocket_send_all (root);
          xml_tree_delete (root);
 #endif
+         // Fix state if wrong
+         door_state_d (e->door);
       }
       break;
    case EVENT_INPUT:
@@ -3480,7 +3482,7 @@ doevent (event_t * e)
    case EVENT_FOB_ACCESS:
       {                         // Check users, doors?
          int d;
-	 unsigned int n;
+         unsigned int n;
          user_t *u = NULL;
          if (!e->fob || !*e->fob)
             break;
@@ -4380,37 +4382,22 @@ main (int argc, const char *argv[])
                         v = xml_get (app->config, "@aes") ? : xml_get (config, "system@aes");
                         if (v && strlen (v) == 32)
                            set ("0xaes", v);
-                        char *led = app->led;
-                        app->led = NULL;
-                        mqtt_led (port, led);
-                        if (led)
-                           free (led);
+                        if (app->door < 0)
+                        {
+                           char *led = app->led;
+                           app->led = NULL;
+                           mqtt_led (port, led);
+                           if (led)
+                              free (led);
+                        }
                      }
                      port_p o;
                      for (o = ports; o; o = o->next)
                         if (o->mqtt && port_isoutput (o) && !strcmp (o->mqtt, id))
                            mqtt_output (o, o->state);
                   }
-                  int etype = 0;
-                  if (!tag)
-                     etype = (state ? EVENT_FOUND : EVENT_MISSING);
-                  else if (!strncmp (tag, "input", 5) && port->state != state)
-                     etype = EVENT_INPUT;
-                  else if (!strncmp (tag, "fault", 5) && port->fault != state)
-                     etype = EVENT_FAULT;
-                  else if (!strncmp (tag, "tamper", 6) && port->tamper != state)
-                     etype = EVENT_TAMPER;
-                  else if (!strncmp (tag, "door", 4) && app->door != -1)
+                  void sende (int etype, int state)
                   {
-                     etype = EVENT_DOOR;
-                     state = 0;
-#define d(n,l) {const char s[]=#n;if((unsigned)msg->payloadlen>=sizeof(s)-1&&!strncmp(msg->payload,#n,sizeof(s)-1))state=DOOR_##n;}
-                     DOOR
-#undef d
-                        //syslog (LOG_INFO, "Door %d state %s [%.*s]", app->door, door_name[state], (int) msg->payloadlen, (char *) msg->payload);        // TODO
-                  }
-                  if (etype)
-                  {             // Send event
                      event_t *e = malloc (sizeof (*e));
                      if (!e)
                         errx (1, "malloc");
@@ -4424,10 +4411,30 @@ main (int argc, const char *argv[])
                      {          // Which door
                         int d = app->door;
                         e->door = d;
-                        if (d < MAX_DOOR)
+                        if (d >= 0 && d < MAX_DOOR)
                            door[d].state = state;
                      }
                      postevent (e);
+                  }
+                  if (!tag)
+                  {
+                     sende (state ? EVENT_FOUND : EVENT_MISSING, state);
+                     if (!state)
+                        sende (EVENT_DOOR, DOOR_OFFLINE);
+                  } else if (!strncmp (tag, "input", 5) && port->state != state)
+                     sende (EVENT_INPUT, state);
+                  else if (!strncmp (tag, "fault", 5) && port->fault != state)
+                     sende (EVENT_FAULT, state);
+                  else if (!strncmp (tag, "tamper", 6) && port->tamper != state)
+                     sende (EVENT_TAMPER, state);
+                  else if (!strncmp (tag, "door", 4) && app->door != -1 && !app->missing)
+                  {
+                     state = 0;
+#define d(n,l) {const char s[]=#n;if((unsigned)msg->payloadlen>=sizeof(s)-1&&!strncmp(msg->payload,#n,sizeof(s)-1))state=DOOR_##n;}
+                     DOOR
+#undef d
+                        sende (EVENT_DOOR, state);
+                     //syslog (LOG_INFO, "Door %d state %s [%.*s]", app->door, door_name[state], (int) msg->payloadlen, (char *) msg->payload);        // TODO
                   }
                   return;
                }

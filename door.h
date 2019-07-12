@@ -10,6 +10,7 @@
 #define DOOR    \
         d(UNUSED,)       \
         d(NEW,)  \
+	d(OFFLINE,) \
         d(DEADLOCKED,) \
         d(LOCKED,R) \
         d(UNLOCKING,--R) \
