@@ -3573,9 +3573,8 @@ doevent (event_t * e)
                door_lock (d);   // Cancel open
                dolog (mydoor[d].group_lock, e->event == EVENT_FOB_ACCESS ? "FOBBADACCESS" : "FOBBAD", NULL, doorno,
                       "Unrecognised fob %s%s", e->fob, secure ? " (secure)" : "");
-            } else if (e->event == EVENT_FOB)
-            {
-               // disarm is the groups that can be disarmed by this user on this door.
+            } else if (e->event == EVENT_FOB || e->event == EVENT_FOB_ACCESS)
+            {                   // disarm is the groups that can be disarmed by this user on this door.
                group_t disarm = ((u->group_arm[secure] & mydoor[d].group_arm & state[STATE_ARM]) | (port_name (port),
                                                                                                     u->group_disarm[secure] &
                                                                                                     mydoor[d].group_disarm &
@@ -3614,21 +3613,27 @@ doevent (event_t * e)
                      if (mydoor[d].airlock >= 0 && door[mydoor[d].airlock].state != DOOR_LOCKED
                          && door[mydoor[d].airlock].state != DOOR_DEADLOCKED)
                      {
-                        dolog (mydoor[d].group_lock, "DOORAIRLOCK", u->name, doorno,
+                        dolog (mydoor[d].group_lock, e->event == EVENT_FOB_ACCESS ? "FOBBADACCESS" : "DOORAIRLOCK", u->name, doorno,
                                "Airlock violation with DOOR%02d using fob %s%s", mydoor[d].airlock, e->fob,
                                secure ? " (secure)" : "");
                         door_error (d);
+                        if (e->event == EVENT_FOB_ACCESS)
+                           door_lock (d);
                      } else if (mydoor[d].lockdown && (state[mydoor[d].lockdown] & mydoor[d].group_lock))
                      {          // Door in lockdown
-                        dolog (mydoor[d].group_lock, "DOORLOCKDOWN", u->name, doorno,
-                               "Lockdown violation with DOOR%02d using fob %s%s", mydoor[d].airlock, e->fob,
+                        dolog (mydoor[d].group_lock, e->event == EVENT_FOB_ACCESS ? "FOBBADACCESS" : "DOORLOCKDOWN", u->name,
+                               doorno, "Lockdown violation with DOOR%02d using fob %s%s", mydoor[d].airlock, e->fob,
                                secure ? " (secure)" : "");
                         door_error (d);
+                        if (e->event == EVENT_FOB_ACCESS)
+                           door_lock (d);
                      } else if (mydoor[d].group_lock & ((state[STATE_SET] | state[STATE_ARM]) & ~disarm))
                      {
-                        dolog (mydoor[d].group_lock, "DOORALARMED", u->name, doorno,
+                        dolog (mydoor[d].group_lock, e->event == EVENT_FOB_ACCESS ? "FOBBADACCESS" : "DOORALARMED", u->name, doorno,
                                "Door is alarmed, not opening DOOR%02d using fob %s%s", d, e->fob, secure ? " (secure)" : "");
                         door_error (d);
+                        if (e->event == EVENT_FOB_ACCESS)
+                           door_lock (d);
                      } else
                      {          // Allowed to be opened
                         if (disarm && alarm_unset (u->name, port_name (port), disarm))
@@ -3645,19 +3650,20 @@ doevent (event_t * e)
                      // Other cases (unlocking) are transient and max will sometimes multiple read
                   } else if (u->group_open[1] & mydoor[d].group_lock)
                   {
+                     dolog (mydoor[d].group_lock, e->event == EVENT_FOB_ACCESS ? "FOBBADACCESS" : "FOBINSECURE", u->name, doorno,
+                            "Insecure fob %s%s", e->fob, secure ? " (secure)" : "");
                      door_error (d);
-                     dolog (mydoor[d].group_lock, "FOBINSECURE", u->name, doorno, "Insecure fob %s%s", e->fob,
-                            secure ? " (secure)" : "");
+                     if (e->event == EVENT_FOB_ACCESS)
+                        door_lock (d);
                   } else
                   {
+                     dolog (mydoor[d].group_lock, e->event == EVENT_FOB_ACCESS ? "FOBBADACCESS" : "FOBBAD", u->name, doorno,
+                            "Not allowed fob %s%s", e->fob, secure ? " (secure)" : "");
                      door_error (d);
-                     dolog (mydoor[d].group_lock, "FOBBAD", u->name, doorno, "Not allowed fob %s%s", e->fob,
-                            secure ? " (secure)" : "");
+                     if (e->event == EVENT_FOB_ACCESS)
+                        door_lock (d);
                   }
                }
-            } else if (e->event == EVENT_FOB_ACCESS)
-            {
-               dolog (mydoor[d].group_lock, "FOBACCESS", u->name, doorno, "Access by fob %s%s", e->fob, secure ? " (secure)" : "");
             } else if (mydoor[d].time_set)
             {                   // Held and we are allowed to set
                group_t set = (mydoor[d].group_arm & u->group_arm[secure] & ~state[STATE_SET] & ~state[STATE_ARM]);
