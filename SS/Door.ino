@@ -227,7 +227,7 @@ const char* Door_tamper = NULL;
               boolean o = false, i = false;
               if (Output_active(OUNLOCK + l) && Output_get(OUNLOCK + l))o = true;
               if (Input_get(IUNLOCK + l))i = true;
-              if ((Input_get(IOPEN) || lock[l].o) && !o && last != LOCK_FORCED)
+              if (lock[l].o && !o && last != LOCK_FORCED)
               { // Change to lock
                 lock[l].timeout = ((now + doorlock) ? : 1);
                 lock[l].state = LOCK_LOCKING;
@@ -253,7 +253,7 @@ const char* Door_tamper = NULL;
       }
       static long doortimeout = 0;
       // Check force check
-      if (Input_get(IOPEN) && (doorstate == DOOR_LOCKED || doorstate == DOOR_DEADLOCKED))doorforced = true;
+      if (Input_get(IOPEN) && (lock[0].state == LOCK_LOCKED || lock[1].state == LOCK_LOCKED))doorforced = true;
       else if (!Input_get(IOPEN))
       {
         doorforced = false;
@@ -261,7 +261,7 @@ const char* Door_tamper = NULL;
       }
       // Door states
       if (Input_get(IOPEN))
-      { // Open, so door is propper or open state only
+      { // Open, so door is propped or open state only
         if (doorstate != DOOR_PROPPED || doorpropable)doorstate = DOOR_OPEN;
         Output_set(OUNLOCK + 0, 1); // No point trying to lock when door is open
         Output_set(OUNLOCK + 1, 1);
