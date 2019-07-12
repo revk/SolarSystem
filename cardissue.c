@@ -664,7 +664,7 @@ main (int argc, const char *argv[])
             int l = devslen;
             if (l > 14)
                l = 14;
-            char tag = (forceallow ? 0x10 : 0x00) + l;
+            char tag = (forceallow ? 0xA0 : 0xB0) + l;
             fwrite (&tag, 1, 1, afilef);
             fwrite (devs, l, 1, afilef);
             devslen -= l;
@@ -696,7 +696,7 @@ main (int argc, const char *argv[])
             fwrite (times, l, 1, afilef);
          }
       }
-      // TODO admin?
+      // TODO expiry
 
       fclose (afilef);
       if (debug)
