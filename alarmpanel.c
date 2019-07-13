@@ -4373,7 +4373,9 @@ main (int argc, const char *argv[])
                            "@rangerdebug",
                            "@rangerpoll",
                            "@raangerhold",
-                           "@rangermax", "@rangerset",
+                           "@rangermax",
+			   "@rangerset",
+			   "@inputhold",
                         };
                         xml_t system = xml_element_next_by_name (config, NULL, "system");
                         if (system)
