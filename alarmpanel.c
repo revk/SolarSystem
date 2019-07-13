@@ -3119,7 +3119,8 @@ doevent (event_t * e)
          printf ("%d", e->state);
       if (e->event == EVENT_KEY)
          printf ("%02X", e->key);
-      if (e->event == EVENT_FOB || e->event == EVENT_FOB_HELD || e->event == EVENT_FOB_ACCESS || e->event == EVENT_FOB_GONE)
+      if (e->event == EVENT_FOB || e->event == EVENT_FOB_HELD || e->event == EVENT_FOB_ACCESS || e->event == EVENT_FOB_GONE
+          || e->event == EVENT_FOB_NOACCESS)
          printf (" %s", e->fob);
       if (e->event == EVENT_RF)
          printf ("%08X %08X %02X %2d/10", e->rfserial, e->rfstatus, e->rftype, e->rfsignal);
@@ -3482,6 +3483,7 @@ doevent (event_t * e)
    case EVENT_FOB:
    case EVENT_FOB_HELD:
    case EVENT_FOB_ACCESS:
+   case EVENT_FOB_NOACCESS:
       {                         // Check users, doors?
          int d;
          unsigned int n;
@@ -3575,12 +3577,13 @@ doevent (event_t * e)
                door_lock (d);   // Cancel open
                dolog (mydoor[d].group_lock, e->event == EVENT_FOB_ACCESS ? "FOBBADACCESS" : "FOBBAD", NULL, doorno,
                       "Unrecognised fob %s%s", e->fob, secure ? " (secure)" : "");
-            } else if (e->event == EVENT_FOB || e->event == EVENT_FOB_ACCESS)
+            } else if (e->event == EVENT_FOB || e->event == EVENT_FOB_ACCESS || e->event == EVENT_FOB_NOACCESS)
             {                   // disarm is the groups that can be disarmed by this user on this door.
-               group_t disarm = ((u->group_arm[secure] & mydoor[d].group_arm & state[STATE_ARM]) | (port_name (port),
-                                                                                                    u->group_disarm[secure] &
-                                                                                                    mydoor[d].group_disarm &
-                                                                                                    state[STATE_SET]));
+               if (e->event == EVENT_FOB_NOACCESS)
+                  dolog (mydoor[d].group_lock, "FOBNOACCESS", u->name, doorno, "Autonomous access not allowed %s%s%s", e->fob,
+                         secure ? " (secure)" : "", e->message ? : "");
+               group_t disarm = ((u->group_arm[secure] & mydoor[d].group_arm & state[STATE_ARM]) |
+                                 (port_name (port), u->group_disarm[secure] & mydoor[d].group_disarm & state[STATE_SET]));
                if (door[d].state == DOOR_PROPPED || door[d].state == DOOR_OPEN || door[d].state == DOOR_PROPPEDOK)
                {
                   if (disarm && alarm_unset (u->name, port_name (port), disarm))
@@ -3644,7 +3647,8 @@ doevent (event_t * e)
                         {       // Open it
                            dolog (mydoor[d].group_lock, "DOOROPEN", u->name, doorno, "Door open by fob %s%s", e->fob,
                                   secure ? " (secure)" : "");
-                           door_open (d);       // Open the door
+                           if (e->event != EVENT_FOB_ACCESS)
+                              door_open (d);    // Open the door
                         } else if (door[d].state == DOOR_OPEN)
                            dolog (mydoor[d].group_lock, "FOBIGNORED", u->name, doorno, "Ignored fob %s as door open", e->fob,
                                   secure ? " (secure)" : "");
@@ -4449,7 +4453,8 @@ main (int argc, const char *argv[])
                }
                if (port && !strncmp (t, "event", 5) && msg->payloadlen >= 1)
                {
-                  if (!strcmp (tag, "id") || !strcmp (tag, "held") || !strcmp (tag, "access") || !strcmp (tag, "gone"))
+                  if (!strcmp (tag, "id") || !strcmp (tag, "held") || !strcmp (tag, "access") || !strcmp (tag, "gone")
+                      || !strcmp (tag, "noaccess"))
                   {             // Fob
                      int l;
                      for (l = 0; l < msg->payloadlen && ((char *) msg->payload)[l] != ' '; l++);
@@ -4468,6 +4473,10 @@ main (int argc, const char *argv[])
                         e->event = EVENT_FOB_ACCESS;
                      else if (!strcmp (tag, "gone"))
                         e->event = EVENT_FOB_GONE;
+                     else if (!strcmp (tag, "noaccess"))
+                        e->event = EVENT_FOB_NOACCESS;
+                     if (l < msg->payloadlen)
+                        asprintf ((char **) &e->message, "%.*s", msg->payloadlen - l, ((char *) msg->payload) + l);
                      e->port = port;
                      strncpy ((char *) e->fob, m, sizeof (e->fob));
                      struct timezone tz;
