@@ -747,7 +747,7 @@ main (int argc, const char *argv[])
          free (deny);
       {
          size_t p;
-         printf ("Access");
+         printf ("Access file");
          for (p = 0; p < afilelen; p++)
             printf (" %02X", afile[p]);
          printf ("\n");
@@ -770,7 +770,7 @@ main (int argc, const char *argv[])
          if (!user || size != afilelen || memcmp (buf, afile, afilelen))
          {                      // Report content
             size_t p;
-            printf ("Access was");
+            printf ("Access was ");
             for (p = 0; p < size; p++)
                printf (" %02X", buf[p]);
             printf ("\n");
