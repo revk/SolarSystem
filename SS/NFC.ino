@@ -104,7 +104,7 @@ char ledpattern[10];
       }
       return true;
     }
-    if (!strcasecmp_P(tag, "led") && len < sizeof(ledpattern))
+    if (!strcasecmp_P(tag, "led"))
     { // Sequence of LED colours (R/G/-) to repeat
       NFC_led(len, (const char*)message);
       return true;

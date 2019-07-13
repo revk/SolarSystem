@@ -175,7 +175,7 @@ const char* Door_tamper = NULL;
     if (blacklist && checkfob(blacklist, id))
     {
       if (door >= 4)
-      {
+      { // Zap the access file
         buf[1] = 3;
         buf[2] = 0;
         buf[3] = 0;
@@ -427,7 +427,6 @@ const char* Door_tamper = NULL;
       else if (doorstate != DOOR_AJAR && doorstate != DOOR_CLOSED)doorstate = DOOR_UNLOCKED;
       if (doorstate != lastdoorstate)
       { // State change
-        NFC_led(strlen(doorled[doorstate]), doorled[doorstate]);
         if (doorstate == DOOR_OPEN) doortimeout = (now + doorprop ? : 1);
         else if (doorstate == DOOR_CLOSED) doortimeout = (now + doorclose ? : 1);
         else if (doorstate == DOOR_UNLOCKED)doortimeout = (now + dooropen ? : 1);
@@ -439,7 +438,7 @@ const char* Door_tamper = NULL;
         doortimeout = 0;
         if (doorstate == DOOR_OPEN && !doorpropable)doorstate = DOOR_PROPPED;
         else if (doorstate == DOOR_UNLOCKED || doorstate == DOOR_CLOSED)
-        {
+        { // Time to lock the door
           if (doordeadlock)Door_deadlock();
           else Door_lock();
         }
@@ -482,8 +481,9 @@ const char* Door_tamper = NULL;
         Output_set(OBEEP, ((now - doortimeout) & 512) ? 1 : 0);
       if (force || doorstate != lastdoorstate)
       {
-        lastdoorstate = doorstate;
+        NFC_led(strlen(doorled[doorstate]), doorled[doorstate]);
         revk.state(F("door"), doortimeout && doordebug ? F("%s %dms") : F("%s"), doorstates[doorstate], (int)(doortimeout - now));
+        lastdoorstate = doorstate;
       }
       Output_set(OERROR, Door_tamper || Door_fault);
     }
