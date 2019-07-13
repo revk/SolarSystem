@@ -271,7 +271,7 @@ const char* Door_tamper = NULL;
           buf[6] = 0;
           buf[7] = 0;
           memcpy(buf + 8, datetime, xlen);
-          if (NFC.desfire (0x3D, 8 + xlen, buf, sizeof(buf), err, 0) < 0)return PSTR("Expiry update failed");
+          if (NFC.desfire (0x3D, 7 + xlen, buf, sizeof(buf), err, 0) < 0)return PSTR("Expiry update failed");
         }
       }
       return NULL;

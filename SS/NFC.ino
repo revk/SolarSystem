@@ -91,14 +91,17 @@ char ledpattern[10];
       NFC.set_aes(message);
       return true;
     }
-    if (!strcasecmp_P(tag, PSTR("NFC")) && len)
+    if (!strcasecmp_P(tag, PSTR("NFC")))
     {
-      held = true; // Stops normal held, but sends gone so reader app knows card removed
-      byte res[100], rlen = sizeof(res);
-      byte bad = NFC.data(len, (byte*)message, rlen, res, 2000);
-      if (!bad && rlen)
-        revk.info(F("nfc"), rlen - 1, res + 1);
-      else revk.error(F("nfc"), F("failed %02X (%d bytes sent %02X %02X %02X...)"), bad, len, message[0], message[1], message[2]);
+      held = true; // Stops normal held and door checks, but sends gone so reader app knows card removed
+      if (len)
+      { // Send data
+        byte res[100], rlen = sizeof(res);
+        byte bad = NFC.data(len, (byte*)message, rlen, res, 2000);
+        if (!bad && rlen)
+          revk.info(F("nfc"), rlen - 1, res + 1);
+        else revk.error(F("nfc"), F("failed %02X (%d bytes sent %02X %02X %02X...)"), bad, len, message[0], message[1], message[2]);
+      }
       return true;
     }
     if (!strcasecmp_P(tag, "led") && len < sizeof(ledpattern))
@@ -234,7 +237,7 @@ char ledpattern[10];
           {
             if (door >= 5 && !noaccess)Door_deadlock(); // Deadlock mode
             revk.event(F("held"), F("%s"), tid); // Previous card gone
-            held = 1;
+            held = true;
           }
         } else
         { // gone
@@ -253,19 +256,27 @@ char ledpattern[10];
             strncpy_P(tid, PSTR("Multiple"), sizeof(tid)); // Multiple ID
           else
             strncpy(tid, id.c_str(), sizeof(tid));
-          noaccess = Door_fob(tid, err); // Check door control
-          if (nfccommit && NFC.secure && !*err.c_str())NFC.desfire_log(err); // Log before action
-          if (!noaccess)
-          { // Autonomous door control
-            Door_unlock(); // Door system was happy with fob, let 'em in
-            revk.event( F("access"), F("%s"), tid); // Report access
-            // TODO logging when off line?
-          } else
-          { // Report to control
-            if (strcmp_P("", noaccess))revk.event(F("noaccess"), F("%s %S"), tid, noaccess); // ID and reason why not autonomous
-            else revk.event(F("id"), F("%s"), tid); // ID
+          if (held)
+          { // Preset for NFC reader remote
+            revk.event( F("card"), F("%s"), tid); // Report access
+            held = false; // Normal
           }
-          if (!nfccommit && NFC.secure && !*err.c_str())NFC.desfire_log(err); // Log after action
+          else
+          {
+            noaccess = Door_fob(tid, err); // Check door control
+            if (nfccommit && NFC.secure && !*err.c_str())NFC.desfire_log(err); // Log before action
+            if (!noaccess)
+            { // Autonomous door control
+              Door_unlock(); // Door system was happy with fob, let 'em in
+              revk.event( F("access"), F("%s"), tid); // Report access
+              // TODO logging when off line?
+            } else
+            { // Report to control
+              if (strcmp_P("", noaccess))revk.event(F("noaccess"), F("%s %S"), tid, noaccess); // ID and reason why not autonomous
+              else revk.event(F("id"), F("%s"), tid); // ID
+            }
+            if (!nfccommit && NFC.secure && !*err.c_str())NFC.desfire_log(err); // Log after action
+          }
           if (*err.c_str())
           { // Report any error
             revk.error(F("id"), F("%s"), err.c_str());
