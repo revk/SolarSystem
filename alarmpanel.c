@@ -4451,9 +4451,11 @@ main (int argc, const char *argv[])
                {
                   if (!strcmp (tag, "id") || !strcmp (tag, "held") || !strcmp (tag, "access") || !strcmp (tag, "gone"))
                   {             // Fob
-                     char *m = alloca (msg->payloadlen + 1);
-                     memcpy (m, msg->payload, msg->payloadlen);
-                     m[msg->payloadlen] = 0;
+                     int l;
+                     for (l = 0; l < msg->payloadlen && ((char *) msg->payload)[l] != ' '; l++);
+                     char *m = alloca (l + 1);
+                     memcpy (m, msg->payload, l);
+                     m[l] = 0;
                      event_t *e = malloc (sizeof (*e));
                      if (!e)
                         errx (1, "malloc");
