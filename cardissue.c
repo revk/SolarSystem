@@ -690,7 +690,7 @@ main (int argc, const char *argv[])
          }
       }
       // Times
-      const char *t = xml_get (user, "@time-from");
+      const char *t = xml_get (user, "@time-from") ? : xml_get (c, "system@time-from");
       if (t && *t)
       {
          unsigned char times[14];
@@ -702,7 +702,7 @@ main (int argc, const char *argv[])
             fwrite (times, l, 1, afilef);
          }
       }
-      t = xml_get (user, "@time-to");
+      t = xml_get (user, "@time-to") ? : xml_get (c, "system@time-to");
       if (t && *t)
       {
          unsigned char times[14];
