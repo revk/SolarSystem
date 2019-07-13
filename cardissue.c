@@ -738,7 +738,7 @@ main (int argc, const char *argv[])
       if (!afilelen)
       {                         // Does not like a zero length file (why?)
          char n = 0xB0;         // None barred
-         fwrite (*n, 1, 1, afilef);
+         fwrite (&n, 1, 1, afilef);
       }
       fclose (afilef);
       if (allow)
