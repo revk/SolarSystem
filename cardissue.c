@@ -241,14 +241,14 @@ main (int argc, const char *argv[])
          send (sp[0], NULL, 0, 0);      // Indicate card gone
          return;
       }
-      if (!strcasecmp (m, "id") || !strcasecmp (m, "access"))
+      if (!strcasecmp (m, "id") || !strcasecmp (m, "access") || !strcasecmp (m, "noaccess") || !strcasecmp (m, "card"))
       {
          asprintf (&fob, "%.*s", msg->payloadlen, (char *) msg->payload);
          printf ("Card found %s\n", fob);
          int n;
          unsigned int id = 0,
             v;
-         for (n = 0; n < msg->payloadlen; n += 2)
+         for (n = 0; n < msg->payloadlen && isxdigit (((char *) msg->payload)[n]); n += 2)
          {
             sscanf ((char *) msg->payload + n, "%02X", &v);
             id ^= (v << (((n / 2) & 3) * 8));
@@ -294,6 +294,14 @@ main (int argc, const char *argv[])
       errx (1, "Sub failed");
    free (topic);
    mosquitto_loop_start (mqtt);
+
+   {                            // Poke reader (disable normal door checks)
+      char *topic;
+      if (asprintf (&topic, "command/SS/%s/nfc", hexreader) < 0)
+         errx (1, "malloc");
+      mosquitto_publish (mqtt, NULL, topic, 0, NULL, 1, 0);
+      free (topic);
+   }
 
    void led (const char *led)
    {
@@ -599,14 +607,14 @@ main (int argc, const char *argv[])
          errx (1, "Create file: %s", e);
    }
 
+   char *afile = NULL;
+   size_t afilelen = 0;
    if (user)
    {                            // Access file
       char *allow = NULL,
-         *deny = NULL,
-         *afile = NULL;
+         *deny = NULL;
       size_t allowlen = 0,
-         denylen = 0,
-         afilelen = 0;
+         denylen = 0;
       FILE *allowf = open_memstream (&allow, &allowlen);
       FILE *denyf = open_memstream (&deny, &denylen);
       FILE *afilef = open_memstream (&afile, &afilelen);
@@ -706,9 +714,30 @@ main (int argc, const char *argv[])
             fwrite (times, l, 1, afilef);
          }
       }
-      // TODO expiry
-
+      int xdays = atoi (xml_get (user, "@expiry") ? : xml_get (c, "system@expiry") ? : "");
+      if (xdays)
+      {                         // Expiry logic
+         struct tm t;
+         time_t now = time (0) + 86400 * xdays;
+         localtime_r (&now, &t);
+         char e[7];
+         e[0] = 0xE1;
+         e[1] = xdays;
+         e[2] = 0xE4;
+         int v = t.tm_year + 1900;
+         e[3] = (v / 1000) * 16 + (v / 100 % 10);
+         e[4] = (v / 10 % 10) * 16 + (v % 10);
+         v = t.tm_mon + 1;
+         e[5] = (v / 10 % 10) * 16 + (v % 10);
+         v = t.tm_mday;
+         e[6] = (v / 10 % 10) * 16 + (v % 10);
+         fwrite (e, 7, 1, afilef);
+      }
       fclose (afilef);
+      if (allow)
+         free (allow);
+      if (deny)
+         free (deny);
       {
          size_t p;
          printf ("Access");
@@ -716,54 +745,55 @@ main (int argc, const char *argv[])
             printf (" %02X", afile[p]);
          printf ("\n");
       }
+   }
 
-      if (fids & (1 << 3))
-      {                         // Access file
-         char type;
-         unsigned char comms;
-         unsigned int size = 0;
-         if ((e = df_get_file_settings (&d, 3, &type, &comms, NULL, &size, NULL, NULL, NULL, NULL, NULL)))
-            errx (1, "File settings: %s", e);
-         if (type != 'D')
-            printf ("Access file wrong type (%c)\n", type);
-         else
-         {                      // Check content
+   if (fids & (1 << 3))
+   {                            // Access file
+      char type;
+      unsigned char comms;
+      unsigned int size = 0;
+      if ((e = df_get_file_settings (&d, 3, &type, &comms, NULL, &size, NULL, NULL, NULL, NULL, NULL)))
+         errx (1, "File settings: %s", e);
+      if (type != 'D')
+         printf ("Access file wrong type (%c)\n", type);
+      else
+      {                         // Check content
+         if ((e = df_read_data (&d, 3, comms, 0, size, buf)))
+            errx (1, "File read: %s", e);
+         if (!user || size != afilelen || memcmp (buf, afile, afilelen))
+         {                      // Report content
+            size_t p;
+            printf ("Access was");
+            for (p = 0; p < size; p++)
+               printf (" %02X", buf[p]);
+            printf ("\n");
+         }
+         if (user)
+         {
             if (size != afilelen)
             {
-               printf ("Access file wrong size (%d!=%d)\n", size, afilelen);
                if ((e = df_delete_file (&d, 3)))
                   errx (1, "Delete file: %s", e);
                fids &= ~(1 << 3);
-            } else
-            {
-               if ((e = df_read_data (&d, 3, comms, 0, afilelen, buf)))
-                  errx (1, "File read: %s", e);
-               if (memcmp (buf, afile, afilelen))
-               {
-                  printf ("Access file wrong content.\n");
-                  if ((e = df_delete_file (&d, 3)))
-                     errx (1, "Delete file: %s", e);
-                  fids &= ~(1 << 3);
-               }
+            } else if (memcmp (buf, afile, afilelen))
+            {                   // Write content
+               if ((e = df_write_data (&d, 3, 'D', comms, 0, afilelen, afile)))
+                  errx (1, "Write file: %s", e);
             }
          }
       }
-      if (!(fids & (1 << 3)))
-      {                         // Create access file
-         printf ("Creating access file\n");
-         if ((e = df_create_file (&d, 3, 'D', comms, 0x1000, afilelen, 0, 0, 0, 0, 0)))
-            errx (1, "Create file: %s", e);
-         if ((e = df_write_data (&d, 3, 'D', comms, 0, afilelen, afile)))
-            errx (1, "Write file: %s", e);
-      }
-
-      if (allow)
-         free (allow);
-      if (deny)
-         free (deny);
-      if (afile)
-         free (afile);
    }
+   if (user && !(fids & (1 << 3)))
+   {                            // Create access file
+      printf ("Creating access file\n");
+      if ((e = df_create_file (&d, 3, 'D', comms, 0x1100, afilelen, 0, 0, 0, 0, 0)))
+         errx (1, "Create file: %s", e);
+      if ((e = df_write_data (&d, 3, 'D', comms, 0, afilelen, afile)))
+         errx (1, "Write file: %s", e);
+   }
+
+   if (afile)
+      free (afile);
 
    unsigned int mem;
    if ((e = df_free_memory (&d, &mem)))
