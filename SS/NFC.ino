@@ -220,6 +220,7 @@ char ledpattern[10];
     static byte ids = 0;
     static long found = 0;
     static long cardcheck = 0;
+    static const char *noaccess = NULL;
     if ((int)(cardcheck - now) < 0)
     {
       cardcheck = now + nfcpoll;
@@ -231,6 +232,7 @@ char ledpattern[10];
         { // still here
           if (!held && (int)(now - found) > holdtime)
           {
+            if (door >= 5 && !noaccess)Door_deadlock(); // Deadlock mode
             revk.event(F("held"), F("%s"), tid); // Previous card gone
             held = 1;
           }
@@ -251,16 +253,16 @@ char ledpattern[10];
             strncpy_P(tid, PSTR("Multiple"), sizeof(tid)); // Multiple ID
           else
             strncpy(tid, id.c_str(), sizeof(tid));
-          const char *d = Door_fob(tid, err); // Check door control
+          noaccess = Door_fob(tid, err); // Check door control
           if (nfccommit && NFC.secure && !*err.c_str())NFC.desfire_log(err); // Log before action
-          if (!d)
+          if (!noaccess)
           { // Autonomous door control
             Door_unlock(); // Door system was happy with fob, let 'em in
             revk.event( F("access"), F("%s"), tid); // Report access
             // TODO logging when off line?
           } else
           { // Report to control
-            if (strcmp_P("", d))revk.event(F("id"), F("%s %S"), tid, d); // ID and reason why not autonomous
+            if (strcmp_P("", noaccess))revk.event(F("noaccess"), F("%s %S"), tid, noaccess); // ID and reason why not autonomous
             else revk.event(F("id"), F("%s"), tid); // ID
           }
           if (!nfccommit && NFC.secure && !*err.c_str())NFC.desfire_log(err); // Log after action

@@ -146,6 +146,26 @@ const char* Door_tamper = NULL;
     return 0;
   }
 
+  static byte bcdtime(time_t now, byte datetime[7])
+  {
+    struct tm *t;
+    t = localtime (&now);
+    int v = t->tm_year + 1900;
+    datetime[0] = (v / 1000) * 16 + (v / 100 % 10);
+    datetime[1] = (v / 10 % 10) * 16 + (v % 10);
+    v = t->tm_mon + 1;
+    datetime[2] = (v / 10) * 16 + (v % 10);
+    v = t->tm_mday;
+    datetime[3] = (v / 10) * 16 + (v % 10);
+    v = t->tm_hour;
+    datetime[4] = (v / 10) * 16 + (v % 10);
+    v = t->tm_min;
+    datetime[5] = (v / 10) * 16 + (v % 10);
+    v = t->tm_sec;
+    datetime[6] = (v / 10) * 16 + (v % 10);
+    return t->tm_wday;
+  }
+
   const char * Door_fob(char *id, String &err)
   { // Consider fob, and return PSTR() if not acceptable, NULL if OK
     if (!door)return PSTR(""); // just not allowed
@@ -154,103 +174,106 @@ const char* Door_tamper = NULL;
     if (door >= 4)
     { // Autonomous door control logic - check access file and times, etc
       if (!NFC.secure)return PSTR("Not a secure fob");
-      // TODO we could assume the file should exist and save a step here
-      uint32_t fileset = NFC.desfire_fileset (err);
-      if (fileset & (1 << 3))
-      { // Check access
-        int32_t filesize = NFC.desfire_filesize(3, err);
-        byte buf[100];
-        if (filesize < 0)return PSTR("Cannot get access file details");
-        if (filesize > sizeof(buf) - 10)return PSTR("Access file too big");
-        if (filesize)
+      // Check access file (expected to exist)
+      int32_t filesize = NFC.desfire_filesize(3, err);
+      byte buf[100];
+      time_t now;
+      time (&now);
+      byte datetime[7]; // BCD date time
+      int xoff = 0, xlen = 0, xdays = 0; // Expiry data
+      if (filesize < 0)return PSTR("No access file on fob");
+      if (filesize > sizeof(buf) - 10)return PSTR("Access file too big");
+      if (filesize)
+      {
+        if (NFC.desfire_fileread (3, 0, filesize, sizeof(buf), buf, err) < 0)return PSTR("Cannot read access file");
+        // Check access
+        byte *p = buf + 1, *e = buf + 1 + filesize;
+        boolean ax = false, aok = false;
+        byte *fok = NULL, *tok = NULL;
+        unsigned int cid = ESP.getChipId ();
+        byte dow = bcdtime(now, datetime);
+        while (p < e)
         {
-          if (NFC.desfire_fileread (3, 0, filesize, sizeof(buf), buf, err) < 0)return PSTR("Cannot read access file");
-          // Check access
-          byte *p = buf + 1, *e = buf + 1 + filesize;
-          boolean ax = false, aok = false;
-          byte *fok = NULL, *tok = NULL;
-          byte datetime[7], dow; // BCD date time
-          unsigned int cid = ESP.getChipId ();
-          {
-            time_t now;
-            struct tm *t;
-            time (&now);
-            t = localtime (&now);
-            int v = t->tm_year + 1900;
-            datetime[0] = (v / 1000) * 16 + (v / 100 % 10);
-            datetime[1] = (v / 10 % 10) * 16 + (v % 10);
-            v = t->tm_mon + 1;
-            datetime[2] = (v / 10) * 16 + (v % 10);
-            v = t->tm_mday;
-            datetime[3] = (v / 10) * 16 + (v % 10);
-            v = t->tm_hour;
-            datetime[4] = (v / 10) * 16 + (v % 10);
-            v = t->tm_min;
-            datetime[5] = (v / 10) * 16 + (v % 10);
-            v = t->tm_sec;
-            datetime[6] = (v / 10) * 16 + (v % 10);
-            dow = t->tm_wday;
-          }
-          while (p < e)
-          {
-            byte l = (*p & 0xF);
-            byte c = (*p++ >> 4);
-            if (p + l > e)return PSTR("Invalid access file");
-            if (c == 0xA)
-            { // Allow
-              ax = true;
-              if (l % 3)return PSTR("Invalid allow list");
-              byte n = l;
-              while (n && !aok)
-              {
-                n -= 3;
-                if ((p[n] << 16) + (p[n + 1] << 8) + p[n + 2] == cid)aok = 1;
-              }
-            } else if (c == 0xB)
-            { // Barred
-              if (l % 3)return PSTR("Invalid barred list");
-              byte n = l;
-              while (n)
-              {
-                n -= 3;
-                if ((p[n] << 16) + (p[n + 1] << 8) + p[n + 2] == cid)return PSTR("Barred door");
-              }
-            } else if (c == 0xF)
-            { // From
-              if (fok)return PSTR("Duplicate from time");
-              if (l == 2)fok = p;
-              else if (l == 4)fok = p + ((dow && dow < 6) ? 2 : 0);
-              else if (l == 14)fok = p + dow * 2;
-              else return PSTR("Bad from time"); // Bad time
-            } else if (c == 0x2)
-            { // To
-              if (tok)return PSTR("Duplicate to time");
-              if (l == 2)tok = p;
-              else if (l == 4)tok = p + ((dow && dow < 6) ? 2 : 0);
-              else if (l == 14)tok = p + dow * 2;
-              else return PSTR("Bad to time");
-            } else if (c == 0xE)
-            { // Expiry
-              if (memcmp(datetime, p, l) > 0)return PSTR("Expired"); // expired
-            } else
-              return PSTR("Unknown access code"); // Unknown access code
-            p += l;
-          }
-          if (ax && !aok)return PSTR("Not allowed door"); // Not on allow list
-          if (fok || tok)
-          { // Time check
-            if (fok && tok && memcmp(fok, tok, 2) > 0)
-            { // reverse
-              if (memcmp(datetime + 4, fok, 2) < 0 && memcmp(datetime + 4, tok, 2) >= 0)return PSTR("Outside time");
-            } else
+          byte l = (*p & 0xF);
+          byte c = (*p++ >> 4);
+          if (p + l > e)return PSTR("Invalid access file");
+          if (c == 0xA)
+          { // Allow
+            ax = true;
+            if (l % 3)return PSTR("Invalid allow list");
+            byte n = l;
+            while (n && !aok)
             {
-              if (fok && memcmp(datetime + 4, fok, 2) < 0)return PSTR("Too soon");
-              if (tok && memcmp(datetime + 4, tok, 2) >= 0)return PSTR("Too late");
+              n -= 3;
+              if ((p[n] << 16) + (p[n + 1] << 8) + p[n + 2] == cid)aok = 1;
             }
+          } else if (c == 0xB)
+          { // Barred
+            if (l % 3)return PSTR("Invalid barred list");
+            byte n = l;
+            while (n)
+            {
+              n -= 3;
+              if ((p[n] << 16) + (p[n + 1] << 8) + p[n + 2] == cid)return PSTR("Barred door");
+            }
+          } else if (c == 0xF)
+          { // From
+            if (fok)return PSTR("Duplicate from time");
+            if (l == 2)fok = p;
+            else if (l == 4)fok = p + ((dow && dow < 6) ? 2 : 0);
+            else if (l == 14)fok = p + dow * 2;
+            else return PSTR("Bad from time"); // Bad time
+          } else if (c == 0x2)
+          { // To
+            if (tok)return PSTR("Duplicate to time");
+            if (l == 2)tok = p;
+            else if (l == 4)tok = p + ((dow && dow < 6) ? 2 : 0);
+            else if (l == 14)tok = p + dow * 2;
+            else return PSTR("Bad to time");
+          } else if (c == 0xE)
+          { // Expiry
+            if (l == 1)xdays = *p;
+            else
+            {
+              xoff = p - buf - 1;
+              xlen = l;
+              if (memcmp(datetime, p, l) > 0)return PSTR("Expired"); // expired
+            }
+          } else
+            return PSTR("Unknown access code"); // Unknown access code
+          p += l;
+        }
+        if (ax && !aok)return PSTR("Not allowed door"); // Not on allow list
+        if (fok || tok)
+        { // Time check
+          if (fok && tok && memcmp(fok, tok, 2) > 0)
+          { // reverse
+            if (memcmp(datetime + 4, fok, 2) < 0 && memcmp(datetime + 4, tok, 2) >= 0)return PSTR("Outside time");
+          } else
+          {
+            if (fok && memcmp(datetime + 4, fok, 2) < 0)return PSTR("Too soon");
+            if (tok && memcmp(datetime + 4, tok, 2) >= 0)return PSTR("Too late");
           }
         }
       }
-      if (doordeadlock)return PSTR("Door deadlocked");
+      if (doordeadlock && door < 5)return PSTR("Door deadlocked");
+      if (xdays && xoff && xlen <= 7)
+      { // Update expiry
+        now += 86400 * xdays;
+        bcdtime(now, datetime);
+        if (memcmp(datetime, buf + 1 + xoff, xlen) > 0)
+        { // Changed expiry
+          buf[1] = 3;
+          buf[2] = xoff;
+          buf[3] = 0;
+          buf[4] = 0;
+          buf[5] = xlen;
+          buf[6] = 0;
+          buf[7] = 0;
+          memcpy(buf + 8, datetime, xlen);
+          if (NFC.desfire (0x3D, 8 + xlen, buf, sizeof(buf), err, 0) < 0)return PSTR("Expiry update failed");
+        }
+      }
       return NULL;
     }
     if (door == 3)
@@ -333,8 +356,8 @@ const char* Door_tamper = NULL;
               boolean o = false, i = false;
               if (Output_active(OUNLOCK + l) && Output_get(OUNLOCK + l))o = true;
               if (Input_get(IUNLOCK + l))i = true;
-              if (lock[l].o && !o && last != LOCK_FORCED)
-              { // Change to lock
+              if ((Input_get(IOPEN) || lock[l].o) && !o && last != LOCK_FORCED)
+              { // Change to lock (an open door is seen as still trying to lock if !o)
                 lock[l].timeout = ((now + doorlock) ? : 1);
                 lock[l].state = LOCK_LOCKING;
               } else if (o && !lock[l].o)
