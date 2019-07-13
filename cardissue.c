@@ -793,7 +793,7 @@ main (int argc, const char *argv[])
    if (user && !(fids & (1 << 3)))
    {                            // Create access file
       printf ("Creating access file\n");
-      if ((e = df_create_file (&d, 3, 'D', comms, 0x1010, afilelen, 0, 0, 0, 0, 0)))
+      if ((e = df_create_file (&d, 3, 'D', comms, 0x0010, afilelen, 0, 0, 0, 0, 0)))
          errx (1, "Create file: %s", e);
       if ((e = df_write_data (&d, 3, 'D', comms, 0, afilelen, afile)))
          errx (1, "Write file: %s", e);
