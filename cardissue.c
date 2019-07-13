@@ -474,10 +474,10 @@ main (int argc, const char *argv[])
          errx (1, "Change key: %s", e);
       if ((e = df_authenticate (&d, 0, cardkey)))
          errx (1, "Authenticate: %s", e);
-      if ((e = df_change_key_settings (&d, 0x09)))
-         errx (1, "Change key settings: %s", e);
       if ((e = df_change_key (&d, 1, 0x01, NULL, aes)))
          errx (1, "Change key: %s", e);
+      if ((e = df_change_key_settings (&d, 0xEB)))
+         errx (1, "Change key settings: %s", e);
    } else
    {
       if ((e = df_select_application (&d, aid)))
@@ -517,7 +517,7 @@ main (int argc, const char *argv[])
          {
             xml_t u = NULL;
             while ((u = xml_element_next_by_name (c, u, "user")))
-               if (!strcasecmp (xml_get (u, "@full-name") ? : "", (char*)buf))
+               if (!strcasecmp (xml_get (u, "@full-name") ? : "", (char *) buf))
                   break;
             if (u)
             {                   // Found
@@ -635,8 +635,6 @@ main (int argc, const char *argv[])
          if (df_hex (3, id, devid) != 3)
             break;
          const char *lock = xml_get (door, "@lock");
-         if (!lock)
-            lock = xml_get (door, "@groups");
          if (lock && *open != '*')
          {                      // Check if allowed
             const char *c;
@@ -711,13 +709,12 @@ main (int argc, const char *argv[])
       // TODO expiry
 
       fclose (afilef);
-      if (debug)
       {
          size_t p;
-         fprintf (stderr, "Access");
+         printf ("Access");
          for (p = 0; p < afilelen; p++)
-            fprintf (stderr, " %02X", afile[p]);
-         fprintf (stderr, "\n");
+            printf (" %02X", afile[p]);
+         printf ("\n");
       }
 
       if (fids & (1 << 3))
