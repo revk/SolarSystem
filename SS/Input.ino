@@ -17,7 +17,7 @@ unsigned int inputstate = 0;
 
 #define app_settings  \
   s(input,0);   \
-  s(inputhold,500); \
+  s(inputhold,100); \
   s(inputpoll,10); \
 
 #define s(n,d) unsigned int n=d;

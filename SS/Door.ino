@@ -135,6 +135,7 @@ const char* Door_tamper = NULL;
   { // is fob in list
     if (!fobs || !id)return 0;
     int l = strlen(id), n = 0;
+    if (l && id[l - 1] == '+')l--; // Don't check secure tag suffix
     while (*fobs)
     {
       n++;
@@ -169,15 +170,35 @@ const char* Door_tamper = NULL;
 
   const char * Door_fob(char *id, String &err)
   { // Consider fob, and return PSTR() if not acceptable, NULL if OK
+    byte buf[100];
     if (!door)return PSTR(""); // just not allowed
-    if (blacklist && checkfob(blacklist, id)) return PSTR("Blacklisted fob");
-    if (doorstate == DOOR_OPEN)return PSTR("Door is open"); // Door is open!
+    if (blacklist && checkfob(blacklist, id))
+    {
+      if (door >= 4)
+      {
+        buf[1] = 3;
+        buf[2] = 0;
+        buf[3] = 0;
+        buf[4] = 0;
+        buf[5] = 1;
+        buf[6] = 0;
+        buf[7] = 0;
+        buf[8] = 0x00; // Blacklist
+        if (NFC.desfire (0x3D, 8, buf, sizeof(buf), err, 0) < 0)return PSTR("Blacklist update failed");
+        return PSTR("Blacklist (zapped)");
+      }
+      return PSTR("Blacklisted fob");
+    }
+    if (doorstate == DOOR_OPEN)
+    {
+      if (door >= 5)Door_prop();
+      return PSTR(""); // Door is open - not really worth complaining about, but not access
+    }
     if (door >= 4)
     { // Autonomous door control logic - check access file and times, etc
       if (!NFC.secure)return PSTR("Not a secure fob");
       // Check access file (expected to exist)
       int32_t filesize = NFC.desfire_filesize(3, err);
-      byte buf[100];
       time_t now;
       time (&now);
       byte datetime[7]; // BCD date time
@@ -198,7 +219,8 @@ const char* Door_tamper = NULL;
           byte l = (*p & 0xF);
           byte c = (*p++ >> 4);
           if (p + l > e)return PSTR("Invalid access file");
-          if (c == 0xA)
+          if (c == 0x00)return PSTR("Card blocked");
+          else if (c == 0xA)
           { // Allow
             ax = true;
             if (l % 3)return PSTR("Invalid allow list");
