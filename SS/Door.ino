@@ -15,6 +15,7 @@
 #define IUNLOCK 3
 #define OUNLOCK 1
 #define OBEEP 3
+#define OERROR 4
 
 #include "PN532RevK.h"
 extern PN532RevK NFC;
@@ -354,9 +355,9 @@ const char* Door_tamper = NULL;
             byte last = lock[l].state;
             {
               boolean o = false, i = false;
-              if (Output_active(OUNLOCK + l) && Output_get(OUNLOCK + l))o = true;
+              if (Output_get(OUNLOCK + l))o = true;
               if (Input_get(IUNLOCK + l))i = true;
-              if ((Input_get(IOPEN) || lock[l].o) && !o && last != LOCK_FORCED)
+              if (((Input_get(IOPEN) && last != LOCK_FORCED) || lock[l].o) && !o)
               { // Change to lock (an open door is seen as still trying to lock if !o)
                 lock[l].timeout = ((now + doorlock) ? : 1);
                 lock[l].state = LOCK_LOCKING;
@@ -365,10 +366,10 @@ const char* Door_tamper = NULL;
                 lock[l].timeout = ((now + doorunlock) ? : 1);
                 lock[l].state = LOCK_UNLOCKING;
               }
-              if (!lock[l].i && i && lock[l].state == LOCK_LOCKED)lock[l].state = LOCK_FORCED;
-              if (lock[l].timeout && ((Input_active(IUNLOCK + l) && i == o) || (int)(lock[l].timeout - now) <= 0))
+              if (lock[l].o == o && !lock[l].i && i && lock[l].state == LOCK_LOCKED)lock[l].state = LOCK_FORCED;
+              if (lock[l].timeout && ((Input_active(IUNLOCK + l) && i == o && lock[l].i == i && lock[l].o == o) || (int)(lock[l].timeout - now) <= 0))
                 lock[l].timeout = 0;
-              if (!lock[l].timeout && (!i || lock[l].state != LOCK_FORCED))
+              if (!lock[l].timeout && (!i || lock[l].state != LOCK_FORCED) && lock[l].i == i && lock[l].o == o)
               {
                 if (Input_active(IUNLOCK + l) && i != o)lock[l].state = (o ? LOCK_UNLOCKFAIL : LOCK_LOCKFAIL);
                 else lock[l].state = (o ? LOCK_UNLOCKED : LOCK_LOCKED);
@@ -462,6 +463,7 @@ const char* Door_tamper = NULL;
         lastdoorstate = doorstate;
         revk.state(F("door"), doortimeout && doordebug ? F("%s %dms") : F("%s"), doorstates[doorstate], (int)(doortimeout - now));
       }
+      Output_set(OERROR, Door_tamper || Door_fault);
     }
     return true;
   }
