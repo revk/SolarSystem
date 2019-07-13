@@ -532,6 +532,7 @@ main (int argc, const char *argv[])
                if (!setname)
                   setname = xml_get (u, "@full-name");
                user = u;
+               username = xml_get (u, "@name");
             }
          }
       }
