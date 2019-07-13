@@ -245,41 +245,30 @@ char ledpattern[10];
         }
       } else {
         if ((ids = NFC.getID(id, err, 100, bid)))
-        {
+        { // Got ID
           found = (now ? : 1);
           if (ids > 1)
-            strncpy_P(tid, PSTR("Multiple"), sizeof(tid));
+            strncpy_P(tid, PSTR("Multiple"), sizeof(tid)); // Multiple ID
           else
             strncpy(tid, id.c_str(), sizeof(tid));
-          const char *d = Door_fob(tid, err);
+          const char *d = Door_fob(tid, err); // Check door control
+          if (nfccommit && NFC.secure && !*err.c_str())NFC.desfire_log(err); // Log before action
           if (!d)
-          { // Allowed in by door system
-            revk.event( F("access"), F("%s"), tid);
+          { // Autonomous door control
             Door_unlock(); // Door system was happy with fob, let 'em in
+            revk.event( F("access"), F("%s"), tid); // Report access
+            // TODO logging when off line?
+          } else
+          { // Report to control
+            if (strcmp_P("", d))revk.event(F("id"), F("%s %S"), tid, d); // ID and reason why not autonomous
+            else revk.event(F("id"), F("%s"), tid); // ID
           }
-          else if (strcmp_P("", d))revk.info(F("door"), F("%s not allowed %S"), tid, d); // Log why not allowed
-          if (!*err.c_str())
-          {
-            if (nfccommit && NFC.secure)
-            { // Log and commit first, and ensure commit worked, before sending ID - this is noticably slower, so optional and not default
-              if (NFC.desfire_log(err) >= 0)
-              {
-                NFC.led(ledlast = 0);
-                if (d)revk.event( F("id") , F("%s"), tid);
-              }
-            } else
-            { // Send ID first, then log to card, quicker, but could mean an access is not logged on the card if removed quickly enough
-              NFC.led(ledlast = 0);
-              if (d)revk.event(F("id") , F("%s"), tid);
-              if (NFC.secure && !*err.c_str())
-                NFC.desfire_log(err);
-            }
+          if (!nfccommit && NFC.secure && !*err.c_str())NFC.desfire_log(err); // Log after action
+          if (*err.c_str())
+          { // Report any error
+            revk.error(F("id"), F("%s"), err.c_str());
+            found = 0;
           }
-        }
-        if (*err.c_str())
-        {
-          revk.error(F("id"), F("%s"), err.c_str());
-          found = 0;
         }
       }
     }
