@@ -734,6 +734,12 @@ main (int argc, const char *argv[])
          e[6] = (v / 10 % 10) * 16 + (v % 10);
          fwrite (e, 7, 1, afilef);
       }
+      fflush (afilef);
+      if (!afilelen)
+      {                         // Does not like a zero length file (why?)
+         char n = 0xB0;         // None barred
+         fwrite (*n, 1, 1, afilef);
+      }
       fclose (afilef);
       if (allow)
          free (allow);
@@ -787,7 +793,7 @@ main (int argc, const char *argv[])
    if (user && !(fids & (1 << 3)))
    {                            // Create access file
       printf ("Creating access file\n");
-      if ((e = df_create_file (&d, 3, 'D', comms, 0x1100, afilelen, 0, 0, 0, 0, 0)))
+      if ((e = df_create_file (&d, 3, 'D', comms, 0x1010, afilelen, 0, 0, 0, 0, 0)))
          errx (1, "Create file: %s", e);
       if ((e = df_write_data (&d, 3, 'D', comms, 0, afilelen, afile)))
          errx (1, "Write file: %s", e);
