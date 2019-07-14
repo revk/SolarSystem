@@ -3,7 +3,7 @@
 h=2000;
 w=900;
 t=45;
-mode="FAULT";
+mode="DEADLOCKED";
 
 wall=200;
 $fn=100;
@@ -61,11 +61,22 @@ module unlock(y=h/2)
 
 module door(a=0)
 {
-    color("BurlyWood")
     rotate([0,0,a])
     {
-        translate([0,-t,0])
-        cube([w,t,h]);
+        difference()
+        {
+            translate([0,-t,0])
+            cube([w,t,h]);
+            for(x=[w/3,2*w/3])
+            for(y=[h/5,h/5+h/3,h/5+2*h/3])
+            translate([x,-t-1,y])
+            hull()
+            {
+                cube([w/4,t/2,h/5],true);
+                translate([0,-1,0])
+                cube([w/4+50,1,h/5+50],true);
+            }
+        }
         if(mode=="PROPPED")prop();
         if(mode=="LOCKING"){padlock();unlock();}
         if(mode=="UNLOCKED")unlock();
@@ -89,7 +100,6 @@ module door(a=0)
 
 module frame()
 {
-    color("LightYellow")
     difference()
     {
         translate([-1000,-wall,0])
@@ -100,20 +110,20 @@ module frame()
 }
 
 frame();
-if(mode=="UNUSED")door(0);
+if(mode=="UNUSED")door(-1);
 if(mode=="NEW")door(-10);
-//if(mode=="OFFLINE")door(0);
-if(mode=="DEADLOCKED")door(0);
-if(mode=="LOCKING")door(0);
+//if(mode=="OFFLINE")door(-1);
+if(mode=="DEADLOCKED")door(-1);
+if(mode=="LOCKING")door(-1);
 if(mode=="LOCKED")door(4);
 if(mode=="UNLOCKING")door(5);
-if(mode=="UNLOCKED")door(0);
+if(mode=="UNLOCKED")door(-1);
 if(mode=="OPEN")door(70);
-if(mode=="CLOSED")door(0);
-if(mode=="LOCKING")door(0);
+if(mode=="CLOSED")door(-1);
+if(mode=="LOCKING")door(-1);
 if(mode=="PROPPED")door(80);
 if(mode=="PROPPEDOK")door(80);
 if(mode=="AJAR")door(10);
 if(mode=="FAULT")rotate([-30,-10,0])door(10);
-if(mode=="TAMPER")door(0);
+if(mode=="TAMPER")door(-1);
 if(mode=="FORCED")door(50);
