@@ -70,7 +70,7 @@ div.doorstate {
 	position: absolute;
 	bottom:2px;
 	left:2px;
-	color:white;
+	color:black;
 	width: 100%;
 	pointer-events: none;
 }
@@ -155,3 +155,6 @@ th {
 
 @font-face{font-family:"FiveByNineLCD";font-style:normal;font-weight:400;src:url(FiveByNineLCD-Regular.ttf);}
 pre {font-family:"FiveByNineLCD",monospace;}
+body {font-family:sans-serif;}
+
+img.doorimg {width:100px;height:183px;}
