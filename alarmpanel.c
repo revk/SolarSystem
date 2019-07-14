@@ -3524,12 +3524,16 @@ doevent (event_t * e)
                localtime_r (&now, &t);
                if (from && strlen (from) == 28)
                   from += t.tm_wday * 4;
+               else if (from && strlen (from) == 12)
+                  from += (!t.tm_wday ? 0 : t.tm_wday < 6 ? 4 : 8);
                else if (from && strlen (from) == 8 && t.tm_wday && t.tm_wday != 6)
                   from += 4;
                else if (from && strlen (from) != 4)
                   from = NULL;
                if (to && strlen (to) == 28)
                   to += t.tm_wday * 4;
+               else if (to && strlen (to) == 12)
+                  to += (!t.tm_wday ? 0 : t.tm_wday < 6 ? 4 : 8);
                else if (to && strlen (to) == 8 && t.tm_wday && t.tm_wday != 6)
                   to += 4;
                else if (to && strlen (to) != 4)
