@@ -183,7 +183,7 @@ const char* Door_tamper = NULL;
         buf[5] = 1;
         buf[6] = 0;
         buf[7] = 0;
-        buf[8] = 0x00; // Blacklist
+        buf[8] = 0xA0; // Blacklist
         if (NFC.desfire (0x3D, 8, buf, sizeof(buf), err, 0) < 0)return PSTR("Blacklist update failed");
         return PSTR("Blacklist (zapped)");
       }
@@ -196,7 +196,7 @@ const char* Door_tamper = NULL;
     }
     if (door >= 4)
     { // Autonomous door control logic - check access file and times, etc
-      if (!NFC.secure)return PSTR("Not a secure fob");
+      if (!NFC.secure)return PSTR(""); // Don't make a fuss, control system may allow this, and it is obvious
       // Check access file (expected to exist)
       int32_t filesize = NFC.desfire_filesize(3, err);
       time_t now;
@@ -219,9 +219,12 @@ const char* Door_tamper = NULL;
           byte l = (*p & 0xF);
           byte c = (*p++ >> 4);
           if (p + l > e)return PSTR("Invalid access file");
-          if (c == 0x00)return PSTR("Card blocked");
+          if (c == 0x0)
+          { // Padding, ignore
+          }
           else if (c == 0xA)
           { // Allow
+            if (!l)return PSTR("Card blocked"); // Black list
             ax = true;
             if (l % 3)return PSTR("Invalid allow list");
             byte n = l;
@@ -244,6 +247,7 @@ const char* Door_tamper = NULL;
             if (fok)return PSTR("Duplicate from time");
             if (l == 2)fok = p;
             else if (l == 4)fok = p + ((dow && dow < 6) ? 2 : 0);
+            else if (l == 6)fok = p + (!dow ? 0 : dow < 6 ? 2 : 4);
             else if (l == 14)fok = p + dow * 2;
             else return PSTR("Bad from time"); // Bad time
           } else if (c == 0x2)
@@ -251,6 +255,7 @@ const char* Door_tamper = NULL;
             if (tok)return PSTR("Duplicate to time");
             if (l == 2)tok = p;
             else if (l == 4)tok = p + ((dow && dow < 6) ? 2 : 0);
+            else if (l == 6)tok = p + (!dow ? 0 : dow < 6 ? 2 : 4);
             else if (l == 14)tok = p + dow * 2;
             else return PSTR("Bad to time");
           } else if (c == 0xE)
@@ -301,7 +306,7 @@ const char* Door_tamper = NULL;
     }
     if (door == 3)
     {
-      if (!NFC.secure)return PSTR("Not a secure fob");
+      if (!NFC.secure)return PSTR(""); // Don't make a fuss, control system may allow this, and it is obvious
       if (doordeadlock)return PSTR("Door deadlocked");
       return NULL;
     }
