@@ -104,7 +104,7 @@ char ledpattern[10];
       }
       return true;
     }
-    if (!strcasecmp_P(tag, "led") && len < sizeof(ledpattern))
+    if (!strcasecmp_P(tag, "led"))
     { // Sequence of LED colours (R/G/-) to repeat
       NFC_led(len, (const char*)message);
       return true;
@@ -191,7 +191,7 @@ char ledpattern[10];
         // Plan to allow digits to control timing in multiples of 100ms, and also allow R+G, etc, combinations, and maybe R, A, G LEDs.
         lednext += 100;
         ledpos++;
-        if (ledpos >= sizeof(ledpattern) || !ledpattern[ledpos])ledpos = 0;
+        if (ledpos >= sizeof(ledpattern) || !ledpattern[ledpos] || !*ledpattern)ledpos = 0;
         byte newled = 0;
         // We are assuming exactly two LEDs, one at a time (back to back) on P30 and P31
         if (nfcred >= 0 && ledpattern[ledpos] == 'R')newled = (1 << nfcred);
