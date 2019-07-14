@@ -3506,15 +3506,22 @@ doevent (event_t * e)
          }
          if (u && e->event != EVENT_FOB_HELD)
          {                      // Time constraints
-            const char *from = xml_get (u->config, "@time-from");
-            const char *to = xml_get (u->config, "@time-to");
+            time_t now = time (0);
+            time_t expiry = xml_time (xml_get (u->config, "@expiry"));
+            if (expiry && expiry < now)
+            {
+               if (e->event == EVENT_FOB_ACCESS && app->door >= 0)
+                  door_lock (app->door);        // Override
+               dolog (groups, e->event == EVENT_FOB_ACCESS ? "FOBBADACCESS" : "FOBTIME", NULL, port_name (port),
+                      "Expired fob %s%s %s", e->fob, secure ? " (secure)" : "", xml_datetimelocal (expiry));
+               return;
+            }
+            const char *from = xml_get (u->config, "@time-from") ? : xml_get (config, "system@time-from");
+            const char *to = xml_get (u->config, "@time-to") ? : xml_get (config, "system@time-to");
             if (from || to)
             {
                struct tm t;
-               {
-                  time_t now = time (0);
-                  localtime_r (&now, &t);
-               }
+               localtime_r (&now, &t);
                if (from && strlen (from) == 28)
                   from += t.tm_wday * 4;
                else if (from && strlen (from) == 8 && t.tm_wday && t.tm_wday != 6)
@@ -3537,7 +3544,7 @@ doevent (event_t * e)
                   tok = 1;
                if (!((from && to && strncmp (from, to, 4) > 0 && (fok || tok)) || (fok && tok)))
                {
-                  if (app->door >= 0)
+                  if (e->event == EVENT_FOB_ACCESS && app->door >= 0)
                      door_lock (app->door);     // Override
                   dolog (groups, e->event == EVENT_FOB_ACCESS ? "FOBBADACCESS" : "FOBTIME", NULL, port_name (port),
                          "Out of time fob %s%s %.4s %.4s %.4s", e->fob, secure ? " (secure)" : "", from ? : "0000", now,
@@ -4374,8 +4381,8 @@ main (int argc, const char *argv[])
                            "@rangerpoll",
                            "@raangerhold",
                            "@rangermax",
-			   "@rangerset",
-			   "@inputhold",
+                           "@rangerset",
+                           "@inputhold",
                         };
                         xml_t system = xml_element_next_by_name (config, NULL, "system");
                         if (system)

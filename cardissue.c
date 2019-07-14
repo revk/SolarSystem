@@ -696,7 +696,7 @@ main (int argc, const char *argv[])
       {
          unsigned char times[14];
          int l = df_hex (sizeof (times), times, t);
-         if (l == 2 || l == 4 || l == 14)
+         if (l == 2 || l == 4 || l == 6 || l == 14)
          {
             char tag = 0xF0 + l;
             fwrite (&tag, 1, 1, afilef);
@@ -708,36 +708,65 @@ main (int argc, const char *argv[])
       {
          unsigned char times[14];
          int l = df_hex (sizeof (times), times, t);
-         if (l == 2 || l == 4 || l == 14)
+         if (l == 2 || l == 4 || l == 6 || l == 14)
          {
             char tag = 0x20 + l;
             fwrite (&tag, 1, 1, afilef);
             fwrite (times, l, 1, afilef);
          }
       }
-      int xdays = atoi (xml_get (user, "@expiry") ? : xml_get (c, "system@expiry") ? : "");
-      if (xdays)
-      {                         // Expiry logic
-         struct tm t;
-         time_t now = time (0) + 86400 * xdays;
-         localtime_r (&now, &t);
-         char e[7];
-         e[0] = 0xE1;
-         e[1] = xdays;
-         e[2] = 0xE4;
-         int v = t.tm_year + 1900;
-         e[3] = (v / 1000) * 16 + (v / 100 % 10);
-         e[4] = (v / 10 % 10) * 16 + (v % 10);
-         v = t.tm_mon + 1;
-         e[5] = (v / 10 % 10) * 16 + (v % 10);
-         v = t.tm_mday;
-         e[6] = (v / 10 % 10) * 16 + (v % 10);
-         fwrite (e, 7, 1, afilef);
+      const char *ex = xml_get (user, "@expiry") ? : xml_get (c, "system@expiry");
+      if (ex)
+      {
+         time_t expiry = xml_time (ex);
+         if (expiry)
+         {                      // Explicit expiry
+            struct tm t;
+            localtime_r (&expiry, &t);
+            char e[8];
+            e[0] = 0xE7;
+            e[1] = 0xE4;
+            int v = t.tm_year + 1900;
+            e[2] = (v / 1000) * 16 + (v / 100 % 10);
+            e[3] = (v / 10 % 10) * 16 + (v % 10);
+            v = t.tm_mon + 1;
+            e[4] = (v / 10 % 10) * 16 + (v % 10);
+            v = t.tm_mday;
+            e[5] = (v / 10 % 10) * 16 + (v % 10);
+            v = t.tm_hour;
+            e[6] = (v / 10 % 10) * 16 + (v % 10);
+            v = t.tm_min;
+            e[7] = (v / 10 % 10) * 16 + (v % 10);
+            v = t.tm_sec;
+            e[8] = (v / 10 % 10) * 16 + (v % 10);
+            fwrite (e, 8, 1, afilef);
+         } else
+         {
+            int xdays = atoi (ex);
+            if (xdays)
+            {                   // Auto expiry
+               struct tm t;
+               time_t now = time (0) + 86400 * xdays;
+               localtime_r (&now, &t);
+               char e[7];
+               e[0] = 0xE1;
+               e[1] = xdays;
+               e[2] = 0xE4;
+               int v = t.tm_year + 1900;
+               e[3] = (v / 1000) * 16 + (v / 100 % 10);
+               e[4] = (v / 10 % 10) * 16 + (v % 10);
+               v = t.tm_mon + 1;
+               e[5] = (v / 10 % 10) * 16 + (v % 10);
+               v = t.tm_mday;
+               e[6] = (v / 10 % 10) * 16 + (v % 10);
+               fwrite (e, 7, 1, afilef);
+            }
+         }
       }
       fflush (afilef);
       if (!afilelen)
       {                         // Does not like a zero length file (why?)
-         char n = 0xB0;         // None barred
+         char n = 0x00;         // Padding
          fwrite (&n, 1, 1, afilef);
       }
       fclose (afilef);
