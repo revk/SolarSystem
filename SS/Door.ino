@@ -384,8 +384,8 @@ const char* Door_tamper = NULL;
               boolean o = false, i = false;
               if (Output_get(OUNLOCK + l))o = true;
               if (Input_get(IUNLOCK + l))i = true;
-              if (((Input_get(IOPEN) && last != LOCK_FORCED) || lock[l].o) && !o)
-              { // Change to lock (an open door is seen as still trying to lock if !o)
+              if (((Input_get(IOPEN) && last == LOCK_LOCKING) || lock[l].o) && !o)
+              { // Change to lock - timer constantly restarted if door is open as it will not actually engage
                 lock[l].timeout = ((now + doorlock) ? : 1);
                 lock[l].state = LOCK_LOCKING;
               } else if (o && !lock[l].o)
