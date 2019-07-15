@@ -92,7 +92,7 @@ door_led (int d, unsigned char state)
 	led |= (1 << 0);
       if (door[d].mainlock.locked)
 	led |= (1 << 1);
-      if ((state != DOOR_OPEN && (door[d].mainlock.timer > 0 || door[d].deadlock.timer > 0)) || state == DOOR_PROPPED)
+      if ((state != DOOR_OPEN && (door[d].mainlock.timer > 0 || door[d].deadlock.timer > 0)) || state == DOOR_NOTCLOSED)
 	led |= (1 << 2);
       if (state == DOOR_FORCED || state == DOOR_FAULT)
 	led |= (1 << 3);
@@ -244,10 +244,10 @@ doorman (void *d)
 		      state = DOOR_FORCED;
 		    else if (door[d].mainlock.locked && !door[d].mainlock.timer && door[d].mainlock.o_unlock)
 		      state = DOOR_FORCED;
-		    else if (state != DOOR_PROPPED && state != DOOR_FORCED && state != DOOR_PROPPEDOK)
+		    else if (state != DOOR_NOTCLOSED && state != DOOR_FORCED && state != DOOR_PROPPED)
 		      state = DOOR_OPEN;
-		    if ((state == DOOR_OPEN || state == DOOR_PROPPED) && door[d].auth)
-		      state = DOOR_PROPPEDOK;
+		    if ((state == DOOR_OPEN || state == DOOR_NOTCLOSED) && door[d].auth)
+		      state = DOOR_PROPPED;
 		  }
 		else
 		  {		// Door is closed
@@ -284,7 +284,7 @@ doorman (void *d)
 		    state = (open ? DOOR_UNLOCKING : DOOR_LOCKING);
 		  }
 		else if (state == DOOR_OPEN && door[d].time_prop && door[d].timer >= door[d].time_prop && door[d].mainlock.o_unlock)
-		  state = DOOR_PROPPED;
+		  state = DOOR_NOTCLOSED;
 		else if (state == DOOR_UNLOCKED && door[d].time_open && door[d].timer >= door[d].time_open)
 		  {
 		    door_lock (d);
@@ -297,7 +297,7 @@ doorman (void *d)
 		door[d].timer = 0;
 		if (!door[d].mainlock.locked && !door[d].open_quiet)
 		  door[d].beep = 1;
-		else if (state == DOOR_TAMPER || state == DOOR_FORCED || state == DOOR_PROPPED || state == DOOR_AJAR)
+		else if (state == DOOR_TAMPER || state == DOOR_FORCED || state == DOOR_NOTCLOSED || state == DOOR_AJAR)
 		  door[d].beep = 2;
 		else
 		  door[d].beep = 0;

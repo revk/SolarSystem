@@ -18,8 +18,8 @@
         d(OPEN,G) \
         d(CLOSED,--G) \
         d(LOCKING,RR-) \
-        d(PROPPED,RG-) \
-        d(PROPPEDOK,GGGGGG-) \
+        d(PROPPED,GGG-) \
+        d(NOTCLOSED,R-) \
         d(FORCED,RG) \
         d(AJAR,RG-) \
         d(FAULT,RGR-)\
