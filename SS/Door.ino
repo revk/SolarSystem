@@ -62,7 +62,7 @@ const char* Door_tamper = NULL;
   d(CLOSED,--G) \
   d(LOCKING,RR-) \
   d(NOTCLOSED,RG-) \
-  d(PROPPED,GGG-) \
+  d(PROPPED,GGGGG-) \
   d(AJAR,RG-) \
 
 #define l(n) LOCK_##n,
