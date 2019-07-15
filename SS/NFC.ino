@@ -204,7 +204,7 @@ char ledpattern[10];
       {
         tampercheck = now + 250;
         int p3 = NFC.p3();
-        if (p3 < 0)
+        if (p3 < 0 && !NFC.begin())
           NFC_fault = PSTR("PN532");
         else
         { // INT1 connected via switch to VCC, so expected high
