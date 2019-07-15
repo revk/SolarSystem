@@ -61,7 +61,8 @@ const char* Door_tamper = NULL;
   d(OPEN,G) \
   d(CLOSED,--G) \
   d(LOCKING,RR-) \
-  d(PROPPED,RG-) \
+  d(NOTCLOSED,RG-) \
+  d(PROPPED,GGG-) \
   d(AJAR,RG-) \
 
 #define l(n) LOCK_##n,
@@ -102,7 +103,6 @@ const char* Door_tamper = NULL;
   } lock[2] = {0};
   byte doorstate = -1;
   boolean doordeadlock = true;
-  boolean doorpropable = false;
   boolean doorforced = false;
 
   void Door_unlock()
@@ -128,7 +128,7 @@ const char* Door_tamper = NULL;
 
   void Door_prop()
   { // Allow door propping
-    doorpropable = true;
+    if (doorstate == DOOR_OPEN || doorstate == DOOR_NOTCLOSED) doorstate = DOOR_PROPPED;
   }
 
   static int checkfob(const char *fobs, const char *id)
@@ -412,14 +412,11 @@ const char* Door_tamper = NULL;
       // Check force check
       if (Input_get(IOPEN) && (lock[0].state == LOCK_LOCKED || lock[1].state == LOCK_LOCKED))doorforced = true;
       else if (!Input_get(IOPEN))
-      {
         doorforced = false;
-        doorpropable = false;
-      }
       // Door states
       if (Input_get(IOPEN))
       { // Open, so door is propped or open state only
-        if (doorstate != DOOR_PROPPED || doorpropable)doorstate = DOOR_OPEN;
+        if (doorstate != DOOR_NOTCLOSED && doorstate != DOOR_PROPPED)doorstate = DOOR_OPEN;
         Output_set(OUNLOCK + 0, 1); // No point trying to lock when door is open
         Output_set(OUNLOCK + 1, 1);
       } else if (doorstate != DOOR_AJAR && (lock[0].state == LOCK_LOCKING || lock[1].state == LOCK_LOCKING))doorstate = DOOR_LOCKING;
@@ -428,7 +425,7 @@ const char* Door_tamper = NULL;
                ((doordeadlock && lock[1].state == LOCK_NOLOCK) || lock[1].state == LOCK_LOCKED || lock[1].state == LOCK_UNLOCKFAIL))doorstate = DOOR_DEADLOCKED;
       else if (lock[0].state == LOCK_LOCKED || lock[0].state == LOCK_UNLOCKFAIL)doorstate = DOOR_LOCKED;
       else if (lock[0].state == LOCK_LOCKFAIL && (lock[1].state == LOCK_NOLOCK || lock[1].state == LOCK_UNLOCKED))doorstate = DOOR_AJAR;
-      else if (doorstate == DOOR_OPEN)doorstate = DOOR_CLOSED;
+      else if (doorstate == DOOR_OPEN || doorstate == DOOR_NOTCLOSED || doorstate == DOOR_PROPPED)doorstate = DOOR_CLOSED;
       else if (doorstate != DOOR_AJAR && doorstate != DOOR_CLOSED)doorstate = DOOR_UNLOCKED;
       if (doorstate != lastdoorstate)
       { // State change
@@ -441,7 +438,7 @@ const char* Door_tamper = NULL;
       { // timeout
         Output_set(OBEEP, 0);
         doortimeout = 0;
-        if (doorstate == DOOR_OPEN && !doorpropable)doorstate = DOOR_PROPPED;
+        if (doorstate == DOOR_OPEN)doorstate = DOOR_NOTCLOSED;
         else if (doorstate == DOOR_UNLOCKED || doorstate == DOOR_CLOSED)
         { // Time to lock the door
           if (doordeadlock)Door_deadlock();
@@ -482,7 +479,7 @@ const char* Door_tamper = NULL;
       else if (lock[1].state == LOCK_FORCED)Door_tamper = PSTR("Deadlock forced");
       else Door_tamper = NULL;
       // Beep
-      if (Door_tamper || Door_fault || doorstate == DOOR_AJAR || doorstate == DOOR_PROPPED || doorforced)
+      if (Door_tamper || Door_fault || doorstate == DOOR_AJAR || doorstate == DOOR_NOTCLOSED || doorforced)
         Output_set(OBEEP, ((now - doortimeout) & 512) ? 1 : 0);
       if (force || doorstate != lastdoorstate)
       {

@@ -3,7 +3,7 @@
 h=2000;
 w=900;
 t=45;
-mode="DEADLOCKED";
+mode="PROPPED";
 
 wall=200;
 $fn=100;
@@ -122,7 +122,7 @@ if(mode=="OPEN")door(70);
 if(mode=="CLOSED")door(-1);
 if(mode=="LOCKING")door(-1);
 if(mode=="PROPPED")door(80);
-if(mode=="PROPPEDOK")door(80);
+if(mode=="NOTCLOSED")door(50);
 if(mode=="AJAR")door(10);
 if(mode=="FAULT")rotate([-30,-10,0])door(10);
 if(mode=="TAMPER")door(-1);
