@@ -4376,6 +4376,13 @@ main (int argc, const char *argv[])
 			    "@rangermax",
 			    "@rangerset",
 			    "@inputhold",
+			    "@doorprop",
+			    "@dooropen",
+			    "@doorclose",
+			    "@doorlock",
+			    "@doorunlock",
+			    "@doorexit",
+			    "@doorbeep",
 			  };
 			  xml_t system = xml_element_next_by_name (config, NULL, "system");
 			  if (system)
