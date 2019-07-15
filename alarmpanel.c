@@ -3223,10 +3223,10 @@ doevent (event_t * e)
 	  dolog (d->group_lock, "DOORTAMPER", NULL, doorno, "Door tamper");
 	else if (e->state == DOOR_FAULT)
 	  dolog (d->group_lock, "DOORFAULT", NULL, doorno, "Door fault");
+	else if (e->state == DOOR_NOTCLOSED)
+	  dolog (d->group_lock, "DOORNOTCLOSED", NULL, doorno, "Door not closed");
 	else if (e->state == DOOR_PROPPED)
-	  dolog (d->group_lock, "DOORPROPPED", NULL, doorno, "Door propped");
-	else if (e->state == DOOR_PROPPEDOK)
-	  dolog (d->group_lock, "DOORPROPPEDOK", NULL, doorno, "Door prop authorised");
+	  dolog (d->group_lock, "DOORPROPPED", NULL, doorno, "Door prop authorised");
 	// Update alarm state linked to doors
 	// Entry
 	if (e->state == DOOR_OPEN)
@@ -3246,7 +3246,7 @@ doevent (event_t * e)
 	      }
 	  }
 	// Intruder
-	if (e->state == DOOR_FORCED || e->state == DOOR_PROPPED)
+	if (e->state == DOOR_FORCED || e->state == DOOR_NOTCLOSED)
 	  {
 	    if (!d->intruder)
 	      {
@@ -3280,7 +3280,7 @@ doevent (event_t * e)
 	      }
 	  }
 	// Warning
-	if (e->state == DOOR_AJAR || e->state == DOOR_PROPPED)
+	if (e->state == DOOR_AJAR || e->state == DOOR_NOTCLOSED)
 	  {
 	    if (!d->warning)
 	      {
@@ -3587,14 +3587,14 @@ doevent (event_t * e)
 		if (e->event == EVENT_FOB_NOACCESS)
 		  dolog (mydoor[d].group_lock, "FOBNOACCESS", u->name, doorno, "Autonomous access not allowed %s%s%s", e->fob, secure ? " (secure)" : "", e->message ? : "");
 		group_t disarm = ((u->group_arm[secure] & mydoor[d].group_arm & state[STATE_ARM]) | (port_name (port), u->group_disarm[secure] & mydoor[d].group_disarm & state[STATE_SET]));
-		if (door[d].state == DOOR_PROPPED || door[d].state == DOOR_OPEN || door[d].state == DOOR_PROPPEDOK)
+		if (door[d].state == DOOR_NOTCLOSED || door[d].state == DOOR_OPEN || door[d].state == DOOR_PROPPED)
 		  {
 		    if (disarm && alarm_unset (u->name, port_name (port), disarm))
 		      door_confirm (d);
 		    if (u->group_prop[secure] & mydoor[d].group_lock)
 		      {
 			door_auth (d);
-			if (door[d].state != DOOR_PROPPEDOK)
+			if (door[d].state != DOOR_PROPPED)
 			  {
 			    dolog (mydoor[d].group_lock, "DOORHELD", u->name, doorno, "Door prop authorised by fob %s%s", e->fob, secure ? " (secure)" : "");
 			    door_confirm (d);
@@ -3602,7 +3602,7 @@ doevent (event_t * e)
 		      }
 		    else
 		      {
-			dolog (mydoor[d].group_lock, "DOORSTILLPROPPED", u->name, doorno, "Door prop not authorised by fob %s as not allowed", e->fob, secure ? " (secure)" : "");
+			dolog (mydoor[d].group_lock, "DOORNOTPROPPED", u->name, doorno, "Door prop not authorised by fob %s as not allowed", e->fob, secure ? " (secure)" : "");
 			door_error (d);
 		      }
 		  }
