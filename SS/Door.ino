@@ -394,7 +394,7 @@ const char* Door_tamper = NULL;
                 lock[l].state = LOCK_UNLOCKING;
               }
               if (lock[l].o == o && !lock[l].i && i && lock[l].state == LOCK_LOCKED)lock[l].state = LOCK_FORCED;
-              if (lock[l].timeout && ((Input_active(IUNLOCK + l) && i == o && lock[l].i == i && lock[l].o == o) || (int)(lock[l].timeout - now) <= 0))
+              if (lock[l].timeout && ((Input_active(IUNLOCK + l) && i == o && lock[l].i != i) || (int)(lock[l].timeout - now) <= 0))
                 lock[l].timeout = 0;
               if (!lock[l].timeout && (!i || lock[l].state != LOCK_FORCED) && lock[l].i == i && lock[l].o == o)
               {
