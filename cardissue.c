@@ -653,7 +653,7 @@ main (int argc, const char *argv[])
          {
             if (memcmp (buf, afile, *afile + 1))
             {                   // Write content
-               if ((e = df_write_data (&d, 3, 'D', comms, 0, *afile + 1, afile)))
+               if ((e = df_write_data (&d, 0x0A, 'B', comms, 0, *afile + 1, afile)))
                   errx (1, "Write file: %s", e);
             }
          }
@@ -662,12 +662,10 @@ main (int argc, const char *argv[])
 
    if (user && !(fids & (1 << 0x0A)))
    {                            // Create access file
-	   unsigned char buf[256]={};
-	   memcpy(buf,afile,*afile);
       printf ("Creating access file\n");
-      if ((e = df_create_file (&d, 0xA, 'B', comms, 0x0010, 256, 0, 0, 0, 0, 0)))
+      if ((e = df_create_file (&d, 0x0A, 'B', comms, 0x0010, 256, 0, 0, 0, 0, 0)))
          errx (1, "Create file: %s", e);
-      if ((e = df_write_data (&d, 0xA, 'B', comms, 0, 256, buf)))
+      if ((e = df_write_data (&d, 0x0A, 'B', comms, 0, *afile + 1, afile)))
          errx (1, "Write file: %s", e);
       if ((e = df_commit (&d)))
          errx (1, "Commit file: %s", e);
