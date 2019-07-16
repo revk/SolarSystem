@@ -52,6 +52,7 @@ const char* Door_tamper = NULL;
   l(LOCKFAIL) \
   l(UNLOCKFAIL) \
   l(FORCED) \
+  l(FAULT) \
 
 #define door_states \
   d(DEADLOCKED,) \
@@ -103,7 +104,6 @@ const char* Door_tamper = NULL;
   } lock[2] = {0};
   byte doorstate = -1;
   boolean doordeadlock = true;
-  boolean doorforced = false;
 
   void Door_unlock()
   { // Unlock the door - i.e. exit button, entry allowed, etc.
@@ -383,22 +383,27 @@ const char* Door_tamper = NULL;
             boolean o = false, i = false;
             if (Output_get(OUNLOCK + l))o = true;
             if (Input_get(IUNLOCK + l))i = true;
-            if (((Input_get(IOPEN) && last == LOCK_LOCKING) || lock[l].o) && !o)
-            { // Change to lock - timer constantly restarted if door is open as it will not actually engage
-              lock[l].timeout = ((now + doorlock) ? : 1);
-              lock[l].state = LOCK_LOCKING;
-            } else if (o && !lock[l].o)
-            { // Change to unlock
-              lock[l].timeout = ((now + doorunlock) ? : 1);
-              lock[l].state = LOCK_UNLOCKING;
-            }
-            if (lock[l].o == o && !lock[l].i && i && lock[l].state == LOCK_LOCKED)lock[l].state = LOCK_FORCED;
-            if (lock[l].timeout && ((Input_active(IUNLOCK + l) && i == o && lock[l].i != i) || (int)(lock[l].timeout - now) <= 0))
-              lock[l].timeout = 0;
-            if (!lock[l].timeout && (!i || lock[l].state != LOCK_FORCED) && lock[l].i == i && lock[l].o == o)
-            {
-              if (Input_active(IUNLOCK + l) && i != o)lock[l].state = (o ? LOCK_UNLOCKFAIL : LOCK_LOCKFAIL);
-              else lock[l].state = (o ? LOCK_UNLOCKED : LOCK_LOCKED);
+            if (!Output_active(OUNLOCK + l)) lock[l].state = (i ? LOCK_UNLOCKED : LOCK_LOCKED); // No output, just track input
+            else
+            { // Lock state tracking
+              if (((Input_get(IOPEN) && last == LOCK_LOCKING) || lock[l].o) && !o)
+              { // Change to lock - timer constantly restarted if door is open as it will not actually engage
+                lock[l].timeout = ((now + doorlock) ? : 1);
+                lock[l].state = LOCK_LOCKING;
+              } else if (o && !lock[l].o)
+              { // Change to unlock
+                lock[l].timeout = ((now + doorunlock) ? : 1);
+                lock[l].state = LOCK_UNLOCKING;
+              }
+              if (lock[l].timeout)
+              { // Timeout running
+                if ((lock[l].i != i && i == o) || (int)(lock[l].timeout - now) <= 0)
+                { // End of timeout, either by input state change to match, or timer running out
+                  lock[l].timeout = 0;
+                  lock[l].state = ((i == o || !Input_active(IUNLOCK + l)) ? o ? LOCK_UNLOCKED : LOCK_LOCKED : o ? LOCK_UNLOCKFAIL : LOCK_LOCKFAIL);
+                }
+              } else if (lock[l].i != i) // Input state change
+                lock[l].state = ((i == o) ? i ? LOCK_UNLOCKED : LOCK_LOCKED : i ? LOCK_FORCED : LOCK_FAULT);
             }
             lock[l].o = o;
             lock[l].i = i;
@@ -407,28 +412,27 @@ const char* Door_tamper = NULL;
           }
       }
       static long doortimeout = 0;
-      // Check force check
-      if (Input_get(IOPEN) && (lock[0].state == LOCK_LOCKED || lock[1].state == LOCK_LOCKED))doorforced = true;
-      else if (!Input_get(IOPEN))
-        doorforced = false;
       // Door states
       if (Input_get(IOPEN))
       { // Open
-        if (doorstate != DOOR_NOTCLOSED && doorstate != DOOR_PROPPED)doorstate = DOOR_OPEN;
+        if (doorstate != DOOR_NOTCLOSED && doorstate != DOOR_PROPPED || doorstate != DOOR_OPEN)
+        { // We have moved to open state, this can cancel the locking operation
+          doorstate = DOOR_OPEN;
+          if (lock[0].state == LOCK_LOCKING)Output_set(OUNLOCK + 0, 1); // Cancel lock
+          if (lock[1].state == LOCK_LOCKING)Output_set(OUNLOCK + 1, 1); // Cancel deadlock
+        }
       } else { // Closed
-        if (doorstate != DOOR_AJAR && (lock[0].state == LOCK_LOCKING || lock[1].state == LOCK_LOCKING))doorstate = DOOR_LOCKING;
-        else if (doorstate != DOOR_AJAR && (lock[0].state == LOCK_UNLOCKING || lock[1].state == LOCK_UNLOCKING))doorstate = DOOR_UNLOCKING;
-        else if ((lock[0].state == LOCK_LOCKED || lock[0].state == LOCK_UNLOCKFAIL) &&
-                 ((doordeadlock && lock[1].state == LOCK_NOLOCK) || lock[1].state == LOCK_LOCKED || lock[1].state == LOCK_UNLOCKFAIL))doorstate = DOOR_DEADLOCKED;
-        else if (lock[0].state == LOCK_LOCKED || lock[0].state == LOCK_UNLOCKFAIL)doorstate = DOOR_LOCKED;
-        else if (lock[0].state == LOCK_LOCKFAIL && (lock[1].state == LOCK_NOLOCK || lock[1].state == LOCK_UNLOCKED))doorstate = DOOR_AJAR;
-        else if (doorstate == DOOR_OPEN || doorstate == DOOR_NOTCLOSED || doorstate == DOOR_PROPPED)doorstate = DOOR_CLOSED;
-        else if (doorstate != DOOR_AJAR && doorstate != DOOR_CLOSED)doorstate = DOOR_UNLOCKED;
+        if (lock[1].state == LOCK_LOCKED && (lock[0].state == LOCK_NOLOCK || lock[0].state == LOCK_LOCKED))doorstate = DOOR_DEADLOCKED;
+        else if (lock[0].state == LOCK_LOCKED && (lock[1].state == LOCK_NOLOCK || lock[1].state == LOCK_UNLOCKED))doorstate = DOOR_LOCKED;
+        else if (lock[0].state == LOCK_UNLOCKING || lock[1].state == LOCK_UNLOCKING)doorstate = DOOR_UNLOCKING;
+        else if (lock[0].state == LOCK_LOCKING || lock[1].state == LOCK_LOCKING)doorstate = DOOR_LOCKING;
+        else if (lock[0].state == LOCK_LOCKFAIL || lock[1].state == LOCK_LOCKFAIL)doorstate = DOOR_AJAR;
+        else doorstate = ((doorstate == DOOR_OPEN || doorstate == DOOR_NOTCLOSED || doorstate == DOOR_PROPPED || doorstate == DOOR_CLOSED) ? DOOR_CLOSED : DOOR_UNLOCKED);
       }
       if (doorstate != lastdoorstate)
-      { // State change
-        if (doorstate == DOOR_OPEN) doortimeout = (now + doorprop ? : 1);
-        else if (doorstate == DOOR_CLOSED) doortimeout = (now + doorclose ? : 1);
+      { // State change - set timerout
+        if (doorstate == DOOR_OPEN)doortimeout = (now + doorprop ? : 1);
+        else if (doorstate == DOOR_CLOSED)doortimeout = (now + doorclose ? : 1);
         else if (doorstate == DOOR_UNLOCKED)doortimeout = (now + dooropen ? : 1);
         else doortimeout = 0;
         Output_set(OBEEP, doorstate == DOOR_UNLOCKED && doorbeep ? 1 : 0);
@@ -466,18 +470,18 @@ const char* Door_tamper = NULL;
       // Check faults
       if (lock[0].state == LOCK_UNLOCKFAIL)Door_fault = PSTR("Lock stuck");
       else if (lock[1].state == LOCK_UNLOCKFAIL)Door_fault = PSTR("Deadlock stuck");
-      else if (Input_get(IOPEN) && Input_active(IUNLOCK + 0) && !Input_get(IUNLOCK + 0))Door_fault = PSTR("Lock invalid");
-      else if (Input_get(IOPEN) && Input_active(IUNLOCK + 1) && !Input_get(IUNLOCK + 1))Door_fault = PSTR("Deadlock invalid");
+      else if (lock[0].state == LOCK_FAULT)Door_fault = PSTR("Lock fault");
+      else if (lock[1].state == LOCK_FAULT)Door_fault = PSTR("Deadlock fault");
       else if (exit1 && (int)(exit1 - now) < 0)Door_fault = PSTR("Exit stuck");
       else if (exit2 && (int)(exit2 - now) < 0)Door_fault = PSTR("Ranger stuck");
       else Door_fault = NULL;
       // Check tampers
-      if (doorforced)Door_tamper = PSTR("Door forced");
-      else if (lock[0].state == LOCK_FORCED)Door_tamper = PSTR("Lock forced");
+      if (lock[0].state == LOCK_FORCED)Door_tamper = PSTR("Lock forced");
       else if (lock[1].state == LOCK_FORCED)Door_tamper = PSTR("Deadlock forced");
+      else if (Input_get(IOPEN) && (lock[0].state == LOCK_LOCKED || lock[1].state == LOCK_LOCKED))Door_tamper = PSTR("Door forced");
       else Door_tamper = NULL;
       // Beep
-      if (Door_tamper || Door_fault || doorstate == DOOR_AJAR || doorstate == DOOR_NOTCLOSED || doorforced)
+      if (Door_tamper || Door_fault || doorstate == DOOR_AJAR || doorstate == DOOR_NOTCLOSED)
         Output_set(OBEEP, ((now - doortimeout) & 512) ? 1 : 0);
       if (force || doorstate != lastdoorstate)
       {
