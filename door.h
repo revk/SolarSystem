@@ -65,7 +65,7 @@ struct door_s
    // Status - managed by library
    unsigned int timer;          // Ticks in current state
    unsigned int force_timer;    // Ticks delayed force state
-   unsigned char autonomous;	// Autonomous operation setting
+   unsigned char autonomous;    // Autonomous operation setting
    unsigned char state;         // Door state as last reported
    unsigned char blip;          // Blip counter
    unsigned char beep:2;        // Beep required (1=continuous, 2=intermittent)
@@ -80,12 +80,20 @@ struct door_s
 typedef void port_output_callback_t (port_p);
 extern port_output_callback_t *port_output_callback;
 
-typedef void port_led_callback_t (port_p,unsigned char led);
+typedef void port_led_callback_t (port_p, unsigned char led);
 extern port_led_callback_t *port_led_callback;
 
 extern door_t door[MAX_DOOR];   // Door table
 
 void door_start (void);
-
+void door_error (int d, const unsigned char *afile);    // Indicate error
+void door_confirm (int d, const unsigned char *afile);  // Indicate confirmation
+void door_open (int d, const unsigned char *afile);     // Open the door
+void door_auth (int d, const unsigned char *afile);     // Auth propped
+void door_lock (int d, const unsigned char *afile);     // Lock the door
+void door_deadlock (int d, const unsigned char *afile); // Deadlock the door
+void door_unlock (int d, const unsigned char *afile);   // Unlock the door
+void door_undeadlock (int d, const unsigned char *afile);       // Un deadlock the door
+void door_access (int d, const unsigned char *afile);
 
 #endif

@@ -43,6 +43,7 @@
 #include <galaxybus.h>
 #include <axl.h>
 #include <dataformat.h>
+#include <afile.h>
 #ifdef	LIBEMAIL
 #include <libemail.h>
 #endif
@@ -310,6 +311,7 @@ struct user_s
 {
    user_t *next;
    xml_t config;
+   const unsigned char *afile;  // Access file
    char *name;
    char *fullname;
    char *hash;
@@ -375,7 +377,7 @@ static const char *real_port_name (char *v, port_p p);
 static port_app_t *port_app (port_p p);
 
 void
-mqtt_door (int d, const char *command)
+mqtt_door (int d, const char *command, const unsigned char *afile)
 {                               // Send door command
    unsigned int n;
    for (n = 0; n < sizeof (mydoor[0].i_fob) / sizeof (*mydoor[0].i_fob); n++)
@@ -384,9 +386,10 @@ mqtt_door (int d, const char *command)
          port_p p = mydoor[d].i_fob[n];
          if (!p || !p->mqtt)
             continue;
+         int afilelen = afile ? *afile : 0;
          char *topic;
          asprintf (&topic, "command/SS/%s/%s", p->mqtt, command);
-         mosquitto_publish (mqtt, NULL, topic, 0, NULL, 1, 0);
+         mosquitto_publish (mqtt, NULL, topic, afilelen, afile, 1, 0);
          free (topic);
       }
 }
@@ -1415,6 +1418,7 @@ load_config (const char *configfile)
    {                            // Scan users
       user_t *u = malloc (sizeof (*u));
       memset (u, 0, sizeof (*u));
+      u->afile = getafile (config, x, 0, 0);
       u->config = x;
       u->name = xml_copy (x, "@name");
       u->fullname = xml_copy (x, "@full-name");
@@ -1603,7 +1607,7 @@ load_config (const char *configfile)
          for (n = 0; n < sizeof (mydoor[0].i_fob) / sizeof (*mydoor[0].i_fob); n++)
             if (mydoor[d].i_fob[n])
                port_app (mydoor[d].i_fob[n])->door = d;
-         door_lock (d);
+         door_lock (d, NULL);
          d++;
       }
       d = 0;
@@ -1776,11 +1780,11 @@ static void
 door_state_d (int d)
 {
    if (door_locked (d))
-      door_deadlock (d);        // No point if deadlocked as will set of intruder alarm
+      door_deadlock (d, NULL);  // No point if deadlocked as will set of intruder alarm
    else if (state[STATE_FIRE] & mydoor[d].group_fire)
-      door_open (d);            // Fire alarm
+      door_open (d, NULL);      // Fire alarm
    else
-      door_undeadlock (d);
+      door_undeadlock (d, NULL);
 }
 
 static void
@@ -3365,17 +3369,17 @@ doevent (event_t * e)
                {
                   dolog (mydoor[d].group_lock, "DOORAIRLOCK", NULL, doorno, "Airlock violation with DOOR%02d, exit rejected",
                          mydoor[d].airlock);
-                  door_error (d);
+                  door_error (d, NULL);
                } else if (mydoor[d].lockdown && (state[mydoor[d].lockdown] & mydoor[d].group_lock))
                {                // Door in lockdown
                   dolog (mydoor[d].group_lock, "DOORLOCKDOWN", NULL, doorno, "Lockdown violation, exit rejected");
-                  door_error (d);
+                  door_error (d, NULL);
                } else
-                  door_open (d);
+                  door_open (d, NULL);
             } else
             {
                dolog (mydoor[d].group_lock, "DOORREJECT", NULL, doorno, "Door is deadlocked, exit rejected");
-               door_error (d);
+               door_error (d, NULL);
             }
          }
 #ifdef	LIBWS
@@ -3508,6 +3512,7 @@ doevent (event_t * e)
             if (n < sizeof (u->fob) / sizeof (*u->fob))
                break;
          }
+         const unsigned char *afile = (u ? u->afile : NULL);
          if (u && e->event != EVENT_FOB_HELD)
          {                      // Time constraints
             time_t now = time (0);
@@ -3515,7 +3520,7 @@ doevent (event_t * e)
             if (expiry && expiry < now)
             {
                if (e->event == EVENT_FOB_ACCESS && app->door >= 0)
-                  door_lock (app->door);        // Override
+                  door_lock (app->door, afile); // Override
                dolog (groups, e->event == EVENT_FOB_ACCESS ? "FOBBADACCESS" : "FOBTIME", NULL, port_name (port),
                       "Expired fob %s%s %s", e->fob, secure ? " (secure)" : "", xml_datetimelocal (expiry));
                return;
@@ -3553,7 +3558,7 @@ doevent (event_t * e)
                if (!((from && to && strncmp (from, to, 4) > 0 && (fok || tok)) || (fok && tok)))
                {
                   if (e->event == EVENT_FOB_ACCESS && app->door >= 0)
-                     door_lock (app->door);     // Override
+                     door_lock (app->door, afile);      // Override
                   dolog (groups, e->event == EVENT_FOB_ACCESS ? "FOBBADACCESS" : "FOBTIME", NULL, port_name (port),
                          "Out of time fob %s%s %.4s %.4s %.4s", e->fob, secure ? " (secure)" : "", from ? : "0000", now,
                          to ? : "2400");
@@ -3588,8 +3593,8 @@ doevent (event_t * e)
             snprintf (doorno, sizeof (doorno), "DOOR%02u", d);
             if (!u)
             {
-               door_error (d);
-               door_lock (d);   // Cancel open
+               door_error (d, afile);
+               door_lock (d, afile);    // Cancel open
                dolog (mydoor[d].group_lock, e->event == EVENT_FOB_ACCESS ? "FOBBADACCESS" : "FOBBAD", NULL, doorno,
                       "Unrecognised fob %s%s", e->fob, secure ? " (secure)" : "");
             } else if (e->event == EVENT_FOB || e->event == EVENT_FOB_ACCESS || e->event == EVENT_FOB_NOACCESS)
@@ -3597,34 +3602,34 @@ doevent (event_t * e)
                if (e->event == EVENT_FOB_NOACCESS)
                   dolog (mydoor[d].group_lock, "FOBNOACCESS", u->name, doorno, "Autonomous access not allowed %s%s%s", e->fob,
                          secure ? " (secure)" : "", e->message ? : "");
-               group_t disarm =
-                  ((u->group_arm[secure] & mydoor[d].group_arm & state[STATE_ARM]) | (port_name (port),
-                                                                                      u->group_disarm[secure] & mydoor[d].
-                                                                                      group_disarm & state[STATE_SET]));
+               group_t disarm = ((u->group_arm[secure] & mydoor[d].group_arm & state[STATE_ARM]) | (port_name (port),
+                                                                                                    u->group_disarm[secure] &
+                                                                                                    mydoor[d].group_disarm &
+                                                                                                    state[STATE_SET]));
                if (door[d].state == DOOR_NOTCLOSED || door[d].state == DOOR_OPEN || door[d].state == DOOR_PROPPED)
                {
                   if (disarm && alarm_unset (u->name, port_name (port), disarm))
-                     door_confirm (d);
+                     door_confirm (d, afile);
                   if (u->group_prop[secure] & mydoor[d].group_lock)
                   {
-                     door_auth (d);
+                     door_auth (d, afile);
                      if (door[d].state != DOOR_PROPPED)
                      {
                         dolog (mydoor[d].group_lock, "DOORHELD", u->name, doorno, "Door prop authorised by fob %s%s", e->fob,
                                secure ? " (secure)" : "");
-                        door_confirm (d);
+                        door_confirm (d, afile);
                      }
                   } else
                   {
                      dolog (mydoor[d].group_lock, "DOORNOTPROPPED", u->name, doorno,
                             "Door prop not authorised by fob %s as not allowed", e->fob, secure ? " (secure)" : "");
-                     door_error (d);
+                     door_error (d, afile);
                   }
                } else if (door[d].state == DOOR_UNLOCKED)
                {
                   if (disarm && alarm_unset (u->name, port_name (port), disarm))
-                     door_confirm (d);
-                  door_lock (d);        // Cancel open
+                     door_confirm (d, afile);
+                  door_lock (d, afile); // Cancel open
                   dolog (mydoor[d].group_lock, "DOORCANCEL", u->name, doorno, "Door open cancelled by fob %s%s", e->fob,
                          secure ? " (secure)" : "");
                   mydoor[d].opening = 0;        // Don' t report not opened
@@ -3638,34 +3643,36 @@ doevent (event_t * e)
                         dolog (mydoor[d].group_lock, e->event == EVENT_FOB_ACCESS ? "FOBBADACCESS" : "DOORAIRLOCK", u->name, doorno,
                                "Airlock violation with DOOR%02d using fob %s%s", mydoor[d].airlock, e->fob,
                                secure ? " (secure)" : "");
-                        door_error (d);
+                        door_error (d, afile);
                         if (e->event == EVENT_FOB_ACCESS)
-                           door_lock (d);
+                           door_lock (d, afile);
                      } else if (mydoor[d].lockdown && (state[mydoor[d].lockdown] & mydoor[d].group_lock))
                      {          // Door in lockdown
                         dolog (mydoor[d].group_lock, e->event == EVENT_FOB_ACCESS ? "FOBBADACCESS" : "DOORLOCKDOWN", u->name,
                                doorno, "Lockdown violation with DOOR%02d using fob %s%s", mydoor[d].airlock, e->fob,
                                secure ? " (secure)" : "");
-                        door_error (d);
+                        door_error (d, afile);
                         if (e->event == EVENT_FOB_ACCESS)
-                           door_lock (d);
+                           door_lock (d, afile);
                      } else if (mydoor[d].group_lock & ((state[STATE_SET] | state[STATE_ARM]) & ~disarm))
                      {
                         dolog (mydoor[d].group_lock, e->event == EVENT_FOB_ACCESS ? "FOBBADACCESS" : "DOORALARMED", u->name, doorno,
                                "Door is alarmed, not opening DOOR%02d using fob %s%s", d, e->fob, secure ? " (secure)" : "");
-                        door_error (d);
+                        door_error (d, afile);
                         if (e->event == EVENT_FOB_ACCESS)
-                           door_lock (d);
+                           door_lock (d, afile);
                      } else
                      {          // Allowed to be opened
                         if (disarm && alarm_unset (u->name, port_name (port), disarm))
-                           door_confirm (d);
+                           door_confirm (d, afile);
                         if (door[d].state != DOOR_OPEN && door[d].state != DOOR_UNLOCKING)
                         {       // Open it
                            dolog (mydoor[d].group_lock, "DOOROPEN", u->name, doorno, "Door open by fob %s%s", e->fob,
                                   secure ? " (secure)" : "");
                            if (e->event != EVENT_FOB_ACCESS)
-                              door_open (d);    // Open the door
+                              door_open (d, afile);     // Open the door
+                           else if (afile)
+                              door_access (d, afile);   // Confirm
                         } else if (door[d].state == DOOR_OPEN)
                            dolog (mydoor[d].group_lock, "FOBIGNORED", u->name, doorno, "Ignored fob %s as door open", e->fob,
                                   secure ? " (secure)" : "");
@@ -3675,16 +3682,16 @@ doevent (event_t * e)
                   {
                      dolog (mydoor[d].group_lock, e->event == EVENT_FOB_ACCESS ? "FOBBADACCESS" : "FOBINSECURE", u->name, doorno,
                             "Insecure fob %s%s", e->fob, secure ? " (secure)" : "");
-                     door_error (d);
+                     door_error (d, afile);
                      if (e->event == EVENT_FOB_ACCESS)
-                        door_lock (d);
+                        door_lock (d, afile);
                   } else
                   {
                      dolog (mydoor[d].group_lock, e->event == EVENT_FOB_ACCESS ? "FOBBADACCESS" : "FOBBAD", u->name, doorno,
                             "Not allowed fob %s%s", e->fob, secure ? " (secure)" : "");
-                     door_error (d);
+                     door_error (d, afile);
                      if (e->event == EVENT_FOB_ACCESS)
-                        door_lock (d);
+                        door_lock (d, afile);
                   }
                }
             } else if (mydoor[d].time_set)
@@ -3692,20 +3699,20 @@ doevent (event_t * e)
                group_t set = (mydoor[d].group_arm & u->group_arm[secure] & ~state[STATE_SET] & ~state[STATE_ARM]);
                if (set)
                {
-                  door_confirm (d);
-                  door_lock (d);
+                  door_confirm (d, afile);
+                  door_lock (d, afile);
                   alarm_arm (u->name, port_name (port), set, mydoor[d].time_set);
                } else
                {
                   dolog (mydoor[d].group_lock, "FOBHELDIGNORED", u->name, doorno, "Ignored held fob %s%s as no setting options",
                          e->fob, secure ? " (secure)" : "");
-                  door_error (d);
+                  door_error (d, afile);
                }
             } else
             {
                dolog (mydoor[d].group_lock, "FOBHELDIGNORED", u->name, doorno, "Ignored held fob %s%s as door cannot set alarm",
                       e->fob, secure ? " (secure)" : "");
-               door_error (d);
+               door_error (d, afile);
             }
          } else if (e->event == EVENT_FOB_ACCESS)
             dolog (mydoor[d].group_lock, "FOBACCESS", u ? u->name : NULL, port_name (port), "Access by fob %s%s", e->fob,
@@ -4074,9 +4081,9 @@ do_wscallback (websocket_t * w, xml_t head, xml_t data)
          if (!(mydoor[d].group_lock & user->group_open[1]))
             continue;           // Not allowed
          if (door[d].state == DOOR_UNLOCKED || door[d].state == DOOR_CLOSED)
-            door_lock (d);
+            door_lock (d, NULL);
          else if (door[d].state != DOOR_DEADLOCKED)
-            door_open (d);
+            door_open (d, NULL);
       }
       for (e = NULL; (e = xml_element_next_by_name (data, e, "arm"));)
       {                         // Group ARM

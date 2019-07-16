@@ -19,6 +19,7 @@
        along with this program.  If not, see <http://www.gnu.org/licenses/>.
      */
 
+#include <axl.h>
 #include "port.h"
 #include "door.h"
 
@@ -241,14 +242,6 @@ extern event_t *event,
 void bus_init (void);
 void bus_start (int bus);
 void bus_stop (int bus);
-void door_error (int d);        // Indicate error
-void door_confirm (int d);      // Indicate confirmation
-void door_open (int d);         // Open the door
-void door_auth (int d);         // Auth propped
-void door_lock (int d);         // Lock the door
-void door_deadlock (int d);     // Deadlock the door
-void door_unlock (int d);       // Unlock the door
-void door_undeadlock (int d);       // Un deadlock the door
 event_t *bus_event (long long usec);    // Get next event, wait up to usec if none ready
 void postevent (event_t * e);   // Post an event (updates input/tamper/fault on port from state)
 
