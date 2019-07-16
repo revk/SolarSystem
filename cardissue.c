@@ -713,9 +713,9 @@ main (int argc, const char *argv[])
       if (!(fids & (1 << 0x0A)))
 	{			// Create access file
 	  printf ("Creating access file\n");
-	  if ((e = df_create_file (&d, 0x0A, 'B', comms, 0x0010, 256, 0, 0, 0, 0, 0)))
+	  if ((e = df_create_file (&d, 0x0A, 'B', comms | 1, 0x0010, 256, 0, 0, 0, 0, 0)))
 	    errx (1, "Create file: %s", e);
-	  if ((e = df_write_data (&d, 0x0A, 'B', comms, 0, *afile + 1, afile)))
+	  if ((e = df_write_data (&d, 0x0A, 'B', comms | 1, 0, *afile + 1, afile)))
 	    errx (1, "Write file: %s", e);
 	  if ((e = df_commit (&d)))
 	    errx (1, "Commit file: %s", e);
