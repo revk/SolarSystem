@@ -872,7 +872,7 @@ poller (void *d)
                            cmd[++q] = 0x17;     // clear/home
                         for (l = 0; l < 2; l++)
                         {
-                           for (p = 0; p < 16 && (space ? : mydev[id].k.text[l][p]) == dev[id].k.text[l][p]; p++);  // First character changed
+                           for (p = 0; p < 16 && (space ? : mydev[id].k.text[l][p]) == dev[id].k.text[l][p]; p++);      // First character changed
                            if (p == 16)
                               continue; // Line not different
                            if (p < 2)
@@ -886,7 +886,7 @@ poller (void *d)
                               cmd[++q] = (l ? 0x40 : 0) + p;
                            }
                            int p2 = p;
-                           for (p2 = 15; p2 > p && (space ? : mydev[id].k.text[l][p2]) == dev[id].k.text[l][p2]; p2--);     // Last character changed
+                           for (p2 = 15; p2 > p && (space ? : mydev[id].k.text[l][p2]) == dev[id].k.text[l][p2]; p2--); // Last character changed
                            while (p <= p2)
                            {
                               unsigned char c = (dummy ? dev[id].k.text[l][p] : (mydev[id].k.text[l][p] = dev[id].k.text[l][p]));
@@ -902,7 +902,7 @@ poller (void *d)
                            {
                               // Record where we left cursor
                               if (p == 16)
-                                 mydev[id].k.cursor = (mydev[id].k.cursor & ~0x1F) | (l ? 0 : 0x10);        // wrapped
+                                 mydev[id].k.cursor = (mydev[id].k.cursor & ~0x1F) | (l ? 0 : 0x10);    // wrapped
                               else
                                  mydev[id].k.cursor = (mydev[id].k.cursor & ~0x1F) | (l ? 0x10 : 0) | p;
                            }
@@ -912,7 +912,7 @@ poller (void *d)
                      if (mydev[id].send07 || mydev[id].k.cursor)
                      {
                         cmd[++cmdlen] = 0x07;   // Cursor off
-                        mydev[id].k.cursor = 0x1F;        // Off
+                        mydev[id].k.cursor = 0x1F;      // Off
                      }
                      if (mydev[id].send07)
                      {
@@ -920,7 +920,7 @@ poller (void *d)
                         for (l = 0; l < 2; l++)
                            for (p = 0; p < 16; p++)
                               mydev[id].k.text[l][p] = ' ';
-                        mydev[id].k.cursor &= ~0x1F;      // Home
+                        mydev[id].k.cursor &= ~0x1F;    // Home
                         cmdlen = maketext (0, ' ');
                      } else
                      {          // Work out if clear/home would be worthwhile

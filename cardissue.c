@@ -40,6 +40,7 @@
 #include <openssl/evp.h>
 #include <desfireaes.h>
 #include <axl.h>
+#include "afile.h"
 
 int debug = 0;
 
@@ -514,7 +515,8 @@ main (int argc, const char *argv[])
       {                         // Get name
          if ((e = df_read_data (&d, 0, comms, 0, size, buf)))
             errx (1, "Read data: %s", e);
-         printf ("Name: %.*s\n", size, buf);
+         buf[size] = 0;
+         printf ("Name: %s\n", buf);
          if (setname && strcmp (setname, (char *) buf))
          {
             printf ("Name wrong, deleting name\n");
@@ -529,11 +531,13 @@ main (int argc, const char *argv[])
                   break;
             if (u)
             {                   // Found
+               user = u;
                if (!setname)
                   setname = xml_get (u, "@full-name");
-               user = u;
                username = xml_get (u, "@name");
-            }
+               printf ("Username: %s\n", username);
+            } else if (!username)
+               printf ("User was not found by name\n");
          }
       }
    }
@@ -608,228 +612,65 @@ main (int argc, const char *argv[])
          errx (1, "Create file: %s", e);
    }
 
-   char *afile = NULL;
-   size_t afilelen = 0;
+   const unsigned char *afile = NULL;
    if (user)
-   {                            // Access file
-      char *allow = NULL,
-         *deny = NULL;
-      size_t allowlen = 0,
-         denylen = 0;
-      FILE *allowf = open_memstream (&allow, &allowlen);
-      FILE *denyf = open_memstream (&deny, &denylen);
-      FILE *afilef = open_memstream (&afile, &afilelen);
-      // Check doors
-      const char *open = xml_get (user, "@open") ? : "*";
-      xml_t door = NULL;
-      while ((door = xml_element_next_by_name (c, door, "door")))
-      {
-         const char *devname = xml_get (door, "@max");
-         if (!devname)
-            devname = xml_get (door, "@min");
-         if (!devname)
-            devname = xml_get (door, "@i_fob");
-         if (!devname)
-            break;
-         xml_t device = NULL;
-         while ((device = xml_element_next_by_name (c, device, "device")))
-            if (!strcasecmp (xml_get (device, "@id") ? : "", devname) || !strcasecmp (xml_get (device, "@name") ? : "", devname))
-               break;
-         if (!device)
-            break;
-         const char *devid = xml_get (device, "@id");
-         if (!devid)
-            break;
-         unsigned char id[3];
-         if (df_hex (3, id, devid) != 3)
-            break;
-         const char *lock = xml_get (door, "@lock");
-         if (lock && *open != '*')
-         {                      // Check if allowed
-            const char *c;
-            for (c = open; *c && !strchr (lock, *c); c++);
-            if (!*c)
-               lock = NULL;     // Not allowed
-         }
-         if (*open == '*' || lock)
-         {
-            if (debug)
-               fprintf (stderr, "Allow %s\n", devid);
-            fwrite (id, 3, 1, allowf);
-         } else
-         {
-            if (debug)
-               fprintf (stderr, "Deny  %s\n", devid);
-            fwrite (id, 3, 1, denyf);
-         }
-      }
-      fclose (allowf);
-      fclose (denyf);
-      if (!allowlen)
-         warnx ("User is not allowed to use any doors");
-      if (allowlen < denylen)
-         forceallow = 1;        // Allow list is shorter
-      if (!allowlen || denylen)
-      {
-         char *devs = allow;
-         int devslen = allowlen;
-         if (!forceallow)
-         {                      // Set allowed
-            devs = deny;
-            devslen = denylen;
-         }
-         while (devslen)
-         {
-            int l = devslen;
-            if (l > 14)
-               l = 14;
-            char tag = (forceallow ? 0xA0 : 0xB0) + l;
-            fwrite (&tag, 1, 1, afilef);
-            fwrite (devs, l, 1, afilef);
-            devslen -= l;
-            devs += l;
-         }
-      }
-      // Times
-      const char *t = xml_get (user, "@time-from") ? : xml_get (c, "system@time-from");
-      if (t && *t)
-      {
-         unsigned char times[14];
-         int l = df_hex (sizeof (times), times, t);
-         if (l == 2 || l == 4 || l == 6 || l == 14)
-         {
-            char tag = 0xF0 + l;
-            fwrite (&tag, 1, 1, afilef);
-            fwrite (times, l, 1, afilef);
-         }
-      }
-      t = xml_get (user, "@time-to") ? : xml_get (c, "system@time-to");
-      if (t && *t)
-      {
-         unsigned char times[14];
-         int l = df_hex (sizeof (times), times, t);
-         if (l == 2 || l == 4 || l == 6 || l == 14)
-         {
-            char tag = 0x20 + l;
-            fwrite (&tag, 1, 1, afilef);
-            fwrite (times, l, 1, afilef);
-         }
-      }
-      const char *ex = xml_get (user, "@expiry") ? : xml_get (c, "system@expiry");
-      if (ex)
-      {
-         time_t expiry = xml_time (ex);
-         if (expiry)
-         {                      // Explicit expiry
-            struct tm t;
-            localtime_r (&expiry, &t);
-            char e[8];
-            e[0] = 0xE7;
-            e[1] = 0xE4;
-            int v = t.tm_year + 1900;
-            e[2] = (v / 1000) * 16 + (v / 100 % 10);
-            e[3] = (v / 10 % 10) * 16 + (v % 10);
-            v = t.tm_mon + 1;
-            e[4] = (v / 10 % 10) * 16 + (v % 10);
-            v = t.tm_mday;
-            e[5] = (v / 10 % 10) * 16 + (v % 10);
-            v = t.tm_hour;
-            e[6] = (v / 10 % 10) * 16 + (v % 10);
-            v = t.tm_min;
-            e[7] = (v / 10 % 10) * 16 + (v % 10);
-            v = t.tm_sec;
-            e[8] = (v / 10 % 10) * 16 + (v % 10);
-            fwrite (e, 8, 1, afilef);
-         } else
-         {
-            int xdays = atoi (ex);
-            if (xdays)
-            {                   // Auto expiry
-               struct tm t;
-               time_t now = time (0) + 86400 * xdays;
-               localtime_r (&now, &t);
-               char e[7];
-               e[0] = 0xE1;
-               e[1] = xdays;
-               e[2] = 0xE4;
-               int v = t.tm_year + 1900;
-               e[3] = (v / 1000) * 16 + (v / 100 % 10);
-               e[4] = (v / 10 % 10) * 16 + (v % 10);
-               v = t.tm_mon + 1;
-               e[5] = (v / 10 % 10) * 16 + (v % 10);
-               v = t.tm_mday;
-               e[6] = (v / 10 % 10) * 16 + (v % 10);
-               fwrite (e, 7, 1, afilef);
-            }
-         }
-      }
-      fflush (afilef);
-      if (!afilelen)
-      {                         // Does not like a zero length file (why?)
-         char n = 0x00;         // Padding
-         fwrite (&n, 1, 1, afilef);
-      }
-      fclose (afilef);
-      if (allow)
-         free (allow);
-      if (deny)
-         free (deny);
-      {
-         size_t p;
-         printf ("Access file");
-         for (p = 0; p < afilelen; p++)
-            printf (" %02X", afile[p]);
-         printf ("\n");
-      }
-   }
+      afile = getafile (c, user, debug, forceallow);
 
-   if (fids & (1 << 3))
+   if (fids & (1 << 0x0A))
    {                            // Access file
       char type;
       unsigned char comms;
       unsigned int size = 0;
-      if ((e = df_get_file_settings (&d, 3, &type, &comms, NULL, &size, NULL, NULL, NULL, NULL, NULL)))
+      if ((e = df_get_file_settings (&d, 0x0A, &type, &comms, NULL, &size, NULL, NULL, NULL, NULL, NULL)))
          errx (1, "File settings: %s", e);
-      if (type != 'D')
+      if (type != 'B')
+      {
          printf ("Access file wrong type (%c)\n", type);
-      else
+         if ((e = df_delete_file (&d, 0x0A)))
+            errx (1, "Delete file: %s", e);
+         fids &= ~(1 << 0x0A);
+      } else
       {                         // Check content
-         if ((e = df_read_data (&d, 3, comms, 0, size, buf)))
+         if ((e = df_read_data (&d, 0xA, comms, 0, size, buf)))
             errx (1, "File read: %s", e);
-         if (!user || size != afilelen || memcmp (buf, afile, afilelen))
+         if (!user || size != 256 || memcmp (buf, afile, *afile + 1))
          {                      // Report content
-            size_t p;
+            int p;
             printf ("Access was ");
-            for (p = 0; p < size; p++)
+            for (p = 0; p < *buf + 1; p++)
                printf (" %02X", buf[p]);
             printf ("\n");
-         }
-         if (user)
-         {
-            if (size != afilelen)
+            if (user)
             {
-               if ((e = df_delete_file (&d, 3)))
-                  errx (1, "Delete file: %s", e);
-               fids &= ~(1 << 3);
-            } else if (memcmp (buf, afile, afilelen))
-            {                   // Write content
-               if ((e = df_write_data (&d, 3, 'D', comms, 0, afilelen, afile)))
+               if ((e = df_write_data (&d, 0x0A, 'B', comms, 0, *afile + 1, afile)))
                   errx (1, "Write file: %s", e);
+               if ((e = df_commit (&d)))
+                  errx (1, "Commit file: %s", e);
             }
          }
       }
    }
-   if (user && !(fids & (1 << 3)))
-   {                            // Create access file
-      printf ("Creating access file\n");
-      if ((e = df_create_file (&d, 3, 'D', comms, 0x0010, afilelen, 0, 0, 0, 0, 0)))
-         errx (1, "Create file: %s", e);
-      if ((e = df_write_data (&d, 3, 'D', comms, 0, afilelen, afile)))
-         errx (1, "Write file: %s", e);
+   if (afile)
+   {
+      int p;
+      printf ("Access file");
+      for (p = 0; p < *afile + 1; p++)
+         printf (" %02X", afile[p]);
+      printf ("\n");
+      if (!(fids & (1 << 0x0A)))
+      {                         // Create access file
+         printf ("Creating access file\n");
+         if ((e = df_create_file (&d, 0x0A, 'B', comms, 0x0010, 256, 0, 0, 0, 0, 0)))
+            errx (1, "Create file: %s", e);
+         if ((e = df_write_data (&d, 0x0A, 'B', comms, 0, *afile + 1, afile)))
+            errx (1, "Write file: %s", e);
+         if ((e = df_commit (&d)))
+            errx (1, "Commit file: %s", e);
+      }
    }
 
    if (afile)
-      free (afile);
+      free ((void *) afile);
 
    unsigned int mem;
    if ((e = df_free_memory (&d, &mem)))
