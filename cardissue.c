@@ -370,6 +370,38 @@ main (int argc, const char *argv[])
       free (topic);
       return recvt (sp[1], data, max, 10);
    }
+   xml_t findfob (void)
+   {                            // Find a user by fob
+      xml_t u = NULL;
+      int l = strlen (fob);
+      while ((u = xml_element_next_by_name (c, u, "user")))
+      {
+         const char *f = xml_get (u, "@fob");
+         if (f)
+         {
+            while (*f)
+            {
+               if (!strncasecmp (f, fob, l) && (!f[l] || isspace (f[l])))
+                  break;
+               while (*f && !isspace (*f))
+                  f++;
+               while (*f && isspace (*f))
+                  f++;
+            }
+            if (*f)
+               break;
+         }
+      }
+      if (u && !username)
+      {
+         user = u;
+         username = xml_get (u, "@name");
+         if (username)
+            printf ("Username: %s\n", username);
+      }
+      return u;
+   }
+
    const char *e;
    df_t d;
    if ((e = df_init (&d, NULL, &dx)))
@@ -436,6 +468,9 @@ main (int argc, const char *argv[])
       id |= 0x80000001;
       printf ("Fob ID as Max %08u (secure)\n", id % 100000000);
    }
+
+   if (!username && !user && !doformat)
+      user = findfob ();
 
    if (chdir (hexaid) && (mkdir (hexaid, 0700) || chdir (hexaid)))
       err (1, "Cannot make directory");
@@ -686,26 +721,7 @@ main (int argc, const char *argv[])
 
    if (config)
    {
-      int l = strlen (fob);
-      xml_t u = NULL;
-      while ((u = xml_element_next_by_name (c, u, "user")))
-      {
-         const char *f = xml_get (u, "@fob");
-         if (f)
-         {
-            while (*f)
-            {
-               if (!strncasecmp (f, fob, l) && (!f[l] || isspace (f[l])))
-                  break;
-               while (*f && !isspace (*f))
-                  f++;
-               while (*f && isspace (*f))
-                  f++;
-            }
-            if (*f)
-               break;
-         }
-      }
+      xml_t u = findfob ();
       if (u)
       {                         // Found
          const char *n = xml_get (u, "@name");
