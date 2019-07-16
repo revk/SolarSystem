@@ -32,12 +32,22 @@ unsigned int inputstate = 0;
   }
 
   boolean Input_get(int i)
-  { // Read an input
+  { // Read an input (saved state)
     i--; // Starts from 1
     if (inputstate & (1 << i))return true;
     return false;
   }
-  
+
+  boolean Input_direct(int i)
+  { // Read input directly (or saved value if not an input pin)
+    i--; // Starts from 1
+    if (!(inputactive & (1 << i)))return ((inputstate & (1 << i)) ? true : false); // Logical input
+    boolean r = (digitalRead(inputpin[i]) ? true : false); // Actual input
+    if (inputinvert & (1 << i))
+      r = !r;
+    return r;
+  }
+
   void Input_set(int o, boolean v)
   { // Set an input externally
     o--; // Starts from 1

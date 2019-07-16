@@ -388,7 +388,7 @@ const char* Door_tamper = NULL;
   boolean Door_setup(ESPRevK&revk)
   {
     if (!door)return false; // No door control in operation
-    if (Input_active(IOPEN) && Input_get(IOPEN)) doorstate = DOOR_OPEN;
+    if (Input_direct(IOPEN)) doorstate = DOOR_OPEN;
     else doorstate = DOOR_LOCKING;
     lock[0].timeout = 1000;
     lock[1].timeout = 1000;
@@ -412,11 +412,11 @@ const char* Door_tamper = NULL;
             byte last = lock[l].state;
             boolean o = false, i = false;
             if (Output_get(OUNLOCK + l))o = true;
-            if (Input_get(IUNLOCK + l))i = true;
+            if (Input_direct(IUNLOCK + l))i = true;
             if (!Output_active(OUNLOCK + l)) lock[l].state = (i ? LOCK_UNLOCKED : LOCK_LOCKED); // No output, just track input
             else
             { // Lock state tracking
-              if (((Input_get(IOPEN) && last == LOCK_LOCKING) || lock[l].o) && !o)
+              if (((Input_direct(IOPEN) && last == LOCK_LOCKING) || lock[l].o) && !o)
               { // Change to lock - timer constantly restarted if door is open as it will not actually engage
                 lock[l].timeout = ((now + doorlock) ? : 1);
                 lock[l].state = LOCK_LOCKING;
@@ -443,7 +443,7 @@ const char* Door_tamper = NULL;
       }
       static long doortimeout = 0;
       // Door states
-      if (Input_get(IOPEN))
+      if (Input_direct(IOPEN))
       { // Open
         if (doorstate != DOOR_NOTCLOSED && doorstate != DOOR_PROPPED && doorstate != DOOR_OPEN)
         { // We have moved to open state, this can cancel the locking operation
@@ -478,7 +478,7 @@ const char* Door_tamper = NULL;
         }
       }
       static long exit1 = 0; // Main exit button
-      if (Input_get(IEXIT1))
+      if (Input_direct(IEXIT1))
       {
         if (!exit1)
         {
@@ -488,7 +488,7 @@ const char* Door_tamper = NULL;
       } else
         exit1 = 0;
       static long exit2 = 0; // Secondary exit button
-      if (Input_get(IEXIT2))
+      if (Input_direct(IEXIT2))
       {
         if (!exit2)
         {
@@ -508,7 +508,7 @@ const char* Door_tamper = NULL;
       // Check tampers
       if (lock[0].state == LOCK_FORCED)Door_tamper = PSTR("Lock forced");
       else if (lock[1].state == LOCK_FORCED)Door_tamper = PSTR("Deadlock forced");
-      else if (Input_get(IOPEN) && (lock[0].state == LOCK_LOCKED || lock[1].state == LOCK_LOCKED))Door_tamper = PSTR("Door forced");
+      else if (Input_direct(IOPEN) && (lock[0].state == LOCK_LOCKED || lock[1].state == LOCK_LOCKED))Door_tamper = PSTR("Door forced");
       else Door_tamper = NULL;
       // Beep
       if (Door_tamper || Door_fault || doorstate == DOOR_AJAR || doorstate == DOOR_NOTCLOSED)
