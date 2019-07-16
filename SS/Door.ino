@@ -18,6 +18,7 @@
 #define OERROR 4
 
 #define FILE3 // Check for old file 3 access file
+#define MINAFILE  32 // Minimum we read from afile before checking length
 
 byte afile[256 + 10 + 7]; // Access file saved - starts at byte 8
 
@@ -230,8 +231,8 @@ const char* Door_tamper = NULL;
       uint32_t fileset = NFC.desfire_fileset(err);
       if (fileset & (1 << fn))
       { // Fixed file
-        if (NFC.desfire_fileread (fn, 0, 16, sizeof(afile) - 7, afile + 7, err) < 0)return PSTR("Cannot read access file 0A");
-        if (afile[8] + 1 > 16 && NFC.desfire_fileread (fn, 0, afile[8] + 1, sizeof(afile) - 7, afile + 7, err) < 0)return PSTR("Cannot read access full file 0A");
+        if (NFC.desfire_fileread (fn, 0, MINAFILE, sizeof(afile) - 7, afile + 7, err) < 0)return PSTR("Cannot read access file 0A");
+        if (afile[8] + 1 > MINAFILE && NFC.desfire_fileread (fn, 0, afile[8] + 1, sizeof(afile) - 7, afile + 7, err) < 0)return PSTR("Cannot read access full file 0A");
       } else if (fileset & (1 << (fn = 3)))
       { // Variable file
         int32_t filesize = NFC.desfire_filesize(fn, err);
@@ -305,7 +306,7 @@ const char* Door_tamper = NULL;
             if (l == 1)xdays = *p;
             else
             {
-              xoff = p - afile - 9;
+              xoff = p - afile - 8;
               xlen = l;
               if (memcmp(datetime, p, l) > 0)return PSTR("Expired"); // expired
             }
@@ -331,7 +332,7 @@ const char* Door_tamper = NULL;
       { // Update expiry
         now += 86400 * xdays;
         bcdtime(now, datetime);
-        if (memcmp(datetime, afile + 9 + xoff, xlen) > 0)
+        if (memcmp(datetime, afile + 8 + xoff, xlen) > 0)
         { // Changed expiry
           byte buf[20];
           buf[1] = fn;
