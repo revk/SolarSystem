@@ -616,6 +616,13 @@ main (int argc, const char *argv[])
    if (user)
       afile = getafile (c, user, debug, forceallow);
 
+   if (afile && (fids & (1 << 3)))
+   {
+      printf ("Old access file, deleting\n");
+      if ((e = df_delete_file (&d, 3)))
+         errx (1, "Delete file: %s", e);
+   }
+
    if (fids & (1 << 0x0A))
    {                            // Access file
       char type;
