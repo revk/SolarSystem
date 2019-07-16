@@ -136,7 +136,7 @@ door_access (int d, const unsigned char *afile)
 {
    if (door[d].autonomous)
    {                            // Send door lock control
-      mqtt_door (d, "access",afile);
+      mqtt_door (d, "access", afile);
       return;
    }
 }
@@ -147,7 +147,7 @@ door_open (int d, const unsigned char *afile)
    if (door[d].autonomous)
    {                            // Send door lock control
       if (door[d].state == DOOR_DEADLOCKED || door[d].state == DOOR_LOCKED || door[d].state == DOOR_LOCKING)
-         mqtt_door (d, "unlock",afile);
+         mqtt_door (d, "unlock", afile);
       return;
    }
    if (door[d].mainlock.locked && !port_input (door[d].i_open))
@@ -165,7 +165,7 @@ door_auth (int d, const unsigned char *afile)
 {                               // Stop beep (authorised door prop)
    if (door[d].autonomous)
    {
-      mqtt_door (d, "prop",afile);
+      mqtt_door (d, "prop", afile);
       return;
    }
    door[d].auth = 1;
@@ -177,7 +177,7 @@ door_lock (int d, const unsigned char *afile)
    if (door[d].autonomous)
    {
       if (door[d].state != DOOR_LOCKED && door[d].state != DOOR_LOCKING)
-         mqtt_door (d, "lock",afile);
+         mqtt_door (d, "lock", afile);
       return;
    }
    if (!door[d].state)
@@ -191,7 +191,7 @@ door_deadlock (int d, const unsigned char *afile)
    if (door[d].autonomous)
    {
       if (door[d].state != DOOR_DEADLOCKED)
-         mqtt_door (d, "deadlock",afile);
+         mqtt_door (d, "deadlock", afile);
       return;
    }
    lock_lock (&door[d].mainlock);
@@ -204,7 +204,7 @@ door_undeadlock (int d, const unsigned char *afile)
    if (door[d].autonomous)
    {
       if (door[d].state == DOOR_DEADLOCKED)
-         mqtt_door (d, "lock",afile);
+         mqtt_door (d, "lock", afile);
       return;
    }
    lock_open (&door[d].deadlock);
@@ -216,7 +216,7 @@ door_unlock (int d, const unsigned char *afile)
    if (door[d].autonomous)
    {
       if (door[d].state != DOOR_LOCKED && door[d].state != DOOR_LOCKING)
-         mqtt_door (d, "lock",afile);
+         mqtt_door (d, "lock", afile);
       return;
    }
    lock_open (&door[d].deadlock);

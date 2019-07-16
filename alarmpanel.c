@@ -386,7 +386,7 @@ mqtt_door (int d, const char *command, const unsigned char *afile)
          port_p p = mydoor[d].i_fob[n];
          if (!p || !p->mqtt)
             continue;
-         int afilelen = afile ? *afile : 0;
+         int afilelen = (afile ? *afile + 1 : 0);
          char *topic;
          asprintf (&topic, "command/SS/%s/%s", p->mqtt, command);
          mosquitto_publish (mqtt, NULL, topic, afilelen, afile, 1, 0);
@@ -4532,6 +4532,8 @@ main (int argc, const char *argv[])
                      return;
                   }
                }
+               if (tag)
+                  id[6] = '/';
             }
             dolog (groups, "MQTT", NULL, NULL, "Unexpected message %s", msg->topic);
          }

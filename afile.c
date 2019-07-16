@@ -151,7 +151,7 @@ getafile (xml_t config, xml_t user, int debug, int forceallow)
          if (xdays)
          {                      // Auto expiry
             struct tm t;
-            time_t now = time (0) + 86400 * xdays;
+            time_t now = time (0) + 86400 * (xdays - debug);
             localtime_r (&now, &t);
             char e[7];
             e[0] = 0xE1;

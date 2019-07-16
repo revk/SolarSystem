@@ -615,14 +615,6 @@ main (int argc, const char *argv[])
    const unsigned char *afile = NULL;
    if (user)
       afile = getafile (c, user, debug, forceallow);
-   if (afile)
-   {
-      int p;
-      printf ("Access file");
-      for (p = 0; p < *afile + 1; p++)
-         printf (" %02X", afile[p]);
-      printf ("\n");
-   }
 
    if (fids & (1 << 0x0A))
    {                            // Access file
@@ -643,32 +635,38 @@ main (int argc, const char *argv[])
             errx (1, "File read: %s", e);
          if (!user || size != 256 || memcmp (buf, afile, *afile + 1))
          {                      // Report content
-            size_t p;
+            int p;
             printf ("Access was ");
-            for (p = 0; p < size; p++)
+            for (p = 0; p < *buf + 1; p++)
                printf (" %02X", buf[p]);
             printf ("\n");
-         }
-         if (user)
-         {
-            if (memcmp (buf, afile, *afile + 1))
-            {                   // Write content
+            if (user)
+            {
                if ((e = df_write_data (&d, 0x0A, 'B', comms, 0, *afile + 1, afile)))
                   errx (1, "Write file: %s", e);
+               if ((e = df_commit (&d)))
+                  errx (1, "Commit file: %s", e);
             }
          }
       }
    }
-
-   if (user && !(fids & (1 << 0x0A)))
-   {                            // Create access file
-      printf ("Creating access file\n");
-      if ((e = df_create_file (&d, 0x0A, 'B', comms, 0x0010, 256, 0, 0, 0, 0, 0)))
-         errx (1, "Create file: %s", e);
-      if ((e = df_write_data (&d, 0x0A, 'B', comms, 0, *afile + 1, afile)))
-         errx (1, "Write file: %s", e);
-      if ((e = df_commit (&d)))
-         errx (1, "Commit file: %s", e);
+   if (afile)
+   {
+      int p;
+      printf ("Access file");
+      for (p = 0; p < *afile + 1; p++)
+         printf (" %02X", afile[p]);
+      printf ("\n");
+      if (!(fids & (1 << 0x0A)))
+      {                         // Create access file
+         printf ("Creating access file\n");
+         if ((e = df_create_file (&d, 0x0A, 'B', comms, 0x0010, 256, 0, 0, 0, 0, 0)))
+            errx (1, "Create file: %s", e);
+         if ((e = df_write_data (&d, 0x0A, 'B', comms, 0, *afile + 1, afile)))
+            errx (1, "Write file: %s", e);
+         if ((e = df_commit (&d)))
+            errx (1, "Commit file: %s", e);
+      }
    }
 
    if (afile)
