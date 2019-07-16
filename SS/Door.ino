@@ -17,6 +17,10 @@
 #define OBEEP 3
 #define OERROR 4
 
+#define FILE3 // Check for old file 3 access file
+
+byte afile[256 + 10 + 7]; // Access file saved - starts at byte 8
+
 #include "PN532RevK.h"
 extern PN532RevK NFC;
 
@@ -52,6 +56,7 @@ const char* Door_tamper = NULL;
   l(LOCKFAIL) \
   l(UNLOCKFAIL) \
   l(FORCED) \
+  l(FAULT) \
 
 #define door_states \
   d(DEADLOCKED,) \
@@ -103,32 +108,55 @@ const char* Door_tamper = NULL;
   } lock[2] = {0};
   byte doorstate = -1;
   boolean doordeadlock = true;
-  boolean doorforced = false;
 
-  void Door_unlock()
+  boolean Door_access(const byte*a)
+  { // Confirm access, and profile new access file to write if changed.
+    if (!a)return true; // No action
+    if (*a == afile[8] && !memcmp(a + 1, afile + 9, afile[8]))return true; // Same
+    afile[1] = 0x0A;
+    afile[2] = 0;
+    afile[3] = 0;
+    afile[4] = 0;
+    afile[5] = afile[8] + 1;
+    afile[6] = 0;
+    afile[7] = 0;
+    memcpy(afile + 8, a, *a + 1);
+    String err;
+    boolean ret = (NFC.desfire (0x3D, 7 + afile[8] + 1, afile, sizeof(afile), err, 0) >= 0 &&
+           NFC.desfire(0xC7, 0, afile, sizeof(afile), err, 0) >= 0);
+    memcpy(afile + 8, a, *a + 1);
+    return ret;
+  }
+
+  boolean Door_unlock(const byte*a)
   { // Unlock the door - i.e. exit button, entry allowed, etc.
     doordeadlock = false;
     Output_set(OUNLOCK + 0, 1);
     Output_set(OUNLOCK + 1, 1);
+    return Door_access(a);
   }
 
-  void Door_deadlock()
+  boolean Door_deadlock(const byte*a)
   { // Deadlock the door - i.e. move to alarm armed, no exit/entry
     doordeadlock = true;
     Output_set(OUNLOCK + 0, 0);
     Output_set(OUNLOCK + 1, 0);
+    return Door_access(a);
   }
 
-  void Door_lock()
+  boolean Door_lock(const byte*a)
   { // Lock the door - i.e. move to normal locked operation
     doordeadlock = false;
     Output_set(OUNLOCK + 0, 0);
     Output_set(OUNLOCK + 1, 1);
+    return Door_access(a);
   }
 
-  void Door_prop()
+  boolean Door_prop(const byte*a)
   { // Allow door propping
-    if (doorstate == DOOR_OPEN || doorstate == DOOR_NOTCLOSED) doorstate = DOOR_PROPPED;
+    if (doorstate != DOOR_OPEN && doorstate != DOOR_NOTCLOSED && doorstate != DOOR_PROPPED) return false;
+    doorstate = DOOR_PROPPED;
+    return Door_access(a);
   }
 
   static int checkfob(const char *fobs, const char *id)
@@ -170,12 +198,12 @@ const char* Door_tamper = NULL;
 
   const char * Door_fob(char *id, String &err)
   { // Consider fob, and return PSTR() if not acceptable, NULL if OK
-    byte buf[100];
     if (!door)return PSTR(""); // just not allowed
     if (blacklist && checkfob(blacklist, id))
     {
       if (door >= 4)
       { // Zap the access file
+        byte buf[20];
         buf[1] = 3;
         buf[2] = 0;
         buf[3] = 0;
@@ -191,25 +219,39 @@ const char* Door_tamper = NULL;
     }
     if (doorstate == DOOR_OPEN)
     {
-      if (door >= 5)Door_prop();
+      if (door >= 5)Door_prop(NULL);
       return PSTR(""); // Door is open - not really worth complaining about, but not access
     }
     if (door >= 4)
     { // Autonomous door control logic - check access file and times, etc
       if (!NFC.secure)return PSTR(""); // Don't make a fuss, control system may allow this, and it is obvious
+      byte fn = 0xA;
+#ifdef FILE3
+      uint32_t fileset = NFC.desfire_fileset(err);
+      if (fileset & (1 << fn))
+      { // Fixed file
+        if (NFC.desfire_fileread (fn, 0, 16, sizeof(afile) - 7, afile + 7, err) < 0)return PSTR("Cannot read access file 0A");
+        if (afile[8] + 1 > 16 && NFC.desfire_fileread (fn, 0, afile[8] + 1, sizeof(afile) - 7, afile + 7, err) < 0)return PSTR("Cannot read access full file 0A");
+      } else if (fileset & (1 << (fn = 3)))
+      { // Variable file
+        int32_t filesize = NFC.desfire_filesize(fn, err);
+        if (filesize > 256)return PSTR("Access file too big");
+        if (NFC.desfire_fileread (fn, 0, filesize, sizeof(afile) - 8, afile + 8, err) < 0)return PSTR("Cannot read access file 03");
+        afile[8] = filesize;
+      } else return PSTR("No access file");
+#else
+      // Just read file A
+      if (NFC.desfire_fileread (fn, 0, 16, sizeof(afile) - 7, afile + 7, err) < 0)return PSTR("Cannot read access file 0A");
+      if (afile[8] + 1 > 16 && NFC.desfire_fileread (fn, 0, afile[8] + 1, sizeof(afile) - 7, afile + 7, err) < 0)return PSTR("Cannot read access full file 0A");
+#endif
       // Check access file (expected to exist)
-      int32_t filesize = NFC.desfire_filesize(3, err);
       time_t now;
       time (&now);
       byte datetime[7]; // BCD date time
       int xoff = 0, xlen = 0, xdays = 0; // Expiry data
-      if (filesize < 0)return PSTR("No access file on fob");
-      if (filesize > sizeof(buf) - 10)return PSTR("Access file too big");
-      if (filesize)
-      {
-        if (NFC.desfire_fileread (3, 0, filesize, sizeof(buf), buf, err) < 0)return PSTR("Cannot read access file");
-        // Check access
-        byte *p = buf + 1, *e = buf + 1 + filesize;
+      if (afile[8])
+      { // Check access
+        byte *p = afile + 9, *e = afile + 9 + afile[8];
         boolean ax = false, aok = false;
         byte *fok = NULL, *tok = NULL;
         unsigned int cid = ESP.getChipId ();
@@ -263,7 +305,7 @@ const char* Door_tamper = NULL;
             if (l == 1)xdays = *p;
             else
             {
-              xoff = p - buf - 1;
+              xoff = p - afile - 9;
               xlen = l;
               if (memcmp(datetime, p, l) > 0)return PSTR("Expired"); // expired
             }
@@ -289,9 +331,10 @@ const char* Door_tamper = NULL;
       { // Update expiry
         now += 86400 * xdays;
         bcdtime(now, datetime);
-        if (memcmp(datetime, buf + 1 + xoff, xlen) > 0)
+        if (memcmp(datetime, afile + 9 + xoff, xlen) > 0)
         { // Changed expiry
-          buf[1] = 3;
+          byte buf[20];
+          buf[1] = fn;
           buf[2] = xoff;
           buf[3] = 0;
           buf[4] = 0;
@@ -300,6 +343,7 @@ const char* Door_tamper = NULL;
           buf[7] = 0;
           memcpy(buf + 8, datetime, xlen);
           if (NFC.desfire (0x3D, 7 + xlen, buf, sizeof(buf), err, 0) < 0)return PSTR("Expiry update failed");
+          if (NFC.desfire(0xC7, 0, buf, sizeof(buf), err, 0) < 0)return PSTR("Expiry commit failed");
         }
       }
       return NULL;
@@ -332,26 +376,12 @@ const char* Door_tamper = NULL;
   boolean Door_command(const char*tag, const byte *message, size_t len)
   { // Called for incoming MQTT messages
     if (!door)return false; // No door control in operation
-    if (!strcasecmp_P(tag, PSTR("deadlock")))
-    {
-      Door_deadlock();
-      return true;
-    }
-    if (!strcasecmp_P(tag, PSTR("lock")))
-    {
-      Door_lock();
-      return true;
-    }
-    if (!strcasecmp_P(tag, PSTR("unlock")))
-    {
-      Door_unlock();
-      return true;
-    }
-    if (!strcasecmp_P(tag, PSTR("prop")))
-    {
-      Door_prop();
-      return true;
-    }
+    if (!len || *message != len - 1)message = NULL; // Not sensible access file
+    if (!strcasecmp_P(tag, PSTR("deadlock")))return Door_deadlock(message);
+    if (!strcasecmp_P(tag, PSTR("lock")))return Door_lock(message);
+    if (!strcasecmp_P(tag, PSTR("unlock")))return Door_unlock(message);
+    if (!strcasecmp_P(tag, PSTR("prop")))return Door_prop(message);
+    if (!strcasecmp_P(tag, PSTR("access")))return Door_access(message);
     return false;
   }
 
@@ -383,22 +413,27 @@ const char* Door_tamper = NULL;
             boolean o = false, i = false;
             if (Output_get(OUNLOCK + l))o = true;
             if (Input_get(IUNLOCK + l))i = true;
-            if (((Input_get(IOPEN) && last == LOCK_LOCKING) || lock[l].o) && !o)
-            { // Change to lock - timer constantly restarted if door is open as it will not actually engage
-              lock[l].timeout = ((now + doorlock) ? : 1);
-              lock[l].state = LOCK_LOCKING;
-            } else if (o && !lock[l].o)
-            { // Change to unlock
-              lock[l].timeout = ((now + doorunlock) ? : 1);
-              lock[l].state = LOCK_UNLOCKING;
-            }
-            if (lock[l].o == o && !lock[l].i && i && lock[l].state == LOCK_LOCKED)lock[l].state = LOCK_FORCED;
-            if (lock[l].timeout && ((Input_active(IUNLOCK + l) && i == o && lock[l].i != i) || (int)(lock[l].timeout - now) <= 0))
-              lock[l].timeout = 0;
-            if (!lock[l].timeout && (!i || lock[l].state != LOCK_FORCED) && lock[l].i == i && lock[l].o == o)
-            {
-              if (Input_active(IUNLOCK + l) && i != o)lock[l].state = (o ? LOCK_UNLOCKFAIL : LOCK_LOCKFAIL);
-              else lock[l].state = (o ? LOCK_UNLOCKED : LOCK_LOCKED);
+            if (!Output_active(OUNLOCK + l)) lock[l].state = (i ? LOCK_UNLOCKED : LOCK_LOCKED); // No output, just track input
+            else
+            { // Lock state tracking
+              if (((Input_get(IOPEN) && last == LOCK_LOCKING) || lock[l].o) && !o)
+              { // Change to lock - timer constantly restarted if door is open as it will not actually engage
+                lock[l].timeout = ((now + doorlock) ? : 1);
+                lock[l].state = LOCK_LOCKING;
+              } else if (o && !lock[l].o)
+              { // Change to unlock
+                lock[l].timeout = ((now + doorunlock) ? : 1);
+                lock[l].state = LOCK_UNLOCKING;
+              }
+              if (lock[l].timeout)
+              { // Timeout running
+                if ((lock[l].i != i && i == o) || (int)(lock[l].timeout - now) <= 0)
+                { // End of timeout, either by input state change to match, or timer running out
+                  lock[l].timeout = 0;
+                  lock[l].state = ((i == o || !Input_active(IUNLOCK + l)) ? o ? LOCK_UNLOCKED : LOCK_LOCKED : o ? LOCK_UNLOCKFAIL : LOCK_LOCKFAIL);
+                }
+              } else if (lock[l].i != i) // Input state change
+                lock[l].state = ((i == o) ? i ? LOCK_UNLOCKED : LOCK_LOCKED : i ? LOCK_FORCED : LOCK_FAULT);
             }
             lock[l].o = o;
             lock[l].i = i;
@@ -407,28 +442,27 @@ const char* Door_tamper = NULL;
           }
       }
       static long doortimeout = 0;
-      // Check force check
-      if (Input_get(IOPEN) && (lock[0].state == LOCK_LOCKED || lock[1].state == LOCK_LOCKED))doorforced = true;
-      else if (!Input_get(IOPEN))
-        doorforced = false;
       // Door states
       if (Input_get(IOPEN))
       { // Open
-        if (doorstate != DOOR_NOTCLOSED && doorstate != DOOR_PROPPED)doorstate = DOOR_OPEN;
+        if (doorstate != DOOR_NOTCLOSED && doorstate != DOOR_PROPPED && doorstate != DOOR_OPEN)
+        { // We have moved to open state, this can cancel the locking operation
+          doorstate = DOOR_OPEN;
+          if (lock[0].state == LOCK_LOCKING)Output_set(OUNLOCK + 0, 1); // Cancel lock
+          if (lock[1].state == LOCK_LOCKING)Output_set(OUNLOCK + 1, 1); // Cancel deadlock
+        }
       } else { // Closed
-        if (doorstate != DOOR_AJAR && (lock[0].state == LOCK_LOCKING || lock[1].state == LOCK_LOCKING))doorstate = DOOR_LOCKING;
-        else if (doorstate != DOOR_AJAR && (lock[0].state == LOCK_UNLOCKING || lock[1].state == LOCK_UNLOCKING))doorstate = DOOR_UNLOCKING;
-        else if ((lock[0].state == LOCK_LOCKED || lock[0].state == LOCK_UNLOCKFAIL) &&
-                 ((doordeadlock && lock[1].state == LOCK_NOLOCK) || lock[1].state == LOCK_LOCKED || lock[1].state == LOCK_UNLOCKFAIL))doorstate = DOOR_DEADLOCKED;
-        else if (lock[0].state == LOCK_LOCKED || lock[0].state == LOCK_UNLOCKFAIL)doorstate = DOOR_LOCKED;
-        else if (lock[0].state == LOCK_LOCKFAIL && (lock[1].state == LOCK_NOLOCK || lock[1].state == LOCK_UNLOCKED))doorstate = DOOR_AJAR;
-        else if (doorstate == DOOR_OPEN || doorstate == DOOR_NOTCLOSED || doorstate == DOOR_PROPPED)doorstate = DOOR_CLOSED;
-        else if (doorstate != DOOR_AJAR && doorstate != DOOR_CLOSED)doorstate = DOOR_UNLOCKED;
+        if (lock[1].state == LOCK_LOCKED && (lock[0].state == LOCK_NOLOCK || lock[0].state == LOCK_LOCKED))doorstate = DOOR_DEADLOCKED;
+        else if (lock[0].state == LOCK_LOCKED && (lock[1].state == LOCK_NOLOCK || lock[1].state == LOCK_UNLOCKED))doorstate = DOOR_LOCKED;
+        else if (lock[0].state == LOCK_UNLOCKING || lock[1].state == LOCK_UNLOCKING)doorstate = DOOR_UNLOCKING;
+        else if (lock[0].state == LOCK_LOCKING || lock[1].state == LOCK_LOCKING)doorstate = DOOR_LOCKING;
+        else if (lock[0].state == LOCK_LOCKFAIL || lock[1].state == LOCK_LOCKFAIL)doorstate = DOOR_AJAR;
+        else doorstate = ((doorstate == DOOR_OPEN || doorstate == DOOR_NOTCLOSED || doorstate == DOOR_PROPPED || doorstate == DOOR_CLOSED) ? DOOR_CLOSED : DOOR_UNLOCKED);
       }
       if (doorstate != lastdoorstate)
-      { // State change
-        if (doorstate == DOOR_OPEN) doortimeout = (now + doorprop ? : 1);
-        else if (doorstate == DOOR_CLOSED) doortimeout = (now + doorclose ? : 1);
+      { // State change - set timerout
+        if (doorstate == DOOR_OPEN)doortimeout = (now + doorprop ? : 1);
+        else if (doorstate == DOOR_CLOSED)doortimeout = (now + doorclose ? : 1);
         else if (doorstate == DOOR_UNLOCKED)doortimeout = (now + dooropen ? : 1);
         else doortimeout = 0;
         Output_set(OBEEP, doorstate == DOOR_UNLOCKED && doorbeep ? 1 : 0);
@@ -439,8 +473,8 @@ const char* Door_tamper = NULL;
         if (doorstate == DOOR_OPEN)doorstate = DOOR_NOTCLOSED;
         else if (doorstate == DOOR_UNLOCKED || doorstate == DOOR_CLOSED)
         { // Time to lock the door
-          if (doordeadlock)Door_deadlock();
-          else Door_lock();
+          if (doordeadlock)Door_deadlock(NULL);
+          else Door_lock(NULL);
         }
       }
       static long exit1 = 0; // Main exit button
@@ -449,7 +483,7 @@ const char* Door_tamper = NULL;
         if (!exit1)
         {
           exit1 = (now + doorexit ? : 1);
-          if (door >= 2 && !doordeadlock)Door_unlock();
+          if (door >= 2 && !doordeadlock)Door_unlock(NULL);
         }
       } else
         exit1 = 0;
@@ -459,25 +493,25 @@ const char* Door_tamper = NULL;
         if (!exit2)
         {
           exit2 = (now + doorexit ? : 1);
-          if (door >= 2 && !doordeadlock)Door_unlock();
+          if (door >= 2 && !doordeadlock)Door_unlock(NULL);
         }
       } else
         exit2 = 0;
       // Check faults
       if (lock[0].state == LOCK_UNLOCKFAIL)Door_fault = PSTR("Lock stuck");
       else if (lock[1].state == LOCK_UNLOCKFAIL)Door_fault = PSTR("Deadlock stuck");
-      else if (Input_get(IOPEN) && Input_active(IUNLOCK + 0) && !Input_get(IUNLOCK + 0))Door_fault = PSTR("Lock invalid");
-      else if (Input_get(IOPEN) && Input_active(IUNLOCK + 1) && !Input_get(IUNLOCK + 1))Door_fault = PSTR("Deadlock invalid");
+      else if (lock[0].state == LOCK_FAULT)Door_fault = PSTR("Lock fault");
+      else if (lock[1].state == LOCK_FAULT)Door_fault = PSTR("Deadlock fault");
       else if (exit1 && (int)(exit1 - now) < 0)Door_fault = PSTR("Exit stuck");
       else if (exit2 && (int)(exit2 - now) < 0)Door_fault = PSTR("Ranger stuck");
       else Door_fault = NULL;
       // Check tampers
-      if (doorforced)Door_tamper = PSTR("Door forced");
-      else if (lock[0].state == LOCK_FORCED)Door_tamper = PSTR("Lock forced");
+      if (lock[0].state == LOCK_FORCED)Door_tamper = PSTR("Lock forced");
       else if (lock[1].state == LOCK_FORCED)Door_tamper = PSTR("Deadlock forced");
+      else if (Input_get(IOPEN) && (lock[0].state == LOCK_LOCKED || lock[1].state == LOCK_LOCKED))Door_tamper = PSTR("Door forced");
       else Door_tamper = NULL;
       // Beep
-      if (Door_tamper || Door_fault || doorstate == DOOR_AJAR || doorstate == DOOR_NOTCLOSED || doorforced)
+      if (Door_tamper || Door_fault || doorstate == DOOR_AJAR || doorstate == DOOR_NOTCLOSED)
         Output_set(OBEEP, ((now - doortimeout) & 512) ? 1 : 0);
       if (force || doorstate != lastdoorstate)
       {
