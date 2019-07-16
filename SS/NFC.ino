@@ -237,7 +237,7 @@ char ledpattern[10];
         { // still here
           if (!held && (int)(now - found) > holdtime)
           {
-            if (door >= 5 && !noaccess)Door_deadlock(); // Deadlock mode
+            if (door >= 5 && !noaccess)Door_deadlock(NULL); // Deadlock mode
             revk.event(F("held"), F("%s"), tid); // Previous card gone
             held = true;
           }
@@ -272,7 +272,7 @@ char ledpattern[10];
             if (nfccommit && NFC.secure && !*err.c_str())NFC.desfire_log(err); // Log before action
             if (!noaccess)
             { // Autonomous door control
-              Door_unlock(); // Door system was happy with fob, let 'em in
+              Door_unlock(NULL); // Door system was happy with fob, let 'em in
               revk.event( F("access"), F("%s"), tid); // Report access
               // TODO logging when off line?
             } else
