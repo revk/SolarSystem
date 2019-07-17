@@ -123,9 +123,9 @@ const char* Door_tamper = NULL;
     afile[7] = 0;
     memcpy(afile + 8, a, *a + 1);
     String err;
-    boolean ret = (NFC.desfire (0x3D, 7 + afile[8] + 1, afile, sizeof(afile), err, 0) >= 0 &&
-           NFC.desfire(0xC7, 0, afile, sizeof(afile), err, 0) >= 0);
-    memcpy(afile + 8, a, *a + 1);
+    boolean ret = (NFC.desfire_dx(0x3D, sizeof(afile), afile, 8 + 1 + afile[8], 0xFF) >= 0 &&
+                   NFC.desfire(0xC7, 0, afile, sizeof(afile), err, 0) >= 0);
+    memcpy(afile + 8, a, *a + 1); // Restore
     return ret;
   }
 
@@ -205,15 +205,16 @@ const char* Door_tamper = NULL;
       if (door >= 4)
       { // Zap the access file
         byte buf[20];
-        buf[1] = 3;
-        buf[2] = 0;
+        buf[1] = 0x0A; // File
+        buf[2] = 0; // Offset
         buf[3] = 0;
         buf[4] = 0;
-        buf[5] = 1;
+        buf[5] = 2; // Len
         buf[6] = 0;
         buf[7] = 0;
-        buf[8] = 0xA0; // Blacklist
-        if (NFC.desfire (0x3D, 8, buf, sizeof(buf), err, 0) < 0)return PSTR("Blacklist update failed");
+        buf[8] = 0x01; // Len 1
+        buf[9] = 0xA0; // Blacklist
+        if (NFC.desfire_dx(0x3D, sizeof(buf), buf, 10, 0xFF) < 0)return PSTR("Blacklist update failed");
         return PSTR("Blacklist (zapped)");
       }
       return PSTR("Blacklisted fob");
@@ -226,25 +227,9 @@ const char* Door_tamper = NULL;
     if (door >= 4)
     { // Autonomous door control logic - check access file and times, etc
       if (!NFC.secure)return PSTR(""); // Don't make a fuss, control system may allow this, and it is obvious
-      byte fn = 0xA;
-#ifdef FILE3
-      uint32_t fileset = NFC.desfire_fileset(err);
-      if (fileset & (1 << fn))
-      { // Fixed file
-        if (NFC.desfire_fileread (fn, 0, MINAFILE, sizeof(afile) - 7, afile + 7, err) < 0)return PSTR("Cannot read access file 0A");
-        if (afile[8] + 1 > MINAFILE && NFC.desfire_fileread (fn, 0, afile[8] + 1, sizeof(afile) - 7, afile + 7, err) < 0)return PSTR("Cannot read access full file 0A");
-      } else if (fileset & (1 << (fn = 3)))
-      { // Variable file
-        int32_t filesize = NFC.desfire_filesize(fn, err);
-        if (filesize > 256)return PSTR("Access file too big");
-        if (NFC.desfire_fileread (fn, 0, filesize, sizeof(afile) - 8, afile + 8, err) < 0)return PSTR("Cannot read access file 03");
-        afile[8] = filesize;
-      } else return PSTR("No access file");
-#else
       // Just read file A
-      if (NFC.desfire_fileread (fn, 0, 16, sizeof(afile) - 7, afile + 7, err) < 0)return PSTR("Cannot read access file 0A");
-      if (afile[8] + 1 > 16 && NFC.desfire_fileread (fn, 0, afile[8] + 1, sizeof(afile) - 7, afile + 7, err) < 0)return PSTR("Cannot read access full file 0A");
-#endif
+      if (NFC.desfire_fileread (0xA, 0, 16, sizeof(afile) - 7, afile + 7, err) < 0)return PSTR("Cannot read access file 0A");
+      if (afile[8] + 1 > 16 && NFC.desfire_fileread (0xA, 0, afile[8] + 1, sizeof(afile) - 7, afile + 7, err) < 0)return PSTR("Cannot read access full file 0A");
       // Check access file (expected to exist)
       time_t now;
       time (&now);
@@ -334,8 +319,8 @@ const char* Door_tamper = NULL;
         bcdtime(now, datetime);
         if (memcmp(datetime, afile + 8 + xoff, xlen) > 0)
         { // Changed expiry
-          byte buf[20];
-          buf[1] = fn;
+          byte buf[30];
+          buf[1] = 0xA;
           buf[2] = xoff;
           buf[3] = 0;
           buf[4] = 0;
@@ -343,7 +328,8 @@ const char* Door_tamper = NULL;
           buf[6] = 0;
           buf[7] = 0;
           memcpy(buf + 8, datetime, xlen);
-          if (NFC.desfire (0x3D, 7 + xlen, buf, sizeof(buf), err, 0) < 0)return PSTR("Expiry update failed");
+          memcpy(afile + 8 + xoff, datetime, xlen);
+          if (NFC.desfire_dx(0x3D, sizeof(buf), buf, 8 + xlen, 0xFF) < 0)return PSTR("Expiry update failed");
           if (NFC.desfire(0xC7, 0, buf, sizeof(buf), err, 0) < 0)return PSTR("Expiry commit failed");
         }
       }
@@ -449,8 +435,8 @@ const char* Door_tamper = NULL;
         if (doorstate != DOOR_NOTCLOSED && doorstate != DOOR_PROPPED && doorstate != DOOR_OPEN)
         { // We have moved to open state, this can cancel the locking operation
           doorstate = DOOR_OPEN;
-          if (lock[0].state == LOCK_LOCKING)Output_set(OUNLOCK + 0, 1); // Cancel lock
-          if (lock[1].state == LOCK_LOCKING)Output_set(OUNLOCK + 1, 1); // Cancel deadlock
+          if (lock[0].state == LOCK_LOCKING || lock[0].state == LOCK_LOCKFAIL)Output_set(OUNLOCK + 0, 1); // Cancel lock
+          if (lock[1].state == LOCK_LOCKING || lock[1].state == LOCK_LOCKFAIL)Output_set(OUNLOCK + 1, 1); // Cancel deadlock
         }
       } else { // Closed
         if (lock[1].state == LOCK_LOCKED && (lock[0].state == LOCK_NOLOCK || lock[0].state == LOCK_LOCKED))doorstate = DOOR_DEADLOCKED;
