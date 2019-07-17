@@ -666,7 +666,7 @@ main (int argc, const char *argv[])
       unsigned char comms;
       unsigned short access = 0;
       unsigned int size = 0;
-      if ((e = df_get_file_settings (&d, 0x0A, &type, &comms, NULL, &size, NULL, NULL, NULL, NULL, NULL)))
+      if ((e = df_get_file_settings (&d, 0x0A, &type, &comms, &access, &size, NULL, NULL, NULL, NULL, NULL)))
 	errx (1, "File settings: %s", e);
       if (type != 'B')
 	{
@@ -679,7 +679,7 @@ main (int argc, const char *argv[])
 	{			// Check content
 	  if (!(comms & 1) || access != 0x0010)
 	    {
-	      printf ("Access file wrong settings (%X)\n", comms);
+	      printf ("Access file wrong settings %X %X\n", comms, access);
 	      comms |= 1;
 	      if ((e = df_change_file_settings (&d, 0x0A, comms, access, 0x0010)))
 		errx (1, "File setting: %s", e);
