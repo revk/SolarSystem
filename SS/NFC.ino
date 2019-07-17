@@ -30,6 +30,7 @@ const char* NFC_fault = NULL;
 const char* NFC_tamper = NULL;
 boolean held = false;
 char ledpattern[10];
+byte outputs = 0;
 
 #define app_settings  \
   s(nfc);   \
@@ -151,7 +152,6 @@ char ledpattern[10];
 #endif
       NFC.set_interface(pn532hsu);
     }
-    byte outputs = 0;
     if (nfcred >= 0)outputs |= (1 << nfcred);
     if (nfcgreen >= 0)outputs |= (1 << nfcgreen);
     if (!NFC.begin(outputs))
@@ -206,11 +206,11 @@ char ledpattern[10];
       {
         tampercheck = now + 250;
         int p3 = NFC.p3();
-        if (p3 < 0 && !NFC.begin())
+        if (p3 < 0 && !NFC.begin(outputs))
           NFC_fault = PSTR("PN532");
         else
         { // INT1 connected via switch to VCC, so expected high
-          if (NFC_fault && NFC.begin())
+          if (NFC_fault && NFC.begin(outputs))
           { // Reset
             ledlast = 0xFF;
             NFC_fault = NULL;
@@ -277,7 +277,7 @@ char ledpattern[10];
               // TODO logging when off line?
             } else
             { // Report to control
-              if (strcmp_P("", noaccess))revk.event(F("noaccess"), F("%s %S"), tid, noaccess); // ID and reason why not autonomous
+              if (strcmp_P("", noaccess))revk.event(*err.c_str() ? F("errqaccess") : F("noaccess"), F("%s %S"), tid, noaccess); // ID and reason why not autonomous
               else revk.event(F("id"), F("%s"), tid); // ID
             }
             if (!nfccommit && NFC.secure && !*err.c_str())NFC.desfire_log(err); // Log after action
