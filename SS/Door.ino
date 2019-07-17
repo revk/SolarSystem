@@ -114,6 +114,7 @@ const char* Door_tamper = NULL;
   { // Confirm access, and profile new access file to write if changed.
     if (!a)return true; // No action
     if (*a == afile[8] && !memcmp(a + 1, afile + 9, afile[8]))return true; // Same
+    if (!NFC.authenticated)return false;
     afile[1] = 0x0A;
     afile[2] = 0;
     afile[3] = 0;
@@ -202,7 +203,7 @@ const char* Door_tamper = NULL;
     if (!door)return PSTR(""); // just not allowed
     if (blacklist && checkfob(blacklist, id))
     {
-      if (door >= 4)
+      if (door >= 4 && NFC.authenticated)
       { // Zap the access file
         byte buf[20];
         buf[1] = 0x0A; // File
@@ -313,7 +314,7 @@ const char* Door_tamper = NULL;
         }
       }
       if (doordeadlock && door < 5)return PSTR("Door deadlocked");
-      if (xdays && xoff && xlen <= 7)
+      if (xdays && xoff && xlen <= 7 && NFC.authenticated)
       { // Update expiry
         now += 86400 * xdays;
         bcdtime(now, datetime);
