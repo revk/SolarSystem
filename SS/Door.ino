@@ -66,10 +66,10 @@ const char* Door_tamper = NULL;
   d(UNLOCKED,--G) \
   d(OPEN,G) \
   d(CLOSED,--G) \
-  d(LOCKING,RR-) \
-  d(NOTCLOSED,RG-) \
-  d(PROPPED,GGGGG-) \
-  d(AJAR,RG-) \
+  d(LOCKING,R-R) \
+  d(NOTCLOSED,R-G) \
+  d(PROPPED,G-GGGG) \
+  d(AJAR,R-G) \
 
 #define l(n) LOCK_##n,
   enum {
