@@ -59,7 +59,7 @@ main (int argc, const char *argv[])
   const char *username = NULL;
   int doformat = 0;
   int mqttport = 0;
-  int comms = 0;
+  int comms = 1;
   int logs = 50;
   int random = 0;
   int lock = 0;
@@ -397,6 +397,8 @@ main (int argc, const char *argv[])
 	username = xml_get (u, "@name");
 	if (username)
 	  printf ("Username: %s\n", username);
+	if (!setname)
+	  setname = xml_get (u, "@full-name");
       }
     return u;
   }
@@ -538,49 +540,86 @@ main (int argc, const char *argv[])
   unsigned long long fids;
   if ((e = df_get_file_ids (&d, &fids)))
     errx (1, "File IDs: %s", e);
-  if (fids & (1 << 0))
-    {				// Name file
-      char type;
-      unsigned char comms;
-      unsigned int size;
-      if ((e = df_get_file_settings (&d, 0, &type, &comms, NULL, &size, NULL, NULL, NULL, NULL, NULL)))
-	errx (1, "File settings: %s", e);
-      if (type != 'D' && type != 'B')
-	printf ("Name file is wrong type (%c)\n", type);
-      else if (size > sizeof (buf))
-	printf ("Name file is silly size (%d)\n", size);
-      {				// Get name
-	if ((e = df_read_data (&d, 0, comms, 0, size, buf)))
-	  errx (1, "Read data: %s", e);
-	buf[size] = 0;
-	printf ("Name: %s\n", buf);
-	if (setname && strcmp (setname, (char *) buf))
-	  {
-	    printf ("Name wrong, deleting name\n");
-	    if ((e = df_delete_file (&d, 0)))
-	      errx (1, "Delete file: %s", e);
-	    fids &= ~(1 << 0);	// deleted
-	  }
-	else if (config && !username && *buf)
-	  {
-	    xml_t u = NULL;
-	    while ((u = xml_element_next_by_name (c, u, "user")))
-	      if (!strcasecmp (xml_get (u, "@full-name") ? : "", (char *) buf))
-		break;
-	    if (u)
-	      {			// Found
-		user = u;
-		if (!setname)
-		  setname = xml_get (u, "@full-name");
-		username = xml_get (u, "@name");
-		printf ("Username: %s\n", username);
-	      }
-	    else if (!username)
-	      printf ("User was not found by name\n");
-	  }
+
+  {				// Delete extra files
+    int fn;
+    for (fn = 0; fn < 64; fn++)
+      if (fn > 2 && fn != 0xA && (fids & (1 << fn)))
+	{
+	  printf ("Deleting file %d\n", fn);
+	  if ((e = df_delete_file (&d, fn)))
+	    errx (1, "Delete file: %s", e);
+	}
+  }
+
+  unsigned int recs = 0;	// used for log file
+  unsigned int checkfile (unsigned char fn, char type, unsigned char comms, unsigned short access, const char *name)
+  {				// Check fle
+    if (!(fids & (1 << fn)))
+      {
+	printf ("File %d (%s) does not exist\n", fn, name);
+	return 0;
       }
+    char t;
+    unsigned char c;
+    unsigned short a;
+    unsigned int s;
+    if ((e = df_get_file_settings (&d, fn, &t, &c, &a, &s, NULL, NULL, &recs, NULL, NULL)))
+      errx (1, "File settings: %s", e);
+    if (t != type)
+      {
+	printf ("File %d (%s) from type %c/%c, deleting.\n", fn, name, t, type);
+	if ((e = df_delete_file (&d, fn)))
+	  errx (1, "Delete file: %s", e);
+	return 0;
+      }
+    if (c != comms || a != access)
+      {
+	printf ("File %d (%s) wrong setting %X/%X %04X/%04X, fixing.\n", fn, name, c, comms, a, access);
+	if ((e = df_change_file_settings (&d, fn, comms, a, access)))
+	  errx (1, "File setting: %s", e);
+      }
+    return s ? : 1;
+  }
+
+  unsigned int size = checkfile (0, 'D', comms, 0x1000, "Full name");
+  if (size)
+    {				// Name file
+      if (size > sizeof (buf))
+	printf ("Name file is silly size (%d)\n", size);
+      else
+	{			// Get name
+	  if ((e = df_read_data (&d, 0, comms, 0, size, buf)))
+	    errx (1, "Read data: %s", e);
+	  buf[size] = 0;
+	  printf ("Name: %s\n", buf);
+	  if (setname && strcmp (setname, (char *) buf))
+	    {
+	      printf ("Name wrong, deleting name\n");
+	      if ((e = df_delete_file (&d, 0)))
+		errx (1, "Delete file: %s", e);
+	      size = 0;
+	    }
+	  else if (config && !username && *buf)
+	    {
+	      xml_t u = NULL;
+	      while ((u = xml_element_next_by_name (c, u, "user")))
+		if (!strcasecmp (xml_get (u, "@full-name") ? : "", (char *) buf))
+		  break;
+	      if (u)
+		{		// Found
+		  user = u;
+		  if (!setname)
+		    setname = xml_get (u, "@full-name");
+		  username = xml_get (u, "@name");
+		  printf ("Username: %s\n", username);
+		}
+	      else if (!username)
+		printf ("User was not found by name\n");
+	    }
+	}
     }
-  if (!(fids & (1 << 0)) && setname && *setname)
+  if (!size && setname && *setname)
     {				// Set the name
       printf ("Setting name: %s\n", setname);
       if ((e = df_create_file (&d, 0, 'D', comms, 0x1000, strlen (setname), 0, 0, 0, 0, 0)))
@@ -589,17 +628,16 @@ main (int argc, const char *argv[])
 	errx (1, "Write file: %s", e);
     }
 
-  if (fids & (1 << 1))
+  size = checkfile (1, 'C', comms, 0x0100, "Log");
+  if (size)
     {				// Log file
-      char type;
-      unsigned char comms;
-      unsigned int size, recs;
-      if ((e = df_get_file_settings (&d, 1, &type, &comms, NULL, &size, NULL, NULL, &recs, NULL, NULL)))
-	errx (1, "File settings: %s", e);
-      if (type != 'C')
-	printf ("Log file wrong type (%c)\n", type);
-      else if (size != 10)
-	printf ("Log file wrong format (%d)\n", size);
+      if (size != 10)
+	{
+	  printf ("Log file wrong format (%d)\n", size);
+	  if ((e = df_delete_file (&d, 1)))
+	    errx (1, "Delete file: %s", e);
+	  size = 0;
+	}
       else if (!recs)
 	printf ("Log file empty\n");
       else
@@ -619,30 +657,22 @@ main (int argc, const char *argv[])
 	    }
 	}
     }
-  else
+  if (!size)
     {
       printf ("Creating log file\n");
       if ((e = df_create_file (&d, 1, 'C', comms, 0x0100, 10, 0, 0, logs, 0, 0)))
 	errx (1, "Create file: %s", e);
     }
 
-  if (fids & (1 << 2))
+  size = checkfile (2, 'V', comms, 0x0010, "Counter");
+  if (size)
     {				// Counter file
-      char type;
-      unsigned char comms;
-      if ((e = df_get_file_settings (&d, 2, &type, &comms, NULL, NULL, NULL, NULL, NULL, NULL, NULL)))
-	errx (1, "File settings: %s", e);
-      if (type != 'V')
-	printf ("Counter file wrong type (%c)\n", type);
-      else
-	{
-	  unsigned int value;
-	  if ((e = df_get_value (&d, 2, comms, &value)))
-	    errx (1, "Read value: %s", e);
-	  printf ("Count: %d\n", value);
-	}
+      unsigned int value;
+      if ((e = df_get_value (&d, 2, comms, &value)))
+	errx (1, "Read value: %s", e);
+      printf ("Count: %d\n", value);
     }
-  else
+  if (!size)
     {
       printf ("Creating counter file\n");
       if ((e = df_create_file (&d, 2, 'V', comms, 0x0010, 0, 0, 0x7FFFFFFF, 0, 0, 0)))
@@ -653,53 +683,24 @@ main (int argc, const char *argv[])
   if (user)
     afile = getafile (c, user, debug, forceallow);
 
-  if (afile && (fids & (1 << 3)))
-    {
-      printf ("Old access file, deleting\n");
-      if ((e = df_delete_file (&d, 3)))
-	errx (1, "Delete file: %s", e);
-    }
-
-  if (fids & (1 << 0x0A))
+  size = checkfile (0x0A, 'B', comms, 0x0010, "Access");
+  if (size)
     {				// Access file
-      char type;
-      unsigned char comms;
-      unsigned short access = 0;
-      unsigned int size = 0;
-      if ((e = df_get_file_settings (&d, 0x0A, &type, &comms, NULL, &size, NULL, NULL, NULL, NULL, NULL)))
-	errx (1, "File settings: %s", e);
-      if (type != 'B')
-	{
-	  printf ("Access file wrong type (%c)\n", type);
-	  if ((e = df_delete_file (&d, 0x0A)))
-	    errx (1, "Delete file: %s", e);
-	  fids &= ~(1 << 0x0A);
-	}
-      else
-	{			// Check content
-	  if (!(comms & 1) || access != 0x0010)
+      if ((e = df_read_data (&d, 0xA, comms, 0, size, buf)))
+	errx (1, "File read: %s", e);
+      if (!user || size != 256 || memcmp (buf, afile, *afile + 1))
+	{			// Report content
+	  int p;
+	  printf ("Access was ");
+	  for (p = 0; p < *buf + 1; p++)
+	    printf (" %02X", buf[p]);
+	  printf ("\n");
+	  if (user)
 	    {
-	      printf ("Access file wrong settings (%X)\n", comms);
-	      comms |= 1;
-	      if ((e = df_change_file_settings (&d, 0x0A, comms, access, 0x0010)))
-		errx (1, "File setting: %s", e);
-	    }
-	  if ((e = df_read_data (&d, 0xA, comms, 0, size, buf)))
-	    errx (1, "File read: %s", e);
-	  if (!user || size != 256 || memcmp (buf, afile, *afile + 1))
-	    {			// Report content
-	      int p;
-	      printf ("Access was ");
-	      for (p = 0; p < *buf + 1; p++)
-		printf (" %02X", buf[p]);
-	      printf ("\n");
-	      if (user)
-		{
-		  if ((e = df_write_data (&d, 0x0A, 'B', comms, 0, *afile + 1, afile)))
-		    errx (1, "Write file: %s", e);
-		  if ((e = df_commit (&d)))
-		    errx (1, "Commit file: %s", e);
-		}
+	      if ((e = df_write_data (&d, 0x0A, 'B', comms, 0, *afile + 1, afile)))
+		errx (1, "Write file: %s", e);
+	      if ((e = df_commit (&d)))
+		errx (1, "Commit file: %s", e);
 	    }
 	}
     }
@@ -710,7 +711,7 @@ main (int argc, const char *argv[])
       for (p = 0; p < *afile + 1; p++)
 	printf (" %02X", afile[p]);
       printf ("\n");
-      if (!(fids & (1 << 0x0A)))
+      if (!size)
 	{			// Create access file
 	  printf ("Creating access file\n");
 	  if ((e = df_create_file (&d, 0x0A, 'B', comms | 1, 0x0010, 256, 0, 0, 0, 0, 0)))
