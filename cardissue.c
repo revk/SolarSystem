@@ -576,7 +576,7 @@ main (int argc, const char *argv[])
          if ((e = df_change_file_settings (&d, fn, comms, a, access)))
             errx (1, "File setting: %s", e);
       }
-      return s;
+      return s?:1;
    }
 
    unsigned int size = checkfile (0, 'D', comms, 0x1000, "Full name");
