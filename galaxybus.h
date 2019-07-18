@@ -77,7 +77,7 @@ const char *type_name[MAX_TYPE];        // Device type name
 	e(FOB_GONE)	\
 	e(FOB_ACCESS)	\
 	e(FOB_NOACCESS)	\
-	e(FOB_TIMEOUT)	\
+	e(FOB_FAIL)	\
 	e(DOOR)		\
 	e(RF)		\
 

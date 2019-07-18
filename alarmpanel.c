@@ -3131,7 +3131,7 @@ doevent (event_t * e)
       if (e->event == EVENT_KEY)
          printf ("%02X", e->key);
       if (e->event == EVENT_FOB || e->event == EVENT_FOB_HELD || e->event == EVENT_FOB_ACCESS || e->event == EVENT_FOB_GONE
-          || e->event == EVENT_FOB_NOACCESS || e->event == EVENT_FOB_TIMEOUT)
+          || e->event == EVENT_FOB_NOACCESS || e->event == EVENT_FOB_FAIL)
          printf (" %s", e->fob);
       if (e->event == EVENT_RF)
          printf ("%08X %08X %02X %2d/10", e->rfserial, e->rfstatus, e->rftype, e->rfsignal);
@@ -3495,7 +3495,7 @@ doevent (event_t * e)
    case EVENT_FOB_HELD:
    case EVENT_FOB_ACCESS:
    case EVENT_FOB_NOACCESS:
-   case EVENT_FOB_TIMEOUT:
+   case EVENT_FOB_FAIL:
       {                         // Check users, doors?
          int d;
          unsigned int n;
@@ -3602,13 +3602,13 @@ doevent (event_t * e)
                dolog (mydoor[d].group_lock, e->event == EVENT_FOB_ACCESS ? "FOBBADACCESS" : "FOBBAD", NULL, doorno,
                       "Unrecognised fob %s%s", e->fob, secure ? " (secure)" : "");
             } else if (e->event == EVENT_FOB || e->event == EVENT_FOB_ACCESS || e->event == EVENT_FOB_NOACCESS
-                       || e->event == EVENT_FOB_TIMEOUT)
+                       || e->event == EVENT_FOB_FAIL)
             {                   // disarm is the groups that can be disarmed by this user on this door.
                if (e->event == EVENT_FOB_NOACCESS)
                   dolog (mydoor[d].group_lock, "FOBNOACCESS", u->name, doorno, "Autonomous access not allowed %s%s%s", e->fob,
                          secure ? " (secure)" : "", e->message ? : "");
-               else if (e->event == EVENT_FOB_TIMEOUT)
-                  dolog (mydoor[d].group_lock, "FOBTIMEOUT", u->name, doorno, "Autonomous access failed %s%s%s", e->fob,
+               else if (e->event == EVENT_FOB_FAIL)
+                  dolog (mydoor[d].group_lock, "FOBFAIL", u->name, doorno, "Autonomous access failed %s%s%s", e->fob,
                          secure ? " (secure)" : "", e->message ? : "");
                group_t disarm = ((u->group_arm[secure] & mydoor[d].group_arm & state[STATE_ARM]) | (port_name (port),
                                                                                                     u->group_disarm[secure] &
@@ -4516,8 +4516,8 @@ main (int argc, const char *argv[])
                         e->event = EVENT_FOB_GONE;
                      else if (!strcmp (tag, "noaccess"))
                         e->event = EVENT_FOB_NOACCESS;
-                     else if (!strcmp (tag, "nfctimeout"))
-                        e->event = EVENT_FOB_TIMEOUT;
+                     else if (!strcmp (tag, "nfcfail"))
+                        e->event = EVENT_FOB_FAIL;
                      if (l < msg->payloadlen)
                         asprintf ((char **) &e->message, "%.*s", msg->payloadlen - l, ((char *) msg->payload) + l);
                      e->port = port;
