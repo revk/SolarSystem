@@ -471,7 +471,7 @@ main (int argc, const char *argv[])
     printf ("Fob ID as Max %08u (secure)\n", id % 100000000);
   }
 
-  if (!username && !user && !doformat)
+  if (!username && !user)
     user = findfob ();
 
   if (chdir (hexaid) && (mkdir (hexaid, 0700) || chdir (hexaid)))
