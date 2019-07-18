@@ -201,6 +201,7 @@ struct port_app_s
    int door;                    // Related door
    char *led;                   // LED state
    time_t missing;              // When missing
+   unsigned char state:1;       // Low level stated from mqtt
    unsigned char missed:1;      // Reported missing
    unsigned char onplan:1;      // Is on floor plan
    unsigned char found:1;       // Device has been seen
@@ -4356,6 +4357,8 @@ main (int argc, const char *argv[])
                   int state = (((char *) msg->payload)[0] > '0' ? 1 : 0);
                   if (app->invert)
                      state = 1 - state;
+                  if (!tag)
+                     app->state = state;
                   if (!tag && !app->config)
                   {             // New device
                      app->config = xml_element_add (config, "device");
@@ -4481,7 +4484,7 @@ main (int argc, const char *argv[])
                      sende (EVENT_FAULT, state);
                   else if (!strncmp (tag, "tamper", 6) && port->tamper != state)
                      sende (EVENT_TAMPER, state);
-                  else if (!strncmp (tag, "door", 4) && app->door != -1 && !app->missing)
+                  else if (!strncmp (tag, "door", 4) && app->door != -1 && app->state)
                   {
                      state = 0;
 #define d(n,l) {const char s[]=#n;if((unsigned)msg->payloadlen>=sizeof(s)-1&&!strncmp(msg->payload,#n,sizeof(s)-1))state=DOOR_##n;}
