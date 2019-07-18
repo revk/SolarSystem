@@ -271,24 +271,24 @@ byte outputs = 0;
             noaccess = Door_fob(tid, err); // Check door control
             if (nfccommit && NFC.secure && !*err.c_str())NFC.desfire_log(err); // Log before action
             if (!noaccess && NFC.nfcstatus == 0x01)noaccess = PSTR("NFC timeout");
-            if (!noaccess)
+            if (NFC.nfcstatus == 0x01)
+              revk.event(F("nfctimeout"), strcmp_P("", noaccess) ? F("%s %S") : F("%s"), tid, noaccess); // Gone unexpectedly
+            else if (!noaccess)
             { // Autonomous door control
               Door_unlock(NULL); // Door system was happy with fob, let 'em in
               revk.event( F("access"), F("%s"), tid); // Report access
-              // TODO logging when off line?
+              // TODO logging access when off line?
             } else
-            { // Report to control
+            { // Report to control as access not allowed
               if (strcmp_P("", noaccess))
-              { // We have a reason for not allowing access.
-                revk.event(NFC.nfcstatus == 0x01 ? F("nfctimeout") : F("noaccess"), F("%s %02X %02X %S"), tid, NFC.nfcstatus, NFC.desfirestatus, noaccess); // ID and reason why not autonomous
-              }
+                revk.event(F("noaccess"), F("%s %02X %02X %S"), tid, NFC.nfcstatus, NFC.desfirestatus, noaccess); // ID and reason why not autonomous
               else revk.event(F("id"), F("%s"), tid); // ID
             }
             if (!nfccommit && NFC.secure && !*err.c_str())NFC.desfire_log(err); // Log after action
           }
           if (*err.c_str())
           { // Report any error
-            revk.error(F("id"), F("%s"), err.c_str());
+            revk.error(F("id"), F("%02X %02X %s"), NFC.nfcstatus, NFC.desfirestatus, err.c_str());
             found = 0;
           }
         }
