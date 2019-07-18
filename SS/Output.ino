@@ -80,7 +80,6 @@ unsigned long outputnext = 0;
   boolean Output_get(int o)
   { // Read an output state
     o--; // Starts from 1
-    if (!(outputactive & (1 << o)))return false;
     if (outputstate & (1 << o))return true;
     return false;
   }
