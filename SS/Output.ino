@@ -52,7 +52,6 @@ unsigned long outputnext = 0;
   void Output_set(int o, boolean v)
   { // Set an output externally
     o--; // Starts from 1
-    if (!(outputactive & (1 << o)))return;
     if (v)
     {
       if (!(outputstate & (1 << o)))
