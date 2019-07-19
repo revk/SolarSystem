@@ -4498,7 +4498,7 @@ main (int argc, const char *argv[])
                if (port && !strncmp (t, "event", 5) && msg->payloadlen >= 1)
                {
                   if (!strcmp (tag, "id") || !strcmp (tag, "held") || !strcmp (tag, "access") || !strcmp (tag, "gone")
-                      || !strcmp (tag, "noaccess") || !strcmp (tag, "nfctimeout"))
+                      || !strcmp (tag, "noaccess") || !strcmp (tag, "nfcfail"))
                   {             // Fob
                      int l;
                      for (l = 0; l < msg->payloadlen && ((char *) msg->payload)[l] != ' '; l++);
