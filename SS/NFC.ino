@@ -272,14 +272,23 @@ byte outputs = 0;
             if (nfccommit && NFC.secure && !*err.c_str())NFC.desfire_log(err); // Log before action
             if (!noaccess && NFC.nfcstatus == 0x01)noaccess = PSTR("NFC timeout");
             if (NFC.nfcstatus)
+            {
+              NFC.led(ledlast = (nfcred >= 0 && !(ledlast & (1 << nfcred)) ? (1 << nfcred) : 0)); // Blink red
+              lednext = now + 200;
               revk.event(F("nfcfail"), strcmp_P("", noaccess) ? F("%s %02X %S") : F("%s %02X"), tid, NFC.nfcstatus, noaccess); // NFC access was not clean
+            }
             else if (!noaccess)
             { // Autonomous door control
+              NFC.led(ledlast = (nfcgreen >= 0 && !(ledlast & (1 << nfcgreen)) ? (1 << nfcgreen) : 0)); // Blink green
+              lednext = now + 200;
               Door_unlock(NULL); // Door system was happy with fob, let 'em in
               revk.event( F("access"), F("%s"), tid); // Report access
               // TODO logging access when off line?
             } else
             { // Report to control as access not allowed
+
+              NFC.led(ledlast = (nfcred >= 0 && !(ledlast & (1 << nfcred)) ? (1 << nfcred) : 0)); // Blink red
+              lednext = now + 200;
               if (strcmp_P("", noaccess))
                 revk.event(F("noaccess"), F("%s %02X %02X %S"), tid, NFC.nfcstatus, NFC.desfirestatus, noaccess); // ID and reason why not autonomous
               else revk.event(F("id"), F("%s"), tid); // ID

@@ -219,11 +219,6 @@ const char* Door_tamper = NULL;
       }
       return PSTR("Blacklisted fob");
     }
-    if (doorstate == DOOR_OPEN)
-    {
-      if (door >= 5)Door_prop(NULL);
-      return PSTR(""); // Door is open - not really worth complaining about, but not access
-    }
     if (door >= 4)
     { // Autonomous door control logic - check access file and times, etc
       if (!NFC.secure)return PSTR(""); // Don't make a fuss, control system may allow this, and it is obvious
@@ -333,6 +328,8 @@ const char* Door_tamper = NULL;
           if (NFC.desfire(0xC7, 0, buf, sizeof(buf), err, 0) < 0)return PSTR("Expiry commit failed");
         }
       }
+      // Allowed
+      if (doorstate == DOOR_OPEN && door >= 5)Door_prop(NULL);
       return NULL;
     }
     if (door == 3)
@@ -388,6 +385,7 @@ const char* Door_tamper = NULL;
     unsigned long now = millis();
     static unsigned long doornext = 0;
     static byte lastdoorstate = -1;
+    boolean iopen = Input_direct(IOPEN);
     if ((int)(doornext - now) < 0)
     {
       doornext = now + doorpoll;
@@ -397,11 +395,14 @@ const char* Door_tamper = NULL;
         {
           byte last = lock[l].state;
           boolean o = Output_get(OUNLOCK + l), i = Input_direct(IUNLOCK + l);
-          if (!Output_active(OUNLOCK + l) && !Input_active(IUNLOCK + l))lock[l].state = (o ? LOCK_UNLOCKED : LOCK_LOCKED); // No input or output, just track output
-          else if (!Output_active(OUNLOCK + l)) lock[l].state = (i ? LOCK_UNLOCKED : LOCK_LOCKED); // No output, just track input
+          if (!Output_active(OUNLOCK + l))
+          {
+            if (!Input_active(IUNLOCK + l))lock[l].state = (o ? LOCK_UNLOCKED : LOCK_LOCKED); // No input or output, just track output
+            else lock[l].state = (i ? LOCK_UNLOCKED : LOCK_LOCKED); // No output, just track input
+          }
           else
           { // Lock state tracking
-            if (((Input_direct(IOPEN) && last == LOCK_LOCKING) || lock[l].o) && !o)
+            if (((iopen && last == LOCK_LOCKING) || lock[l].o) && !o)
             { // Change to lock - timer constantly restarted if door is open as it will not actually engage
               lock[l].timeout = ((now + doorlock) ? : 1);
               lock[l].state = LOCK_LOCKING;
@@ -428,7 +429,7 @@ const char* Door_tamper = NULL;
       }
       static long doortimeout = 0;
       // Door states
-      if (Input_direct(IOPEN))
+      if (iopen)
       { // Open
         if (doorstate != DOOR_NOTCLOSED && doorstate != DOOR_PROPPED && doorstate != DOOR_OPEN)
         { // We have moved to open state, this can cancel the locking operation
@@ -493,7 +494,7 @@ const char* Door_tamper = NULL;
       // Check tampers
       if (lock[0].state == LOCK_FORCED)Door_tamper = PSTR("Lock forced");
       else if (lock[1].state == LOCK_FORCED)Door_tamper = PSTR("Deadlock forced");
-      else if (Input_direct(IOPEN) && (lock[0].state == LOCK_LOCKED || lock[1].state == LOCK_LOCKED))Door_tamper = PSTR("Door forced");
+      else if (iopen && (lock[0].state == LOCK_LOCKED || lock[1].state == LOCK_LOCKED))Door_tamper = PSTR("Door forced");
       else Door_tamper = NULL;
       // Beep
       if (Door_tamper || Door_fault || doorstate == DOOR_AJAR || doorstate == DOOR_NOTCLOSED)
