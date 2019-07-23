@@ -4091,10 +4091,10 @@ do_wscallback (websocket_t * w, xml_t head, xml_t data)
             continue;           // Not allowed
          if (door[d].state == DOOR_UNLOCKED || door[d].state == DOOR_CLOSED)
             door_lock (d, NULL);
+         else if (door[d].state == DOOR_NOTCLOSED || door[d].state == DOOR_OPEN)
+            door_auth (d, NULL);
          else if (door[d].state != DOOR_DEADLOCKED)
             door_open (d, NULL);
-         else if (door[d].state != DOOR_NOTCLOSED)
-            door_auth (d, NULL);
       }
       for (e = NULL; (e = xml_element_next_by_name (data, e, "arm"));)
       {                         // Group ARM
