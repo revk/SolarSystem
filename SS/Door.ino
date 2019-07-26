@@ -39,6 +39,7 @@ const char* Door_tamper = NULL;
   s(doorpoll,100); \
   s(doordebug,0); \
   s(doorbeep,1); \
+  s(lockdebounce,100); \
   t(fallback); \
   t(blacklist); \
 
@@ -413,8 +414,10 @@ const char* Door_tamper = NULL;
             }
             if (lock[l].timeout)
             { // Timeout running
-              if ((lock[l].i != i && i == o) || (int)(lock[l].timeout - now) <= 0)
-              { // End of timeout, either by input state change to match, or timer running out
+              if (lock[l].i != i)
+                lock[l].timeout + lockdebounce; // Allow some debounce before ending timeout
+              if ((int)(lock[l].timeout - now) <= 0)
+              { // End of timeout
                 lock[l].timeout = 0;
                 lock[l].state = ((i == o || !Input_active(IUNLOCK + l)) ? o ? LOCK_UNLOCKED : LOCK_LOCKED : o ? LOCK_UNLOCKFAIL : LOCK_LOCKFAIL);
               }
