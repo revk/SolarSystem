@@ -291,7 +291,13 @@ byte outputs = 0;
               lednext = now + 200;
               if (strcmp_P("", noaccess))
                 revk.event(F("noaccess"), F("%s %02X %02X %S"), tid, NFC.nfcstatus, NFC.desfirestatus, noaccess); // ID and reason why not autonomous
-              else revk.event(F("id"), F("%s"), tid); // ID
+              else
+              {
+                if (*NFC.atr && NFC.atr[1] == 0x75)revk.event(F("id"), F("%s DESFire"), tid); // ID
+                else if (*NFC.atr && NFC.atr[1] == 0x78)revk.event(F("id"), F("%s ISO"), tid); // ID
+                else revk.event(F("id"), F("%s"), tid); // ID
+                //if (*NFC.atr) revk.event(F("atr"), F("%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X"), NFC.atr[0], NFC.atr[1], NFC.atr[2], NFC.atr[3], NFC.atr[4], NFC.atr[5], NFC.atr[6], NFC.atr[7], NFC.atr[8], NFC.atr[9], NFC.atr[10], NFC.atr[11], NFC.atr[12], NFC.atr[13], NFC.atr[14], NFC.atr[15], NFC.atr[16], NFC.atr[17], NFC.atr[18], NFC.atr[19]); // ID
+              }
             }
             if (!nfccommit && NFC.secure && !*err.c_str())NFC.desfire_log(err); // Log after action
           }
