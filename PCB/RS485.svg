@@ -122,8 +122,8 @@
            sodipodi:role="line"
            id="tspan1595"
            x="32.1376"
-           y="145.40834"
-           style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:1.41111112px;font-family:FiveByNineJTD;-inkscape-font-specification:'FiveByNineJTD, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:center;writing-mode:lr-tb;text-anchor:middle;fill:#ffff00;fill-opacity:1;stroke-width:0.26458332px">E</tspan></text>
+           y="146.56865"
+           style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:1.41111112px;font-family:FiveByNineJTD;-inkscape-font-specification:'FiveByNineJTD, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:center;writing-mode:lr-tb;text-anchor:middle;fill:#ffff00;fill-opacity:1;stroke-width:0.26458332px" /></text>
       <text
          id="text1601"
          y="145.40834"
@@ -134,6 +134,17 @@
            y="145.40834"
            x="27.545383"
            id="tspan1599"
+           sodipodi:role="line">E</tspan></text>
+      <text
+         id="text864"
+         y="145.40834"
+         x="32.1376"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:1.41111112px;line-height:125%;font-family:FiveByNineJTD;-inkscape-font-specification:'FiveByNineJTD, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:center;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:middle;fill:#ffff00;fill-opacity:1;stroke:none;stroke-width:0.26458332px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+         xml:space="preserve"><tspan
+           style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:1.41111112px;font-family:FiveByNineJTD;-inkscape-font-specification:'FiveByNineJTD, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:center;writing-mode:lr-tb;text-anchor:middle;fill:#ffff00;fill-opacity:1;stroke-width:0.26458332px"
+           y="145.40834"
+           x="32.1376"
+           id="tspan862"
            sodipodi:role="line">D</tspan></text>
     </g>
     <g
@@ -268,7 +279,7 @@
     <path
        id="path1058"
        style="opacity:1;fill:none;fill-opacity:1;fill-rule:evenodd;stroke:#ff0000;stroke-width:0.30000001;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
-       d="m 16.000726,5.8311641 v 3.8100002 l -4.572,-10e-8 m -2.1580017,-3.8099976 6.7300017,-2.5e-6 v -3.81 l -4.572,-10e-8 m -12.7000006,3.8100001 10e-8,3.8100002 12.7000005,-10e-8 V 7.1011639 l -2.1580017,2.7e-6 M 3.8087257,4.5611639 V 3.037164 H 1.9525456 l -1e-7,2.7776796 1.8561801,0.01632 3e-7,1.2699983 4.1919986,2.7e-6 v -2.54 z m 0,-1.0159999 v -0.508 l 5.4619986,2.7e-6 v 5.5880002 l -7.3181787,-2.7e-6 -3e-7,-2.8124847 -3.2238199,0.018485 V 2.0211641 l 12.7000006,-10e-8 v 2.54 l -2.1580016,2.7e-6"
+       d="M 16.000726,5.8311641 V 2.0211639 l -4.572,1e-7 m -2.1580017,3.8099976 6.7300017,2.5e-6 v 3.81 l -4.572,1e-7 m -12.7000006,-3.8100001 10e-8,-3.8100002 12.7000005,1e-7 v 2.5400003 l -2.1580017,-2.7e-6 M 3.8087257,7.1011643 V 8.6251642 H 1.9525456 l -1e-7,-2.7776796 1.8561801,-0.01632 3e-7,-1.2699983 4.1919986,-2.7e-6 v 2.54 z m 0,1.0159999 v 0.508 l 5.4619986,-2.7e-6 V 3.0371613 l -7.3181787,2.7e-6 -3e-7,2.8124847 -3.2238199,-0.018485 v 3.8100004 l 12.7000006,1e-7 v -2.54 l -2.1580016,-2.7e-6"
        inkscape:connector-curvature="0"
        sodipodi:nodetypes="cccccccccccccccccccccccccccccccc" />
   </g>
