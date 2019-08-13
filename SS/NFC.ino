@@ -264,6 +264,7 @@ byte outputs = 0;
           if (held)
           { // Preset for NFC reader remote
             revk.event( F("card"), F("%s"), tid); // Report access
+            err = String("");
             held = false; // Normal
           }
           else
