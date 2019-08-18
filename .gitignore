@@ -5,5 +5,8 @@ cardissue
 *.swp
 .DS_Store
 */*.bin
+*/*.old
+*/*/*.old
 ESP32/secure_boot_signing_key.pem
 ESP32/build/*
+ESP32/sdkconfig
