@@ -14,6 +14,13 @@
 
 #include "../components/ESP32RevK/revk.h"
 
+#include "door.h"
+#include "input.h"
+#include "output.h"
+#include "nfc.h"
+#include "ranger.h"
+#include "keypad.h"
+
 void app_main()
 {
     printf("Hello world!\n");
