@@ -1,4 +1,5 @@
-set(COMPONENT_SRCS "hello_world_main.c")
+set(COMPONENT_SRCS "SS.c")
 set(COMPONENT_ADD_INCLUDEDIRS "")
+set(COMPONENT_REQUIRES "ESP32RevK" "DESFireAES")
 
 register_component()
