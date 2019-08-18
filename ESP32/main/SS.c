@@ -12,8 +12,7 @@
 #include "esp_system.h"
 #include "esp_spi_flash.h"
 
-#include <revk.h>
-
+#include "../components/ESP32RevK/revk.h"
 
 void app_main()
 {
