@@ -15,12 +15,12 @@
 #include "ranger.h"
 #include "keypad.h"
 
-const char *app_setting(const char *tag,const char *value)
+const char *app_setting(const char *tag,unsigned int len,const unsigned char *value)
 {
 return ""; // Unknown
 }
 
-const char *app_command(const char *tag,const char *value)
+const char *app_command(const char *tag,unsigned int len,const unsigned char *value)
 {
 return ""; // Unknown
 }
