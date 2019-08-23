@@ -54,7 +54,7 @@ void
 nfc_init (void)
 {
 #define u8(n,d) revk_register(#n,0,sizeof(n),&n,#d,0);
-#define b(n,l) revk_register(#n,0,sizeof(n),n,NULL,0);
+#define b(n,l) revk_register(#n,0,sizeof(n),n,NULL,SETTING_BINARY);
 #define u1(n) revk_register(#n,0,sizeof(n),&n,NULL,SETTING_BOOLEAN);
 #define p(n) revk_register(#n,0,sizeof(n),&n,NULL,SETTING_SET);
    settings
