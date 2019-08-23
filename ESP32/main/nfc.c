@@ -1,4 +1,5 @@
 // NFC reader interface - working with door control
+static const char TAG[] = "NFC";
 
 #include "SS.h"
 #include "door.h"
@@ -39,7 +40,12 @@ nfc_task (void *pvParameters)
    while (1)
    {
       sleep (1);
+#if 0
       // TODO check for cards
+      uint8_t buf[100];
+      int l = pn532_InListPassiveTarget (pn532, sizeof (buf), buf);
+      revk_info ("nfc", "ILPT %d", l);
+#endif
    }
 }
 
@@ -64,7 +70,7 @@ nfc_init (void)
 #undef p
       if (nfctx && nfcrx && nfcuart && port_ok (port_mask (nfctx), "nfctx") && port_ok (port_mask (nfcrx), "nfcrx"))
    {
-      pn532 = pn532_init (port_mask (nfcuart), port_mask (nfctx), port_mask (nfcrx),0); // TODO P3
+      pn532 = pn532_init (port_mask (nfcuart), port_mask (nfctx), port_mask (nfcrx), 0);        // TODO P3
       if (!pn532)
          revk_error ("nfc", "Failed to start PN532");
       else

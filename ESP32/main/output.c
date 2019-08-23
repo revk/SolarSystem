@@ -38,10 +38,10 @@ output_init (void)
       {
          REVK_ERR_CHECK (gpio_reset_pin (p));
          if (output[i] & PORT_INV)
-	 {
+         {
             output_invert |= (1ULL << i);       // TODO can this not be done at hardware level?
-	    REVK_ERR_CHECK(gpio_set_level(p,1));
-	 }
+            REVK_ERR_CHECK (gpio_set_level (p, 1));
+         }
          REVK_ERR_CHECK (gpio_set_direction (p, GPIO_MODE_OUTPUT));
       } else
          output[i] = 0;
