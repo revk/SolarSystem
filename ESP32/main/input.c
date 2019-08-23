@@ -21,7 +21,7 @@ settings
 #undef u32
 static uint64_t input_raw = 0;
 static uint64_t input_stable = 0;
-static uint64_t port_invert = 0;
+static uint64_t input_invert = 0;
 static uint64_t input_hold[MAXINPUT] = { };
 
 static volatile char reportall = 0;
@@ -50,7 +50,7 @@ input_task (void *pvParameters)
          if (input[i])
          {
             int v = gpio_get_level (port_mask (input[i]));
-            if ((1ULL << i) & port_invert)
+            if ((1ULL << i) & input_invert)
                v = 1 - v;
 	    char changed=report;
             if ((input_hold[i] < now) && (report || v != ((input_stable >> i) & 1)))
@@ -92,7 +92,7 @@ input_init (void)
          REVK_ERR_CHECK (gpio_set_pull_mode (p, GPIO_PULLUP_ONLY));
          REVK_ERR_CHECK (gpio_set_direction (p, GPIO_MODE_INPUT));
          if (input[i] & PORT_INV)
-            port_invert |= (1ULL << i); // TODO can this not be done at hardware level?
+            input_invert |= (1ULL << i); // TODO can this not be done at hardware level?
       } else
          input[i] = 0;
    xTaskCreatePinnedToCore (input_task, "input", 16 * 1024, NULL, 1, &input_task_id, tskNO_AFFINITY);   // TODO stack, priority, affinity check?
