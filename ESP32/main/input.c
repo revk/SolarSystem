@@ -4,7 +4,7 @@
 #include <driver/gpio.h>
 
 // Input ports
-#define MAXINPUT 20
+#define MAXINPUT 26
 #define	BITFIELDS "-"
 #define	PORT_INV 0x40
 #define	port_mask(p) ((p)&63)
@@ -42,28 +42,34 @@ input_task (void *pvParameters)
    while (1)
    {
       // Check inputs
-            int64_t now = esp_timer_get_time ();
+      int64_t now = esp_timer_get_time ();
       char report = reportall;
       reportall = 0;
       int i;
       for (i = 0; i < MAXINPUT; i++)
-      {
-         int v = gpio_get_level (port_mask (input[i]));
-         if ((1ULL << i) & port_invert)
-            v = 1 - v;
-         if ((input_hold[i] < now) && (report || v != ((input_stable >> i) & 1)))
-         { // Change of stable state
-            input_stable = ((input_stable & ~(1ULL << i)) | ((uint64_t) v << i));
-            char tag[20];
-            sprintf (tag, "input%d", i);
-            revk_state (tag, "%d", v);
+         if (input[i])
+         {
+            int v = gpio_get_level (port_mask (input[i]));
+            if ((1ULL << i) & port_invert)
+               v = 1 - v;
+	    char changed=report;
+            if ((input_hold[i] < now) && (report || v != ((input_stable >> i) & 1)))
+            {                   // Change of stable state
+               input_stable = ((input_stable & ~(1ULL << i)) | ((uint64_t) v << i));
+	       changed=1;
+            }
+	    if(changed)
+	    {
+               char tag[20];
+               sprintf (tag, "input%d", i + 1);
+               revk_state (tag, "%d", (input_stable>>i)&1);
+	    }
+            if (v != ((input_raw >> i) & 1))
+            {                   // Change of raw state
+               input_raw = ((input_raw & ~(1ULL << i)) | ((uint64_t) v << i));
+               input_hold[i] = now + inputhold * 1000;
+            }
          }
-         if (v != ((input_raw >> i) & 1))
-         {                      // Change of raw state
-            input_raw = ((input_raw & ~(1ULL << i)) | ((uint64_t) v << i));
-            input_hold[i] = now + inputhold * 1000;
-         }
-      }
       // Sleep
       usleep ((inputpoll ? : 1) * 1000);
    }
