@@ -1,6 +1,8 @@
 // Door control logic
 
-#include "../components/ESP32RevK/revk.h"
+#include "SS.h"
+#include "input.h"
+#include "output.h"
 
 const char *
 door_command (const char *tag, unsigned int len, const unsigned char *value)

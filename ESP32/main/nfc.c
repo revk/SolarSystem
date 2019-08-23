@@ -1,7 +1,8 @@
 // NFC reader interface - working with door control
 
-#include "../components/ESP32RevK/revk.h"
+#include "SS.h"
 #include "door.h"
+#include "../components/ESP32RevK/pn532.h"
 
 const char *
 nfc_command (const char *tag, unsigned int len, const unsigned char *value)
