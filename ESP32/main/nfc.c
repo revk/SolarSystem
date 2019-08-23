@@ -37,15 +37,37 @@ static void
 nfc_task (void *pvParameters)
 {                               // Main RevK task
    pvParameters = pvParameters;
+   int64_t nextpoll = 0;
+   int64_t nextled = 0;
+   int64_t nexttamper = 0;
    while (1)
    {
-      sleep (1);
-#if 0
-      // TODO check for cards
-      uint8_t buf[100];
-      int l = pn532_InListPassiveTarget (pn532, sizeof (buf), buf);
-      revk_info ("nfc", "ILPT %d", l);
-#endif
+      usleep (1000);            // TODO work out how long to sleep for
+      int64_t now = esp_timer_get_time ();
+      int ready = pn532_ready (pn532);
+      if (ready > 0)
+      {                         // Check ID response
+         int cards = pn532_Cards (pn532);
+         if (cards)
+            revk_info ("nfc", "Cards %d", cards);
+         ready = -1;
+      }
+      if (ready >= 0)
+         continue;              // We cannot talk to card for LED/tamper as waiting for reply
+      if (nextpoll < now)
+      {                         // Check for card
+         nextpoll = now + nfcpoll * 1000;
+         pn532_ILPT_Send (pn532);
+      }
+      if (nextled < now)
+      {                         // Check LED
+         nextled = now + 100000;
+      }
+      if (nexttamper < now)
+      {                         // Check tamper
+         nexttamper = now + 1000000;
+
+      }
    }
 }
 
@@ -60,7 +82,7 @@ void
 nfc_init (void)
 {
 #define u8(n,d) revk_register(#n,0,sizeof(n),&n,#d,0);
-#define b(n,l) revk_register(#n,0,sizeof(n),n,NULL,SETTING_BINARY);
+#define b(n,l) revk_register(#n,0,sizeof(n),n,NULL,SETTING_BINARY|SETTING_HEX);
 #define u1(n) revk_register(#n,0,sizeof(n),&n,NULL,SETTING_BOOLEAN);
 #define p(n) revk_register(#n,0,sizeof(n),&n,NULL,SETTING_SET);
    settings
@@ -70,7 +92,7 @@ nfc_init (void)
 #undef p
       if (nfctx && nfcrx && nfcuart && port_ok (port_mask (nfctx), "nfctx") && port_ok (port_mask (nfcrx), "nfcrx"))
    {
-      pn532 = pn532_init (port_mask (nfcuart), port_mask (nfctx), port_mask (nfcrx), 0);        // TODO P3
+      pn532 = pn532_init (port_mask (nfcuart), port_mask (nfctx), port_mask (nfcrx), (1 << nfcred) | (1 << nfcgreen));
       if (!pn532)
          revk_error ("nfc", "Failed to start PN532");
       else
