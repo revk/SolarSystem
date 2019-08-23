@@ -49,7 +49,7 @@ nfc_task (void *pvParameters)
       {                         // Check ID response
          int cards = pn532_Cards (pn532);
          if (cards)
-            revk_info ("nfc", "Cards %d nfcidlen=%d atslen=%s", cards, *pn532_nfcid (pn532), *pn532_ats (pn532));
+            revk_info ("nfc", "Cards %d nfcidlen=%d atslen=%d", cards, *pn532_nfcid (pn532), *pn532_ats (pn532));
          ready = -1;
       }
       if (ready >= 0)
