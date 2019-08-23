@@ -30,7 +30,7 @@ settings
 #undef u1
 #undef p
 static TaskHandle_t nfc_task_id = NULL;
-static pn532_t *pn532;
+static pn532_t *pn532 = NULL;
 
 static void
 nfc_task (void *pvParameters)
@@ -39,7 +39,7 @@ nfc_task (void *pvParameters)
    while (1)
    {
       sleep (1);
-      // TODO
+      // TODO check for cards
    }
 }
 
@@ -64,8 +64,11 @@ nfc_init (void)
 #undef p
       if (nfctx && nfcrx && nfcuart && port_ok (port_mask (nfctx), "nfctx") && port_ok (port_mask (nfcrx), "nfcrx"))
    {
-      pn532 = pn532_init (port_mask (nfcuart), port_mask (nfctx), port_mask (nfcrx));
-      xTaskCreatePinnedToCore (nfc_task, "nfc", 16 * 1024, NULL, 1, &nfc_task_id, tskNO_AFFINITY);      // TODO stack, priority, affinity check?
+      pn532 = pn532_init (port_mask (nfcuart), port_mask (nfctx), port_mask (nfcrx),0); // TODO P3
+      if (!pn532)
+         revk_error ("nfc", "Failed to start PN532");
+      else
+         xTaskCreatePinnedToCore (nfc_task, "nfc", 16 * 1024, NULL, 1, &nfc_task_id, tskNO_AFFINITY);   // TODO stack, priority, affinity check?
    } else if (nfcrx || nfctx || nfcuart)
       revk_error ("nfc", "Set nfcuart, nfctx, and nfcrx");
 }
