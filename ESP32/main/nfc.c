@@ -61,7 +61,7 @@ task (void *pvParameters)
          if (cards)
          {
             noaccess = NULL;
-               uint8_t aesid = 0;
+            uint8_t aesid = 0;
             const char *e = NULL;
             uint8_t *ats = pn532_ats (pn532);
             pn532_nfcid (pn532, id);
@@ -100,7 +100,7 @@ task (void *pvParameters)
                noaccess = e;
             }
             void log (void)
-            { // Log and count
+            {                   // Log and count
                if (e || !df.keylen)
                   return;
                // TODO
@@ -115,11 +115,12 @@ task (void *pvParameters)
                // TODO LED
                door_unlock (NULL);      // Door system was happy with fob, let 'em in
             }
-	    // Report
+            // Report
             if (noaccess && *noaccess)
                revk_info ("noaccess", "%s [%s]", id, noaccess);
-            else 
-               revk_info(noaccess?"id":"access", "%s%s", id, *ats && ats[1] == 0x75 ? " DESFire" : *ats && ats[1] == 0x78 ? " ISO" : "");
+            else
+               revk_info (noaccess ? "id" : "access", "%s%s", id, *ats && ats[1] == 0x75 ? " DESFire" : *ats
+                          && ats[1] == 0x78 ? " ISO" : "");
             if (nfccommit)
                log ();
             found = 1;
@@ -153,7 +154,17 @@ task (void *pvParameters)
 const char *
 nfc_command (const char *tag, unsigned int len, const unsigned char *value)
 {
-   // TODO
+   if (!strcmp (tag, "connect") && (aid[0] || aid[1] || aid[2]) && *aes[0])
+   {
+      char vers[sizeof (aes) / sizeof (*aes) * 2 + 1];
+      int i;
+      for (i = 0; i < sizeof (aes) / sizeof (*aes); i++)
+         sprintf (vers + i * 2, "%02X", aes[i][0]);
+      while (i && !aes[i - 1][0])
+         i--;
+      vers[i * 2] = 0;
+      revk_info ("aes", "%02X%02X%02X %s", aid[0], aid[1], aid[2], vers);
+   }
    return NULL;
 }
 

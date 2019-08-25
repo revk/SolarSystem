@@ -31,15 +31,25 @@ static volatile char reportall = 0;
 int
 input_active (int p)
 {
-   // TODO
-   return -1;
+   if (p < 1 || p > MAXINPUT)
+      return 0;
+   p--;
+   if (!input[p])
+      return 0;
+   return 1;
 }
 
 int
 input_get (int p)
 {
-   // TODO
-   return -1;
+   if (p < 1 || p > MAXINPUT)
+      return -1;
+   p--;
+   if (!input[p])
+      return 1;
+   if (input_raw & (1ULL << p))
+      return 1;
+   return 0;
 }
 
 const char *
