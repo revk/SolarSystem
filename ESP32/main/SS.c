@@ -110,5 +110,5 @@ void
 status (const char *ignored)
 {
    ignored = ignored;
-   status_report (1);
+   status_report (0);
 }
