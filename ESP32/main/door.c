@@ -128,15 +128,15 @@ struct
 uint8_t doorstate = -1;
 uint8_t doordeadlock = true;
 
-uint8_t
+const char *
 door_access (const uint8_t * a)
-{                               // Confirm access, and profile new access file to write if changed.
+{                               // Confirm access
    if (!a)
-      return true;              // No action
+      return NULL;              // No action
    if (*a == afile[8] && !memcmp (a + 1, afile + 9, afile[8]))
-      return true;              // Same
+      return NULL;              // Same
    if (!df.keylen)
-      return false;
+      return NULL;
    afile[1] = 0x0A;
    afile[2] = 0;
    afile[3] = 0;
@@ -151,10 +151,10 @@ door_access (const uint8_t * a)
                   NFC.desfire (0xC7, 0, afile, sizeof (afile), err, 0) >= 0);
 #endif
    memcpy (afile + 8, a, *a + 1);       // Restore
-   return 0;                    // TODO
+   return NULL;
 }
 
-uint8_t
+const char *
 door_unlock (const uint8_t * a)
 {                               // Unlock the door - i.e. exit button, entry allowed, etc.
    doordeadlock = false;
@@ -163,7 +163,7 @@ door_unlock (const uint8_t * a)
    return door_access (a);
 }
 
-uint8_t
+const char *
 door_deadlock (const uint8_t * a)
 {                               // Deadlock the door - i.e. move to alarm armed, no exit/entry
    doordeadlock = true;
@@ -172,7 +172,7 @@ door_deadlock (const uint8_t * a)
    return door_access (a);
 }
 
-uint8_t
+const char *
 door_lock (const uint8_t * a)
 {                               // Lock the door - i.e. move to normal locked operation
    doordeadlock = false;
@@ -181,7 +181,7 @@ door_lock (const uint8_t * a)
    return door_access (a);
 }
 
-uint8_t
+const char *
 door_prop (const uint8_t * a)
 {                               // Allow door propping
    if (doorstate != DOOR_OPEN && doorstate != DOOR_NOTCLOSED && doorstate != DOOR_PROPPED)
@@ -434,23 +434,23 @@ door_fob (char *id)
 
 static uint8_t resend;
 
-uint8_t
-door_command (const char *tag, const uint8_t * message, size_t len)
+const char *
+door_command (const char *tag, unsigned int len, const unsigned char *value)
 {                               // Called for incoming MQTT messages
    if (!door)
       return false;             // No door control in operation
-   if (!len || *message != len - 1)
-      message = NULL;           // Not sensible access file
+   if (!len || *value != len - 1)
+      value = NULL;           // Not sensible access file (which is arg that we accept here)
    if (!strcasecmp (tag, "deadlock"))
-      return door_deadlock (message);
+      return door_deadlock (value);
    if (!strcasecmp (tag, "lock"))
-      return door_lock (message);
+      return door_lock (value);
    if (!strcasecmp (tag, "unlock"))
-      return door_unlock (message);
+      return door_unlock (value);
    if (!strcasecmp (tag, "prop"))
-      return door_prop (message);
+      return door_prop (value);
    if (!strcasecmp (tag, "access"))
-      return door_access (message);
+      return door_access (value);
    if (!strcasecmp (tag, "connect"))
       resend = 1;
    return false;
