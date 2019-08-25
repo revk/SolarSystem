@@ -5,7 +5,7 @@ static const char TAG[] = "door";
 const char *door_fault = NULL;
 const char *door_tamper = NULL;
 
-char offlinemode=0;	// TODO (check revk online?)
+char offlinemode = 0;           // TODO (check revk online?)
 
 // Autonomous door control
 // Door mode set by door setting
@@ -440,7 +440,7 @@ door_command (const char *tag, unsigned int len, const unsigned char *value)
    if (!door)
       return false;             // No door control in operation
    if (!len || *value != len - 1)
-      value = NULL;           // Not sensible access file (which is arg that we accept here)
+      value = NULL;             // Not sensible access file (which is arg that we accept here)
    if (!strcasecmp (tag, "deadlock"))
       return door_deadlock (value);
    if (!strcasecmp (tag, "lock"))
@@ -648,7 +648,7 @@ door_init (void)
 #undef u16
 #undef u8
 #undef u1
-   if (!door)
+      if (!door)
       return false;             // No door control in operation
    if (input_get (IOPEN))
       doorstate = DOOR_OPEN;
