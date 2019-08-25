@@ -36,13 +36,12 @@ output_set (int p, int v)
    if (v)
    {
       v = 1;
-      if (output_state & (1ULL << p))
-         return;
+      if (output_state & (1ULL << p) && (output_unheld & (1ULL << p)))
+         return;                // No change
       output_state |= (1ULL << p);
-   } else
+   } else if (!(output_state & (1ULL << p)) && (output_unheld & (1ULL << p)))
    {
-      if (output_state & (1ULL << p))
-         return;
+      return;                   // No change
       output_state &= ~(1ULL << p);
    }
    if (output[p])
@@ -75,7 +74,10 @@ output_command (const char *tag, unsigned int len, const unsigned char *value)
       int index = atoi (tag + sizeof (TAG) - 1);
       if (index >= 1 && index <= MAXOUTPUT)
       {
-         // TODO change output
+         if (len && *value == '1')
+            output_set (index, 1);
+         else
+            output_set (index, 0);
          return "";             // Done
       }
    }

@@ -117,7 +117,7 @@ task (void *pvParameters)
             }
             // Report
             if (noaccess && *noaccess)
-               revk_info ("noaccess", "%s [%s]", id, noaccess);
+               revk_info ("noaccess", "%s %s", id, noaccess);
             else
                revk_info (noaccess ? "id" : "access", "%s%s", id, *ats && ats[1] == 0x75 ? " DESFire" : *ats
                           && ats[1] == 0x78 ? " ISO" : "");
