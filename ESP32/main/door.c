@@ -432,23 +432,6 @@ door_fob (char *id)
    return "";                   // Just not allowed
 }
 
-const char *
-door_setting (const char *tag, const uint8_t * value, size_t len)
-{                               // Called for commands retrieved from EEPROM
-#define u32(n,d) revk_register(#n,0,sizeof(n),&n,#d,0);
-#define u16(n,d) revk_register(#n,0,sizeof(n),&n,#d,0);
-#define u8(n,d) revk_register(#n,0,sizeof(n),&n,#d,0);
-#define u1(n) revk_register(#n,0,sizeof(n),&n,NULL,SETTING_BOOLEAN);
-#define t(n) revk_register(#n,0,0,&n,NULL,0);
-   settings
-#undef t
-#undef u32
-#undef u16
-#undef u8
-#undef u1
-      return NULL;              // Done
-}
-
 static uint8_t resend;
 
 uint8_t
@@ -654,6 +637,17 @@ task (void *pvParameters)
 void
 door_init (void)
 {
+#define u32(n,d) revk_register(#n,0,sizeof(n),&n,#d,0);
+#define u16(n,d) revk_register(#n,0,sizeof(n),&n,#d,0);
+#define u8(n,d) revk_register(#n,0,sizeof(n),&n,#d,0);
+#define u1(n) revk_register(#n,0,sizeof(n),&n,NULL,SETTING_BOOLEAN);
+#define t(n) revk_register(#n,0,0,&n,NULL,0);
+   settings
+#undef t
+#undef u32
+#undef u16
+#undef u8
+#undef u1
    if (!door)
       return false;             // No door control in operation
    if (input_get (IOPEN))
