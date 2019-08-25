@@ -14,7 +14,8 @@ static const char *port_inuse[MAX_PORT];
 	m(keypad)	\
 	m(door)		\
 
-static void status_report (int force)
+static void
+status_report (int force)
 {                               // Report status change
    {                            // Faults
       static const char *lastfault = NULL;
@@ -27,8 +28,10 @@ static void status_report (int force)
          if (lastfault != fault || force)
       {
          lastfault = fault;
-         if (fault)
-            revk_state ("fault", "1 %s: %s (%d)", module, fault, faults);
+         if (faults > 1)
+            revk_state ("fault", "1 %s: %s (+%d other)", module, fault, faults - 1);
+         else if (fault)
+            revk_state ("fault", "1 %s: %s", module, fault);
          else
             revk_state ("fault", "0");
       }
@@ -44,8 +47,10 @@ static void status_report (int force)
          if (lasttamper != tamper || force)
       {
          lasttamper = tamper;
-         if (tamper)
-            revk_state ("tamper", "1 %s: %s (%d)", module, tamper, tampers);
+         if (tampers > 1)
+            revk_state ("tamper", "1 %s: %s (+%d other)", module, tamper, tampers);
+         else if (tamper)
+            revk_state ("tamper", "1 %s: %s", module, tamper);
          else
             revk_state ("tamper", "0");
       }

@@ -47,7 +47,8 @@ task (void *pvParameters)
    int64_t nextpoll = 0;
    int64_t nextled = 0;
    int64_t nexttamper = 0;
-   char id[21];
+   char id[22];
+   const char *noaccess = NULL;
    char found = 0;
    while (1)
    {
@@ -59,14 +60,14 @@ task (void *pvParameters)
          int cards = pn532_Cards (pn532);
          if (cards)
          {
+            noaccess = NULL;
+               uint8_t aesid = 0;
+            const char *e = NULL;
             uint8_t *ats = pn532_ats (pn532);
             pn532_nfcid (pn532, id);
-            revk_info ("id", "%s%s", id, *ats && ats[1] == 0x75 ? " DESFire" : *ats && ats[1] == 0x78 ? " ISO" : "");
             if (aes[0][0] && (aid[0] || aid[1] || aid[2]) && *ats && ats[1] == 0x75)
             {                   // DESFire
                uint8_t uid[7];  // Real ID
-               const char *e = NULL;
-               uint8_t aesid = 0;
                // Select application
                if (!e)
                   e = df_select_application (&df, aid);
@@ -78,7 +79,7 @@ task (void *pvParameters)
                   {
                      for (aesid = 0; aesid < sizeof (aes) / sizeof (*aes) && aes[aesid][0] != version; aesid++);
                      if (aesid == sizeof (aes) / sizeof (*aes))
-                        e = "Unknwon key version";
+                        e = "Unknown key version";
                   }
                }
                // Authenticate
@@ -86,22 +87,41 @@ task (void *pvParameters)
                   e = df_authenticate (&df, 1, aes[aesid] + 1);
                if (!e)
                   e = df_get_uid (&df, uid);
-               if (!e && aesid)
-                  e = df_change_key (&df, 1, aes[0][0], aes[aesid] + 1, aes[0] + 1);
                if (!e)
-               {
-                  // Update ID to real ID
-                  // TODO
-                  // Run door checks
-                  // TODO
-               }
-               if (e)
-               {
-                  if (!strcmp (e, "Dx fail"))
-                     e = pn532_err_to_name (pn532_lasterr (pn532));
-                  revk_error (TAG, "DESFire error %s", e);
-               }
+                  snprintf (id, sizeof (id), "%02X%02X%02X%02X%02X%02X%02X+", uid[0], uid[1], uid[2], uid[3], uid[4], uid[5],
+                            uid[6]);
             }
+            // Door check
+            noaccess = door_fob (id);
+            if (e)
+            {                   // Error
+               if (!strcmp (e, "Dx fail"))
+                  e = pn532_err_to_name (pn532_lasterr (pn532));
+               noaccess = e;
+            }
+            void log (void)
+            { // Log and count
+               if (e || !df.keylen)
+                  return;
+               // TODO
+               if (aesid)
+                  e = df_change_key (&df, 1, aes[0][0], aes[aesid] + 1, aes[0] + 1);
+            }
+            if (nfccommit)
+               log ();
+            if (!noaccess)
+            {                   // Open door?
+               // TODO commit?
+               // TODO LED
+               door_unlock (NULL);      // Door system was happy with fob, let 'em in
+            }
+	    // Report
+            if (noaccess && *noaccess)
+               revk_info ("noaccess", "%s [%s]", id, noaccess);
+            else 
+               revk_info(noaccess?"id":"access", "%s%s", id, *ats && ats[1] == 0x75 ? " DESFire" : *ats && ats[1] == 0x78 ? " ISO" : "");
+            if (nfccommit)
+               log ();
             found = 1;
          }
          ready = -1;
@@ -126,7 +146,6 @@ task (void *pvParameters)
       if (nexttamper < now)
       {                         // Check tamper
          nexttamper = now + 1000000;
-
       }
    }
 }
@@ -157,15 +176,15 @@ nfc_init (void)
       if (nfctx && nfcrx)
    {
       const char *e = port_check (port_mask (nfctx), "nfctx", 0);
-      if (e)
+      if (!e)
          e = port_check (port_mask (nfcrx), "nfcrx", 1);
       if (e)
-         status(nfc_fault = e);
+         status (nfc_fault = e);
       else
       {
          pn532 = pn532_init (nfcuart, port_mask (nfctx), port_mask (nfcrx), (1 << nfcred) | (1 << nfcgreen));
          if (!pn532)
-            status(nfc_fault = "Failed to startt PN532");
+            status (nfc_fault = "Failed to start PN532");
          else
          {
             df_init (&df, pn532, pn532_dx);
@@ -174,5 +193,5 @@ nfc_init (void)
          }
       }
    } else if (nfcrx || nfctx)
-      status(nfc_fault = "Set nfctx, and nfcrx");
+      status (nfc_fault = "Set nfctx, and nfcrx");
 }

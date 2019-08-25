@@ -5,6 +5,8 @@ static const char TAG[] = "door";
 const char *door_fault = NULL;
 const char *door_tamper = NULL;
 
+char offlinemode=0;	// TODO (check revk online?)
+
 // Autonomous door control
 // Door mode set by door setting
 // 0 - no control
@@ -611,28 +613,28 @@ task (void *pvParameters)
             exit2 = 0;
          // Check faults
          if (lock[0].state == LOCK_UNLOCKFAIL)
-            status(door_fault = "Lock stuck");
+            status (door_fault = "Lock stuck");
          else if (lock[1].state == LOCK_UNLOCKFAIL)
-            status(door_fault = "Deadlock stuck");
+            status (door_fault = "Deadlock stuck");
          else if (lock[0].state == LOCK_FAULT)
-            status(door_fault = "Lock fault");
+            status (door_fault = "Lock fault");
          else if (lock[1].state == LOCK_FAULT)
-            status(door_fault = "Deadlock fault");
+            status (door_fault = "Deadlock fault");
          else if (exit1 && (int) (exit1 - now) < 0)
-            status(door_fault = "Exit stuck");
+            status (door_fault = "Exit stuck");
          else if (exit2 && (int) (exit2 - now) < 0)
-            status(door_fault = "Ranger stuck");
+            status (door_fault = "Ranger stuck");
          else
-            status(door_fault = NULL);
+            status (door_fault = NULL);
          // Check tampers
          if (lock[0].state == LOCK_FORCED)
-            status(door_tamper = "Lock forced");
+            status (door_tamper = "Lock forced");
          else if (lock[1].state == LOCK_FORCED)
-            status(door_tamper = "Deadlock forced");
+            status (door_tamper = "Deadlock forced");
          else if (iopen && (lock[0].state == LOCK_LOCKED || lock[1].state == LOCK_LOCKED))
-            status(door_tamper = "Door forced");
+            status (door_tamper = "Door forced");
          else
-            status(door_tamper = NULL);
+            status (door_tamper = NULL);
          // Beep
          if (door_tamper || door_fault || doorstate == DOOR_AJAR || doorstate == DOOR_NOTCLOSED)
             output_set (OBEEP, ((now - doortimeout) & 512) ? 1 : 0);

@@ -62,7 +62,7 @@ output_init (void)
          const char *e = port_check (p = port_mask (output[i]), TAG, 0);
          if (e)
          {
-            status(output_fault = e);
+            status (output_fault = e);
             output[i] = 0;
          } else
          {
