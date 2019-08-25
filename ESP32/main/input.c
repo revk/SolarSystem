@@ -15,12 +15,12 @@ static uint8_t input[MAXINPUT];
 
 // Other settings
 #define settings	\
-u32 (inputhold, 100);	\
-u32 (inputpoll, 10);	\
+u16 (inputhold, 100);	\
+u16 (inputpoll, 10);	\
 
-#define u32(n,v) uint32_t n
+#define u16(n,v) uint16_t n
 settings
-#undef u32
+#undef u16
 static uint64_t input_raw = 0;
 static uint64_t input_stable = 0;
 static uint64_t input_invert = 0;
@@ -95,9 +95,9 @@ void
 input_init (void)
 {
    revk_register (TAG, MAXINPUT, sizeof (*input), &input, BITFIELDS, SETTING_BITFIELD | SETTING_SET);
-#define u32(n,v) revk_register(#n,0,sizeof(n),&n,#v,0);
+#define u16(n,v) revk_register(#n,0,sizeof(n),&n,#v,0);
    settings
-#undef u32
+#undef u16
       // Check config
    int i,
      p;

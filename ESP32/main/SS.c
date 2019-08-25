@@ -76,6 +76,7 @@ port_check (int p, const char *module, int in)
    port_inuse[p] = module;
    return NULL;                 // OK
 }
+
 const char *
 app_command (const char *tag, unsigned int len, const unsigned char *value)
 {

@@ -31,25 +31,31 @@ const char *door_tamper = NULL;
 uint8_t afile[256 + 10 + 7];    // Access file saved - starts at uint8_t 8
 
 #define settings  \
-  s(door,0);   \
-  s(doorunlock,1000); \
-  s(doorlock,3000); \
-  s(dooropen,5000); \
-  s(doorclose,500); \
-  s(doorprop,60000); \
-  s(doorexit,60000); \
-  s(doorpoll,100); \
-  s(doordebug,0); \
-  s(doorbeep,1); \
-  s(lockdebounce,100); \
+  u8(door,0);   \
+  u16(doorunlock,1000); \
+  u16(doorlock,3000); \
+  u16(dooropen,5000); \
+  u16(doorclose,500); \
+  u16(doorprop,60000); \
+  u16(doorexit,60000); \
+  u16(doorpoll,100); \
+  u16(doorbeep,1); \
+  u16(lockdebounce,100); \
+  u1(doordebug); \
   t(fallback); \
   t(blacklist); \
 
-#define s(n,d) unsigned int n=d;
+#define u32(n,d) uint32_t n;
+#define u16(n,d) uint16_t n;
+#define u8(n,d) uint8_t n;
+#define u1(n) uint8_t n;
 #define t(n) const char*n=NULL;
 settings
 #undef t
-#undef s
+#undef u32
+#undef u16
+#undef u8
+#undef u1
 #define lock_states \
   l(LOCKING) \
   l(LOCKED) \
@@ -280,7 +286,6 @@ door_fob (char *id)
             aok = false;
          uint8_t *fok = NULL,
             *tok = NULL;
-         uint32_t cid = 0;      // TODO
          uint8_t dow = bcdtime (now, datetime);
          while (p < e)
          {
@@ -301,7 +306,7 @@ door_fob (char *id)
                while (n && !aok)
                {
                   n -= 3;
-                  if ((p[n] << 16) + (p[n + 1] << 8) + p[n + 2] == cid)
+                  if ((p[n] << 16) + (p[n + 1] << 8) + p[n + 2] == revk_binid)
                      aok = 1;
                }
             } else if (c == 0xB)
@@ -312,7 +317,7 @@ door_fob (char *id)
                while (n)
                {
                   n -= 3;
-                  if ((p[n] << 16) + (p[n + 1] << 8) + p[n + 2] == cid)
+                  if ((p[n] << 16) + (p[n + 1] << 8) + p[n + 2] == revk_binid)
                      return "Barred door";
                }
             } else if (c == 0xF)
@@ -428,11 +433,17 @@ door_fob (char *id)
 const char *
 door_setting (const char *tag, const uint8_t * value, size_t len)
 {                               // Called for commands retrieved from EEPROM
-#define s(n,d)                  // TODO
-#define t(n)                    // TODO
+#define u32(n,d) revk_register(#n,0,sizeof(n),&n,#d,0);
+#define u16(n,d) revk_register(#n,0,sizeof(n),&n,#d,0);
+#define u8(n,d) revk_register(#n,0,sizeof(n),&n,#d,0);
+#define u1(n) revk_register(#n,0,sizeof(n),&n,NULL,SETTING_BOOLEAN);
+#define t(n) revk_register(#n,0,0,&n,NULL,0);
    settings
 #undef t
-#undef s
+#undef u32
+#undef u16
+#undef u8
+#undef u1
       return NULL;              // Done
 }
 
