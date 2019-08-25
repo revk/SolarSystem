@@ -1,6 +1,9 @@
 // Logical outputs
-
+static const char TAG[] = "output";
 #include "SS.h"
+const char *output_fault = NULL;
+const char *output_tamper = NULL;
+
 #include <driver/gpio.h>
 
 // Output ports
@@ -12,12 +15,32 @@ static uint8_t output[MAXOUTPUT];
 
 static uint64_t output_invert = 0;
 
+int
+output_active (int p)
+{
+   // TODO
+   return 0;
+}
+
+void
+output_set (int p)
+{
+   // TODO
+}
+
+int
+output_get (int p)
+{
+   // TODO
+   return -1;
+}
+
 const char *
 output_command (const char *tag, unsigned int len, const unsigned char *value)
 {
-   if (!strncmp (tag, "output", 6))
+   if (!strncmp (tag, TAG, sizeof (TAG) - 1))
    {                            // Set output
-      int index = atoi (tag + 6);
+      int index = atoi (tag + sizeof (TAG) - 1);
       if (index >= 1 && index <= MAXOUTPUT)
       {
          // TODO change output
@@ -30,19 +53,26 @@ output_command (const char *tag, unsigned int len, const unsigned char *value)
 void
 output_init (void)
 {
-   revk_register ("output", MAXOUTPUT, sizeof (*output), &output, "-", SETTING_BITFIELD | SETTING_SET);
+   revk_register (TAG, MAXOUTPUT, sizeof (*output), &output, "-", SETTING_BITFIELD | SETTING_SET);
    int i,
      p;
    for (i = 0; i < MAXOUTPUT; i++)
-      if (output[i] && port_ok (p = port_mask (output[i]), "output"))
+      if (output[i])
       {
-         REVK_ERR_CHECK (gpio_reset_pin (p));
-         if (output[i] & PORT_INV)
+         const char *e = port_check (p = port_mask (output[i]), TAG, 0);
+         if (e)
          {
-            output_invert |= (1ULL << i);       // TODO can this not be done at hardware level?
-            REVK_ERR_CHECK (gpio_set_level (p, 1));
+            status(output_fault = e);
+            output[i] = 0;
+         } else
+         {
+            REVK_ERR_CHECK (gpio_reset_pin (p));
+            if (output[i] & PORT_INV)
+            {
+               output_invert |= (1ULL << i);    // TODO can this not be done at hardware level?
+               REVK_ERR_CHECK (gpio_set_level (p, 1));
+            }
+            REVK_ERR_CHECK (gpio_set_direction (p, GPIO_MODE_OUTPUT));
          }
-         REVK_ERR_CHECK (gpio_set_direction (p, GPIO_MODE_OUTPUT));
-      } else
-         output[i] = 0;
+      }
 }

@@ -1,6 +1,9 @@
 // Ranger ranger as exit button and motion detect
-
+const char TAG[] = "ranger";
 #include "SS.h"
+const char *ranger_fault = NULL;
+const char *ranger_tamper = NULL;
+
 #include "vl53l0x.h"
 #include "input.h"
 

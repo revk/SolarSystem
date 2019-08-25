@@ -1,6 +1,9 @@
 // Controller for Honeywell Galaxy keypad over RS485
-
+static const char TAG[] = "keypad";
 #include "SS.h"
+const char *keypad_fault = NULL;
+const char *keypad_tamper = NULL;
+
 #include "galaxybus.h"
 
 const char *

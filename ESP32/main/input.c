@@ -1,6 +1,9 @@
 // Logical inputs
-
+static const char TAG[] = "input";
 #include "SS.h"
+const char *input_fault = NULL;
+const char *input_tamper = NULL;
+
 #include <driver/gpio.h>
 
 // Input ports
@@ -15,7 +18,6 @@ static uint8_t input[MAXINPUT];
 u32 (inputhold, 100);	\
 u32 (inputpoll, 10);	\
 
-static TaskHandle_t input_task_id = NULL;
 #define u32(n,v) uint32_t n
 settings
 #undef u32
@@ -26,6 +28,20 @@ static uint64_t input_hold[MAXINPUT] = { };
 
 static volatile char reportall = 0;
 
+int
+input_active (int p)
+{
+   // TODO
+   return -1;
+}
+
+int
+input_get (int p)
+{
+   // TODO
+   return -1;
+}
+
 const char *
 input_command (const char *tag, unsigned int len, const unsigned char *value)
 {
@@ -35,7 +51,7 @@ input_command (const char *tag, unsigned int len, const unsigned char *value)
 }
 
 static void
-input_task (void *pvParameters)
+task (void *pvParameters)
 {                               // Main RevK task
    pvParameters = pvParameters;
    // Scan inputs
@@ -61,7 +77,7 @@ input_task (void *pvParameters)
             if (changed)
             {
                char tag[20];
-               sprintf (tag, "input%d", i + 1);
+               sprintf (tag, "%s%d", TAG, i + 1);
                revk_state (tag, "%d", (input_stable >> i) & 1);
             }
             if (v != ((input_raw >> i) & 1))
@@ -78,7 +94,7 @@ input_task (void *pvParameters)
 void
 input_init (void)
 {
-   revk_register ("input", MAXINPUT, sizeof (*input), &input, BITFIELDS, SETTING_BITFIELD | SETTING_SET);
+   revk_register (TAG, MAXINPUT, sizeof (*input), &input, BITFIELDS, SETTING_BITFIELD | SETTING_SET);
 #define u32(n,v) revk_register(#n,0,sizeof(n),&n,#v,0);
    settings
 #undef u32
@@ -86,14 +102,22 @@ input_init (void)
    int i,
      p;
    for (i = 0; i < MAXINPUT; i++)
-      if (input[i] && port_ok (p = port_mask (input[i]), "input"))
+      if (input[i])
       {
-         REVK_ERR_CHECK (gpio_reset_pin (p));
-         REVK_ERR_CHECK (gpio_set_pull_mode (p, GPIO_PULLUP_ONLY));
-         REVK_ERR_CHECK (gpio_set_direction (p, GPIO_MODE_INPUT));
-         if (input[i] & PORT_INV)
-            input_invert |= (1ULL << i);        // TODO can this not be done at hardware level?
-      } else
-         input[i] = 0;
-   xTaskCreatePinnedToCore (input_task, "input", 16 * 1024, NULL, 1, &input_task_id, tskNO_AFFINITY);   // TODO stack, priority, affinity check?
+         const char *e = port_check (p = port_mask (input[i]), TAG, 1);
+         if (e)
+         {
+            input[i] = 0;
+            status (input_fault = e);
+         } else
+         {
+            REVK_ERR_CHECK (gpio_reset_pin (p));
+            REVK_ERR_CHECK (gpio_set_pull_mode (p, GPIO_PULLUP_ONLY));
+            REVK_ERR_CHECK (gpio_set_direction (p, GPIO_MODE_INPUT));
+            if (input[i] & PORT_INV)
+               input_invert |= (1ULL << i);     // TODO can this not be done at hardware level?
+         }
+      }
+   static TaskHandle_t task_id = NULL;
+   xTaskCreatePinnedToCore (task, TAG, 16 * 1024, NULL, 1, &task_id, tskNO_AFFINITY);   // TODO stack, priority, affinity check?
 }

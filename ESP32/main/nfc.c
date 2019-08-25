@@ -1,7 +1,9 @@
 // NFC reader interface - working with door control
 static const char TAG[] = "nfc";
-
 #include "SS.h"
+const char *nfc_fault = NULL;
+const char *nfc_tamper = NULL;
+
 #include "door.h"
 #include "pn532.h"
 #include "desfireaes.h"
@@ -35,13 +37,12 @@ settings
 #undef ba
 #undef u1
 #undef p
-static TaskHandle_t nfc_task_id = NULL;
-static pn532_t *pn532 = NULL;
-static df_t df;
+   pn532_t * pn532 = NULL;
+df_t df;
 
 static void
-nfc_task (void *pvParameters)
-{                               // Main RevK task
+task (void *pvParameters)
+{
    pvParameters = pvParameters;
    int64_t nextpoll = 0;
    int64_t nextled = 0;
@@ -60,7 +61,7 @@ nfc_task (void *pvParameters)
          {
             uint8_t *ats = pn532_ats (pn532);
             pn532_nfcid (pn532, id);
-            revk_info ("id", "%s%s", id,*ats&&ats[1]==0x75?" DESFire":*ats&&ats[1]==0x78?" ISO":"");
+            revk_info ("id", "%s%s", id, *ats && ats[1] == 0x75 ? " DESFire" : *ats && ats[1] == 0x78 ? " ISO" : "");
             if (aes[0][0] && (aid[0] || aid[1] || aid[2]) && *ats && ats[1] == 0x75)
             {                   // DESFire
                uint8_t uid[7];  // Real ID
@@ -87,15 +88,19 @@ nfc_task (void *pvParameters)
                   e = df_get_uid (&df, uid);
                if (!e && aesid)
                   e = df_change_key (&df, 1, aes[0][0], aes[aesid] + 1, aes[0] + 1);
-	       if(!e)
-	       {
-		       // Update ID to real ID
-		       // TODO
-		       // Run door checks
-		       // TODO
-	       }
+               if (!e)
+               {
+                  // Update ID to real ID
+                  // TODO
+                  // Run door checks
+                  // TODO
+               }
                if (e)
+               {
+                  if (!strcmp (e, "Dx fail"))
+                     e = pn532_err_to_name (pn532_lasterr (pn532));
                   revk_error (TAG, "DESFire error %s", e);
+               }
             }
             found = 1;
          }
@@ -149,19 +154,25 @@ nfc_init (void)
 #undef ba
 #undef u1
 #undef p
-      if (nfctx && nfcrx && port_ok (port_mask (nfctx), "nfctx") && port_ok (port_mask (nfcrx), "nfcrx"))
+      if (nfctx && nfcrx)
    {
-      pn532 = pn532_init (nfcuart, port_mask (nfctx), port_mask (nfcrx), (1 << nfcred) | (1 << nfcgreen));
-      if (!pn532)
-         revk_error (TAG, "Failed to start PN532");
+      const char *e = port_check (port_mask (nfctx), "nfctx", 0);
+      if (e)
+         e = port_check (port_mask (nfcrx), "nfcrx", 1);
+      if (e)
+         status(nfc_fault = e);
       else
       {
-         const char *e = df_init (&df, pn532, pn532_dx);
-         if (e)
-            revk_error (TAG, "DF fail %s", e);
-
-         xTaskCreatePinnedToCore (nfc_task, TAG, 16 * 1024, NULL, 1, &nfc_task_id, tskNO_AFFINITY);     // TODO stack, priority, affinity check?
+         pn532 = pn532_init (nfcuart, port_mask (nfctx), port_mask (nfcrx), (1 << nfcred) | (1 << nfcgreen));
+         if (!pn532)
+            status(nfc_fault = "Failed to startt PN532");
+         else
+         {
+            df_init (&df, pn532, pn532_dx);
+            static TaskHandle_t task_id = NULL;
+            xTaskCreatePinnedToCore (task, TAG, 16 * 1024, NULL, 1, &task_id, tskNO_AFFINITY);  // TODO stack, priority, affinity check?
+         }
       }
    } else if (nfcrx || nfctx)
-      revk_error (TAG, "Set nfctx, and nfcrx");
+      status(nfc_fault = "Set nfctx, and nfcrx");
 }

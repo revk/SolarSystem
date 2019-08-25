@@ -1,18 +1,655 @@
-// Door control logic
-
+// Solar System
+// (c) Andrews & Arnold Ltd, Adrian Kennard, see LICENSE file (GPL)
+static const char TAG[] = "door";
 #include "SS.h"
+const char *door_fault = NULL;
+const char *door_tamper = NULL;
+
+// Autonomous door control
+// Door mode set by door setting
+// 0 - no control
+// 1 - tracking and reporting state, managing lock when closed
+// 2 - also handling exit button (if not deadlocked)
+// 3 - also handling entry for secure card use
+// 4 - stand alone control using secure card
+// This uses pre-set input and output numbers
+#define IEXIT1 1
+#define IEXIT2 8
+#define IOPEN 2
+#define IUNLOCK 3
+#define OUNLOCK 1
+#define OBEEP 3
+#define OERROR 4
+
+#define FILE3                   // Check for old file 3 access file
+#define MINAFILE  32            // Minimum we read from afile before checking length
+
+#include "nfc.h"
 #include "input.h"
 #include "output.h"
 
-const char *
-door_command (const char *tag, unsigned int len, const unsigned char *value)
+uint8_t afile[256 + 10 + 7];    // Access file saved - starts at uint8_t 8
+
+#define settings  \
+  s(door,0);   \
+  s(doorunlock,1000); \
+  s(doorlock,3000); \
+  s(dooropen,5000); \
+  s(doorclose,500); \
+  s(doorprop,60000); \
+  s(doorexit,60000); \
+  s(doorpoll,100); \
+  s(doordebug,0); \
+  s(doorbeep,1); \
+  s(lockdebounce,100); \
+  t(fallback); \
+  t(blacklist); \
+
+#define s(n,d) unsigned int n=d;
+#define t(n) const char*n=NULL;
+settings
+#undef t
+#undef s
+#define lock_states \
+  l(LOCKING) \
+  l(LOCKED) \
+  l(UNLOCKING) \
+  l(UNLOCKED) \
+  l(LOCKFAIL) \
+  l(UNLOCKFAIL) \
+  l(FORCED) \
+  l(FAULT) \
+
+#define door_states \
+  d(DEADLOCKED,) \
+  d(LOCKED,R) \
+  d(UNLOCKING,--R) \
+  d(UNLOCKED,--G) \
+  d(OPEN,G) \
+  d(CLOSED,--G) \
+  d(LOCKING,R-R) \
+  d(NOTCLOSED,R-G) \
+  d(PROPPED,G-GGGG) \
+  d(AJAR,R-G) \
+
+#define l(n) LOCK_##n,
+   enum
 {
-   // TODO
-   return NULL;
+   lock_states
+};
+#undef l
+
+#define l(n) #n,
+const char *lockstates[] = {
+   lock_states
+};
+
+#undef l
+
+#define d(n,l) DOOR_##n,
+enum
+{
+   door_states
+};
+#undef d
+
+#define d(n,l) #n,
+const char *doorstates[] = {
+   door_states
+};
+
+#undef d
+
+#define d(n,l) #l,
+const char *doorled[] = {
+   door_states
+};
+
+#undef d
+
+struct
+{
+   uint8_t o,
+     i;
+   uint8_t state;
+   uint64_t timeout;
+} lock[2] =
+{
+0};
+
+uint8_t doorstate = -1;
+uint8_t doordeadlock = true;
+
+uint8_t
+door_access (const uint8_t * a)
+{                               // Confirm access, and profile new access file to write if changed.
+   if (!a)
+      return true;              // No action
+   if (*a == afile[8] && !memcmp (a + 1, afile + 9, afile[8]))
+      return true;              // Same
+   if (!df.keylen)
+      return false;
+   afile[1] = 0x0A;
+   afile[2] = 0;
+   afile[3] = 0;
+   afile[4] = 0;
+   afile[5] = afile[8] + 1;
+   afile[6] = 0;
+   afile[7] = 0;
+   memcpy (afile + 8, a, *a + 1);
+#if 0                           // TODO
+   String err;
+   uint8_t ret = (NFC.desfire_dx (0x3D, sizeof (afile), afile, 8 + 1 + afile[8], 0xFF) >= 0 &&
+                  NFC.desfire (0xC7, 0, afile, sizeof (afile), err, 0) >= 0);
+#endif
+   memcpy (afile + 8, a, *a + 1);       // Restore
+   return 0;                    // TODO
+}
+
+uint8_t
+door_unlock (const uint8_t * a)
+{                               // Unlock the door - i.e. exit button, entry allowed, etc.
+   doordeadlock = false;
+   output_set (OUNLOCK + 0, 1);
+   output_set (OUNLOCK + 1, 1);
+   return door_access (a);
+}
+
+uint8_t
+door_deadlock (const uint8_t * a)
+{                               // Deadlock the door - i.e. move to alarm armed, no exit/entry
+   doordeadlock = true;
+   output_set (OUNLOCK + 0, 0);
+   output_set (OUNLOCK + 1, 0);
+   return door_access (a);
+}
+
+uint8_t
+door_lock (const uint8_t * a)
+{                               // Lock the door - i.e. move to normal locked operation
+   doordeadlock = false;
+   output_set (OUNLOCK + 0, 0);
+   output_set (OUNLOCK + 1, 1);
+   return door_access (a);
+}
+
+uint8_t
+door_prop (const uint8_t * a)
+{                               // Allow door propping
+   if (doorstate != DOOR_OPEN && doorstate != DOOR_NOTCLOSED && doorstate != DOOR_PROPPED)
+      return false;
+   doorstate = DOOR_PROPPED;
+   return door_access (a);
+}
+
+static int
+checkfob (const char *fobs, const char *id)
+{                               // is fob in list
+   if (!fobs || !id)
+      return 0;
+   int l = strlen (id),
+      n = 0;
+   if (l && id[l - 1] == '+')
+      l--;                      // Don't check secure tag suffix
+   while (*fobs)
+   {
+      n++;
+      const char *p = fobs;
+      while (*p && *p != ' ')
+         p++;
+      if (p - fobs == l && !memcmp (fobs, id, l))
+         return n;
+      while (*p && *p == ' ')
+         p++;
+      fobs = p;
+   }
+   return 0;
+}
+
+static uint8_t
+bcdtime (time_t now, uint8_t datetime[7])
+{
+   struct tm *t;
+   t = localtime (&now);
+   int v = t->tm_year + 1900;
+   datetime[0] = (v / 1000) * 16 + (v / 100 % 10);
+   datetime[1] = (v / 10 % 10) * 16 + (v % 10);
+   v = t->tm_mon + 1;
+   datetime[2] = (v / 10) * 16 + (v % 10);
+   v = t->tm_mday;
+   datetime[3] = (v / 10) * 16 + (v % 10);
+   v = t->tm_hour;
+   datetime[4] = (v / 10) * 16 + (v % 10);
+   v = t->tm_min;
+   datetime[5] = (v / 10) * 16 + (v % 10);
+   v = t->tm_sec;
+   datetime[6] = (v / 10) * 16 + (v % 10);
+   return t->tm_wday;
+}
+
+const char *
+door_fob (char *id)
+{                               // Consider fob, and return error if not acceptable, NULL if OK
+   if (!door)
+      return "";                // just not allowed
+   if (blacklist && checkfob (blacklist, id))
+   {
+      if (door >= 4 && df.keylen)
+      {                         // Zap the access file
+#if 0                           // TODO
+         uint8_t buf[20];
+         buf[1] = 0x0A;         // File
+         buf[2] = 0;            // Offset
+         buf[3] = 0;
+         buf[4] = 0;
+         buf[5] = 2;            // Len
+         buf[6] = 0;
+         buf[7] = 0;
+         buf[8] = 0x01;         // Len 1
+         buf[9] = 0xA0;         // Blacklist
+         if (NFC.desfire_dx (0x3D, sizeof (buf), buf, 10, 0xFF) < 0)
+            return "Blacklist update failed";
+#endif
+         return "Blacklist (zapped)";
+      }
+      return "Blacklisted fob";
+   }
+   if (door >= 4)
+   {                            // Autonomous door control logic - check access file and times, etc
+      if (!df.keylen)
+         return "";             // Don't make a fuss, control system may allow this, and it is obvious
+      // Just read file A
+#if 0                           // TODO
+      if (NFC.desfire_fileread (0xA, 0, 16, sizeof (afile) - 7, afile + 7, err) < 0)
+         return "Cannot read access file 0A";
+      if (afile[8] + 1 > 16 && NFC.desfire_fileread (0xA, 0, afile[8] + 1, sizeof (afile) - 7, afile + 7, err) < 0)
+         return "Cannot read access full file 0A";
+#endif
+      // Check access file (expected to exist)
+      time_t now;
+      time (&now);
+      uint8_t datetime[7];      // BCD date time
+      int xoff = 0,
+         xlen = 0,
+         xdays = 0;             // Expiry data
+      if (afile[8])
+      {                         // Check access
+         uint8_t *p = afile + 9,
+            *e = afile + 9 + afile[8];
+         uint8_t ax = false,
+            aok = false;
+         uint8_t *fok = NULL,
+            *tok = NULL;
+         uint32_t cid = 0;      // TODO
+         uint8_t dow = bcdtime (now, datetime);
+         while (p < e)
+         {
+            uint8_t l = (*p & 0xF);
+            uint8_t c = (*p++ >> 4);
+            if (p + l > e)
+               return "Invalid access file";
+            if (c == 0x0)
+            {                   // Padding, ignore
+            } else if (c == 0xA)
+            {                   // Allow
+               if (!l)
+                  return "Card blocked";        // Black list
+               ax = true;
+               if (l % 3)
+                  return "Invalid allow list";
+               uint8_t n = l;
+               while (n && !aok)
+               {
+                  n -= 3;
+                  if ((p[n] << 16) + (p[n + 1] << 8) + p[n + 2] == cid)
+                     aok = 1;
+               }
+            } else if (c == 0xB)
+            {                   // Barred
+               if (l % 3)
+                  return "Invalid barred list";
+               uint8_t n = l;
+               while (n)
+               {
+                  n -= 3;
+                  if ((p[n] << 16) + (p[n + 1] << 8) + p[n + 2] == cid)
+                     return "Barred door";
+               }
+            } else if (c == 0xF)
+            {                   // From
+               if (fok)
+                  return "Duplicate from time";
+               if (l == 2)
+                  fok = p;
+               else if (l == 4)
+                  fok = p + ((dow && dow < 6) ? 2 : 0);
+               else if (l == 6)
+                  fok = p + (!dow ? 0 : dow < 6 ? 2 : 4);
+               else if (l == 14)
+                  fok = p + dow * 2;
+               else
+                  return "Bad from time";       // Bad time
+            } else if (c == 0x2)
+            {                   // To
+               if (tok)
+                  return "Duplicate to time";
+               if (l == 2)
+                  tok = p;
+               else if (l == 4)
+                  tok = p + ((dow && dow < 6) ? 2 : 0);
+               else if (l == 6)
+                  tok = p + (!dow ? 0 : dow < 6 ? 2 : 4);
+               else if (l == 14)
+                  tok = p + dow * 2;
+               else
+                  return "Bad to time";
+            } else if (c == 0xE)
+            {                   // Expiry
+               if (l == 1)
+                  xdays = *p;
+               else
+               {
+                  xoff = p - afile - 8;
+                  xlen = l;
+                  if (memcmp (datetime, p, l) > 0)
+                     return "Expired";  // expired
+               }
+            } else
+               return "Unknown access code";    // Unknown access code
+            p += l;
+         }
+         if (ax && !aok)
+            return "Not allowed door";  // Not on allow list
+         if (fok || tok)
+         {                      // Time check
+            if (fok && tok && memcmp (fok, tok, 2) > 0)
+            {                   // reverse
+               if (memcmp (datetime + 4, fok, 2) < 0 && memcmp (datetime + 4, tok, 2) >= 0)
+                  return "Outside time";
+            } else
+            {
+               if (fok && memcmp (datetime + 4, fok, 2) < 0)
+                  return "Too soon";
+               if (tok && memcmp (datetime + 4, tok, 2) >= 0)
+                  return "Too late";
+            }
+         }
+      }
+      if (doordeadlock && door < 5)
+         return "";             // Quiet about this as normal for system controlled disarm
+      if (xdays && xoff && xlen <= 7 && df.keylen)
+      {                         // Update expiry
+         now += 86400 * xdays;
+         bcdtime (now, datetime);
+         if (memcmp (datetime, afile + 8 + xoff, xlen) > 0)
+         {                      // Changed expiry
+            uint8_t buf[30];
+            buf[1] = 0xA;
+            buf[2] = xoff;
+            buf[3] = 0;
+            buf[4] = 0;
+            buf[5] = xlen;
+            buf[6] = 0;
+            buf[7] = 0;
+            memcpy (buf + 8, datetime, xlen);
+            memcpy (afile + 8 + xoff, datetime, xlen);
+#if 0                           // TODO
+            if (NFC.desfire_dx (0x3D, sizeof (buf), buf, 8 + xlen, 0xFF) < 0)
+               return "Expiry update failed";
+            if (NFC.desfire (0xC7, 0, buf, sizeof (buf), err, 0) < 0)
+               return "Expiry commit failed";
+#endif
+         }
+      }
+      // Allowed
+      if (doorstate == DOOR_OPEN && door >= 5)
+         door_prop (NULL);
+      return NULL;
+   }
+   if (door == 3)
+   {
+      if (!df.keylen)
+         return "";             // Don't make a fuss, control system may allow this, and it is obvious
+      if (doordeadlock)
+         return "Door deadlocked";
+      return NULL;
+   }
+   if (offlinemode)
+   {
+      if (!fallback)
+         return "Offline, and no fallback";
+      if (!checkfob (fallback, id))
+         return "Offline, and fallback not matched";
+      return NULL;
+   }
+   return "";                   // Just not allowed
+}
+
+const char *
+door_setting (const char *tag, const uint8_t * value, size_t len)
+{                               // Called for commands retrieved from EEPROM
+#define s(n,d)                  // TODO
+#define t(n)                    // TODO
+   settings
+#undef t
+#undef s
+      return NULL;              // Done
+}
+
+static uint8_t resend;
+
+uint8_t
+door_command (const char *tag, const uint8_t * message, size_t len)
+{                               // Called for incoming MQTT messages
+   if (!door)
+      return false;             // No door control in operation
+   if (!len || *message != len - 1)
+      message = NULL;           // Not sensible access file
+   if (!strcasecmp (tag, "deadlock"))
+      return door_deadlock (message);
+   if (!strcasecmp (tag, "lock"))
+      return door_lock (message);
+   if (!strcasecmp (tag, "unlock"))
+      return door_unlock (message);
+   if (!strcasecmp (tag, "prop"))
+      return door_prop (message);
+   if (!strcasecmp (tag, "access"))
+      return door_access (message);
+   if (!strcasecmp (tag, "connect"))
+      resend = 1;
+   return false;
+}
+
+static void
+task (void *pvParameters)
+{                               // Main RevK task
+   pvParameters = pvParameters;
+   while (1)
+   {
+      usleep (1000);            // ms
+      uint8_t force = resend;
+      resend = 0;
+      int64_t now = esp_timer_get_time () / 1000;
+      static uint64_t doornext = 0;
+      static uint8_t lastdoorstate = -1;
+      uint8_t iopen = input_get (IOPEN);
+      if ((int) (doornext - now) < 0)
+      {
+         doornext = now + doorpoll;
+         {                      // Check locks
+            int l;
+            for (l = 0; l < 2; l++)
+            {
+               uint8_t last = lock[l].state;
+               uint8_t o = output_get (OUNLOCK + l),
+                  i = input_get (IUNLOCK + l);
+               if (!output_active (OUNLOCK + l))
+               {
+                  if (!input_active (IUNLOCK + l))
+                     lock[l].state = (o ? LOCK_UNLOCKED : LOCK_LOCKED); // No input or output, just track output
+                  else
+                     lock[l].state = (i ? LOCK_UNLOCKED : LOCK_LOCKED); // No output, just track input
+               } else
+               {                // Lock state tracking
+                  if (((iopen && last == LOCK_LOCKING) || lock[l].o) && !o)
+                  {             // Change to lock - timer constantly restarted if door is open as it will not actually engage
+                     lock[l].timeout = ((now + doorlock) ? : 1);
+                     lock[l].state = LOCK_LOCKING;
+                  } else if (o && !lock[l].o)
+                  {             // Change to unlock
+                     lock[l].timeout = ((now + doorunlock) ? : 1);
+                     lock[l].state = LOCK_UNLOCKING;
+                  }
+                  if (lock[l].timeout)
+                  {             // Timeout running
+                     if (lock[l].i != i)
+                        lock[l].timeout = lockdebounce; // Allow some debounce before ending timeout
+                     if ((int) (lock[l].timeout - now) <= 0)
+                     {          // End of timeout
+                        lock[l].timeout = 0;
+                        lock[l].state =
+                           ((i == o
+                             || !input_active (IUNLOCK +
+                                               l)) ? o ? LOCK_UNLOCKED : LOCK_LOCKED : o ? LOCK_UNLOCKFAIL : LOCK_LOCKFAIL);
+                     }
+                  } else if (lock[l].i != i)    // Input state change
+                     lock[l].state = ((i == o) ? i ? LOCK_UNLOCKED : LOCK_LOCKED : i ? LOCK_FORCED : LOCK_FAULT);
+               }
+               lock[l].o = o;
+               lock[l].i = i;
+               if (doordebug && (force || last != lock[l].state))
+                  revk_state (l ? "deadlock" : "lock", lock[l].timeout ? "%s %dms" : "%s", lockstates[lock[l].state],
+                              (int) (lock[l].timeout - now));
+            }
+         }
+         static long doortimeout = 0;
+         // Door states
+         if (iopen)
+         {                      // Open
+            if (doorstate != DOOR_NOTCLOSED && doorstate != DOOR_PROPPED && doorstate != DOOR_OPEN)
+            {                   // We have moved to open state, this can cancel the locking operation
+               doorstate = DOOR_OPEN;
+               if (lock[0].state == LOCK_LOCKING || lock[0].state == LOCK_LOCKFAIL)
+                  output_set (OUNLOCK + 0, 1);  // Cancel lock
+               if (lock[1].state == LOCK_LOCKING || lock[1].state == LOCK_LOCKFAIL)
+                  output_set (OUNLOCK + 1, 1);  // Cancel deadlock
+            }
+         } else
+         {                      // Closed
+            if (lock[1].state == LOCK_LOCKED && lock[0].state == LOCK_LOCKED)
+               doorstate = DOOR_DEADLOCKED;
+            else if (lock[0].state == LOCK_LOCKED && lock[1].state == LOCK_UNLOCKED)
+               doorstate = DOOR_LOCKED;
+            else if (lock[0].state == LOCK_UNLOCKING || lock[1].state == LOCK_UNLOCKING)
+               doorstate = DOOR_UNLOCKING;
+            else if (lock[0].state == LOCK_LOCKING || lock[1].state == LOCK_LOCKING)
+               doorstate = DOOR_LOCKING;
+            else if (lock[0].state == LOCK_LOCKFAIL || lock[1].state == LOCK_LOCKFAIL)
+               doorstate = DOOR_AJAR;
+            else
+               doorstate =
+                  ((doorstate == DOOR_OPEN || doorstate == DOOR_NOTCLOSED || doorstate == DOOR_PROPPED
+                    || doorstate == DOOR_CLOSED) ? DOOR_CLOSED : DOOR_UNLOCKED);
+         }
+         if (doorstate != lastdoorstate)
+         {                      // State change - set timerout
+            if (doorstate == DOOR_OPEN)
+               doortimeout = (now + doorprop ? : 1);
+            else if (doorstate == DOOR_CLOSED)
+               doortimeout = (now + doorclose ? : 1);
+            else if (doorstate == DOOR_UNLOCKED)
+               doortimeout = (now + dooropen ? : 1);
+            else
+               doortimeout = 0;
+            output_set (OBEEP, doorstate == DOOR_UNLOCKED && doorbeep ? 1 : 0);
+         } else if (doortimeout && (int) (doortimeout - now) < 0)
+         {                      // timeout
+            output_set (OBEEP, 0);
+            doortimeout = 0;
+            if (doorstate == DOOR_OPEN)
+               doorstate = DOOR_NOTCLOSED;
+            else if (doorstate == DOOR_UNLOCKED || doorstate == DOOR_CLOSED)
+            {                   // Time to lock the door
+               if (doordeadlock)
+                  door_deadlock (NULL);
+               else
+                  door_lock (NULL);
+            }
+         }
+         static long exit1 = 0; // Main exit button
+         if (input_get (IEXIT1))
+         {
+            if (!exit1)
+            {
+               exit1 = (now + doorexit ? : 1);
+               if (door >= 2 && !doordeadlock)
+                  door_unlock (NULL);
+            }
+         } else
+            exit1 = 0;
+         static long exit2 = 0; // Secondary exit button
+         if (input_get (IEXIT2))
+         {
+            if (!exit2)
+            {
+               exit2 = (now + doorexit ? : 1);
+               if (door >= 2 && !doordeadlock)
+                  door_unlock (NULL);
+            }
+         } else
+            exit2 = 0;
+         // Check faults
+         if (lock[0].state == LOCK_UNLOCKFAIL)
+            status(door_fault = "Lock stuck");
+         else if (lock[1].state == LOCK_UNLOCKFAIL)
+            status(door_fault = "Deadlock stuck");
+         else if (lock[0].state == LOCK_FAULT)
+            status(door_fault = "Lock fault");
+         else if (lock[1].state == LOCK_FAULT)
+            status(door_fault = "Deadlock fault");
+         else if (exit1 && (int) (exit1 - now) < 0)
+            status(door_fault = "Exit stuck");
+         else if (exit2 && (int) (exit2 - now) < 0)
+            status(door_fault = "Ranger stuck");
+         else
+            status(door_fault = NULL);
+         // Check tampers
+         if (lock[0].state == LOCK_FORCED)
+            status(door_tamper = "Lock forced");
+         else if (lock[1].state == LOCK_FORCED)
+            status(door_tamper = "Deadlock forced");
+         else if (iopen && (lock[0].state == LOCK_LOCKED || lock[1].state == LOCK_LOCKED))
+            status(door_tamper = "Door forced");
+         else
+            status(door_tamper = NULL);
+         // Beep
+         if (door_tamper || door_fault || doorstate == DOOR_AJAR || doorstate == DOOR_NOTCLOSED)
+            output_set (OBEEP, ((now - doortimeout) & 512) ? 1 : 0);
+         if (force || doorstate != lastdoorstate)
+         {
+#if 0                           // TODO
+            NFC_led (strlen (doorled[doorstate]), doorled[doorstate]);
+#endif
+            revk_state ("door", doortimeout && doordebug ? "%s %dms" : "%s", doorstates[doorstate], (int) (doortimeout - now));
+            lastdoorstate = doorstate;
+         }
+         output_set (OERROR, door_tamper || door_fault);
+      }
+   }
 }
 
 void
 door_init (void)
 {
-   // TODO
+   if (!door)
+      return false;             // No door control in operation
+   if (input_get (IOPEN))
+      doorstate = DOOR_OPEN;
+   else
+      doorstate = DOOR_LOCKING;
+   lock[0].timeout = 1000;
+   lock[1].timeout = 1000;
+   static TaskHandle_t task_id = NULL;
+   xTaskCreatePinnedToCore (task, TAG, 16 * 1024, NULL, 1, &task_id, tskNO_AFFINITY);   // TODO stack, priority, affinity check?
+   return true;
 }
