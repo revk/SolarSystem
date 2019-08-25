@@ -1,7 +1,7 @@
 // Ranger ranger as exit button and motion detect
 
 #include "SS.h"
-#include "../components/ESP32RevK/vl53l0x.h"
+#include "vl53l0x.h"
 #include "input.h"
 
 const char *

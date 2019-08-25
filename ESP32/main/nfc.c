@@ -3,8 +3,8 @@ static const char TAG[] = "nfc";
 
 #include "SS.h"
 #include "door.h"
-#include "../components/ESP32RevK/pn532.h"
-#include "../components/DESFireAES/desfireaes.h"
+#include "pn532.h"
+#include "desfireaes.h"
 
 #define port_mask(p) ((p)&127)
 
