@@ -272,7 +272,7 @@ Door_fob (char *id, String & err)
             aok = false;
          byte *fok = NULL,
             *tok = NULL;
-         unsigned int cid = 0;  // TODO
+	 unsigned int cid = ESP.getChipId ();
          byte dow = bcdtime (now, datetime);
          while (p < e)
          {
