@@ -13,3 +13,6 @@
 [submodule "ESP32/components/DESFireAES"]
 	path = ESP32/components/DESFireAES
 	url = https://github.com/revk/DESFireAES
+[submodule "DESFireAES"]
+	path = DESFireAES
+	url = https://github.com/revk/DESFireAES
