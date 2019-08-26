@@ -57,10 +57,10 @@ task (void *pvParameters)
       int ready = pn532_ready (pn532);
       if (ready > 0)
       {                         // Check ID response
+         noaccess = "";         // Assume no auto access (not an error)
          int cards = pn532_Cards (pn532);
          if (cards)
          {
-            noaccess = NULL;
             uint8_t aesid = 0;
             const char *e = NULL;
             uint8_t *ats = pn532_ats (pn532);
@@ -121,6 +121,7 @@ task (void *pvParameters)
             else
                revk_info (noaccess ? "id" : "access", "%s%s", id, *ats && ats[1] == 0x75 ? " DESFire" : *ats
                           && ats[1] == 0x78 ? " ISO" : "");
+            // TODO, hold on MIFARE classic
             if (nfccommit)
                log ();
             found = 1;
