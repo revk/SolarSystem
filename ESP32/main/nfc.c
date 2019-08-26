@@ -120,6 +120,7 @@ task (void *pvParameters)
                buf[1] = revk_binid >> 8;
                buf[2] = revk_binid;
                bcdtime (0, buf + 3);
+	       //revk_info("log","%02X%02X%02X %02X%02X-%02X-%02X %02X:%02X:%02X",buf[0],buf[1],buf[2],buf[3],buf[4],buf[5],buf[6],buf[7],buf[8],buf[9]);
                if ((e = df_write_data (&df, 1, 'C', DF_MODE_CMAC, 0, 10, buf)))
                   return;
                // Count
