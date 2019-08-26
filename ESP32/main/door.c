@@ -5,6 +5,8 @@ static const char TAG[] = "door";
 const char *door_fault = NULL;
 const char *door_tamper = NULL;
 
+#include <esp_crc.h>
+
 char offlinemode = 0;           // TODO (check revk online?)
 
 // Autonomous door control
@@ -30,7 +32,7 @@ char offlinemode = 0;           // TODO (check revk online?)
 #include "input.h"
 #include "output.h"
 
-uint8_t afile[256 + 10 + 7];    // Access file saved - starts at uint8_t 8
+uint8_t afile[256];             // Access file saved
 
 #define settings  \
   u8(door,0);   \
@@ -133,25 +135,15 @@ door_access (const uint8_t * a)
 {                               // Confirm access
    if (!a)
       return NULL;              // No action
-   if (*a == afile[8] && !memcmp (a + 1, afile + 9, afile[8]))
+   if (*a == *afile && !memcmp (a + 1, afile + 1, *afile))
       return NULL;              // Same
    if (!df.keylen)
       return NULL;
-   afile[1] = 0x0A;
-   afile[2] = 0;
-   afile[3] = 0;
-   afile[4] = 0;
-   afile[5] = afile[8] + 1;
-   afile[6] = 0;
-   afile[7] = 0;
-   memcpy (afile + 8, a, *a + 1);
-#if 0                           // TODO
-   String err;
-   uint8_t ret = (NFC.desfire_dx (0x3D, sizeof (afile), afile, 8 + 1 + afile[8], 0xFF) >= 0 &&
-                  NFC.desfire (0xC7, 0, afile, sizeof (afile), err, 0) >= 0);
-#endif
-   memcpy (afile + 8, a, *a + 1);       // Restore
-   return NULL;
+   memcpy (afile, a, *a + 1);
+   const char *e = df_write_data (&df, 0x0A, 'D', DF_MODE_CMAC, 0, *afile + 1, afile);
+   if (!e)
+      e = df_commit (&df);
+   return e;
 }
 
 const char *
@@ -236,28 +228,23 @@ bcdtime (time_t now, uint8_t datetime[7])
 }
 
 const char *
-door_fob (char *id)
+door_fob (char *id, uint32_t * crcp)
 {                               // Consider fob, and return error if not acceptable, NULL if OK
+   if (crcp)
+      *crcp = 0;
    if (!door)
       return "";                // just not allowed
    if (blacklist && checkfob (blacklist, id))
    {
       if (door >= 4 && df.keylen)
       {                         // Zap the access file
-#if 0                           // TODO
-         uint8_t buf[20];
-         buf[1] = 0x0A;         // File
-         buf[2] = 0;            // Offset
-         buf[3] = 0;
-         buf[4] = 0;
-         buf[5] = 2;            // Len
-         buf[6] = 0;
-         buf[7] = 0;
-         buf[8] = 0x01;         // Len 1
-         buf[9] = 0xA0;         // Blacklist
-         if (NFC.desfire_dx (0x3D, sizeof (buf), buf, 10, 0xFF) < 0)
-            return "Blacklist update failed";
-#endif
+         *afile = 1;
+         afile[1] = 0xA0;       // Blacklist
+         if (crcp)
+            *crcp = esp_crc32_be (0, afile + 1, *afile);
+         const char *e = df_write_data (&df, 0x0A, 'D', DF_MODE_CMAC, 0, *afile + 1, afile);
+         if (e)
+            return e;
          return "Blacklist (zapped)";
       }
       return "Blacklisted fob";
@@ -267,12 +254,13 @@ door_fob (char *id)
       if (!df.keylen)
          return "";             // Don't make a fuss, control system may allow this, and it is obvious
       // Just read file A
-#if 0                           // TODO
-      if (NFC.desfire_fileread (0xA, 0, 16, sizeof (afile) - 7, afile + 7, err) < 0)
-         return "Cannot read access file 0A";
-      if (afile[8] + 1 > 16 && NFC.desfire_fileread (0xA, 0, afile[8] + 1, sizeof (afile) - 7, afile + 7, err) < 0)
-         return "Cannot read access full file 0A";
-#endif
+      const char *e = df_read_data (&df, 0x0A, DF_MODE_CMAC, 0, MINAFILE, afile);
+      if (!e && *afile + 1 > MINAFILE)
+         e = df_read_data (&df, 0x0A, DF_MODE_CMAC, 0, *afile + 1 - MINAFILE, afile + MINAFILE);
+      if (e)
+         return e;
+      if (crcp)
+         *crcp = esp_crc32_be (0, afile + 1, *afile);
       // Check access file (expected to exist)
       time_t now;
       time (&now);
@@ -280,10 +268,10 @@ door_fob (char *id)
       int xoff = 0,
          xlen = 0,
          xdays = 0;             // Expiry data
-      if (afile[8])
+      if (*afile)
       {                         // Check access
-         uint8_t *p = afile + 9,
-            *e = afile + 9 + afile[8];
+         uint8_t *p = afile + 1,
+            *e = afile + 1 + *afile;
          uint8_t ax = false,
             aok = false;
          uint8_t *fok = NULL,
@@ -356,7 +344,7 @@ door_fob (char *id)
                   xdays = *p;
                else
                {
-                  xoff = p - afile - 8;
+                  xoff = p - afile;
                   xlen = l;
                   if (memcmp (datetime, p, l) > 0)
                      return "Expired";  // expired
@@ -388,24 +376,15 @@ door_fob (char *id)
       {                         // Update expiry
          now += 86400 * xdays;
          bcdtime (now, datetime);
-         if (memcmp (datetime, afile + 8 + xoff, xlen) > 0)
+         if (memcmp (datetime, afile + xoff, xlen) > 0)
          {                      // Changed expiry
-            uint8_t buf[30];
-            buf[1] = 0xA;
-            buf[2] = xoff;
-            buf[3] = 0;
-            buf[4] = 0;
-            buf[5] = xlen;
-            buf[6] = 0;
-            buf[7] = 0;
-            memcpy (buf + 8, datetime, xlen);
-            memcpy (afile + 8 + xoff, datetime, xlen);
-#if 0                           // TODO
-            if (NFC.desfire_dx (0x3D, sizeof (buf), buf, 8 + xlen, 0xFF) < 0)
-               return "Expiry update failed";
-            if (NFC.desfire (0xC7, 0, buf, sizeof (buf), err, 0) < 0)
-               return "Expiry commit failed";
-#endif
+            memcpy (afile + xoff, datetime, xlen);
+            if (crcp)
+               *crcp = esp_crc32_be (0, afile + 1, *afile);
+            const char *e = df_write_data (&df, 0x0A, 'D', DF_MODE_CMAC, xoff, xlen, datetime);
+            if (!e)
+               e = df_commit (&df);
+            //if(e)return e; // Don't report as error
          }
       }
       // Allowed

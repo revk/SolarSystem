@@ -64,6 +64,7 @@ task (void *pvParameters)
             uint8_t aesid = 0;
             const char *e = NULL;
             uint8_t *ats = pn532_ats (pn532);
+            uint32_t crc = 0;
             pn532_nfcid (pn532, id);
             if (aes[0][0] && (aid[0] || aid[1] || aid[2]) && *ats && ats[1] == 0x75)
             {                   // DESFire
@@ -92,7 +93,7 @@ task (void *pvParameters)
                             uid[6]);
             }
             // Door check
-            noaccess = door_fob (id);
+            noaccess = door_fob (id, &crc);
             if (e)
             {                   // Error
                if (!strcmp (e, "Dx fail"))
@@ -103,7 +104,9 @@ task (void *pvParameters)
             {                   // Log and count
                if (e || !df.keylen)
                   return;
-               // TODO
+               // TODO log
+               // TODO count
+               //if((e=df_commit(&df)))return;
                if (aesid)
                   e = df_change_key (&df, 1, aes[0][0], aes[aesid] + 1, aes[0] + 1);
             }
@@ -111,16 +114,20 @@ task (void *pvParameters)
                log ();
             if (!noaccess)
             {                   // Open door?
-               // TODO commit?
                // TODO LED
-               door_unlock (NULL);      // Door system was happy with fob, let 'em in
+               if (door >= 4)
+                  door_unlock (NULL);   // Door system was happy with fob, let 'em in
             }
             // Report
-            if (noaccess && *noaccess)
-               revk_info ("noaccess", "%s %s", id, noaccess);
-            else
-               revk_info (noaccess ? "id" : "access", "%s%s", id, *ats && ats[1] == 0x75 ? " DESFire" : *ats
-                          && ats[1] == 0x78 ? " ISO" : "");
+            if (door >= 4)
+            {
+               if (noaccess && *noaccess)
+                  revk_info ("noaccess", "%s %08X %s", id, crc, noaccess);
+               else
+                  revk_info (noaccess ? "id" : "access", "%s %08lX%s", id, crc, *ats && ats[1] == 0x75 ? " DESFire" : *ats
+                             && ats[1] == 0x78 ? " ISO" : "");
+            } else
+               revk_info ("id", "%s%s", id, *ats && ats[1] == 0x75 ? " DESFire" : *ats && ats[1] == 0x78 ? " ISO" : "");
             // TODO, hold on MIFARE classic
             if (nfccommit)
                log ();
