@@ -178,7 +178,7 @@ Door_prop (const byte * a)
    return Door_access (a);
 }
 
-static int
+int
 checkfob (const char *fobs, const char *id)
 {                               // is fob in list
    if (!fobs || !id)
@@ -202,7 +202,7 @@ checkfob (const char *fobs, const char *id)
    return 0;
 }
 
-static byte
+byte
 bcdtime (time_t now, byte datetime[7])
 {
    struct tm *t;
