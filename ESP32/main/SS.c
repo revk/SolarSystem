@@ -112,3 +112,26 @@ status (const char *ignored)
    ignored = ignored;
    status_report (0);
 }
+
+uint8_t
+bcdtime (time_t now, uint8_t datetime[7])
+{
+   if (!now)
+      time (&now);
+   struct tm *t;
+   t = localtime (&now);
+   int v = t->tm_year + 1900;
+   datetime[0] = (v / 1000) * 16 + (v / 100 % 10);
+   datetime[1] = (v / 10 % 10) * 16 + (v % 10);
+   v = t->tm_mon + 1;
+   datetime[2] = (v / 10) * 16 + (v % 10);
+   v = t->tm_mday;
+   datetime[3] = (v / 10) * 16 + (v % 10);
+   v = t->tm_hour;
+   datetime[4] = (v / 10) * 16 + (v % 10);
+   v = t->tm_min;
+   datetime[5] = (v / 10) * 16 + (v % 10);
+   v = t->tm_sec;
+   datetime[6] = (v / 10) * 16 + (v % 10);
+   return t->tm_wday;
+}

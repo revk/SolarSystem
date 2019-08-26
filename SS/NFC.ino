@@ -184,7 +184,8 @@ byte outputs = 0;
     if (waitres && !NFC.available() && waitres < 100) return true; // Waiting response
     static long lednext = 0;
     static byte ledlast = 0xFF;
-    static byte ledpos = 0;    long now = (millis() ? : 1); // Allowing for wrap, and using 0 to mean not set
+    static byte ledpos = 0;
+    long now = (millis() ? : 1); // Allowing for wrap, and using 0 to mean not set
     if (!waitres && nfcpoll < 1000)
     { // Normal working, setting poll to >=1s means test/debug so only do the polling not the led / tamper
       if ((int)(lednext - now) <= 0)
