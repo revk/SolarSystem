@@ -14,6 +14,7 @@ const char *ranger_tamper = NULL;
 #define settings		\
 	p(rangersda)		\
 	p(rangerscl)		\
+	u8(rangeri2c,0)		\
 	u16(rangerclose,200)	\
 	u16(rangerfar,1000)	\
 	u16(rangerpoll,100)	\

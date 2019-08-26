@@ -6,6 +6,7 @@ const char *door_fault = NULL;
 const char *door_tamper = NULL;
 
 #include <esp_crc.h>
+#include "desfireaes.h"
 
 char offlinemode = 0;           // TODO (check revk online?)
 
