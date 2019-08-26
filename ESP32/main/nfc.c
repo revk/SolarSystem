@@ -120,8 +120,9 @@ task (void *pvParameters)
                buf[1] = revk_binid >> 8;
                buf[2] = revk_binid;
                bcdtime (0, buf + 3);
-	       //revk_info("log","%02X%02X%02X %02X%02X-%02X-%02X %02X:%02X:%02X",buf[0],buf[1],buf[2],buf[3],buf[4],buf[5],buf[6],buf[7],buf[8],buf[9]);
-               if ((e = df_write_data (&df, 1, 'C', DF_MODE_CMAC, 0, 10, buf)))
+               if (buf[3] == 0x19)
+                  revk_error (TAG, "Clock not set");
+               else if ((e = df_write_data (&df, 1, 'C', DF_MODE_CMAC, 0, 10, buf)))
                   return;
                // Count
                if ((e = df_credit (&df, 2, DF_MODE_CMAC, 1)))
@@ -141,10 +142,10 @@ task (void *pvParameters)
                   log ();       // Log before reporting or opening door
                if (!noaccess)
                {                // Access is allowed!
-                  pn532_write_GPIO (pn532, ledlast = (nfcgreen >= 0 && !(ledlast & (1 << nfcgreen)) ? (1 << nfcgreen) : 0));        // Blink green
+                  pn532_write_GPIO (pn532, ledlast = (nfcgreen >= 0 && !(ledlast & (1 << nfcgreen)) ? (1 << nfcgreen) : 0));    // Blink green
                   door_unlock (NULL);   // Door system was happy with fob, let 'em in
                } else if (door >= 4)
-                  pn532_write_GPIO (pn532, ledlast = (nfcred >= 0 && !(ledlast & (1 << nfcred)) ? (1 << nfcred) : 0));      // Blink red
+                  pn532_write_GPIO (pn532, ledlast = (nfcred >= 0 && !(ledlast & (1 << nfcred)) ? (1 << nfcred) : 0));  // Blink red
                nextled = now + 200000;
                // Report
                if (door >= 4 || !noaccess)
