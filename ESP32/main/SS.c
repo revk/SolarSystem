@@ -116,7 +116,8 @@ status (const char *ignored)
 uint8_t
 bcdtime (time_t now, uint8_t datetime[7])
 {
-   if (!now)time(&now);
+   if (!now)
+      time (&now);
    struct tm *t;
    t = localtime (&now);
    int v = t->tm_year + 1900;
