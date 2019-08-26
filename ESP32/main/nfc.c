@@ -17,6 +17,7 @@ const char *nfc_tamper = NULL;
   u8(nfcgreen,0); \
   u8(nfctamper,3); \
   u16(nfcpoll,50); \
+  u16(nfchold,3000); \
   b(nfcbus,1); \
   ba(aes,17,3); \
   b(aid,3); \
@@ -40,6 +41,8 @@ settings
    pn532_t * pn532 = NULL;
 df_t df;
 
+static char held = 0;           // Card was held, also flags pre-loaded for remote card logic
+
 static void
 task (void *pvParameters)
 {
@@ -49,7 +52,7 @@ task (void *pvParameters)
    int64_t nexttamper = 0;
    char id[22];
    const char *noaccess = NULL;
-   char found = 0;
+   int64_t found = 0;
    while (1)
    {
       usleep (1000);            // TODO work out how long to sleep for
@@ -57,18 +60,17 @@ task (void *pvParameters)
       int ready = pn532_ready (pn532);
       if (ready > 0)
       {                         // Check ID response
-         noaccess = "";         // Assume no auto access (not an error)
          int cards = pn532_Cards (pn532);
          if (cards)
          {
+            noaccess = "";      // Assume no auto access (not an error)
             uint8_t aesid = 0;
             const char *e = NULL;
             uint8_t *ats = pn532_ats (pn532);
             uint32_t crc = 0;
             pn532_nfcid (pn532, id);
-            if (aes[0][0] && (aid[0] || aid[1] || aid[2]) && *ats && ats[1] == 0x75)
+            if (!held && aes[0][0] && (aid[0] || aid[1] || aid[2]) && *ats && ats[1] == 0x75)
             {                   // DESFire
-               uint8_t uid[7];  // Real ID
                // Select application
                if (!e)
                   e = df_select_application (&df, aid);
@@ -86,54 +88,73 @@ task (void *pvParameters)
                // Authenticate
                if (!e)
                   e = df_authenticate (&df, 1, aes[aesid] + 1);
+               uint8_t uid[7];  // Real ID
                if (!e)
                   e = df_get_uid (&df, uid);
                if (!e)
-                  snprintf (id, sizeof (id), "%02X%02X%02X%02X%02X%02X%02X+", uid[0], uid[1], uid[2], uid[3], uid[4], uid[5],
-                            uid[6]);
+                  snprintf (id, sizeof (id), "%02X%02X%02X%02X%02X%02X%02X+", uid[0], uid[1], uid[2], uid[3], uid[4], uid[5], uid[6]);  // Set UID with + to indicate secure, regardless of access allowed, etc.
             }
             // Door check
-            noaccess = door_fob (id, &crc);
             if (e)
-            {                   // Error
+            {                   // NFC or DESFire error
                if (!strcmp (e, "Dx fail"))
                   e = pn532_err_to_name (pn532_lasterr (pn532));
                noaccess = e;
-            }
+            } else
+               noaccess = door_fob (id, &crc);  // Access from door control
             void log (void)
             {                   // Log and count
                if (e || !df.keylen)
                   return;
-               // TODO log
-               // TODO count
-               //if((e=df_commit(&df)))return;
+               // Log
+               uint8_t buf[10];
+               buf[0] = revk_binid >> 16;
+               buf[1] = revk_binid >> 8;
+               buf[2] = revk_binid;
+               bcdtime (0, buf + 3);
+               if ((e = df_write_data (&df, 1, 'C', DF_MODE_CMAC, 0, 10, buf)))
+                  return;
+               if ((e = df_credit (&df, 2, DF_MODE_CMAC, 1)))
+                  return;
+               if ((e = df_commit (&df)))
+                  return;
                if (aesid)
                   e = df_change_key (&df, 1, aes[0][0], aes[aesid] + 1, aes[0] + 1);
             }
             if (nfccommit)
-               log ();
+               log ();          // Log before reporting or opening door
             if (!noaccess)
-            {                   // Open door?
+            {                   // Access is allowed!
+               revk_info (TAG, "Allowed");      // TODO
                // TODO LED
-               if (door >= 4)
-                  door_unlock (NULL);   // Door system was happy with fob, let 'em in
+               door_unlock (NULL);      // Door system was happy with fob, let 'em in
             }
             // Report
-            if (door >= 4)
-            {
-               if (noaccess && *noaccess)
-                  revk_info ("noaccess", "%s %08X %s", id, crc, noaccess);
+            if (door >= 4 || !noaccess)
+            {                   // Autonomous door control
+               if (noaccess && *noaccess == '*')
+                  revk_event ("noaccess", "%s %08X %s", id, crc, noaccess + 1);
+               else if (noaccess && *noaccess)
+                  revk_event ("nfcfail", "%s %08X %s", id, crc, noaccess);
                else
-                  revk_info (noaccess ? "id" : "access", "%s %08lX%s", id, crc, *ats && ats[1] == 0x75 ? " DESFire" : *ats
-                             && ats[1] == 0x78 ? " ISO" : "");
+                  revk_event (noaccess ? "id" : "access", "%s %08lX%s", id, crc, *ats && ats[1] == 0x75 ? " DESFire" : *ats
+                              && ats[1] == 0x78 ? " ISO" : "");
             } else
-               revk_info ("id", "%s%s", id, *ats && ats[1] == 0x75 ? " DESFire" : *ats && ats[1] == 0x78 ? " ISO" : "");
-            // TODO, hold on MIFARE classic
-            if (nfccommit)
-               log ();
-            found = 1;
+               revk_event ("id", "%s%s", id, *ats && ats[1] == 0x75 ? " DESFire" : *ats && ats[1] == 0x78 ? " ISO" : "");
+            if (!e)
+            {
+               log ();          // Can log after reporting / opening
+               if (e)
+                  revk_error (TAG, "%s", e);    // Log new error anyway
+            }
+            found = now + nfchold * 1000;
          }
          ready = -1;
+      }
+      if (found && !held && found < now)
+      {
+         revk_event ("held", "%s", id);
+         held = 1;
       }
       if (ready >= 0)
          continue;              // We cannot talk to card for LED/tamper as waiting for reply
@@ -142,8 +163,10 @@ task (void *pvParameters)
          nextpoll = now + (uint64_t) nfcpoll *1000;
          if (found && !pn532_Present (pn532))
          {
-            revk_info ("gone", "%s", id);
+            if (held && nfchold)
+               revk_event ("gone", "%s", id);
             found = 0;
+            held = 0;
          }
          if (!found)
             pn532_ILPT_Send (pn532);

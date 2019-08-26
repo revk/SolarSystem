@@ -140,7 +140,7 @@ door_access (const uint8_t * a)
    if (!df.keylen)
       return NULL;
    memcpy (afile, a, *a + 1);
-   const char *e = df_write_data (&df, 0x0A, 'D', DF_MODE_CMAC, 0, *afile + 1, afile);
+   const char *e = df_write_data (&df, 0x0A, 'B', DF_MODE_CMAC, 0, *afile + 1, afile);
    if (!e)
       e = df_commit (&df);
    return e;
@@ -206,30 +206,14 @@ checkfob (const char *fobs, const char *id)
    return 0;
 }
 
-static uint8_t
-bcdtime (time_t now, uint8_t datetime[7])
-{
-   struct tm *t;
-   t = localtime (&now);
-   int v = t->tm_year + 1900;
-   datetime[0] = (v / 1000) * 16 + (v / 100 % 10);
-   datetime[1] = (v / 10 % 10) * 16 + (v % 10);
-   v = t->tm_mon + 1;
-   datetime[2] = (v / 10) * 16 + (v % 10);
-   v = t->tm_mday;
-   datetime[3] = (v / 10) * 16 + (v % 10);
-   v = t->tm_hour;
-   datetime[4] = (v / 10) * 16 + (v % 10);
-   v = t->tm_min;
-   datetime[5] = (v / 10) * 16 + (v % 10);
-   v = t->tm_sec;
-   datetime[6] = (v / 10) * 16 + (v % 10);
-   return t->tm_wday;
-}
-
 const char *
 door_fob (char *id, uint32_t * crcp)
-{                               // Consider fob, and return error if not acceptable, NULL if OK
+{                               // Consider fob
+   // Return NULL is access allowed
+   // Return string if not
+   // - Empty string if not allowed but not an error (e.g. not autonomous door control)
+   // - String starting * if not allowed based on access rules
+   // - Other string is not allowed based on NFC or DESFire error of some sort
    if (crcp)
       *crcp = 0;
    if (!door)
@@ -242,12 +226,14 @@ door_fob (char *id, uint32_t * crcp)
          afile[1] = 0xA0;       // Blacklist
          if (crcp)
             *crcp = esp_crc32_be (0, afile + 1, *afile);
-         const char *e = df_write_data (&df, 0x0A, 'D', DF_MODE_CMAC, 0, *afile + 1, afile);
+         const char *e = df_write_data (&df, 0x0A, 'B', DF_MODE_CMAC, 0, *afile + 1, afile);
+         if (!e)
+            e = df_commit (&df);        // Commit the change, as we will not commit later as access not allowed
          if (e)
             return e;
-         return "Blacklist (zapped)";
+         return "*Blacklist (zapped)";
       }
-      return "Blacklisted fob";
+      return "*Blacklisted fob";
    }
    if (door >= 4)
    {                            // Autonomous door control logic - check access file and times, etc
@@ -282,16 +268,16 @@ door_fob (char *id, uint32_t * crcp)
             uint8_t l = (*p & 0xF);
             uint8_t c = (*p++ >> 4);
             if (p + l > e)
-               return "Invalid access file";
+               return "*Invalid access file";
             if (c == 0x0)
             {                   // Padding, ignore
             } else if (c == 0xA)
             {                   // Allow
                if (!l)
-                  return "Card blocked";        // Black list
+                  return "*Card blocked";       // Black list
                ax = true;
                if (l % 3)
-                  return "Invalid allow list";
+                  return "*Invalid allow list";
                uint8_t n = l;
                while (n && !aok)
                {
@@ -302,18 +288,18 @@ door_fob (char *id, uint32_t * crcp)
             } else if (c == 0xB)
             {                   // Barred
                if (l % 3)
-                  return "Invalid barred list";
+                  return "*Invalid barred list";
                uint8_t n = l;
                while (n)
                {
                   n -= 3;
                   if ((p[n] << 16) + (p[n + 1] << 8) + p[n + 2] == revk_binid)
-                     return "Barred door";
+                     return "*Barred door";
                }
             } else if (c == 0xF)
             {                   // From
                if (fok)
-                  return "Duplicate from time";
+                  return "*Duplicate from time";
                if (l == 2)
                   fok = p;
                else if (l == 4)
@@ -323,11 +309,11 @@ door_fob (char *id, uint32_t * crcp)
                else if (l == 14)
                   fok = p + dow * 2;
                else
-                  return "Bad from time";       // Bad time
+                  return "*Bad from time";      // Bad time
             } else if (c == 0x2)
             {                   // To
                if (tok)
-                  return "Duplicate to time";
+                  return "*Duplicate to time";
                if (l == 2)
                   tok = p;
                else if (l == 4)
@@ -337,7 +323,7 @@ door_fob (char *id, uint32_t * crcp)
                else if (l == 14)
                   tok = p + dow * 2;
                else
-                  return "Bad to time";
+                  return "*Bad to time";
             } else if (c == 0xE)
             {                   // Expiry
                if (l == 1)
@@ -347,26 +333,26 @@ door_fob (char *id, uint32_t * crcp)
                   xoff = p - afile;
                   xlen = l;
                   if (memcmp (datetime, p, l) > 0)
-                     return "Expired";  // expired
+                     return "*Expired"; // expired
                }
             } else
-               return "Unknown access code";    // Unknown access code
+               return "*Unknown access code";   // Unknown access code
             p += l;
          }
          if (ax && !aok)
-            return "Not allowed door";  // Not on allow list
+            return "*Not allowed door"; // Not on allow list
          if (fok || tok)
          {                      // Time check
             if (fok && tok && memcmp (fok, tok, 2) > 0)
             {                   // reverse
                if (memcmp (datetime + 4, fok, 2) < 0 && memcmp (datetime + 4, tok, 2) >= 0)
-                  return "Outside time";
+                  return "*Outside time";
             } else
             {
                if (fok && memcmp (datetime + 4, fok, 2) < 0)
-                  return "Too soon";
+                  return "*Too soon";
                if (tok && memcmp (datetime + 4, tok, 2) >= 0)
-                  return "Too late";
+                  return "*Too late";
             }
          }
       }
@@ -381,10 +367,8 @@ door_fob (char *id, uint32_t * crcp)
             memcpy (afile + xoff, datetime, xlen);
             if (crcp)
                *crcp = esp_crc32_be (0, afile + 1, *afile);
-            const char *e = df_write_data (&df, 0x0A, 'D', DF_MODE_CMAC, xoff, xlen, datetime);
-            if (!e)
-               e = df_commit (&df);
-            //if(e)return e; // Don't report as error
+            df_write_data (&df, 0x0A, 'B', DF_MODE_CMAC, xoff, xlen, datetime);
+            // We don't really care if this fails, as we get a chance later, this means the access is allowed so will log and commit later
          }
       }
       // Allowed
@@ -397,15 +381,15 @@ door_fob (char *id, uint32_t * crcp)
       if (!df.keylen)
          return "";             // Don't make a fuss, control system may allow this, and it is obvious
       if (doordeadlock)
-         return "Door deadlocked";
+         return "*Door deadlocked";
       return NULL;
    }
    if (offlinemode)
    {
       if (!fallback)
-         return "Offline, and no fallback";
+         return "*Offline, and no fallback";
       if (!checkfob (fallback, id))
-         return "Offline, and fallback not matched";
+         return "*Offline, and fallback not matched";
       return NULL;
    }
    return "";                   // Just not allowed
