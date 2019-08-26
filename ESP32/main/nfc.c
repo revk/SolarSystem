@@ -140,10 +140,10 @@ task (void *pvParameters)
                   log ();       // Log before reporting or opening door
                if (!noaccess)
                {                // Access is allowed!
-                  pn532_write_P3 (pn532, ledlast = (nfcgreen >= 0 && !(ledlast & (1 << nfcgreen)) ? (1 << nfcgreen) : 0));      // Blink green
+                  pn532_write_GPIO (pn532, ledlast = (nfcgreen >= 0 && !(ledlast & (1 << nfcgreen)) ? (1 << nfcgreen) : 0));        // Blink green
                   door_unlock (NULL);   // Door system was happy with fob, let 'em in
                } else if (door >= 4)
-                  pn532_write_P3 (pn532, ledlast = (nfcred >= 0 && !(ledlast & (1 << nfcred)) ? (1 << nfcred) : 0));    // Blink red
+                  pn532_write_GPIO (pn532, ledlast = (nfcred >= 0 && !(ledlast & (1 << nfcred)) ? (1 << nfcred) : 0));      // Blink red
                nextled = now + 200000;
                // Report
                if (door >= 4 || !noaccess)
@@ -175,23 +175,6 @@ task (void *pvParameters)
       }
       if (ready >= 0)
          continue;              // We cannot talk to card for LED/tamper as waiting for reply
-      if (nextpoll < now)
-      {                         // Check for card
-         nextpoll = now + (uint64_t) nfcpoll *1000;
-         if (found && !pn532_Present (pn532))
-         {
-            if (held && nfchold)
-               revk_event ("gone", "%s", id);
-            found = 0;
-            held = 0;
-            nextpoll = now + 100000;
-         }
-         if (!found)
-         {
-            pn532_ILPT_Send (pn532);
-            continue;           // Cant do LED/tamper until we get reply
-         }
-      }
       if (nextled < now)
       {                         // Check LED
          ledpos++;
@@ -204,13 +187,13 @@ task (void *pvParameters)
          if (nfcgreen >= 0 && ledpattern[ledpos] == 'G')
             newled = (1 << nfcgreen);
          if (newled != ledlast)
-            pn532_write_P3 (pn532, ledlast = newled);
+            pn532_write_GPIO (pn532, ledlast = newled);
          nextled = now + 100000;
       }
       if (nexttamper < now && nfctamper >= 0)
       {                         // Check tamper
          nexttamper = now + 1000000;
-         int p3 = pn532_read_P3 (pn532);
+         int p3 = pn532_read_GPIO (pn532);
          if (p3 < 0)
          {                      // Failed
             // Try init again
@@ -226,6 +209,23 @@ task (void *pvParameters)
                status (nfc_tamper = "Tamper");
             else
                status (nfc_tamper = NULL);
+         }
+      }
+      if (nextpoll < now)
+      {                         // Check for card
+         nextpoll = now + (uint64_t) nfcpoll *1000;
+         if (found && !pn532_Present (pn532))
+         {
+            if (held && nfchold)
+               revk_event ("gone", "%s", id);
+            found = 0;
+            held = 0;
+            nextpoll = now + 100000;
+         }
+         if (!found)
+         {
+            pn532_ILPT_Send (pn532);
+            continue;           // Cant do LED/tamper until we get reply
          }
       }
    }
