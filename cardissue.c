@@ -351,8 +351,10 @@ main (int argc, const char *argv[])
     return l;
   }
   // DESFire dx function
-  int dx (void *obj, unsigned int len, unsigned char *data, unsigned int max)
+  int dx (void *obj, unsigned int len, unsigned char *data, unsigned int max, const char **errstr)
   {
+    if (errstr)
+      *errstr = NULL;
     obj = obj;
     char *topic;
     if (asprintf (&topic, "command/SS/%s/nfc", hexreader) < 0)
