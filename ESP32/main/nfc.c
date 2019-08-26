@@ -164,6 +164,7 @@ task (void *pvParameters)
                      revk_error (TAG, "%s", e); // Log new error anyway, unless simple timeout
                }
                found = now + (uint64_t) nfchold *1000;
+               nextpoll = now + 100000;
             }
          }
       }
@@ -183,6 +184,7 @@ task (void *pvParameters)
                revk_event ("gone", "%s", id);
             found = 0;
             held = 0;
+            nextpoll = now + 100000;
          }
          if (!found)
          {
@@ -253,8 +255,17 @@ nfc_command (const char *tag, unsigned int len, const unsigned char *value)
          memcpy (ledpattern, value, len);
       return "";
    }
-   if (!strcmp (tag, "nfc"))
+   if (!strcmp (tag, TAG) && len)
    {
+      if (pn532_ready (pn532) >= 0)
+         return "Busy";
+      uint8_t buf[256];
+      memcpy (buf, value, len);
+      const char *err = NULL;
+      int l = pn532_dx (&df, len, buf, sizeof (buf), &err);
+      if (l < 0)
+         return err ? : "?";
+      revk_raw (prefixinfo, TAG, l, buf, 0);
       return "";
    }
    return NULL;
