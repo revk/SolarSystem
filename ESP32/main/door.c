@@ -590,9 +590,7 @@ task (void *pvParameters)
             output_set (OBEEP, ((now - doortimeout) & 512) ? 1 : 0);
          if (force || doorstate != lastdoorstate)
          {
-#if 0                           // TODO
-            NFC_led (strlen (doorled[doorstate]), doorled[doorstate]);
-#endif
+            nfc_led (strlen (doorled[doorstate]), doorled[doorstate]);
             revk_state ("door", doortimeout && doordebug ? "%s %dms" : "%s", doorstates[doorstate], (int) (doortimeout - now));
             lastdoorstate = doorstate;
          }
