@@ -590,9 +590,7 @@ task (void *pvParameters)
             output_set (OBEEP, ((now - doortimeout) & 512) ? 1 : 0);
          if (force || doorstate != lastdoorstate)
          {
-#if 0                           // TODO
-            NFC_led (strlen (doorled[doorstate]), doorled[doorstate]);
-#endif
+            nfc_led (strlen (doorled[doorstate]), doorled[doorstate]);
             revk_state ("door", doortimeout && doordebug ? "%s %dms" : "%s", doorstates[doorstate], (int) (doortimeout - now));
             lastdoorstate = doorstate;
          }
@@ -624,6 +622,6 @@ door_init (void)
    lock[0].timeout = 1000;
    lock[1].timeout = 1000;
    static TaskHandle_t task_id = NULL;
-   xTaskCreatePinnedToCore (task, TAG, 16 * 1024, NULL, 1, &task_id, tskNO_AFFINITY);   // TODO stack, priority, affinity check?
+   xTaskCreatePinnedToCore (task, TAG, 16 * 1024, NULL, 1, &task_id, 1);   // TODO stack, priority, affinity check?
    return true;
 }
