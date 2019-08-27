@@ -15,7 +15,8 @@ const char *ranger_tamper = NULL;
 #define settings		\
 	p(rangersda)		\
 	p(rangerscl)		\
-	u8(rangeri2c,0)		\
+	u8(rangerport,0)	\
+	u8(rangeraddress,0)	\
 	u16(rangerclose,200)	\
 	u16(rangerfar,1000)	\
 	u16(rangerpoll,100)	\
@@ -29,6 +30,8 @@ settings
 #undef p
 #undef u16
 #undef u8
+static vl53l0x_t *vl53l0x = NULL;
+
 const char *
 ranger_command (const char *tag, unsigned int len, const unsigned char *value)
 {
@@ -65,9 +68,14 @@ ranger_init (void)
          status (ranger_fault = e);
       else
       {
-         // TODO
-         static TaskHandle_t task_id = NULL;
-         xTaskCreatePinnedToCore (task, TAG, 16 * 1024, NULL, 1, &task_id, tskNO_AFFINITY);     // TODO stack, priority, affinity check?
+         vl53l0x_t *vl53l0x = vl53l0x_init (rangerport, port_mask (rangerscl), port_mask (rangersda), rangeraddress, 0);
+         if (!vl53l0x)
+            status (ranger_fault= "Missing");
+         else
+         {                      // Start task
+            static TaskHandle_t task_id = NULL;
+            xTaskCreatePinnedToCore (task, TAG, 16 * 1024, NULL, 1, &task_id, tskNO_AFFINITY);  // TODO stack, priority, affinity check?
+         }
       }
    } else if (rangersda || rangerscl)
       status (ranger_fault = "Set rangerscl and rangersda");
