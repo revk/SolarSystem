@@ -22,3 +22,6 @@
 [submodule "ESP32/components/ESP32-RevK"]
 	path = ESP32/components/ESP32-RevK
 	url = https://github.com/revk/ESP32-RevK
+[submodule "ESP32/components/ESP32-GalaxyBus"]
+	path = ESP32/components/ESP32-GalaxyBus
+	url = https://github.com/revk/ESP32-GalaxyBus
