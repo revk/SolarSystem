@@ -50,16 +50,17 @@ df_t df;
 static char held = 0;           // Card was held, also flags pre-loaded for remote card logic
 static uint8_t ledpattern[10] = "";
 
-const char * nfc_led(int len,const void *value)
-   {
-      if (len > sizeof (ledpattern))
-         len = sizeof (ledpattern);
-      if (len < sizeof (ledpattern))
-         ledpattern[len] = 0;
-      if (len)
-         memcpy (ledpattern, value, len);
-      return "";
-   }
+const char *
+nfc_led (int len, const void *value)
+{
+   if (len > sizeof (ledpattern))
+      len = sizeof (ledpattern);
+   if (len < sizeof (ledpattern))
+      ledpattern[len] = 0;
+   if (len)
+      memcpy (ledpattern, value, len);
+   return "";
+}
 
 static void
 task (void *pvParameters)
@@ -261,7 +262,8 @@ nfc_command (const char *tag, unsigned int len, const unsigned char *value)
       vers[i * 2] = 0;
       revk_info ("aes", "%02X%02X%02X %s", aid[0], aid[1], aid[2], vers);
    }
-   if (!strcmp (tag, "led"))return nfc_led(len,value);
+   if (!strcmp (tag, "led"))
+      return nfc_led (len, value);
    if (!strcmp (tag, TAG) && len)
    {
       if (pn532_ready (pn532) >= 0)
@@ -312,7 +314,7 @@ nfc_init (void)
          {
             df_init (&df, pn532, pn532_dx);
             static TaskHandle_t task_id = NULL;
-            xTaskCreatePinnedToCore (task, TAG, 16 * 1024, NULL, 1, &task_id, tskNO_AFFINITY);  // TODO stack, priority, affinity check?
+            xTaskCreatePinnedToCore (task, TAG, 16 * 1024, NULL, 1, &task_id, 1);  // TODO stack, priority, affinity check?
          }
       }
    } else if (nfcrx || nfctx)
