@@ -20,7 +20,7 @@ const char *ranger_tamper = NULL;
 	u16(rangerclose,200)	\
 	u16(rangerfar,1000)	\
 	u16(rangerpoll,100)	\
-	u8(rangerinputnear,1)	\
+	u8(rangerinputnear,8)	\
 	u8(rangerinputfar,9)	\
 
 #define	p(n)	uint8_t n;

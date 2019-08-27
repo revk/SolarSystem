@@ -47,7 +47,7 @@ input_get (int p)
       return -1;
    p--;
    if (!input[p])
-      return 1;
+      return 0;
    if (input_raw & (1ULL << p))
       return 1;
    return 0;
