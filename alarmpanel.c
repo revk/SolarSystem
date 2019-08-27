@@ -313,6 +313,7 @@ struct user_s
 {
    user_t *next;
    xml_t config;
+   time_t afiledate;
    const unsigned char *afile;  // Access file
    char *name;
    char *fullname;
@@ -1420,8 +1421,9 @@ load_config (const char *configfile)
    {                            // Scan users
       user_t *u = malloc (sizeof (*u));
       memset (u, 0, sizeof (*u));
-      u->afile = getafile (config, x, 0, 0);
       u->config = x;
+      u->afiledate=time(0)/86400*86400+86400;
+      u->afile = getafile (config, u->config, 0, 0);
       u->name = xml_copy (x, "@name");
       u->fullname = xml_copy (x, "@full-name");
       if ((v = xml_get (x, "@pin")))
@@ -3517,6 +3519,11 @@ doevent (event_t * e)
             if (n < sizeof (u->fob) / sizeof (*u->fob))
                break;
          }
+	 if(u&&u->afiledate<time(0))
+	 {
+      u->afiledate=time(0)/86400*86400+86400;
+      u->afile = getafile (config, u->config, 0, 0);
+	 }
          const unsigned char *afile = (u ? u->afile : NULL);
          if (u && e->event != EVENT_FOB_HELD)
          {                      // Time constraints
