@@ -70,7 +70,7 @@ task (void *pvParameters)
       // Check tamper
       if (nexttamper < now && nfctamper >= 0)
       {                         // Check tamper
-         nextled = now + (uint64_t) nfctamperpoll *1000;;
+         nexttamper = now + (uint64_t) nfctamperpoll *1000;;
          int p3 = pn532_read_GPIO (pn532);
          if (p3 < 0)
          {                      // Failed
