@@ -19,7 +19,7 @@ const char *nfc_tamper = NULL;
   i8(nfctamper,3); \
   u16(nfcpoll,50); \
   u16(nfchold,3000); \
-  u16(nfcholdpoll,5000); \
+  u16(nfcholdpoll,500); \
   u16(nfcledpoll,100); \
   u16(nfctamperpoll,1000); \
   b(nfcbus,1); \
