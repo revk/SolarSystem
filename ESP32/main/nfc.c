@@ -18,6 +18,9 @@ const char *nfc_tamper = NULL;
   i8(nfctamper,3); \
   u16(nfcpoll,50); \
   u16(nfchold,3000); \
+  u16(nfcholdpoll,5000); \
+  u16(nfcledpoll,100); \
+  u16(nfctamperpoll,1000); \
   b(nfcbus,1); \
   ba(aes,17,3); \
   b(aid,3); \
@@ -62,14 +65,74 @@ task (void *pvParameters)
    {
       usleep (1000);
       int64_t now = esp_timer_get_time ();
-      int ready = pn532_ready (pn532);
-      if (ready > 0)
-      {                         // Check ID response
+      // Regular tasks
+      // Check tamper
+      if (nexttamper < now && nfctamper >= 0)
+      {                         // Check tamper
+         nextled = now + (uint64_t) nfctamperpoll *1000;;
+         int p3 = pn532_read_GPIO (pn532);
+         if (p3 < 0)
+         {                      // Failed
+            // Try init again
+            pn532_end (pn532);
+            pn532 = pn532_init (nfcuart, port_mask (nfctx), port_mask (nfcrx), (1 << nfcred) | (1 << nfcgreen));
+            if (!pn532)
+            {
+               status (nfc_fault = "Failed");
+               continue;        // No point doing other regular tasks if PN532 is AWOL
+            } else
+               status (nfc_fault = NULL);
+         } else
+         {                      // Check tamper
+            if (p3 & (1 << nfctamper))
+               status (nfc_tamper = "Tamper");
+            else
+               status (nfc_tamper = NULL);
+         }
+      }
+      // LED
+      if (nextled < now)
+      {                         // Check LED
+         nextled = now + (uint64_t) nfcledpoll *1000;;
+         ledpos++;
+         if (ledpos >= sizeof (ledpattern) || !ledpattern[ledpos] || !*ledpattern)
+            ledpos = 0;
+         uint8_t newled = 0;
+         // We are assuming exactly two LEDs, one at a time (back to back) on P30 and P31
+         if (nfcred >= 0 && ledpattern[ledpos] == 'R')
+            newled = (1 << nfcred);
+         if (nfcgreen >= 0 && ledpattern[ledpos] == 'G')
+            newled = (1 << nfcgreen);
+         if (newled != ledlast)
+            pn532_write_GPIO (pn532, ledlast = newled);
+      }
+      // Card
+      if (nextpoll < now)
+      {                         // Check for card
+         nextpoll = now + (uint64_t) nfcpoll *1000;
+         if (found && !pn532_Present (pn532))
+         {                      // Card gone
+            if (held && nfchold)
+               revk_event ("gone", "%s", id);
+            found = 0;
+            held = 0;
+         }
+         if (found)
+         {
+            nextpoll = now + (int64_t) nfcholdpoll *1000;       // Periodic check for card held
+            if (!held && found < now)
+            {                   // Card has been held for a while, report
+               revk_event ("held", "%s", id);
+               held = 1;
+            }
+            continue;           // Waiting for card to go
+         }
+         // Check for new card
          df.keylen = 0;         // New card
          int cards = pn532_Cards (pn532);
-         ready = -1;            // We cleared command
          if (cards > 0)
          {
+            nextpoll = now + (int64_t) nfcholdpoll *1000;       // Periodic check for card held
             noaccess = "";      // Assume no auto access (not an error)
             uint8_t aesid = 0;
             const char *e = NULL;
@@ -135,7 +198,7 @@ task (void *pvParameters)
                   e = df_change_key (&df, 1, aes[0][0], aes[aesid] + 1, aes[0] + 1);
             }
             if (e && !strcmp (e, "PN532_ERR_TIMEOUT"))
-               nextpoll = 0;    // Try again
+               nextpoll = 0;    // Try again immediately
             else
             {                   // Processing door
                if (!e && df.keylen && nfccommit)
@@ -166,68 +229,7 @@ task (void *pvParameters)
                      revk_error (TAG, "%s", e); // Log new error anyway, unless simple timeout
                }
                found = now + (uint64_t) nfchold *1000;
-               nextpoll = now + 100000;
             }
-         }
-      }
-      if (found && !held && found < now)
-      {
-         revk_event ("held", "%s", id);
-         held = 1;
-      }
-      if (ready >= 0)
-         continue;              // We cannot talk to card for LED/tamper as waiting for reply
-      if (nextled < now)
-      {                         // Check LED
-         ledpos++;
-         if (ledpos >= sizeof (ledpattern) || !ledpattern[ledpos] || !*ledpattern)
-            ledpos = 0;
-         uint8_t newled = 0;
-         // We are assuming exactly two LEDs, one at a time (back to back) on P30 and P31
-         if (nfcred >= 0 && ledpattern[ledpos] == 'R')
-            newled = (1 << nfcred);
-         if (nfcgreen >= 0 && ledpattern[ledpos] == 'G')
-            newled = (1 << nfcgreen);
-         if (newled != ledlast)
-            pn532_write_GPIO (pn532, ledlast = newled);
-         nextled = now + 100000;
-      }
-      if (nexttamper < now && nfctamper >= 0)
-      {                         // Check tamper
-         nexttamper = now + 1000000;
-         int p3 = pn532_read_GPIO (pn532);
-         if (p3 < 0)
-         {                      // Failed
-            // Try init again
-            pn532_end (pn532);
-            pn532 = pn532_init (nfcuart, port_mask (nfctx), port_mask (nfcrx), (1 << nfcred) | (1 << nfcgreen));
-            if (!pn532)
-               status (nfc_fault = "Failed");
-            else
-               status (nfc_fault = NULL);
-         } else
-         {                      // Check tamper
-            if (p3 & (1 << nfctamper))
-               status (nfc_tamper = "Tamper");
-            else
-               status (nfc_tamper = NULL);
-         }
-      }
-      if (nextpoll < now)
-      {                         // Check for card
-         nextpoll = now + (uint64_t) nfcpoll *1000;
-         if (found && !pn532_Present (pn532))
-         {
-            if (held && nfchold)
-               revk_event ("gone", "%s", id);
-            found = 0;
-            held = 0;
-            nextpoll = now + 100000;
-         }
-         if (!found)
-         {
-            pn532_ILPT_Send (pn532);
-            continue;           // Cant do LED/tamper until we get reply
          }
       }
    }
@@ -260,7 +262,7 @@ nfc_command (const char *tag, unsigned int len, const unsigned char *value)
    if (!strcmp (tag, TAG) && len)
    {
       if (pn532_ready (pn532) >= 0)
-         return "Busy";
+         return "Busy";         // Currently doing another PN532 function
       uint8_t buf[256];
       memcpy (buf, value, len);
       const char *err = NULL;
