@@ -187,7 +187,7 @@ getafile (xml_t config, xml_t user, int debug, int forceallow)
   fclose (afilef);
   *afile = afilelen - 1;	// Store length in first byte
   if (afilelen > 256)
-    errx (1, "Access file too long (%d)", afilelen);
+    errx (1, "Access file too long (%d)",(int) afilelen);
   if (allow)
     free (allow);
   if (deny)
