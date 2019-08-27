@@ -1,5 +1,5 @@
 // Solar System
-// (c) Andrews & Arnold Ltd, Adrian Kennard, see LICENSE file (GPL)
+// Copyright © 2019 Adrian Kennard, Andrews & Arnold Ltd. See LICENCE file for details. GPL 3.0
 static const char TAG[] = "door";
 #include "SS.h"
 const char *door_fault = NULL;

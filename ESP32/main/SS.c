@@ -1,4 +1,5 @@
 // Solar System ESP32 app
+// Copyright © 2019 Adrian Kennard, Andrews & Arnold Ltd. See LICENCE file for details. GPL 3.0
 
 #include "SS.h"
 #include <driver/gpio.h>
