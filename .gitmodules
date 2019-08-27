@@ -7,9 +7,6 @@
 [submodule "websocket"]
 	path = websocket
 	url = https://github.com/revk/websocket
-[submodule "ESP32/components/ESP32RevK"]
-	path = ESP32/components/ESP32RevK
-	url = https://github.com/revk/ESP32RevK
 [submodule "ESP32/components/DESFireAES"]
 	path = ESP32/components/DESFireAES
 	url = https://github.com/revk/DESFireAES
