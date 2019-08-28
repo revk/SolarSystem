@@ -16,7 +16,6 @@ const char *keypad_tamper = NULL;
   p(keypadre) \
   u8(keypaduart,1) \
   u8h(keypadaddress,10)	\
-  u8h(keypadmaster,11)	\
   b(keypadbdegug)	\
 
 #define u8(n,d) uint8_t n;
@@ -77,7 +76,7 @@ keypad_init (void)
       {
          galaxybus_t *g =
             galaxybus_init (keypaduart, port_mask (keypadtx), port_mask (keypadrx), port_mask (keypadde),
-                          keypadre ? port_mask (keypadre) : -1, keypadmaster);
+                          keypadre ? port_mask (keypadre) : -1, 0);
          if (!g)
             status (keypad_fault = "Init fail");
          else
