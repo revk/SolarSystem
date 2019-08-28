@@ -13,21 +13,21 @@ const char *nfc_tamper = NULL;
 
 // Other settings
 #define settings  \
-  u1(nfccommit); \
-  i8(nfcred,1); \
-  i8(nfcgreen,0); \
-  i8(nfctamper,3); \
-  u16(nfcpoll,50); \
-  u16(nfchold,3000); \
-  u16(nfcholdpoll,500); \
-  u16(nfcledpoll,100); \
-  u16(nfctamperpoll,1000); \
-  b(nfcbus,1); \
-  ba(aes,17,3); \
-  b(aid,3); \
-  p(nfctx); \
-  p(nfcrx); \
-  u8(nfcuart,2); \
+  u1(nfccommit) \
+  i8(nfcred,1) \
+  i8(nfcgreen,0) \
+  i8(nfctamper,3) \
+  u16(nfcpoll,50) \
+  u16(nfchold,3000) \
+  u16(nfcholdpoll,500) \
+  u16(nfcledpoll,100) \
+  u16(nfctamperpoll,1000) \
+  b(nfcbus,1) \
+  ba(aes,17,3) \
+  b(aid,3) \
+  p(nfctx) \
+  p(nfcrx) \
+  u8(nfcuart,2) \
 
 #define i8(n,d) int8_t n;
 #define u8(n,d) uint8_t n;
