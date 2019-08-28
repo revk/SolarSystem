@@ -40,6 +40,19 @@ input_active (int p)
    return 1;
 }
 
+void
+input_set (int p, int v)
+{                               // For locally set inputs
+
+   if (p < 1 || p > MAXINPUT)
+      return;
+   p--;
+   if (v)
+      input_raw |= (1ULL << p);
+   else
+      input_raw &= ~(1ULL << p);
+}
+
 int
 input_get (int p)
 {
@@ -130,5 +143,5 @@ input_init (void)
          }
       }
    static TaskHandle_t task_id = NULL;
-   xTaskCreatePinnedToCore (task, TAG, 16 * 1024, NULL, 1, &task_id, 1);   // TODO stack, priority, affinity check?
+   xTaskCreatePinnedToCore (task, TAG, 16 * 1024, NULL, 1, &task_id, 1);        // TODO stack, priority, affinity check?
 }
