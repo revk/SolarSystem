@@ -65,10 +65,12 @@ task (void *pvParameters)
    vl53l0x_setSignalRateLimit (v, 2);   // This helps avoid sunlight / errors, default is 0.25 (MCPS)
    vl53l0x_setMeasurementTimingBudget (v, rangerpoll * 950);
    vl53l0x_startContinuous (v, rangerpoll);
-   char *inputnear,
-    *inputfar;
-   asprintf (&inputnear, "input%d", rangerinputnear);
-   asprintf (&inputfar, "input%d", rangerinputfar);
+   char *inputnear = NULL;
+   if (rangerinputnear)
+      asprintf (&inputnear, "input%d", rangerinputnear);
+   char *inputfar = NULL;
+   if (rangerinputfar)
+      asprintf (&inputfar, "input%d", rangerinputfar);
    char buttonnear = 0,
       buttonfar = 0;
    uint32_t last = 0;
@@ -85,56 +87,62 @@ task (void *pvParameters)
          range = rangerfar;
       char force = newforce;
       newforce = 0;
-      char change = force;
-      if (range < rangernear && last < rangernear)
-      {                         // Two polls below set for input 8
-         if (!buttonnear)
-         {
-            buttonnear = true;
-            change = true;
-         }
-      } else if (range > rangernear && last > rangernear)
-      {                         // Two polls above, so unset input 8
-         if (force || buttonnear)
-         {
-            buttonnear = false;
-            change = true;
-         }
-      }
-      if (change)
+      if (rangerinputnear)
       {
-         revk_state (inputnear, "%d %dmm", buttonnear ? 1 : 0, range);
-         input_set (8, buttonnear);
-      }
-      change = force;
-      static int lastdelta = 0;
-      int delta = range - last;
-      if ((delta > 0 && lastdelta > 0 && delta + lastdelta >= rangermargin)
-          || (delta < 0 && lastdelta < 0 && delta + lastdelta <= -rangermargin))
-      {                         // Moved (consistently) rangermargin over two polls
-         if (!buttonfar)
-         {
-            buttonfar = true;
-            change = true;
+         char change = force;
+         if (range < rangernear && last < rangernear)
+         {                      // Two polls below set for input 8
+            if (!buttonnear)
+            {
+               buttonnear = 1;
+               change = 1;
+            }
+         } else if (range > rangernear && last > rangernear)
+         {                      // Two polls above, so unset input 8
+            if (force || buttonnear)
+            {
+               buttonnear = 0;
+               change = 1;
+            }
          }
-         endlong = now + (int64_t) rangerhold *1000;
-      } else if (endlong < now)
-      {                         // Not moved, and we have reached timeout for motion
-         if (buttonfar)
+         if (change)
          {
-            buttonfar = false;
-            change = true;
+            revk_state (inputnear, "%d %dmm", buttonnear, range);
+            input_set (rangerinputnear, buttonnear);
          }
       }
-      if (change)
+      if (rangerinputfar)
       {
-         revk_state (inputfar, "%d %dmm", buttonfar ? 1 : 0, range);
-         input_set (9, buttonfar);
+         char change = force;
+         int32_t delta = range - last;
+         static int32_t lastdelta = 0;
+         if ((delta > 0 && lastdelta > 0 && delta + lastdelta >= rangermargin)
+             || (delta < 0 && lastdelta < 0 && delta + lastdelta <= -rangermargin))
+         {                      // Moved (consistently) rangermargin over two polls
+            if (!buttonfar)
+            {
+               buttonfar = 1;
+               change = 1;
+            }
+            endlong = now + (int64_t) rangerhold *1000;
+         } else if (endlong < now)
+         {                      // Not moved, and we have reached timeout for motion
+            if (buttonfar)
+            {
+               buttonfar = 0;
+               change = 1;
+            }
+         }
+         if (change)
+         {
+            revk_state (inputfar, "%d %dmm", buttonfar, range);
+            input_set (9, buttonfar);
+         }
+         lastdelta = delta;
       }
       if (rangerdebug && (range < rangerfar || last < rangerfar))
          revk_state ("range", "%dmm", range);
       last = range;
-      lastdelta = delta;
       if (vl53l0x_i2cFail (v))
          doinit ();
    }
