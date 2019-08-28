@@ -300,9 +300,9 @@ nfc_init (void)
 #undef p
       if (nfctx && nfcrx)
    {
-      const char *e = port_check (port_mask (nfctx), "nfctx", 0);
+      const char *e = port_check (port_mask (nfctx), TAG, 0);
       if (!e)
-         e = port_check (port_mask (nfcrx), "nfcrx", 1);
+         e = port_check (port_mask (nfcrx), TAG, 1);
       if (e)
          status (nfc_fault = e);
       else
