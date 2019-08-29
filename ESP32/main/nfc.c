@@ -314,7 +314,7 @@ nfc_init (void)
          {
             df_init (&df, pn532, pn532_dx);
             static TaskHandle_t task_id = NULL;
-            xTaskCreatePinnedToCore (task, TAG, 16 * 1024, NULL, 1, &task_id, 1);  // TODO stack, priority, affinity check?
+            xTaskCreatePinnedToCore (task, TAG, 16 * 1024, NULL, 1, &task_id, 1);       // TODO stack, priority, affinity check?
          }
       }
    } else if (nfcrx || nfctx)

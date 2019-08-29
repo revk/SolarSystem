@@ -250,8 +250,7 @@ door_fob (char *id, uint32_t * crcp)
       if (crcp)
          *crcp = esp_crc32_be (0, afile + 1, *afile);
       // Check access file (expected to exist)
-      time_t now;
-      time (&now);
+      time_t now = revk_localtime ();
       uint8_t datetime[7];      // BCD date time
       int xoff = 0,
          xlen = 0,
@@ -620,6 +619,6 @@ door_init (void)
    lock[0].timeout = 1000;
    lock[1].timeout = 1000;
    static TaskHandle_t task_id = NULL;
-   xTaskCreatePinnedToCore (task, TAG, 16 * 1024, NULL, 1, &task_id, 1);   // TODO stack, priority, affinity check?
+   xTaskCreatePinnedToCore (task, TAG, 16 * 1024, NULL, 1, &task_id, 1);        // TODO stack, priority, affinity check?
    return true;
 }
