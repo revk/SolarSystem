@@ -185,8 +185,11 @@ task (void *pvParameters)
          {
             status (keypad_fault = "No response");
             online = 0;
+            rxwait = now + 5000000;
          }
-      }
+      } else
+         rxwait = now + 250000;
+
       // Tx
       if (force || galaxybusfault || !online)
       {                         // Update all the shit
@@ -200,7 +203,6 @@ task (void *pvParameters)
          send19 = 1;
          sounderack = 0;
       }
-      rxwait = now + 250000;
       p = 0;
       if (!online)
       {                         // Init
