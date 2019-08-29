@@ -8,8 +8,6 @@ const char *door_tamper = NULL;
 #include <esp_crc.h>
 #include "desfireaes.h"
 
-char offlinemode = 0;           // TODO (check revk online?)
-
 // Autonomous door control
 // Door mode set by door setting
 // 0 - no control
@@ -388,7 +386,7 @@ door_fob (char *id, uint32_t * crcp)
          return "*Door deadlocked";
       return NULL;
    }
-   if (offlinemode)
+   if (!revk_online)
    {
       if (!fallback)
          return "*Offline, and no fallback";
