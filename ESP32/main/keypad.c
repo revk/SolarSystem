@@ -45,7 +45,7 @@ static volatile uint8_t force;
 const char *
 keypad_command (const char *tag, unsigned int len, const unsigned char *value)
 {
-   if (!strcmp (tag, "connect")||!strcmp(tag,"disconnect"))
+   if (!strcmp (tag, "connect") || !strcmp (tag, "disconnect") || !strcmp (tag, "change"))
       force = 1;
 #define f(i,n,l,d) if(!strcasecmp(tag,#n)&&len<=l){memcpy(n,value,len);n##_len=len;if(len<l)memset(n+len,0,l-len);send##i=1;return "";}
    commands
