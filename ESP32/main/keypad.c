@@ -14,9 +14,19 @@ const char *keypad_tamper = NULL;
   p(keypadrx) \
   p(keypadde) \
   p(keypadre) \
-  u8(keypaduart,1) \
+  p(keypadclk) \
+  u8(keypadtimer,0) \
   u8h(keypadaddress,10)	\
-  b(keypadbdegug)	\
+  b(keypaddebug)	\
+  b(keypadtamper)	\
+
+#define commands  \
+  f(07,display,32,0) \
+  f(19,keyclick,1,5) \
+  f(0C,sounder,2,0) \
+  f(0D,backlight,1,1) \
+  f(07a,cursor,2,0) \
+  f(07b,blink,1,0) \
 
 #define u8(n,d) uint8_t n;
 #define u8h(n,d) uint8_t n;
@@ -27,25 +37,282 @@ settings
 #undef u8h
 #undef b
 #undef p
+#define f(id,name,len,def) static uint8_t name[len]={def};uint8_t send##id=false;uint8_t name##_len=0;
+   commands
+#undef  f
+static volatile uint8_t force;
+
 const char *
 keypad_command (const char *tag, unsigned int len, const unsigned char *value)
 {
-   // TODO
-   return NULL;
+   if (!strcmp (tag, "connect")||!strcmp(tag,"disconnect"))
+      force = 1;
+#define f(i,n,l,d) if(!strcasecmp(tag,#n)&&len<=l){memcpy(n,value,len);n##_len=len;if(len<l)memset(n+len,0,l-len);send##i=1;return "";}
+   commands
+#undef f
+      return NULL;
 }
 
 static void
 task (void *pvParameters)
 {
    galaxybus_t *g = pvParameters;
+   galaxybus_start (g);
    while (1)
    {
-      sleep (1);
-      uint8_t buf[20];
-      int len=galaxybus_poll (g,keypadaddress, sizeof (buf), buf);
-      if(len>0)ESP_LOG_BUFFER_HEX_LEVEL ("Keypad", buf, len, ESP_LOG_INFO);
-      
-      // TODO
+      usleep (1000);            // TODO
+      int64_t now = esp_timer_get_time ();
+
+      static uint8_t buf[100],
+        p = 0;
+      static uint8_t cmd = 0;
+      static uint8_t online = 0;
+      static uint8_t send0B = 0;
+      static uint8_t toggle0B = 0;
+      static uint8_t toggle07 = 0;
+      static uint8_t send07c = 0;
+      static uint8_t lastkey = 0x7F;
+      static uint8_t sounderack = 0;
+      static unsigned int galaxybusfault = 0;
+      static unsigned int rxwait = 0;
+
+      if (galaxybus_ready (g))
+      {                         // Receiving
+         rxwait = 0;
+         int p = galaxybus_rx (g, sizeof (buf), buf);
+         if (keypaddebug && (!online || p < 2 || buf[1] != 0xFE))
+            revk_info ("Rx", "%d: %02X %02X %02X %02X", p, buf[0], buf[1], buf[2], buf[3]);
+         static const char keymap[] = "0123456789BAEX*#";
+         if (p < 2)
+         {
+            if (galaxybusfault++ > 2)
+            {
+               if (p != GALAXYBUSMISSED)
+                  status (keypad_fault = "Galaxybus Rx missed");
+               else if (p == GALAXYBUSSTARTBIT)
+                  status (keypad_fault = "Galaxybus Start bit error");
+               else if (p == GALAXYBUSSTOPBIT)
+                  status (keypad_fault = "Galaxybus Stop bit error");
+               else if (p == GALAXYBUSCHECKSUM)
+                  status (keypad_fault = "Galaxybus Checksum error");
+               else if (p == GALAXYBUSTOOBIG)
+                  status (keypad_fault = "Galaxybus Too big error");
+               else if (p == GALAXYBUSBUSY)
+                  status (keypad_fault = "Galaxybus busy");
+               else
+                  status (keypad_fault = "Bad response");
+               online = 0;
+            }
+         } else
+         {
+            galaxybusfault = 0;
+            status (keypad_fault = NULL);
+            static long keyhold = 0;
+            if (cmd == 0x00 && buf[1] == 0xFF && p >= 5)
+            {                   // Set up response
+               if (!online)
+               {
+                  online = 1;
+                  toggle0B = 1;
+                  toggle07 = 1;
+               }
+            } else if (buf[1] == 0xFE)
+            {                   // Idle, no tamper, no key
+               status (keypad_tamper = NULL);
+               if (!send0B)
+               {
+                  if (lastkey & 0x80)
+                  {
+                     if (keyhold < now)
+                     {
+                        revk_event ("gone", "%.1S", keymap + (lastkey & 0x0F));
+                        lastkey = 0x7F;
+                     }
+                  } else
+                     lastkey = 0x7F;
+               }
+            } else if (cmd == 0x06 && buf[1] == 0xF4 && p >= 3)
+            {                   // Status
+               if (keypadtamper && (buf[2] & 0x40))
+                  status (keypad_tamper = "Open");
+               else
+                  status (keypad_tamper = NULL);
+               if (!send0B)
+               {                // Key
+                  if (buf[2] == 0x7F)
+                  {             // No key
+                     if (lastkey & 0x80)
+                     {
+                        if (keyhold < now)
+                        {
+                           revk_event ("gone", "%.1S", keymap + (lastkey & 0x0F));
+                           lastkey = 0x7F;
+                        }
+                     } else
+                        lastkey = 0x7F;
+                  } else
+                  {             // key
+                     send0B = 1;
+                     if ((lastkey & 0x80) && buf[2] != lastkey)
+                        revk_event ("gone", "%.1S", keymap + (lastkey & 0x0F));
+                     if (!(buf[2] & 0x80) || buf[2] != lastkey)
+                        revk_event ((buf[2] & 0x80) ? "hold" : "key", "%.1S", keymap + (buf[2] & 0x0F));
+                     if (buf[2] & 0x80)
+                        keyhold = now + 2000000;
+                     if (!revk_online)
+                     {          // Special case for safe mode (off line)
+                        if (buf[2] == 0x0D)
+                        {       // ESC in safe mode, shut up
+                           sounderack = 1;
+                           send0C = 1;
+                        }
+                        if (buf[2] == 0x8D)
+                           revk_restart ("ESC", 0);     // ESC held in safe mode
+                     }
+                     lastkey = buf[2];
+                  }
+               }
+            }
+         }
+      }
+
+      if (rxwait > now)
+         continue;              // Awaiting reply
+
+      if (rxwait)
+      {
+         if (galaxybusfault++ > 2)
+         {
+            status (keypad_fault = "No response");
+            online = 0;
+         }
+      }
+      // Tx
+      if (force || galaxybusfault || !online)
+      {                         // Update all the shit
+         force = 0;
+         send07 = 1;
+         send07a = 1;
+         send07b = 1;
+         send0B = 1;
+         send0C = 1;
+         send0D = 1;
+         send19 = 1;
+         sounderack = 0;
+      }
+      rxwait = now + 250000;
+      p = 0;
+      if (!online)
+      {                         // Init
+         buf[++p] = 0x00;
+         buf[++p] = 0x0E;
+      } else if (send0B)
+      {                         // key confirm
+         send0B = 0;
+         buf[++p] = 0x0B;
+         buf[++p] = toggle0B ? 2 : 0;
+         toggle0B = !toggle0B;
+      } else if (lastkey >= 0x7F && (send07 || send07a || send07b || send07c))
+      {                         // Text
+         buf[++p] = 0x07;
+         buf[++p] = 0x01 | ((blink[0] & 1) ? 0x08 : 0x00) | (toggle07 ? 0x80 : 0);
+         uint8_t len = display_len;
+         uint8_t temp[33];
+         uint8_t *dis = display;
+         if (!revk_online)
+         {                      // Off line
+            len = snprintf ((char *) temp, sizeof (temp), "%-16.16s%-9.9s %6.6s", revk_mqtt (), revk_wifi (), revk_id);
+            dis = temp;
+         }
+         if (cursor_len)
+            buf[++p] = 0x07;    // cursor off while we update
+         if (len)
+         {
+            buf[++p] = 0x1F;    //  home
+            int n;
+            for (n = 0; n < 32; n++)
+            {
+               if (!(n & 0xF))
+               {
+                  buf[++p] = 0x03;      // Cursor
+                  buf[++p] = (n ? 0x40 : 0);
+               }
+               if (n < len)
+                  buf[++p] = dis[n];
+               else
+                  buf[++p] = ' ';
+            }
+         } else
+            buf[++p] = 0x17;    // clear
+         if (send07a || cursor_len)
+         {                      // cursor
+            buf[++p] = 0x03;
+            buf[++p] = ((cursor[0] & 0x10) ? 0x40 : 0) + (cursor[0] & 0x0F);
+            if (cursor[0] & 0x80)
+               buf[++p] = 0x06; // Solid block
+            else if (cursor[0] & 0x40)
+               buf[++p] = 0x10; // Underline
+         }
+         toggle07 = !toggle07;
+         if (send07)
+            send07c = 1;        // always send twice
+         else
+            send07a = send07b = send07c = 0;    // sent
+         send07 = 0;
+      } else if (send19)
+      {                         // Key keyclicks
+         send19 = 0;
+         buf[++p] = 0x19;
+         if (!revk_online)
+            buf[++p] = 0x01;    // Sound normal
+         else
+            buf[++p] = (keyclick[0] & 0x7);     // 0x03 (silent), 0x05 (quiet), or 0x01 (normal)
+         buf[++p] = 0;
+      } else if (send0C)
+      {                         // Beeper
+         send0C = 0;
+         uint8_t *s = sounder;
+         uint8_t len = sounder_len;
+         if (!revk_online)
+         {
+            if (sounderack)
+               len = 0;         // quiet
+            else
+            {
+               const uint8_t beepy[] = { 1, 1 };
+               s = (uint8_t *) beepy;
+               len = 2;
+            }
+         }
+#if 0                           // TODO use output_get and configure which output
+         else if (keypadbeepoverride)
+         {
+            const uint8_t beepy[] = { 1, 0 };
+            s = (uint8_t *) beepy;
+            len = 2;
+         }
+#endif
+         buf[++p] = 0x0C;
+         buf[++p] = (len ? s[1] ? 3 : 1 : 0);
+         buf[++p] = (s[0] & 0x3F);      // Time on
+         buf[++p] = (s[1] & 0x3F);      // Time off
+      } else if (send0D)
+      {                         // Light change
+         send0D = 0;
+         buf[++p] = 0x0D;
+         if (!revk_online)
+            buf[++p] = 1;
+         else
+            buf[++p] = (backlight[0] & 1);
+      } else
+         buf[++p] = 0x06;       // Normal poll
+      // Send
+      buf[0] = keypadaddress;   // ID of display
+      p++;
+      cmd = buf[1];
+      int l = galaxybus_tx (g, p, buf);
+      if (keypaddebug && buf[1] != 0x06)
+         revk_info ("Tx", "%d: %02X %02X %02X %02X", l, buf[0], buf[1], buf[2], buf[3]);
    }
 }
 
@@ -63,27 +330,26 @@ keypad_init (void)
 #undef p
       if (keypadtx && keypadrx && keypadde)
    {
-      const char *err = port_check (port_mask (keypadtx), TAG,0);
+      const char *err = port_check (port_mask (keypadtx), TAG, 0);
+      if (!err && keypadtx != keypadrx)
+         port_check (port_mask (keypadrx), TAG, 1);
       if (!err)
-         port_check (port_mask (keypadrx), TAG,1);
-      if (!err)
-         port_check (port_mask (keypadde), TAG,0);
+         port_check (port_mask (keypadde), TAG, 0);
       if (!err && keypadre)
-         port_check (port_mask (keypadre), TAG,0);
-      if (err)
+         port_check (port_mask (keypadre), TAG, 0);
+      if (err && keypadde != keypadre)
          status (keypad_fault = err);
+      galaxybus_t *g = galaxybus_init (keypadtimer, port_mask (keypadtx), port_mask (keypadrx), port_mask (keypadde),
+                                       keypadre ? port_mask (keypadre) : -1,
+                                       keypadclk ? port_mask (keypadclk) : -1,
+                                       0);
+      if (!g)
+         status (keypad_fault = "Init failed");
       else
       {
-         galaxybus_t *g =
-            galaxybus_init (keypaduart, port_mask (keypadtx), port_mask (keypadrx), port_mask (keypadde),
-                          keypadre ? port_mask (keypadre) : -1, 0);
-         if (!g)
-            status (keypad_fault = "Init fail");
-         else
-         {
-            static TaskHandle_t task_id = NULL;
-            xTaskCreatePinnedToCore (task, TAG, 16 * 1024, g, 1, &task_id, 1);  // TODO stack, priority, affinity check?
-         }
+         galaxybus_set_timing (g, 30, 30, 10);
+         static TaskHandle_t task_id = NULL;
+         xTaskCreatePinnedToCore (task, TAG, 16 * 1024, g, 1, &task_id, 1);     // TODO stack, priority, affinity check?
       }
    } else if (keypadtx || keypadrx || keypadde)
       status (keypad_fault = "Set keypadtx, keypadrx and keypadde");
