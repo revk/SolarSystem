@@ -8,11 +8,14 @@ b=5;
 f=11;
 s=2;
 e=1;
-d=-1;
-v4a=1; // hole for 2x2 connector for PN532
+d=0.99;
 
 $fn=100;
 
+h1x=11.387-0.5;h1y=4.412-0.5; // From SVG
+h2x=4.967-0.4;h2y=3.588-0.4;
+h3x=35.502+1.45-3-1;h3y=10.801+1.45-3-1;
+        
 module board(base)
 {
     mirror([1,0,0])
@@ -22,10 +25,8 @@ module board(base)
         cube([8.5,22,12]);
         translate([9,0,0])
         cube([30,8,11]);
-        translate([32,7,0])
-        cube([8,20,9]);
         translate([7.5,7.5,0])
-        cube([13,18,6]);
+        cube([14,20.5,6]);
         translate([1.5,20,-3])
         cube([5,8,4]);
         translate([1.5,1.5,-3])
@@ -33,7 +34,10 @@ module board(base)
         translate([14,8,-5])
         cube([17,19,6]);
         translate([14,8,-1])
-        cube([18,28,1.001]);   
+        cube([19,28,1.001]);   
+        for(h=[0:1:2])
+        translate([h3x-0.5,h3y+h*6.604-0.5,0])
+        cube([7,7,9]);
     }
 }
 
@@ -48,43 +52,57 @@ module holes()
     mirror([1,0,0])
     translate([-w/2,-h/2,b+e])
     {
+
         for(h=[0:1:7])
-        translate([11.9+3.5*h,3.9,0])
+        translate([h1x+3.5*h,h1y,0])
         cylinder(d=4,h=20);
         hull()
         {
-            translate([11.9,3.9,3])
+            translate([h1x,3.9,5])
             rotate([90,0,0])
             cylinder(d=5,h=10);        
-            translate([11.9+3.5*7,3.9,3])
+            translate([h1x+3.5*7,h1y,5])
             rotate([90,0,0])
             cylinder(d=5,h=10); 
         }
         for(h=[0:1:3])
-        translate([4.6,3.2+5*h,0])
+        translate([h2x,h2y+5*h,0])
         cylinder(d=4,h=20);
         hull()
         {
-            translate([4.6,3.2,3])
+            translate([h2x,h2y,5])
             rotate([0,-90,0])
             cylinder(d=5,h=10);        
-            translate([4.6,3.2+3*5,3])
+            translate([h2x,h2y+3*5,5])
             rotate([0,-90,0])
             cylinder(d=5,h=10); 
         }
-        for(h=[8.1,14.7,21.3])
-        translate([32.6,h,0])
-        cube([6,6,20]);
+        for(h=[0:1:2])
+        translate([h3x,h3y+h*6.604,0])
+        {
+            cube([6,6,20]);
+            translate([5,1.5,0])
+            cube([2,1,20]);
+        }
     }
 }
 
 module cut()
 {
-    translate([-w/2-s*2,-h/2-s*2,d-e])
-    cube([w+s*4,h+s*4,e*2+b+t+2]);
-    translate([-w/2-s/2,-h/2-s/2,d-e])
-    cube([w+s,h+s,e*2+b+t+2+s/2]);
-    
+    difference()
+    {
+        union()
+        {
+            translate([-w/2-s*2,-h/2-s*2,d-e])
+            cube([w+s*4,h+s*4,e*2+b+t+2]);
+            translate([-w/2-s/2,-h/2-s/2,d-e])
+            cube([w+s,h+s,e*2+b+t+2+s/2]);
+        }
+        mirror([1,0,0])
+        translate([-w/2,-h/2,b+e])
+        translate([14,8,0])
+        cube([19,28,10]);   
+    }
 }
 
 module base()
