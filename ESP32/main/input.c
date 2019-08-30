@@ -142,6 +142,5 @@ input_init (void)
                input_invert |= (1ULL << i);     // TODO can this not be done at hardware level?
          }
       }
-   static TaskHandle_t task_id = NULL;
-   xTaskCreatePinnedToCore (task, TAG, 16 * 1024, NULL, 1, &task_id, 1);        // TODO stack, priority, affinity check?
+   revk_task (TAG, task, NULL);
 }

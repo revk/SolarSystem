@@ -175,10 +175,7 @@ ranger_init (void)
          if (!vl53l0x)
             status (ranger_fault = "Missing");
          else
-         {                      // Start task
-            static TaskHandle_t task_id = NULL;
-            xTaskCreatePinnedToCore (task, TAG, 16 * 1024, vl53l0x, 1, &task_id, 1);    // TODO stack, priority, affinity check?
-         }
+            revk_task (TAG, task, vl53l0x);
       }
    } else if (rangersda || rangerscl)
       status (ranger_fault = "Set rangerscl and rangersda");
