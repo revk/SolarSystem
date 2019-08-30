@@ -92,7 +92,7 @@ app_command (const char *tag, unsigned int len, const unsigned char *value)
 #undef m
       if (!strcmp (tag, "connect"))
       status_report (1);
-   return "";                   // Unknown
+   return e;
 }
 
 void
