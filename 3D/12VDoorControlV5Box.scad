@@ -6,7 +6,7 @@ h=28;
 t=1.6+0.2;
 b=5;
 f=11;
-s=2;
+s=2.5;
 e=1;
 d=1;
 
@@ -21,8 +21,8 @@ module board(base)
     mirror([1,0,0])
     translate([-w/2,-h/2,b+e])
     {
-        translate([0,0,base?0:-100])
-        cube([w,h,100+t]);
+        translate([-0.1,-0.1,base?0:-100])
+        cube([w+0.2,h+0.2,100+t]);
         translate([0,h2y-2.5-0.75,0])
         cube([8.5,5*4+1.5,12]);
         translate([h1x-3.5/2-1,h1y-4,0])
@@ -84,7 +84,7 @@ module holes()
         {
             translate([0.25,0.25,0])
             cube([5.5,5.5,20]);
-            translate([4,1.5,0])
+            translate([4.5,1.5,0])
             cube([2,1.5,20]);
             translate([1.25,5,0])
             cube([2.5,1,20]);
