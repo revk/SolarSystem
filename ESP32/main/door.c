@@ -8,8 +8,6 @@ const char *door_tamper = NULL;
 #include <esp_crc.h>
 #include "desfireaes.h"
 
-char offlinemode = 0;           // TODO (check revk online?)
-
 // Autonomous door control
 // Door mode set by door setting
 // 0 - no control
@@ -252,8 +250,7 @@ door_fob (char *id, uint32_t * crcp)
       if (crcp)
          *crcp = esp_crc32_be (0, afile + 1, *afile);
       // Check access file (expected to exist)
-      time_t now;
-      time (&now);
+      time_t now = revk_localtime ();
       uint8_t datetime[7];      // BCD date time
       int xoff = 0,
          xlen = 0,
@@ -388,7 +385,7 @@ door_fob (char *id, uint32_t * crcp)
          return "*Door deadlocked";
       return NULL;
    }
-   if (offlinemode)
+   if (revk_offline ())
    {
       if (!fallback)
          return "*Offline, and no fallback";
@@ -590,9 +587,7 @@ task (void *pvParameters)
             output_set (OBEEP, ((now - doortimeout) & 512) ? 1 : 0);
          if (force || doorstate != lastdoorstate)
          {
-#if 0                           // TODO
-            NFC_led (strlen (doorled[doorstate]), doorled[doorstate]);
-#endif
+            nfc_led (strlen (doorled[doorstate]), doorled[doorstate]);
             revk_state ("door", doortimeout && doordebug ? "%s %dms" : "%s", doorstates[doorstate], (int) (doortimeout - now));
             lastdoorstate = doorstate;
          }
@@ -623,7 +618,6 @@ door_init (void)
       doorstate = DOOR_LOCKING;
    lock[0].timeout = 1000;
    lock[1].timeout = 1000;
-   static TaskHandle_t task_id = NULL;
-   xTaskCreatePinnedToCore (task, TAG, 16 * 1024, NULL, 1, &task_id, tskNO_AFFINITY);   // TODO stack, priority, affinity check?
+   revk_task (TAG, task, NULL);
    return true;
 }

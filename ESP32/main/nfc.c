@@ -13,21 +13,21 @@ const char *nfc_tamper = NULL;
 
 // Other settings
 #define settings  \
-  u1(nfccommit); \
-  i8(nfcred,1); \
-  i8(nfcgreen,0); \
-  i8(nfctamper,3); \
-  u16(nfcpoll,50); \
-  u16(nfchold,3000); \
-  u16(nfcholdpoll,500); \
-  u16(nfcledpoll,100); \
-  u16(nfctamperpoll,1000); \
-  b(nfcbus,1); \
-  ba(aes,17,3); \
-  b(aid,3); \
-  p(nfctx); \
-  p(nfcrx); \
-  u8(nfcuart,2); \
+  u1(nfccommit) \
+  i8(nfcred,1) \
+  i8(nfcgreen,0) \
+  i8(nfctamper,3) \
+  u16(nfcpoll,50) \
+  u16(nfchold,3000) \
+  u16(nfcholdpoll,500) \
+  u16(nfcledpoll,100) \
+  u16(nfctamperpoll,1000) \
+  b(nfcbus,1) \
+  ba(aes,17,3) \
+  b(aid,3) \
+  p(nfctx) \
+  p(nfcrx) \
+  u8(nfcuart,2) \
 
 #define i8(n,d) int8_t n;
 #define u8(n,d) uint8_t n;
@@ -48,7 +48,19 @@ settings
 df_t df;
 
 static char held = 0;           // Card was held, also flags pre-loaded for remote card logic
-static char ledpattern[10] = "";
+static uint8_t ledpattern[10] = "";
+
+const char *
+nfc_led (int len, const void *value)
+{
+   if (len > sizeof (ledpattern))
+      len = sizeof (ledpattern);
+   if (len < sizeof (ledpattern))
+      ledpattern[len] = 0;
+   if (len)
+      memcpy (ledpattern, value, len);
+   return "";
+}
 
 static void
 task (void *pvParameters)
@@ -251,15 +263,7 @@ nfc_command (const char *tag, unsigned int len, const unsigned char *value)
       revk_info ("aes", "%02X%02X%02X %s", aid[0], aid[1], aid[2], vers);
    }
    if (!strcmp (tag, "led"))
-   {
-      if (len > sizeof (ledpattern))
-         len = sizeof (ledpattern);
-      if (len < sizeof (ledpattern))
-         ledpattern[len] = 0;
-      if (len)
-         memcpy (ledpattern, value, len);
-      return "";
-   }
+      return nfc_led (len, value);
    if (!strcmp (tag, TAG) && len)
    {
       if (pn532_ready (pn532) >= 0)
@@ -296,9 +300,9 @@ nfc_init (void)
 #undef p
       if (nfctx && nfcrx)
    {
-      const char *e = port_check (port_mask (nfctx), "nfctx", 0);
+      const char *e = port_check (port_mask (nfctx), TAG, 0);
       if (!e)
-         e = port_check (port_mask (nfcrx), "nfcrx", 1);
+         e = port_check (port_mask (nfcrx), TAG, 1);
       if (e)
          status (nfc_fault = e);
       else
@@ -309,8 +313,7 @@ nfc_init (void)
          else
          {
             df_init (&df, pn532, pn532_dx);
-            static TaskHandle_t task_id = NULL;
-            xTaskCreatePinnedToCore (task, TAG, 16 * 1024, NULL, 1, &task_id, tskNO_AFFINITY);  // TODO stack, priority, affinity check?
+            revk_task (TAG, task, pn532);
          }
       }
    } else if (nfcrx || nfctx)

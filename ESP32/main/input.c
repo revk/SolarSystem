@@ -40,6 +40,19 @@ input_active (int p)
    return 1;
 }
 
+void
+input_set (int p, int v)
+{                               // For locally set inputs
+
+   if (p < 1 || p > MAXINPUT)
+      return;
+   p--;
+   if (v)
+      input_raw |= (1ULL << p);
+   else
+      input_raw &= ~(1ULL << p);
+}
+
 int
 input_get (int p)
 {
@@ -47,7 +60,7 @@ input_get (int p)
       return -1;
    p--;
    if (!input[p])
-      return 1;
+      return 0;
    if (input_raw & (1ULL << p))
       return 1;
    return 0;
@@ -129,6 +142,5 @@ input_init (void)
                input_invert |= (1ULL << i);     // TODO can this not be done at hardware level?
          }
       }
-   static TaskHandle_t task_id = NULL;
-   xTaskCreatePinnedToCore (task, TAG, 16 * 1024, NULL, 1, &task_id, tskNO_AFFINITY);   // TODO stack, priority, affinity check?
+   revk_task (TAG, task, NULL);
 }
