@@ -19,9 +19,9 @@ const char *keypad_tamper = NULL;
   u8h(keypadaddress,10)	\
   b(keypaddebug)	\
   b(keypadtamper)	\
-  u8(keypadpre,20)	\
+  u8(keypadpre,40)	\
   u8(keypadpost,40)	\
-  u8(keypadgap,20)	\
+  u8(keypadgap,10)	\
 
 #define commands  \
   f(07,display,32,0) \
@@ -280,7 +280,7 @@ task (void *pvParameters)
          send0C = 0;
          uint8_t *s = sounder;
          uint8_t len = sounder_len;
-         if (revk_offline ())
+         if (revk_offline () > 10)
          {
             if (sounderack)
                len = 0;         // quiet
