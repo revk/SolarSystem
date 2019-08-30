@@ -260,6 +260,13 @@ main (int argc, const char *argv[])
       }
     if (!strcasecmp (m, "nfc"))
       {
+	if (!strncmp (topic, "error/", 6))
+	  {
+	    warnx ("Error %.*s", msg->payloadlen, (char*)msg->payload);
+	    send (sp[0], NULL, 0, 0);	// Indicate card gone
+	    return;
+	  }
+
 	int n;
 	if (debug)
 	  {
@@ -289,6 +296,11 @@ main (int argc, const char *argv[])
     errx (1, "Sub failed");
   free (topic);
   if (asprintf (&topic, "info/SS/%s/+", hexreader) < 0)
+    errx (1, "malloc");
+  if (mosquitto_subscribe (mqtt, NULL, topic, 0))
+    errx (1, "Sub failed");
+  free (topic);
+  if (asprintf (&topic, "error/SS/%s/+", hexreader) < 0)
     errx (1, "malloc");
   if (mosquitto_subscribe (mqtt, NULL, topic, 0))
     errx (1, "Sub failed");

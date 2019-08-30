@@ -141,7 +141,7 @@ task (void *pvParameters)
             } else if (cmd == 0x06 && buf[1] == 0xF4 && p >= 3)
             {                   // Status
                if (keypadtamper && (buf[2] & 0x40))
-                  status (keypad_tamper = "Open");
+                  status (keypad_tamper = "Case open");
                else
                   status (keypad_tamper = NULL);
                if (!send0B)
