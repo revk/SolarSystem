@@ -348,10 +348,7 @@ keypad_init (void)
       if (!g)
          status (keypad_fault = "Init failed");
       else
-      {
-         galaxybus_set_timing (g, 40, 40, 10);
          revk_task (TAG, task, g);
-      }
    } else if (keypadtx || keypadrx || keypadde)
       status (keypad_fault = "Set keypadtx, keypadrx and keypadde");
 }
