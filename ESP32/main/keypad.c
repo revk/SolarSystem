@@ -118,7 +118,7 @@ task (void *pvParameters)
                if (!online)
                {
                   online = 1;
-                  toggle0B = 1;
+                  //toggle0B = 1;
                   toggle07 = 1;
                }
             } else if (buf[1] == 0xF2)
@@ -146,6 +146,7 @@ task (void *pvParameters)
                   status (keypad_tamper = NULL);
                if (!send0B)
                {                // Key
+                  toggle0B = !toggle0B;
                   if (buf[2] == 0x7F)
                   {             // No key
                      if (lastkey & 0x80)
@@ -220,7 +221,6 @@ task (void *pvParameters)
          send0B = 0;
          buf[++p] = 0x0B;
          buf[++p] = toggle0B ? 2 : 0;
-         toggle0B = !toggle0B;
       } else if (lastkey >= 0x7F && (send07 || send07a || send07b || send07c))
       {                         // Text
          buf[++p] = 0x07;
