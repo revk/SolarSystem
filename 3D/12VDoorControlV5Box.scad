@@ -8,7 +8,7 @@ b=5;
 f=11;
 s=2;
 e=1;
-d=0.99;
+d=1;
 
 $fn=100;
 
@@ -21,7 +21,8 @@ module board(base)
     mirror([1,0,0])
     translate([-w/2,-h/2,b+e])
     {
-        cube([w,h,base?100:t]);
+        translate([0,0,base?0:-100])
+        cube([w,h,100+t]);
         translate([0,h2y-2.5-0.75,0])
         cube([8.5,5*4+1.5,12]);
         translate([h1x-3.5/2-1,h1y-4,0])
@@ -34,11 +35,11 @@ module board(base)
         cube([36.5,26,4]);
         translate([14,8,-5])
         cube([17,19,6]);
-        translate([13,8,-1.1])
-        cube([20,28,1.201]);   
+        translate([13.5,8,-1.1])
+        cube([19.5,28,1.201]);   
         for(h=[0:1:2])
         translate([h3x-0.5,h3y+h*6.604-0.5,0])
-        cube([7,7,9]);
+        cube([7,7,8.5]);
     }
 }
 
@@ -79,11 +80,14 @@ module holes()
             cylinder(d=5,h=10); 
         }
         for(h=[0:1:2])
-        translate([h3x+0.5,h3y+h*6.604+0.5,0])
+        translate([h3x,h3y+h*6.604,0])
         {
-            cube([5,5,20]);
+            translate([0.25,0.25,0])
+            cube([5.5,5.5,20]);
             translate([4,1.5,0])
             cube([2,1.5,20]);
+            translate([1.25,5,0])
+            cube([2.5,1,20]);
         }
     }
 }
@@ -94,15 +98,15 @@ module cut()
     {
         union()
         {
-            translate([-w/2-s*2,-h/2-s*2,d-e])
-            cube([w+s*4,h+s*4,e*2+b+t+2]);
+            translate([-w/2-s*2,-h/2-s*2,d-e-2])
+            cube([w+s*4,h+s*4,e*2+b+t+4]);
             translate([-w/2-s/2,-h/2-s/2,d-e])
             cube([w+s,h+s,e*2+b+t+2+s/2]);
         }
         mirror([1,0,0])
         translate([-w/2,-h/2,b+e])
-        translate([13,8,0])
-        cube([20,28,10]);   
+        translate([13.5,8,0])
+        cube([19.5,28,10]);   
     }
 }
 
