@@ -97,6 +97,8 @@ task (void *pvParameters)
                   status (keypad_fault = "Galaxybus Checksum error");
                else if (p == GALAXYBUSTOOBIG)
                   status (keypad_fault = "Galaxybus Too big error");
+               else if (p == GALAXYBREAK)
+                  status (keypad_fault = "Galaxybus break");
                else if (p == GALAXYBUSBUSY)
                   status (keypad_fault = "Galaxybus busy");
                else
@@ -348,10 +350,7 @@ keypad_init (void)
       if (!g)
          status (keypad_fault = "Init failed");
       else
-      {
-         galaxybus_set_timing (g, 40, 40, 10);
          revk_task (TAG, task, g);
-      }
    } else if (keypadtx || keypadrx || keypadde)
       status (keypad_fault = "Set keypadtx, keypadrx and keypadde");
 }
