@@ -19,7 +19,7 @@ const char *keypad_tamper = NULL;
   u8h(keypadaddress,10)	\
   b(keypaddebug)	\
   b(keypadtamper)	\
-  u8(keypadpre,40)	\
+  u8(keypadpre,50)	\
   u8(keypadpost,40)	\
   u8(keypadgap,10)	\
 
@@ -121,7 +121,9 @@ task (void *pvParameters)
                   toggle0B = 1;
                   toggle07 = 1;
                }
-            } else if (buf[1] == 0xFE)
+            } else if (buf[1] == 0xF2)
+               force = 1;       // Error?
+            else if (buf[1] == 0xFE)
             {                   // Idle, no tamper, no key
                status (keypad_tamper = NULL);
                if (!send0B)
