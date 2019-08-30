@@ -85,7 +85,7 @@ task (void *pvParameters)
          static const char keymap[] = "0123456789BAEX*#";
          if (p < 2)
          {
-            if (galaxybusfault++ > 2)
+            if (galaxybusfault++ > 5)
             {
                if (p != GALAXYBUSMISSED)
                   status (keypad_fault = "Galaxybus Rx missed");
@@ -181,7 +181,7 @@ task (void *pvParameters)
 
       if (rxwait)
       {
-         if (galaxybusfault++ > 2)
+         if (galaxybusfault++ > 5)
          {
             status (keypad_fault = "No response");
             online = 0;
