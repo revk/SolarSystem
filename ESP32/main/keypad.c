@@ -19,6 +19,9 @@ const char *keypad_tamper = NULL;
   u8h(keypadaddress,10)	\
   b(keypaddebug)	\
   b(keypadtamper)	\
+  u8(keypadpre,20)	\
+  u8(keypadpost,40)	\
+  u8(keypadgap,20)	\
 
 #define commands  \
   f(07,display,32,0) \
@@ -161,7 +164,7 @@ task (void *pvParameters)
                         revk_event ((buf[2] & 0x80) ? "hold" : "key", "%.1S", keymap + (buf[2] & 0x0F));
                      if (buf[2] & 0x80)
                         keyhold = now + 2000000;
-                     if (!revk_online)
+                     if (revk_offline ())
                      {          // Special case for safe mode (off line)
                         if (buf[2] == 0x0D)
                         {       // ESC in safe mode, shut up
@@ -223,7 +226,7 @@ task (void *pvParameters)
          uint8_t len = display_len;
          uint8_t temp[33];
          uint8_t *dis = display;
-         if (!revk_online)
+         if (revk_offline ())
          {                      // Off line
             len = snprintf ((char *) temp, sizeof (temp), "%-16.16s%-9.9s %6.6s", revk_mqtt (), revk_wifi (), revk_id);
             dis = temp;
@@ -267,7 +270,7 @@ task (void *pvParameters)
       {                         // Key keyclicks
          send19 = 0;
          buf[++p] = 0x19;
-         if (!revk_online)
+         if (revk_offline ())
             buf[++p] = 0x01;    // Sound normal
          else
             buf[++p] = (keyclick[0] & 0x7);     // 0x03 (silent), 0x05 (quiet), or 0x01 (normal)
@@ -277,7 +280,7 @@ task (void *pvParameters)
          send0C = 0;
          uint8_t *s = sounder;
          uint8_t len = sounder_len;
-         if (!revk_online)
+         if (revk_offline ())
          {
             if (sounderack)
                len = 0;         // quiet
@@ -304,7 +307,7 @@ task (void *pvParameters)
       {                         // Light change
          send0D = 0;
          buf[++p] = 0x0D;
-         if (!revk_online)
+         if (revk_offline ())
             buf[++p] = 1;
          else
             buf[++p] = (backlight[0] & 1);
@@ -350,7 +353,10 @@ keypad_init (void)
       if (!g)
          status (keypad_fault = "Init failed");
       else
+      {
+         galaxybus_set_timing (g, keypadpre, keypadpost, keypadgap);
          revk_task (TAG, task, g);
+      }
    } else if (keypadtx || keypadrx || keypadde)
       status (keypad_fault = "Set keypadtx, keypadrx and keypadde");
 }

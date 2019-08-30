@@ -385,7 +385,7 @@ door_fob (char *id, uint32_t * crcp)
          return "*Door deadlocked";
       return NULL;
    }
-   if (!revk_online)
+   if (revk_offline ())
    {
       if (!fallback)
          return "*Offline, and no fallback";
