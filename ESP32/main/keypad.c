@@ -185,8 +185,8 @@ task (void *pvParameters)
          {
             status (keypad_fault = "No response");
             online = 0;
-            rxwait = now + 5000000;
          }
+         rxwait = now + 3000000;
       } else
          rxwait = now + 250000;
 
@@ -349,9 +349,8 @@ keypad_init (void)
          status (keypad_fault = "Init failed");
       else
       {
-         galaxybus_set_timing (g, 30, 30, 10);
-         static TaskHandle_t task_id = NULL;
-         xTaskCreatePinnedToCore (task, TAG, 16 * 1024, g, 1, &task_id, 1);     // TODO stack, priority, affinity check?
+         galaxybus_set_timing (g, 40, 40, 10);
+         revk_task (TAG, task, g);
       }
    } else if (keypadtx || keypadrx || keypadde)
       status (keypad_fault = "Set keypadtx, keypadrx and keypadde");
