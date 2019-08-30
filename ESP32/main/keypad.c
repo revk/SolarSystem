@@ -97,6 +97,8 @@ task (void *pvParameters)
                   status (keypad_fault = "Galaxybus Checksum error");
                else if (p == GALAXYBUSTOOBIG)
                   status (keypad_fault = "Galaxybus Too big error");
+               else if (p == GALAXYBREAK)
+                  status (keypad_fault = "Galaxybus break");
                else if (p == GALAXYBUSBUSY)
                   status (keypad_fault = "Galaxybus busy");
                else
