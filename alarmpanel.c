@@ -4319,8 +4319,6 @@ main (int argc, const char *argv[])
 	  void mqtt_connected (struct mosquitto *mqtt, void *obj, int rc)
 	  {
 	    obj = obj;
-	    if (mosquitto_subscribe (mqtt, NULL, "info/SS/#", 0))
-	      dolog (groups, "MQTT", NULL, NULL, "Subscribe failed");
 	    if (mosquitto_subscribe (mqtt, NULL, "state/SS/#", 0))
 	      dolog (groups, "MQTT", NULL, NULL, "Subscribe failed");
 	    if (mosquitto_subscribe (mqtt, NULL, "event/SS/#", 0))
@@ -4332,9 +4330,9 @@ main (int argc, const char *argv[])
 	    mqtt = mqtt;
 	    obj = obj;
 	    char *t = msg->topic;
-	    if (msg && (!strncmp (t, "state/SS/", 9) || !strncmp (t, "event/SS/", 9) || !strncmp (t, "info/SS/", 8)) && strlen (t + 9) >= 6)
+	    if (msg && (!strncmp (t, "state/SS/", 9) || !strncmp (t, "event/SS/", 9)) && strlen (t + 9) >= 6)
 	      {
-		char *id = strstr (t, "/SS/") + 4;
+		char *id = t + 9;
 		char *tag = id + 6;
 		if (*tag == '/')
 		  tag++;
@@ -4360,30 +4358,43 @@ main (int argc, const char *argv[])
 		  mosquitto_publish (mqtt, NULL, topic, strlen (val ? : ""), val, 1, 0);
 		  free (topic);
 		}
-		if (port && !strncmp (t, "info", 4) && msg->payloadlen >= 1)
-		  {
-		    if (tag && app->config && !strcmp (tag, "aes"))
-		      {		// AES settings, send AID/AES if needed
-			// TODO check AID
-			// TODO work out AES key list and check
-			char *v;
-			v = xml_get (app->config, "@aid") ? : xml_get (config, "system@aid");
-			if (v && strlen (v) == 6)
-			  set ("aid", v);
-			v = xml_get (app->config, "@aes") ? : xml_get (config, "system@aes");
-			if (v && strlen (v) == 32)
-			  {
-			    char *p;
-			    if (asprintf (&p, "01%s", v) < 0)
-			      errx (1, "malloc");
-			    set ("aes1", p);
-			    free (p);
-			  }
-		      }
-		    return;
-		  }
 		if (port && !strncmp (t, "state", 5) && msg->payloadlen >= 1)
 		  {
+		    if (tag && !strcmp (tag, "aes"))
+		      {		// AES settings, send AID/AES if needed
+			if (app->config && msg->payloadlen >= 6)
+			  {
+			    char *v;
+			    v = xml_get (app->config, "@aid") ? : xml_get (config, "system@aid");
+			    if (v && strlen (v) == 6 && strncmp (msg->payload, v, 6))
+			      set ("aid", v);
+			    int i = 0;
+			    v = xml_get (app->config, "@aes") ? : xml_get (config, "system@aes");
+			    if (v && strlen (v) == 32 && msg->payloadlen == 9 && !strncmp (msg->payload + 7, "01", 2))
+			      {
+				char *p;
+				if (asprintf (&p, "01%s", v) < 0)
+				  errx (1, "malloc");
+				set ("aes1", p);
+				free (p);
+				i++;	// We have done aes1
+			      }
+			    for (; i < 9; i++)
+			      {
+				char a[] = "system@aesX";
+				a[10] = '1' + i;
+				v = xml_get (app->config, a + 6) ? : xml_get (config, a);
+				if (v && strlen (v) == 34)
+				  {
+				    if (msg->payloadlen < 9 + i * 2 || strncmp (msg->payload + 7 + 2 * i, v, 2))
+				      set (a + 7, v);
+				  }
+				else if (msg->payloadlen >= 9 + i * 2)
+				  set (a + 7, "");
+			      }
+			  }
+			return;
+		      }
 		    int state = (((char *) msg->payload)[0] > '0' ? 1 : 0);
 		    if (app->invert)
 		      state = 1 - state;
