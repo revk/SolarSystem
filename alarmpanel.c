@@ -4370,7 +4370,7 @@ main (int argc, const char *argv[])
 			      set ("aid", v);
 			    int i = 0;
 			    v = xml_get (app->config, "@aes") ? : xml_get (config, "system@aes");
-			    if (v && strlen (v) == 32 && msg->payloadlen == 9 && !strncmp (msg->payload + 7, "01", 2))
+			    if (v && strlen (v) == 32 && (msg->payloadlen < 9 || strncmp (msg->payload + 7, "01", 2)))
 			      {
 				char *p;
 				if (asprintf (&p, "01%s", v) < 0)
