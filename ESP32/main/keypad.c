@@ -84,7 +84,8 @@ task (void *pvParameters)
          rxwait = 0;
          int p = galaxybus_rx (g, sizeof (buf), buf);
          if (keypaddebug && (!online || p < 2 || buf[1] != 0xFE))
-            revk_info ("Rx", "%d: %02X %02X %02X %02X", p, buf[0], buf[1], buf[2], buf[3]);
+            revk_info ("Rx", "%d: %02X %02X %02X %02X %s", p, buf[0], buf[1], buf[2], buf[3],
+                       p < 0 ? galaxybus_err_to_name (p) : "");
          static const char keymap[] = "0123456789BAEX*#";
          if (p < 2)
          {
@@ -305,8 +306,8 @@ task (void *pvParameters)
       p++;
       cmd = buf[1];
       int l = galaxybus_tx (g, p, buf);
-      if (keypaddebug && buf[1] != 0x06)
-         revk_info ("Tx", "%d: %02X %02X %02X %02X", l, buf[0], buf[1], buf[2], buf[3]);
+      if (keypaddebug && (buf[1] != 0x06 || l < 0))
+         revk_info ("Tx", "%d: %02X %02X %02X %02X %s", p, buf[0], buf[1], buf[2], buf[3], l < 0 ? galaxybus_err_to_name (l) : "");
    }
 }
 
