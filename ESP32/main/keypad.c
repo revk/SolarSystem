@@ -89,6 +89,7 @@ task (void *pvParameters)
          static const char keymap[] = "0123456789BAEX*#";
          if (p < 2)
          {
+            rxwait = now + 3000000;
             if (galaxybusfault++ > 5)
             {
                status (keypad_fault = galaxybus_err_to_name (p));
@@ -308,6 +309,8 @@ task (void *pvParameters)
       int l = galaxybus_tx (g, p, buf);
       if (keypaddebug && (buf[1] != 0x06 || l < 0))
          revk_info ("Tx", "%d: %02X %02X %02X %02X %s", p, buf[0], buf[1], buf[2], buf[3], l < 0 ? galaxybus_err_to_name (l) : "");
+      if (l < 0)
+         rxwait = now + 3000000;
    }
 }
 
