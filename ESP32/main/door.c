@@ -5,7 +5,6 @@ static const char TAG[] = "door";
 const char *door_fault = NULL;
 const char *door_tamper = NULL;
 
-#include <esp_crc.h>
 #include "desfireaes.h"
 
 // Autonomous door control
@@ -224,7 +223,7 @@ door_fob (char *id, uint32_t * crcp)
          *afile = 1;
          afile[1] = 0xA0;       // Blacklist
          if (crcp)
-            *crcp = esp_crc32_be (0, afile + 1, *afile);
+            *crcp = df_crc (*afile, afile + 1);
          if (df.keylen)
          {
             const char *e = df_write_data (&df, 0x0A, 'B', DF_MODE_CMAC, 0, *afile + 1, afile);
@@ -248,7 +247,7 @@ door_fob (char *id, uint32_t * crcp)
       if (e)
          return e;
       if (crcp)
-         *crcp = esp_crc32_be (0, afile + 1, *afile);
+         *crcp = df_crc (*afile, afile + 1);
       // Check access file (expected to exist)
       time_t now = revk_localtime ();
       uint8_t datetime[7];      // BCD date time
@@ -367,7 +366,7 @@ door_fob (char *id, uint32_t * crcp)
          {                      // Changed expiry
             memcpy (afile + xoff, datetime, xlen);
             if (crcp)
-               *crcp = esp_crc32_be (0, afile + 1, *afile);
+               *crcp = df_crc (*afile, afile + 1);
             df_write_data (&df, 0x0A, 'B', DF_MODE_CMAC, xoff, xlen, datetime);
             // We don't really care if this fails, as we get a chance later, this means the access is allowed so will log and commit later
          }

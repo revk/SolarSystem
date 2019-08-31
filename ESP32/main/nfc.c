@@ -251,7 +251,7 @@ task (void *pvParameters)
 const char *
 nfc_command (const char *tag, unsigned int len, const unsigned char *value)
 {
-   if (!strcmp (tag, "connect") && (aid[0] || aid[1] || aid[2]) && *aes[0])
+   if (!strcmp (tag, "connect"))
    {
       char vers[sizeof (aes) / sizeof (*aes) * 2 + 1];
       int i;
@@ -270,14 +270,12 @@ nfc_command (const char *tag, unsigned int len, const unsigned char *value)
          held = 1;
       else
       {
-         if (pn532_ready (pn532) >= 0)
-            return "Busy";      // Currently doing another PN532 function
          uint8_t buf[256];
          if (len > sizeof (buf))
             return "Too big";
          memcpy (buf, value, len);
          const char *err = NULL;
-         int l = pn532_dx (&df, len, buf, sizeof (buf), &err);
+         int l = pn532_dx (pn532, len, buf, sizeof (buf), &err);
          if (l < 0)
             return err ? : "?";
          revk_raw (prefixinfo, TAG, l, buf, 0);
