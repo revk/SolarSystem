@@ -4368,7 +4368,6 @@ main (int argc, const char *argv[])
 			    v = xml_get (app->config, "@aid") ? : xml_get (config, "system@aid");
 			    if (v && strlen (v) == 6 && strncmp (msg->payload, v, 6))
 			      set ("aid", v);
-			    int i = 0;
 			    v = xml_get (app->config, "@aes") ? : xml_get (config, "system@aes");
 			    if (v && strlen (v) == 32 && (msg->payloadlen < 9 || strncmp (msg->payload + 7, "01", 2)))
 			      {
@@ -4377,13 +4376,15 @@ main (int argc, const char *argv[])
 				  errx (1, "malloc");
 				set ("aes1", p);
 				free (p);
-				i++;	// We have done aes1
 			      }
-			    for (; i < 9; i++)
+			    int i = 0;
+			    for (i = 0; i < 9; i++)
 			      {
 				char a[] = "system@aesX";
 				a[10] = '1' + i;
 				v = xml_get (app->config, a + 6) ? : xml_get (config, a);
+				if (!i && !v)
+				  continue;
 				if (v && strlen (v) == 34)
 				  {
 				    if (msg->payloadlen < 9 + i * 2 || strncmp (msg->payload + 7 + 2 * i, v, 2))
