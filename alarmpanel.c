@@ -4351,8 +4351,51 @@ main (int argc, const char *argv[])
 		else
 		  port = port_new (id, 0, 0);	// Device
 		port_app_t *app = port_app (port);
+		void set (const char *tag, const char *val)
+		{
+		  char *topic;
+		  asprintf (&topic, "setting/SS/%s/%s", port->mqtt, tag);
+		  mosquitto_publish (mqtt, NULL, topic, strlen (val ? : ""), val, 1, 0);
+		  free (topic);
+		}
 		if (port && !strncmp (t, "state", 5) && msg->payloadlen >= 1)
 		  {
+		    if (tag && !strcmp (tag, "aes"))
+		      {		// AES settings, send AID/AES if needed
+			if (app->config && msg->payloadlen >= 6)
+			  {
+			    char *v;
+			    v = xml_get (app->config, "@aid") ? : xml_get (config, "system@aid");
+			    if (v && strlen (v) == 6 && strncmp (msg->payload, v, 6))
+			      set ("aid", v);
+			    v = xml_get (app->config, "@aes") ? : xml_get (config, "system@aes");
+			    if (v && strlen (v) == 32 && (msg->payloadlen < 9 || strncmp (msg->payload + 7, "01", 2)))
+			      {
+				char *p;
+				if (asprintf (&p, "01%s", v) < 0)
+				  errx (1, "malloc");
+				set ("aes1", p);
+				free (p);
+			      }
+			    int i = 0;
+			    for (i = 0; i < 9; i++)
+			      {
+				char a[] = "system@aesX";
+				a[10] = '1' + i;
+				v = xml_get (app->config, a + 6) ? : xml_get (config, a);
+				if (!i && !v)
+				  continue;
+				if (v && strlen (v) == 34)
+				  {
+				    if (msg->payloadlen < 9 + i * 2 || strncmp (msg->payload + 7 + 2 * i, v, 2))
+				      set (a + 7, v);
+				  }
+				else if (msg->payloadlen >= 9 + i * 2)
+				  set (a + 7, "");
+			      }
+			  }
+			return;
+		      }
 		    int state = (((char *) msg->payload)[0] > '0' ? 1 : 0);
 		    if (app->invert)
 		      state = 1 - state;
@@ -4366,13 +4409,6 @@ main (int argc, const char *argv[])
 		      }
 		    if (!tag && state)
 		      {		// Load settings
-			void set (const char *tag, const char *val)
-			{
-			  char *topic;
-			  asprintf (&topic, "setting/SS/%s/%s", port->mqtt, tag);
-			  mosquitto_publish (mqtt, NULL, topic, strlen (val ? : ""), val, 1, 0);
-			  free (topic);
-			}
 			{	// Set timezone
 			  char tz[10];
 			  sprintf (tz, "%d", settimezone);
@@ -4429,7 +4465,7 @@ main (int argc, const char *argv[])
 			    }
 			}
 			char *v;
-			if (((v = xml_get (app->config, "@nfc")) || (v = xml_get (app->config, "@nfctx"))) && *v)
+			if ((v = xml_get (app->config, "@nfc")) && *v)
 			  {
 			    v = xml_get (app->config, "@aid") ? : xml_get (config, "system@aid");
 			    if (v && strlen (v) == 6)
