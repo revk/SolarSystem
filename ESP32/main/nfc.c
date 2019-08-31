@@ -98,9 +98,9 @@ task (void *pvParameters)
          } else
          {                      // Check tamper
             if (p3 & (1 << nfctamper))
-               status (nfc_tamper = "Tamper");
-            else
                status (nfc_tamper = NULL);
+            else
+               status (nfc_tamper = "Tamper");
          }
       }
       // LED
@@ -251,6 +251,8 @@ task (void *pvParameters)
 const char *
 nfc_command (const char *tag, unsigned int len, const unsigned char *value)
 {
+   if (!pn532)
+      return NULL;
    if (!strcmp (tag, "connect"))
    {
       char vers[sizeof (aes) / sizeof (*aes) * 2 + 1];
@@ -260,7 +262,7 @@ nfc_command (const char *tag, unsigned int len, const unsigned char *value)
       while (i && !aes[i - 1][0])
          i--;
       vers[i * 2] = 0;
-      revk_info ("aes", "%02X%02X%02X %s", aid[0], aid[1], aid[2], vers);
+      revk_state ("aes", "%02X%02X%02X %s", aid[0], aid[1], aid[2], vers);
    }
    if (!strcmp (tag, "led"))
       return nfc_led (len, value);

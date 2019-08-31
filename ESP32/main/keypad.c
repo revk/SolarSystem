@@ -90,22 +90,7 @@ task (void *pvParameters)
          {
             if (galaxybusfault++ > 5)
             {
-               if (p != GALAXYBUSMISSED)
-                  status (keypad_fault = "Galaxybus Rx missed");
-               else if (p == GALAXYBUSSTARTBIT)
-                  status (keypad_fault = "Galaxybus Start bit error");
-               else if (p == GALAXYBUSSTOPBIT)
-                  status (keypad_fault = "Galaxybus Stop bit error");
-               else if (p == GALAXYBUSCHECKSUM)
-                  status (keypad_fault = "Galaxybus Checksum error");
-               else if (p == GALAXYBUSTOOBIG)
-                  status (keypad_fault = "Galaxybus Too big error");
-               else if (p == GALAXYBUSBREAK)
-                  status (keypad_fault = "Galaxybus break");
-               else if (p == GALAXYBUSBUSY)
-                  status (keypad_fault = "Galaxybus busy");
-               else
-                  status (keypad_fault = "Bad response");
+               status (keypad_fault = galaxybus_err_to_name (p));
                online = 0;
             }
          } else
@@ -330,7 +315,7 @@ keypad_init (void)
 {
 #define u8(n,d) revk_register(#n,0,sizeof(n),&n,#d,0);
 #define u8h(n,d) revk_register(#n,0,sizeof(n),&n,#d,SETTING_HEX);
-#define b(n) revk_register(#n,0,sizeof(n),&n,NULL,SETTING_BOOLEAN);
+#define b(n) revk_register(#n,0,sizeof(n),&n,NULL,SETTING_BOOLEAN|SETTING_LIVE);
 #define p(n) revk_register(#n,0,sizeof(n),&n,NULL,SETTING_SET);
    settings
 #undef u8
