@@ -19,9 +19,10 @@ const char *keypad_tamper = NULL;
   u8h(keypadaddress,10)	\
   b(keypaddebug)	\
   b(keypadtamper)	\
-  u8(keypadpre,50)	\
-  u8(keypadpost,40)	\
-  u8(keypadgap,10)	\
+  u8(keypadtxpre,50)	\
+  u8(keypadtxpost,40)	\
+  u8(keypadrxpre,50)	\
+  u8(keypadrxpost,10)	\
 
 #define commands  \
   f(07,display,32,0) \
@@ -94,7 +95,7 @@ task (void *pvParameters)
                status (keypad_fault = galaxybus_err_to_name (p));
                online = 0;
             }
-	    sleep(1);
+            sleep (1);
          } else
          {
             galaxybusfault = 0;
@@ -309,7 +310,11 @@ task (void *pvParameters)
       int l = galaxybus_tx (g, p, buf);
       if (keypaddebug && (buf[1] != 0x06 || l < 0))
          revk_info ("Tx", "%d: %02X %02X %02X %02X %s", p, buf[0], buf[1], buf[2], buf[3], l < 0 ? galaxybus_err_to_name (l) : "");
-      if (l < 0)sleep(1);
+      if (l < 0)
+      {
+         sleep (1);
+         rxwait = 0;
+      }
    }
 }
 
@@ -344,7 +349,7 @@ keypad_init (void)
          status (keypad_fault = "Init failed");
       else
       {
-         galaxybus_set_timing (g, keypadpre, keypadpost, keypadgap);
+         galaxybus_set_timing (g, keypadtxpre, keypadtxpost, keypadrxpre, keypadrxpost);
          revk_task (TAG, task, g);
       }
    } else if (keypadtx || keypadrx || keypadde)
