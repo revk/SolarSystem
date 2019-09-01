@@ -154,7 +154,7 @@ task (void *pvParameters)
                      if (!(buf[2] & 0x80) || buf[2] != lastkey)
                         revk_event ((buf[2] & 0x80) ? "hold" : "key", "%.1S", keymap + (buf[2] & 0x0F));
                      if (buf[2] & 0x80)
-                        keyhold = now + 2000000;
+                        keyhold = now + 2000000LL;
                      if (revk_offline ())
                      {          // Special case for safe mode (off line)
                         if (buf[2] == 0x0D)
@@ -182,9 +182,9 @@ task (void *pvParameters)
             status (keypad_fault = "No response");
             online = 0;
          }
-         rxwait = now + 3000000;
+         rxwait = now + 3000000LL;
       } else
-         rxwait = now + 250000;
+         rxwait = now + 250000LL;
 
       // Tx
       if (force || galaxybusfault || !online)
