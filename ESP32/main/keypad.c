@@ -78,7 +78,7 @@ task (void *pvParameters)
       static uint8_t lastkey = 0x7F;
       static uint8_t sounderack = 0;
       static unsigned int galaxybusfault = 0;
-      static unsigned int rxwait = 0;
+      static int64_t rxwait = 0;
 
       if (galaxybus_ready (g))
       {                         // Receiving
@@ -100,7 +100,7 @@ task (void *pvParameters)
          {
             galaxybusfault = 0;
             status (keypad_fault = NULL);
-            static long keyhold = 0;
+            static int64_t keyhold = 0;
             if (cmd == 0x00 && buf[1] == 0xFF && p >= 5)
             {                   // Set up response
                if (!online)
