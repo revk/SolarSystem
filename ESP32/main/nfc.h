@@ -4,4 +4,4 @@
 #include "pn532.h"
 extern pn532_t *pn532;
 extern df_t df;
-extern const char * nfc_led(int len,const void *value);
+extern const char *nfc_led (int len, const void *value);

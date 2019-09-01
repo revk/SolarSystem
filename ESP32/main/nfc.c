@@ -82,7 +82,7 @@ task (void *pvParameters)
       // Check tamper
       if (nexttamper < now && nfctamper >= 0)
       {                         // Check tamper
-         nexttamper = now + (uint64_t) nfctamperpoll *1000;;
+         nexttamper = now + (uint64_t) nfctamperpoll *1000LL;
          int p3 = pn532_read_GPIO (pn532);
          if (p3 < 0)
          {                      // Failed
@@ -98,15 +98,15 @@ task (void *pvParameters)
          } else
          {                      // Check tamper
             if (p3 & (1 << nfctamper))
-               status (nfc_tamper = "Tamper");
-            else
                status (nfc_tamper = NULL);
+            else
+               status (nfc_tamper = "Tamper");
          }
       }
       // LED
       if (nextled < now)
       {                         // Check LED
-         nextled = now + (uint64_t) nfcledpoll *1000;;
+         nextled = now + (uint64_t) nfcledpoll *1000LL;
          ledpos++;
          if (ledpos >= sizeof (ledpattern) || !ledpattern[ledpos] || !*ledpattern)
             ledpos = 0;
@@ -122,7 +122,7 @@ task (void *pvParameters)
       // Card
       if (nextpoll < now)
       {                         // Check for card
-         nextpoll = now + (uint64_t) nfcpoll *1000;
+         nextpoll = now + (uint64_t) nfcpoll *1000LL;
          if (found && !pn532_Present (pn532))
          {                      // Card gone
             if (held && nfchold)
@@ -132,7 +132,7 @@ task (void *pvParameters)
          }
          if (found)
          {
-            nextpoll = now + (int64_t) nfcholdpoll *1000;       // Periodic check for card held
+            nextpoll = now + (int64_t) nfcholdpoll *1000LL;     // Periodic check for card held
             if (!held && found < now)
             {                   // Card has been held for a while, report
                revk_event ("held", "%s", id);
@@ -145,7 +145,7 @@ task (void *pvParameters)
          int cards = pn532_Cards (pn532);
          if (cards > 0)
          {
-            nextpoll = now + (int64_t) nfcholdpoll *1000;       // Periodic check for card held
+            nextpoll = now + (int64_t) nfcholdpoll *1000LL;     // Periodic check for card held
             noaccess = "";      // Assume no auto access (not an error)
             uint8_t aesid = 0;
             const char *e = NULL;
@@ -222,7 +222,7 @@ task (void *pvParameters)
                   door_unlock (NULL);   // Door system was happy with fob, let 'em in
                } else if (door >= 4)
                   pn532_write_GPIO (pn532, ledlast = (nfcred >= 0 && !(ledlast & (1 << nfcred)) ? (1 << nfcred) : 0));  // Blink red
-               nextled = now + 200000;
+               nextled = now + 200000LL;
                // Report
                if (door >= 4 || !noaccess)
                {                // Autonomous door control
@@ -241,7 +241,7 @@ task (void *pvParameters)
                   if (e && strcmp (e, "PN532_ERR_TIMEOUT"))
                      revk_error (TAG, "%s", e); // Log new error anyway, unless simple timeout
                }
-               found = now + (uint64_t) nfchold *1000;
+               found = now + (uint64_t) nfchold *1000LL;
             }
          }
       }
@@ -251,6 +251,8 @@ task (void *pvParameters)
 const char *
 nfc_command (const char *tag, unsigned int len, const unsigned char *value)
 {
+   if (!pn532)
+      return NULL;
    if (!strcmp (tag, "connect"))
    {
       char vers[sizeof (aes) / sizeof (*aes) * 2 + 1];
@@ -260,7 +262,7 @@ nfc_command (const char *tag, unsigned int len, const unsigned char *value)
       while (i && !aes[i - 1][0])
          i--;
       vers[i * 2] = 0;
-      revk_info ("aes", "%02X%02X%02X %s", aid[0], aid[1], aid[2], vers);
+      revk_state ("aes", "%02X%02X%02X %s", aid[0], aid[1], aid[2], vers);
    }
    if (!strcmp (tag, "led"))
       return nfc_led (len, value);

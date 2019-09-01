@@ -360,7 +360,7 @@ door_fob (char *id, uint32_t * crcp)
          return "";             // Quiet about this as normal for system controlled disarm
       if (xdays && xoff && xlen <= 7 && df.keylen)
       {                         // Update expiry
-         now += 86400 * xdays;
+         now += 86400LL * (int64_t) xdays;
          bcdtime (now, datetime);
          if (memcmp (datetime, afile + xoff, xlen) > 0)
          {                      // Changed expiry
@@ -434,7 +434,7 @@ task (void *pvParameters)
       uint8_t iopen = input_get (IOPEN);
       if ((int) (doornext - now) < 0)
       {
-         doornext = now + doorpoll;
+         doornext = now + (int64_t) doorpoll;
          {                      // Check locks
             int l;
             for (l = 0; l < 2; l++)
@@ -452,11 +452,11 @@ task (void *pvParameters)
                {                // Lock state tracking
                   if (((iopen && last == LOCK_LOCKING) || lock[l].o) && !o)
                   {             // Change to lock - timer constantly restarted if door is open as it will not actually engage
-                     lock[l].timeout = ((now + doorlock) ? : 1);
+                     lock[l].timeout = ((now + (int64_t) doorlock) ? : 1);
                      lock[l].state = LOCK_LOCKING;
                   } else if (o && !lock[l].o)
                   {             // Change to unlock
-                     lock[l].timeout = ((now + doorunlock) ? : 1);
+                     lock[l].timeout = ((now + (int64_t) doorunlock) ? : 1);
                      lock[l].state = LOCK_UNLOCKING;
                   }
                   if (lock[l].timeout)
@@ -513,11 +513,11 @@ task (void *pvParameters)
          if (doorstate != lastdoorstate)
          {                      // State change - set timerout
             if (doorstate == DOOR_OPEN)
-               doortimeout = (now + doorprop ? : 1);
+               doortimeout = (now + (int64_t) doorprop ? : 1);
             else if (doorstate == DOOR_CLOSED)
-               doortimeout = (now + doorclose ? : 1);
+               doortimeout = (now + (int64_t) doorclose ? : 1);
             else if (doorstate == DOOR_UNLOCKED)
-               doortimeout = (now + dooropen ? : 1);
+               doortimeout = (now + (int64_t) dooropen ? : 1);
             else
                doortimeout = 0;
             output_set (OBEEP, doorstate == DOOR_UNLOCKED && doorbeep ? 1 : 0);
@@ -540,7 +540,7 @@ task (void *pvParameters)
          {
             if (!exit1)
             {
-               exit1 = (now + doorexit ? : 1);
+               exit1 = (now + (int64_t) doorexit ? : 1);
                if (door >= 2 && !doordeadlock)
                   door_unlock (NULL);
             }
@@ -551,7 +551,7 @@ task (void *pvParameters)
          {
             if (!exit2)
             {
-               exit2 = (now + doorexit ? : 1);
+               exit2 = (now + (int64_t) doorexit ? : 1);
                if (door >= 2 && !doordeadlock)
                   door_unlock (NULL);
             }

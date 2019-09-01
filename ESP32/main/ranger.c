@@ -81,7 +81,7 @@ task (void *pvParameters)
       int64_t now = esp_timer_get_time ();
       if (next > now)
          usleep ((now - next) / 1000);
-      next = now + (int64_t) rangerpoll *1000;
+      next = now + (int64_t) rangerpoll *1000LL;
       uint32_t range = vl53l0x_readRangeContinuousMillimeters (v);
       if (range > rangerfar)
          range = rangerfar;
@@ -124,7 +124,7 @@ task (void *pvParameters)
                buttonfar = 1;
                change = 1;
             }
-            endlong = now + (int64_t) rangerhold *1000;
+            endlong = now + (int64_t) rangerhold *1000LL;
          } else if (endlong < now)
          {                      // Not moved, and we have reached timeout for motion
             if (buttonfar)
