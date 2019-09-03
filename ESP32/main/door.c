@@ -425,6 +425,21 @@ static void
 task (void *pvParameters)
 {                               // Main RevK task
    pvParameters = pvParameters;
+   sleep (1);
+   if (input_get (IOPEN))
+   {
+      doorstate = DOOR_OPEN;
+      output_set (OUNLOCK + 0, 1);      // Start with unlocked doors
+      output_set (OUNLOCK + 1, 1);
+   } else
+   {
+      int64_t now = esp_timer_get_time ();
+      doorstate = DOOR_LOCKING;
+      output_set (OUNLOCK + 0, 0);      // Start with locked doors
+      output_set (OUNLOCK + 1, 0);
+      lock[0].timeout = now + (int64_t) doorlock *1000LL;
+      lock[1].timeout = now + (int64_t) doorlock *1000LL;
+   }
    while (1)
    {
       usleep (1000);            // ms
@@ -614,19 +629,6 @@ door_init (void)
 #undef u1
       if (!door)
       return false;             // No door control in operation
-   if (input_get (IOPEN))
-   {
-      doorstate = DOOR_OPEN;
-      output_set (OUNLOCK + 0, 0);      // Start with unlocked doors
-      output_set (OUNLOCK + 1, 0);
-   } else
-   {
-      doorstate = DOOR_LOCKING;
-      output_set (OUNLOCK + 0, 1);      // Start with locked doors
-      output_set (OUNLOCK + 1, 1);
-   }
-   lock[0].timeout = 1000000;
-   lock[1].timeout = 1000000;
    revk_task (TAG, task, NULL);
    return true;
 }
