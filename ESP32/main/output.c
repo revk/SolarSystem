@@ -37,12 +37,13 @@ output_set (int p, int v)
    if (v)
    {
       v = 1;
-      if (output_state & (1ULL << p) && (output_unheld & (1ULL << p)))
+      if ((output_state & (1ULL << p)) && (output_unheld & (1ULL << p)))
          return;                // No change
       output_state |= (1ULL << p);
-   } else if (!(output_state & (1ULL << p)) && (output_unheld & (1ULL << p)))
+   } else
    {
-      return;                   // No change
+      if (!(output_state & (1ULL << p)) && (output_unheld & (1ULL << p)))
+         return;                // No change
       output_state &= ~(1ULL << p);
    }
    if (output[p])
