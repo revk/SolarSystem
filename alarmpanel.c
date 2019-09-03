@@ -4453,6 +4453,7 @@ main (int argc, const char *argv[])
 			    "@doorunlock",
 			    "@doorexit",
 			    "@doorbeep",
+			    "@doorsilent",
 			  };
 			  xml_t system = xml_element_next_by_name (config, NULL, "system");
 			  if (system)
