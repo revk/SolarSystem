@@ -61,6 +61,7 @@ output_get (int p)
 {
    if (p < 1 || p > MAXOUTPUT)
       return -1;
+   p--;
    if (!(output_unheld & (1ULL << p)))
       return -1;
    if (output_state & (1ULL << p))

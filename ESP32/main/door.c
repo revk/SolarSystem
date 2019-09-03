@@ -34,16 +34,16 @@ uint8_t afile[256];             // Access file saved
 
 #define settings  \
   u8(door,0);   \
-  u16(doorunlock,1000); \
-  u16(doorlock,3000); \
-  u16(dooropen,5000); \
-  u16(doorclose,500); \
-  u16(doorprop,60000); \
-  u16(doorexit,60000); \
-  u16(doorpoll,100); \
-  u16(doorbeep,1); \
-  u16(lockdebounce,100); \
+  u32(doorunlock,1000); \
+  u32(doorlock,3000); \
+  u32(dooropen,5000); \
+  u32(doorclose,500); \
+  u32(doorprop,60000); \
+  u32(doorexit,60000); \
+  u32(doorpoll,100); \
+  u32(lockdebounce,100); \
   u1(doordebug); \
+  u1(doorsilent); \
   t(fallback); \
   t(blacklist); \
 
@@ -120,10 +120,10 @@ struct
    uint8_t o,
      i;
    uint8_t state;
-   uint64_t timeout;
-} lock[2] =
-{
-0};
+   int64_t timeout;
+} lock[2] = {
+   0
+};
 
 uint8_t doorstate = -1;
 uint8_t doordeadlock = true;
@@ -141,6 +141,8 @@ door_access (const uint8_t * a)
    const char *e = df_write_data (&df, 0x0A, 'B', DF_MODE_CMAC, 0, *afile + 1, afile);
    if (!e)
       e = df_commit (&df);
+   if (!e)
+      return "";
    return e;
 }
 
@@ -422,18 +424,20 @@ door_command (const char *tag, unsigned int len, const unsigned char *value)
 static void
 task (void *pvParameters)
 {                               // Main RevK task
+   output_set (OUNLOCK + 0, 0); // Start with locked doors
+   output_set (OUNLOCK + 1, 0);
    pvParameters = pvParameters;
    while (1)
    {
       usleep (1000);            // ms
-      uint8_t force = resend;
-      resend = 0;
       int64_t now = esp_timer_get_time () / 1000;
       static uint64_t doornext = 0;
       static uint8_t lastdoorstate = -1;
       uint8_t iopen = input_get (IOPEN);
       if ((int) (doornext - now) < 0)
       {
+         uint8_t force = resend;
+         resend = 0;
          doornext = now + (int64_t) doorpoll;
          {                      // Check locks
             int l;
@@ -442,7 +446,7 @@ task (void *pvParameters)
                uint8_t last = lock[l].state;
                uint8_t o = output_get (OUNLOCK + l),
                   i = input_get (IUNLOCK + l);
-               if (!output_active (OUNLOCK + l))
+               if (output_active (OUNLOCK + l) < 1)
                {
                   if (!input_active (IUNLOCK + l))
                      lock[l].state = (o ? LOCK_UNLOCKED : LOCK_LOCKED); // No input or output, just track output
@@ -478,7 +482,7 @@ task (void *pvParameters)
                lock[l].i = i;
                if (doordebug && (force || last != lock[l].state))
                   revk_state (l ? "deadlock" : "lock", lock[l].timeout ? "%s %dms" : "%s", lockstates[lock[l].state],
-                              (int) (lock[l].timeout - now));
+                              (int) (lock[l].timeout - now) / 1000);
             }
          }
          static long doortimeout = 0;
@@ -520,7 +524,7 @@ task (void *pvParameters)
                doortimeout = (now + (int64_t) dooropen ? : 1);
             else
                doortimeout = 0;
-            output_set (OBEEP, doorstate == DOOR_UNLOCKED && doorbeep ? 1 : 0);
+            output_set (OBEEP, doorstate == DOOR_UNLOCKED && !doorsilent ? 1 : 0);
          } else if (doortimeout && (int) (doortimeout - now) < 0)
          {                      // timeout
             output_set (OBEEP, 0);
@@ -587,7 +591,8 @@ task (void *pvParameters)
          if (force || doorstate != lastdoorstate)
          {
             nfc_led (strlen (doorled[doorstate]), doorled[doorstate]);
-            revk_state ("door", doortimeout && doordebug ? "%s %dms" : "%s", doorstates[doorstate], (int) (doortimeout - now));
+            revk_state ("door", doortimeout
+                        && doordebug ? "%s %dms" : "%s", doorstates[doorstate], (int) (doortimeout - now) / 1000);
             lastdoorstate = doorstate;
          }
          output_set (OERROR, door_tamper || door_fault);
