@@ -19,9 +19,10 @@ const char *keypad_tamper = NULL;
   u8h(keypadaddress,10)	\
   b(keypaddebug)	\
   b(keypadtamper)	\
-  u8(keypadpre,50)	\
-  u8(keypadpost,40)	\
-  u8(keypadgap,10)	\
+  u8(keypadtxpre,50)	\
+  u8(keypadtxpost,40)	\
+  u8(keypadrxpre,50)	\
+  u8(keypadrxpost,10)	\
 
 #define commands  \
   f(07,display,32,0) \
@@ -77,42 +78,29 @@ task (void *pvParameters)
       static uint8_t lastkey = 0x7F;
       static uint8_t sounderack = 0;
       static unsigned int galaxybusfault = 0;
-      static unsigned int rxwait = 0;
+      static int64_t rxwait = 0;
 
       if (galaxybus_ready (g))
       {                         // Receiving
          rxwait = 0;
          int p = galaxybus_rx (g, sizeof (buf), buf);
          if (keypaddebug && (!online || p < 2 || buf[1] != 0xFE))
-            revk_info ("Rx", "%d: %02X %02X %02X %02X", p, buf[0], buf[1], buf[2], buf[3]);
+            revk_info ("Rx", "%d: %02X %02X %02X %02X %s", p, buf[0], buf[1], buf[2], buf[3],
+                       p < 0 ? galaxybus_err_to_name (p) : "");
          static const char keymap[] = "0123456789BAEX*#";
          if (p < 2)
          {
             if (galaxybusfault++ > 5)
             {
-               if (p != GALAXYBUSMISSED)
-                  status (keypad_fault = "Galaxybus Rx missed");
-               else if (p == GALAXYBUSSTARTBIT)
-                  status (keypad_fault = "Galaxybus Start bit error");
-               else if (p == GALAXYBUSSTOPBIT)
-                  status (keypad_fault = "Galaxybus Stop bit error");
-               else if (p == GALAXYBUSCHECKSUM)
-                  status (keypad_fault = "Galaxybus Checksum error");
-               else if (p == GALAXYBUSTOOBIG)
-                  status (keypad_fault = "Galaxybus Too big error");
-               else if (p == GALAXYBUSBREAK)
-                  status (keypad_fault = "Galaxybus break");
-               else if (p == GALAXYBUSBUSY)
-                  status (keypad_fault = "Galaxybus busy");
-               else
-                  status (keypad_fault = "Bad response");
+               status (keypad_fault = galaxybus_err_to_name (p));
                online = 0;
             }
+            sleep (1);
          } else
          {
             galaxybusfault = 0;
             status (keypad_fault = NULL);
-            static long keyhold = 0;
+            static int64_t keyhold = 0;
             if (cmd == 0x00 && buf[1] == 0xFF && p >= 5)
             {                   // Set up response
                if (!online)
@@ -166,7 +154,7 @@ task (void *pvParameters)
                      if (!(buf[2] & 0x80) || buf[2] != lastkey)
                         revk_event ((buf[2] & 0x80) ? "hold" : "key", "%.1S", keymap + (buf[2] & 0x0F));
                      if (buf[2] & 0x80)
-                        keyhold = now + 2000000;
+                        keyhold = now + 2000000LL;
                      if (revk_offline ())
                      {          // Special case for safe mode (off line)
                         if (buf[2] == 0x0D)
@@ -194,9 +182,9 @@ task (void *pvParameters)
             status (keypad_fault = "No response");
             online = 0;
          }
-         rxwait = now + 3000000;
+         rxwait = now + 3000000LL;
       } else
-         rxwait = now + 250000;
+         rxwait = now + 250000LL;
 
       // Tx
       if (force || galaxybusfault || !online)
@@ -320,8 +308,13 @@ task (void *pvParameters)
       p++;
       cmd = buf[1];
       int l = galaxybus_tx (g, p, buf);
-      if (keypaddebug && buf[1] != 0x06)
-         revk_info ("Tx", "%d: %02X %02X %02X %02X", l, buf[0], buf[1], buf[2], buf[3]);
+      if (keypaddebug && (buf[1] != 0x06 || l < 0))
+         revk_info ("Tx", "%d: %02X %02X %02X %02X %s", p, buf[0], buf[1], buf[2], buf[3], l < 0 ? galaxybus_err_to_name (l) : "");
+      if (l < 0)
+      {
+         sleep (1);
+         rxwait = 0;
+      }
    }
 }
 
@@ -330,7 +323,7 @@ keypad_init (void)
 {
 #define u8(n,d) revk_register(#n,0,sizeof(n),&n,#d,0);
 #define u8h(n,d) revk_register(#n,0,sizeof(n),&n,#d,SETTING_HEX);
-#define b(n) revk_register(#n,0,sizeof(n),&n,NULL,SETTING_BOOLEAN);
+#define b(n) revk_register(#n,0,sizeof(n),&n,NULL,SETTING_BOOLEAN|SETTING_LIVE);
 #define p(n) revk_register(#n,0,sizeof(n),&n,NULL,SETTING_SET);
    settings
 #undef u8
@@ -356,7 +349,7 @@ keypad_init (void)
          status (keypad_fault = "Init failed");
       else
       {
-         galaxybus_set_timing (g, keypadpre, keypadpost, keypadgap);
+         galaxybus_set_timing (g, keypadtxpre, keypadtxpost, keypadrxpre, keypadrxpost);
          revk_task (TAG, task, g);
       }
    } else if (keypadtx || keypadrx || keypadde)

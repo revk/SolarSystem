@@ -107,7 +107,7 @@ task (void *pvParameters)
             if (v != ((input_raw >> i) & 1))
             {                   // Change of raw state
                input_raw = ((input_raw & ~(1ULL << i)) | ((uint64_t) v << i));
-               input_hold[i] = now + inputhold * 1000;
+               input_hold[i] = now + (int64_t) inputhold *1000LL;
             }
          }
       // Sleep

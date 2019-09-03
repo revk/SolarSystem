@@ -1,5 +1,4 @@
 #
-# "main" pseudo-component makefile.
+#"main" pseudo-component makefile.
 #
-# (Uses default behaviour of compiling all source files in directory, adding 'include' to include path.)
-
+#(Uses default behaviour of compiling all source files in directory, adding 'include' to include path.)

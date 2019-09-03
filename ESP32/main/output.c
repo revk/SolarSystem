@@ -37,12 +37,13 @@ output_set (int p, int v)
    if (v)
    {
       v = 1;
-      if (output_state & (1ULL << p) && (output_unheld & (1ULL << p)))
+      if ((output_state & (1ULL << p)) && (output_unheld & (1ULL << p)))
          return;                // No change
       output_state |= (1ULL << p);
-   } else if (!(output_state & (1ULL << p)) && (output_unheld & (1ULL << p)))
+   } else
    {
-      return;                   // No change
+      if (!(output_state & (1ULL << p)) && (output_unheld & (1ULL << p)))
+         return;                // No change
       output_state &= ~(1ULL << p);
    }
    if (output[p])
@@ -60,6 +61,7 @@ output_get (int p)
 {
    if (p < 1 || p > MAXOUTPUT)
       return -1;
+   p--;
    if (!(output_unheld & (1ULL << p)))
       return -1;
    if (output_state & (1ULL << p))
