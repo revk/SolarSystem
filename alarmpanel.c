@@ -43,6 +43,8 @@
 #include <galaxybus.h>
 #include <axl.h>
 #include <dataformat.h>
+#include <openssl/evp.h>
+#include <desfireaes.h>
 #include <afile.h>
 #ifdef	LIBEMAIL
 #include <libemail.h>
@@ -309,8 +311,8 @@ struct user_s
   user_t *next;
   xml_t config;
   time_t afiledate;
-  const unsigned char *afile;	// Access file
-  unsigned int afilecrc;
+  unsigned char *afile;		// Access file
+  char afilecrc[9];
   char *name;
   char *fullname;
   char *hash;
@@ -1416,9 +1418,11 @@ load_config (const char *configfile)
       user_t *u = malloc (sizeof (*u));
       memset (u, 0, sizeof (*u));
       u->config = x;
+      if (u->afile)
+	free (u->afile);
       u->afiledate = time (0) / 86400 * 86400 + 86400;
       u->afile = getafile (config, u->config, 0, 0);
-      u->afilecrc = df_crc(
+      sprintf (u->afilecrc, "%08X", df_crc (*u->afile, u->afile + 1));
       u->name = xml_copy (x, "@name");
       u->fullname = xml_copy (x, "@full-name");
       if ((v = xml_get (x, "@pin")))
@@ -3526,11 +3530,16 @@ doevent (event_t * e)
 	      break;
 	  }
 	if (u && u->afiledate < time (0))
-	  {
+	  {			// Update CRC
+	    if (u->afile)
+	      free (u->afile);
 	    u->afiledate = time (0) / 86400 * 86400 + 86400;
 	    u->afile = getafile (config, u->config, 0, 0);
+	    sprintf (u->afilecrc, "%08X", df_crc (*u->afile, u->afile + 1));
 	  }
 	const unsigned char *afile = (u ? u->afile : NULL);
+	if (u && e->message && !strncmp (u->afilecrc, e->message, 8))
+	  afile = NULL;		// Matches
 	if (u && e->event != EVENT_FOB_HELD)
 	  {			// Time constraints
 	    time_t now = time (0);
@@ -4559,6 +4568,8 @@ main (int argc, const char *argv[])
 			  e->event = EVENT_FOB_NOACCESS;
 			else if (!strcmp (tag, "nfcfail"))
 			  e->event = EVENT_FOB_FAIL;
+			while (l < msg->payloadlen && ((char *) msg->payload)[l] == ' ')
+			  l++;
 			if (l < msg->payloadlen)
 			  asprintf ((char **) &e->message, "%.*s", msg->payloadlen - l, ((char *) msg->payload) + l);
 			e->port = port;
