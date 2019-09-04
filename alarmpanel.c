@@ -3540,6 +3540,8 @@ doevent (event_t * e)
 	const unsigned char *afile = (u ? u->afile : NULL);
 	if (u && e->message && !strncmp (u->afilecrc, e->message, 8))
 	  afile = NULL;		// Matches
+	if (afile)
+	  dolog (groups, "FOBUPDATE", NULL, port_name (port), "Fob access file update %s%s", e->fob, secure ? " (secure)" : "");
 	if (u && e->event != EVENT_FOB_HELD)
 	  {			// Time constraints
 	    time_t now = time (0);
