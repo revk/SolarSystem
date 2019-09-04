@@ -34,16 +34,16 @@ uint8_t afile[256];             // Access file saved
 
 #define settings  \
   u8(door,0);   \
-  u16(doorunlock,1000); \
-  u16(doorlock,3000); \
-  u16(dooropen,5000); \
-  u16(doorclose,500); \
-  u16(doorprop,60000); \
-  u16(doorexit,60000); \
-  u16(doorpoll,100); \
-  u16(doorbeep,1); \
-  u16(lockdebounce,100); \
+  u32(doorunlock,1000); \
+  u32(doorlock,3000); \
+  u32(dooropen,5000); \
+  u32(doorclose,500); \
+  u32(doorprop,60000); \
+  u32(doorexit,60000); \
+  u32(doorpoll,100); \
+  u32(lockdebounce,100); \
   u1(doordebug); \
+  u1(doorsilent); \
   t(fallback); \
   t(blacklist); \
 
@@ -120,10 +120,10 @@ struct
    uint8_t o,
      i;
    uint8_t state;
-   uint64_t timeout;
-} lock[2] =
-{
-0};
+   int64_t timeout;
+} lock[2] = {
+   0
+};
 
 uint8_t doorstate = -1;
 uint8_t doordeadlock = true;
@@ -132,15 +132,17 @@ const char *
 door_access (const uint8_t * a)
 {                               // Confirm access
    if (!a)
-      return NULL;              // No action
+      return "";                // No action
    if (*a == *afile && !memcmp (a + 1, afile + 1, *afile))
-      return NULL;              // Same
+      return "";                // Same
    if (!df.keylen)
-      return NULL;
+      return "";
    memcpy (afile, a, *a + 1);
    const char *e = df_write_data (&df, 0x0A, 'B', DF_MODE_CMAC, 0, *afile + 1, afile);
    if (!e)
       e = df_commit (&df);
+   if (!e)
+      return "";
    return e;
 }
 
@@ -423,18 +425,33 @@ static void
 task (void *pvParameters)
 {                               // Main RevK task
    pvParameters = pvParameters;
+   sleep (1);
+   if (input_get (IOPEN))
+   {
+      doorstate = DOOR_OPEN;
+      output_set (OUNLOCK + 0, 1);      // Start with unlocked doors
+      output_set (OUNLOCK + 1, 1);
+   } else
+   {
+      int64_t now = esp_timer_get_time ();
+      doorstate = DOOR_LOCKING;
+      output_set (OUNLOCK + 0, 0);      // Start with locked doors
+      output_set (OUNLOCK + 1, 0);
+      lock[0].timeout = now + (int64_t) doorlock *1000LL;
+      lock[1].timeout = now + (int64_t) doorlock *1000LL;
+   }
    while (1)
    {
       usleep (1000);            // ms
-      uint8_t force = resend;
-      resend = 0;
-      int64_t now = esp_timer_get_time () / 1000;
+      int64_t now = esp_timer_get_time ();
       static uint64_t doornext = 0;
       static uint8_t lastdoorstate = -1;
       uint8_t iopen = input_get (IOPEN);
-      if ((int) (doornext - now) < 0)
+      if (doornext < now)
       {
-         doornext = now + (int64_t) doorpoll;
+         uint8_t force = resend;
+         resend = 0;
+         doornext = now + (int64_t) doorpoll *1000LL;
          {                      // Check locks
             int l;
             for (l = 0; l < 2; l++)
@@ -452,24 +469,22 @@ task (void *pvParameters)
                {                // Lock state tracking
                   if (((iopen && last == LOCK_LOCKING) || lock[l].o) && !o)
                   {             // Change to lock - timer constantly restarted if door is open as it will not actually engage
-                     lock[l].timeout = ((now + (int64_t) doorlock) ? : 1);
+                     lock[l].timeout = now + (int64_t) doorlock *1000LL;
                      lock[l].state = LOCK_LOCKING;
                   } else if (o && !lock[l].o)
                   {             // Change to unlock
-                     lock[l].timeout = ((now + (int64_t) doorunlock) ? : 1);
+                     lock[l].timeout = now + (int64_t) doorunlock *1000LL;
                      lock[l].state = LOCK_UNLOCKING;
                   }
                   if (lock[l].timeout)
                   {             // Timeout running
                      if (lock[l].i != i)
-                        lock[l].timeout = lockdebounce; // Allow some debounce before ending timeout
-                     if ((int) (lock[l].timeout - now) <= 0)
+                        lock[l].timeout = now + (int64_t) lockdebounce *1000LL;        // Allow some debounce before ending timeout
+                     if (lock[l].timeout <= now)
                      {          // End of timeout
                         lock[l].timeout = 0;
                         lock[l].state =
-                           ((i == o
-                             || !input_active (IUNLOCK +
-                                               l)) ? o ? LOCK_UNLOCKED : LOCK_LOCKED : o ? LOCK_UNLOCKFAIL : LOCK_LOCKFAIL);
+                           ((i == o || !input_active (IUNLOCK + l)) ? o ? LOCK_UNLOCKED : LOCK_LOCKED : o ? LOCK_UNLOCKFAIL : LOCK_LOCKFAIL);
                      }
                   } else if (lock[l].i != i)    // Input state change
                      lock[l].state = ((i == o) ? i ? LOCK_UNLOCKED : LOCK_LOCKED : i ? LOCK_FORCED : LOCK_FAULT);
@@ -478,10 +493,10 @@ task (void *pvParameters)
                lock[l].i = i;
                if (doordebug && (force || last != lock[l].state))
                   revk_state (l ? "deadlock" : "lock", lock[l].timeout ? "%s %dms" : "%s", lockstates[lock[l].state],
-                              (int) (lock[l].timeout - now));
+                              (int) (lock[l].timeout - now) / 1000);
             }
          }
-         static long doortimeout = 0;
+         static int64_t doortimeout = 0;
          // Door states
          if (iopen)
          {                      // Open
@@ -513,15 +528,15 @@ task (void *pvParameters)
          if (doorstate != lastdoorstate)
          {                      // State change - set timerout
             if (doorstate == DOOR_OPEN)
-               doortimeout = (now + (int64_t) doorprop ? : 1);
+               doortimeout = now + (int64_t) doorprop *1000LL;
             else if (doorstate == DOOR_CLOSED)
-               doortimeout = (now + (int64_t) doorclose ? : 1);
+               doortimeout = now + (int64_t) doorclose *1000LL;
             else if (doorstate == DOOR_UNLOCKED)
-               doortimeout = (now + (int64_t) dooropen ? : 1);
+               doortimeout = now + (int64_t) dooropen *1000LL;
             else
                doortimeout = 0;
-            output_set (OBEEP, doorstate == DOOR_UNLOCKED && doorbeep ? 1 : 0);
-         } else if (doortimeout && (int) (doortimeout - now) < 0)
+            output_set (OBEEP, doorstate == DOOR_UNLOCKED && !doorsilent ? 1 : 0);
+         } else if (doortimeout && doortimeout < now)
          {                      // timeout
             output_set (OBEEP, 0);
             doortimeout = 0;
@@ -535,23 +550,23 @@ task (void *pvParameters)
                   door_lock (NULL);
             }
          }
-         static long exit1 = 0; // Main exit button
+         static int64_t exit1 = 0; // Main exit button
          if (input_get (IEXIT1))
          {
             if (!exit1)
             {
-               exit1 = (now + (int64_t) doorexit ? : 1);
+               exit1 = now + (int64_t) doorexit *1000LL;
                if (door >= 2 && !doordeadlock)
                   door_unlock (NULL);
             }
          } else
             exit1 = 0;
-         static long exit2 = 0; // Secondary exit button
+         static int64_t exit2 = 0; // Secondary exit button
          if (input_get (IEXIT2))
          {
             if (!exit2)
             {
-               exit2 = (now + (int64_t) doorexit ? : 1);
+               exit2 = now + (int64_t) doorexit *1000LL;
                if (door >= 2 && !doordeadlock)
                   door_unlock (NULL);
             }
@@ -566,9 +581,9 @@ task (void *pvParameters)
             status (door_fault = "Lock fault");
          else if (lock[1].state == LOCK_FAULT)
             status (door_fault = "Deadlock fault");
-         else if (exit1 && (int) (exit1 - now) < 0)
+         else if (exit1 && exit1 < now)
             status (door_fault = "Exit stuck");
-         else if (exit2 && (int) (exit2 - now) < 0)
+         else if (exit2 && exit2 < now)
             status (door_fault = "Ranger stuck");
          else
             status (door_fault = NULL);
@@ -583,11 +598,12 @@ task (void *pvParameters)
             status (door_tamper = NULL);
          // Beep
          if (door_tamper || door_fault || doorstate == DOOR_AJAR || doorstate == DOOR_NOTCLOSED)
-            output_set (OBEEP, ((now - doortimeout) & 512) ? 1 : 0);
+            output_set (OBEEP, ((now - doortimeout) & (512 * 1024)) ? 1 : 0);
          if (force || doorstate != lastdoorstate)
          {
             nfc_led (strlen (doorled[doorstate]), doorled[doorstate]);
-            revk_state ("door", doortimeout && doordebug ? "%s %dms" : "%s", doorstates[doorstate], (int) (doortimeout - now));
+            revk_state ("door", doortimeout
+                        && doordebug ? "%s %dms" : "%s", doorstates[doorstate], (int) (doortimeout - now) / 1000);
             lastdoorstate = doorstate;
          }
          output_set (OERROR, door_tamper || door_fault);
@@ -611,12 +627,6 @@ door_init (void)
 #undef u1
       if (!door)
       return false;             // No door control in operation
-   if (input_get (IOPEN))
-      doorstate = DOOR_OPEN;
-   else
-      doorstate = DOOR_LOCKING;
-   lock[0].timeout = 1000;
-   lock[1].timeout = 1000;
    revk_task (TAG, task, NULL);
    return true;
 }

@@ -499,7 +499,7 @@ Door_loop (ESPRevK & revk, boolean force)
                if (lock[l].timeout)
                {                // Timeout running
                   if (lock[l].i != i)
-                     lock[l].timeout = lockdebounce;    // Allow some debounce before ending timeout
+                     lock[l].timeout = ((now+lockdebounce)?:1);    // Allow some debounce before ending timeout
                   if ((int) (lock[l].timeout - now) <= 0)
                   {             // End of timeout
                      lock[l].timeout = 0;

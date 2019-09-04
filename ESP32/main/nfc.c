@@ -94,7 +94,10 @@ task (void *pvParameters)
                status (nfc_fault = "Failed");
                continue;        // No point doing other regular tasks if PN532 is AWOL
             } else
+            {
                status (nfc_fault = NULL);
+               ledlast = 0xFF;
+            }
          } else
          {                      // Check tamper
             if (p3 & (1 << nfctamper))
