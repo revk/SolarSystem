@@ -59,8 +59,6 @@ input_get (int p)
    if (p < 1 || p > MAXINPUT)
       return -1;
    p--;
-   if (!input[p])
-      return 0;
    if (input_raw & (1ULL << p))
       return 1;
    return 0;
@@ -136,6 +134,7 @@ input_init (void)
          } else
          {
             REVK_ERR_CHECK (gpio_reset_pin (p));
+            REVK_ERR_CHECK (gpio_hold_dis (p));
             REVK_ERR_CHECK (gpio_set_pull_mode (p, GPIO_PULLUP_ONLY));
             REVK_ERR_CHECK (gpio_set_direction (p, GPIO_MODE_INPUT));
             if (input[i] & PORT_INV)

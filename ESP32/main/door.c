@@ -459,7 +459,7 @@ task (void *pvParameters)
                uint8_t last = lock[l].state;
                uint8_t o = output_get (OUNLOCK + l),
                   i = input_get (IUNLOCK + l);
-               if (output_active (OUNLOCK + l) < 1)
+               if (!output_active (OUNLOCK + l))
                {
                   if (!input_active (IUNLOCK + l))
                      lock[l].state = (o ? LOCK_UNLOCKED : LOCK_LOCKED); // No input or output, just track output
@@ -479,14 +479,12 @@ task (void *pvParameters)
                   if (lock[l].timeout)
                   {             // Timeout running
                      if (lock[l].i != i)
-                        lock[l].timeout += now + (int64_t) lockdebounce *1000LL;        // Allow some debounce before ending timeout
+                        lock[l].timeout = now + (int64_t) lockdebounce *1000LL;        // Allow some debounce before ending timeout
                      if (lock[l].timeout <= now)
                      {          // End of timeout
                         lock[l].timeout = 0;
                         lock[l].state =
-                           ((i == o
-                             || !input_active (IUNLOCK +
-                                               l)) ? o ? LOCK_UNLOCKED : LOCK_LOCKED : o ? LOCK_UNLOCKFAIL : LOCK_LOCKFAIL);
+                           ((i == o || !input_active (IUNLOCK + l)) ? o ? LOCK_UNLOCKED : LOCK_LOCKED : o ? LOCK_UNLOCKFAIL : LOCK_LOCKFAIL);
                      }
                   } else if (lock[l].i != i)    // Input state change
                      lock[l].state = ((i == o) ? i ? LOCK_UNLOCKED : LOCK_LOCKED : i ? LOCK_FORCED : LOCK_FAULT);
@@ -498,7 +496,7 @@ task (void *pvParameters)
                               (int) (lock[l].timeout - now) / 1000);
             }
          }
-         static long doortimeout = 0;
+         static int64_t doortimeout = 0;
          // Door states
          if (iopen)
          {                      // Open
@@ -552,7 +550,7 @@ task (void *pvParameters)
                   door_lock (NULL);
             }
          }
-         static long exit1 = 0; // Main exit button
+         static int64_t exit1 = 0; // Main exit button
          if (input_get (IEXIT1))
          {
             if (!exit1)
@@ -563,7 +561,7 @@ task (void *pvParameters)
             }
          } else
             exit1 = 0;
-         static long exit2 = 0; // Secondary exit button
+         static int64_t exit2 = 0; // Secondary exit button
          if (input_get (IEXIT2))
          {
             if (!exit2)
