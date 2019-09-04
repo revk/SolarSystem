@@ -310,6 +310,7 @@ struct user_s
   xml_t config;
   time_t afiledate;
   const unsigned char *afile;	// Access file
+  unsigned int afilecrc;
   char *name;
   char *fullname;
   char *hash;
@@ -1417,6 +1418,7 @@ load_config (const char *configfile)
       u->config = x;
       u->afiledate = time (0) / 86400 * 86400 + 86400;
       u->afile = getafile (config, u->config, 0, 0);
+      u->afilecrc = df_crc(
       u->name = xml_copy (x, "@name");
       u->fullname = xml_copy (x, "@full-name");
       if ((v = xml_get (x, "@pin")))
