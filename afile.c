@@ -12,7 +12,7 @@
 #include <desfireaes.h>
 #include <axl.h>
 
-const unsigned char *
+unsigned char *
 getafile (xml_t config, xml_t user, int debug, int forceallow)
 {				// Return malloc'd access file
   if (!user)
@@ -192,5 +192,5 @@ getafile (xml_t config, xml_t user, int debug, int forceallow)
     free (allow);
   if (deny)
     free (deny);
-  return (const unsigned char *) afile;
+  return (unsigned char *)afile;
 }
