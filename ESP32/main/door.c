@@ -251,7 +251,7 @@ door_fob (char *id, uint32_t * crcp)
       if (crcp)
          *crcp = df_crc (*afile, afile + 1);
       // Check access file (expected to exist)
-      time_t now = revk_localtime ();
+      time_t now = time (0);
       uint8_t datetime[7];      // BCD date time
       int xoff = 0,
          xlen = 0,

@@ -118,7 +118,7 @@ uint8_t
 bcdtime (time_t now, uint8_t datetime[7])
 {
    if (!now)
-      now = revk_localtime ();
+      now = time (0);
    struct tm *t;
    t = localtime (&now);
    int v = t->tm_year + 1900;
