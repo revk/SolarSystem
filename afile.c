@@ -135,6 +135,12 @@ getafile (xml_t config, xml_t user, int debug, int forceallow)
 	  fwrite (times, l, 1, afilef);
 	}
     }
+  t = xml_get (user, "@time-override");
+  if (t && !strcasecmp (t, "true"))
+    fputc (0xC0, afilef);
+  t = xml_get (user, "@deadlock-override");
+  if (t && !strcasecmp (t, "true"))
+    fputc (0xD0, afilef);
   const char *ex = xml_get (user, "@expiry") ? : xml_get (config, "system@expiry");
   if (ex)
     {
@@ -187,10 +193,10 @@ getafile (xml_t config, xml_t user, int debug, int forceallow)
   fclose (afilef);
   *afile = afilelen - 1;	// Store length in first byte
   if (afilelen > 256)
-    errx (1, "Access file too long (%d)",(int) afilelen);
+    errx (1, "Access file too long (%d)", (int) afilelen);
   if (allow)
     free (allow);
   if (deny)
     free (deny);
-  return (unsigned char *)afile;
+  return (unsigned char *) afile;
 }
