@@ -276,7 +276,7 @@ task (void *pvParameters)
                len = 0;         // quiet
             else
             {
-               const uint8_t beepy[] = { 1, 1 };
+               const uint8_t beepy[] = { 1, 255 };
                s = (uint8_t *) beepy;
                len = 2;
             }
