@@ -7,13 +7,13 @@ use <PCBCase/parts.scad>
 compw=40;
 comph=28;
 compt=1.6;
-compclear=0.5;
+compclear=0.4;
 
 // Box thickness reference to component cube
 base=11;
 top=4;
-side=3;
-sidet=0.1; // Gap in side clips
+side=2.4;
+sidet=0.08; // Gap in side clips
 
 $fn=48;
 
@@ -23,7 +23,7 @@ module pcb(s=0)
     { // 1mm ref edge of PCB vs SVG design, and pcb surface
         esp32(s,15.279,9.200);
         screw5mm(s,1.517,1.768,-90,4);
-        screw3mm5(s,10.137,1.313,0,8);
+        screw3mm5(s,10.137,1.213,0,8);
         if(!s)
         {
             d24v5f3(9.589,8.340,-90);
