@@ -12,7 +12,7 @@ compclear=0.5;
 // Box thickness reference to component cube
 base=11;
 top=4;
-side=2.5;
+side=3;
 sidet=0.1; // Gap in side clips
 
 $fn=48;
