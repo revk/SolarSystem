@@ -3683,19 +3683,11 @@ doevent (event_t * e)
 			else
 			  {	// Allowed to be opened
 			    if (disarm && alarm_unset (u->name, port_name (port), disarm))
-			      {
-				if (e->event == EVENT_FOB_ACCESS)
-				  door_open (d, afile);	// Open the door as unset will have changed to state locked
-				else
-				  door_confirm (d, afile);
-			      }
+			      door_confirm (d, afile);
 			    if (door[d].state != DOOR_OPEN && door[d].state != DOOR_UNLOCKING)
 			      {	// Open it
 				dolog (mydoor[d].group_lock, "DOOROPEN", u->name, doorno, "Door open by fob %s%s", e->fob, secure ? " (secure)" : "");
-				if (e->event != EVENT_FOB_ACCESS)
-				  door_open (d, afile);	// Open the door
-				else if (afile)
-				  door_access (d, afile);	// Confirm
+				door_open (d, afile);	// Open the door
 			      }
 			    else if (door[d].state == DOOR_OPEN)
 			      dolog (mydoor[d].group_lock, "FOBIGNORED", u->name, doorno, "Ignored fob %s as door open", e->fob, secure ? " (secure)" : "");
