@@ -1,4 +1,4 @@
-// 3D case for Environmental monitor
+// 3D case for 12V Door Controller V5
 // Copyright (c) 2019 Adrian Kennard, Andrews & Arnold Limited, see LICENSE file (GPL)
 
 use <PCBCase/case.scad>
