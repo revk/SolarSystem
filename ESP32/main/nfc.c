@@ -46,6 +46,7 @@ settings
 #undef p
    pn532_t * pn532 = NULL;
 df_t df;
+SemaphoreHandle_t nfc_mutex = NULL;
 
 static char held = 0;           // Card was held, also flags pre-loaded for remote card logic
 static uint8_t ledpattern[10] = "";
@@ -148,6 +149,7 @@ task (void *pvParameters)
          int cards = pn532_Cards (pn532);
          if (cards > 0)
          {
+            xSemaphoreTake (nfc_mutex, portMAX_DELAY);
             nextpoll = now + (int64_t) nfcholdpoll *1000LL;     // Periodic check for card held
             noaccess = "";      // Assume no auto access (not an error)
             uint8_t aesid = 0;
@@ -249,6 +251,7 @@ task (void *pvParameters)
                }
                found = now + (uint64_t) nfchold *1000LL;
             }
+            xSemaphoreGive (nfc_mutex);
          }
       }
    }
@@ -320,6 +323,7 @@ nfc_init (void)
          status (nfc_fault = e);
       else
       {
+         nfc_mutex = xSemaphoreCreateMutex ();
          pn532 = pn532_init (nfcuart, port_mask (nfctx), port_mask (nfcrx), (1 << nfcred) | (1 << nfcgreen));
          if (!pn532)
             status (nfc_fault = "Failed to start PN532");

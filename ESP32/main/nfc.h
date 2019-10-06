@@ -4,4 +4,6 @@
 #include "pn532.h"
 extern pn532_t *pn532;
 extern df_t df;
+extern SemaphoreHandle_t nfc_mutex;
+
 extern const char *nfc_led (int len, const void *value);

@@ -137,10 +137,12 @@ door_access (const uint8_t * a)
       return "";                // Same
    if (!df.keylen)
       return "";
+   xSemaphoreTake (nfc_mutex, portMAX_DELAY);
    memcpy (afile, a, *a + 1);
    const char *e = df_write_data (&df, 0x0A, 'B', DF_MODE_CMAC, 0, *afile + 1, afile);
    if (!e)
       e = df_commit (&df);
+   xSemaphoreGive (nfc_mutex);
    if (!e)
       return "";
    return e;
@@ -390,9 +392,9 @@ door_fob (char *id, uint32_t * crcp)
                *crcp = df_crc (*afile, afile + 1);
             const char *e = df_write_data (&df, 0x0A, 'B', DF_MODE_CMAC, xoff, xlen, datetime);
             if (e)
-               revk_error ("fob", "Write %s", e);
+               revk_error ("fob", "%s Expiry update failed: %s", id, e);
             else
-               revk_info ("fob", "Expiry update");
+               revk_info ("fob", "%s Expiry updated", id);
             // We don't really care if this fails, as we get a chance later, this means the access is allowed so will log and commit later
          }
       }
