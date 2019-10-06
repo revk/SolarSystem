@@ -3538,8 +3538,8 @@ doevent (event_t * e)
 	    sprintf (u->afilecrc, "%08X", df_crc (*u->afile, u->afile + 1));
 	  }
 	const unsigned char *afile = (u ? u->afile : NULL);
-	if (!secure || (u && e->message && !strncmp (u->afilecrc, e->message, 8)))
-	  afile = NULL;		// Matches, or not secure anyway
+	if (!secure || (u && e->message && !strncmp (u->afilecrc, e->message, 8)) || e->event == EVENT_FOB_HELD || e->event == EVENT_FOB_GONE)
+	  afile = NULL;		// Matches, or not secure anyway, or not expected to send afile data
 	if (afile)
 	  dolog (groups, "FOBUPDATE", NULL, port_name (port), "Fob access file update %s%s", e->fob, secure ? " (secure)" : "");
 	if (u && e->event != EVENT_FOB_HELD)
