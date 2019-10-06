@@ -3731,10 +3731,21 @@ doevent (event_t * e)
 		door_error (d, afile);
 	      }
 	  }
-	else if (e->event == EVENT_FOB_ACCESS)
-	  dolog (mydoor[d].group_lock, "FOBACCESS", u ? u->name : NULL, port_name (port), "Access by fob %s%s", e->fob, secure ? " (secure)" : "");
 	else
-	  dolog (groups, e->event == EVENT_FOB_HELD ? "FOBHELDIGNORE" : "FOBIGNORED", u ? u->name : NULL, port_name (port), "Ignored fob %s%s as reader not linked to a door", e->fob, secure ? " (secure)" : "");
+	  {
+	    if (e->event == EVENT_FOB_ACCESS)
+	      dolog (mydoor[d].group_lock, "FOBACCESS", u ? u->name : NULL, port_name (port), "Unknown door access by fob %s%s", e->fob, secure ? " (secure)" : "");
+	    else
+	      dolog (groups, e->event == EVENT_FOB_HELD ? "FOBHELDIGNORE" : "FOBIGNORED", u ? u->name : NULL, port_name (port), "Ignored fob %s%s as reader not linked to a door", e->fob, secure ? " (secure)" : "");
+	    if (afile && port->mqtt)
+	      {			// Fix fob auth anyway
+		int afilelen = (afile ? *afile + 1 : 0);
+		char *topic;
+		asprintf (&topic, "command/SS/%s/access", port->mqtt);
+		mosquitto_publish (mqtt, NULL, topic, afilelen, afile, 1, 0);
+		free (topic);
+	      }
+	  }
       }
 
       break;
@@ -4419,11 +4430,12 @@ main (int argc, const char *argv[])
 		      }
 		    if (!tag && state)
 		      {		// Load settings
-			{	// Set timezone
-			  char tz[10];
-			  sprintf (tz, "%d", settimezone);
-			  set ("timezone", tz);
-			}
+			if (msg->payloadlen < 7 || strncmp (msg->payload + 2, "ESP32", 5))
+			  {	// Set timezone
+			    char tz[10];
+			    sprintf (tz, "%d", settimezone);
+			    set ("timezone", tz);
+			  }
 			xml_attribute_t a = NULL;
 			while ((a = xml_attribute_next (app->config, a)))
 			  {
