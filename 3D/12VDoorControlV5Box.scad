@@ -7,7 +7,6 @@ use <PCBCase/parts.scad>
 compw=40;
 comph=28;
 compt=1.6;
-compclear=0.4;
 
 // Box thickness reference to component cube
 base=11;
@@ -38,5 +37,5 @@ module pcb(s=0)
     }
 }
 
-case(compw,comph,compt,base,top,compclear,side,sidet){pcb(0);pcb(-1);pcb(1);};
+case(compw,comph,compt,base,top,side,sidet){pcb(0);pcb(-1);pcb(1);};
 
