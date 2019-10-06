@@ -262,7 +262,7 @@ main (int argc, const char *argv[])
       {
 	if (!strncmp (topic, "error/", 6))
 	  {
-	    warnx ("Error %.*s", msg->payloadlen, (char*)msg->payload);
+	    warnx ("Error %.*s", msg->payloadlen, (char *) msg->payload);
 	    send (sp[0], NULL, 0, 0);	// Indicate card gone
 	    return;
 	  }
@@ -596,7 +596,55 @@ main (int argc, const char *argv[])
     return s ? : 1;
   }
 
-  unsigned int size = checkfile (0, 'D', comms, 0x1000, "Full name");
+  const unsigned char *afile = NULL;
+  if (user)
+    afile = getafile (c, user, debug, forceallow);
+
+  unsigned int size = checkfile (0x0A, 'B', comms, 0x0010, "Access");
+  if (size)
+    {				// Access file
+      if ((e = df_read_data (&d, 0xA, comms, 0, size, buf)))
+	errx (1, "File read: %s", e);
+      if (!user || size != 256 || memcmp (buf, afile, *afile + 1))
+	{			// Report content
+	  int p;
+	  printf ("Access was (%08X)", df_crc (*buf, buf + 1));
+	  for (p = 0; p < *buf + 1; p++)
+	    printf (" %02X", buf[p]);
+	  printf ("\n");
+	  if (user)
+	    {
+	      if ((e = df_write_data (&d, 0x0A, 'B', comms, 0, *afile + 1, afile)))
+		errx (1, "Write file: %s", e);
+	      if ((e = df_commit (&d)))
+		errx (1, "Commit file: %s", e);
+	    }
+	}
+    }
+
+  if (afile)
+    {
+      int p;
+      printf ("Access file (%08X)", df_crc (*afile, afile + 1));
+      for (p = 0; p < *afile + 1; p++)
+	printf (" %02X", afile[p]);
+      printf ("\n");
+      if (!size)
+	{			// Create access file
+	  printf ("Creating access file\n");
+	  if ((e = df_create_file (&d, 0x0A, 'B', comms | 1, 0x0010, 256, 0, 0, 0, 0, 0)))
+	    errx (1, "Create file: %s", e);
+	  if ((e = df_write_data (&d, 0x0A, 'B', comms | 1, 0, *afile + 1, afile)))
+	    errx (1, "Write file: %s", e);
+	  if ((e = df_commit (&d)))
+	    errx (1, "Commit file: %s", e);
+	}
+    }
+
+  if (afile)
+    free ((void *) afile);
+
+  size = checkfile (0, 'D', comms, 0x1000, "Full name");
   if (size)
     {				// Name file
       if (size > sizeof (buf))
@@ -692,53 +740,6 @@ main (int argc, const char *argv[])
       if ((e = df_create_file (&d, 2, 'V', comms, 0x0010, 0, 0, 0x7FFFFFFF, 0, 0, 0)))
 	errx (1, "Create file: %s", e);
     }
-
-  const unsigned char *afile = NULL;
-  if (user)
-    afile = getafile (c, user, debug, forceallow);
-
-  size = checkfile (0x0A, 'B', comms, 0x0010, "Access");
-  if (size)
-    {				// Access file
-      if ((e = df_read_data (&d, 0xA, comms, 0, size, buf)))
-	errx (1, "File read: %s", e);
-      if (!user || size != 256 || memcmp (buf, afile, *afile + 1))
-	{			// Report content
-	  int p;
-	  printf ("Access was ");
-	  for (p = 0; p < *buf + 1; p++)
-	    printf (" %02X", buf[p]);
-	  printf ("\n");
-	  if (user)
-	    {
-	      if ((e = df_write_data (&d, 0x0A, 'B', comms, 0, *afile + 1, afile)))
-		errx (1, "Write file: %s", e);
-	      if ((e = df_commit (&d)))
-		errx (1, "Commit file: %s", e);
-	    }
-	}
-    }
-  if (afile)
-    {
-      int p;
-      printf ("Access file");
-      for (p = 0; p < *afile + 1; p++)
-	printf (" %02X", afile[p]);
-      printf ("\n");
-      if (!size)
-	{			// Create access file
-	  printf ("Creating access file\n");
-	  if ((e = df_create_file (&d, 0x0A, 'B', comms | 1, 0x0010, 256, 0, 0, 0, 0, 0)))
-	    errx (1, "Create file: %s", e);
-	  if ((e = df_write_data (&d, 0x0A, 'B', comms | 1, 0, *afile + 1, afile)))
-	    errx (1, "Write file: %s", e);
-	  if ((e = df_commit (&d)))
-	    errx (1, "Commit file: %s", e);
-	}
-    }
-
-  if (afile)
-    free ((void *) afile);
 
   unsigned int mem;
   if ((e = df_free_memory (&d, &mem)))

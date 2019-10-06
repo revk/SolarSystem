@@ -46,6 +46,7 @@ settings
 #undef p
    pn532_t * pn532 = NULL;
 df_t df;
+SemaphoreHandle_t nfc_mutex = NULL; // PN532 has low level message mutex, but this is needed for DESFire level.
 
 static char held = 0;           // Card was held, also flags pre-loaded for remote card logic
 static uint8_t ledpattern[10] = "";
@@ -148,6 +149,7 @@ task (void *pvParameters)
          int cards = pn532_Cards (pn532);
          if (cards > 0)
          {
+            xSemaphoreTake (nfc_mutex, portMAX_DELAY);
             nextpoll = now + (int64_t) nfcholdpoll *1000LL;     // Periodic check for card held
             noaccess = "";      // Assume no auto access (not an error)
             uint8_t aesid = 0;
@@ -211,7 +213,10 @@ task (void *pvParameters)
                   return;
                // Key update
                if (aesid)
+               {
+                  revk_info ("aes", "Key update %02X->%02X", *aes[aesid], *aes[0]);
                   e = df_change_key (&df, 1, aes[0][0], aes[aesid] + 1, aes[0] + 1);
+               }
             }
             if (e && !strcmp (e, "PN532_ERR_TIMEOUT"))
                nextpoll = 0;    // Try again immediately
@@ -246,6 +251,7 @@ task (void *pvParameters)
                }
                found = now + (uint64_t) nfchold *1000LL;
             }
+            xSemaphoreGive (nfc_mutex);
          }
       }
    }
@@ -280,7 +286,9 @@ nfc_command (const char *tag, unsigned int len, const unsigned char *value)
             return "Too big";
          memcpy (buf, value, len);
          const char *err = NULL;
+         xSemaphoreTake (nfc_mutex, portMAX_DELAY);
          int l = pn532_dx (pn532, len, buf, sizeof (buf), &err);
+         xSemaphoreGive (nfc_mutex);
          if (l < 0)
             return err ? : "?";
          revk_raw (prefixinfo, TAG, l, buf, 0);
@@ -317,6 +325,7 @@ nfc_init (void)
          status (nfc_fault = e);
       else
       {
+         nfc_mutex = xSemaphoreCreateMutex ();
          pn532 = pn532_init (nfcuart, port_mask (nfctx), port_mask (nfcrx), (1 << nfcred) | (1 << nfcgreen));
          if (!pn532)
             status (nfc_fault = "Failed to start PN532");

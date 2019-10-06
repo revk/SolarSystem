@@ -3538,8 +3538,8 @@ doevent (event_t * e)
 	    sprintf (u->afilecrc, "%08X", df_crc (*u->afile, u->afile + 1));
 	  }
 	const unsigned char *afile = (u ? u->afile : NULL);
-	if (!secure || (u && e->message && !strncmp (u->afilecrc, e->message, 8)))
-	  afile = NULL;		// Matches, or not secure anyway
+	if (!secure || (u && e->message && !strncmp (u->afilecrc, e->message, 8)) || e->event == EVENT_FOB_HELD || e->event == EVENT_FOB_GONE)
+	  afile = NULL;		// Matches, or not secure anyway, or not expected to send afile data
 	if (afile)
 	  dolog (groups, "FOBUPDATE", NULL, port_name (port), "Fob access file update %s%s", e->fob, secure ? " (secure)" : "");
 	if (u && e->event != EVENT_FOB_HELD)
@@ -3683,19 +3683,11 @@ doevent (event_t * e)
 			else
 			  {	// Allowed to be opened
 			    if (disarm && alarm_unset (u->name, port_name (port), disarm))
-			      {
-				if (e->event == EVENT_FOB_ACCESS)
-				  door_open (d, afile);	// Open the door as unset will have changed to state locked
-				else
-				  door_confirm (d, afile);
-			      }
+			      door_confirm (d, afile);
 			    if (door[d].state != DOOR_OPEN && door[d].state != DOOR_UNLOCKING)
 			      {	// Open it
 				dolog (mydoor[d].group_lock, "DOOROPEN", u->name, doorno, "Door open by fob %s%s", e->fob, secure ? " (secure)" : "");
-				if (e->event != EVENT_FOB_ACCESS)
-				  door_open (d, afile);	// Open the door
-				else if (afile)
-				  door_access (d, afile);	// Confirm
+				door_open (d, afile);	// Open the door
 			      }
 			    else if (door[d].state == DOOR_OPEN)
 			      dolog (mydoor[d].group_lock, "FOBIGNORED", u->name, doorno, "Ignored fob %s as door open", e->fob, secure ? " (secure)" : "");
@@ -3739,10 +3731,21 @@ doevent (event_t * e)
 		door_error (d, afile);
 	      }
 	  }
-	else if (e->event == EVENT_FOB_ACCESS)
-	  dolog (mydoor[d].group_lock, "FOBACCESS", u ? u->name : NULL, port_name (port), "Access by fob %s%s", e->fob, secure ? " (secure)" : "");
 	else
-	  dolog (groups, e->event == EVENT_FOB_HELD ? "FOBHELDIGNORE" : "FOBIGNORED", u ? u->name : NULL, port_name (port), "Ignored fob %s%s as reader not linked to a door", e->fob, secure ? " (secure)" : "");
+	  {
+	    if (e->event == EVENT_FOB_ACCESS)
+	      dolog (mydoor[d].group_lock, "FOBACCESS", u ? u->name : NULL, port_name (port), "Unknown door access by fob %s%s", e->fob, secure ? " (secure)" : "");
+	    else
+	      dolog (groups, e->event == EVENT_FOB_HELD ? "FOBHELDIGNORE" : "FOBIGNORED", u ? u->name : NULL, port_name (port), "Ignored fob %s%s as reader not linked to a door", e->fob, secure ? " (secure)" : "");
+	    if (afile && port->mqtt)
+	      {			// Fix fob auth anyway
+		int afilelen = (afile ? *afile + 1 : 0);
+		char *topic;
+		asprintf (&topic, "command/SS/%s/access", port->mqtt);
+		mosquitto_publish (mqtt, NULL, topic, afilelen, afile, 1, 0);
+		free (topic);
+	      }
+	  }
       }
 
       break;
@@ -4427,11 +4430,12 @@ main (int argc, const char *argv[])
 		      }
 		    if (!tag && state)
 		      {		// Load settings
-			{	// Set timezone
-			  char tz[10];
-			  sprintf (tz, "%d", settimezone);
-			  set ("timezone", tz);
-			}
+			if (msg->payloadlen < 7 || strncmp (msg->payload + 2, "ESP32", 5))
+			  {	// Set timezone
+			    char tz[10];
+			    sprintf (tz, "%d", settimezone);
+			    set ("timezone", tz);
+			  }
 			xml_attribute_t a = NULL;
 			while ((a = xml_attribute_next (app->config, a)))
 			  {
