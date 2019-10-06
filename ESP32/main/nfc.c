@@ -211,7 +211,10 @@ task (void *pvParameters)
                   return;
                // Key update
                if (aesid)
+               {
+                  revk_info ("aes", "Key update %02X->%02X", *aes[aesid], *aes[0]);
                   e = df_change_key (&df, 1, aes[0][0], aes[aesid] + 1, aes[0] + 1);
+               }
             }
             if (e && !strcmp (e, "PN532_ERR_TIMEOUT"))
                nextpoll = 0;    // Try again immediately

@@ -256,6 +256,8 @@ door_fob (char *id, uint32_t * crcp)
       int xoff = 0,
          xlen = 0,
          xdays = 0;             // Expiry data
+      char clockoverride = 0;   // Override time/expiry if clock not set
+      char deadlockoverride = 0;        // Override deadlock
       if (*afile)
       {                         // Check access
          uint8_t *p = afile + 1,
@@ -273,7 +275,11 @@ door_fob (char *id, uint32_t * crcp)
                return "*Invalid access file";
             if (c == 0x0)
             {                   // Padding, ignore
-            } else if (c == 0xA)
+            } else if (c == 0xC)
+               clockoverride = 1;
+            else if (c == 0xD)
+               deadlockoverride = 1;
+            else if (c == 0xA)
             {                   // Allow
                if (!l)
                   return "*Card blocked";       // Black list
@@ -343,9 +349,22 @@ door_fob (char *id, uint32_t * crcp)
          }
          if (ax && !aok)
             return "*Not allowed door"; // Not on allow list
+         if (xoff)
+         {
+            if (*datetime < 0x20)
+            {                   // Clock not set
+               if (!clockoverride)
+                  return "*Date not set";
+            } else if (memcmp (datetime, afile + xoff, xlen) > 0)
+               return "*Expired";       // expired
+         }
          if (fok || tok)
          {                      // Time check
-            if (fok && tok && memcmp (fok, tok, 2) > 0)
+            if (*datetime < 0x20)
+            {                   // Clock not set
+               if (!clockoverride)
+                  return "*Time not set";
+            } else if (fok && tok && memcmp (fok, tok, 2) > 0)
             {                   // reverse
                if (memcmp (datetime + 4, fok, 2) < 0 && memcmp (datetime + 4, tok, 2) >= 0)
                   return "*Outside time";
@@ -358,9 +377,9 @@ door_fob (char *id, uint32_t * crcp)
             }
          }
       }
-      if (doordeadlock && door < 5)
+      if (!deadlockoverride && doordeadlock && door < 5)
          return "";             // Quiet about this as normal for system controlled disarm
-      if (xdays && xoff && xlen <= 7 && df.keylen)
+      if (*datetime >= 0x20 && xdays && xoff && xlen <= 7 && df.keylen)
       {                         // Update expiry
          now += 86400LL * (int64_t) xdays;
          bcdtime (now, datetime);
@@ -369,7 +388,11 @@ door_fob (char *id, uint32_t * crcp)
             memcpy (afile + xoff, datetime, xlen);
             if (crcp)
                *crcp = df_crc (*afile, afile + 1);
-            df_write_data (&df, 0x0A, 'B', DF_MODE_CMAC, xoff, xlen, datetime);
+            const char *e = df_write_data (&df, 0x0A, 'B', DF_MODE_CMAC, xoff, xlen, datetime);
+            if (e)
+               revk_error ("fob", "Write %s", e);
+            else
+               revk_info ("fob", "Expiry update");
             // We don't really care if this fails, as we get a chance later, this means the access is allowed so will log and commit later
          }
       }
@@ -479,12 +502,14 @@ task (void *pvParameters)
                   if (lock[l].timeout)
                   {             // Timeout running
                      if (lock[l].i != i)
-                        lock[l].timeout = now + (int64_t) lockdebounce *1000LL;        // Allow some debounce before ending timeout
+                        lock[l].timeout = now + (int64_t) lockdebounce *1000LL; // Allow some debounce before ending timeout
                      if (lock[l].timeout <= now)
                      {          // End of timeout
                         lock[l].timeout = 0;
                         lock[l].state =
-                           ((i == o || !input_active (IUNLOCK + l)) ? o ? LOCK_UNLOCKED : LOCK_LOCKED : o ? LOCK_UNLOCKFAIL : LOCK_LOCKFAIL);
+                           ((i == o
+                             || !input_active (IUNLOCK +
+                                               l)) ? o ? LOCK_UNLOCKED : LOCK_LOCKED : o ? LOCK_UNLOCKFAIL : LOCK_LOCKFAIL);
                      }
                   } else if (lock[l].i != i)    // Input state change
                      lock[l].state = ((i == o) ? i ? LOCK_UNLOCKED : LOCK_LOCKED : i ? LOCK_FORCED : LOCK_FAULT);
@@ -550,7 +575,7 @@ task (void *pvParameters)
                   door_lock (NULL);
             }
          }
-         static int64_t exit1 = 0; // Main exit button
+         static int64_t exit1 = 0;      // Main exit button
          if (input_get (IEXIT1))
          {
             if (!exit1)
@@ -561,7 +586,7 @@ task (void *pvParameters)
             }
          } else
             exit1 = 0;
-         static int64_t exit2 = 0; // Secondary exit button
+         static int64_t exit2 = 0;      // Secondary exit button
          if (input_get (IEXIT2))
          {
             if (!exit2)
