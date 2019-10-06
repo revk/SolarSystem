@@ -46,7 +46,7 @@ settings
 #undef p
    pn532_t * pn532 = NULL;
 df_t df;
-SemaphoreHandle_t nfc_mutex = NULL;
+SemaphoreHandle_t nfc_mutex = NULL; // PN532 has low level message mutex, but this is needed for DESFire level.
 
 static char held = 0;           // Card was held, also flags pre-loaded for remote card logic
 static uint8_t ledpattern[10] = "";
@@ -286,7 +286,9 @@ nfc_command (const char *tag, unsigned int len, const unsigned char *value)
             return "Too big";
          memcpy (buf, value, len);
          const char *err = NULL;
+         xSemaphoreTake (nfc_mutex, portMAX_DELAY);
          int l = pn532_dx (pn532, len, buf, sizeof (buf), &err);
+         xSemaphoreGive (nfc_mutex);
          if (l < 0)
             return err ? : "?";
          revk_raw (prefixinfo, TAG, l, buf, 0);
