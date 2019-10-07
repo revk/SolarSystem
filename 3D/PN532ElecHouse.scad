@@ -64,7 +64,7 @@ connw=17-(hsu?5.08:0); // Connector size as fitted
 connh=22;
 conne=8; // Extra to fit
 connt=7; // Thickness
-connx=12.75+(hsu?5.08:0); // position from edge of board
+connx=12.75; // position from edge of board
 conny=5.3;
 
 // Box size
