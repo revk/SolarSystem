@@ -3,9 +3,9 @@
 // Connector type: Molex 6 way
 // Note, order genuine elechouse from china. NFC MODULE V4
 
-wire=0; // Build for desk not wall (0 for not)
-hsu=0;  // Set for smaller 4 pin connector
-spacer=10; // Spacer (if mounting on metal door)
+wire=5; // Wire diameter (mm): Build for desk not wall (0 for not)
+hsu=1;  // Set for smaller 4 pin connector
+spacer=0; // Spacer (if mounting on metal door)
 
 // Tolerances for your printer
 t=0.1;  // General xy tolerance/margin
@@ -64,7 +64,7 @@ connw=17-(hsu?5.08:0); // Connector size as fitted
 connh=22;
 conne=8; // Extra to fit
 connt=7; // Thickness
-connx=12.75+(hsu?5.08:0); // position from edge of board
+connx=12.75; // position from edge of board
 conny=5.3;
 
 // Box size
