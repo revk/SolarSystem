@@ -531,7 +531,7 @@ const char *Door_tamper = NULL;
           lock[l].o = o;
           lock[l].i = i;
           if (doordebug && (force || last != lock[l].state))
-            revk.state (l ? F ("deadlock") : F ("lock"), lock[l].timeout ? F (" % s % dms") : F (" % s"), lockstates[lock[l].state],
+            revk.state (l ? F ("deadlock") : F ("lock"), lock[l].timeout ? F ("%s %dms") : F ("%s"), lockstates[lock[l].state],
                         (int) (lock[l].timeout - now));
         }
       }
@@ -642,7 +642,7 @@ const char *Door_tamper = NULL;
       {
         NFC_led (strlen (doorled[doorstate]), doorled[doorstate]);
         revk.state (F ("door"), doortimeout
-                    && doordebug ? F (" % s % dms") : F (" % s"), doorstates[doorstate], (int) (doortimeout - now));
+                    && doordebug ? F ("%s %dms") : F ("%s"), doorstates[doorstate], (int) (doortimeout - now));
         lastdoorstate = doorstate;
       }
       Output_set (OERROR, Door_tamper || Door_fault);
