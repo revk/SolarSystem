@@ -1567,7 +1567,7 @@ load_config (const char *configfile)
 			if (o >= 2 || ((v = xml_get (c, "@output2")) && *v))
 			  port_o_set (g, door[d].deadlock.o_unlock, max, 2, doorname, "Undeadlock");
 		      }
-		    if (xml_get (c, "@ranger"))
+		    if (xml_get (c, "@ranger")||xml_get (c, "@rangersda"))
 		      port_exit_set (g, mydoor[d].i_exit, max, 8, doorname, d);	// Range exit
 		    else if (i >= 1 || ((v = xml_get (c, "@input1")) && *v))
 		      port_exit_set (g, mydoor[d].i_exit, max, 1, doorname, d);
