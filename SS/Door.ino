@@ -362,7 +362,7 @@ const char *Door_tamper = NULL;
             if (!clockoverride)
               return PSTR("Date not set");
           }
-          else if (memcmp (datetime, afile + xoff, xlen) > 0)
+          else if (memcmp (datetime, afile + 8 + xoff, xlen) > 0)
             return PSTR("Expired");       // expired
         }
         if (fok || tok)
