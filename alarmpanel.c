@@ -1567,7 +1567,7 @@ load_config (const char *configfile)
 			if (o >= 2 || ((v = xml_get (c, "@output2")) && *v))
 			  port_o_set (g, door[d].deadlock.o_unlock, max, 2, doorname, "Undeadlock");
 		      }
-		    if (xml_get (c, "@ranger")||xml_get (c, "@rangersda"))
+		    if (xml_get (c, "@ranger") || xml_get (c, "@rangersda"))
 		      port_exit_set (g, mydoor[d].i_exit, max, 8, doorname, d);	// Range exit
 		    else if (i >= 1 || ((v = xml_get (c, "@input1")) && *v))
 		      port_exit_set (g, mydoor[d].i_exit, max, 1, doorname, d);
@@ -3221,6 +3221,17 @@ doevent (event_t * e)
 	dolog (app->group, "BUSDISABLED", NULL, port_name (port), "Device disabled on bus");
       }
       break;
+    case EVENT_EXIT:
+      {
+	if (e->door < MAX_DOOR)
+	  {
+	    mydoor_t *d = &mydoor[e->door];
+	    char doorno[8];
+	    snprintf (doorno, sizeof (doorno), "DOOR%02u", e->door);
+	    dolog (d->group_lock, "DOOREXIT", NULL, doorno, "%s", e->message);
+	  }
+      }
+      break;
     case EVENT_DOOR:
       {
 	mydoor_t *d = &mydoor[e->door];
@@ -3387,7 +3398,7 @@ doevent (event_t * e)
 		    dolog (mydoor[d].group_lock, "DOORLOCKDOWN", NULL, doorno, "Lockdown violation, exit rejected");
 		    door_error (d, NULL);
 		  }
-		else
+		else if (!door[app->door].autonomous)
 		  door_open (d, NULL);
 	      }
 	    else
@@ -3503,7 +3514,6 @@ doevent (event_t * e)
 	xml_tree_delete (root);
 #endif
       }
-      break;
     case EVENT_FOB:
     case EVENT_FOB_HELD:
     case EVENT_FOB_ACCESS:
@@ -4599,6 +4609,21 @@ main (int argc, const char *argv[])
 			e->event = (!strcmp (tag, "key") ? EVENT_KEY : EVENT_KEY_HELD);
 			e->port = port;
 			e->key = *(char *) msg->payload;
+			struct timezone tz;
+			gettimeofday ((void *) &e->when, &tz);
+			postevent (e);
+			return;
+		      }
+		    if (!strcmp (tag, "exit"))
+		      {
+			event_t *e = malloc (sizeof (*e));
+			if (!e)
+			  errx (1, "malloc");
+			memset ((void *) e, 0, sizeof (*e));
+			e->event = EVENT_EXIT;
+			e->port = port;
+			e->door = app->door;
+			asprintf ((char **) &e->message, "%.*s", msg->payloadlen, (char *) msg->payload);
 			struct timezone tz;
 			gettimeofday ((void *) &e->when, &tz);
 			postevent (e);
