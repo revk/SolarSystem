@@ -436,7 +436,10 @@ door_command (const char *tag, unsigned int len, const unsigned char *value)
    if (!strcasecmp (tag, "lock"))
       return door_lock (value);
    if (!strcasecmp (tag, "unlock"))
+   {
+      revk_event ("exit", "remote");
       return door_unlock (value);
+   }
    if (!strcasecmp (tag, "prop"))
       return door_prop (value);
    if (!strcasecmp (tag, "access"))
@@ -584,7 +587,10 @@ task (void *pvParameters)
             {
                exit1 = now + (int64_t) doorexit *1000LL;
                if (door >= 2 && !doordeadlock)
+               {
+                  revk_event ("exit", "button");
                   door_unlock (NULL);
+               }
             }
          } else
             exit1 = 0;
@@ -595,7 +601,10 @@ task (void *pvParameters)
             {
                exit2 = now + (int64_t) doorexit *1000LL;
                if (door >= 2 && !doordeadlock)
+               {
+                  revk_event ("exit", "ranger");
                   door_unlock (NULL);
+               }
             }
          } else
             exit2 = 0;
