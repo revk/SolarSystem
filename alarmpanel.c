@@ -1555,7 +1555,7 @@ load_config (const char *configfile)
 		  {
 		    if (((v = xml_get (c, "@nfc")) || (v = xml_get (c, "@nfctx"))) && *v)
 		      port_set (g, mydoor[d].i_fob, max, 0, doorname, "Reader");
-		    int da = atoi (xml_get (c, "@door") ? : "");;
+		    int da = atoi (xml_get (c, "@door") ? : "");
 		    door[d].autonomous = da;
 		    // Add door controls defaults, even if we do not work them directly they show on status nicely
 		    int i = atoi (xml_get (c, "@input") ? : "");	// Old style inputs count
@@ -1567,10 +1567,16 @@ load_config (const char *configfile)
 			if (o >= 2 || ((v = xml_get (c, "@output2")) && *v))
 			  port_o_set (g, door[d].deadlock.o_unlock, max, 2, doorname, "Undeadlock");
 		      }
-		    if (xml_get (c, "@ranger")||xml_get (c, "@rangersda"))
-		      port_exit_set (g, mydoor[d].i_exit, max, 8, doorname, d);	// Range exit
+		    if (xml_get (c, "@ranger") || xml_get (c, "@rangersda"))
+		      {
+			if (da < 2)
+			  port_exit_set (g, mydoor[d].i_exit, max, 8, doorname, d);	// Ranger exit
+		      }
 		    else if (i >= 1 || ((v = xml_get (c, "@input1")) && *v))
-		      port_exit_set (g, mydoor[d].i_exit, max, 1, doorname, d);
+		      {
+			if (da < 2)
+			  port_exit_set (g, mydoor[d].i_exit, max, 1, doorname, d);	// Button exit
+		      }
 		    if (i >= 2 || ((v = xml_get (c, "@input2")) && *v))
 		      port_i_set (g, door[d].i_open, max, 2, doorname, "Open");
 		    if (i >= 3 || ((v = xml_get (c, "@input3")) && *v))
@@ -3142,7 +3148,7 @@ doevent (event_t * e)
       printf ("\n");
     }
   // Simple sanity checks
-  if (e->event == EVENT_DOOR && e->door >= MAX_DOOR)
+  if ((e->event == EVENT_DOOR || e->event == EVENT_EXIT) && e->door >= MAX_DOOR)
     {
       if (debug)
 	printf ("Bad door %d\n", e->door);
@@ -3219,6 +3225,14 @@ doevent (event_t * e)
     case EVENT_DISABLED:
       {
 	dolog (app->group, "BUSDISABLED", NULL, port_name (port), "Device disabled on bus");
+      }
+      break;
+    case EVENT_EXIT:
+      {
+	mydoor_t *d = &mydoor[e->door];
+	char doorno[8];
+	snprintf (doorno, sizeof (doorno), "DOOR%02u", e->door);
+	dolog (d->group_lock, "DOOREXIT", NULL, doorno, "%s", e->message);
       }
       break;
     case EVENT_DOOR:
@@ -3503,7 +3517,6 @@ doevent (event_t * e)
 	xml_tree_delete (root);
 #endif
       }
-      break;
     case EVENT_FOB:
     case EVENT_FOB_HELD:
     case EVENT_FOB_ACCESS:
@@ -4599,6 +4612,21 @@ main (int argc, const char *argv[])
 			e->event = (!strcmp (tag, "key") ? EVENT_KEY : EVENT_KEY_HELD);
 			e->port = port;
 			e->key = *(char *) msg->payload;
+			struct timezone tz;
+			gettimeofday ((void *) &e->when, &tz);
+			postevent (e);
+			return;
+		      }
+		    if (!strcmp (tag, "exit"))
+		      {
+			event_t *e = malloc (sizeof (*e));
+			if (!e)
+			  errx (1, "malloc");
+			memset ((void *) e, 0, sizeof (*e));
+			e->event = EVENT_EXIT;
+			e->port = port;
+			e->door = app->door;
+			asprintf ((char **) &e->message, "%.*s", msg->payloadlen, (char *) msg->payload);
 			struct timezone tz;
 			gettimeofday ((void *) &e->when, &tz);
 			postevent (e);
