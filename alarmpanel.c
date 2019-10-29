@@ -3707,7 +3707,7 @@ doevent (event_t * e)
 			      door_confirm (d, afile);
 			    if (door[d].state != DOOR_OPEN && door[d].state != DOOR_UNLOCKING)
 			      {	// Open it
-				dolog (mydoor[d].group_lock, "DOOROPEN", u->name, doorno, "Door open by fob %s%s", e->fob, secure ? " (secure)" : "");
+				dolog (mydoor[d].group_lock, "DOORUNLOCK", u->name, doorno, "Door open by fob %s%s", e->fob, secure ? " (secure)" : "");
 				door_open (d, afile);	// Open the door
 			      }
 			    else if (door[d].state == DOOR_OPEN)
