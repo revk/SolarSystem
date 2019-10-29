@@ -127,6 +127,7 @@ struct
 
 uint8_t doorstate = -1;
 uint8_t doordeadlock = true;
+const char *doorwhy = NULL;
 
 const char *
 door_access (const uint8_t * a)
@@ -149,8 +150,10 @@ door_access (const uint8_t * a)
 }
 
 const char *
-door_unlock (const uint8_t * a)
+door_unlock (const uint8_t * a, const char *why)
 {                               // Unlock the door - i.e. exit button, entry allowed, etc.
+   if (why && !doorwhy)
+      doorwhy = why;
    doordeadlock = false;
    output_set (OUNLOCK + 0, 1);
    output_set (OUNLOCK + 1, 1);
@@ -436,10 +439,7 @@ door_command (const char *tag, unsigned int len, const unsigned char *value)
    if (!strcasecmp (tag, "lock"))
       return door_lock (value);
    if (!strcasecmp (tag, "unlock"))
-   {
-      revk_event ("exit", "remote");
-      return door_unlock (value);
-   }
+      return door_unlock (value, "remote");
    if (!strcasecmp (tag, "prop"))
       return door_prop (value);
    if (!strcasecmp (tag, "access"))
@@ -532,6 +532,8 @@ task (void *pvParameters)
          {                      // Open
             if (doorstate != DOOR_NOTCLOSED && doorstate != DOOR_PROPPED && doorstate != DOOR_OPEN)
             {                   // We have moved to open state, this can cancel the locking operation
+               revk_event ("open", "%s", doorwhy ? : "");
+               doorwhy = NULL;
                doorstate = DOOR_OPEN;
                if (lock[0].state == LOCK_LOCKING || lock[0].state == LOCK_LOCKFAIL)
                   output_set (OUNLOCK + 0, 1);  // Cancel lock
@@ -556,7 +558,7 @@ task (void *pvParameters)
                     || doorstate == DOOR_CLOSED) ? DOOR_CLOSED : DOOR_UNLOCKED);
          }
          if (doorstate != lastdoorstate)
-         {                      // State change - set timerout
+         {                      // State change - set timeout
             if (doorstate == DOOR_OPEN)
                doortimeout = now + (int64_t) doorprop *1000LL;
             else if (doorstate == DOOR_CLOSED)
@@ -574,10 +576,13 @@ task (void *pvParameters)
                doorstate = DOOR_NOTCLOSED;
             else if (doorstate == DOOR_UNLOCKED || doorstate == DOOR_CLOSED)
             {                   // Time to lock the door
+               if (doorstate == DOOR_UNLOCKED)
+                  revk_event ("notopen", "%s", doorwhy ? : "");
                if (doordeadlock)
                   door_deadlock (NULL);
                else
                   door_lock (NULL);
+               doorwhy = NULL;
             }
          }
          static int64_t exit1 = 0;      // Main exit button
@@ -587,10 +592,7 @@ task (void *pvParameters)
             {
                exit1 = now + (int64_t) doorexit *1000LL;
                if (door >= 2 && !doordeadlock)
-               {
-                  revk_event ("exit", "button");
-                  door_unlock (NULL);
-               }
+                  door_unlock (NULL, "button");
             }
          } else
             exit1 = 0;
@@ -601,10 +603,7 @@ task (void *pvParameters)
             {
                exit2 = now + (int64_t) doorexit *1000LL;
                if (door >= 2 && !doordeadlock)
-               {
-                  revk_event ("exit", "ranger");
-                  door_unlock (NULL);
-               }
+                  door_unlock (NULL, "ranger");
             }
          } else
             exit2 = 0;

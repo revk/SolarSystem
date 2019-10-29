@@ -15,7 +15,7 @@ const char *output_tamper = NULL;
 static uint8_t output[MAXOUTPUT];
 
 static uint64_t output_state = 0;       // Port state
-static uint64_t output_state_set = 0; // Output has been set
+static uint64_t output_state_set = 0;   // Output has been set
 
 int
 output_active (int p)

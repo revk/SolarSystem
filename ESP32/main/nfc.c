@@ -46,7 +46,7 @@ settings
 #undef p
    pn532_t * pn532 = NULL;
 df_t df;
-SemaphoreHandle_t nfc_mutex = NULL; // PN532 has low level message mutex, but this is needed for DESFire level.
+SemaphoreHandle_t nfc_mutex = NULL;     // PN532 has low level message mutex, but this is needed for DESFire level.
 
 static char held = 0;           // Card was held, also flags pre-loaded for remote card logic
 static uint8_t ledpattern[10] = "";
@@ -227,7 +227,7 @@ task (void *pvParameters)
                if (!noaccess)
                {                // Access is allowed!
                   pn532_write_GPIO (pn532, ledlast = (nfcgreen >= 0 && !(ledlast & (1 << nfcgreen)) ? (1 << nfcgreen) : 0));    // Blink green
-                  door_unlock (NULL);   // Door system was happy with fob, let 'em in
+                  door_unlock (NULL, "fob");    // Door system was happy with fob, let 'em in
                } else if (door >= 4)
                   pn532_write_GPIO (pn532, ledlast = (nfcred >= 0 && !(ledlast & (1 << nfcred)) ? (1 << nfcred) : 0));  // Blink red
                nextled = now + 200000LL;
