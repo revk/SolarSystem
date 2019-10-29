@@ -2307,12 +2307,12 @@ next_log (long long usec)
 static int
 checklist (char *l, const char *t)
 {
-  if (!t && !*l)
+  if (!t || !l || !*l)
     return 0;
   int n = 0;
+  l = strdupa (l);
   while (*l)
     {
-      l = strdupa (l);
       char *e = l;
       while (*e && !isspace (*e) && *e != ',')
 	e++;
@@ -3148,7 +3148,7 @@ doevent (event_t * e)
       printf ("\n");
     }
   // Simple sanity checks
-  if ((e->event == EVENT_DOOR || e->event == EVENT_EXIT) && e->door >= MAX_DOOR)
+  if ((e->event == EVENT_DOOR || e->event == EVENT_OPEN || e->event == EVENT_NOTOPEN) && e->door >= MAX_DOOR)
     {
       if (debug)
 	printf ("Bad door %d\n", e->door);
@@ -3227,12 +3227,20 @@ doevent (event_t * e)
 	dolog (app->group, "BUSDISABLED", NULL, port_name (port), "Device disabled on bus");
       }
       break;
-    case EVENT_EXIT:
+    case EVENT_OPEN:
       {
 	mydoor_t *d = &mydoor[e->door];
 	char doorno[8];
 	snprintf (doorno, sizeof (doorno), "DOOR%02u", e->door);
-	dolog (d->group_lock, "DOOREXIT", NULL, doorno, "%s", e->message);
+	dolog (d->group_lock, "DOOROPEN", NULL, doorno, "%s", e->message);
+      }
+      break;
+    case EVENT_NOTOPEN:
+      {
+	mydoor_t *d = &mydoor[e->door];
+	char doorno[8];
+	snprintf (doorno, sizeof (doorno), "DOOR%02u", e->door);
+	dolog (d->group_lock, "DOORNOTOPEN", NULL, doorno, "%s", e->message);
       }
       break;
     case EVENT_DOOR:
@@ -3251,7 +3259,7 @@ doevent (event_t * e)
 	    d->opening = 0;
 	    dolog (d->group_lock, "DOOROFFLINE", NULL, doorno, "Door had gone off line");
 	  }
-	else if (e->state == DOOR_LOCKING && d->opening)
+	else if (e->state == DOOR_LOCKING && d->opening && !door[e->door].autonomous)
 	  dolog (d->group_lock, "DOORNOTOPEN", NULL, doorno, "Door was not opened");
 	else if (e->state == DOOR_AJAR)
 	  dolog (d->group_lock, "DOORAJAR", NULL, doorno, "Door ajar (lock not engaged)");
@@ -4617,13 +4625,13 @@ main (int argc, const char *argv[])
 			postevent (e);
 			return;
 		      }
-		    if (!strcmp (tag, "exit"))
+		    if (!strcmp (tag, "open") || !strcmp (tag, "notopen"))
 		      {
 			event_t *e = malloc (sizeof (*e));
 			if (!e)
 			  errx (1, "malloc");
 			memset ((void *) e, 0, sizeof (*e));
-			e->event = EVENT_EXIT;
+			e->event = (!strcmp (tag, "open") ? EVENT_OPEN : EVENT_NOTOPEN);
 			e->port = port;
 			e->door = app->door;
 			asprintf ((char **) &e->message, "%.*s", msg->payloadlen, (char *) msg->payload);

@@ -70,7 +70,8 @@ const char *type_name[MAX_TYPE];        // Device type name
 	e(INPUT)	\
 	e(TAMPER)	\
 	e(FAULT)	\
-	e(EXIT)		\
+	e(OPEN)		\
+	e(NOTOPEN)	\
 	e(KEY)		\
 	e(KEY_HELD)	\
 	e(FOB)		\
