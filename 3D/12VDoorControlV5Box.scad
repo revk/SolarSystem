@@ -2,7 +2,6 @@
 // Copyright (c) 2019 Adrian Kennard, Andrews & Arnold Limited, see LICENSE file (GPL)
 
 use <PCBCase/case.scad>
-use <PCBCase/parts.scad>
 
 width=40;
 height=28;
