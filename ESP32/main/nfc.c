@@ -137,7 +137,7 @@ task (void *pvParameters)
          if (found)
          {
             nextpoll = now + (int64_t) nfcholdpoll *1000LL;     // Periodic check for card held
-            if (!held && found < now)
+            if (!held && nfchold && found < now)
             {                   // Card has been held for a while, report
                revk_event ("held", "%s", id);
                held = 1;
