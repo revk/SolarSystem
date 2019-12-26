@@ -48,8 +48,8 @@ output_set (int p, int v)
    }
    if (output[p])
    {
-      gpio_set_level (port_mask (output[p]), (output[p] & PORT_INV) ? 1 - v : v);
       gpio_hold_dis (port_mask (output[p]));
+      gpio_set_level (port_mask (output[p]), (output[p] & PORT_INV) ? 1 - v : v);
       gpio_hold_en (port_mask (output[p]));
    }
    output_state_set |= (1ULL << p);
