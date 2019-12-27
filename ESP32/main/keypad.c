@@ -129,7 +129,7 @@ task (void *pvParameters)
                   {
                      if (keyhold < now)
                      {
-                        revk_event ("gone", "%.1S", keymap + (lastkey & 0x0F));
+                        revk_event ("gone", "%.1s", keymap + (lastkey & 0x0F));
                         lastkey = 0x7F;
                      }
                   } else
@@ -150,7 +150,7 @@ task (void *pvParameters)
                      {
                         if (keyhold < now)
                         {
-                           revk_event ("gone", "%.1S", keymap + (lastkey & 0x0F));
+                           revk_event ("gone", "%.1s", keymap + (lastkey & 0x0F));
                            lastkey = 0x7F;
                         }
                      } else
@@ -159,9 +159,9 @@ task (void *pvParameters)
                   {             // key
                      send0B = 1;
                      if ((lastkey & 0x80) && buf[2] != lastkey)
-                        revk_event ("gone", "%.1S", keymap + (lastkey & 0x0F));
+                        revk_event ("gone", "%.1s", keymap + (lastkey & 0x0F));
                      if (!(buf[2] & 0x80) || buf[2] != lastkey)
-                        revk_event ((buf[2] & 0x80) ? "hold" : "key", "%.1S", keymap + (buf[2] & 0x0F));
+                        revk_event ((buf[2] & 0x80) ? "hold" : "key", "%.1s", keymap + (buf[2] & 0x0F));
                      if (buf[2] & 0x80)
                         keyhold = now + 2000000LL;
                      if (revk_offline ())
