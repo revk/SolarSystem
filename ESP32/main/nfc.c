@@ -91,6 +91,11 @@ task (void *pvParameters)
             pn532_end (pn532);
             pn532 = pn532_init (nfcuart, port_mask (nfctx), port_mask (nfcrx), (1 << nfcred) | (1 << nfcgreen));
             if (!pn532)
+            {                   // Retry
+               sleep (1);
+               pn532 = pn532_init (nfcuart, port_mask (nfctx), port_mask (nfcrx), (1 << nfcred) | (1 << nfcgreen));
+            }
+            if (!pn532)
             {
                status (nfc_fault = "Failed");
                continue;        // No point doing other regular tasks if PN532 is AWOL
