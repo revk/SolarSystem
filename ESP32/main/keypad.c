@@ -60,7 +60,16 @@ keypad_command (const char *tag, unsigned int len, const unsigned char *value)
 static void
 task (void *pvParameters)
 {
-   galaxybus_t *g = pvParameters;
+   galaxybus_t *g = galaxybus_init (keypadtimer, port_mask (keypadtx), port_mask (keypadrx), port_mask (keypadde),
+                                    keypadre ? port_mask (keypadre) : -1,
+                                    keypadclk ? port_mask (keypadclk) : -1,
+                                    0);
+   if (!g)
+   {
+      vTaskDelete (NULL);
+      return;
+   }
+   galaxybus_set_timing (g, keypadtxpre, keypadtxpost, keypadrxpre, keypadrxpost);
    galaxybus_start (g);
    while (1)
    {
@@ -341,17 +350,9 @@ keypad_init (void)
          port_check (port_mask (keypadre), TAG, 0);
       if (err && keypadde != keypadre)
          status (keypad_fault = err);
-      galaxybus_t *g = galaxybus_init (keypadtimer, port_mask (keypadtx), port_mask (keypadrx), port_mask (keypadde),
-                                       keypadre ? port_mask (keypadre) : -1,
-                                       keypadclk ? port_mask (keypadclk) : -1,
-                                       0);
-      if (!g)
-         status (keypad_fault = "Init failed");
-      else
-      {
-         galaxybus_set_timing (g, keypadtxpre, keypadtxpost, keypadrxpre, keypadrxpost);
-         revk_task (TAG, task, g);
-      }
+      //revk_task (TAG, task, NULL);
+       TaskHandle_t task_id = NULL;
+      xTaskCreatePinnedToCore (task, TAG, 8 * 1024, (void *) NULL, 2, &task_id, 1);
    } else if (keypadtx || keypadrx || keypadde)
       status (keypad_fault = "Set keypadtx, keypadrx and keypadde");
 }
