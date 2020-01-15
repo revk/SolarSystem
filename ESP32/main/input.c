@@ -75,10 +75,12 @@ input_command (const char *tag, unsigned int len, const unsigned char *value)
 static void
 task (void *pvParameters)
 {                               // Main RevK task
+   esp_task_wdt_add (NULL);
    pvParameters = pvParameters;
    // Scan inputs
    while (1)
    {
+      esp_task_wdt_reset ();
       // Check inputs
       int64_t now = esp_timer_get_time ();
       char report = reportall;

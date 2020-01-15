@@ -66,6 +66,7 @@ nfc_led (int len, const void *value)
 static void
 task (void *pvParameters)
 {
+   esp_task_wdt_add (NULL);
    pvParameters = pvParameters;
    int64_t nextpoll = 0;
    int64_t nextled = 0;
@@ -77,6 +78,7 @@ task (void *pvParameters)
    uint8_t ledpos = 0;
    while (1)
    {
+      esp_task_wdt_reset ();
       usleep (1000);
       int64_t now = esp_timer_get_time ();
       // Regular tasks

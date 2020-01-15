@@ -48,6 +48,7 @@ ranger_command (const char *tag, unsigned int len, const unsigned char *value)
 static void
 task (void *pvParameters)
 {                               // Main RevK task
+   esp_task_wdt_add (NULL);
    vl53l0x_t *v = pvParameters;
    void doinit ()
    {
@@ -78,6 +79,7 @@ task (void *pvParameters)
    int64_t endlong = 0;
    while (1)
    {
+      esp_task_wdt_reset ();
       int64_t now = esp_timer_get_time ();
       if (next > now)
          usleep ((now - next) / 1000);

@@ -69,10 +69,12 @@ task (void *pvParameters)
       vTaskDelete (NULL);
       return;
    }
+   esp_task_wdt_add (NULL);
    galaxybus_set_timing (g, keypadtxpre, keypadtxpost, keypadrxpre, keypadrxpost);
    galaxybus_start (g);
    while (1)
    {
+      esp_task_wdt_reset ();
       usleep (1000);            // TODO
       int64_t now = esp_timer_get_time ();
 

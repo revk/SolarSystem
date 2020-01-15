@@ -452,8 +452,9 @@ door_command (const char *tag, unsigned int len, const unsigned char *value)
 static void
 task (void *pvParameters)
 {                               // Main RevK task
-   pvParameters = pvParameters;
    sleep (1);
+   esp_task_wdt_add (NULL);
+   pvParameters = pvParameters;
    if (input_get (IOPEN))
    {
       doorstate = DOOR_OPEN;
@@ -470,6 +471,7 @@ task (void *pvParameters)
    }
    while (1)
    {
+      esp_task_wdt_reset ();
       usleep (1000);            // ms
       int64_t now = esp_timer_get_time ();
       static uint64_t doornext = 0;
@@ -661,6 +663,6 @@ door_init (void)
 #undef u8
 #undef u1
       if (!door)
-      return;             // No door control in operation
+      return;                   // No door control in operation
    revk_task (TAG, task, NULL);
 }

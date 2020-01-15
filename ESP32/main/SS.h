@@ -2,6 +2,7 @@
 // Copyright © 2019 Adrian Kennard, Andrews & Arnold Ltd. See LICENCE file for details. GPL 3.0
 
 #include "revk.h"
+#include "esp_task_wdt.h"
 
 void status (const char *);     // Report change in tamper/fault (arg is ignored, but used xxx_fault="whatever");
 
