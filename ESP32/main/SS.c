@@ -15,6 +15,8 @@ static const char *port_inuse[MAX_PORT];
 	m(keypad)	\
 	m(door)		\
 
+static esp_reset_reason_t reason = -1;  // Restart reason
+
 static void
 status_report (int force)
 {                               // Report status change
@@ -26,7 +28,23 @@ status_report (int force)
 #define m(n) extern const char *n##_fault;if(n##_fault){fault=n##_fault;module=#n;faults++;}
       modules
 #undef m
-         if (lastfault != fault || force)
+         if (!fault && force && reason >= 0 && reason != ESP_RST_POWERON)
+      {
+         module = "Boot";
+         if (reason == ESP_RST_INT_WDT)
+            fault = "Int watchdog";
+         else if (reason == ESP_RST_TASK_WDT)
+            fault = "Watchdog";
+         else if (reason == ESP_RST_PANIC)
+            fault = "Panic";
+         else if (reason == ESP_RST_BROWNOUT)
+            fault = "Brownout";
+         else
+            fault = "Restart";
+         faults++;
+         reason = -1;           // Just once
+      }
+      if (lastfault != fault || force)
       {
          lastfault = fault;
          if (faults > 1)
@@ -88,16 +106,20 @@ app_command (const char *tag, unsigned int len, const unsigned char *value)
 {
    const char *e = NULL;
 #define m(x) extern const char * x##_command(const char *tag,unsigned int len,const unsigned char *value); if(!e)e=x##_command(tag,len,value);
-   modules
+   modules;
 #undef m
-      if (!strcmp (tag, "connect"))
+   if (!strcmp (tag, "connect"))
+   {
       status_report (1);
+      status_report (0);
+   }
    return e;
 }
 
 void
 app_main ()
 {
+   reason = esp_reset_reason ();
    revk_init (&app_command);
    int p;
    for (p = 6; p <= 11; p++)
