@@ -28,10 +28,12 @@ status_report (int force)
 #define m(n) extern const char *n##_fault;if(n##_fault){fault=n##_fault;module=#n;faults++;}
       modules
 #undef m
-         if (!fault && force && reason >= 0 && reason != ESP_RST_POWERON && reason != ESP_RST_SW)
+         if (!fault && force && reason >= 0 && reason != ESP_RST_SW)
       {
          module = "Boot";
-         if (reason == ESP_RST_INT_WDT)
+         if (reason == ESP_RST_POWERON)
+            fault = "Power on";
+	 else if (reason == ESP_RST_INT_WDT)
             fault = "Int watchdog";
          else if (reason == ESP_RST_TASK_WDT)
             fault = "Watchdog";
