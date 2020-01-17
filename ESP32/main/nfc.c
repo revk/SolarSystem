@@ -332,7 +332,8 @@ nfc_init (void)
          status (nfc_fault = e);
       else
       {
-         nfc_mutex = xSemaphoreCreateMutex ();
+         nfc_mutex = xSemaphoreCreateBinary ();
+	 xSemaphoreGive(nfc_mutex);
          pn532 = pn532_init (nfcuart, port_mask (nfctx), port_mask (nfcrx), (1 << nfcred) | (1 << nfcgreen));
          if (!pn532)
             status (nfc_fault = "Failed to start PN532");
