@@ -99,7 +99,8 @@ task (void *pvParameters)
             }
             if (!pn532)
             {
-               status (nfc_fault = "Failed");
+               if (!nfc_fault)
+                  status (nfc_fault = "Failed");
                continue;        // No point doing other regular tasks if PN532 is AWOL
             } else
             {
@@ -333,15 +334,12 @@ nfc_init (void)
       else
       {
          nfc_mutex = xSemaphoreCreateBinary ();
-	 xSemaphoreGive(nfc_mutex);
+         xSemaphoreGive (nfc_mutex);
          pn532 = pn532_init (nfcuart, port_mask (nfctx), port_mask (nfcrx), (1 << nfcred) | (1 << nfcgreen));
          if (!pn532)
             status (nfc_fault = "Failed to start PN532");
-         else
-         {
-            df_init (&df, pn532, pn532_dx);
-            revk_task (TAG, task, pn532);
-         }
+         df_init (&df, pn532, pn532_dx);        // Start anyway, er re-try init
+         revk_task (TAG, task, pn532);
       }
    } else if (nfcrx || nfctx)
       status (nfc_fault = "Set nfctx, and nfcrx");
