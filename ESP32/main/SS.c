@@ -44,7 +44,7 @@ status_report (int force)
          else
             r = "Restart";
          if (r)
-            revk_event ("warning", "1 %s", r);
+            revk_event ("warning", "%s", r);
          reason = -1;           // Just once
       }
       if (lastfault != fault || force)
