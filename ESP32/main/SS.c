@@ -28,22 +28,23 @@ status_report (int force)
 #define m(n) extern const char *n##_fault;if(n##_fault){fault=n##_fault;module=#n;faults++;}
       modules
 #undef m
-         if (!fault && force && reason >= 0 && reason != ESP_RST_SW)
+         if (!fault && force && reason >= 0)
       {
-         module = "Boot";
+         const char *r = NULL;
          if (reason == ESP_RST_POWERON)
-            fault = "Power on";
-	 else if (reason == ESP_RST_INT_WDT)
-            fault = "Int watchdog";
+            r = "Power on";
+         else if (reason == ESP_RST_INT_WDT)
+            r = "Int watchdog";
          else if (reason == ESP_RST_TASK_WDT)
-            fault = "Watchdog";
+            r = "Watchdog";
          else if (reason == ESP_RST_PANIC)
-            fault = "Panic";
+            r = "Panic";
          else if (reason == ESP_RST_BROWNOUT)
-            fault = "Brownout";
+            r = "Brownout";
          else
-            fault = "Restart";
-         faults++;
+            r = "Restart";
+         if (r)
+            revk_event ("warning", "1 %s", r);
          reason = -1;           // Just once
       }
       if (lastfault != fault || force)
