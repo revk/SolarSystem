@@ -3661,10 +3661,8 @@ doevent (event_t * e)
                   dolog (mydoor[d].group_lock, "FOBFAIL", u->name, doorno, "Autonomous access failed %s%s%s", e->fob,
                          secure ? " (secure)" : "", e->message ? : "");
                group_t disarm = ((u->group_arm[secure] & mydoor[d].group_arm & state[STATE_ARM]) | (port_name (port),
-                                                                                                    u->
-                                                                                                    group_disarm[secure] &
-                                                                                                    mydoor[d].
-                                                                                                    group_disarm &
+                                                                                                    u->group_disarm[secure] &
+                                                                                                    mydoor[d].group_disarm &
                                                                                                     state[STATE_SET]));
                if (door[d].state == DOOR_NOTCLOSED || door[d].state == DOOR_OPEN || door[d].state == DOOR_PROPPED)
                {
@@ -4413,27 +4411,27 @@ main (int argc, const char *argv[])
                } else
                   port = port_new (id, 0, 0);   // Device
                port_app_t *app = port_app (port);
-                  void sende (int etype, int state)
-                  {
-                     event_t *e = malloc (sizeof (*e));
-                     if (!e)
-                        errx (1, "malloc");
-                     memset ((void *) e, 0, sizeof (*e));
-                     e->event = etype;
-                     e->port = port;
-                     e->state = state;
-                     asprintf ((char **) &e->message, "%.*s", msg->payloadlen, (char *) msg->payload);
-                     struct timezone tz;
-                     gettimeofday ((void *) &e->when, &tz);
-                     if (etype == EVENT_DOOR)
-                     {          // Which door
-                        int d = app->door;
-                        e->door = d;
-                        if (d >= 0 && d < MAX_DOOR)
-                           door[d].state = state;
-                     }
-                     postevent (e);
+               void sende (int etype, int state)
+               {
+                  event_t *e = malloc (sizeof (*e));
+                  if (!e)
+                     errx (1, "malloc");
+                  memset ((void *) e, 0, sizeof (*e));
+                  e->event = etype;
+                  e->port = port;
+                  e->state = state;
+                  asprintf ((char **) &e->message, "%.*s", msg->payloadlen, (char *) msg->payload);
+                  struct timezone tz;
+                  gettimeofday ((void *) &e->when, &tz);
+                  if (etype == EVENT_DOOR)
+                  {             // Which door
+                     int d = app->door;
+                     e->door = d;
+                     if (d >= 0 && d < MAX_DOOR)
+                        door[d].state = state;
                   }
+                  postevent (e);
+               }
                void set (const char *tag, const char *val)
                {
                   char *topic;
@@ -4576,14 +4574,24 @@ main (int argc, const char *argv[])
                      sende (state ? EVENT_FOUND : EVENT_MISSING, state);
                      if (!state)
                         sende (EVENT_DOOR, DOOR_OFFLINE);
+                     return;
                   }
-                  else if (!strncmp (tag, "input", 5) && port->state != state)
+                  if (!strncmp (tag, "input", 5) && port->state != state)
+                  {
                      sende (EVENT_INPUT, state);
-                  else if (!strncmp (tag, "fault", 5) && port->fault != state)
+                     return;
+                  }
+                  if (!strncmp (tag, "fault", 5) && port->fault != state)
+                  {
                      sende (EVENT_FAULT, state);
-                  else if (!strncmp (tag, "tamper", 6) && port->tamper != state)
+                     return;
+                  }
+                  if (!strncmp (tag, "tamper", 6) && port->tamper != state)
+                  {
                      sende (EVENT_TAMPER, state);
-                  else if (!strncmp (tag, "door", 4) && app->door != -1 && app->state)
+                     return;
+                  }
+                  if (!strncmp (tag, "door", 4) && app->door != -1 && app->state)
                   {
                      state = 0;
 #define d(n,l) {const char s[]=#n;if((unsigned)msg->payloadlen>=sizeof(s)-1&&!strncmp(msg->payload,#n,sizeof(s)-1))state=DOOR_##n;}
@@ -4591,14 +4599,18 @@ main (int argc, const char *argv[])
 #undef d
                         sende (EVENT_DOOR, state);
                      //syslog (LOG_INFO, "Door %d state %s [%.*s]", app->door, door_name[state], (int) msg->payloadlen, (char *) msg->payload);        // TODO
+                     return;
                   }
                   return;
                }
                if (port && !strncmp (t, "event", 5) && msg->payloadlen >= 1)
                {
-		  if (!strncmp (tag, "warning", 5))
+                  if (!strncmp (tag, "warning", 5))
+                  {
                      sende (EVENT_WARNING, 1);
-		  else if (!strcmp (tag, "id") || !strcmp (tag, "held") || !strcmp (tag, "access") || !strcmp (tag, "gone")
+                     return;
+                  }
+                  if (!strcmp (tag, "id") || !strcmp (tag, "held") || !strcmp (tag, "access") || !strcmp (tag, "gone")
                       || !strcmp (tag, "noaccess") || !strcmp (tag, "nfcfail"))
                   {             // Fob
                      int l;
