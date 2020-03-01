@@ -4413,6 +4413,27 @@ main (int argc, const char *argv[])
                } else
                   port = port_new (id, 0, 0);   // Device
                port_app_t *app = port_app (port);
+                  void sende (int etype, int state)
+                  {
+                     event_t *e = malloc (sizeof (*e));
+                     if (!e)
+                        errx (1, "malloc");
+                     memset ((void *) e, 0, sizeof (*e));
+                     e->event = etype;
+                     e->port = port;
+                     e->state = state;
+                     asprintf ((char **) &e->message, "%.*s", msg->payloadlen, (char *) msg->payload);
+                     struct timezone tz;
+                     gettimeofday ((void *) &e->when, &tz);
+                     if (etype == EVENT_DOOR)
+                     {          // Which door
+                        int d = app->door;
+                        e->door = d;
+                        if (d >= 0 && d < MAX_DOOR)
+                           door[d].state = state;
+                     }
+                     postevent (e);
+                  }
                void set (const char *tag, const char *val)
                {
                   char *topic;
@@ -4550,34 +4571,12 @@ main (int argc, const char *argv[])
                         if (o->mqtt && port_isoutput (o) && !strcmp (o->mqtt, id))
                            mqtt_output (o, o->state);
                   }
-                  void sende (int etype, int state)
-                  {
-                     event_t *e = malloc (sizeof (*e));
-                     if (!e)
-                        errx (1, "malloc");
-                     memset ((void *) e, 0, sizeof (*e));
-                     e->event = etype;
-                     e->port = port;
-                     e->state = state;
-                     asprintf ((char **) &e->message, "%.*s", msg->payloadlen, (char *) msg->payload);
-                     struct timezone tz;
-                     gettimeofday ((void *) &e->when, &tz);
-                     if (etype == EVENT_DOOR)
-                     {          // Which door
-                        int d = app->door;
-                        e->door = d;
-                        if (d >= 0 && d < MAX_DOOR)
-                           door[d].state = state;
-                     }
-                     postevent (e);
-                  }
                   if (!tag)
                   {
                      sende (state ? EVENT_FOUND : EVENT_MISSING, state);
                      if (!state)
                         sende (EVENT_DOOR, DOOR_OFFLINE);
-                  } else if (!strncmp (tag, "warning", 5))
-                     sende (EVENT_WARNING, state);
+                  }
                   else if (!strncmp (tag, "input", 5) && port->state != state)
                      sende (EVENT_INPUT, state);
                   else if (!strncmp (tag, "fault", 5) && port->fault != state)
@@ -4597,7 +4596,9 @@ main (int argc, const char *argv[])
                }
                if (port && !strncmp (t, "event", 5) && msg->payloadlen >= 1)
                {
-                  if (!strcmp (tag, "id") || !strcmp (tag, "held") || !strcmp (tag, "access") || !strcmp (tag, "gone")
+		  if (!strncmp (tag, "warning", 5))
+                     sende (EVENT_WARNING, 1);
+		  else if (!strcmp (tag, "id") || !strcmp (tag, "held") || !strcmp (tag, "access") || !strcmp (tag, "gone")
                       || !strcmp (tag, "noaccess") || !strcmp (tag, "nfcfail"))
                   {             // Fob
                      int l;
