@@ -104,6 +104,7 @@ task (void *pvParameters)
                continue;        // No point doing other regular tasks if PN532 is AWOL
             } else
             {
+               df_init (&df, pn532, pn532_dx);
                status (nfc_fault = NULL);
                ledlast = 0xFF;
             }
