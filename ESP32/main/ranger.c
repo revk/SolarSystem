@@ -50,22 +50,6 @@ task (void *pvParameters)
 {                               // Main RevK task
    esp_task_wdt_add (NULL);
    vl53l0x_t *v = pvParameters;
-   void doinit ()
-   {
-      const char *err;
-      if ((err = vl53l0x_init (v)))
-      {
-         status (ranger_fault = err);
-         do
-            sleep (1);
-         while (vl53l0x_init (v));
-         status (ranger_fault = NULL);
-      }
-   }
-   doinit ();
-   vl53l0x_setSignalRateLimit (v, 2);   // This helps avoid sunlight / errors, default is 0.25 (MCPS)
-   vl53l0x_setMeasurementTimingBudget (v, rangerpoll * 950);
-   vl53l0x_startContinuous (v, rangerpoll);
    char *inputnear = NULL;
    if (rangerinputnear)
       asprintf (&inputnear, "input%d", rangerinputnear);
@@ -79,74 +63,89 @@ task (void *pvParameters)
    int64_t endlong = 0;
    while (1)
    {
-      esp_task_wdt_reset ();
-      int64_t now = esp_timer_get_time ();
-      if (next > now)
-         usleep ((now - next) / 1000);
-      next = now + (int64_t) rangerpoll *1000LL;
-      uint32_t range = vl53l0x_readRangeContinuousMillimeters (v);
-      if (range > rangerfar)
-         range = rangerfar;
-      char force = newforce;
-      newforce = 0;
-      if (rangerinputnear)
-      {
-         char change = force;
-         if (range < rangernear && last < rangernear)
-         {                      // Two polls below set for input 8
-            if (!buttonnear)
-            {
-               buttonnear = 1;
-               change = 1;
-            }
-         } else if (range > rangernear && last > rangernear)
-         {                      // Two polls above, so unset input 8
-            if (force || buttonnear)
-            {
-               buttonnear = 0;
-               change = 1;
-            }
-         }
-         if (change)
+      const char *err;
+      if ((err = vl53l0x_init (v)))
+         if (err)
          {
-            revk_state (inputnear, "%d %dmm", buttonnear, range);
-            input_set (rangerinputnear, buttonnear);
+            status (ranger_fault = err);
+            sleep (1);
+            continue;
          }
-      }
-      if (rangerinputfar)
+      status (ranger_fault = NULL);
+      vl53l0x_setSignalRateLimit (v, 2);        // This helps avoid sunlight / errors, default is 0.25 (MCPS)
+      vl53l0x_setMeasurementTimingBudget (v, rangerpoll * 950);
+      vl53l0x_startContinuous (v, rangerpoll);
+      while (1)
       {
-         char change = force;
-         int32_t delta = range - last;
-         static int32_t lastdelta = 0;
-         if ((delta > 0 && lastdelta > 0 && delta + lastdelta >= rangermargin)
-             || (delta < 0 && lastdelta < 0 && delta + lastdelta <= -rangermargin))
-         {                      // Moved (consistently) rangermargin over two polls
-            if (!buttonfar)
-            {
-               buttonfar = 1;
-               change = 1;
-            }
-            endlong = now + (int64_t) rangerhold *1000LL;
-         } else if (endlong < now)
-         {                      // Not moved, and we have reached timeout for motion
-            if (buttonfar)
-            {
-               buttonfar = 0;
-               change = 1;
-            }
-         }
-         if (change)
+         esp_task_wdt_reset ();
+         int64_t now = esp_timer_get_time ();
+         if (next > now)
+            usleep ((now - next) / 1000);
+         next = now + (int64_t) rangerpoll *1000LL;
+         uint32_t range = vl53l0x_readRangeContinuousMillimeters (v);
+         if (range > rangerfar)
+            range = rangerfar;
+         char force = newforce;
+         newforce = 0;
+         if (rangerinputnear)
          {
-            revk_state (inputfar, "%d %dmm", buttonfar, range);
-            input_set (9, buttonfar);
+            char change = force;
+            if (range < rangernear && last < rangernear)
+            {                   // Two polls below set for input 8
+               if (!buttonnear)
+               {
+                  buttonnear = 1;
+                  change = 1;
+               }
+            } else if (range > rangernear && last > rangernear)
+            {                   // Two polls above, so unset input 8
+               if (force || buttonnear)
+               {
+                  buttonnear = 0;
+                  change = 1;
+               }
+            }
+            if (change)
+            {
+               revk_state (inputnear, "%d %dmm", buttonnear, range);
+               input_set (rangerinputnear, buttonnear);
+            }
          }
-         lastdelta = delta;
+         if (rangerinputfar)
+         {
+            char change = force;
+            int32_t delta = range - last;
+            static int32_t lastdelta = 0;
+            if ((delta > 0 && lastdelta > 0 && delta + lastdelta >= rangermargin)
+                || (delta < 0 && lastdelta < 0 && delta + lastdelta <= -rangermargin))
+            {                   // Moved (consistently) rangermargin over two polls
+               if (!buttonfar)
+               {
+                  buttonfar = 1;
+                  change = 1;
+               }
+               endlong = now + (int64_t) rangerhold *1000LL;
+            } else if (endlong < now)
+            {                   // Not moved, and we have reached timeout for motion
+               if (buttonfar)
+               {
+                  buttonfar = 0;
+                  change = 1;
+               }
+            }
+            if (change)
+            {
+               revk_state (inputfar, "%d %dmm", buttonfar, range);
+               input_set (9, buttonfar);
+            }
+            lastdelta = delta;
+         }
+         if (rangerdebug && (range < rangerfar || last < rangerfar))
+            revk_state ("range", "%dmm", range);
+         last = range;
+         if (vl53l0x_i2cFail (v))
+            break;
       }
-      if (rangerdebug && (range < rangerfar || last < rangerfar))
-         revk_state ("range", "%dmm", range);
-      last = range;
-      if (vl53l0x_i2cFail (v))
-         doinit ();
    }
 }
 
