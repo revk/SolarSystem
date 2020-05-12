@@ -27,7 +27,7 @@ const char *nfc_tamper = NULL;
   b(aid,3) \
   p(nfctx) \
   p(nfcrx) \
-  u8(nfcuart,2) \
+  u8(nfcuart,1) \
 
 #define i8(n,d) int8_t n;
 #define u8(n,d) uint8_t n;
