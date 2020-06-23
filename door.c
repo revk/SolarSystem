@@ -146,8 +146,7 @@ door_open (int d, const unsigned char *afile)
 {                               // Unlock deadlock and lock, unless unlocked or actually open!
    if (door[d].autonomous)
    {                            // Send door lock control
-      if (door[d].state == DOOR_DEADLOCKED || door[d].state == DOOR_LOCKED || door[d].state == DOOR_LOCKING)
-         mqtt_door (d, "unlock", afile);
+      mqtt_door (d, "unlock", afile); // Send unlock even in cases that seem not locked to clear lock state if needed
       return;
    }
    if (door[d].mainlock.locked && !port_input (door[d].i_open))
@@ -176,8 +175,7 @@ door_lock (int d, const unsigned char *afile)
 {                               // Lock
    if (door[d].autonomous)
    {
-      if (door[d].state != DOOR_LOCKED && door[d].state != DOOR_LOCKING)
-         mqtt_door (d, "lock", afile);
+      mqtt_door (d, "lock", afile);
       return;
    }
    if (!door[d].state)
