@@ -188,8 +188,7 @@ door_deadlock (int d, const unsigned char *afile)
 {                               // Lock and deadlock
    if (door[d].autonomous)
    {
-      if (door[d].state != DOOR_DEADLOCKED)
-         mqtt_door (d, "deadlock", afile);
+      mqtt_door (d, "deadlock", afile);
       return;
    }
    lock_lock (&door[d].mainlock);
@@ -213,8 +212,7 @@ door_unlock (int d, const unsigned char *afile)
 {                               // Unlock
    if (door[d].autonomous)
    {
-      if (door[d].state != DOOR_LOCKED && door[d].state != DOOR_LOCKING)
-         mqtt_door (d, "lock", afile);
+      mqtt_door (d, "lock", afile);
       return;
    }
    lock_open (&door[d].deadlock);
