@@ -1780,7 +1780,7 @@ static void ws_port_output_callback(port_p id)
 {
    xml_t root = xml_tree_new(NULL);
    output_ws(root, id);
-   websocket_send_all(root);
+   websocket_send(xml:root);
    xml_tree_delete(root);
 }
 #endif
@@ -2020,7 +2020,7 @@ static void state_change(group_t g)
          }
 #ifdef	LIBWS
    if (xml_element_next(root, NULL))
-      websocket_send_all(root);
+      websocket_send(xml:root);
    xml_tree_delete(root);
 #endif
    // Do outputs and stuff resulting from state change
@@ -2670,7 +2670,7 @@ static void *keypad_message(keypad_t * k, char *fmt, ...)
 #ifdef  LIBWS
    xml_t root = xml_tree_new(NULL);
    keypad_ws(root, k);
-   websocket_send_all(root);
+   websocket_send(xml:root);
    xml_tree_delete(root);
 #endif
    return NULL;
@@ -3026,7 +3026,7 @@ static void *keypad_update(keypad_t * k, char key)
       xml_add(x, "@key", "ent");
    else if (key)
       xml_addf(x, "@key", "%c", key);
-   websocket_send_all(root);
+   websocket_send(xml:root);
    xml_tree_delete(root);
 #endif
    return ret;
@@ -3268,7 +3268,7 @@ void doevent(event_t * e)
 #ifdef	LIBWS
          xml_t root = xml_tree_new(NULL);
          if (door_ws(root, e->door))
-            websocket_send_all(root);
+            websocket_send(xml:root);
          xml_tree_delete(root);
 #endif
          // Fix state if wrong
@@ -3323,7 +3323,7 @@ void doevent(event_t * e)
 #ifdef	LIBWS
          xml_t root = xml_tree_new(NULL);
          input_ws(root, port);
-         websocket_send_all(root);
+         websocket_send(xml:root);
          xml_tree_delete(root);
 #endif
       }
@@ -3357,7 +3357,7 @@ void doevent(event_t * e)
 #ifdef	LIBWS
          xml_t root = xml_tree_new(NULL);
          input_ws(root, port);
-         websocket_send_all(root);
+         websocket_send(xml:root);
          xml_tree_delete(root);
 #endif
       }
@@ -3431,7 +3431,7 @@ void doevent(event_t * e)
 #ifdef	LIBWS
          xml_t root = xml_tree_new(NULL);
          input_ws(root, port);
-         websocket_send_all(root);
+         websocket_send(xml:root);
          xml_tree_delete(root);
 #endif
          break;
@@ -3856,7 +3856,7 @@ static char *do_wscallback(websocket_t * w, xml_t head, xml_t data)
       for (p = ports; p; p = p->next)
          if (port_isinput(p))
             input_ws(root, p);
-      websocket_send(1, &w, root);
+      websocket_send(1, &w, xml:root);
       pthread_mutex_unlock(&eventmutex);
       xml_tree_delete(root);
       return NULL;
@@ -4046,7 +4046,7 @@ static char *do_wscallback(websocket_t * w, xml_t head, xml_t data)
             alarm_reset(user->name ? : "web", NULL, 1 << g);
       }
       if (xml_element_next(root, NULL))
-         websocket_send_all(root);
+         websocket_send(xml:root);
       xml_tree_delete(root);
       pthread_mutex_unlock(&eventmutex);
       return NULL;
@@ -4569,7 +4569,7 @@ int main(int argc, const char *argv[])
    //if (wsport || wskeyfile)
    {
       const char *e = websocket_bind(wsport, wsorigin, wshost, NULL, wscertfile, wskeyfile,
-                                     wscallback);
+                                     xml:wscallback);
       if (e)
          errx(1, "Websocket fail: %s", e);
    }
