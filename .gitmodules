@@ -28,3 +28,10 @@
 [submodule "3D/PCBCase"]
 	path = 3D/PCBCase
 	url = https://github.com/revk/PCBCase
+[submodule "ESP32/ftdizap"]
+	path = ESP32/ftdizap
+	url = https://github.com/revk/ftdizap
+	branch = main
+[submodule "ESP32/PCBCase"]
+	path = ESP32/PCBCase
+	url = https://github.com/revk/PCBCase
