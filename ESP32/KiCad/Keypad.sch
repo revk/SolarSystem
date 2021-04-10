@@ -4,9 +4,9 @@ EELAYER END
 $Descr A4 11693 8268
 encoding utf-8
 Sheet 1 1
-Title "Generic ESP32"
-Date "2021-03-06"
-Rev "2"
+Title "Galaxy Keypad controller"
+Date "2021-04-10"
+Rev "4"
 Comp ""
 Comment1 "@TheRealRevK"
 Comment2 "www.me.uk"
