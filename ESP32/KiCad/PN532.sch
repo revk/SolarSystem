@@ -1018,4 +1018,6 @@ F 3 "~" H 7850 1800 50  0001 C CNN
 	1    7850 1800
 	1    0    0    -1  
 $EndComp
+Text Notes 1700 6400 0    197  ~ 0
+Notes\nCheck cyrstal package
 $EndSCHEMATC
