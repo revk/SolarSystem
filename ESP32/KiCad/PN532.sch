@@ -940,4 +940,6 @@ Wire Wire Line
 Connection ~ 10050 4050
 Wire Wire Line
 	10050 4050 10050 4500
+Text Notes 1200 6800 0    197  ~ 0
+Notes:\nNeeds tamper switch\nNeeds leaded LED pads\nConsider alternative GPIO to better track to LEDs\nConsider FT230X
 $EndSCHEMATC
