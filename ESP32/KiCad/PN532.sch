@@ -567,17 +567,6 @@ F 3 "" H 5500 4750 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L Device:Crystal X1
-U 1 1 607A9079
-P 5850 5550
-F 0 "X1" H 5850 5818 50  0000 C CNN
-F 1 "27.12MHz (Mouser 830053099)" H 5850 5727 50  0000 C CNN
-F 2 "RevK:Crystal-3.4x2.7" H 5850 5550 50  0001 C CNN
-F 3 "https://www.mouser.co.uk/datasheet/2/445/830053099-2005459.pdf" H 5850 5550 50  0001 C CNN
-	1    5850 5550
-	1    0    0    -1  
-$EndComp
-$Comp
 L power:GND #PWR0117
 U 1 1 607ABABA
 P 5850 6150
@@ -997,14 +986,34 @@ F 3 "~" H 9200 1450 50  0001 C CNN
 	1    9200 1450
 	1    0    0    -1  
 $EndComp
+$Comp
+L Device:Crystal_GND24 Y1
+U 1 1 6075CAF9
+P 5850 5500
+F 0 "Y1" H 6044 5546 50  0000 L CNN
+F 1 "27.12MHz (Mouser 830053099)" H 6044 5455 50  0000 L CNN
+F 2 "RevK:Crystal-3.4x2.7" H 5850 5500 50  0001 C CNN
+F 3 "~" H 5850 5500 50  0001 C CNN
+	1    5850 5500
+	1    0    0    -1  
+$EndComp
 Wire Wire Line
-	5700 5200 5700 5550
+	5700 5200 5700 5500
 Wire Wire Line
-	6000 5200 6000 5550
-Connection ~ 5700 5550
+	6000 5200 6000 5500
+Connection ~ 5700 5500
 Wire Wire Line
-	5700 5550 5700 5700
-Connection ~ 6000 5550
+	5700 5500 5700 5700
+Connection ~ 6000 5500
 Wire Wire Line
-	6000 5550 6000 5700
+	6000 5500 6000 5700
+Wire Wire Line
+	5850 5700 5850 6150
+Wire Wire Line
+	5850 5300 5350 5300
+Wire Wire Line
+	5350 5300 5350 6150
+Wire Wire Line
+	5350 6150 5700 6150
+Connection ~ 5700 6150
 $EndSCHEMATC
