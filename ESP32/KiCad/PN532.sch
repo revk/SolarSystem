@@ -981,7 +981,7 @@ U 1 1 607A1F8B
 P 9200 1200
 F 0 "H1" H 9300 1246 50  0000 L CNN
 F 1 "MountingHole" H 9300 1155 50  0000 L CNN
-F 2 "MountingHole:MountingHole_4.3mm_M4" H 9200 1200 50  0001 C CNN
+F 2 "MountingHole:MountingHole_3.2mm_M3_Pad_Via" H 9200 1200 50  0001 C CNN
 F 3 "~" H 9200 1200 50  0001 C CNN
 	1    9200 1200
 	1    0    0    -1  
@@ -992,7 +992,7 @@ U 1 1 607A2C4F
 P 9200 1450
 F 0 "H2" H 9300 1496 50  0000 L CNN
 F 1 "MountingHole" H 9300 1405 50  0000 L CNN
-F 2 "MountingHole:MountingHole_4.3mm_M4" H 9200 1450 50  0001 C CNN
+F 2 "MountingHole:MountingHole_3.2mm_M3_Pad_Via" H 9200 1450 50  0001 C CNN
 F 3 "~" H 9200 1450 50  0001 C CNN
 	1    9200 1450
 	1    0    0    -1  
