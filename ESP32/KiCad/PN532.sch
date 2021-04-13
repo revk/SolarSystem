@@ -862,7 +862,6 @@ F 3 "" H 6000 4750 50  0001 C CNN
 $EndComp
 Wire Wire Line
 	9550 4150 9950 4150
-Connection ~ 9950 4150
 Wire Wire Line
 	9950 4150 9950 4400
 Wire Wire Line
@@ -937,23 +936,7 @@ Wire Wire Line
 Wire Wire Line
 	8000 1300 8000 1200
 Wire Wire Line
-	9550 3400 9950 3400
-Connection ~ 9950 3400
-Wire Wire Line
-	9950 3400 9950 4150
-Wire Wire Line
-	9550 3300 10050 3300
-Connection ~ 10050 3300
-Wire Wire Line
-	10050 3300 10050 4050
-Wire Wire Line
-	9550 2750 9950 2750
-Wire Wire Line
-	9950 2750 9950 3400
-Wire Wire Line
-	9550 2650 10050 2650
-Wire Wire Line
-	10050 2650 10050 3300
+	9550 2650 9950 2650
 Wire Wire Line
 	6100 2800 6100 2950
 Wire Wire Line
@@ -1016,4 +999,27 @@ Wire Wire Line
 Wire Wire Line
 	5350 6150 5700 6150
 Connection ~ 5700 6150
+Wire Wire Line
+	9550 2750 10050 2750
+Wire Wire Line
+	9950 2650 9950 3300
+Connection ~ 9950 4150
+Wire Wire Line
+	9550 3300 9950 3300
+Connection ~ 9950 3300
+Wire Wire Line
+	9950 3300 9950 4150
+Wire Wire Line
+	9550 3400 10050 3400
+Wire Wire Line
+	10050 2750 10050 3400
+Connection ~ 10050 3400
+Wire Wire Line
+	10050 3400 10050 4050
+Text Notes 9150 2750 0    50   ~ 0
+GND\nVCC\nTX\nRX
+Text Notes 9150 3350 0    50   ~ 0
+GND\nVCC\nTX\nRX
+Text Notes 9150 4300 0    50   ~ 0
+GND\nVCC\nRX\nTX\n\n(yes swapped)
 $EndSCHEMATC
