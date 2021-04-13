@@ -571,9 +571,9 @@ L Device:Crystal X1
 U 1 1 607A9079
 P 5850 5550
 F 0 "X1" H 5850 5818 50  0000 C CNN
-F 1 "27.12MHz" H 5850 5727 50  0000 C CNN
-F 2 "Crystal:Crystal_SMD_2016-4Pin_2.0x1.6mm" H 5850 5550 50  0001 C CNN
-F 3 "~" H 5850 5550 50  0001 C CNN
+F 1 "27.12MHz (Mouser 830053099)" H 5850 5727 50  0000 C CNN
+F 2 "RevK:Crystal-3.4x2.7" H 5850 5550 50  0001 C CNN
+F 3 "https://www.mouser.co.uk/datasheet/2/445/830053099-2005459.pdf" H 5850 5550 50  0001 C CNN
 	1    5850 5550
 	1    0    0    -1  
 $EndComp
@@ -597,16 +597,6 @@ Wire Wire Line
 Wire Wire Line
 	6000 6150 5850 6150
 Connection ~ 5850 6150
-Wire Wire Line
-	5700 5700 5700 5550
-Wire Wire Line
-	6000 5550 6000 5700
-Wire Wire Line
-	5700 5550 5700 5200
-Connection ~ 5700 5550
-Wire Wire Line
-	6000 5550 6000 5200
-Connection ~ 6000 5550
 Wire Wire Line
 	5800 5200 5700 5200
 Wire Wire Line
@@ -739,13 +729,6 @@ F 3 "" H 9550 3950 50  0001 C CNN
 	0    1    1    0   
 $EndComp
 Wire Wire Line
-	9550 2650 9950 2650
-Wire Wire Line
-	9950 2650 9950 3300
-Wire Wire Line
-	9950 3300 9550 3300
-Connection ~ 9950 3300
-Wire Wire Line
 	9950 4400 8800 4400
 Wire Wire Line
 	8800 4400 8800 3650
@@ -753,20 +736,13 @@ Wire Wire Line
 	8800 3650 6800 3650
 Wire Wire Line
 	6800 3750 8700 3750
-Wire Wire Line
-	10050 3400 9550 3400
-Wire Wire Line
-	10050 3400 10050 2750
-Wire Wire Line
-	10050 2750 9550 2750
-Connection ~ 10050 3400
 $Comp
 L Device:LED D1
 U 1 1 607E9287
 P 7850 1200
 F 0 "D1" H 7843 1417 50  0000 C CNN
 F 1 "RED" H 7843 1326 50  0000 C CNN
-F 2 "LED_SMD:LED_1206_3216Metric_Castellated" H 7850 1200 50  0001 C CNN
+F 2 "RevK:LED_D3.0mm_and_SMD" H 7850 1200 50  0001 C CNN
 F 3 "~" H 7850 1200 50  0001 C CNN
 	1    7850 1200
 	1    0    0    -1  
@@ -777,7 +753,7 @@ U 1 1 607EAF87
 P 7850 1700
 F 0 "D2" H 7843 1917 50  0000 C CNN
 F 1 "AMBER" H 7843 1826 50  0000 C CNN
-F 2 "LED_SMD:LED_1206_3216Metric_Castellated" H 7850 1700 50  0001 C CNN
+F 2 "RevK:LED_D3.0mm_and_SMD" H 7850 1700 50  0001 C CNN
 F 3 "~" H 7850 1700 50  0001 C CNN
 	1    7850 1700
 	1    0    0    -1  
@@ -788,7 +764,7 @@ U 1 1 607EB52D
 P 7850 2250
 F 0 "D3" H 7843 2467 50  0000 C CNN
 F 1 "GREEN" H 7843 2376 50  0000 C CNN
-F 2 "LED_SMD:LED_1206_3216Metric_Castellated" H 7850 2250 50  0001 C CNN
+F 2 "RevK:LED_D3.0mm_and_SMD" H 7850 2250 50  0001 C CNN
 F 3 "~" H 7850 2250 50  0001 C CNN
 	1    7850 2250
 	1    0    0    -1  
@@ -896,10 +872,6 @@ F 3 "" H 6000 4750 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 Wire Wire Line
-	9950 3300 9950 4150
-Wire Wire Line
-	10050 3400 10050 4050
-Wire Wire Line
 	9550 4150 9950 4150
 Connection ~ 9950 4150
 Wire Wire Line
@@ -912,37 +884,13 @@ Wire Wire Line
 NoConn ~ 6800 3450
 NoConn ~ 6800 3550
 NoConn ~ 6800 3950
-$Comp
-L Device:LED D6
-U 1 1 607550DD
-P 7850 2350
-F 0 "D6" H 7950 2300 50  0000 C CNN
-F 1 "GREEN" H 8150 2300 50  0000 C CNN
-F 2 "LED_THT:LED_D3.0mm" H 7850 2350 50  0001 C CNN
-F 3 "~" H 7850 2350 50  0001 C CNN
-	1    7850 2350
-	1    0    0    -1  
-$EndComp
-$Comp
-L Device:LED D4
-U 1 1 60758AF3
-P 7850 1350
-F 0 "D4" H 7950 1300 50  0000 C CNN
-F 1 "RED" H 8250 1350 50  0000 C CNN
-F 2 "LED_THT:LED_D3.0mm" H 7850 1350 50  0001 C CNN
-F 3 "~" H 7850 1350 50  0001 C CNN
-	1    7850 1350
-	1    0    0    -1  
-$EndComp
 Wire Wire Line
 	7550 1200 7700 1200
 Wire Wire Line
 	7550 1200 7550 1700
 Wire Wire Line
-	7700 1200 7700 1350
+	7700 1200 7700 1300
 Connection ~ 7700 1200
-Wire Wire Line
-	8000 1350 8000 1200
 Connection ~ 8000 1200
 Wire Wire Line
 	8000 1800 8000 1700
@@ -980,25 +928,15 @@ Connection ~ 7550 1200
 Wire Wire Line
 	8300 2250 8300 2650
 Wire Wire Line
-	8300 2650 6100 2650
-Wire Wire Line
-	6100 2650 6100 2950
-Wire Wire Line
 	8300 1700 8350 1700
 Wire Wire Line
 	8350 1700 8350 2700
 Wire Wire Line
 	8350 2700 6200 2700
 Wire Wire Line
-	6200 2700 6200 2950
-Wire Wire Line
 	8300 1200 8400 1200
 Wire Wire Line
 	8400 1200 8400 2800
-Wire Wire Line
-	8400 2800 6300 2800
-Wire Wire Line
-	6300 2800 6300 2950
 Wire Wire Line
 	8050 800  8450 800 
 Wire Wire Line
@@ -1007,17 +945,66 @@ Wire Wire Line
 	8450 2850 6400 2850
 Wire Wire Line
 	6400 2850 6400 2950
+Wire Wire Line
+	8000 1300 8000 1200
+Wire Wire Line
+	9550 3400 9950 3400
+Connection ~ 9950 3400
+Wire Wire Line
+	9950 3400 9950 4150
+Wire Wire Line
+	9550 3300 10050 3300
+Connection ~ 10050 3300
+Wire Wire Line
+	10050 3300 10050 4050
+Wire Wire Line
+	9550 2750 9950 2750
+Wire Wire Line
+	9950 2750 9950 3400
+Wire Wire Line
+	9550 2650 10050 2650
+Wire Wire Line
+	10050 2650 10050 3300
+Wire Wire Line
+	6100 2800 6100 2950
+Wire Wire Line
+	6100 2800 8400 2800
+Wire Wire Line
+	6200 2700 6200 2950
+Wire Wire Line
+	6300 2950 6300 2650
+Wire Wire Line
+	6300 2650 8300 2650
 $Comp
-L Device:LED D5
-U 1 1 60756D2F
-P 7850 1800
-F 0 "D5" H 7950 1750 50  0000 C CNN
-F 1 "AMBER" H 8150 1800 50  0000 C CNN
-F 2 "LED_THT:LED_D3.0mm" H 7850 1800 50  0001 C CNN
-F 3 "~" H 7850 1800 50  0001 C CNN
-	1    7850 1800
+L Mechanical:MountingHole H1
+U 1 1 607A1F8B
+P 9200 1200
+F 0 "H1" H 9300 1246 50  0000 L CNN
+F 1 "MountingHole" H 9300 1155 50  0000 L CNN
+F 2 "MountingHole:MountingHole_4.3mm_M4" H 9200 1200 50  0001 C CNN
+F 3 "~" H 9200 1200 50  0001 C CNN
+	1    9200 1200
 	1    0    0    -1  
 $EndComp
-Text Notes 1700 6400 0    197  ~ 0
-Notes\nCheck cyrstal package\nMaybe move LEDs in a bit
+$Comp
+L Mechanical:MountingHole H2
+U 1 1 607A2C4F
+P 9200 1450
+F 0 "H2" H 9300 1496 50  0000 L CNN
+F 1 "MountingHole" H 9300 1405 50  0000 L CNN
+F 2 "MountingHole:MountingHole_4.3mm_M4" H 9200 1450 50  0001 C CNN
+F 3 "~" H 9200 1450 50  0001 C CNN
+	1    9200 1450
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	5700 5200 5700 5550
+Wire Wire Line
+	6000 5200 6000 5550
+Connection ~ 5700 5550
+Wire Wire Line
+	5700 5550 5700 5700
+Connection ~ 6000 5550
+Wire Wire Line
+	6000 5550 6000 5700
 $EndSCHEMATC
