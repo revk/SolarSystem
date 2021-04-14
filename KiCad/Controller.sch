@@ -476,46 +476,46 @@ $EndComp
 $Comp
 L Connector_Generic:Conn_01x02 J5
 U 1 1 6073F57B
-P 5350 5150
-F 0 "J5" H 5430 5142 50  0000 L CNN
-F 1 "OUT1" H 5430 5051 50  0000 L CNN
-F 2 "Connector_Molex:Molex_SPOX_5268-02A_1x02_P2.50mm_Horizontal" H 5350 5150 50  0001 C CNN
-F 3 "~" H 5350 5150 50  0001 C CNN
-	1    5350 5150
-	1    0    0    -1  
+P 5350 5250
+F 0 "J5" H 5430 5242 50  0000 L CNN
+F 1 "OUT1" H 5430 5151 50  0000 L CNN
+F 2 "Connector_Molex:Molex_SPOX_5268-02A_1x02_P2.50mm_Horizontal" H 5350 5250 50  0001 C CNN
+F 3 "~" H 5350 5250 50  0001 C CNN
+	1    5350 5250
+	1    0    0    1   
 $EndComp
 $Comp
 L Connector_Generic:Conn_01x02 J6
 U 1 1 60740AE9
-P 5350 5700
-F 0 "J6" H 5430 5692 50  0000 L CNN
-F 1 "OUT2" H 5430 5601 50  0000 L CNN
-F 2 "Connector_Molex:Molex_SPOX_5268-02A_1x02_P2.50mm_Horizontal" H 5350 5700 50  0001 C CNN
-F 3 "~" H 5350 5700 50  0001 C CNN
-	1    5350 5700
-	1    0    0    -1  
+P 5350 5800
+F 0 "J6" H 5430 5792 50  0000 L CNN
+F 1 "OUT2" H 5430 5701 50  0000 L CNN
+F 2 "Connector_Molex:Molex_SPOX_5268-02A_1x02_P2.50mm_Horizontal" H 5350 5800 50  0001 C CNN
+F 3 "~" H 5350 5800 50  0001 C CNN
+	1    5350 5800
+	1    0    0    1   
 $EndComp
 $Comp
 L Connector_Generic:Conn_01x02 J7
 U 1 1 60741D8C
-P 5350 6250
-F 0 "J7" H 5430 6242 50  0000 L CNN
-F 1 "OUT3" H 5430 6151 50  0000 L CNN
-F 2 "Connector_Molex:Molex_SPOX_5268-02A_1x02_P2.50mm_Horizontal" H 5350 6250 50  0001 C CNN
-F 3 "~" H 5350 6250 50  0001 C CNN
-	1    5350 6250
-	1    0    0    -1  
+P 5350 6350
+F 0 "J7" H 5430 6342 50  0000 L CNN
+F 1 "OUT3" H 5430 6251 50  0000 L CNN
+F 2 "Connector_Molex:Molex_SPOX_5268-02A_1x02_P2.50mm_Horizontal" H 5350 6350 50  0001 C CNN
+F 3 "~" H 5350 6350 50  0001 C CNN
+	1    5350 6350
+	1    0    0    1   
 $EndComp
 $Comp
 L Connector_Generic:Conn_01x02 J8
 U 1 1 607421F7
-P 5350 6800
-F 0 "J8" H 5430 6792 50  0000 L CNN
-F 1 "OUT4" H 5430 6701 50  0000 L CNN
-F 2 "Connector_Molex:Molex_SPOX_5268-02A_1x02_P2.50mm_Horizontal" H 5350 6800 50  0001 C CNN
-F 3 "~" H 5350 6800 50  0001 C CNN
-	1    5350 6800
-	1    0    0    -1  
+P 5350 6900
+F 0 "J8" H 5430 6892 50  0000 L CNN
+F 1 "OUT4" H 5430 6801 50  0000 L CNN
+F 2 "Connector_Molex:Molex_SPOX_5268-02A_1x02_P2.50mm_Horizontal" H 5350 6900 50  0001 C CNN
+F 3 "~" H 5350 6900 50  0001 C CNN
+	1    5350 6900
+	1    0    0    1   
 $EndComp
 $Comp
 L Connector_Generic:Conn_01x02 J2
