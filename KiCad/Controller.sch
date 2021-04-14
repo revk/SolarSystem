@@ -423,13 +423,12 @@ L RevK:D24V5F3-NoSHDN M2
 U 1 1 60736BEE
 P 9600 3150
 F 0 "M2" H 9968 3011 50  0000 L CNN
-F 1 "D24V5F5-NoSHDN" H 9500 3300 50  0000 L CNN
+F 1 "D24V5F5-NoSHDN" H 9650 2700 50  0000 L CNN
 F 2 "RevK:D24V5F3-SMD-Like" H 9600 3350 50  0001 C CNN
 F 3 "https://www.pololu.com/product/2842/resources" H 9600 3350 50  0001 C CNN
 	1    9600 3150
 	1    0    0    -1  
 $EndComp
-NoConn ~ 9600 3150
 $Comp
 L power:+5V #PWR026
 U 1 1 607379D0
@@ -798,11 +797,10 @@ Text GLabel 5150 3400 0    50   Input ~ 0
 SCL
 Text GLabel 5150 3500 0    50   Input ~ 0
 SDA
-Text GLabel 5150 4050 0    50   Input ~ 0
-RFTX
 Text GLabel 5150 4150 0    50   Input ~ 0
+RFTX
+Text GLabel 5150 4050 0    50   Input ~ 0
 RFRX
-NoConn ~ 2700 1800
 NoConn ~ 2700 3100
 $Comp
 L Device:R R1
@@ -980,4 +978,45 @@ Wire Wire Line
 Wire Wire Line
 	4600 700  4700 700 
 Connection ~ 4800 700 
+$Comp
+L power:GND #PWR0101
+U 1 1 60776D64
+P 9450 4450
+F 0 "#PWR0101" H 9450 4200 50  0001 C CNN
+F 1 "GND" H 9455 4277 50  0000 C CNN
+F 2 "" H 9450 4450 50  0001 C CNN
+F 3 "" H 9450 4450 50  0001 C CNN
+	1    9450 4450
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	9600 3150 9450 3150
+Wire Wire Line
+	9450 3150 9450 4050
+$Comp
+L Device:R R15
+U 1 1 6077B7DD
+P 9000 4250
+F 0 "R15" V 8793 4250 50  0000 C CNN
+F 1 "1k" V 8884 4250 50  0000 C CNN
+F 2 "Resistor_SMD:R_1206_3216Metric_Pad1.30x1.75mm_HandSolder" V 8930 4250 50  0001 C CNN
+F 3 "~" H 9000 4250 50  0001 C CNN
+	1    9000 4250
+	0    1    1    0   
+$EndComp
+Text GLabel 8850 4250 0    50   Input ~ 0
+SHDN
+Text GLabel 2700 1800 2    50   Input ~ 0
+SHDN
+$Comp
+L Transistor_BJT:BC817 Q1
+U 1 1 6077F53E
+P 9350 4250
+F 0 "Q1" H 9541 4296 50  0000 L CNN
+F 1 "BC817" H 9541 4205 50  0000 L CNN
+F 2 "Package_TO_SOT_SMD:SOT-23" H 9550 4175 50  0001 L CIN
+F 3 "https://www.onsemi.com/pub/Collateral/BC818-D.pdf" H 9350 4250 50  0001 L CNN
+	1    9350 4250
+	1    0    0    -1  
+$EndComp
 $EndSCHEMATC
