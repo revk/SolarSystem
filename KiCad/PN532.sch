@@ -5,8 +5,8 @@ $Descr A4 11693 8268
 encoding utf-8
 Sheet 1 1
 Title "PN532 Board"
-Date "2021-04-12"
-Rev "1"
+Date "2021-04-19"
+Rev "2"
 Comp "Adrian Kennard Andrews & Arnold Ltd"
 Comment1 "www.me.uk"
 Comment2 ""
@@ -1022,15 +1022,7 @@ Wire Wire Line
 	10050 4150 10050 4500
 Text Notes 9150 4150 0    50   ~ 0
 GND\nVCC\nTX\nRX
-Wire Wire Line
-	6800 4150 6800 4250
-Connection ~ 6800 4150
-Wire Wire Line
-	6800 4250 6800 4350
-Connection ~ 6800 4250
-Wire Wire Line
-	6800 4350 6800 4750
-Connection ~ 6800 4350
-Wire Wire Line
-	6800 4750 6400 4750
+NoConn ~ 6800 4250
+NoConn ~ 6800 4350
+NoConn ~ 6400 4750
 $EndSCHEMATC
