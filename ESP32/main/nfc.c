@@ -18,6 +18,7 @@ const char *nfc_tamper = NULL;
   i8(nfcamber,-1) \
   i8(nfcgreen,0) \
   i8(nfctamper,3) \
+  u1(itamper) \
   u16(nfcpoll,50) \
   u16(nfchold,3000) \
   u16(nfcholdpoll,500) \
@@ -111,9 +112,9 @@ static void task(void *pvParameters)
          } else
          {                      // Check tamper
             if (p3 & (1 << nfctamper))
-               status(nfc_tamper = NULL);
+               status(nfc_tamper = (itamper ? "Tamper" : NULL));
             else
-               status(nfc_tamper = "Tamper");
+               status(nfc_tamper = (itamper ? NULL : "Tamper"));
          }
       }
       // LED
@@ -137,7 +138,9 @@ static void task(void *pvParameters)
             ledpos += 2;
          }
          if (newled != ledlast)
+         {
             pn532_write_GPIO(pn532, ledlast = newled);
+         }
       }
       // Card
       if (nextpoll < now)
@@ -286,7 +289,7 @@ const char *nfc_command(const char *tag, unsigned int len, const unsigned char *
       vers[i * 2] = 0;
       revk_state("aes", "%02X%02X%02X %s", aid[0], aid[1], aid[2], vers);
    }
-   if (!strcmp(tag, "led"))
+   if (nfcmask && !strcmp(tag, "led"))
       return nfc_led(len, value);
    if (!strcmp(tag, TAG))
    {
@@ -328,7 +331,7 @@ void nfc_init(void)
 #undef ba
 #undef u1
 #undef p
-       nfcmask = 0;
+       nfcmask = 0;             /* output mask for NFC */
    if (nfcred >= 0)
       nfcmask |= (1 << nfcred);
    if (nfcamber >= 0)
