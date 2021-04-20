@@ -15,6 +15,7 @@ const char *nfc_tamper = NULL;
 #define settings  \
   u1(nfccommit) \
   i8(nfcred,1) \
+  i8(nfcamber,-1) \
   i8(nfcgreen,0) \
   i8(nfctamper,3) \
   u16(nfcpoll,50) \
@@ -44,29 +45,28 @@ settings
 #undef ba
 #undef u1
 #undef p
-   pn532_t * pn532 = NULL;
+    pn532_t * pn532 = NULL;
+uint8_t nfcmask = 0;
 df_t df;
 SemaphoreHandle_t nfc_mutex = NULL;     // PN532 has low level message mutex, but this is needed for DESFire level.
 
 static char held = 0;           // Card was held, also flags pre-loaded for remote card logic
-static uint8_t ledpattern[10] = "";
+static uint8_t ledpattern[20] = "";
 
-const char *
-nfc_led (int len, const void *value)
+const char *nfc_led(int len, const void *value)
 {
-   if (len > sizeof (ledpattern))
-      len = sizeof (ledpattern);
-   if (len < sizeof (ledpattern))
+   if (len > sizeof(ledpattern))
+      len = sizeof(ledpattern);
+   if (len < sizeof(ledpattern))
       ledpattern[len] = 0;
    if (len)
-      memcpy (ledpattern, value, len);
+      memcpy(ledpattern, value, len);
    return "";
 }
 
-static void
-task (void *pvParameters)
+static void task(void *pvParameters)
 {
-   esp_task_wdt_add (NULL);
+   esp_task_wdt_add(NULL);
    pvParameters = pvParameters;
    int64_t nextpoll = 0;
    int64_t nextled = 0;
@@ -78,42 +78,42 @@ task (void *pvParameters)
    uint8_t ledpos = 0;
    while (1)
    {
-      esp_task_wdt_reset ();
-      usleep (1000);
-      int64_t now = esp_timer_get_time ();
+      esp_task_wdt_reset();
+      usleep(1000);
+      int64_t now = esp_timer_get_time();
       // Regular tasks
       // Check tamper
       if (nexttamper < now && nfctamper >= 0)
       {                         // Check tamper
          nexttamper = now + (uint64_t) nfctamperpoll *1000LL;
-         int p3 = pn532_read_GPIO (pn532);
+         int p3 = pn532_read_GPIO(pn532);
          if (p3 < 0)
          {                      // Failed
             // Try init again
-            pn532_end (pn532);
-            pn532 = pn532_init (nfcuart, port_mask (nfctx), port_mask (nfcrx), (1 << nfcred) | (1 << nfcgreen));
+            pn532_end(pn532);
+            pn532 = pn532_init(nfcuart, port_mask(nfctx), port_mask(nfcrx), nfcmask);
             if (!pn532)
             {                   // Retry
-               sleep (1);
-               pn532 = pn532_init (nfcuart, port_mask (nfctx), port_mask (nfcrx), (1 << nfcred) | (1 << nfcgreen));
+               sleep(1);
+               pn532 = pn532_init(nfcuart, port_mask(nfctx), port_mask(nfcrx), nfcmask);
             }
             if (!pn532)
             {
                if (!nfc_fault)
-                  status (nfc_fault = "Failed");
+                  status(nfc_fault = "Failed");
                continue;        // No point doing other regular tasks if PN532 is AWOL
             } else
             {
-               df_init (&df, pn532, pn532_dx);
-               status (nfc_fault = NULL);
+               df_init(&df, pn532, pn532_dx);
+               status(nfc_fault = NULL);
                ledlast = 0xFF;
             }
          } else
          {                      // Check tamper
             if (p3 & (1 << nfctamper))
-               status (nfc_tamper = NULL);
+               status(nfc_tamper = NULL);
             else
-               status (nfc_tamper = "Tamper");
+               status(nfc_tamper = "Tamper");
          }
       }
       // LED
@@ -121,25 +121,32 @@ task (void *pvParameters)
       {                         // Check LED
          nextled = now + (uint64_t) nfcledpoll *1000LL;
          ledpos++;
-         if (ledpos >= sizeof (ledpattern) || !ledpattern[ledpos] || !*ledpattern)
+         if (ledpos >= sizeof(ledpattern) || !ledpattern[ledpos] || !*ledpattern)
             ledpos = 0;
          uint8_t newled = 0;
-         // We are assuming exactly two LEDs, one at a time (back to back) on P30 and P31
-         if (nfcred >= 0 && ledpattern[ledpos] == 'R')
-            newled = (1 << nfcred);
-         if (nfcgreen >= 0 && ledpattern[ledpos] == 'G')
-            newled = (1 << nfcgreen);
+         while (ledpos < sizeof(ledpattern))
+         {
+            if (nfcred >= 0 && ledpattern[ledpos] == 'R')
+               newled = (1 << nfcred);
+            if (nfcamber >= 0 && ledpattern[ledpos] == 'A')
+               newled = (1 << nfcamber);
+            if (nfcgreen >= 0 && ledpattern[ledpos] == 'G')
+               newled = (1 << nfcgreen);
+            if (ledpos + 1 >= sizeof(ledpattern) || ledpattern[ledpos + 1] != '+')
+               break;           // Combined LED pattern
+            ledpos += 2;
+         }
          if (newled != ledlast)
-            pn532_write_GPIO (pn532, ledlast = newled);
+            pn532_write_GPIO(pn532, ledlast = newled);
       }
       // Card
       if (nextpoll < now)
       {                         // Check for card
          nextpoll = now + (uint64_t) nfcpoll *1000LL;
-         if (found && !pn532_Present (pn532))
+         if (found && !pn532_Present(pn532))
          {                      // Card gone
             if (held && nfchold)
-               revk_event ("gone", "%s", id);
+               revk_event("gone", "%s", id);
             found = 0;
             held = 0;
          }
@@ -148,52 +155,52 @@ task (void *pvParameters)
             nextpoll = now + (int64_t) nfcholdpoll *1000LL;     // Periodic check for card held
             if (!held && nfchold && found < now)
             {                   // Card has been held for a while, report
-               revk_event ("held", "%s", id);
+               revk_event("held", "%s", id);
                held = 1;
             }
             continue;           // Waiting for card to go
          }
          // Check for new card
          df.keylen = 0;         // New card
-         int cards = pn532_Cards (pn532);
+         int cards = pn532_Cards(pn532);
          if (cards > 0)
          {
-            xSemaphoreTake (nfc_mutex, portMAX_DELAY);
+            xSemaphoreTake(nfc_mutex, portMAX_DELAY);
             nextpoll = now + (int64_t) nfcholdpoll *1000LL;     // Periodic check for card held
             noaccess = "";      // Assume no auto access (not an error)
             uint8_t aesid = 0;
             const char *e = NULL;
-            uint8_t *ats = pn532_ats (pn532);
+            uint8_t *ats = pn532_ats(pn532);
             uint32_t crc = 0;
             if (cards > 1)
-               strcpy (id, "Multiple");
+               strcpy(id, "Multiple");
             else
             {
-               pn532_nfcid (pn532, id);
+               pn532_nfcid(pn532, id);
                if (!held && aes[0][0] && (aid[0] || aid[1] || aid[2]) && *ats && ats[1] == 0x75)
                {                // DESFire
                   // Select application
                   if (!e)
-                     e = df_select_application (&df, aid);
+                     e = df_select_application(&df, aid);
                   if (!e && aes[1][0])
                   {             // Get key to work out which AES
                      uint8_t version = 0;
-                     e = df_get_key_version (&df, 1, &version);
+                     e = df_get_key_version(&df, 1, &version);
                      if (!e && version)
                      {
-                        for (aesid = 0; aesid < sizeof (aes) / sizeof (*aes) && aes[aesid][0] != version; aesid++);
-                        if (aesid == sizeof (aes) / sizeof (*aes))
+                        for (aesid = 0; aesid < sizeof(aes) / sizeof(*aes) && aes[aesid][0] != version; aesid++);
+                        if (aesid == sizeof(aes) / sizeof(*aes))
                            e = "Unknown key version";
                      }
                   }
                   // Authenticate
                   if (!e)
-                     e = df_authenticate (&df, 1, aes[aesid] + 1);
+                     e = df_authenticate(&df, 1, aes[aesid] + 1);
                   uint8_t uid[7];       // Real ID
                   if (!e)
-                     e = df_get_uid (&df, uid);
+                     e = df_get_uid(&df, uid);
                   if (!e)
-                     snprintf (id, sizeof (id), "%02X%02X%02X%02X%02X%02X%02X+", uid[0], uid[1], uid[2], uid[3], uid[4], uid[5], uid[6]);       // Set UID with + to indicate secure, regardless of access allowed, etc.
+                     snprintf(id, sizeof(id), "%02X%02X%02X%02X%02X%02X%02X+", uid[0], uid[1], uid[2], uid[3], uid[4], uid[5], uid[6]); // Set UID with + to indicate secure, regardless of access allowed, etc.
                }
             }
             // Door check
@@ -201,114 +208,110 @@ task (void *pvParameters)
             {                   // NFC or DESFire error
                noaccess = e;
             } else
-               noaccess = door_fob (id, &crc);  // Access from door control
-            void log (void)
-            {                   // Log and count
+               noaccess = door_fob(id, &crc);   // Access from door control
+            void log(void) {    // Log and count
                // Log
                uint8_t buf[10];
                buf[0] = revk_binid >> 16;
                buf[1] = revk_binid >> 8;
                buf[2] = revk_binid;
-               bcdtime (0, buf + 3);
+               bcdtime(0, buf + 3);
                if (buf[3] == 0x19)
-                  revk_error (TAG, "Clock not set");
-               else if ((e = df_write_data (&df, 1, 'C', DF_MODE_CMAC, 0, 10, buf)))
+                  revk_error(TAG, "Clock not set");
+               else if ((e = df_write_data(&df, 1, 'C', DF_MODE_CMAC, 0, 10, buf)))
                   return;
                // Count
-               if ((e = df_credit (&df, 2, DF_MODE_CMAC, 1)))
+               if ((e = df_credit(&df, 2, DF_MODE_CMAC, 1)))
                   return;
                // Commit
-               if ((e = df_commit (&df)))
+               if ((e = df_commit(&df)))
                   return;
                // Key update
                if (aesid)
                {
-                  revk_info ("aes", "Key update %02X->%02X", *aes[aesid], *aes[0]);
-                  e = df_change_key (&df, 1, aes[0][0], aes[aesid] + 1, aes[0] + 1);
+                  revk_info("aes", "Key update %02X->%02X", *aes[aesid], *aes[0]);
+                  e = df_change_key(&df, 1, aes[0][0], aes[aesid] + 1, aes[0] + 1);
                }
             }
-            if (e && !strcmp (e, "PN532_ERR_TIMEOUT"))
+            if (e && !strcmp(e, "PN532_ERR_TIMEOUT"))
                nextpoll = 0;    // Try again immediately
             else
             {                   // Processing door
                if (!e && df.keylen && nfccommit)
-                  log ();       // Log before reporting or opening door
+                  log();        // Log before reporting or opening door
                if (!noaccess)
                {                // Access is allowed!
-                  pn532_write_GPIO (pn532, ledlast = (nfcgreen >= 0 && !(ledlast & (1 << nfcgreen)) ? (1 << nfcgreen) : 0));    // Blink green
-                  door_unlock (NULL, "fob");    // Door system was happy with fob, let 'em in
+                  pn532_write_GPIO(pn532, ledlast = (nfcgreen >= 0 && !(ledlast & (1 << nfcgreen)) ? (1 << nfcgreen) : 0));     // Blink green
+                  door_unlock(NULL, "fob");     // Door system was happy with fob, let 'em in
                } else if (door >= 4)
-                  pn532_write_GPIO (pn532, ledlast = (nfcred >= 0 && !(ledlast & (1 << nfcred)) ? (1 << nfcred) : 0));  // Blink red
+                  pn532_write_GPIO(pn532, ledlast = (nfcred >= 0 && !(ledlast & (1 << nfcred)) ? (1 << nfcred) : 0));   // Blink red
                nextled = now + 200000LL;
                // Report
                if (door >= 4 || !noaccess)
                {                // Autonomous door control
                   if (noaccess && *noaccess == '*')
-                     revk_event ("noaccess", "%s %08X %s", id, crc, noaccess + 1);
+                     revk_event("noaccess", "%s %08X %s", id, crc, noaccess + 1);
                   else if (noaccess && *noaccess)
-                     revk_event ("nfcfail", "%s %08X %s", id, crc, noaccess);
+                     revk_event("nfcfail", "%s %08X %s", id, crc, noaccess);
                   else
-                     revk_event (noaccess ? "id" : "access", "%s %08lX%s", id, crc, *ats && ats[1] == 0x75 ? " DESFire" : *ats
-                                 && ats[1] == 0x78 ? " ISO" : "");
+                     revk_event(noaccess ? "id" : "access", "%s %08lX%s", id, crc, *ats && ats[1] == 0x75 ? " DESFire" : *ats && ats[1] == 0x78 ? " ISO" : "");
                } else
-                  revk_event ("id", "%s%s", id, *ats && ats[1] == 0x75 ? " DESFire" : *ats && ats[1] == 0x78 ? " ISO" : "");
+                  revk_event("id", "%s%s", id, *ats && ats[1] == 0x75 ? " DESFire" : *ats && ats[1] == 0x78 ? " ISO" : "");
                if (!e && df.keylen && !nfccommit)
                {
-                  log ();       // Can log after reporting / opening
-                  if (e && strcmp (e, "PN532_ERR_TIMEOUT"))
-                     revk_error (TAG, "%s", e); // Log new error anyway, unless simple timeout
+                  log();        // Can log after reporting / opening
+                  if (e && strcmp(e, "PN532_ERR_TIMEOUT"))
+                     revk_error(TAG, "%s", e);  // Log new error anyway, unless simple timeout
                }
                found = now + (uint64_t) nfchold *1000LL;
             }
-            xSemaphoreGive (nfc_mutex);
+            xSemaphoreGive(nfc_mutex);
          }
       }
    }
 }
 
-const char *
-nfc_command (const char *tag, unsigned int len, const unsigned char *value)
+const char *nfc_command(const char *tag, unsigned int len, const unsigned char *value)
 {
    if (!pn532)
       return NULL;
-   if (!strcmp (tag, "connect"))
+   if (!strcmp(tag, "connect"))
    {
-      char vers[sizeof (aes) / sizeof (*aes) * 2 + 1];
+      char vers[sizeof(aes) / sizeof(*aes) * 2 + 1];
       int i;
-      for (i = 0; i < sizeof (aes) / sizeof (*aes); i++)
-         sprintf (vers + i * 2, "%02X", aes[i][0]);
+      for (i = 0; i < sizeof(aes) / sizeof(*aes); i++)
+         sprintf(vers + i * 2, "%02X", aes[i][0]);
       while (i && !aes[i - 1][0])
          i--;
       vers[i * 2] = 0;
-      revk_state ("aes", "%02X%02X%02X %s", aid[0], aid[1], aid[2], vers);
+      revk_state("aes", "%02X%02X%02X %s", aid[0], aid[1], aid[2], vers);
    }
-   if (!strcmp (tag, "led"))
-      return nfc_led (len, value);
-   if (!strcmp (tag, TAG))
+   if (!strcmp(tag, "led"))
+      return nfc_led(len, value);
+   if (!strcmp(tag, TAG))
    {
       if (!len)
          held = 1;
       else
       {
          uint8_t buf[256];
-         if (len > sizeof (buf))
+         if (len > sizeof(buf))
             return "Too big";
-         memcpy (buf, value, len);
+         memcpy(buf, value, len);
          const char *err = NULL;
-         xSemaphoreTake (nfc_mutex, portMAX_DELAY);
-         int l = pn532_dx (pn532, len, buf, sizeof (buf), &err);
-         xSemaphoreGive (nfc_mutex);
+         xSemaphoreTake(nfc_mutex, portMAX_DELAY);
+         int l = pn532_dx(pn532, len, buf, sizeof(buf), &err);
+         xSemaphoreGive(nfc_mutex);
          if (l < 0)
             return err ? : "?";
-         revk_raw (prefixinfo, TAG, l, buf, 0);
+         revk_raw(prefixinfo, TAG, l, buf, 0);
       }
       return "";
    }
    return NULL;
 }
 
-void
-nfc_init (void)
+void nfc_init(void)
 {
 #define i8(n,d) revk_register(#n,0,sizeof(n),&n,#d,SETTING_SIGNED);
 #define u8(n,d) revk_register(#n,0,sizeof(n),&n,#d,0);
@@ -325,23 +328,30 @@ nfc_init (void)
 #undef ba
 #undef u1
 #undef p
-      if (nfctx && nfcrx)
+       nfcmask = 0;
+   if (nfcred >= 0)
+      nfcmask |= (1 << nfcred);
+   if (nfcamber >= 0)
+      nfcmask |= (1 << nfcamber);
+   if (nfcgreen >= 0)
+      nfcmask |= (1 << nfcgreen);
+   if (nfctx && nfcrx)
    {
-      const char *e = port_check (port_mask (nfctx), TAG, 0);
+      const char *e = port_check(port_mask(nfctx), TAG, 0);
       if (!e)
-         e = port_check (port_mask (nfcrx), TAG, 1);
+         e = port_check(port_mask(nfcrx), TAG, 1);
       if (e)
-         status (nfc_fault = e);
+         status(nfc_fault = e);
       else
       {
-         nfc_mutex = xSemaphoreCreateBinary ();
-         xSemaphoreGive (nfc_mutex);
-         pn532 = pn532_init (nfcuart, port_mask (nfctx), port_mask (nfcrx), (1 << nfcred) | (1 << nfcgreen));
+         nfc_mutex = xSemaphoreCreateBinary();
+         xSemaphoreGive(nfc_mutex);
+         pn532 = pn532_init(nfcuart, port_mask(nfctx), port_mask(nfcrx), nfcmask);
          if (!pn532)
-            status (nfc_fault = "Failed to start PN532");
-         df_init (&df, pn532, pn532_dx);        // Start anyway, er re-try init
-         revk_task (TAG, task, pn532);
+            status(nfc_fault = "Failed to start PN532");
+         df_init(&df, pn532, pn532_dx); // Start anyway, er re-try init
+         revk_task(TAG, task, pn532);
       }
    } else if (nfcrx || nfctx)
-      status (nfc_fault = "Set nfctx, and nfcrx");
+      status(nfc_fault = "Set nfctx, and nfcrx");
 }

@@ -10,7 +10,7 @@ include $(IDF_PATH)/make/project.mk
 
 # Set GPIO low (whichever CBUS is set to mode 8/GPIO)
 bootmode: ftdizap/ftdizap
-        ./ftdizap/ftdizap --cbus=0
+	./ftdizap/ftdizap --cbus=0
 
 # Flash with GPIO control
 zap:    bootmode flash
