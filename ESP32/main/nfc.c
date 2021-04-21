@@ -15,9 +15,9 @@ const char *nfc_tamper = NULL;
 #define settings  \
   u1(nfccommit) \
   i8(nfcred,1) \
-  i8(nfcamber,-1) \
-  i8(nfcgreen,0) \
-  i8(nfctamper,3) \
+  i8(nfcamber,2) \
+  i8(nfcgreen,3) \
+  i8(nfctamper,5) \
   u1(itamper) \
   u16(nfcpoll,50) \
   u16(nfchold,3000) \
