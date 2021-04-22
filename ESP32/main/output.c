@@ -89,7 +89,7 @@ output_command (const char *tag, unsigned int len, const unsigned char *value)
 void
 output_init (void)
 {
-   revk_register (TAG, MAXOUTPUT, sizeof (*output), &output, "-", SETTING_BITFIELD | SETTING_SET);
+   revk_register (TAG, MAXOUTPUT, sizeof (*output), &output, BITFIELDS, SETTING_BITFIELD | SETTING_SET);
    int i,
      p;
    for (i = 0; i < MAXOUTPUT; i++)
