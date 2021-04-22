@@ -15,6 +15,14 @@ static const char *port_inuse[MAX_PORT];
 	m(keypad)	\
 	m(door)		\
 
+// Other settings
+#define settings  \
+  io(blink) \
+
+#define io(n) uint8_t n;
+settings
+#undef io
+
 static esp_reset_reason_t reason = -1;  // Restart reason
 
 static void status_report(int force)
@@ -120,6 +128,9 @@ void app_main()
 {
    reason = esp_reset_reason();
    revk_init(&app_command);
+#define io(n) revk_register(#n,0,sizeof(n),&n,BITFIELDS,SETTING_SET|SETTING_BITFIELD);
+   settings
+#undef io
    int p;
    for (p = 6; p <= 11; p++)
       port_check(p, "Flash", 0);        // Flash chip uses 6-11
