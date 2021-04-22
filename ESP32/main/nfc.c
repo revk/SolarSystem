@@ -59,6 +59,7 @@ static uint8_t ledpattern[20] = "";
 
 const char *nfc_led(int len, const void *value)
 {
+   revk_info("led", value);
    if (len > sizeof(ledpattern))
       len = sizeof(ledpattern);
    if (len < sizeof(ledpattern))
@@ -116,9 +117,9 @@ static void task(void *pvParameters)
          {                      // Check tamper
             p3 ^= nfcinvert;
             if (p3 & (1 << port_mask(nfctamper)))
-               status(nfc_tamper = NULL);
-            else
                status(nfc_tamper = "Tamper");
+            else
+               status(nfc_tamper = NULL);
          }
       }
       // LED
