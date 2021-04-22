@@ -29,8 +29,7 @@ static uint64_t input_hold[MAXINPUT] = { };
 
 static volatile char reportall = 0;
 
-int
-input_active (int p)
+int input_active(int p)
 {
    if (p < 1 || p > MAXINPUT)
       return 0;
@@ -40,8 +39,7 @@ input_active (int p)
    return 1;
 }
 
-void
-input_set (int p, int v)
+void input_set(int p, int v)
 {                               // For locally set inputs
 
    if (p < 1 || p > MAXINPUT)
@@ -53,8 +51,7 @@ input_set (int p, int v)
       input_raw &= ~(1ULL << p);
 }
 
-int
-input_get (int p)
+int input_get(int p)
 {
    if (p < 1 || p > MAXINPUT)
       return -1;
@@ -64,32 +61,30 @@ input_get (int p)
    return 0;
 }
 
-const char *
-input_command (const char *tag, unsigned int len, const unsigned char *value)
+const char *input_command(const char *tag, unsigned int len, const unsigned char *value)
 {
-   if (!strcmp (tag, "connect"))
+   if (!strcmp(tag, "connect"))
       reportall = 1;
    return NULL;
 }
 
-static void
-task (void *pvParameters)
+static void task(void *pvParameters)
 {                               // Main RevK task
-   esp_task_wdt_add (NULL);
+   esp_task_wdt_add(NULL);
    pvParameters = pvParameters;
    // Scan inputs
    while (1)
    {
-      esp_task_wdt_reset ();
+      esp_task_wdt_reset();
       // Check inputs
-      int64_t now = esp_timer_get_time ();
+      int64_t now = esp_timer_get_time();
       char report = reportall;
       reportall = 0;
       int i;
       for (i = 0; i < MAXINPUT; i++)
          if (input[i])
          {
-            int v = gpio_get_level (port_mask (input[i]));
+            int v = gpio_get_level(port_mask(input[i]));
             if ((1ULL << i) & input_invert)
                v = 1 - v;
             char changed = report;
@@ -101,8 +96,8 @@ task (void *pvParameters)
             if (changed)
             {
                char tag[20];
-               sprintf (tag, "%s%d", TAG, i + 1);
-               revk_state (tag, "%d", (input_stable >> i) & 1);
+               sprintf(tag, "%s%d", TAG, i + 1);
+               revk_state(tag, "%d", (input_stable >> i) & 1);
             }
             if (v != ((input_raw >> i) & 1))
             {                   // Change of raw state
@@ -111,37 +106,36 @@ task (void *pvParameters)
             }
          }
       // Sleep
-      usleep ((inputpoll ? : 1) * 1000);
+      usleep((inputpoll ? : 1) * 1000);
    }
 }
 
-void
-input_init (void)
+void input_init(void)
 {
-   revk_register (TAG, MAXINPUT, sizeof (*input), &input, BITFIELDS, SETTING_BITFIELD | SETTING_SET);
+   revk_register(TAG, MAXINPUT, sizeof(*input), &input, BITFIELDS, SETTING_BITFIELD | SETTING_SET);
 #define u16(n,v) revk_register(#n,0,sizeof(n),&n,#v,0);
    settings
 #undef u16
-      // Check config
+       // Check config
    int i,
-     p;
+    p;
    for (i = 0; i < MAXINPUT; i++)
       if (input[i])
       {
-         const char *e = port_check (p = port_mask (input[i]), TAG, 1);
+         const char *e = port_check(p = port_mask(input[i]), TAG, 1);
          if (e)
          {
             input[i] = 0;
-            status (input_fault = e);
+            status(input_fault = e);
          } else
          {
-            REVK_ERR_CHECK (gpio_reset_pin (p));
-            REVK_ERR_CHECK (gpio_hold_dis (p));
-            REVK_ERR_CHECK (gpio_set_pull_mode (p, GPIO_PULLUP_ONLY));
-            REVK_ERR_CHECK (gpio_set_direction (p, GPIO_MODE_INPUT));
+            REVK_ERR_CHECK(gpio_reset_pin(p));
+            REVK_ERR_CHECK(gpio_hold_dis(p));
+            REVK_ERR_CHECK(gpio_set_pull_mode(p, GPIO_PULLUP_ONLY));
+            REVK_ERR_CHECK(gpio_set_direction(p, GPIO_MODE_INPUT));
             if (input[i] & PORT_INV)
                input_invert |= (1ULL << i);     // TODO can this not be done at hardware level?
          }
       }
-   revk_task (TAG, task, NULL);
+   revk_task(TAG, task, NULL);
 }

@@ -37,52 +37,50 @@ settings
 #undef u8
 #undef b
 static char newforce;
-const char *
-ranger_command (const char *tag, unsigned int len, const unsigned char *value)
+const char *ranger_command(const char *tag, unsigned int len, const unsigned char *value)
 {
-   if (!strcmp (tag, "connect"))
+   if (!strcmp(tag, "connect"))
       newforce = 1;
    return NULL;
 }
 
-static void
-task (void *pvParameters)
+static void task(void *pvParameters)
 {                               // Main RevK task
-   esp_task_wdt_add (NULL);
+   esp_task_wdt_add(NULL);
    vl53l0x_t *v = pvParameters;
    char *inputnear = NULL;
    if (rangerinputnear)
-      asprintf (&inputnear, "input%d", rangerinputnear);
+      asprintf(&inputnear, "input%d", rangerinputnear);
    char *inputfar = NULL;
    if (rangerinputfar)
-      asprintf (&inputfar, "input%d", rangerinputfar);
+      asprintf(&inputfar, "input%d", rangerinputfar);
    char buttonnear = 0,
-      buttonfar = 0;
+       buttonfar = 0;
    uint32_t last = 0;
    int64_t next = 0;
    int64_t endlong = 0;
    while (1)
    {
       const char *err;
-      if ((err = vl53l0x_init (v)))
+      if ((err = vl53l0x_init(v)))
          if (err)
          {
-            status (ranger_fault = err);
-            sleep (1);
+            status(ranger_fault = err);
+            sleep(1);
             continue;
          }
-      status (ranger_fault = NULL);
-      vl53l0x_setSignalRateLimit (v, 2);        // This helps avoid sunlight / errors, default is 0.25 (MCPS)
-      vl53l0x_setMeasurementTimingBudget (v, rangerpoll * 950);
-      vl53l0x_startContinuous (v, rangerpoll);
+      status(ranger_fault = NULL);
+      vl53l0x_setSignalRateLimit(v, 2); // This helps avoid sunlight / errors, default is 0.25 (MCPS)
+      vl53l0x_setMeasurementTimingBudget(v, rangerpoll * 950);
+      vl53l0x_startContinuous(v, rangerpoll);
       while (1)
       {
-         esp_task_wdt_reset ();
-         int64_t now = esp_timer_get_time ();
+         esp_task_wdt_reset();
+         int64_t now = esp_timer_get_time();
          if (next > now)
-            usleep ((now - next) / 1000);
+            usleep((now - next) / 1000);
          next = now + (int64_t) rangerpoll *1000LL;
-         uint32_t range = vl53l0x_readRangeContinuousMillimeters (v);
+         uint32_t range = vl53l0x_readRangeContinuousMillimeters(v);
          if (range > rangerfar)
             range = rangerfar;
          char force = newforce;
@@ -107,8 +105,8 @@ task (void *pvParameters)
             }
             if (change)
             {
-               revk_state (inputnear, "%d %dmm", buttonnear, range);
-               input_set (rangerinputnear, buttonnear);
+               revk_state(inputnear, "%d %dmm", buttonnear, range);
+               input_set(rangerinputnear, buttonnear);
             }
          }
          if (rangerinputfar)
@@ -116,8 +114,7 @@ task (void *pvParameters)
             char change = force;
             int32_t delta = range - last;
             static int32_t lastdelta = 0;
-            if ((delta > 0 && lastdelta > 0 && delta + lastdelta >= rangermargin)
-                || (delta < 0 && lastdelta < 0 && delta + lastdelta <= -rangermargin))
+            if ((delta > 0 && lastdelta > 0 && delta + lastdelta >= rangermargin) || (delta < 0 && lastdelta < 0 && delta + lastdelta <= -rangermargin))
             {                   // Moved (consistently) rangermargin over two polls
                if (!buttonfar)
                {
@@ -135,22 +132,21 @@ task (void *pvParameters)
             }
             if (change)
             {
-               revk_state (inputfar, "%d %dmm", buttonfar, range);
-               input_set (9, buttonfar);
+               revk_state(inputfar, "%d %dmm", buttonfar, range);
+               input_set(9, buttonfar);
             }
             lastdelta = delta;
          }
          if (rangerdebug && (range < rangerfar || last < rangerfar))
-            revk_state ("range", "%dmm", range);
+            revk_state("range", "%dmm", range);
          last = range;
-         if (vl53l0x_i2cFail (v))
+         if (vl53l0x_i2cFail(v))
             break;
       }
    }
 }
 
-void
-ranger_init (void)
+void ranger_init(void)
 {
 #define p(n) revk_register(#n,0,sizeof(n),&n,BITFIELDS,SETTING_BITFIELD|SETTING_SET);
 #define u8(n,d) revk_register(#n,0,sizeof(n),&n,#d,0);
@@ -161,23 +157,22 @@ ranger_init (void)
 #undef u16
 #undef u8
 #undef b
-      if (rangerscl && rangersda)
+       if (rangerscl && rangersda)
    {
-      const char *e = port_check (port_mask (rangersda), TAG, 0);
+      const char *e = port_check(port_mask(rangersda), TAG, 0);
       if (!e)
-         e = port_check (port_mask (rangerscl), TAG, 0);
+         e = port_check(port_mask(rangerscl), TAG, 0);
       if (e)
-         status (ranger_fault = e);
+         status(ranger_fault = e);
       else
       {
-         vl53l0x_t *vl53l0x =
-            vl53l0x_config (rangerport, port_mask (rangerscl), port_mask (rangersda), rangerxshut ? port_mask (rangerxshut) : -1,
-                            rangeraddress, 0);
+         vl53l0x_t *vl53l0x = vl53l0x_config(rangerport, port_mask(rangerscl), port_mask(rangersda), rangerxshut ? port_mask(rangerxshut) : -1,
+                                             rangeraddress, 0);
          if (!vl53l0x)
-            status (ranger_fault = "Missing");
+            status(ranger_fault = "Missing");
          else
-            revk_task (TAG, task, vl53l0x);
+            revk_task(TAG, task, vl53l0x);
       }
    } else if (rangersda || rangerscl)
-      status (ranger_fault = "Set rangerscl and rangersda");
+      status(ranger_fault = "Set rangerscl and rangersda");
 }

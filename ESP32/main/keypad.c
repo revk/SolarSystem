@@ -42,44 +42,42 @@ settings
 #undef b
 #undef p
 #define f(id,name,len,def) static uint8_t name[len]={def};uint8_t send##id=false;uint8_t name##_len=0;
-   commands
+    commands
 #undef  f
 static volatile uint8_t force;
 
-const char *
-keypad_command (const char *tag, unsigned int len, const unsigned char *value)
+const char *keypad_command(const char *tag, unsigned int len, const unsigned char *value)
 {
-   if (!strcmp (tag, "connect") || !strcmp (tag, "disconnect") || !strcmp (tag, "change"))
+   if (!strcmp(tag, "connect") || !strcmp(tag, "disconnect") || !strcmp(tag, "change"))
       force = 1;
 #define f(i,n,l,d) if(!strcasecmp(tag,#n)&&len<=l){memcpy(n,value,len);n##_len=len;if(len<l)memset(n+len,0,l-len);send##i=1;return "";}
    commands
 #undef f
-      return NULL;
+       return NULL;
 }
 
-static void
-task (void *pvParameters)
+static void task(void *pvParameters)
 {
-   galaxybus_t *g = galaxybus_init (keypadtimer, port_mask (keypadtx), port_mask (keypadrx), port_mask (keypadde),
-                                    keypadre ? port_mask (keypadre) : -1,
-                                    keypadclk ? port_mask (keypadclk) : -1,
-                                    0);
+   galaxybus_t *g = galaxybus_init(keypadtimer, port_mask(keypadtx), port_mask(keypadrx), port_mask(keypadde),
+                                   keypadre ? port_mask(keypadre) : -1,
+                                   keypadclk ? port_mask(keypadclk) : -1,
+                                   0);
    if (!g)
    {
-      vTaskDelete (NULL);
+      vTaskDelete(NULL);
       return;
    }
-   esp_task_wdt_add (NULL);
-   galaxybus_set_timing (g, keypadtxpre, keypadtxpost, keypadrxpre, keypadrxpost);
-   galaxybus_start (g);
+   esp_task_wdt_add(NULL);
+   galaxybus_set_timing(g, keypadtxpre, keypadtxpost, keypadrxpre, keypadrxpost);
+   galaxybus_start(g);
    while (1)
    {
-      esp_task_wdt_reset ();
-      usleep (1000);            // TODO
-      int64_t now = esp_timer_get_time ();
+      esp_task_wdt_reset();
+      usleep(1000);             // TODO
+      int64_t now = esp_timer_get_time();
 
       static uint8_t buf[100],
-        p = 0;
+       p = 0;
       static uint8_t cmd = 0;
       static uint8_t online = 0;
       static uint8_t send0B = 0;
@@ -91,26 +89,25 @@ task (void *pvParameters)
       static unsigned int galaxybusfault = 0;
       static int64_t rxwait = 0;
 
-      if (galaxybus_ready (g))
+      if (galaxybus_ready(g))
       {                         // Receiving
          rxwait = 0;
-         int p = galaxybus_rx (g, sizeof (buf), buf);
+         int p = galaxybus_rx(g, sizeof(buf), buf);
          if (keypaddebug && (!online || p < 2 || buf[1] != 0xFE))
-            revk_info ("Rx", "%d: %02X %02X %02X %02X %s", p, buf[0], buf[1], buf[2], buf[3],
-                       p < 0 ? galaxybus_err_to_name (p) : "");
+            revk_info("Rx", "%d: %02X %02X %02X %02X %s", p, buf[0], buf[1], buf[2], buf[3], p < 0 ? galaxybus_err_to_name(p) : "");
          static const char keymap[] = "0123456789BAEX*#";
          if (p < 2)
          {
             if (galaxybusfault++ > 5)
             {
-               status (keypad_fault = galaxybus_err_to_name (p));
+               status(keypad_fault = galaxybus_err_to_name(p));
                online = 0;
             }
-            sleep (1);
+            sleep(1);
          } else
          {
             galaxybusfault = 0;
-            status (keypad_fault = NULL);
+            status(keypad_fault = NULL);
             static int64_t keyhold = 0;
             if (cmd == 0x00 && buf[1] == 0xFF && p >= 5)
             {                   // Set up response
@@ -124,14 +121,14 @@ task (void *pvParameters)
                force = 1;       // Error?
             else if (buf[1] == 0xFE)
             {                   // Idle, no tamper, no key
-               status (keypad_tamper = NULL);
+               status(keypad_tamper = NULL);
                if (!send0B)
                {
                   if (lastkey & 0x80)
                   {
                      if (keyhold < now)
                      {
-                        revk_event ("gone", "%.1s", keymap + (lastkey & 0x0F));
+                        revk_event("gone", "%.1s", keymap + (lastkey & 0x0F));
                         lastkey = 0x7F;
                      }
                   } else
@@ -140,9 +137,9 @@ task (void *pvParameters)
             } else if (cmd == 0x06 && buf[1] == 0xF4 && p >= 3)
             {                   // Status
                if (keypadtamper && (buf[2] & 0x40))
-                  status (keypad_tamper = "Case open");
+                  status(keypad_tamper = "Case open");
                else
-                  status (keypad_tamper = NULL);
+                  status(keypad_tamper = NULL);
                if (!send0B)
                {                // Key
                   toggle0B = !toggle0B;
@@ -152,7 +149,7 @@ task (void *pvParameters)
                      {
                         if (keyhold < now)
                         {
-                           revk_event ("gone", "%.1s", keymap + (lastkey & 0x0F));
+                           revk_event("gone", "%.1s", keymap + (lastkey & 0x0F));
                            lastkey = 0x7F;
                         }
                      } else
@@ -161,12 +158,12 @@ task (void *pvParameters)
                   {             // key
                      send0B = 1;
                      if ((lastkey & 0x80) && buf[2] != lastkey)
-                        revk_event ("gone", "%.1s", keymap + (lastkey & 0x0F));
+                        revk_event("gone", "%.1s", keymap + (lastkey & 0x0F));
                      if (!(buf[2] & 0x80) || buf[2] != lastkey)
-                        revk_event ((buf[2] & 0x80) ? "hold" : "key", "%.1s", keymap + (buf[2] & 0x0F));
+                        revk_event((buf[2] & 0x80) ? "hold" : "key", "%.1s", keymap + (buf[2] & 0x0F));
                      if (buf[2] & 0x80)
                         keyhold = now + 2000000LL;
-                     if (revk_offline ())
+                     if (revk_offline())
                      {          // Special case for safe mode (off line)
                         if (buf[2] == 0x0D)
                         {       // ESC in safe mode, shut up
@@ -174,7 +171,7 @@ task (void *pvParameters)
                            send0C = 1;
                         }
                         if (buf[2] == 0x8D)
-                           revk_restart ("ESC", 0);     // ESC held in safe mode
+                           revk_restart("ESC", 0);      // ESC held in safe mode
                      }
                      lastkey = buf[2];
                   }
@@ -190,7 +187,7 @@ task (void *pvParameters)
       {
          if (galaxybusfault++ > 5)
          {
-            status (keypad_fault = "No response");
+            status(keypad_fault = "No response");
             online = 0;
          }
          rxwait = now + 3000000LL;
@@ -227,9 +224,9 @@ task (void *pvParameters)
          uint8_t len = display_len;
          uint8_t temp[33];
          uint8_t *dis = display;
-         if (revk_offline ())
+         if (revk_offline())
          {                      // Off line
-            len = snprintf ((char *) temp, sizeof (temp), "%-16.16s%-9.9s %6.6s", revk_mqtt (), revk_wifi (), revk_id);
+            len = snprintf((char *) temp, sizeof(temp), "%-16.16s%-9.9s %6.6s", revk_mqtt(), revk_wifi(), revk_id);
             dis = temp;
          }
          if (cursor_len)
@@ -271,7 +268,7 @@ task (void *pvParameters)
       {                         // Key keyclicks
          send19 = 0;
          buf[++p] = 0x19;
-         if (revk_offline ())
+         if (revk_offline())
             buf[++p] = 0x01;    // Sound normal
          else
             buf[++p] = (keyclick[0] & 0x7);     // 0x03 (silent), 0x05 (quiet), or 0x01 (normal)
@@ -281,7 +278,7 @@ task (void *pvParameters)
          send0C = 0;
          uint8_t *s = sounder;
          uint8_t len = sounder_len;
-         if (revk_offline () > 10)
+         if (revk_offline() > 10)
          {
             if (sounderack)
                len = 0;         // quiet
@@ -308,7 +305,7 @@ task (void *pvParameters)
       {                         // Light change
          send0D = 0;
          buf[++p] = 0x0D;
-         if (revk_offline ())
+         if (revk_offline())
             buf[++p] = 1;
          else
             buf[++p] = (backlight[0] & 1);
@@ -318,19 +315,18 @@ task (void *pvParameters)
       buf[0] = keypadaddress;   // ID of display
       p++;
       cmd = buf[1];
-      int l = galaxybus_tx (g, p, buf);
+      int l = galaxybus_tx(g, p, buf);
       if (keypaddebug && (buf[1] != 0x06 || l < 0))
-         revk_info ("Tx", "%d: %02X %02X %02X %02X %s", p, buf[0], buf[1], buf[2], buf[3], l < 0 ? galaxybus_err_to_name (l) : "");
+         revk_info("Tx", "%d: %02X %02X %02X %02X %s", p, buf[0], buf[1], buf[2], buf[3], l < 0 ? galaxybus_err_to_name(l) : "");
       if (l < 0)
       {
-         sleep (1);
+         sleep(1);
          rxwait = 0;
       }
    }
 }
 
-void
-keypad_init (void)
+void keypad_init(void)
 {
 #define u8(n,d) revk_register(#n,0,sizeof(n),&n,#d,0);
 #define u8h(n,d) revk_register(#n,0,sizeof(n),&n,#d,SETTING_HEX);
@@ -341,18 +337,18 @@ keypad_init (void)
 #undef u8h
 #undef b
 #undef p
-      if (keypadtx && keypadrx && keypadde)
+       if (keypadtx && keypadrx && keypadde)
    {
-      const char *err = port_check (port_mask (keypadtx), TAG, 0);
+      const char *err = port_check(port_mask(keypadtx), TAG, 0);
       if (!err && keypadtx != keypadrx)
-         port_check (port_mask (keypadrx), TAG, 1);
+         port_check(port_mask(keypadrx), TAG, 1);
       if (!err)
-         port_check (port_mask (keypadde), TAG, 0);
+         port_check(port_mask(keypadde), TAG, 0);
       if (!err && keypadre)
-         port_check (port_mask (keypadre), TAG, 0);
+         port_check(port_mask(keypadre), TAG, 0);
       if (err && keypadde != keypadre)
-         status (keypad_fault = err);
-      revk_task (TAG, task, NULL);
+         status(keypad_fault = err);
+      revk_task(TAG, task, NULL);
    } else if (keypadtx || keypadrx || keypadde)
-      status (keypad_fault = "Set keypadtx, keypadrx and keypadde");
+      status(keypad_fault = "Set keypadtx, keypadrx and keypadde");
 }
