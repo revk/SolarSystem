@@ -22,7 +22,9 @@ static const char *port_inuse[MAX_PORT];
 #define io(n) uint8_t n;
 settings
 #undef io
-
+#define port_mask(p) ((p)&63)
+#define BITFIELDS "-"
+#define PORT_INV 0x40
 static esp_reset_reason_t reason = -1;  // Restart reason
 
 static void status_report(int force)
@@ -137,6 +139,23 @@ void app_main()
 #define m(x) extern void x##_init(void); x##_init();
    modules
 #undef m
+       if (!blink)
+      return;                   // Not blinking
+   port_check(port_mask(blink), "Blink", 0);
+   gpio_set_direction(port_mask(blink), GPIO_MODE_OUTPUT);      // Blinky LED
+   uint16_t blinker = 0;
+   uint16_t mask = 1;
+   while (1)
+   {                            // Blinken lighten
+      if (revk_offline())
+         blinker = 0x2AA;       // Flash
+      else
+         blinker = 0x1F;        // Slow
+      if (!(mask >>= 1))
+         mask = (1 << 9);
+      gpio_set_level(port_mask(blinker), ((mask & blinker) ? 1 : 0) ^ ((blinker & PORT_INV) ? 1 : 0));
+      usleep(100000);
+   }
 }
 
 void status(const char *ignored)
