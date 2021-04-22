@@ -9,15 +9,17 @@ const char *nfc_tamper = NULL;
 #include "pn532.h"
 #include "desfireaes.h"
 
-#define port_mask(p) ((p)&127)
+#define port_mask(p) ((p)&63)
+#define	BITFIELDS "-"
+#define PORT_INV 0x40
 
 // Other settings
 #define settings  \
   u1(nfccommit) \
-  i8(nfcred,1) \
-  i8(nfcamber,2) \
-  i8(nfcgreen,3) \
-  i8(nfctamper,5) \
+  io(nfcred) \
+  io(nfcamber) \
+  io(nfcgreen) \
+  io(nfctamper) \
   u1(itamper) \
   u16(nfcpoll,50) \
   u16(nfchold,3000) \
@@ -27,27 +29,28 @@ const char *nfc_tamper = NULL;
   b(nfcbus,1) \
   ba(aes,17,3) \
   b(aid,3) \
-  p(nfctx) \
-  p(nfcrx) \
+  io(nfctx) \
+  io(nfcrx) \
   u8(nfcuart,1) \
 
 #define i8(n,d) int8_t n;
+#define io(n) uint8_t n;
 #define u8(n,d) uint8_t n;
 #define u16(n,d) uint16_t n;
 #define b(n,l) uint8_t n[l];
 #define ba(n,l,a) uint8_t n[a][l];
 #define u1(n) uint8_t n;
-#define p(n) uint8_t n;
 settings
 #undef i8
+#undef io
 #undef u8
 #undef u16
 #undef b
 #undef ba
 #undef u1
-#undef p
     pn532_t * pn532 = NULL;
-uint8_t nfcmask = 0;
+uint8_t nfcmask = 0,
+    nfcinvert = 0;
 df_t df;
 SemaphoreHandle_t nfc_mutex = NULL;     // PN532 has low level message mutex, but this is needed for DESFire level.
 
@@ -84,7 +87,7 @@ static void task(void *pvParameters)
       int64_t now = esp_timer_get_time();
       // Regular tasks
       // Check tamper
-      if (nexttamper < now && nfctamper >= 0)
+      if (nexttamper < now && nfctamper)
       {                         // Check tamper
          nexttamper = now + (uint64_t) nfctamperpoll *1000LL;
          int p3 = pn532_read_GPIO(pn532);
@@ -111,10 +114,11 @@ static void task(void *pvParameters)
             }
          } else
          {                      // Check tamper
-            if (p3 & (1 << nfctamper))
-               status(nfc_tamper = (itamper ? "Tamper" : NULL));
+            p3 ^= nfcinvert;
+            if (p3 & (1 << port_mask(nfctamper)))
+               status(nfc_tamper = NULL);
             else
-               status(nfc_tamper = (itamper ? NULL : "Tamper"));
+               status(nfc_tamper = "Tamper");
          }
       }
       // LED
@@ -124,23 +128,21 @@ static void task(void *pvParameters)
          ledpos++;
          if (ledpos >= sizeof(ledpattern) || !ledpattern[ledpos] || !*ledpattern)
             ledpos = 0;
-         uint8_t newled = 0;
+         uint8_t newled = nfcinvert;
          while (ledpos < sizeof(ledpattern))
          {
-            if (nfcred >= 0 && ledpattern[ledpos] == 'R')
-               newled = (1 << nfcred);
-            if (nfcamber >= 0 && ledpattern[ledpos] == 'A')
-               newled = (1 << nfcamber);
-            if (nfcgreen >= 0 && ledpattern[ledpos] == 'G')
-               newled = (1 << nfcgreen);
+            if (nfcred && ledpattern[ledpos] == 'R')
+               newled ^= (1 << port_mask(nfcred));
+            if (nfcamber && ledpattern[ledpos] == 'A')
+               newled ^= (1 << port_mask(nfcamber));
+            if (nfcgreen && ledpattern[ledpos] == 'G')
+               newled ^= (1 << port_mask(nfcgreen));
             if (ledpos + 1 >= sizeof(ledpattern) || ledpattern[ledpos + 1] != '+')
                break;           // Combined LED pattern
             ledpos += 2;
          }
          if (newled != ledlast)
-         {
             pn532_write_GPIO(pn532, ledlast = newled);
-         }
       }
       // Card
       if (nextpoll < now)
@@ -244,10 +246,10 @@ static void task(void *pvParameters)
                   log();        // Log before reporting or opening door
                if (!noaccess)
                {                // Access is allowed!
-                  pn532_write_GPIO(pn532, ledlast = (nfcgreen >= 0 && !(ledlast & (1 << nfcgreen)) ? (1 << nfcgreen) : 0));     // Blink green
+                  pn532_write_GPIO(pn532, ledlast = (nfcgreen && !(ledlast & (1 << port_mask(nfcgreen))) ? (1 << port_mask(nfcgreen)) : 0));    // Blink green
                   door_unlock(NULL, "fob");     // Door system was happy with fob, let 'em in
                } else if (door >= 4)
-                  pn532_write_GPIO(pn532, ledlast = (nfcred >= 0 && !(ledlast & (1 << nfcred)) ? (1 << nfcred) : 0));   // Blink red
+                  pn532_write_GPIO(pn532, ledlast = (nfcred && !(ledlast & (1 << port_mask(nfcred))) ? (1 << port_mask(nfcred)) : 0));  // Blink red
                nextled = now + 200000LL;
                // Report
                if (door >= 4 || !noaccess)
@@ -317,27 +319,36 @@ const char *nfc_command(const char *tag, unsigned int len, const unsigned char *
 void nfc_init(void)
 {
 #define i8(n,d) revk_register(#n,0,sizeof(n),&n,#d,SETTING_SIGNED);
+#define io(n) revk_register(#n,0,sizeof(n),&n,BITFIELDS,SETTING_SET|SETTING_BITFIELD);
 #define u8(n,d) revk_register(#n,0,sizeof(n),&n,#d,0);
 #define u16(n,d) revk_register(#n,0,sizeof(n),&n,#d,0);
 #define b(n,l) revk_register(#n,0,sizeof(n),n,NULL,SETTING_BINARY|SETTING_HEX);
 #define ba(n,l,a) revk_register(#n,a,sizeof(n[0]),n,NULL,SETTING_BINARY|SETTING_HEX);
 #define u1(n) revk_register(#n,0,sizeof(n),&n,NULL,SETTING_BOOLEAN);
-#define p(n) revk_register(#n,0,sizeof(n),&n,NULL,SETTING_SET);
    settings
+#undef io
 #undef i8
 #undef u8
 #undef u16
 #undef b
 #undef ba
 #undef u1
-#undef p
+       // Set up ports */
        nfcmask = 0;             /* output mask for NFC */
-   if (nfcred >= 0)
-      nfcmask |= (1 << nfcred);
-   if (nfcamber >= 0)
-      nfcmask |= (1 << nfcamber);
-   if (nfcgreen >= 0)
-      nfcmask |= (1 << nfcgreen);
+   if (nfcred)
+      nfcmask |= (1 << port_mask(nfcred));
+   if (nfcamber)
+      nfcmask |= (1 << port_mask(nfcamber));
+   if (nfcgreen)
+      nfcmask |= (1 << port_mask(nfcgreen));
+   if (nfcred & PORT_INV)
+      nfcinvert |= (1 << port_mask(nfcred));
+   if (nfcamber & PORT_INV)
+      nfcinvert |= (1 << port_mask(nfcamber));
+   if (nfcgreen & PORT_INV)
+      nfcinvert |= (1 << port_mask(nfcgreen));
+   if (nfctamper & PORT_INV)
+      nfcinvert |= (1 << port_mask(nfctamper));
    if (nfctx && nfcrx)
    {
       const char *e = port_check(port_mask(nfctx), TAG, 0);
