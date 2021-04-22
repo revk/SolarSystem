@@ -126,24 +126,32 @@ static void task(void *pvParameters)
       if (nextled < now)
       {                         // Check LED
          nextled = now + (uint64_t) nfcledpoll *1000LL;
-         ledpos++;
-         if (ledpos >= sizeof(ledpattern) || !ledpattern[ledpos] || !*ledpattern)
-            ledpos = 0;
-         uint8_t newled = nfcinvert;
-         while (ledpos < sizeof(ledpattern))
-         {
-            if (nfcred && ledpattern[ledpos] == 'R')
-               newled ^= (1 << port_mask(nfcred));
-            if (nfcamber && ledpattern[ledpos] == 'A')
-               newled ^= (1 << port_mask(nfcamber));
-            if (nfcgreen && ledpattern[ledpos] == 'G')
-               newled ^= (1 << port_mask(nfcgreen));
-            if (ledpos + 1 >= sizeof(ledpattern) || ledpattern[ledpos + 1] != '+')
-               break;           // Combined LED pattern
-            ledpos += 2;
+         static int count = 0;
+         if (count)
+            count--;            // We are repeating existing pattern for a while
+         if (!count)
+         {                      // Next colour
+            ledpos++;
+            if (ledpos >= sizeof(ledpattern) || !ledpattern[ledpos] || !*ledpattern)
+               ledpos = 0;      // Wrap
+            uint8_t newled = nfcinvert;
+            while (ledpos < sizeof(ledpattern) && ledpattern[ledpos] && isdigit(ledpattern[ledpos]))
+               count = count * 10 + ledpattern[ledpos++] - '0';
+            while (ledpos < sizeof(ledpattern) && ledpattern[ledpos])
+            {                   // Check combined colours
+               if (nfcred && ledpattern[ledpos] == 'R')
+                  newled ^= (1 << port_mask(nfcred));
+               if (nfcamber && ledpattern[ledpos] == 'A')
+                  newled ^= (1 << port_mask(nfcamber));
+               if (nfcgreen && ledpattern[ledpos] == 'G')
+                  newled ^= (1 << port_mask(nfcgreen));
+               if (ledpos + 1 >= sizeof(ledpattern) || ledpattern[ledpos + 1] != '+')
+                  break;        // Combined LED pattern with +
+               ledpos += 2;
+            }
+            if (newled != ledlast)
+               pn532_write_GPIO(pn532, ledlast = newled);
          }
-         if (newled != ledlast)
-            pn532_write_GPIO(pn532, ledlast = newled);
       }
       // Card
       if (nextpoll < now)
