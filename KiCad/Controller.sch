@@ -67,16 +67,6 @@ Wire Wire Line
 Connection ~ 7500 1550
 Wire Wire Line
 	7500 1550 7500 1600
-Text GLabel 6300 4750 0    50   Input ~ 0
-D+
-Text GLabel 6300 4650 0    50   Input ~ 0
-D-
-Wire Wire Line
-	6300 4750 6400 4750
-Wire Wire Line
-	6400 4650 6300 4650
-Wire Wire Line
-	7000 4050 7000 3750
 NoConn ~ 1500 2500
 NoConn ~ 1500 2600
 NoConn ~ 1500 2700
@@ -96,33 +86,6 @@ F 3 "~" H 7350 1600 50  0001 C CNN
 $EndComp
 NoConn ~ 7100 2400
 NoConn ~ 7100 2500
-Connection ~ 7200 5450
-Wire Wire Line
-	7100 5450 7200 5450
-Wire Wire Line
-	7000 5450 7100 5450
-Connection ~ 7100 5450
-Text GLabel 7800 4350 2    50   Input ~ 0
-I
-Text GLabel 7800 4450 2    50   Input ~ 0
-O
-Text GLabel 7800 4550 2    50   Input ~ 0
-EN
-Wire Wire Line
-	7200 5450 8050 5450
-$Comp
-L Interface_USB:FT230XQ U6
-U 1 1 6043CF0E
-P 7100 4750
-F 0 "U6" H 7100 5631 50  0000 C CNN
-F 1 "FT230XQ" H 7100 5540 50  0000 C CNN
-F 2 "RevK:QFN-16-(hand)-1EP_4x4mm_P0.65mm_EP2.1x2.1mm" H 8450 4150 50  0001 C CNN
-F 3 "https://www.ftdichip.com/Support/Documents/DataSheets/ICs/DS_FT230X.pdf" H 7100 4750 50  0001 C CNN
-	1    7100 4750
-	1    0    0    -1  
-$EndComp
-Wire Wire Line
-	7000 3750 7200 3750
 $Comp
 L power:VBUS #PWR015
 U 1 1 60464020
@@ -168,17 +131,6 @@ F 3 "" H 7750 2800 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L power:GND #PWR019
-U 1 1 6046F185
-P 8050 5450
-F 0 "#PWR019" H 8050 5200 50  0001 C CNN
-F 1 "GND" H 8055 5277 50  0000 C CNN
-F 2 "" H 8050 5450 50  0001 C CNN
-F 3 "" H 8050 5450 50  0001 C CNN
-	1    8050 5450
-	1    0    0    -1  
-$EndComp
-$Comp
 L power:GND #PWR02
 U 1 1 6046FB14
 P 3150 3900
@@ -189,8 +141,6 @@ F 3 "" H 3150 3900 50  0001 C CNN
 	1    3150 3900
 	1    0    0    -1  
 $EndComp
-Text GLabel 7800 4850 2    50   Input ~ 0
-CBUS0
 Text GLabel 2700 1400 2    50   Input ~ 0
 O
 Text GLabel 2700 1300 2    50   Input ~ 0
@@ -208,29 +158,6 @@ Wire Wire Line
 	6500 2800 7750 2800
 Wire Wire Line
 	7100 1800 8250 1800
-Wire Wire Line
-	6000 4950 6000 4350
-Wire Wire Line
-	6000 4350 6400 4350
-Wire Wire Line
-	6000 4950 6400 4950
-Wire Wire Line
-	6400 4350 6400 3750
-Wire Wire Line
-	6400 3750 7000 3750
-Connection ~ 6400 4350
-Connection ~ 7000 3750
-$Comp
-L power:+3.3V #PWR018
-U 1 1 6047388B
-P 7750 3750
-F 0 "#PWR018" H 7750 3600 50  0001 C CNN
-F 1 "+3.3V" H 7765 3923 50  0000 C CNN
-F 2 "" H 7750 3750 50  0001 C CNN
-F 3 "" H 7750 3750 50  0001 C CNN
-	1    7750 3750
-	1    0    0    -1  
-$EndComp
 $Comp
 L power:VBUS #PWR021
 U 1 1 6047B245
@@ -278,11 +205,6 @@ Wire Wire Line
 	9600 2150 10350 2150
 Wire Wire Line
 	10350 2150 10350 1400
-Wire Wire Line
-	7200 4050 7200 3750
-Connection ~ 7200 3750
-Wire Wire Line
-	7200 3750 7750 3750
 $Comp
 L RevK:D24V5F3-NoSHDN M1
 U 1 1 60455088
@@ -298,19 +220,6 @@ Wire Wire Line
 	1500 1500 1500 1600
 Wire Wire Line
 	2100 1100 3100 1100
-$Comp
-L power:GND #PWR020
-U 1 1 60465D7D
-P 8550 4650
-F 0 "#PWR020" H 8550 4400 50  0001 C CNN
-F 1 "GND" H 8555 4477 50  0000 C CNN
-F 2 "" H 8550 4650 50  0001 C CNN
-F 3 "" H 8550 4650 50  0001 C CNN
-	1    8550 4650
-	1    0    0    -1  
-$EndComp
-Wire Wire Line
-	8550 4650 7800 4650
 NoConn ~ 9600 1600
 Wire Wire Line
 	7100 2000 8250 2000
@@ -325,9 +234,6 @@ F 3 "" H 10500 6800 50  0001 C CNN
 	1    10500 6900
 	1    0    0    -1  
 $EndComp
-NoConn ~ 7800 4950
-NoConn ~ 7800 5050
-NoConn ~ 7800 5150
 NoConn ~ 850  3250
 Connection ~ 2100 1100
 Wire Wire Line
@@ -1003,8 +909,6 @@ F 3 "~" H 9000 4250 50  0001 C CNN
 	1    9000 4250
 	0    1    1    0   
 $EndComp
-Text GLabel 8850 4250 0    50   Input ~ 0
-SHDN
 Text GLabel 2700 1800 2    50   Input ~ 0
 SHDN
 $Comp
@@ -1055,4 +959,119 @@ Text GLabel 9200 5400 0    50   Input ~ 0
 LED
 Text GLabel 2700 1900 2    50   Input ~ 0
 LED
+Text GLabel 8850 4250 0    50   Input ~ 0
+SHDN
+$Comp
+L Interface_USB:FT231XQ U6
+U 1 1 6084108B
+P 7000 4550
+F 0 "U6" H 7000 5631 50  0000 C CNN
+F 1 "FT231XQ" H 7000 5540 50  0000 C CNN
+F 2 "RevK:QFN-20-(hand)-1EP_4x4mm_P0.5mm_EP2.5x2.5mm" H 8350 3750 50  0001 C CNN
+F 3 "https://www.ftdichip.com/Support/Documents/DataSheets/ICs/DS_FT231X.pdf" H 7000 4550 50  0001 C CNN
+	1    7000 4550
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	7100 3650 6900 3650
+Connection ~ 6900 3650
+Text GLabel 6300 4250 0    50   Input ~ 0
+D-
+Text GLabel 6300 4350 0    50   Input ~ 0
+D+
+Wire Wire Line
+	6300 4550 5950 4550
+Wire Wire Line
+	5950 4550 5950 3950
+Wire Wire Line
+	5950 3950 6300 3950
+Connection ~ 5950 3950
+Wire Wire Line
+	5950 3950 5950 3650
+Wire Wire Line
+	5950 3650 6900 3650
+Wire Wire Line
+	6900 5450 7000 5450
+Wire Wire Line
+	7000 5450 7100 5450
+Connection ~ 7000 5450
+$Comp
+L power:GND #PWR0102
+U 1 1 6085BF74
+P 7000 5450
+F 0 "#PWR0102" H 7000 5200 50  0001 C CNN
+F 1 "GND" H 7005 5277 50  0000 C CNN
+F 2 "" H 7000 5450 50  0001 C CNN
+F 3 "" H 7000 5450 50  0001 C CNN
+	1    7000 5450
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:+3.3V #PWR0103
+U 1 1 6085C74E
+P 5950 3650
+F 0 "#PWR0103" H 5950 3500 50  0001 C CNN
+F 1 "+3.3V" H 5965 3823 50  0000 C CNN
+F 2 "" H 5950 3650 50  0001 C CNN
+F 3 "" H 5950 3650 50  0001 C CNN
+	1    5950 3650
+	1    0    0    -1  
+$EndComp
+Connection ~ 5950 3650
+$Comp
+L power:GND #PWR0104
+U 1 1 6085CF95
+P 7700 4250
+F 0 "#PWR0104" H 7700 4000 50  0001 C CNN
+F 1 "GND" V 7705 4122 50  0000 R CNN
+F 2 "" H 7700 4250 50  0001 C CNN
+F 3 "" H 7700 4250 50  0001 C CNN
+	1    7700 4250
+	0    -1   -1   0   
+$EndComp
+Text GLabel 7700 4350 2    50   Input ~ 0
+CBUS0
+Text GLabel 7700 3950 2    50   Input ~ 0
+I
+Text GLabel 7700 4050 2    50   Input ~ 0
+O
+Text GLabel 7700 4150 2    50   Input ~ 0
+EN
+NoConn ~ 7700 4850
+NoConn ~ 7700 4950
+NoConn ~ 7700 5050
+NoConn ~ 7700 5150
+$Comp
+L power:GND #PWR0105
+U 1 1 6087F33E
+P 7700 4450
+F 0 "#PWR0105" H 7700 4200 50  0001 C CNN
+F 1 "GND" V 7705 4322 50  0000 R CNN
+F 2 "" H 7700 4450 50  0001 C CNN
+F 3 "" H 7700 4450 50  0001 C CNN
+	1    7700 4450
+	0    -1   -1   0   
+$EndComp
+$Comp
+L power:GND #PWR0106
+U 1 1 6087FBAE
+P 7700 4550
+F 0 "#PWR0106" H 7700 4300 50  0001 C CNN
+F 1 "GND" V 7705 4422 50  0000 R CNN
+F 2 "" H 7700 4550 50  0001 C CNN
+F 3 "" H 7700 4550 50  0001 C CNN
+	1    7700 4550
+	0    -1   -1   0   
+$EndComp
+$Comp
+L power:GND #PWR0107
+U 1 1 608803BE
+P 7700 4650
+F 0 "#PWR0107" H 7700 4400 50  0001 C CNN
+F 1 "GND" V 7705 4522 50  0000 R CNN
+F 2 "" H 7700 4650 50  0001 C CNN
+F 3 "" H 7700 4650 50  0001 C CNN
+	1    7700 4650
+	0    -1   -1   0   
+$EndComp
 $EndSCHEMATC
