@@ -5,9 +5,9 @@ $Descr A4 11693 8268
 encoding utf-8
 Sheet 1 1
 Title "Galaxy Keypad controller"
-Date "2021-04-10"
+Date "2021-04-23"
 Rev "4"
-Comp ""
+Comp "Adrian Kennard Andrews & Arnold Ltd"
 Comment1 "@TheRealRevK"
 Comment2 "www.me.uk"
 Comment3 ""
@@ -96,31 +96,12 @@ F 3 "~" H 7350 1600 50  0001 C CNN
 $EndComp
 NoConn ~ 7100 2400
 NoConn ~ 7100 2500
-Connection ~ 7200 5450
-Wire Wire Line
-	7100 5450 7200 5450
-Wire Wire Line
-	7000 5450 7100 5450
-Connection ~ 7100 5450
 Text GLabel 7800 4350 2    50   Input ~ 0
 I
 Text GLabel 7800 4450 2    50   Input ~ 0
 O
 Text GLabel 7800 4550 2    50   Input ~ 0
 EN
-Wire Wire Line
-	7200 5450 8050 5450
-$Comp
-L Interface_USB:FT230XQ U2
-U 1 1 6043CF0E
-P 7100 4750
-F 0 "U2" H 7100 5631 50  0000 C CNN
-F 1 "FT230XQ" H 7100 5540 50  0000 C CNN
-F 2 "RevK:QFN-16-(hand)-1EP_4x4mm_P0.65mm_EP2.1x2.1mm" H 8450 4150 50  0001 C CNN
-F 3 "https://www.ftdichip.com/Support/Documents/DataSheets/ICs/DS_FT230X.pdf" H 7100 4750 50  0001 C CNN
-	1    7100 4750
-	1    0    0    -1  
-$EndComp
 Wire Wire Line
 	7000 3750 7200 3750
 NoConn ~ 3550 2950
@@ -172,17 +153,6 @@ F 3 "" H 7750 2800 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L power:GND #PWR09
-U 1 1 6046F185
-P 8050 5450
-F 0 "#PWR09" H 8050 5200 50  0001 C CNN
-F 1 "GND" H 8055 5277 50  0000 C CNN
-F 2 "" H 8050 5450 50  0001 C CNN
-F 3 "" H 8050 5450 50  0001 C CNN
-	1    8050 5450
-	1    0    0    -1  
-$EndComp
-$Comp
 L power:GND #PWR04
 U 1 1 6046FB14
 P 4000 4350
@@ -193,12 +163,10 @@ F 3 "" H 4000 4350 50  0001 C CNN
 	1    4000 4350
 	1    0    0    -1  
 $EndComp
-Text GLabel 7800 4850 2    50   Input ~ 0
-CBUS0
 Text GLabel 3550 1850 2    50   Input ~ 0
 O
 Text GLabel 3550 1750 2    50   Input ~ 0
-CBUS0
+GPIO0
 NoConn ~ 3550 3850
 Wire Wire Line
 	2950 1550 2950 1650
@@ -223,7 +191,6 @@ Wire Wire Line
 	6400 4350 6400 3750
 Wire Wire Line
 	6400 3750 7000 3750
-Connection ~ 6400 4350
 Connection ~ 7000 3750
 $Comp
 L power:+3.3V #PWR08
@@ -338,19 +305,6 @@ Wire Wire Line
 Connection ~ 3850 4350
 Wire Wire Line
 	3850 4350 4000 4350
-$Comp
-L power:GND #PWR0101
-U 1 1 60465D7D
-P 8550 4650
-F 0 "#PWR0101" H 8550 4400 50  0001 C CNN
-F 1 "GND" H 8555 4477 50  0000 C CNN
-F 2 "" H 8550 4650 50  0001 C CNN
-F 3 "" H 8550 4650 50  0001 C CNN
-	1    8550 4650
-	1    0    0    -1  
-$EndComp
-Wire Wire Line
-	8550 4650 7800 4650
 NoConn ~ 9600 1600
 Wire Wire Line
 	7100 2000 8250 2000
@@ -440,9 +394,6 @@ F 3 "" H 4950 6900 50  0001 C CNN
 $EndComp
 Wire Wire Line
 	4550 5600 5250 5600
-NoConn ~ 7800 4950
-NoConn ~ 7800 5050
-NoConn ~ 7800 5150
 NoConn ~ 850  3250
 Wire Wire Line
 	3450 4750 3450 6450
@@ -510,4 +461,82 @@ Connection ~ 4550 5500
 Connection ~ 4550 5600
 Connection ~ 4550 5700
 Connection ~ 4550 5800
+$Comp
+L Interface_USB:FT231XQ U2
+U 1 1 60830661
+P 7100 4950
+F 0 "U2" H 7100 6031 50  0000 C CNN
+F 1 "FT231XQ" H 7100 5940 50  0000 C CNN
+F 2 "RevK:QFN-20-(hand)-1EP_4x4mm_P0.5mm_EP2.5x2.5mm" H 8450 4150 50  0001 C CNN
+F 3 "https://www.ftdichip.com/Support/Documents/DataSheets/ICs/DS_FT231X.pdf" H 7100 4950 50  0001 C CNN
+	1    7100 4950
+	1    0    0    -1  
+$EndComp
+Connection ~ 6400 4350
+Wire Wire Line
+	7000 5850 7100 5850
+Wire Wire Line
+	7200 5850 7100 5850
+Connection ~ 7100 5850
+$Comp
+L power:GND #PWR0101
+U 1 1 608367D4
+P 7100 5850
+F 0 "#PWR0101" H 7100 5600 50  0001 C CNN
+F 1 "GND" H 7105 5677 50  0000 C CNN
+F 2 "" H 7100 5850 50  0001 C CNN
+F 3 "" H 7100 5850 50  0001 C CNN
+	1    7100 5850
+	1    0    0    -1  
+$EndComp
+NoConn ~ 7800 5250
+NoConn ~ 7800 5350
+NoConn ~ 7800 5550
+NoConn ~ 7800 5450
+$Comp
+L power:GND #PWR0106
+U 1 1 608412DD
+P 7800 5050
+F 0 "#PWR0106" H 7800 4800 50  0001 C CNN
+F 1 "GND" V 7805 4922 50  0000 R CNN
+F 2 "" H 7800 5050 50  0001 C CNN
+F 3 "" H 7800 5050 50  0001 C CNN
+	1    7800 5050
+	0    -1   -1   0   
+$EndComp
+$Comp
+L power:GND #PWR0107
+U 1 1 6084173C
+P 7800 4950
+F 0 "#PWR0107" H 7800 4700 50  0001 C CNN
+F 1 "GND" V 7805 4822 50  0000 R CNN
+F 2 "" H 7800 4950 50  0001 C CNN
+F 3 "" H 7800 4950 50  0001 C CNN
+	1    7800 4950
+	0    -1   -1   0   
+$EndComp
+$Comp
+L power:GND #PWR0108
+U 1 1 60841B96
+P 7800 4850
+F 0 "#PWR0108" H 7800 4600 50  0001 C CNN
+F 1 "GND" V 7805 4722 50  0000 R CNN
+F 2 "" H 7800 4850 50  0001 C CNN
+F 3 "" H 7800 4850 50  0001 C CNN
+	1    7800 4850
+	0    -1   -1   0   
+$EndComp
+Text GLabel 7800 4750 2    50   Input ~ 0
+GPIO0
+$Comp
+L power:GND #PWR0109
+U 1 1 60842324
+P 7800 4650
+F 0 "#PWR0109" H 7800 4400 50  0001 C CNN
+F 1 "GND" V 7805 4522 50  0000 R CNN
+F 2 "" H 7800 4650 50  0001 C CNN
+F 3 "" H 7800 4650 50  0001 C CNN
+	1    7800 4650
+	0    -1   -1   0   
+$EndComp
 $EndSCHEMATC
