@@ -96,10 +96,12 @@ static void task(void *pvParameters)
          {                      // Failed
             // Try init again
             pn532_end(pn532);
+            ESP_LOGE(TAG, "NFC re-init");
             usleep(100000);
             pn532 = pn532_init(nfcuart, port_mask(nfctx), port_mask(nfcrx), nfcmask);
             if (!pn532)
             {                   // Retry before declaring a fault
+               ESP_LOGE(TAG, "NFC re-init2");
                usleep(1);
                pn532 = pn532_init(nfcuart, port_mask(nfctx), port_mask(nfcrx), nfcmask);
             }
