@@ -88,7 +88,7 @@ static void task(void *pvParameters)
       int64_t now = esp_timer_get_time();
       // Regular tasks
       // Check tamper
-      if (nexttamper < now && nfctamper)
+      if (nexttamper < now)
       {                         // Check tamper
          nexttamper = now + (uint64_t) nfctamperpoll *1000LL;
          int p3 = pn532_read_GPIO(pn532);
@@ -116,7 +116,7 @@ static void task(void *pvParameters)
                status(nfc_fault = NULL);
                ledlast = 0xFF;
             }
-         } else
+         } else if(nfctamper)
          {                      // Check tamper
             p3 ^= nfcinvert;
             if (p3 & (1 << port_mask(nfctamper)))
