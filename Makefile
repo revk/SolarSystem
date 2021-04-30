@@ -17,6 +17,21 @@ update:
 	git commit -a -m "Library update"
 	git push
 
+
+PCBCase/case: PCBCase/case.c
+	make -C PCBCase
+
+case: KiCad/Controller.scad
+stl: KiCad/Controller.stl
+
+%.stl: %.scad
+	echo "Making $@"
+	/Applications/OpenSCAD.app/Contents/MacOS/OpenSCAD $< -o $@
+	echo "Made $@"
+
+KiCad/Controller.scad: KiCad/Controller.kicad_pcb PCBCase/case Makefile
+	PCBCase/case -o $@ $<
+
 AXL/axl.o: AXL/axl.c
 	make -C AXL
 Dataformat/dataformat.o: Dataformat/dataformat.c

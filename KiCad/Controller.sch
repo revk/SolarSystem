@@ -260,13 +260,13 @@ Text GLabel 2700 2200 2    50   Input ~ 0
 IN3
 Text GLabel 2700 2000 2    50   Input ~ 0
 IN4
-Text GLabel 2700 3300 2    50   Input ~ 0
-IN5
 Text GLabel 2700 2100 2    50   Input ~ 0
-IN6
+IN5
 Text GLabel 2700 3200 2    50   Input ~ 0
-IN7
+IN6
 Text GLabel 2700 3400 2    50   Input ~ 0
+IN7
+Text GLabel 2700 3300 2    50   Input ~ 0
 IN8
 Text GLabel 2700 2400 2    50   Input ~ 0
 RFTX
@@ -279,9 +279,9 @@ Text GLabel 2700 2500 2    50   Input ~ 0
 SDA
 Text GLabel 2700 2600 2    50   Input ~ 0
 SCL
-Text GLabel 2700 2700 2    50   Input ~ 0
-OUT1
 Text GLabel 2700 2800 2    50   Input ~ 0
+OUT1
+Text GLabel 2700 2700 2    50   Input ~ 0
 OUT2
 Text GLabel 2700 2900 2    50   Input ~ 0
 OUT3
@@ -509,50 +509,6 @@ F 2 "" H 5150 3300 50  0001 C CNN
 F 3 "" H 5150 3300 50  0001 C CNN
 	1    5150 3300
 	0    -1   -1   0   
-$EndComp
-$Comp
-L Relay_SolidState:TLP3542 U2
-U 1 1 60763EB1
-P 4650 5200
-F 0 "U2" H 4650 5525 50  0000 C CNN
-F 1 "61BR" H 4650 5434 50  0000 C CNN
-F 2 "Package_DIP:DIP-5-6_W7.62mm" H 4650 4900 50  0001 C CNN
-F 3 "https://toshiba.semicon-storage.com/info/docget.jsp?did=1284&prodName=TLP3542" H 4650 5200 50  0001 C CNN
-	1    4650 5200
-	1    0    0    -1  
-$EndComp
-$Comp
-L Relay_SolidState:TLP3542 U3
-U 1 1 60766172
-P 4650 5750
-F 0 "U3" H 4650 6075 50  0000 C CNN
-F 1 "61BR" H 4650 5984 50  0000 C CNN
-F 2 "Package_DIP:DIP-5-6_W7.62mm" H 4650 5450 50  0001 C CNN
-F 3 "https://toshiba.semicon-storage.com/info/docget.jsp?did=1284&prodName=TLP3542" H 4650 5750 50  0001 C CNN
-	1    4650 5750
-	1    0    0    -1  
-$EndComp
-$Comp
-L Relay_SolidState:TLP3542 U4
-U 1 1 60768B54
-P 4650 6300
-F 0 "U4" H 4650 6625 50  0000 C CNN
-F 1 "61BR" H 4650 6534 50  0000 C CNN
-F 2 "Package_DIP:DIP-5-6_W7.62mm" H 4650 6000 50  0001 C CNN
-F 3 "https://toshiba.semicon-storage.com/info/docget.jsp?did=1284&prodName=TLP3542" H 4650 6300 50  0001 C CNN
-	1    4650 6300
-	1    0    0    -1  
-$EndComp
-$Comp
-L Relay_SolidState:TLP3542 U5
-U 1 1 60769DB1
-P 4650 6850
-F 0 "U5" H 4650 7175 50  0000 C CNN
-F 1 "61BR" H 4650 7084 50  0000 C CNN
-F 2 "Package_DIP:DIP-5-6_W7.62mm" H 4650 6550 50  0001 C CNN
-F 3 "https://toshiba.semicon-storage.com/info/docget.jsp?did=1284&prodName=TLP3542" H 4650 6850 50  0001 C CNN
-	1    4650 6850
-	1    0    0    -1  
 $EndComp
 $Comp
 L power:GND #PWR03
@@ -1073,5 +1029,60 @@ F 2 "" H 7700 4650 50  0001 C CNN
 F 3 "" H 7700 4650 50  0001 C CNN
 	1    7700 4650
 	0    -1   -1   0   
+$EndComp
+$Comp
+L RevK:G3VM-41GR8 U2
+U 1 1 608BF21E
+P 4650 5200
+F 0 "U2" H 4650 5525 50  0000 C CNN
+F 1 "G3VM-41GR8" H 4650 5434 50  0000 C CNN
+F 2 "RevK:Special-SOP-4-3.7x4.55" H 4650 4900 50  0001 C CNN
+F 3 "https://toshiba.semicon-storage.com/info/docget.jsp?did=1284&prodName=TLP3542" H 4650 5200 50  0001 C CNN
+	1    4650 5200
+	1    0    0    -1  
+$EndComp
+$Comp
+L RevK:G3VM-41GR8 U3
+U 1 1 608C1E21
+P 4650 5750
+F 0 "U3" H 4650 6075 50  0000 C CNN
+F 1 "G3VM-41GR8" H 4650 5984 50  0000 C CNN
+F 2 "RevK:Special-SOP-4-3.7x4.55" H 4650 5450 50  0001 C CNN
+F 3 "https://toshiba.semicon-storage.com/info/docget.jsp?did=1284&prodName=TLP3542" H 4650 5750 50  0001 C CNN
+	1    4650 5750
+	1    0    0    -1  
+$EndComp
+$Comp
+L RevK:G3VM-41GR8 U4
+U 1 1 608C2BF7
+P 4650 6300
+F 0 "U4" H 4650 6625 50  0000 C CNN
+F 1 "G3VM-41GR8" H 4650 6534 50  0000 C CNN
+F 2 "RevK:Special-SOP-4-3.7x4.55" H 4650 6000 50  0001 C CNN
+F 3 "https://toshiba.semicon-storage.com/info/docget.jsp?did=1284&prodName=TLP3542" H 4650 6300 50  0001 C CNN
+	1    4650 6300
+	1    0    0    -1  
+$EndComp
+$Comp
+L RevK:G3VM-41GR8 U5
+U 1 1 608C3CED
+P 4650 6850
+F 0 "U5" H 4650 7175 50  0000 C CNN
+F 1 "G3VM-41GR8" H 4650 7084 50  0000 C CNN
+F 2 "RevK:Special-SOP-4-3.7x4.55" H 4650 6550 50  0001 C CNN
+F 3 "https://toshiba.semicon-storage.com/info/docget.jsp?did=1284&prodName=TLP3542" H 4650 6850 50  0001 C CNN
+	1    4650 6850
+	1    0    0    -1  
+$EndComp
+$Comp
+L RevK:QR U7
+U 1 1 608F5575
+P 10950 6350
+F 0 "U7" H 10950 6225 50  0001 C CNN
+F 1 "QR" H 10950 6225 50  0001 C CNN
+F 2 "RevK:QR-SS" H 10925 6325 50  0001 C CNN
+F 3 "" H 10925 6325 50  0001 C CNN
+	1    10950 6350
+	1    0    0    -1  
 $EndComp
 $EndSCHEMATC

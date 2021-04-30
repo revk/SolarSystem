@@ -35,3 +35,6 @@
 [submodule "ESP32/PCBCase"]
 	path = ESP32/PCBCase
 	url = https://github.com/revk/PCBCase
+[submodule "PCBCase"]
+	path = PCBCase
+	url = https://github.com/revk/PCBCase
