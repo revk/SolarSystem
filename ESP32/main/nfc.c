@@ -88,7 +88,7 @@ static void task(void *pvParameters)
       int64_t now = esp_timer_get_time();
       // Regular tasks
       // Check tamper
-      if (nexttamper < now && nfctamper)
+      if (nexttamper < now)
       {                         // Check tamper
          nexttamper = now + (uint64_t) nfctamperpoll *1000LL;
          int p3 = pn532_read_GPIO(pn532);
@@ -96,10 +96,13 @@ static void task(void *pvParameters)
          {                      // Failed
             // Try init again
             pn532_end(pn532);
+            ESP_LOGE(TAG, "NFC re-init");
+            usleep(100000);
             pn532 = pn532_init(nfcuart, port_mask(nfctx), port_mask(nfcrx), nfcmask);
             if (!pn532)
-            {                   // Retry
-               sleep(1);
+            {                   // Retry before declaring a fault
+               ESP_LOGE(TAG, "NFC re-init2");
+               usleep(1);
                pn532 = pn532_init(nfcuart, port_mask(nfctx), port_mask(nfcrx), nfcmask);
             }
             if (!pn532)
@@ -113,7 +116,7 @@ static void task(void *pvParameters)
                status(nfc_fault = NULL);
                ledlast = 0xFF;
             }
-         } else
+         } else if(nfctamper)
          {                      // Check tamper
             p3 ^= nfcinvert;
             if (p3 & (1 << port_mask(nfctamper)))
@@ -123,6 +126,14 @@ static void task(void *pvParameters)
          }
       }
       // LED
+      void blink(uint8_t p) {   // Blink an LED
+         if (!p)
+            return;             //Port not set
+         if (ledlast & (1 << port_mask(p)))
+            return;             //Already set
+         pn532_write_GPIO(pn532, (ledlast ^= (1 << port_mask(p))) ^ nfcinvert); //Blink on
+         nextled = now + (uint64_t) nfcledpoll *1000LL;
+      }
       if (nextled < now)
       {                         // Check LED
          nextled = now + (uint64_t) nfcledpoll *1000LL;
@@ -134,23 +145,23 @@ static void task(void *pvParameters)
             ledpos++;
             if (ledpos >= sizeof(ledpattern) || !ledpattern[ledpos] || !*ledpattern)
                ledpos = 0;      // Wrap
-            uint8_t newled = nfcinvert;
+            uint8_t newled = 0;
             while (ledpos < sizeof(ledpattern) && ledpattern[ledpos] && isdigit(ledpattern[ledpos]))
                count = count * 10 + ledpattern[ledpos++] - '0';
             while (ledpos < sizeof(ledpattern) && ledpattern[ledpos])
             {                   // Check combined colours
                if (nfcred && ledpattern[ledpos] == 'R')
-                  newled ^= (1 << port_mask(nfcred));
+                  newled |= (1 << port_mask(nfcred));
                if (nfcamber && ledpattern[ledpos] == 'A')
-                  newled ^= (1 << port_mask(nfcamber));
+                  newled |= (1 << port_mask(nfcamber));
                if (nfcgreen && ledpattern[ledpos] == 'G')
-                  newled ^= (1 << port_mask(nfcgreen));
+                  newled |= (1 << port_mask(nfcgreen));
                if (ledpos + 1 >= sizeof(ledpattern) || ledpattern[ledpos + 1] != '+')
                   break;        // Combined LED pattern with +
                ledpos += 2;
             }
             if (newled != ledlast)
-               pn532_write_GPIO(pn532, ledlast = newled);
+               pn532_write_GPIO(pn532, (ledlast = newled) ^ nfcinvert);
          }
       }
       // Card
@@ -255,10 +266,12 @@ static void task(void *pvParameters)
                   log();        // Log before reporting or opening door
                if (!noaccess)
                {                // Access is allowed!
-                  pn532_write_GPIO(pn532, ledlast = (nfcgreen && !(ledlast & (1 << port_mask(nfcgreen))) ? (1 << port_mask(nfcgreen)) : 0));    // Blink green
+                  blink(nfcred);        // Not allowed
                   door_unlock(NULL, "fob");     // Door system was happy with fob, let 'em in
                } else if (door >= 4)
-                  pn532_write_GPIO(pn532, ledlast = (nfcred && !(ledlast & (1 << port_mask(nfcred))) ? (1 << port_mask(nfcred)) : 0));  // Blink red
+                  blink(nfcgreen);      // Allowed
+               else
+                  blink(nfcamber);      // Read OK but we don't know if allowed or not
                nextled = now + 200000LL;
                // Report
                if (door >= 4 || !noaccess)
