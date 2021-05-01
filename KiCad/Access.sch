@@ -936,14 +936,25 @@ $EndComp
 Wire Wire Line
 	8150 2000 8250 2000
 $Comp
-L Mechanical:MountingHole H1
+L Mechanical:MountingHole_Pad H1
 U 1 1 608D1452
-P 10500 6350
-F 0 "H1" H 10600 6396 50  0000 L CNN
-F 1 "MountingHole" H 10600 6305 50  0000 L CNN
-F 2 "MountingHole:MountingHole_3.2mm_M3_ISO7380_Pad" H 10500 6350 50  0001 C CNN
-F 3 "~" H 10500 6350 50  0001 C CNN
-	1    10500 6350
+P 10500 6150
+F 0 "H1" H 10600 6196 50  0000 L CNN
+F 1 "MountingHole" H 10600 6105 50  0000 L CNN
+F 2 "MountingHole:MountingHole_3.2mm_M3_ISO7380_Pad" H 10500 6150 50  0001 C CNN
+F 3 "~" H 10500 6150 50  0001 C CNN
+	1    10500 6150
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:GND #PWR?
+U 1 1 608DE2B1
+P 10500 6250
+F 0 "#PWR?" H 10500 6000 50  0001 C CNN
+F 1 "GND" H 10505 6077 50  0000 C CNN
+F 2 "" H 10500 6250 50  0001 C CNN
+F 3 "" H 10500 6250 50  0001 C CNN
+	1    10500 6250
 	1    0    0    -1  
 $EndComp
 $EndSCHEMATC
