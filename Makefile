@@ -30,10 +30,10 @@ stl: KiCad/Controller.stl KiCad/Access.stl
 	echo "Made $@"
 
 KiCad/Controller.scad: KiCad/Controller.kicad_pcb PCBCase/case Makefile
-	PCBCase/case -o $@ $<
+	PCBCase/case -o $@ $< --wall=4 --top=4.9
 
 KiCad/Access.scad: KiCad/Access.kicad_pcb PCBCase/case Makefile
-	PCBCase/case -o $@ $< --base=2
+	PCBCase/case -o $@ $< --base=2 --wall=4 --top=4.9
 	echo "translate([2.5,25,0])cube([50,10,0.5]);" >> $@
 
 AXL/axl.o: AXL/axl.c
