@@ -46,22 +46,22 @@ DESFireAES/desfireaes.o: DESFireAES/desfireaes.c
 	make -C DESFireAES
 
 cardissue: cardissue.c DESFireAES/desfireaes.o AXL/axl.o afile.o
-	cc -g -Wall -Wextra -O -o cardissue cardissue.c -I. -IDESFireAES/include DESFireAES/desfireaes.o -IAXL AXL/axl.o -lcrypto -lpopt -pthread -lcurl -lmosquitto afile.o
+	gcc -g -Wall -Wextra -O -o cardissue cardissue.c -I. -IDESFireAES/include DESFireAES/desfireaes.o -IAXL AXL/axl.o -lcrypto -lpopt -pthread -lcurl -lmosquitto afile.o
 
 alarmpanel: alarmpanel.c galaxybus.o galaxybus.h port.o port.h afile.o door.o door.h AXL/axl.o Dataformat/dataformat.o websocket/websocketxml.o DESFireAES/desfireaes.o trace.h
-	cc -g -Wall -Wextra -O -o alarmpanel alarmpanel.c galaxybus.o port.o afile.o door.o -I. -IAXL -IDataformat -Iwebsocket -IDESFireAES/include AXL/axl.o Dataformat/dataformat.o websocket/websocketxml.o DESFireAES/desfireaes.o -lcurl -pthread -lpopt -DLIBWS ${LIBEMAIL} ${LIBMQTT} -lcrypto -lssl
+	gcc -g -Wall -Wextra -O -o alarmpanel alarmpanel.c galaxybus.o port.o afile.o door.o -I. -IAXL -IDataformat -Iwebsocket -IDESFireAES/include AXL/axl.o Dataformat/dataformat.o websocket/websocketxml.o DESFireAES/desfireaes.o -lcurl -pthread -lpopt -DLIBWS ${LIBEMAIL} ${LIBMQTT} -lcrypto -lssl
 
 galaxybus.o: galaxybus.c galaxybus.h port.h
-	cc -g -Wall -Wextra -O -c -o galaxybus.o galaxybus.c -I. -IAXL -DLIB -pthread
+	gcc -g -Wall -Wextra -O -c -o galaxybus.o galaxybus.c -I. -IAXL -DLIB -pthread
 
 afile.o: afile.c afile.h
-	cc -g -Wall -Wextra -O -c -o afile.o afile.c -I. -IAXL -IDESFireAES/include -DLIB -pthread
+	gcc -g -Wall -Wextra -O -c -o afile.o afile.c -I. -IAXL -IDESFireAES/include -DLIB -pthread
 
 door.o: door.c door.h galaxybus.h
-	cc -g -Wall -Wextra -O -c -o door.o door.c -I. -IAXL -DLIB -pthread
+	gcc -g -Wall -Wextra -O -c -o door.o door.c -I. -IAXL -DLIB -pthread
 
 port.o: port.c port.h galaxybus.h
-	cc -g -Wall -Wextra -O -c -o port.o port.c -I. -IAXL -DLIB -pthread
+	gcc -g -Wall -Wextra -O -c -o port.o port.c -I. -IAXL -DLIB -pthread
 
 clean:
 	rm -f *.o alarmpanel
