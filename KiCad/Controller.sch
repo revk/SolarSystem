@@ -205,22 +205,10 @@ Wire Wire Line
 	9600 2150 10350 2150
 Wire Wire Line
 	10350 2150 10350 1400
-$Comp
-L RevK:D24V5F3-NoSHDN M1
-U 1 1 60455088
-P 9600 1600
-F 0 "M1" H 9968 1461 50  0000 L CNN
-F 1 "D24V5F3-NoSHDN" H 9500 1750 50  0000 L CNN
-F 2 "RevK:D24V5F3-SMD-Like" H 9600 1800 50  0001 C CNN
-F 3 "https://www.pololu.com/product/2842/resources" H 9600 1800 50  0001 C CNN
-	1    9600 1600
-	1    0    0    -1  
-$EndComp
 Wire Wire Line
 	1500 1500 1500 1600
 Wire Wire Line
 	2100 1100 3100 1100
-NoConn ~ 9600 1600
 Wire Wire Line
 	7100 2000 8250 2000
 $Comp
@@ -323,17 +311,6 @@ Wire Wire Line
 	9600 3700 10350 3700
 Wire Wire Line
 	10350 3700 10350 2950
-$Comp
-L RevK:D24V5F3-NoSHDN M2
-U 1 1 60736BEE
-P 9600 3150
-F 0 "M2" H 9968 3011 50  0000 L CNN
-F 1 "D24V5F5-NoSHDN" H 9650 2700 50  0000 L CNN
-F 2 "RevK:D24V5F3-SMD-Like" H 9600 3350 50  0001 C CNN
-F 3 "https://www.pololu.com/product/2842/resources" H 9600 3350 50  0001 C CNN
-	1    9600 3150
-	1    0    0    -1  
-$EndComp
 $Comp
 L power:+5V #PWR027
 U 1 1 607379D0
@@ -853,7 +830,7 @@ $EndComp
 Wire Wire Line
 	9600 3150 9450 3150
 Wire Wire Line
-	9450 3150 9450 4050
+	9450 3150 9450 3950
 $Comp
 L Device:R R15
 U 1 1 6077B7DD
@@ -1084,5 +1061,55 @@ F 2 "RevK:QR-SS" H 10925 6325 50  0001 C CNN
 F 3 "" H 10925 6325 50  0001 C CNN
 	1    10950 6350
 	1    0    0    -1  
+$EndComp
+$Comp
+L RevK:Regulator Reg1
+U 1 1 608F07CF
+P 9600 1600
+F 0 "Reg1" H 10178 1501 50  0000 L CNN
+F 1 "Regulator" H 10178 1410 50  0000 L CNN
+F 2 "RevK:RegulatorBlock" H 10050 1700 50  0001 C CNN
+F 3 "https://www.pololu.com/product/2842/resources" H 10050 1700 50  0001 C CNN
+	1    9600 1600
+	1    0    0    -1  
+$EndComp
+$Comp
+L RevK:Regulator Reg2
+U 1 1 608F19AF
+P 9600 3150
+F 0 "Reg2" H 10178 3051 50  0000 L CNN
+F 1 "Regulator" H 10178 2960 50  0000 L CNN
+F 2 "RevK:RegulatorBlock" H 10050 3250 50  0001 C CNN
+F 3 "https://www.pololu.com/product/2842/resources" H 10050 3250 50  0001 C CNN
+	1    9600 3150
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	9600 1600 9600 1700
+Connection ~ 9600 1700
+$Comp
+L Device:R R17
+U 1 1 608F586F
+P 9600 3950
+F 0 "R17" V 9393 3950 50  0000 C CNN
+F 1 "100K" V 9484 3950 50  0000 C CNN
+F 2 "Resistor_SMD:R_0603_1608Metric_Pad0.98x0.95mm_HandSolder" V 9530 3950 50  0001 C CNN
+F 3 "~" H 9600 3950 50  0001 C CNN
+	1    9600 3950
+	0    1    1    0   
+$EndComp
+Connection ~ 9450 3950
+Wire Wire Line
+	9450 3950 9450 4050
+$Comp
+L power:VBUS #PWR0108
+U 1 1 608F72DC
+P 9750 3950
+F 0 "#PWR0108" H 9750 3800 50  0001 C CNN
+F 1 "VBUS" V 9765 4078 50  0000 L CNN
+F 2 "" H 9750 3950 50  0001 C CNN
+F 3 "" H 9750 3950 50  0001 C CNN
+	1    9750 3950
+	0    1    1    0   
 $EndComp
 $EndSCHEMATC
