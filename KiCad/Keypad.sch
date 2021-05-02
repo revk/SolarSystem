@@ -217,7 +217,7 @@ $EndComp
 Wire Wire Line
 	9600 1700 9100 1700
 Wire Wire Line
-	9100 1700 9100 1400
+	9100 1700 9100 1600
 $Comp
 L power:GND #PWR011
 U 1 1 6047E83B
@@ -255,17 +255,6 @@ Wire Wire Line
 Connection ~ 7200 3750
 Wire Wire Line
 	7200 3750 7750 3750
-$Comp
-L RevK:D24V5F3-NoSHDN M1
-U 1 1 60455088
-P 9600 1600
-F 0 "M1" H 9968 1461 50  0000 L CNN
-F 1 "D24V5F3-NoSHDN" H 9500 1750 50  0000 L CNN
-F 2 "RevK:D24V5F3-SMD-Like" H 9600 1800 50  0001 C CNN
-F 3 "https://www.pololu.com/product/2842/resources" H 9600 1800 50  0001 C CNN
-	1    9600 1600
-	1    0    0    -1  
-$EndComp
 Wire Wire Line
 	2350 1950 2350 2050
 Wire Wire Line
@@ -305,7 +294,6 @@ Wire Wire Line
 Connection ~ 3850 4350
 Wire Wire Line
 	3850 4350 4000 4350
-NoConn ~ 9600 1600
 Wire Wire Line
 	7100 2000 8250 2000
 $Comp
@@ -539,4 +527,20 @@ F 3 "" H 7800 4650 50  0001 C CNN
 	1    7800 4650
 	0    -1   -1   0   
 $EndComp
+$Comp
+L RevK:Regulator Reg1
+U 1 1 608EC667
+P 9600 1600
+F 0 "Reg1" H 10178 1501 50  0000 L CNN
+F 1 "Regulator" H 10178 1410 50  0000 L CNN
+F 2 "RevK:RegulatorBlock" H 10050 1700 50  0001 C CNN
+F 3 "https://www.pololu.com/product/2842/resources" H 10050 1700 50  0001 C CNN
+	1    9600 1600
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	9600 1600 9100 1600
+Connection ~ 9100 1600
+Wire Wire Line
+	9100 1600 9100 1400
 $EndSCHEMATC
