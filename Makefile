@@ -21,7 +21,7 @@ update:
 PCBCase/case: PCBCase/case.c
 	make -C PCBCase
 
-case: KiCad/Controller.scad KiCad/Access.scad
+scad: KiCad/Controller.scad KiCad/Access.scad
 stl: KiCad/Controller.stl KiCad/Access.stl
 
 %.stl: %.scad
@@ -33,7 +33,8 @@ KiCad/Controller.scad: KiCad/Controller.kicad_pcb PCBCase/case Makefile
 	PCBCase/case -o $@ $<
 
 KiCad/Access.scad: KiCad/Access.kicad_pcb PCBCase/case Makefile
-	PCBCase/case -o $@ $< --base=2.5
+	PCBCase/case -o $@ $< --base=2
+	echo "translate([2.5,25,0])cube([50,10,0.5]);" >> $@
 
 AXL/axl.o: AXL/axl.c
 	make -C AXL
