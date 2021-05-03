@@ -148,20 +148,11 @@ CBUS0
 Wire Wire Line
 	2100 1100 2100 1200
 Wire Wire Line
-	1550 1600 1500 1600
-Wire Wire Line
-	1000 1600 1000 3900
-Connection ~ 1500 1600
-Wire Wire Line
-	1500 1600 1000 1600
-Wire Wire Line
 	4200 2650 5450 2650
 Wire Wire Line
 	4800 1650 5550 1650
 Wire Wire Line
 	9900 2100 9900 1800
-Wire Wire Line
-	1500 1500 1500 1600
 Wire Wire Line
 	2100 1100 3100 1100
 Wire Wire Line
@@ -177,11 +168,7 @@ F 3 "" H 10500 6800 50  0001 C CNN
 	1    10500 6900
 	1    0    0    -1  
 $EndComp
-NoConn ~ 850  3250
 Connection ~ 2100 1100
-Wire Wire Line
-	1000 3900 2100 3900
-Connection ~ 2100 3900
 $Comp
 L RF_Module:ESP32-WROOM-32 U1
 U 1 1 6043326C
@@ -995,4 +982,6 @@ Wire Wire Line
 Connection ~ 3800 5050
 Wire Wire Line
 	3550 5550 4300 5550
+NoConn ~ 1500 1500
+NoConn ~ 1500 1600
 $EndSCHEMATC
