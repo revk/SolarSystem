@@ -8,6 +8,7 @@ const char *nfc_tamper = NULL;
 #include "door.h"
 #include "pn532.h"
 #include "desfireaes.h"
+#include <driver/gpio.h>
 
 #define port_mask(p) ((p)&63)
 #define	BITFIELDS "-"
@@ -19,6 +20,7 @@ const char *nfc_tamper = NULL;
   io(nfcred) \
   io(nfcamber) \
   io(nfcgreen) \
+  io(nfccard) \
   io(nfctamper) \
   u1(itamper) \
   u16(nfcpoll,50) \
@@ -31,6 +33,7 @@ const char *nfc_tamper = NULL;
   b(aid,3) \
   io(nfctx) \
   io(nfcrx) \
+  io(nfcpower) \
   u8(nfcuart,1) \
 
 #define i8(n,d) int8_t n;
@@ -109,6 +112,8 @@ static void task(void *pvParameters)
             {
                if (!nfc_fault)
                   status(nfc_fault = "Failed");
+               if (nfcpower)
+                  gpio_set_level(port_mask(nfcpower), (now / 1000LL) & 1);      // cycle power (slowly)
                continue;        // No point doing other regular tasks if PN532 is AWOL
             } else
             {
@@ -116,7 +121,7 @@ static void task(void *pvParameters)
                status(nfc_fault = NULL);
                ledlast = 0xFF;
             }
-         } else if(nfctamper)
+         } else if (nfctamper)
          {                      // Check tamper
             p3 ^= nfcinvert;
             if (p3 & (1 << port_mask(nfctamper)))
@@ -156,6 +161,8 @@ static void task(void *pvParameters)
                   newled |= (1 << port_mask(nfcamber));
                if (nfcgreen && ledpattern[ledpos] == 'G')
                   newled |= (1 << port_mask(nfcgreen));
+               if (nfccard && found)
+                  newled |= (1 << port_mask(nfccard));
                if (ledpos + 1 >= sizeof(ledpattern) || ledpattern[ledpos + 1] != '+')
                   break;        // Combined LED pattern with +
                ledpos += 2;
@@ -363,14 +370,23 @@ void nfc_init(void)
       nfcmask |= (1 << port_mask(nfcamber));
    if (nfcgreen)
       nfcmask |= (1 << port_mask(nfcgreen));
+   if (nfccard)
+      nfcmask |= (1 << port_mask(nfccard));
    if (nfcred & PORT_INV)
       nfcinvert |= (1 << port_mask(nfcred));
    if (nfcamber & PORT_INV)
       nfcinvert |= (1 << port_mask(nfcamber));
    if (nfcgreen & PORT_INV)
       nfcinvert |= (1 << port_mask(nfcgreen));
+   if (nfccard & PORT_INV)
+      nfcinvert |= (1 << port_mask(nfccard));
    if (nfctamper & PORT_INV)
       nfcinvert |= (1 << port_mask(nfctamper));
+   if (nfcpower)
+   {
+      gpio_set_level(port_mask(nfcpower), 0);   // on
+      gpio_set_direction(port_mask(nfcpower), GPIO_MODE_OUTPUT);
+   }
    if (nfctx && nfcrx)
    {
       const char *e = port_check(port_mask(nfctx), TAG, 0);
