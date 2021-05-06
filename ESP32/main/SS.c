@@ -18,6 +18,7 @@ static const char *port_inuse[MAX_PORT];
 // Other settings
 #define settings  \
   io(blink) \
+  io(tamper) \
 
 #define io(n) uint8_t n;
 settings
@@ -27,6 +28,9 @@ settings
 #define PORT_INV 0x40
 static esp_reset_reason_t reason = -1;  // Restart reason
 
+const char *controller_fault = NULL;
+const char *controller_tamper = NULL;
+
 static void status_report(int force)
 {                               // Report status change
    {                            // Faults
@@ -35,9 +39,9 @@ static void status_report(int force)
       const char *module = NULL;
       int faults = 0;
 #define m(n) extern const char *n##_fault;if(n##_fault){fault=n##_fault;module=#n;faults++;}
-      modules
+      modules m(controller)
 #undef m
-          if (!fault && force && reason >= 0)
+      if (!fault && force && reason >= 0)
       {
          const char *r = NULL;
          if (reason == ESP_RST_POWERON)
@@ -73,9 +77,9 @@ static void status_report(int force)
       const char *module = NULL;
       int tampers = 0;
 #define m(n) extern const char *n##_tamper;if(n##_tamper){tamper=n##_tamper;module=#n;tampers++;}
-      modules
+      modules m(controller)
 #undef m
-          if (lasttamper != tamper || force)
+      if (lasttamper != tamper || force)
       {
          lasttamper = tamper;
          if (tampers > 1)
@@ -141,19 +145,37 @@ void app_main()
 #undef m
        if (!blink)
       return;                   // Not blinking
-   port_check(port_mask(blink), "Blink", 0);
-   gpio_set_direction(port_mask(blink), GPIO_MODE_OUTPUT);      // Blinky LED
-   uint16_t blinker = 0;
-   uint16_t mask = 1;
+   if (blink)
+   {
+      port_check(port_mask(blink), "Blink", 0);
+      gpio_set_direction(port_mask(blink), GPIO_MODE_OUTPUT);   // Blinky LED
+   }
+   if (tamper)
+   {
+      port_check(port_mask(tamper), "Tamper", 1);
+      gpio_set_pull_mode(port_mask(tamper), GPIO_PULLUP_ONLY);
+   }
+   int8_t on = 0,
+       off = 0,
+       lit = 0,
+       count = 0;
    while (1)
    {                            // Blinken lighten
       if (revk_offline())
-         blinker = 0x2AA;       // Flash
-      else
-         blinker = 0x1F;        // Slow
-      if (!(mask >>= 1))
-         mask = (1 << 9);
-      gpio_set_level(port_mask(blinker), ((mask & blinker) ? 1 : 0) ^ ((blinker & PORT_INV) ? 1 : 0));
+      {
+         on = 6;
+         off = 6;
+      } else
+      {
+         on = 3;
+         off = 3;
+      }
+      if (--count <= 0)
+      {
+         lit = 1 - lit;
+         count = (lit ? on : off);
+         gpio_set_level(port_mask(blink), lit ^ ((blink & PORT_INV) ? 1 : 0));
+      }
       usleep(100000);
    }
 }

@@ -46,7 +46,7 @@ uint8_t afile[256];             // Access file saved
   u1(doorsilent); \
   t(fallback); \
   t(blacklist); \
-  t(ragSTART); \
+  t(led); \
 
 #define u32(n,d) uint32_t n;
 #define u16(n,d) uint16_t n;
@@ -637,7 +637,7 @@ void door_init(void)
 #define u8(n,d) revk_register(#n,0,sizeof(n),&n,#d,0);
 #define u1(n) revk_register(#n,0,sizeof(n),&n,NULL,SETTING_BOOLEAN);
 #define t(n) revk_register(#n,0,0,&n,NULL,0);
-#define d(n,l) revk_register("rag"#n,0,0,&doorled[DOOR_##n],#l,0);
+#define d(n,l) revk_register("led"#n,0,0,&doorled[DOOR_##n],#l,0);
    settings door_states
 #undef t
 #undef u32
@@ -645,7 +645,7 @@ void door_init(void)
 #undef u8
 #undef u1
 #undef d
-   nfc_led(strlen(ragSTART), ragSTART);
+   nfc_led(strlen(led), led);
    if (!door)
        return;                  // No door control in operation
    revk_task(TAG, task, NULL);

@@ -22,6 +22,7 @@ const char *nfc_tamper = NULL;
   io(nfcgreen) \
   io(nfccard) \
   io(nfctamper) \
+  io(nfcbell) \
   u1(itamper) \
   u16(nfcpoll,50) \
   u16(nfchold,3000) \
@@ -121,13 +122,30 @@ static void task(void *pvParameters)
                status(nfc_fault = NULL);
                ledlast = 0xFF;
             }
-         } else if (nfctamper)
-         {                      // Check tamper
-            p3 ^= nfcinvert;
-            if (p3 & (1 << port_mask(nfctamper)))
-               status(nfc_tamper = "Tamper");
-            else
-               status(nfc_tamper = NULL);
+         } else
+         {
+            if (nfctamper)
+            {                   // Check tamper
+               p3 ^= nfcinvert;
+               if (p3 & (1 << port_mask(nfctamper)))
+                  status(nfc_tamper = "Tamper");
+               else
+                  status(nfc_tamper = NULL);
+            }
+            if (nfcbell)
+            {
+               p3 ^= nfcinvert;
+               static uint8_t bell = 0;
+               if (p3 & (1 << port_mask(nfcbell)))
+               {
+                  if (!bell)
+                  {
+                     bell = 1;
+                     status("Bell");
+                  }
+               } else
+                  bell = 0;
+            }
          }
       }
       // LED
@@ -382,6 +400,8 @@ void nfc_init(void)
       nfcinvert |= (1 << port_mask(nfccard));
    if (nfctamper & PORT_INV)
       nfcinvert |= (1 << port_mask(nfctamper));
+   if (nfcbell & PORT_INV)
+      nfcinvert |= (1 << port_mask(nfcbell));
    if (nfcpower)
    {
       gpio_set_level(port_mask(nfcpower), 0);   // on
