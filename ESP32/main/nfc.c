@@ -206,6 +206,7 @@ static void task(void *pvParameters)
             if (!held && nfchold && found < now)
             {                   // Card has been held for a while, report
                revk_event("held", "%s", id);
+               blink(nfcamber);
                held = 1;
             }
             continue;           // Waiting for card to go
