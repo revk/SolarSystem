@@ -123,7 +123,7 @@ static void task(void *pvParameters)
                ledlast = 0xFF;
             }
          } else
-         {
+         { // Inputs
             if (nfctamper)
             {                   // Check tamper
                p3 ^= nfcinvert;
