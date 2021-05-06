@@ -28,7 +28,7 @@ const char *nfc_tamper = NULL;
   u16(nfchold,3000) \
   u16(nfcholdpoll,500) \
   u16(nfcledpoll,100) \
-  u16(nfctamperpoll,1000) \
+  u16(nfciopoll,100) \
   b(nfcbus,1) \
   ba(aes,17,3) \
   b(aid,3) \
@@ -94,7 +94,7 @@ static void task(void *pvParameters)
       // Check tamper
       if (nexttamper < now)
       {                         // Check tamper
-         nexttamper = now + (uint64_t) nfctamperpoll *1000LL;
+         nexttamper = now + (uint64_t) nfciopoll *1000LL;
          int p3 = pn532_read_GPIO(pn532);
          if (p3 < 0)
          {                      // Failed
