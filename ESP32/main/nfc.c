@@ -14,6 +14,20 @@ const char *nfc_tamper = NULL;
 #define	BITFIELDS "-"
 #define PORT_INV 0x40
 
+inline int8_t gpio_mask(uint8_t p)
+{
+   if (!p)
+      return -1;                // Invalid (bit set if port is set)
+   p &= 63;                     // Port number part
+   if (p >= 30 && p <= 35)
+      return p - 30;
+   if (p >= 71 && p <= 72)
+      return p + 6 - 71;
+   if (p < 8)
+      return p;                 // Direct bit number in combined 8 bit GPIO
+   return -1;                   // Invalid
+}
+
 // Other settings
 #define settings  \
   u1(nfccommit) \
@@ -123,11 +137,11 @@ static void task(void *pvParameters)
                ledlast = 0xFF;
             }
          } else
-         { // Inputs
+         {                      // Inputs
             if (nfctamper)
             {                   // Check tamper
                p3 ^= nfcinvert;
-               if (p3 & (1 << port_mask(nfctamper)))
+               if (p3 & (1 << gpio_mask(nfctamper)))
                   status(nfc_tamper = "Tamper");
                else
                   status(nfc_tamper = NULL);
@@ -136,12 +150,12 @@ static void task(void *pvParameters)
             {
                p3 ^= nfcinvert;
                static uint8_t bell = 0;
-               if (p3 & (1 << port_mask(nfcbell)))
+               if (p3 & (1 << gpio_mask(nfcbell)))
                {
                   if (!bell)
                   {
                      bell = 1;
-                     revk_info("bell","pushed");
+                     revk_info("bell", "pushed");
                   }
                } else
                   bell = 0;
@@ -152,9 +166,9 @@ static void task(void *pvParameters)
       void blink(uint8_t p) {   // Blink an LED
          if (!p)
             return;             //Port not set
-         if (ledlast & (1 << port_mask(p)))
+         if (ledlast & (1 << gpio_mask(p)))
             return;             //Already set
-         pn532_write_GPIO(pn532, (ledlast ^= (1 << port_mask(p))) ^ nfcinvert); //Blink on
+         pn532_write_GPIO(pn532, (ledlast ^= (1 << gpio_mask(p))) ^ nfcinvert); //Blink on
          nextled = now + (uint64_t) nfcledpoll *1000LL;
       }
       if (nextled < now)
@@ -174,13 +188,13 @@ static void task(void *pvParameters)
             while (ledpos < sizeof(ledpattern) && ledpattern[ledpos])
             {                   // Check combined colours
                if (nfcred && ledpattern[ledpos] == 'R')
-                  newled |= (1 << port_mask(nfcred));
+                  newled |= (1 << gpio_mask(nfcred));
                if (nfcamber && ledpattern[ledpos] == 'A')
-                  newled |= (1 << port_mask(nfcamber));
+                  newled |= (1 << gpio_mask(nfcamber));
                if (nfcgreen && ledpattern[ledpos] == 'G')
-                  newled |= (1 << port_mask(nfcgreen));
+                  newled |= (1 << gpio_mask(nfcgreen));
                if (nfccard && found)
-                  newled |= (1 << port_mask(nfccard));
+                  newled |= (1 << gpio_mask(nfccard));
                if (ledpos + 1 >= sizeof(ledpattern) || ledpattern[ledpos + 1] != '+')
                   break;        // Combined LED pattern with +
                ledpos += 2;
@@ -384,25 +398,25 @@ void nfc_init(void)
        // Set up ports */
        nfcmask = 0;             /* output mask for NFC */
    if (nfcred)
-      nfcmask |= (1 << port_mask(nfcred));
+      nfcmask |= (1 << gpio_mask(nfcred));
    if (nfcamber)
-      nfcmask |= (1 << port_mask(nfcamber));
+      nfcmask |= (1 << gpio_mask(nfcamber));
    if (nfcgreen)
-      nfcmask |= (1 << port_mask(nfcgreen));
+      nfcmask |= (1 << gpio_mask(nfcgreen));
    if (nfccard)
-      nfcmask |= (1 << port_mask(nfccard));
+      nfcmask |= (1 << gpio_mask(nfccard));
    if (nfcred & PORT_INV)
-      nfcinvert |= (1 << port_mask(nfcred));
+      nfcinvert |= (1 << gpio_mask(nfcred));
    if (nfcamber & PORT_INV)
-      nfcinvert |= (1 << port_mask(nfcamber));
+      nfcinvert |= (1 << gpio_mask(nfcamber));
    if (nfcgreen & PORT_INV)
-      nfcinvert |= (1 << port_mask(nfcgreen));
+      nfcinvert |= (1 << gpio_mask(nfcgreen));
    if (nfccard & PORT_INV)
-      nfcinvert |= (1 << port_mask(nfccard));
+      nfcinvert |= (1 << gpio_mask(nfccard));
    if (nfctamper & PORT_INV)
-      nfcinvert |= (1 << port_mask(nfctamper));
+      nfcinvert |= (1 << gpio_mask(nfctamper));
    if (nfcbell & PORT_INV)
-      nfcinvert |= (1 << port_mask(nfcbell));
+      nfcinvert |= (1 << gpio_mask(nfcbell));
    if (nfcpower)
    {
       gpio_set_level(port_mask(nfcpower), 0);   // on
