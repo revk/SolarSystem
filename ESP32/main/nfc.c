@@ -141,7 +141,7 @@ static void task(void *pvParameters)
                   if (!bell)
                   {
                      bell = 1;
-                     status("Bell");
+                     revk_info("bell","pushed");
                   }
                } else
                   bell = 0;
