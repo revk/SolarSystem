@@ -37,6 +37,7 @@ inline int8_t gpio_mask(uint8_t p)
   io(nfccard) \
   io(nfctamper) \
   io(nfcbell) \
+  t(mqttbell) \
   u1(itamper) \
   u16(nfcpoll,50) \
   u16(nfchold,3000) \
@@ -58,7 +59,9 @@ inline int8_t gpio_mask(uint8_t p)
 #define b(n,l) uint8_t n[l];
 #define ba(n,l,a) uint8_t n[a][l];
 #define u1(n) uint8_t n;
+#define t(n) const char*n=NULL;
 settings
+#undef t
 #undef i8
 #undef io
 #undef u8
@@ -155,6 +158,15 @@ static void task(void *pvParameters)
                   if (!bell)
                   {
                      bell = 1;
+                     if (mqttbell)
+                     {
+                        char *topic = strdup(mqttbell);
+                        char *data = strchr(topic, ' ');
+                        if (data)
+                           *data++ = 0;
+                        revk_raw(NULL, topic, data ? strlen(data) : 0, data, 0);
+                        free(topic);
+                     }
                      revk_info("bell", "pushed");
                   }
                } else
@@ -387,7 +399,9 @@ void nfc_init(void)
 #define b(n,l) revk_register(#n,0,sizeof(n),n,NULL,SETTING_BINARY|SETTING_HEX);
 #define ba(n,l,a) revk_register(#n,a,sizeof(n[0]),n,NULL,SETTING_BINARY|SETTING_HEX);
 #define u1(n) revk_register(#n,0,sizeof(n),&n,NULL,SETTING_BOOLEAN);
+#define t(n) revk_register(#n,0,0,&n,NULL,0);
    settings
+#undef t
 #undef io
 #undef i8
 #undef u8
