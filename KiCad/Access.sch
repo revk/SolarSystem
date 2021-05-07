@@ -1032,4 +1032,24 @@ F 3 "~" H 4450 3900 50  0001 C CNN
 	1    4450 3700
 	1    0    0    -1  
 $EndComp
+$Comp
+L Connector_Generic:Conn_01x02 J6
+U 1 1 6094F3AD
+P 4400 4000
+F 0 "J6" V 4272 3812 50  0000 R CNN
+F 1 "ExtTamper" V 4363 3812 50  0000 R CNN
+F 2 "TestPoint:TestPoint_2Pads_Pitch5.08mm_Drill1.3mm" H 4400 4000 50  0001 C CNN
+F 3 "~" H 4400 4000 50  0001 C CNN
+	1    4400 4000
+	0    -1   1    0   
+$EndComp
+Wire Wire Line
+	4250 3700 4250 3800
+Connection ~ 4250 3700
+Wire Wire Line
+	4250 3800 4400 3800
+Wire Wire Line
+	4650 3700 4650 3800
+Wire Wire Line
+	4500 3800 4650 3800
 $EndSCHEMATC
