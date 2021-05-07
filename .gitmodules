@@ -25,9 +25,6 @@
 [submodule "ESP32/components/ESP32-GalaxyBus"]
 	path = ESP32/components/ESP32-GalaxyBus
 	url = https://github.com/revk/ESP32-GalaxyBus
-[submodule "3D/PCBCase"]
-	path = 3D/PCBCase
-	url = https://github.com/revk/PCBCase
 [submodule "ESP32/ftdizap"]
 	path = ESP32/ftdizap
 	url = https://github.com/revk/ftdizap
