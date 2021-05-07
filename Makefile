@@ -23,7 +23,7 @@ PCBCase/case: PCBCase/case.c
 
 scad:
 
-stl: KiCad/ACcess.stl
+stl: KiCad/Access.stl
 
 %.stl: %.scad
 	echo "Making $@"
