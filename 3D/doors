@@ -1,4 +1,0 @@
-#!/bin/csh -f
-foreach m (AJAR UNUSED NEW OFFLINE DEADLOCKED LOCKING LOCKED UNLOCKING UNLOCKED OPEN CLOSED LOCKING PROPPED NOTCLOSED FAULT TAMPER FORCED)
-	/Applications/OpenSCAD.app/Contents/MacOS/OpenSCAD -o ../door$m.png -D 'mode="'$m'"' --imgsize=1000,1830 --render --camera=544,98,1000,68,0,354,5700 --colorscheme=Nature Door.scad
-end
