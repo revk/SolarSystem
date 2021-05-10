@@ -188,9 +188,9 @@ Text GLabel 2700 2700 2    50   Input ~ 0
 IN2
 Text GLabel 2700 2800 2    50   Input ~ 0
 IN3
-Text GLabel 2700 2400 2    50   Input ~ 0
+Text GLabel 3000 2400 2    50   Input ~ 0
 RFTX
-Text GLabel 2700 2300 2    50   Input ~ 0
+Text GLabel 3000 2300 2    50   Input ~ 0
 RFRX
 NoConn ~ 2700 3500
 NoConn ~ 2700 3600
@@ -1052,4 +1052,26 @@ Wire Wire Line
 	4650 3700 4650 3800
 Wire Wire Line
 	4500 3800 4650 3800
+$Comp
+L Device:R R13
+U 1 1 6098E6BE
+P 2850 2400
+F 0 "R13" V 2950 2650 50  0000 C CNN
+F 1 "100R" V 2950 2850 50  0000 C CNN
+F 2 "Resistor_SMD:R_0603_1608Metric_Pad0.98x0.95mm_HandSolder" V 2780 2400 50  0001 C CNN
+F 3 "~" H 2850 2400 50  0001 C CNN
+	1    2850 2400
+	0    1    1    0   
+$EndComp
+$Comp
+L Device:R R12
+U 1 1 6098F76B
+P 2850 2300
+F 0 "R12" V 2750 2550 50  0000 C CNN
+F 1 "100R" V 2750 2750 50  0000 C CNN
+F 2 "Resistor_SMD:R_0603_1608Metric_Pad0.98x0.95mm_HandSolder" V 2780 2300 50  0001 C CNN
+F 3 "~" H 2850 2300 50  0001 C CNN
+	1    2850 2300
+	0    1    1    0   
+$EndComp
 $EndSCHEMATC
