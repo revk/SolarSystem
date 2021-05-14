@@ -10,19 +10,19 @@ const char *nfc_tamper = NULL;
 #include "desfireaes.h"
 #include <driver/gpio.h>
 
-#define port_mask(p) ((p)&63)
+#define port_mask(p) ((p)&0x3F)
 #define	BITFIELDS "-"
 #define PORT_INV 0x40
 
-inline int8_t gpio_mask(uint8_t p)
+inline int16_t gpio_mask(uint8_t p)
 {
    if (!p)
       return -1;                // Invalid (bit set if port is set)
-   p &= 63;                     // Port number part
+   p = port_mask(p);                     // Port number part
    if (p >= 30 && p <= 35)
       return p - 30;
    if (p >= 71 && p <= 72)
-      return p + 6 - 71;
+      return p + 6 - 71; // Yes, does not work for one byte port with two bits
    if (p < 8)
       return p;                 // Direct bit number in combined 8 bit GPIO
    return -1;                   // Invalid
