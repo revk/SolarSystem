@@ -18,11 +18,11 @@ inline int16_t gpio_mask(uint8_t p)
 {
    if (!p)
       return -1;                // Invalid (bit set if port is set)
-   p = port_mask(p);                     // Port number part
+   p = port_mask(p);            // Port number part
    if (p >= 30 && p <= 35)
       return p - 30;
    if (p >= 71 && p <= 72)
-      return p + 6 - 71; // Yes, does not work for one byte port with two bits
+      return p + 6 - 71;        // Yes, does not work for one byte port with two bits
    if (p < 8)
       return p;                 // Direct bit number in combined 8 bit GPIO
    return -1;                   // Invalid
@@ -141,9 +141,9 @@ static void task(void *pvParameters)
             }
          } else
          {                      // Inputs
+            p3 ^= nfcinvert;
             if (nfctamper)
             {                   // Check tamper
-               p3 ^= nfcinvert;
                if (p3 & (1 << gpio_mask(nfctamper)))
                   status(nfc_tamper = "Tamper");
                else
@@ -151,7 +151,6 @@ static void task(void *pvParameters)
             }
             if (nfcbell)
             {
-               p3 ^= nfcinvert;
                static uint8_t bell = 0;
                if (p3 & (1 << gpio_mask(nfcbell)))
                {
