@@ -143,16 +143,19 @@ void app_main()
 #define m(x) extern void x##_init(void); x##_init();
    modules
 #undef m
-       if (!blink)
-      return;                   // Not blinking
+       // Main loop, if needed
+       if (!blink && !tamper)
+      return;                   // Not blinking or tamper checking
    if (blink)
    {
       port_check(port_mask(blink), "Blink", 0);
+      gpio_reset_pin(port_mask(blink));
       gpio_set_direction(port_mask(blink), GPIO_MODE_OUTPUT);   // Blinky LED
    }
    if (tamper)
    {
       port_check(port_mask(tamper), "Tamper", 1);
+      gpio_reset_pin(port_mask(tamper));
       gpio_set_pull_mode(port_mask(tamper), GPIO_PULLUP_ONLY);
    }
    int8_t on = 0,
@@ -161,20 +164,27 @@ void app_main()
        count = 0;
    while (1)
    {                            // Blinken lighten
-      if (revk_offline())
+      if (blink)
       {
-         on = 6;
-         off = 6;
-      } else
-      {
-         on = 3;
-         off = 3;
+         if (revk_offline())
+         {
+            on = 6;
+            off = 6;
+         } else
+         {
+            on = 3;
+            off = 3;
+         }
+         if (--count <= 0)
+         {
+            lit = 1 - lit;
+            count = (lit ? on : off);
+            gpio_set_level(port_mask(blink), lit ^ ((blink & PORT_INV) ? 1 : 0));
+         }
       }
-      if (--count <= 0)
+      if (tamper)
       {
-         lit = 1 - lit;
-         count = (lit ? on : off);
-         gpio_set_level(port_mask(blink), lit ^ ((blink & PORT_INV) ? 1 : 0));
+         // TODO
       }
       usleep(100000);
    }

@@ -112,18 +112,19 @@ static void task(void *pvParameters)
       if (nexttamper < now)
       {                         // Check tamper
          nexttamper = now + (uint64_t) nfciopoll *1000LL;
-         int p3 = pn532_read_GPIO(pn532);
+         int p3 = -1;
+         if (!nfc_fault)
+            p3 = pn532_read_GPIO(pn532);
          if (p3 < 0)
          {                      // Failed
             // Try init again
             pn532_end(pn532);
             ESP_LOGE(TAG, "NFC re-init");
-            usleep(100000);
             pn532 = pn532_init(nfcuart, port_mask(nfctx), port_mask(nfcrx), nfcmask);
-            if (!pn532)
+            if (!pn532 && !nfcpower)
             {                   // Retry before declaring a fault
                ESP_LOGE(TAG, "NFC re-init2");
-               usleep(1);
+               usleep(100000);
                pn532 = pn532_init(nfcuart, port_mask(nfctx), port_mask(nfcrx), nfcmask);
             }
             if (!pn532)
@@ -136,8 +137,8 @@ static void task(void *pvParameters)
             } else
             {
                df_init(&df, pn532, pn532_dx);
-               status(nfc_fault = NULL);
                ledlast = 0xFF;
+               status(nfc_fault = NULL);
             }
          } else
          {                      // Inputs
@@ -434,6 +435,7 @@ void nfc_init(void)
    {
       gpio_set_level(port_mask(nfcpower), 0);   // on
       gpio_set_direction(port_mask(nfcpower), GPIO_MODE_OUTPUT);
+      usleep(100000);
    }
    if (nfctx && nfcrx)
    {
