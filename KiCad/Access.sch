@@ -350,7 +350,7 @@ F 3 "" H 10500 4300 50  0001 C CNN
 $EndComp
 Text GLabel 9900 4300 0    50   Input ~ 0
 LED
-Text GLabel 2700 1900 2    50   Input ~ 0
+Text GLabel 2700 2100 2    50   Input ~ 0
 LED
 Text GLabel 8850 3300 0    50   Input ~ 0
 SHDN
@@ -572,7 +572,7 @@ F 3 "" H 7050 6000 50  0001 C CNN
 	1    7050 6000
 	0    1    1    0   
 $EndComp
-NoConn ~ 2700 2100
+NoConn ~ 2700 1900
 NoConn ~ 2700 1500
 NoConn ~ 2700 2900
 NoConn ~ 2700 3000
