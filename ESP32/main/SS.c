@@ -17,7 +17,6 @@ static const char *port_inuse[MAX_PORT];
 
 // Other settings
 #define settings  \
-  io(blink) \
   io(tamper) \
 
 #define io(n) uint8_t n;
@@ -33,8 +32,9 @@ const char *controller_tamper = NULL;
 
 static void status_report(int force)
 {                               // Report status change
+   static const char *lastfault = NULL;
+   static const char *lasttamper = NULL;
    {                            // Faults
-      static const char *lastfault = NULL;
       const char *fault = NULL;
       const char *module = NULL;
       int faults = 0;
@@ -72,7 +72,6 @@ static void status_report(int force)
       }
    }
    {                            // Tampers
-      static const char *lasttamper = NULL;
       const char *tamper = NULL;
       const char *module = NULL;
       int tampers = 0;
@@ -90,6 +89,12 @@ static void status_report(int force)
             revk_state("tamper", "0");
       }
    }
+   if (lasttamper)
+      revk_blink(1, 1);
+   else if (lastfault)
+      revk_blink(1, 3);
+   else
+      revk_blink(0, 0);
 }
 
 // External
@@ -144,47 +149,27 @@ void app_main()
    modules
 #undef m
        // Main loop, if needed
-       if (!blink && !tamper)
+       if (!tamper)
       return;                   // Not blinking or tamper checking
-   if (blink)
-   {
-      port_check(port_mask(blink), "Blink", 0);
-      gpio_reset_pin(port_mask(blink));
-      gpio_set_direction(port_mask(blink), GPIO_MODE_OUTPUT);   // Blinky LED
-   }
    if (tamper)
    {
       port_check(port_mask(tamper), "Tamper", 1);
       gpio_reset_pin(port_mask(tamper));
       gpio_set_pull_mode(port_mask(tamper), GPIO_PULLUP_ONLY);
    }
-   int8_t on = 0,
-       off = 0,
-       lit = 0,
-       count = 0;
    while (1)
-   {                            // Blinken lighten
-      if (blink)
-      {
-         if (revk_offline())
-         {
-            on = 6;
-            off = 6;
-         } else
-         {
-            on = 3;
-            off = 3;
-         }
-         if (--count <= 0)
-         {
-            lit = 1 - lit;
-            count = (lit ? on : off);
-            gpio_set_level(port_mask(blink), lit ^ ((blink & PORT_INV) ? 1 : 0));
-         }
-      }
+   {                            // Tamper
       if (tamper)
       {
-         // TODO
+         if (gpio_get_level(port_mask(tamper)) ^ ((tamper & PORT_INV) ? 1 : 0))
+         {
+            if (!controller_tamper)
+               status(controller_tamper = "Tamper");
+         } else
+         {
+            if (controller_tamper)
+               status(controller_tamper = NULL);
+         }
       }
       usleep(100000);
    }
