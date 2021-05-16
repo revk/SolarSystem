@@ -112,7 +112,7 @@ static void task(void *pvParameters)
       // Check tamper
       if (nexttamper < now)
       {                         // Check tamper
-         nexttamper = now + (uint64_t) nfciopoll *1000LL;
+         nexttamper += (uint64_t) nfciopoll *1000LL;
          int p3 = -1;
          if (pn532)
          {                      // Connected, get port
@@ -120,7 +120,10 @@ static void task(void *pvParameters)
             if (p3 < 0)
                p3 = pn532_read_GPIO(pn532);     // Try again
             if (p3 < 0)
+            {
                pn532 = pn532_end(pn532);
+               status(nfc_fault = "Failed");
+            }
          }
          if (!pn532)
          {                      // In failed state
@@ -128,7 +131,9 @@ static void task(void *pvParameters)
                 on = 1;
             if (wait)
                wait--;
-            else if (on)
+            if (wait)
+               continue;
+            if (on)
             {                   // Try talking to it
                ESP_LOGE(TAG, "NFC re-init");
                pn532 = pn532_init(nfcuart, port_mask(nfctx), port_mask(nfcrx), nfcmask);
@@ -141,15 +146,15 @@ static void task(void *pvParameters)
                {                // Failed
                   on = 0;
                   if (nfcpower)
-                     gpio_set_level(port_mask(nfcpower), (nfcpower & PORT_INV) ? 0 : 1);        // Off
-                  wait = 5;
+                     gpio_set_level(port_mask(nfcpower), (nfcpower & PORT_INV) ? 1 : 0);        // Off
+                  wait = 1000 / nfciopoll;      // 1s off
                }
             } else
             {                   // Off, so turn on
                on = 1;
                if (nfcpower)
-                  gpio_set_level(port_mask(nfcpower), (nfcpower & PORT_INV) ? 1 : 0);   // On
-               wait = 5;
+                  gpio_set_level(port_mask(nfcpower), (nfcpower & PORT_INV) ? 0 : 1);   // On
+               wait = 100 / nfciopoll;  // 100ms on
             }
          }
          if (!pn532)
