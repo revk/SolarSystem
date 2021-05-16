@@ -13,18 +13,17 @@ const char *nfc_tamper = NULL;
 #define port_mask(p) ((p)&0x3F)
 #define	BITFIELDS "-"
 #define PORT_INV 0x40
+#define GPIO_INV 0x80 // No SETTING bit
 
 inline int16_t gpio_mask(uint8_t p)
 {
    if (!p)
       return -1;                // Invalid (bit set if port is set)
-   p = port_mask(p);            // Port number part
+   p &= 0x7F; // Does not have SETTING, so just invert at top bit
    if (p >= 30 && p <= 35)
       return p - 30;
    if (p >= 71 && p <= 72)
       return p + 6 - 71;        // Yes, does not work for one byte port with two bits
-   if (p < 8)
-      return p;                 // Direct bit number in combined 8 bit GPIO
    return -1;                   // Invalid
 }
 
@@ -54,6 +53,7 @@ inline int16_t gpio_mask(uint8_t p)
 
 #define i8(n,d) int8_t n;
 #define io(n) uint8_t n;
+#define gpio(n) uint8_t n;
 #define u8(n,d) uint8_t n;
 #define u16(n,d) uint16_t n;
 #define b(n,l) uint8_t n[l];
@@ -64,6 +64,7 @@ settings
 #undef t
 #undef i8
 #undef io
+#undef gpio
 #undef u8
 #undef u16
 #undef b
@@ -394,6 +395,7 @@ void nfc_init(void)
 {
 #define i8(n,d) revk_register(#n,0,sizeof(n),&n,#d,SETTING_SIGNED);
 #define io(n) revk_register(#n,0,sizeof(n),&n,BITFIELDS,SETTING_SET|SETTING_BITFIELD);
+#define gpio(n) revk_register(#n,0,sizeof(n),&n,BITFIELDS,SETTING_BITFIELD);
 #define u8(n,d) revk_register(#n,0,sizeof(n),&n,#d,0);
 #define u16(n,d) revk_register(#n,0,sizeof(n),&n,#d,0);
 #define b(n,l) revk_register(#n,0,sizeof(n),n,NULL,SETTING_BINARY|SETTING_HEX);
@@ -403,6 +405,7 @@ void nfc_init(void)
    settings
 #undef t
 #undef io
+#undef gpio
 #undef i8
 #undef u8
 #undef u16
@@ -419,21 +422,21 @@ void nfc_init(void)
       nfcmask |= (1 << gpio_mask(nfcgreen));
    if (nfccard)
       nfcmask |= (1 << gpio_mask(nfccard));
-   if (nfcred & PORT_INV)
+   if (nfcred & GPIO_INV)
       nfcinvert |= (1 << gpio_mask(nfcred));
-   if (nfcamber & PORT_INV)
+   if (nfcamber & GPIO_INV)
       nfcinvert |= (1 << gpio_mask(nfcamber));
-   if (nfcgreen & PORT_INV)
+   if (nfcgreen & GPIO_INV)
       nfcinvert |= (1 << gpio_mask(nfcgreen));
-   if (nfccard & PORT_INV)
+   if (nfccard & GPIO_INV)
       nfcinvert |= (1 << gpio_mask(nfccard));
-   if (nfctamper & PORT_INV)
+   if (nfctamper & GPIO_INV)
       nfcinvert |= (1 << gpio_mask(nfctamper));
-   if (nfcbell & PORT_INV)
+   if (nfcbell & GPIO_INV)
       nfcinvert |= (1 << gpio_mask(nfcbell));
    if (nfcpower)
    {
-      gpio_set_level(port_mask(nfcpower), 0);   // on
+      gpio_set_level(port_mask(nfcpower), (nfcpower&PORT_INV)?0:1);
       gpio_set_direction(port_mask(nfcpower), GPIO_MODE_OUTPUT);
       usleep(100000);
    }
