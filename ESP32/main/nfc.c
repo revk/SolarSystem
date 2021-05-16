@@ -42,7 +42,7 @@ inline int16_t gpio_mask(uint8_t p)
   u16(nfchold,3000) \
   u16(nfcholdpoll,500) \
   u16(nfcledpoll,100) \
-  u16(nfciopoll,100) \
+  u16(nfciopoll,200) \
   b(nfcbus,1) \
   ba(aes,17,3) \
   b(aid,3) \
@@ -147,14 +147,14 @@ static void task(void *pvParameters)
                   on = 0;
                   if (nfcpower)
                      gpio_set_level(port_mask(nfcpower), (nfcpower & PORT_INV) ? 1 : 0);        // Off
-                  wait = 1000 / nfciopoll;      // 1s off
+                  wait = 2000 / nfciopoll;      // off wait
                }
             } else
             {                   // Off, so turn on
                on = 1;
                if (nfcpower)
                   gpio_set_level(port_mask(nfcpower), (nfcpower & PORT_INV) ? 0 : 1);   // On
-               wait = 100 / nfciopoll;  // 100ms on
+               wait = 200 / nfciopoll;  // on wait
             }
          }
          if (!pn532)
