@@ -645,8 +645,8 @@ void door_init(void)
 #undef u8
 #undef u1
 #undef d
-   nfc_led(strlen(led), led);
+    nfc_led(strlen(led), led);
    if (!door)
-       return;                  // No door control in operation
+      return;                   // No door control in operation
    revk_task(TAG, task, NULL);
 }
