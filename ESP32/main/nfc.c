@@ -331,7 +331,8 @@ static void task(void *pvParameters)
             }
             if (e && strstr(e, "TIMEOUT"))
             {
-               ESP_LOGI(TAG, "Retry %s", e);
+               blink(nfcamber);      // Read ID OK
+               ESP_LOGI(TAG, "Retry %s %s", id,e);
                nextpoll = 0;    // Try again immediately
             } else
             {                   // Processing door
@@ -348,7 +349,7 @@ static void task(void *pvParameters)
                } else if (door >= 4)
                   blink(nfcgreen);      // Allowed
                else
-                  blink(nfcamber);      // Read OK but we don't know if allowed or not
+                  blink(nfcamber);      // Read OK but we don't know if allowed or not as needs back end to advise
                nextled = now + 200000LL;
                // Report
                if (door >= 4 || !noaccess)
