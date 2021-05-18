@@ -371,19 +371,27 @@ static void task(void *pvParameters)
 
 const char *nfc_command(const char *tag, unsigned int len, const unsigned char *value)
 {
-   if (!pn532)
+   ESP_LOGI(TAG, "%s", tag);
+   if (!nfctx || !nfcrx)
       return NULL;
    if (!strcmp(tag, "connect"))
    {
-      char vers[sizeof(aes) / sizeof(*aes) * 2 + 1];
-      int i;
-      for (i = 0; i < sizeof(aes) / sizeof(*aes); i++)
-         sprintf(vers + i * 2, "%02X", aes[i][0]);
-      while (i && !aes[i - 1][0])
-         i--;
-      vers[i * 2] = 0;
-      revk_state("aes", "%02X%02X%02X %s", aid[0], aid[1], aid[2], vers);
+      if (aid[0] || aid[1] || aid[2])
+      {
+         ESP_LOGI(TAG, "aid %02X%02X%02X", aid[0], aid[1], aid[2]);
+         char vers[sizeof(aes) / sizeof(*aes) * 2 + 1];
+         int i;
+         for (i = 0; i < sizeof(aes) / sizeof(*aes); i++)
+            sprintf(vers + i * 2, "%02X", aes[i][0]);
+         while (i && !aes[i - 1][0])
+            i--;
+         vers[i * 2] = 0;
+         ESP_LOGI(TAG, "vers %s", vers);
+         revk_state("aes", "%02X%02X%02X %s", aid[0], aid[1], aid[2], vers);
+      }
    }
+   if (!pn532)
+      return NULL;              // Not running
    if (nfcmask && !strcmp(tag, "led"))
       return nfc_led(len, value);
    if (!strcmp(tag, TAG))
