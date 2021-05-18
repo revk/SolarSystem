@@ -13,13 +13,13 @@ const char *nfc_tamper = NULL;
 #define port_mask(p) ((p)&0x3F)
 #define	BITFIELDS "-"
 #define PORT_INV 0x40
-#define GPIO_INV 0x80 // No SETTING bit
+#define GPIO_INV 0x80           // No SETTING bit
 
 inline int16_t gpio_mask(uint8_t p)
 {
    if (!p)
       return -1;                // Invalid (bit set if port is set)
-   p &= 0x7F; // Does not have SETTING, so just invert at top bit
+   p &= 0x7F;                   // Does not have SETTING, so just invert at top bit
    if (p >= 30 && p <= 35)
       return p - 30;
    if (p >= 71 && p <= 72)
@@ -30,19 +30,19 @@ inline int16_t gpio_mask(uint8_t p)
 // Other settings
 #define settings  \
   u1(nfccommit) \
-  io(nfcred) \
-  io(nfcamber) \
-  io(nfcgreen) \
-  io(nfccard) \
-  io(nfctamper) \
-  io(nfcbell) \
+  gpio(nfcred) \
+  gpio(nfcamber) \
+  gpio(nfcgreen) \
+  gpio(nfccard) \
+  gpio(nfctamper) \
+  gpio(nfcbell) \
   t(mqttbell) \
   u1(itamper) \
   u16(nfcpoll,50) \
   u16(nfchold,3000) \
   u16(nfcholdpoll,500) \
   u16(nfcledpoll,100) \
-  u16(nfciopoll,100) \
+  u16(nfciopoll,200) \
   b(nfcbus,1) \
   ba(aes,17,3) \
   b(aid,3) \
@@ -112,36 +112,54 @@ static void task(void *pvParameters)
       // Check tamper
       if (nexttamper < now)
       {                         // Check tamper
-         nexttamper = now + (uint64_t) nfciopoll *1000LL;
+         nexttamper += (uint64_t) nfciopoll *1000LL;
          int p3 = -1;
-         if (!nfc_fault)
+         if (pn532)
+         {                      // Connected, get port
             p3 = pn532_read_GPIO(pn532);
-         if (p3 < 0)
-         {                      // Failed
-            // Try init again
-            pn532_end(pn532);
-            ESP_LOGE(TAG, "NFC re-init");
-            pn532 = pn532_init(nfcuart, port_mask(nfctx), port_mask(nfcrx), nfcmask);
-            if (!pn532 && !nfcpower)
-            {                   // Retry before declaring a fault
-               ESP_LOGE(TAG, "NFC re-init2");
-               usleep(100000);
+            if (p3 < 0)
+               p3 = pn532_read_GPIO(pn532);     // Try again
+            if (p3 < 0)
+            {
+               pn532 = pn532_end(pn532);
+               status(nfc_fault = "Failed");
+            }
+         }
+         if (!pn532)
+         {                      // In failed state
+            static uint8_t wait = 0,
+                on = 1;
+            if (wait)
+               wait--;
+            if (wait)
+               continue;
+            if (on)
+            {                   // Try talking to it
+               ESP_LOGE(TAG, "NFC re-init");
                pn532 = pn532_init(nfcuart, port_mask(nfctx), port_mask(nfcrx), nfcmask);
-            }
-            if (!pn532)
-            {
-               if (!nfc_fault)
-                  status(nfc_fault = "Failed");
-               if (nfcpower)
-                  gpio_set_level(port_mask(nfcpower), (now / 1000LL) & 1);      // cycle power (slowly)
-               continue;        // No point doing other regular tasks if PN532 is AWOL
+               if (pn532)
+               {                // All good!
+                  df_init(&df, pn532, pn532_dx);
+                  ledlast = 0xFF;
+                  status(nfc_fault = NULL);
+               } else
+               {                // Failed
+                  on = 0;
+                  if (nfcpower)
+                     gpio_set_level(port_mask(nfcpower), (nfcpower & PORT_INV) ? 1 : 0);        // Off
+                  wait = 2000 / nfciopoll;      // off wait
+               }
             } else
-            {
-               df_init(&df, pn532, pn532_dx);
-               ledlast = 0xFF;
-               status(nfc_fault = NULL);
+            {                   // Off, so turn on
+               on = 1;
+               if (nfcpower)
+                  gpio_set_level(port_mask(nfcpower), (nfcpower & PORT_INV) ? 0 : 1);   // On
+               wait = 200 / nfciopoll;  // on wait
             }
-         } else
+         }
+         if (!pn532)
+            continue;           // No point doing any more
+         if (p3 >= 0)
          {                      // Inputs
             p3 ^= nfcinvert;
             if (nfctamper)
@@ -436,7 +454,7 @@ void nfc_init(void)
       nfcinvert |= (1 << gpio_mask(nfcbell));
    if (nfcpower)
    {
-      gpio_set_level(port_mask(nfcpower), (nfcpower&PORT_INV)?0:1);
+      gpio_set_level(port_mask(nfcpower), (nfcpower & PORT_INV) ? 0 : 1);
       gpio_set_direction(port_mask(nfcpower), GPIO_MODE_OUTPUT);
       usleep(100000);
    }

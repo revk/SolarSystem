@@ -92,7 +92,7 @@ static void status_report(int force)
    if (lasttamper)
       revk_blink(1, 1);
    else if (lastfault)
-      revk_blink(1, 3);
+      revk_blink(1, 5);
    else
       revk_blink(0, 0);
 }
