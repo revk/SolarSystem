@@ -301,10 +301,8 @@ static void task(void *pvParameters)
             }
             // Door check
             if (e)
-            {                   // NFC or DESFire error
-               ESP_LOGI(TAG, "Error: %s", e);
-               noaccess = e;
-            } else
+               noaccess = e;    // NFC or DESFire error
+            else
                noaccess = door_fob(id, &crc);   // Access from door control
             void log(void) {    // Log and count
                // Log
@@ -330,10 +328,16 @@ static void task(void *pvParameters)
                   e = df_change_key(&df, 1, aes[0][0], aes[aesid] + 1, aes[0] + 1);
                }
             }
-            if (e && !strcmp(e, "PN532_ERR_TIMEOUT"))
+            if (e && strstr(e, "TIMEOUT"))
+            {
+               ESP_LOGI(TAG, "Retry %s", e);
                nextpoll = 0;    // Try again immediately
-            else
+            } else
             {                   // Processing door
+               if (e)
+                  ESP_LOGI(TAG, "Error %s", e);
+               else
+                  ESP_LOGI(TAG, "ID %s", id);
                if (!e && df.keylen && nfccommit)
                   log();        // Log before reporting or opening door
                if (!noaccess)
