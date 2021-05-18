@@ -240,6 +240,7 @@ static void task(void *pvParameters)
          nextpoll = now + (uint64_t) nfcpoll *1000LL;
          if (found && !pn532_Present(pn532))
          {                      // Card gone
+            ESP_LOGI(TAG, "gone %s", id);
             if (held && nfchold)
                revk_event("gone", "%s", id);
             found = 0;
@@ -301,10 +302,8 @@ static void task(void *pvParameters)
             }
             // Door check
             if (e)
-            {                   // NFC or DESFire error
-               ESP_LOGI(TAG, "Error: %s", e);
-               noaccess = e;
-            } else
+               noaccess = e;    // NFC or DESFire error
+            else
                noaccess = door_fob(id, &crc);   // Access from door control
             void log(void) {    // Log and count
                // Log
@@ -330,10 +329,17 @@ static void task(void *pvParameters)
                   e = df_change_key(&df, 1, aes[0][0], aes[aesid] + 1, aes[0] + 1);
                }
             }
-            if (e && !strcmp(e, "PN532_ERR_TIMEOUT"))
+            if (e && strstr(e, "TIMEOUT"))
+            {
+               blink(nfcamber); // Read ID OK
+               ESP_LOGI(TAG, "Retry %s %s", id, e);
                nextpoll = 0;    // Try again immediately
-            else
+            } else
             {                   // Processing door
+               if (e)
+                  ESP_LOGI(TAG, "Error %s %s", id, e);
+               else
+                  ESP_LOGI(TAG, "ID %s", id);
                if (!e && df.keylen && nfccommit)
                   log();        // Log before reporting or opening door
                if (!noaccess)
@@ -342,8 +348,10 @@ static void task(void *pvParameters)
                   door_unlock(NULL, "fob");     // Door system was happy with fob, let 'em in
                } else if (door >= 4)
                   blink(nfcgreen);      // Allowed
+               else if (nfccard)
+                  blink(nfccard);
                else
-                  blink(nfcamber);      // Read OK but we don't know if allowed or not
+                  blink(nfcamber);      // Read OK but we don't know if allowed or not as needs back end to advise
                nextled = now + 200000LL;
                // Report
                if (door >= 4 || !noaccess)
@@ -359,7 +367,7 @@ static void task(void *pvParameters)
                if (!e && df.keylen && !nfccommit)
                {
                   log();        // Can log after reporting / opening
-                  if (e && strcmp(e, "PN532_ERR_TIMEOUT"))
+                  if (e && !strstr(e, "TIMEOUT"))
                      revk_error(TAG, "%s", e);  // Log new error anyway, unless simple timeout
                }
                found = now + (uint64_t) nfchold *1000LL;
