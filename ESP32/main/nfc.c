@@ -363,7 +363,7 @@ static void task(void *pvParameters)
                if (!e && df.keylen && !nfccommit)
                {
                   log();        // Can log after reporting / opening
-                  if (e && strcmp(e, "PN532_ERR_TIMEOUT"))
+                  if (e && !strstr(e, "TIMEOUT"))
                      revk_error(TAG, "%s", e);  // Log new error anyway, unless simple timeout
                }
                found = now + (uint64_t) nfchold *1000LL;
