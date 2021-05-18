@@ -302,6 +302,7 @@ static void task(void *pvParameters)
             // Door check
             if (e)
             {                   // NFC or DESFire error
+               ESP_LOGI(TAG, "Error: %s", e);
                noaccess = e;
             } else
                noaccess = door_fob(id, &crc);   // Access from door control
