@@ -240,6 +240,7 @@ static void task(void *pvParameters)
          nextpoll = now + (uint64_t) nfcpoll *1000LL;
          if (found && !pn532_Present(pn532))
          {                      // Card gone
+            ESP_LOGI(TAG, "gone %s", id);
             if (held && nfchold)
                revk_event("gone", "%s", id);
             found = 0;
@@ -335,7 +336,7 @@ static void task(void *pvParameters)
             } else
             {                   // Processing door
                if (e)
-                  ESP_LOGI(TAG, "Error %s", e);
+                  ESP_LOGI(TAG, "Error %s %s", id, e);
                else
                   ESP_LOGI(TAG, "ID %s", id);
                if (!e && df.keylen && nfccommit)
