@@ -331,8 +331,8 @@ static void task(void *pvParameters)
             }
             if (e && strstr(e, "TIMEOUT"))
             {
-               blink(nfcamber);      // Read ID OK
-               ESP_LOGI(TAG, "Retry %s %s", id,e);
+               blink(nfcamber); // Read ID OK
+               ESP_LOGI(TAG, "Retry %s %s", id, e);
                nextpoll = 0;    // Try again immediately
             } else
             {                   // Processing door
@@ -348,6 +348,8 @@ static void task(void *pvParameters)
                   door_unlock(NULL, "fob");     // Door system was happy with fob, let 'em in
                } else if (door >= 4)
                   blink(nfcgreen);      // Allowed
+               else if (nfccard)
+                  blink(nfccard);
                else
                   blink(nfcamber);      // Read OK but we don't know if allowed or not as needs back end to advise
                nextled = now + 200000LL;
