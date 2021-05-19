@@ -50,6 +50,7 @@ inline int16_t gpio_mask(uint8_t p)
   io(nfcrx) \
   io(nfcpower) \
   u8(nfcuart,1) \
+  t(led)	\
 
 #define i8(n,d) int8_t n;
 #define io(n) uint8_t n;
@@ -81,7 +82,9 @@ static uint8_t ledpattern[20] = "";
 
 const char *nfc_led(int len, const void *value)
 {
-   revk_info("led", value);
+   if (!len)
+      len = strlen(value = led);        // Default
+   revk_info("led", "%.*s", len,value);
    if (len > sizeof(ledpattern))
       len = sizeof(ledpattern);
    if (len < sizeof(ledpattern))
