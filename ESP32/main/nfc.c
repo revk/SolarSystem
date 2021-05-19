@@ -84,7 +84,7 @@ const char *nfc_led(int len, const void *value)
 {
    if (!len)
       len = strlen(value = led);        // Default
-   revk_info("led", "%.*s", len,value);
+   revk_info("led", "%.*s", len, value);
    if (len > sizeof(ledpattern))
       len = sizeof(ledpattern);
    if (len < sizeof(ledpattern))
@@ -227,7 +227,7 @@ static void task(void *pvParameters)
                   newled |= (1 << gpio_mask(nfcamber));
                if (nfcgreen && ledpattern[ledpos] == 'G')
                   newled |= (1 << gpio_mask(nfcgreen));
-               if (nfccard && found)
+               if (nfccard && found && *id != '*')
                   newled |= (1 << gpio_mask(nfccard));
                if (ledpos + 1 >= sizeof(ledpattern) || ledpattern[ledpos + 1] != '+')
                   break;        // Combined LED pattern with +
@@ -273,7 +273,7 @@ static void task(void *pvParameters)
             uint8_t *ats = pn532_ats(pn532);
             uint32_t crc = 0;
             if (cards > 1)
-               strcpy(id, "Multiple");
+               strcpy(id, "*Multiple");
             else
             {
                pn532_nfcid(pn532, id);
@@ -351,7 +351,7 @@ static void task(void *pvParameters)
                   door_unlock(NULL, "fob");     // Door system was happy with fob, let 'em in
                } else if (door >= 4)
                   blink(nfcgreen);      // Allowed
-               else if (nfccard)
+               else if (nfccard && *id != '*')
                   blink(nfccard);
                else
                   blink(nfcamber);      // Read OK but we don't know if allowed or not as needs back end to advise
@@ -477,7 +477,7 @@ void nfc_init(void)
       gpio_set_direction(port_mask(nfcpower), GPIO_MODE_OUTPUT);
       usleep(100000);
    }
-   nfc_led(0,NULL);
+   nfc_led(0, NULL);
    if (nfctx && nfcrx)
    {
       const char *e = port_check(port_mask(nfctx), TAG, 0);
