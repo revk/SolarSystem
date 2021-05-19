@@ -477,6 +477,7 @@ void nfc_init(void)
       gpio_set_direction(port_mask(nfcpower), GPIO_MODE_OUTPUT);
       usleep(100000);
    }
+   nfc_led(0,NULL);
    if (nfctx && nfcrx)
    {
       const char *e = port_check(port_mask(nfctx), TAG, 0);
