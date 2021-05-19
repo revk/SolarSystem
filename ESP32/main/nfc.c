@@ -403,6 +403,11 @@ const char *nfc_command(const char *tag, unsigned int len, const unsigned char *
       report_state();
    if (!pn532)
       return NULL;              // Not running
+   if (!strcmp(tag, "restart"))
+   {
+      if (nfcpower)
+         gpio_set_level(port_mask(nfcpower), (nfcpower & PORT_INV) ? 1 : 0);    // Off
+   }
    if (nfcmask && !strcmp(tag, "led"))
       return nfc_led(len, value);
    if (!strcmp(tag, TAG))
