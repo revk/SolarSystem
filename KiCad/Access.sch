@@ -5,7 +5,7 @@ $Descr A4 11693 8268
 encoding utf-8
 Sheet 1 1
 Title "Access control"
-Date "2021-05-01"
+Date "2021-05-20"
 Rev "1"
 Comp "Adrian Kennard Andrews & Arnold Ltd"
 Comment1 "@TheRealRevK"
@@ -175,7 +175,7 @@ U 1 1 6043326C
 P 2100 2500
 F 0 "U1" H 2100 4081 50  0000 C CNN
 F 1 "ESP32-WROOM-32" H 2100 3990 50  0000 C CNN
-F 2 "RF_Module:ESP32-WROOM-32" H 2100 1000 50  0001 C CNN
+F 2 "RevK:ESP32-WROOM-32" H 2100 1000 50  0001 C CNN
 F 3 "https://www.espressif.com/sites/default/files/documentation/esp32-wroom-32_datasheet_en.pdf" H 1800 2550 50  0001 C CNN
 	1    2100 2500
 	1    0    0    -1  
