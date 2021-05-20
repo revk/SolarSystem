@@ -50,6 +50,7 @@ inline int16_t gpio_mask(uint8_t p)
   io(nfcrx) \
   io(nfcpower) \
   u8(nfcuart,1) \
+  t(led)	\
 
 #define i8(n,d) int8_t n;
 #define io(n) uint8_t n;
@@ -81,7 +82,9 @@ static uint8_t ledpattern[20] = "";
 
 const char *nfc_led(int len, const void *value)
 {
-   revk_info("led", value);
+   if (!len)
+      len = strlen(value = led);        // Default
+   revk_info("led", "%.*s", len, value);
    if (len > sizeof(ledpattern))
       len = sizeof(ledpattern);
    if (len < sizeof(ledpattern))
@@ -260,7 +263,16 @@ static void task(void *pvParameters)
          // Check for new card
          df.keylen = 0;         // New card
          int cards = pn532_Cards(pn532);
-         if (cards > 0)
+         if (cards > 1)
+         {
+            ESP_LOGI(TAG, "Release 2nd card");
+            uint8_t buf[2];
+            buf[0] = 0x02;
+            int l = pn532_tx(pn532, 0x52, 1, buf, 0, NULL);
+            if (l >= 0)
+               l = pn532_rx(pn532, 0, NULL, sizeof(buf), buf);
+            nextpoll = 0;
+         } else if (cards > 0)
          {
             xSemaphoreTake(nfc_mutex, portMAX_DELAY);
             nextpoll = now + (int64_t) nfcholdpoll *1000LL;     // Periodic check for card held
@@ -269,36 +281,31 @@ static void task(void *pvParameters)
             const char *e = NULL;
             uint8_t *ats = pn532_ats(pn532);
             uint32_t crc = 0;
-            if (cards > 1)
-               strcpy(id, "Multiple");
-            else
-            {
-               pn532_nfcid(pn532, id);
-               if (!held && aes[0][0] && (aid[0] || aid[1] || aid[2]) && *ats && ats[1] == 0x75)
-               {                // DESFire
-                  // Select application
-                  if (!e)
-                     e = df_select_application(&df, aid);
-                  if (!e && aes[1][0])
-                  {             // Get key to work out which AES
-                     uint8_t version = 0;
-                     e = df_get_key_version(&df, 1, &version);
-                     if (!e && version)
-                     {
-                        for (aesid = 0; aesid < sizeof(aes) / sizeof(*aes) && aes[aesid][0] != version; aesid++);
-                        if (aesid == sizeof(aes) / sizeof(*aes))
-                           e = "Unknown key version";
-                     }
+            pn532_nfcid(pn532, id);
+            if (!held && aes[0][0] && (aid[0] || aid[1] || aid[2]) && *ats && ats[1] == 0x75)
+            {                   // DESFire
+               // Select application
+               if (!e)
+                  e = df_select_application(&df, aid);
+               if (!e && aes[1][0])
+               {                // Get key to work out which AES
+                  uint8_t version = 0;
+                  e = df_get_key_version(&df, 1, &version);
+                  if (!e && version)
+                  {
+                     for (aesid = 0; aesid < sizeof(aes) / sizeof(*aes) && aes[aesid][0] != version; aesid++);
+                     if (aesid == sizeof(aes) / sizeof(*aes))
+                        e = "Unknown key version";
                   }
-                  // Authenticate
-                  if (!e)
-                     e = df_authenticate(&df, 1, aes[aesid] + 1);
-                  uint8_t uid[7];       // Real ID
-                  if (!e)
-                     e = df_get_uid(&df, uid);
-                  if (!e)
-                     snprintf(id, sizeof(id), "%02X%02X%02X%02X%02X%02X%02X+", uid[0], uid[1], uid[2], uid[3], uid[4], uid[5], uid[6]); // Set UID with + to indicate secure, regardless of access allowed, etc.
                }
+               // Authenticate
+               if (!e)
+                  e = df_authenticate(&df, 1, aes[aesid] + 1);
+               uint8_t uid[7];  // Real ID
+               if (!e)
+                  e = df_get_uid(&df, uid);
+               if (!e)
+                  snprintf(id, sizeof(id), "%02X%02X%02X%02X%02X%02X%02X+", uid[0], uid[1], uid[2], uid[3], uid[4], uid[5], uid[6]);    // Set UID with + to indicate secure, regardless of access allowed, etc.
             }
             // Door check
             if (e)
@@ -400,6 +407,11 @@ const char *nfc_command(const char *tag, unsigned int len, const unsigned char *
       report_state();
    if (!pn532)
       return NULL;              // Not running
+   if (!strcmp(tag, "restart"))
+   {
+      if (nfcpower)
+         gpio_set_level(port_mask(nfcpower), (nfcpower & PORT_INV) ? 1 : 0);    // Off
+   }
    if (nfcmask && !strcmp(tag, "led"))
       return nfc_led(len, value);
    if (!strcmp(tag, TAG))
@@ -474,6 +486,7 @@ void nfc_init(void)
       gpio_set_direction(port_mask(nfcpower), GPIO_MODE_OUTPUT);
       usleep(100000);
    }
+   nfc_led(0, NULL);
    if (nfctx && nfcrx)
    {
       const char *e = port_check(port_mask(nfctx), TAG, 0);

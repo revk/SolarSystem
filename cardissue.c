@@ -327,11 +327,13 @@ main (int argc, const char *argv[])
   // DESFire setup
   int recvt (int fd, void *data, size_t len, int timeout)
   {
-    fd_set fset;
-    FD_ZERO (&fset);
-    FD_SET (fd, &fset);
+    fd_set fsetr,fsetx;
+    FD_ZERO (&fsetr);
+    FD_ZERO (&fsetx);
+    FD_SET (fd, &fsetr);
+    FD_SET (fd, &fsetx);
     struct timeval t = { timeout, 0 };
-    int r = select (fd + 1, &fset, NULL, &fset, &t);
+    int r = select (fd + 1, &fsetr, NULL, &fsetx, &t);
     if (r < 0)
       {
 	led ("R-");
@@ -358,7 +360,7 @@ main (int argc, const char *argv[])
 	    else if (l > 0)
 	      fprintf (stderr, "Card status %02X\n", *(unsigned char *) data);
 	  }
-	led (done ? "-" : "R-");
+	led (done ? "" : "R-");
       }
     return l;
   }
@@ -424,11 +426,11 @@ main (int argc, const char *argv[])
   done = 0;
 
   unsigned char buf[10240];
-  led ("R");
+  led ("A");
   printf ("Waiting for card at reader %s\n", hexreader);
   if (recvt (sp[1], buf, sizeof (buf), 30) != 0)
     errx (1, "Giving up");
-  led ("G-");
+  led ("A-");
 
   if ((e = df_select_application (&d, NULL)))
     errx (1, "Failed to select application: %s", e);
@@ -558,7 +560,7 @@ main (int argc, const char *argv[])
   {				// Delete extra files
     int fn;
     for (fn = 0; fn < 64; fn++)
-      if (fn > 2 && fn != 0xA && (fids & (1 << fn)))
+      if (fn > 2 && fn != 0xA && (fids & (1LL << fn)))
 	{
 	  printf ("Deleting file %d\n", fn);
 	  if ((e = df_delete_file (&d, fn)))
@@ -781,7 +783,7 @@ main (int argc, const char *argv[])
     }
 
   printf ("Remove card\n");
-  led ("G");
+  led ("G-");
 
   done = 1;
   if (recvt (sp[1], buf, sizeof (buf), 30) != 0)
