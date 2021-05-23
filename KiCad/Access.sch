@@ -796,7 +796,7 @@ U 1 1 608E8C57
 P 10100 1950
 F 0 "Reg1" H 10678 1851 50  0000 L CNN
 F 1 "3.3V" H 10678 1760 50  0000 L CNN
-F 2 "RevK:RegulatorBlock2" H 10550 2050 50  0001 C CNN
+F 2 "RevK:RegulatorBlock" H 10550 2050 50  0001 C CNN
 F 3 "https://www.pololu.com/product/2842/resources" H 10550 2050 50  0001 C CNN
 	1    10100 1950
 	1    0    0    -1  
@@ -807,7 +807,7 @@ U 1 1 608E9E8F
 P 10150 3100
 F 0 "Reg2" H 10728 3001 50  0000 L CNN
 F 1 "5V" H 10728 2910 50  0000 L CNN
-F 2 "RevK:RegulatorBlock2" H 10600 3200 50  0001 C CNN
+F 2 "RevK:RegulatorBlock" H 10600 3200 50  0001 C CNN
 F 3 "https://www.pololu.com/product/2842/resources" H 10600 3200 50  0001 C CNN
 	1    10150 3100
 	1    0    0    -1  
