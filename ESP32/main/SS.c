@@ -5,6 +5,10 @@ static const char __attribute__((unused)) TAG[] = "SS";
 #include "SS.h"
 #include <driver/gpio.h>
 
+#ifdef	CONFIG_REVK_APCONFIG
+#error	You do not want door controller running CONFIG_REVK_APCONFIG
+#endif
+
 // Common
 static const char *port_inuse[MAX_PORT];
 

@@ -270,7 +270,7 @@ static void task(void *pvParameters)
             buf[0] = 0x02;
             int l = pn532_tx(pn532, 0x52, 1, buf, 0, NULL);
             if (l >= 0)
-               l = pn532_rx(pn532, 0, NULL, sizeof(buf), buf);
+               l = pn532_rx(pn532, 0, NULL, sizeof(buf), buf, 100);
             nextpoll = 0;
          } else if (cards > 0)
          {
