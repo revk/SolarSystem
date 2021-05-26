@@ -44,7 +44,7 @@ inline int16_t gpio_mask(uint8_t p)
   u16(nfcledpoll,100) \
   u16(nfciopoll,200) \
   b(nfcbus,1) \
-  ba(aes,17,3) \
+  bap(aes,17,3) \
   b(aid,3) \
   io(nfctx) \
   io(nfcrx) \
@@ -59,6 +59,7 @@ inline int16_t gpio_mask(uint8_t p)
 #define u16(n,d) uint16_t n;
 #define b(n,l) uint8_t n[l];
 #define ba(n,l,a) uint8_t n[a][l];
+#define bap(n,l,a) uint8_t n[a][l];
 #define u1(n) uint8_t n;
 #define t(n) const char*n=NULL;
 settings
@@ -70,6 +71,7 @@ settings
 #undef u16
 #undef b
 #undef ba
+#undef bap
 #undef u1
     pn532_t * pn532 = NULL;
 uint8_t nfcmask = 0,
@@ -446,6 +448,7 @@ void nfc_init(void)
 #define u16(n,d) revk_register(#n,0,sizeof(n),&n,#d,0);
 #define b(n,l) revk_register(#n,0,sizeof(n),n,NULL,SETTING_BINARY|SETTING_HEX);
 #define ba(n,l,a) revk_register(#n,a,sizeof(n[0]),n,NULL,SETTING_BINARY|SETTING_HEX);
+#define bap(n,l,a) revk_register(#n,a,sizeof(n[0]),n,NULL,SETTING_BINARY|SETTING_HEX|SETTING_HEX);
 #define u1(n) revk_register(#n,0,sizeof(n),&n,NULL,SETTING_BOOLEAN);
 #define t(n) revk_register(#n,0,0,&n,NULL,0);
    settings
@@ -457,6 +460,7 @@ void nfc_init(void)
 #undef u16
 #undef b
 #undef ba
+#undef bap
 #undef u1
        // Set up ports */
        nfcmask = 0;             /* output mask for NFC */
