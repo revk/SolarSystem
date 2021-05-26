@@ -37,7 +37,6 @@ inline int16_t gpio_mask(uint8_t p)
   gpio(nfctamper) \
   gpio(nfcbell) \
   t(mqttbell) \
-  u1(itamper) \
   u16(nfcpoll,50) \
   u16(nfchold,3000) \
   u16(nfcholdpoll,500) \
