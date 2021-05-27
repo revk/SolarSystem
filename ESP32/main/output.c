@@ -115,6 +115,7 @@ void output_init(void)
          else
          {
             REVK_ERR_CHECK(gpio_reset_pin(p));
+            REVK_ERR_CHECK(gpio_hold_dis(p));
             REVK_ERR_CHECK(gpio_set_level(p, (power[i] & PORT_INV) ? 0 : 1));
             REVK_ERR_CHECK(gpio_set_drive_capability(p, GPIO_DRIVE_CAP_3));
             REVK_ERR_CHECK(gpio_set_direction(p, GPIO_MODE_OUTPUT));
