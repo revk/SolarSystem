@@ -13,6 +13,7 @@ const char *output_tamper = NULL;
 #define PORT_INV 0x40
 #define port_mask(p) ((p)&63)
 static uint8_t output[MAXOUTPUT];
+static uint8_t power[MAXOUTPUT];        /* fixed outputs */
 
 static uint64_t output_state = 0;       // Port state
 static uint64_t output_state_set = 0;   // Output has been set
@@ -84,10 +85,12 @@ const char *output_command(const char *tag, unsigned int len, const unsigned cha
 
 void output_init(void)
 {
-   revk_register(TAG, MAXOUTPUT, sizeof(*output), &output, BITFIELDS, SETTING_BITFIELD | SETTING_SET);
+   revk_register("output", MAXOUTPUT, sizeof(*output), &output, BITFIELDS, SETTING_BITFIELD | SETTING_SET);
+   revk_register("power", MAXOUTPUT, sizeof(*power), &power, BITFIELDS, SETTING_BITFIELD | SETTING_SET);
    int i,
     p;
    for (i = 0; i < MAXOUTPUT; i++)
+   {
       if (output[i])
       {
          const char *e = port_check(p = port_mask(output[i]), TAG, 0);
@@ -104,4 +107,18 @@ void output_init(void)
             gpio_hold_en(p);
          }
       }
+      if (power[i])
+      {
+         const char *e = port_check(p = port_mask(power[i]), TAG, 0);
+         if (e)
+            status(output_fault = e);
+         else
+         {
+            REVK_ERR_CHECK(gpio_reset_pin(p));
+            REVK_ERR_CHECK(gpio_set_level(p, (power[i] & PORT_INV) ? 0 : 1));
+            REVK_ERR_CHECK(gpio_set_drive_capability(p, GPIO_DRIVE_CAP_3));
+            REVK_ERR_CHECK(gpio_set_direction(p, GPIO_MODE_OUTPUT));
+         }
+      }
+   }
 }
