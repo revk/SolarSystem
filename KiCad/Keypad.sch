@@ -5,7 +5,7 @@ $Descr A4 11693 8268
 encoding utf-8
 Sheet 1 1
 Title "Galaxy Keypad controller"
-Date "2021-04-23"
+Date "2021-06-01"
 Rev "4"
 Comp "Adrian Kennard Andrews & Arnold Ltd"
 Comment1 "@TheRealRevK"
@@ -324,7 +324,7 @@ U 1 1 60720A2E
 P 4350 5600
 F 0 "J1" H 4450 5950 50  0000 C CNN
 F 1 "SPOX" H 4450 5850 50  0000 C CNN
-F 2 "Connector_Molex:Molex_SPOX_5268-04A_1x04_P2.50mm_Horizontal" H 4350 5600 50  0001 C CNN
+F 2 "RevK:Molex_MiniSPOX_H4RA" H 4350 5600 50  0001 C CNN
 F 3 "~" H 4350 5600 50  0001 C CNN
 	1    4350 5600
 	1    0    0    -1  
@@ -543,4 +543,15 @@ Wire Wire Line
 Connection ~ 9100 1600
 Wire Wire Line
 	9100 1600 9100 1400
+$Comp
+L RevK:AA Logo1
+U 1 1 60B9351C
+P 10725 6900
+F 0 "Logo1" H 10725 6900 50  0001 C CNN
+F 1 "AA" H 10750 6900 50  0000 L CNN
+F 2 "RevK:AA" H 10725 6900 50  0001 C CNN
+F 3 "" H 10725 6900 50  0001 C CNN
+	1    10725 6900
+	1    0    0    -1  
+$EndComp
 $EndSCHEMATC
