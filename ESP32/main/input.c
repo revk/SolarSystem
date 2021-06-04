@@ -111,8 +111,7 @@ static void task(void *pvParameters)
       if (jout)
       {                         // JSON version
          jo_t j = jo_create_alloc();
-         jo_object(j, NULL);
-         jo_array(j, TAG);
+         jo_array(j, NULL);
          int t = MAXINPUT;
          while (t && !input[t - 1])
             t--;
