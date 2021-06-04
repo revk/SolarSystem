@@ -2,6 +2,7 @@
 // Copyright © 2019 Adrian Kennard, Andrews & Arnold Ltd. See LICENCE file for details. GPL 3.0
 static const char TAG[] = "input";
 #include "SS.h"
+#include "jo.h"
 const char *input_fault = NULL;
 const char *input_tamper = NULL;
 
@@ -80,6 +81,7 @@ static void task(void *pvParameters)
       int64_t now = esp_timer_get_time();
       char report = reportall;
       reportall = 0;
+      char jout = 0;
       int i;
       for (i = 0; i < MAXINPUT; i++)
          if (input[i])
@@ -98,6 +100,7 @@ static void task(void *pvParameters)
                char tag[20];
                sprintf(tag, "%s%d", TAG, i + 1);
                revk_state(tag, "%d", (input_stable >> i) & 1);
+               jout = 1;
             }
             if (v != ((input_raw >> i) & 1))
             {                   // Change of raw state
@@ -105,6 +108,20 @@ static void task(void *pvParameters)
                input_hold[i] = now + (int64_t) inputhold *1000LL;
             }
          }
+      if (jout)
+      {
+         jo_t j = jo_create_alloc();
+         jo_object(j, NULL);
+         jo_array(j, TAG);
+#if 0
+         for (i = 0; i < MAXINPUT; i++)
+            if (!input[i])
+               jo_null(j,NULL);
+            else
+               jo_bool(j, NULL,(input_stable >> i) & 1);
+#endif
+         revk_state(NULL, "%s", jo_result_free(j));
+      }
       // Sleep
       usleep((inputpoll ? : 1) * 1000);
    }
