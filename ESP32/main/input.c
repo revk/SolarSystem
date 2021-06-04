@@ -109,21 +109,24 @@ static void task(void *pvParameters)
             }
          }
       if (jout)
-      {
+      {                         // JSON version
          jo_t j = jo_create_alloc();
          jo_object(j, NULL);
          jo_array(j, TAG);
-         for (i = 0; i < MAXINPUT; i++)
+         int t = MAXINPUT;
+         while (t && !input[t - 1])
+            t--;
+         for (i = 0; i < t; i++)
             if (!input[i])
-               jo_null(j,NULL);
+               jo_null(j, NULL);
             else
-               jo_bool(j, NULL,(input_stable >> i) & 1);
-	 char *o=jo_result_free(&j);
-	 if(o)
-	 {
-         revk_state(NULL, "%s", o);
-	 free(o);
-	 }
+               jo_bool(j, NULL, (input_stable >> i) & 1);
+         char *o = jo_result_free(&j);
+         if (o)
+         {
+            revk_state(TAG, "%s", o);
+            free(o);
+         }
       }
       // Sleep
       usleep((inputpoll ? : 1) * 1000);
