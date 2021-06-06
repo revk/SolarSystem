@@ -42,6 +42,7 @@
 #include <curl/curl.h>
 #include <galaxybus.h>
 #include <axl.h>
+#include <ajl.h>
 #include <dataformat.h>
 #include <openssl/evp.h>
 #include <desfireaes.h>
@@ -1478,7 +1479,7 @@ static void *load_config(const char *configfile)
             dolog(ALL_GROUPS, "CONFIG", NULL, NULL, "Too many doors");
             continue;
          }
-         char doorno[8];
+         char doorno[30];
          snprintf(doorno, sizeof(doorno), "DOOR%02u", d);
          xml_add(x, "@id", doorno);
          mydoor[d].a = atoi(xml_get(x, "@a") ? : "");
@@ -1780,7 +1781,7 @@ static void ws_port_output_callback(port_p id)
 {
    xml_t root = xml_tree_new(NULL);
    output_ws(root, id);
-   websocket_send(xml:root);
+ websocket_send(xml:root);
    xml_tree_delete(root);
 }
 #endif
@@ -2020,7 +2021,7 @@ static void state_change(group_t g)
          }
 #ifdef	LIBWS
    if (xml_element_next(root, NULL))
-      websocket_send(xml:root);
+    websocket_send(xml:root);
    xml_tree_delete(root);
 #endif
    // Do outputs and stuff resulting from state change
@@ -2670,7 +2671,7 @@ static void *keypad_message(keypad_t * k, char *fmt, ...)
 #ifdef  LIBWS
    xml_t root = xml_tree_new(NULL);
    keypad_ws(root, k);
-   websocket_send(xml:root);
+ websocket_send(xml:root);
    xml_tree_delete(root);
 #endif
    return NULL;
@@ -2699,6 +2700,7 @@ static void *do_keypad_update(keypad_t * k, char key)
    int p;
    char *l1 = (char *) k->k.text[0];
    char *l2 = (char *) k->k.text[1];
+   int ll=sizeof(k->k.text[0]);
    k->when = (now.tv_sec + 60) / 60 * 60;       // Next update default if not set below
    if (k->user && k->when_logout)
    {                            // Auto logout
@@ -2723,8 +2725,8 @@ static void *do_keypad_update(keypad_t * k, char key)
    }
    if (!k->groups)
    {                            // Not in use at all!
-      snprintf(l1, 17, "%-16s", k->message ? : "-- NOT IN USE --");
-      snprintf(l2, 17, "%02d:%02d %10s", lnow.tm_hour, lnow.tm_min, port_name(k->port));
+      snprintf(l1, ll, "%-16s", k->message ? : "-- NOT IN USE --");
+      snprintf(l2, ll, "%02d:%02d %10s", lnow.tm_hour, lnow.tm_min, port_name(k->port));
       k->block = 1;             // No keys
       return NULL;
    }
@@ -2800,9 +2802,9 @@ static void *do_keypad_update(keypad_t * k, char key)
       for (; n < 16; n++)
          l2[n] = ' ';
       if (l)
-         snprintf(l1, 17, "%s %s", l->port, l->name);
+         snprintf(l1, ll, "%s %s", l->port, l->name);
       else
-         snprintf(l1, 17, "SETTING ALARM %2d", left);
+         snprintf(l1, ll, "SETTING ALARM %2d", left);
       k->when = now.tv_sec + 1;
       return NULL;
    }
@@ -2944,7 +2946,7 @@ static void *do_keypad_update(keypad_t * k, char key)
             for (s = statelist; s && (!(s->groups & k->groups) || s->type != t || n--); s = s->next);
             if (!s)
                continue;
-            snprintf(l1, 17, "%-7s %-8s", s->port, s->name ? : "");
+            snprintf(l1, ll, "%-7s %-8s", s->port, s->name ? : "");
             if (t == STATE_FAULT || t == STATE_TAMPER)
             {
                port_p p = port_parse(s->port, NULL, -1);
@@ -2954,14 +2956,14 @@ static void *do_keypad_update(keypad_t * k, char key)
                   if (v)
                   {
                      if (v == 65535)
-                        snprintf(l2, 17, "%-6s %-9s", "OPEN", state_name[t]);
+                        snprintf(l2, ll, "%-6s %-9s", "OPEN", state_name[t]);
                      else
-                        snprintf(l2, 17, "%5u\xF4 %-9s", v, state_name[t]);
+                        snprintf(l2, ll, "%5u\xF4 %-9s", v, state_name[t]);
                      return NULL;
                   }
                }
             }
-            snprintf(l2, 17, "ACTIVE %-9s", state_name[t]);
+            snprintf(l2, ll, "ACTIVE %-9s", state_name[t]);
             return NULL;
          }
       for (t = 0; t < STATE_LATCHED; t++)
@@ -2973,29 +2975,29 @@ static void *do_keypad_update(keypad_t * k, char key)
             if (!s)
                continue;
             struct tm *l = localtime(&s->when);
-            snprintf(l1, 17, "%-7s %-8s", s->port, s->name ? : "");
-            snprintf(l2, 17, "%02d:%02d %-10s", l->tm_hour, l->tm_min, state_name[t]);
+            snprintf(l1, ll, "%-7s %-8s", s->port, s->name ? : "");
+            snprintf(l2, ll, "%02d:%02d %-10s", l->tm_hour, l->tm_min, state_name[t]);
             return NULL;
          }
       k->posn = -1;
-      snprintf(l1, 17, "%-16s", k->user->fullname ? : k->user->name ? : "Logged in");
+      snprintf(l1, ll, "%-16s", k->user->fullname ? : k->user->name ? : "Logged in");
       if (alert)
-         snprintf(l2, 17, "%-16s", alert);
+         snprintf(l2, ll, "%-16s", alert);
       else
-         snprintf(l2, 17, "%02d:%02d %10s", lnow.tm_hour, lnow.tm_min, port_name(k->port));
+         snprintf(l2, ll, "%02d:%02d %10s", lnow.tm_hour, lnow.tm_min, port_name(k->port));
       return NULL;
    }
    if (alert)
       return keypad_message(k, "%s\n%04d-%02d-%02d %02d:%02d", alert, lnow.tm_year + 1900, lnow.tm_mon + 1, lnow.tm_mday, lnow.tm_hour, lnow.tm_min);
    // Not logged in
-   snprintf(l1, 17, "%-16s", k->message ? : "SolarSystem");
-   snprintf(l2, 17, "%04d-%02d-%02d %02d:%02d", lnow.tm_year + 1900, lnow.tm_mon + 1, lnow.tm_mday, lnow.tm_hour, lnow.tm_min);
+   snprintf(l1, ll, "%-16s", k->message ? : "SolarSystem");
+   snprintf(l2, ll, "%04d-%02d-%02d %02d:%02d", lnow.tm_year + 1900, lnow.tm_mon + 1, lnow.tm_mday, lnow.tm_hour, lnow.tm_min);
    {                            // Reset required??
       int s;
       for (s = 0; s < STATE_LATCHED && !state[STATE_TRIGGERS + s]; s++);
       if (s < STATE_LATCHED)
       {                         // Something needs resetting
-         snprintf(l1, 17, "RESET %-10s", state_name[s]);
+         snprintf(l1, ll, "RESET %-10s", state_name[s]);
          if (k->ack || (state[STATE_ENGINEERING] & state[STATE_TRIGGERS + s]))
          {                      // No beep, just blink
             k->k.beep[0] = 0;
@@ -3026,7 +3028,7 @@ static void *keypad_update(keypad_t * k, char key)
       xml_add(x, "@key", "ent");
    else if (key)
       xml_addf(x, "@key", "%c", key);
-   websocket_send(xml:root);
+ websocket_send(xml:root);
    xml_tree_delete(root);
 #endif
    return ret;
@@ -3268,7 +3270,7 @@ void doevent(event_t * e)
 #ifdef	LIBWS
          xml_t root = xml_tree_new(NULL);
          if (door_ws(root, e->door))
-            websocket_send(xml:root);
+          websocket_send(xml:root);
          xml_tree_delete(root);
 #endif
          // Fix state if wrong
@@ -3300,7 +3302,7 @@ void doevent(event_t * e)
          if (app->isexit && e->state && app->door >= 0)
          {
             int d = app->door;
-            char doorno[8];
+            char doorno[30];
             snprintf(doorno, sizeof(doorno), "DOOR%02u", d);
             if (!door_locked(d))
             {
@@ -3323,7 +3325,7 @@ void doevent(event_t * e)
 #ifdef	LIBWS
          xml_t root = xml_tree_new(NULL);
          input_ws(root, port);
-         websocket_send(xml:root);
+       websocket_send(xml:root);
          xml_tree_delete(root);
 #endif
       }
@@ -3357,7 +3359,7 @@ void doevent(event_t * e)
 #ifdef	LIBWS
          xml_t root = xml_tree_new(NULL);
          input_ws(root, port);
-         websocket_send(xml:root);
+       websocket_send(xml:root);
          xml_tree_delete(root);
 #endif
       }
@@ -3431,7 +3433,7 @@ void doevent(event_t * e)
 #ifdef	LIBWS
          xml_t root = xml_tree_new(NULL);
          input_ws(root, port);
-         websocket_send(xml:root);
+       websocket_send(xml:root);
          xml_tree_delete(root);
 #endif
          break;
@@ -3545,7 +3547,7 @@ void doevent(event_t * e)
          d = app->door;
          if (d >= 0)
          {
-            char doorno[8];
+            char doorno[30];
             snprintf(doorno, sizeof(doorno), "DOOR%02u", d);
             if (!u)
             {
@@ -3856,7 +3858,7 @@ static char *do_wscallback(websocket_t * w, xml_t head, xml_t data)
       for (p = ports; p; p = p->next)
          if (port_isinput(p))
             input_ws(root, p);
-      websocket_send(1, &w, xml:root);
+    websocket_send(1, &w, xml:root);
       pthread_mutex_unlock(&eventmutex);
       xml_tree_delete(root);
       return NULL;
@@ -4046,7 +4048,7 @@ static char *do_wscallback(websocket_t * w, xml_t head, xml_t data)
             alarm_reset(user->name ? : "web", NULL, 1 << g);
       }
       if (xml_element_next(root, NULL))
-         websocket_send(xml:root);
+       websocket_send(xml:root);
       xml_tree_delete(root);
       pthread_mutex_unlock(&eventmutex);
       return NULL;
@@ -4172,52 +4174,59 @@ int main(int argc, const char *argv[])
       void iot_message(struct mosquitto *iot, void *obj, const struct mosquitto_message *msg) {
          iot = iot;
          obj = obj;
-         if (iot_topic)
-         {
-            int l = strlen(iot_topic) - 1;
-            if (!strncmp(msg->topic, iot_topic, l))
+         j_t j = j_create();
+         if (j_read_mem(j, msg->payload, msg->payloadlen))
+            j_delete(&j);
+         void process(void) {
+            if (iot_topic)
             {
-               char *m = malloc(msg->payloadlen + 1);
-               if (!m)
-                  errx(1, "malloc");
-               memcpy(m, msg->payload, msg->payloadlen);
-               m[msg->payloadlen] = 0;
-               group_t g = group_parse(m);
-               free(m);
-               if (!strcmp(msg->topic + l, "arm"))
+               int l = strlen(iot_topic) - 1;
+               if (!strncmp(msg->topic, iot_topic, l))
                {
-                  if (g & ~iot_arm)
-                     dolog(g & ~iot_arm, "IOT", NULL, NULL, "Attempting arm of invalid groups");
-                  g &= iot_arm;
-                  pthread_mutex_lock(&eventmutex);
-                  alarm_arm("IOT", NULL, g, 0);
-                  pthread_mutex_unlock(&eventmutex);
-                  return;
-               }
-               if (!strcmp(msg->topic + l, "cancel"))
-               {
-                  if (g & ~iot_arm)
-                     dolog(g & ~iot_arm, "IOT", NULL, NULL, "Attempting cancel of invalid groups");
-                  g &= state[STATE_ARM];        // Must be arming
-                  g &= iot_arm;
-                  pthread_mutex_lock(&eventmutex);
-                  alarm_unset("IOT", NULL, g);
-                  pthread_mutex_unlock(&eventmutex);
-                  return;
-               }
-               if (!strcmp(msg->topic + l, "unset"))
-               {
-                  if (g & ~iot_unset)
-                     dolog(g & ~iot_unset, "IOT", NULL, NULL, "Attempting unset of invalid groups");
-                  g &= iot_unset;
-                  pthread_mutex_lock(&eventmutex);
-                  alarm_unset("IOT", NULL, g);
-                  pthread_mutex_unlock(&eventmutex);
-                  return;
+                  char *m = malloc(msg->payloadlen + 1);
+                  if (!m)
+                     errx(1, "malloc");
+                  memcpy(m, msg->payload, msg->payloadlen);
+                  m[msg->payloadlen] = 0;
+                  group_t g = group_parse(m);
+                  free(m);
+                  if (!strcmp(msg->topic + l, "arm"))
+                  {
+                     if (g & ~iot_arm)
+                        dolog(g & ~iot_arm, "IOT", NULL, NULL, "Attempting arm of invalid groups");
+                     g &= iot_arm;
+                     pthread_mutex_lock(&eventmutex);
+                     alarm_arm("IOT", NULL, g, 0);
+                     pthread_mutex_unlock(&eventmutex);
+                     return;
+                  }
+                  if (!strcmp(msg->topic + l, "cancel"))
+                  {
+                     if (g & ~iot_arm)
+                        dolog(g & ~iot_arm, "IOT", NULL, NULL, "Attempting cancel of invalid groups");
+                     g &= state[STATE_ARM];     // Must be arming
+                     g &= iot_arm;
+                     pthread_mutex_lock(&eventmutex);
+                     alarm_unset("IOT", NULL, g);
+                     pthread_mutex_unlock(&eventmutex);
+                     return;
+                  }
+                  if (!strcmp(msg->topic + l, "unset"))
+                  {
+                     if (g & ~iot_unset)
+                        dolog(g & ~iot_unset, "IOT", NULL, NULL, "Attempting unset of invalid groups");
+                     g &= iot_unset;
+                     pthread_mutex_lock(&eventmutex);
+                     alarm_unset("IOT", NULL, g);
+                     pthread_mutex_unlock(&eventmutex);
+                     return;
+                  }
                }
             }
+            dolog(groups, "IOT", NULL, NULL, "Unexpected message %s", msg->topic);
          }
-         dolog(groups, "IOT", NULL, NULL, "Unexpected message %s", msg->topic);
+         process();
+         j_delete(&j);
       }
       void iot_disconnected(struct mosquitto *iot, void *obj, int rc) {
          obj = obj;
@@ -4258,291 +4267,300 @@ int main(int argc, const char *argv[])
             mqtt = mqtt;
             obj = obj;
             char *t = msg->topic;
-            if (msg && (!strncmp(t, "state/SS/", 9) || !strncmp(t, "event/SS/", 9)) && strlen(t + 9) >= 6)
-            {
-               char *id = t + 9;
-               char *tag = id + 6;
-               if (*tag == '/')
-                  tag++;
-               else
-                  tag = NULL;
-               id[6] = 0;
-               port_p port = NULL;
-               if (tag)
+            j_t j = j_create();
+            if (j_read_mem(j, msg->payload, msg->payloadlen))
+               j_delete(&j);
+            void process(void) {
+               if (msg && (!strncmp(t, "state/SS/", 9) || !strncmp(t, "event/SS/", 9)) && strlen(t + 9) >= 6)
                {
-                  char *e = tag + strlen(tag);
-                  if (e > tag && isdigit(e[-1]) && e[-1] > '0')
-                     port = port_new(id, 1, e[-1] - '0');       // Input port
+                  char *id = t + 9;
+                  char *tag = id + 6;
+                  if (*tag == '/')
+                     tag++;
                   else
+                     tag = NULL;
+                  id[6] = 0;
+                  port_p port = NULL;
+                  if (tag)
+                  {
+                     char *e = tag + strlen(tag);
+                     if (e > tag && isdigit(e[-1]) && e[-1] > '0')
+                        port = port_new(id, 1, e[-1] - '0');    // Input port
+                     else
+                        port = port_new(id, 0, 0);      // Device
+                  } else
                      port = port_new(id, 0, 0); // Device
-               } else
-                  port = port_new(id, 0, 0);    // Device
-               port_app_t *app = port_app(port);
-               void sende(int etype, int state) {
-                  event_t *e = malloc(sizeof(*e));
-                  if (!e)
-                     errx(1, "malloc");
-                  memset((void *) e, 0, sizeof(*e));
-                  e->event = etype;
-                  e->port = port;
-                  e->state = state;
-                  asprintf((char **) &e->message, "%.*s", msg->payloadlen, (char *) msg->payload);
-                  struct timezone tz;
-                  gettimeofday((void *) &e->when, &tz);
-                  if (etype == EVENT_DOOR)
-                  {             // Which door
-                     int d = app->door;
-                     e->door = d;
-                     if (d >= 0 && d < MAX_DOOR)
-                        door[d].state = state;
-                  }
-                  postevent(e);
-               }
-               void set(const char *tag, const char *val) {
-                  char *topic;
-                  asprintf(&topic, "setting/SS/%s/%s", port->mqtt, tag);
-                  mosquitto_publish(mqtt, NULL, topic, strlen(val ? : ""), val, 1, 0);
-                  free(topic);
-               }
-               if (port && !strncmp(t, "state", 5) && msg->payloadlen >= 1)
-               {
-                  if (tag && !strcmp(tag, "aes"))
-                  {             // AES settings, send AID/AES if needed
-                     if (app->config && msg->payloadlen >= 6)
-                     {
-                        char *v;
-                        v = xml_get(app->config, "@aid") ? : xml_get(config, "system@aid");
-                        if (v && strlen(v) == 6 && strncmp(msg->payload, v, 6))
-                           set("aid", v);
-                        v = xml_get(app->config, "@aes") ? : xml_get(config, "system@aes");
-                        if (v && strlen(v) == 32 && (msg->payloadlen < 9 || strncmp(msg->payload + 7, "01", 2)))
-                        {
-                           char *p;
-                           if (asprintf(&p, "01%s", v) < 0)
-                              errx(1, "malloc");
-                           set("aes1", p);
-                           free(p);
-                        }
-                        int i = 0;
-                        for (i = 0; i < 9; i++)
-                        {
-                           char a[] = "system@aesX";
-                           a[10] = '1' + i;
-                           v = xml_get(app->config, a + 6) ? : xml_get(config, a);
-                           if (!i && !v)
-                              continue;
-                           if (v && strlen(v) == 34)
-                           {
-                              if (msg->payloadlen < 9 + i * 2 || strncmp(msg->payload + 7 + 2 * i, v, 2))
-                                 set(a + 7, v);
-                           } else if (msg->payloadlen >= 9 + i * 2)
-                              set(a + 7, "");
-                        }
-                     }
-                     return;
-                  }
-                  int state = (((char *) msg->payload)[0] > '0' ? 1 : 0);
-                  if (app->invert)
-                     state = 1 - state;
-                  if (!tag)
-                     app->state = state;
-                  if (!tag && !app->config)
-                  {             // New device
-                     app->config = xml_element_add(config, "device");
-                     xml_add(app->config, "@id", id);
-                     configchanged = 1;
-                  }
-                  if (!tag && state)
-                  {             // Load settings
-                     if (msg->payloadlen < 7 || strncmp(msg->payload + 2, "ESP32", 5))
-                     {          // Set timezone
-                        char tz[10];
-                        sprintf(tz, "%d", settimezone);
-                        set("timezone", tz);
-                     }
-                     xml_attribute_t a = NULL;
-                     while ((a = xml_attribute_next(app->config, a)))
-                     {
-                        char *n = xml_attribute_name(a);
-                        if (!strcmp(n, "aes") || !strcmp(n, "aid"))
-                           continue;    // Not settings
-                        char *v = xml_attribute_content(a);
-                        if (!strcmp(n, "id"))
-                           continue;
-                        if (!strcmp(n, "name"))
-                           continue;
-                        set(n, v);
-                     }
-                     {          // Top level settings, which can be overridden per device
-                        const char *settings[] = {
-                           "@mqttreset",
-                           "@wifissid",
-                           "@wifipass",
-                           "@wifissid2",
-                           "@wifipass2",
-                           "@wifissid3",
-                           "@wifipass3",
-                           "@mqtthost2",
-                           "@fallback",
-                           "@blacklist",
-                           "@offline",
-                           "@rangerdebug",
-                           "@rangerpoll",
-                           "@raangerhold",
-                           "@rangermax",
-                           "@rangerset",
-                           "@inputhold",
-                           "@doorprop",
-                           "@dooropen",
-                           "@doorclose",
-                           "@doorlock",
-                           "@doorunlock",
-                           "@doorexit",
-                           "@doorbeep",
-                           "@doorsilent",
-                        };
-                        xml_t system = xml_element_next_by_name(config, NULL, "system");
-                        if (system)
-                        {
-                           const char *v;
-                           unsigned int n;
-                           for (n = 0; n < sizeof(settings) / sizeof(*settings); n++)
-                              if (!xml_get(app->config, settings[n]) && (v = xml_get(system, settings[n])))
-                                 set(settings[n] + 1, v);
-                        }
-                     }
-                     char *v;
-                     if ((v = xml_get(app->config, "@nfc")) && *v)
-                     {
-                        v = xml_get(app->config, "@aid") ? : xml_get(config, "system@aid");
-                        if (v && strlen(v) == 6)
-                           set("0xaid", v);
-                        v = xml_get(app->config, "@aes") ? : xml_get(config, "system@aes");
-                        if (v && strlen(v) == 32)
-                           set("0xaes", v);
-                        if (app->door < 0 || !door[app->door].autonomous)
-                        {
-                           char *led = app->led;
-                           app->led = NULL;
-                           mqtt_led(port, led);
-                           if (led)
-                              free(led);
-                        }
-                     }
-                     port_p o;
-                     for (o = ports; o; o = o->next)
-                        if (o->mqtt && port_isoutput(o) && !strcmp(o->mqtt, id))
-                           mqtt_output(o, o->state);
-                  }
-                  if (!tag)
-                  {
-                     sende(state ? EVENT_FOUND : EVENT_MISSING, state);
-                     if (!state)
-                        sende(EVENT_DOOR, DOOR_OFFLINE);
-                     return;
-                  }
-                  if (!strncmp(tag, "input", 5) && port->state != state)
-                  {
-                     sende(EVENT_INPUT, state);
-                     return;
-                  }
-                  if (!strncmp(tag, "fault", 5) && port->fault != state)
-                  {
-                     sende(EVENT_FAULT, state);
-                     return;
-                  }
-                  if (!strncmp(tag, "tamper", 6) && port->tamper != state)
-                  {
-                     sende(EVENT_TAMPER, state);
-                     return;
-                  }
-                  if (!strncmp(tag, "door", 4) && app->door != -1 && app->state)
-                  {
-                     state = 0;
-#define d(n,l) {const char s[]=#n;if((unsigned)msg->payloadlen>=sizeof(s)-1&&!strncmp(msg->payload,#n,sizeof(s)-1))state=DOOR_##n;}
-                     DOOR
-#undef d
-                         sende(EVENT_DOOR, state);
-                     //syslog (LOG_INFO, "Door %d state %s [%.*s]", app->door, door_name[state], (int) msg->payloadlen, (char *) msg->payload);        // TODO
-                     return;
-                  }
-                  return;
-               }
-               if (port && !strncmp(t, "event", 5) && msg->payloadlen >= 1)
-               {
-                  if (!strncmp(tag, "warning", 5))
-                  {
-                     sende(EVENT_WARNING, 1);
-                     return;
-                  }
-                  if (!strcmp(tag, "id") || !strcmp(tag, "held") || !strcmp(tag, "access") || !strcmp(tag, "gone") || !strcmp(tag, "noaccess") || !strcmp(tag, "nfcfail"))
-                  {             // Fob
-                     int l;
-                     for (l = 0; l < msg->payloadlen && ((char *) msg->payload)[l] != ' '; l++);
-                     char *m = alloca(l + 1);
-                     memcpy(m, msg->payload, l);
-                     m[l] = 0;
+                  port_app_t *app = port_app(port);
+                  void sende(int etype, int state) {
                      event_t *e = malloc(sizeof(*e));
                      if (!e)
                         errx(1, "malloc");
                      memset((void *) e, 0, sizeof(*e));
-                     if (!strcmp(tag, "id"))
-                        e->event = EVENT_FOB;
-                     else if (!strcmp(tag, "held"))
-                        e->event = EVENT_FOB_HELD;
-                     else if (!strcmp(tag, "access"))
-                        e->event = EVENT_FOB_ACCESS;
-                     else if (!strcmp(tag, "gone"))
-                        e->event = EVENT_FOB_GONE;
-                     else if (!strcmp(tag, "noaccess"))
-                        e->event = EVENT_FOB_NOACCESS;
-                     else if (!strcmp(tag, "nfcfail"))
-                        e->event = EVENT_FOB_FAIL;
-                     while (l < msg->payloadlen && ((char *) msg->payload)[l] == ' ')
-                        l++;
-                     if (l < msg->payloadlen)
-                        asprintf((char **) &e->message, "%.*s", msg->payloadlen - l, ((char *) msg->payload) + l);
+                     e->event = etype;
                      e->port = port;
-                     strncpy((char *) e->fob, m, sizeof(e->fob));
-                     struct timezone tz;
-                     gettimeofday((void *) &e->when, &tz);
-                     postevent(e);
-                     return;
-                  }
-                  if (!strcmp(tag, "key") || !strcmp(tag, "held"))
-                  {
-                     event_t *e = malloc(sizeof(*e));
-                     if (!e)
-                        errx(1, "malloc");
-                     memset((void *) e, 0, sizeof(*e));
-                     e->event = (!strcmp(tag, "key") ? EVENT_KEY : EVENT_KEY_HELD);
-                     e->port = port;
-                     e->key = *(char *) msg->payload;
-                     struct timezone tz;
-                     gettimeofday((void *) &e->when, &tz);
-                     postevent(e);
-                     return;
-                  }
-                  if (!strcmp(tag, "open") || !strcmp(tag, "notopen"))
-                  {
-                     event_t *e = malloc(sizeof(*e));
-                     if (!e)
-                        errx(1, "malloc");
-                     memset((void *) e, 0, sizeof(*e));
-                     e->event = (!strcmp(tag, "open") ? EVENT_OPEN : EVENT_NOTOPEN);
-                     e->port = port;
-                     e->door = app->door;
+                     e->state = state;
                      asprintf((char **) &e->message, "%.*s", msg->payloadlen, (char *) msg->payload);
                      struct timezone tz;
                      gettimeofday((void *) &e->when, &tz);
+                     if (etype == EVENT_DOOR)
+                     {          // Which door
+                        int d = app->door;
+                        e->door = d;
+                        if (d >= 0 && d < MAX_DOOR)
+                           door[d].state = state;
+                     }
                      postevent(e);
+                  }
+                  void set(const char *tag, const char *val) {
+                     char *topic;
+                     asprintf(&topic, "setting/SS/%s/%s", port->mqtt, tag);
+                     mosquitto_publish(mqtt, NULL, topic, strlen(val ? : ""), val, 1, 0);
+                     free(topic);
+                  }
+                  if (port && !strncmp(t, "state", 5) && msg->payloadlen >= 1)
+                  {
+                     if (tag && !strcmp(tag, "aes"))
+                     {          // AES settings, send AID/AES if needed
+                        if (app->config && msg->payloadlen >= 6)
+                        {
+                           char *v;
+                           v = xml_get(app->config, "@aid") ? : xml_get(config, "system@aid");
+                           if (v && strlen(v) == 6 && strncmp(msg->payload, v, 6))
+                              set("aid", v);
+                           v = xml_get(app->config, "@aes") ? : xml_get(config, "system@aes");
+                           if (v && strlen(v) == 32 && (msg->payloadlen < 9 || strncmp(msg->payload + 7, "01", 2)))
+                           {
+                              char *p;
+                              if (asprintf(&p, "01%s", v) < 0)
+                                 errx(1, "malloc");
+                              set("aes1", p);
+                              free(p);
+                           }
+                           int i = 0;
+                           for (i = 0; i < 9; i++)
+                           {
+                              char a[] = "system@aesX";
+                              a[10] = '1' + i;
+                              v = xml_get(app->config, a + 6) ? : xml_get(config, a);
+                              if (!i && !v)
+                                 continue;
+                              if (v && strlen(v) == 34)
+                              {
+                                 if (msg->payloadlen < 9 + i * 2 || strncmp(msg->payload + 7 + 2 * i, v, 2))
+                                    set(a + 7, v);
+                              } else if (msg->payloadlen >= 9 + i * 2)
+                                 set(a + 7, "");
+                           }
+                        }
+                        return;
+                     }
+                     int state = (((char *) msg->payload)[0] > '0' ? 1 : 0);
+                     if (!tag && j)
+                        state = j_test(j, "up", 1);     // up is sent as false if down
+                     if (app->invert)
+                        state = 1 - state;
+                     if (!tag)
+                        app->state = state;
+                     if (!tag && !app->config)
+                     {          // New device
+                        app->config = xml_element_add(config, "device");
+                        xml_add(app->config, "@id", id);
+                        configchanged = 1;
+                     }
+                     if (!tag && state)
+                     {          // Load settings
+                        if (!j && (msg->payloadlen < 7 || strncmp(msg->payload + 2, "ESP32", 5)))
+                        {       // Old system - Set timezone
+                           char tz[10];
+                           sprintf(tz, "%d", settimezone);
+                           set("timezone", tz);
+                        }
+                        xml_attribute_t a = NULL;
+                        while ((a = xml_attribute_next(app->config, a)))
+                        {
+                           char *n = xml_attribute_name(a);
+                           if (!strcmp(n, "aes") || !strcmp(n, "aid"))
+                              continue; // Not settings
+                           char *v = xml_attribute_content(a);
+                           if (!strcmp(n, "id"))
+                              continue;
+                           if (!strcmp(n, "name"))
+                              continue;
+                           set(n, v);
+                        }
+                        {       // Top level settings, which can be overridden per device
+                           const char *settings[] = {
+                              "@mqttreset",
+                              "@wifissid",
+                              "@wifipass",
+                              "@wifissid2",
+                              "@wifipass2",
+                              "@wifissid3",
+                              "@wifipass3",
+                              "@mqtthost2",
+                              "@fallback",
+                              "@blacklist",
+                              "@offline",
+                              "@rangerdebug",
+                              "@rangerpoll",
+                              "@raangerhold",
+                              "@rangermax",
+                              "@rangerset",
+                              "@inputhold",
+                              "@doorprop",
+                              "@dooropen",
+                              "@doorclose",
+                              "@doorlock",
+                              "@doorunlock",
+                              "@doorexit",
+                              "@doorbeep",
+                              "@doorsilent",
+                           };
+                           xml_t system = xml_element_next_by_name(config, NULL, "system");
+                           if (system)
+                           {
+                              const char *v;
+                              unsigned int n;
+                              for (n = 0; n < sizeof(settings) / sizeof(*settings); n++)
+                                 if (!xml_get(app->config, settings[n]) && (v = xml_get(system, settings[n])))
+                                    set(settings[n] + 1, v);
+                           }
+                        }
+                        char *v;
+                        if ((v = xml_get(app->config, "@nfc")) && *v)
+                        {
+                           v = xml_get(app->config, "@aid") ? : xml_get(config, "system@aid");
+                           if (v && strlen(v) == 6)
+                              set("0xaid", v);
+                           v = xml_get(app->config, "@aes") ? : xml_get(config, "system@aes");
+                           if (v && strlen(v) == 32)
+                              set("0xaes", v);
+                           if (app->door < 0 || !door[app->door].autonomous)
+                           {
+                              char *led = app->led;
+                              app->led = NULL;
+                              mqtt_led(port, led);
+                              if (led)
+                                 free(led);
+                           }
+                        }
+                        port_p o;
+                        for (o = ports; o; o = o->next)
+                           if (o->mqtt && port_isoutput(o) && !strcmp(o->mqtt, id))
+                              mqtt_output(o, o->state);
+                     }
+                     if (!tag)
+                     {
+                        sende(state ? EVENT_FOUND : EVENT_MISSING, state);
+                        if (!state)
+                           sende(EVENT_DOOR, DOOR_OFFLINE);
+                        return;
+                     }
+                     if (!strncmp(tag, "input", 5) && port->state != state)
+                     {
+                        sende(EVENT_INPUT, state);
+                        return;
+                     }
+                     if (!strncmp(tag, "fault", 5) && port->fault != state)
+                     {
+                        sende(EVENT_FAULT, state);
+                        return;
+                     }
+                     if (!strncmp(tag, "tamper", 6) && port->tamper != state)
+                     {
+                        sende(EVENT_TAMPER, state);
+                        return;
+                     }
+                     if (!strncmp(tag, "door", 4) && app->door != -1 && app->state)
+                     {
+                        state = 0;
+#define d(n,l) {const char s[]=#n;if((unsigned)msg->payloadlen>=sizeof(s)-1&&!strncmp(msg->payload,#n,sizeof(s)-1))state=DOOR_##n;}
+                        DOOR
+#undef d
+                            sende(EVENT_DOOR, state);
+                        //syslog (LOG_INFO, "Door %d state %s [%.*s]", app->door, door_name[state], (int) msg->payloadlen, (char *) msg->payload);        // TODO
+                        return;
+                     }
                      return;
                   }
+                  if (port && !strncmp(t, "event", 5) && msg->payloadlen >= 1)
+                  {
+                     if (!strncmp(tag, "warning", 5))
+                     {
+                        sende(EVENT_WARNING, 1);
+                        return;
+                     }
+                     if (!strcmp(tag, "id") || !strcmp(tag, "held") || !strcmp(tag, "access") || !strcmp(tag, "gone") || !strcmp(tag, "noaccess") || !strcmp(tag, "nfcfail"))
+                     {          // Fob
+                        int l;
+                        for (l = 0; l < msg->payloadlen && ((char *) msg->payload)[l] != ' '; l++);
+                        char *m = alloca(l + 1);
+                        memcpy(m, msg->payload, l);
+                        m[l] = 0;
+                        event_t *e = malloc(sizeof(*e));
+                        if (!e)
+                           errx(1, "malloc");
+                        memset((void *) e, 0, sizeof(*e));
+                        if (!strcmp(tag, "id"))
+                           e->event = EVENT_FOB;
+                        else if (!strcmp(tag, "held"))
+                           e->event = EVENT_FOB_HELD;
+                        else if (!strcmp(tag, "access"))
+                           e->event = EVENT_FOB_ACCESS;
+                        else if (!strcmp(tag, "gone"))
+                           e->event = EVENT_FOB_GONE;
+                        else if (!strcmp(tag, "noaccess"))
+                           e->event = EVENT_FOB_NOACCESS;
+                        else if (!strcmp(tag, "nfcfail"))
+                           e->event = EVENT_FOB_FAIL;
+                        while (l < msg->payloadlen && ((char *) msg->payload)[l] == ' ')
+                           l++;
+                        if (l < msg->payloadlen)
+                           asprintf((char **) &e->message, "%.*s", msg->payloadlen - l, ((char *) msg->payload) + l);
+                        e->port = port;
+                        strncpy((char *) e->fob, m, sizeof(e->fob));
+                        struct timezone tz;
+                        gettimeofday((void *) &e->when, &tz);
+                        postevent(e);
+                        return;
+                     }
+                     if (!strcmp(tag, "key") || !strcmp(tag, "held"))
+                     {
+                        event_t *e = malloc(sizeof(*e));
+                        if (!e)
+                           errx(1, "malloc");
+                        memset((void *) e, 0, sizeof(*e));
+                        e->event = (!strcmp(tag, "key") ? EVENT_KEY : EVENT_KEY_HELD);
+                        e->port = port;
+                        e->key = *(char *) msg->payload;
+                        struct timezone tz;
+                        gettimeofday((void *) &e->when, &tz);
+                        postevent(e);
+                        return;
+                     }
+                     if (!strcmp(tag, "open") || !strcmp(tag, "notopen"))
+                     {
+                        event_t *e = malloc(sizeof(*e));
+                        if (!e)
+                           errx(1, "malloc");
+                        memset((void *) e, 0, sizeof(*e));
+                        e->event = (!strcmp(tag, "open") ? EVENT_OPEN : EVENT_NOTOPEN);
+                        e->port = port;
+                        e->door = app->door;
+                        asprintf((char **) &e->message, "%.*s", msg->payloadlen, (char *) msg->payload);
+                        struct timezone tz;
+                        gettimeofday((void *) &e->when, &tz);
+                        postevent(e);
+                        return;
+                     }
+                  }
+                  if (tag)
+                     id[6] = '/';
                }
-               if (tag)
-                  id[6] = '/';
+               dolog(groups, "MQTT", NULL, NULL, "Unexpected message %s", msg->topic);
             }
-            dolog(groups, "MQTT", NULL, NULL, "Unexpected message %s", msg->topic);
+            process();
+            j_delete(&j);
          }
          void mqtt_disconnected(struct mosquitto *mqtt, void *obj, int rc) {
             obj = obj;
@@ -4569,7 +4587,7 @@ int main(int argc, const char *argv[])
    //if (wsport || wskeyfile)
    {
       const char *e = websocket_bind(wsport, wsorigin, wshost, NULL, wscertfile, wskeyfile,
-                                     xml:wscallback);
+    xml:                            wscallback);
       if (e)
          errx(1, "Websocket fail: %s", e);
    }

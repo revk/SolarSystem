@@ -6,7 +6,6 @@
 #include <malloc.h>
 #include <err.h>
 #include <string.h>
-#include <axl.h>
 #include "door.h"
 #include "port.h"
 #include "galaxybus.h"

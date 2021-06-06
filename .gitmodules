@@ -35,3 +35,6 @@
 [submodule "PCBCase"]
 	path = PCBCase
 	url = https://github.com/revk/PCBCase
+[submodule "AJL"]
+	path = AJL
+	url = https://github.com/revk/AJL

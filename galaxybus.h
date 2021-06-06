@@ -19,7 +19,6 @@
        along with this program.  If not, see <http://www.gnu.org/licenses/>.
      */
 
-#include <axl.h>
 #include "port.h"
 #include "door.h"
 
@@ -142,7 +141,7 @@ struct keypad_data_s
    unsigned char silent:1;      // Silent keybeeps
    unsigned char cross:1;       // Crossed zeros
    unsigned char beep[2];       // Beeping
-   unsigned char text[2][17];   // Display (display is 16, we have 17 to allow printf and the like)
+   unsigned char text[2][50];   // Display (display is 16, we have more to allow printf and the like)
    unsigned char cursor;        // 0x80 for solid, 0x40 for underline, 0x10 for second line, 0x0P for position
 };
 
