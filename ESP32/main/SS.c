@@ -37,16 +37,18 @@ const char *controller_tamper = NULL;
 
 static void status_report(int force)
 {                               // Report status change
-   static const char *lastfault = NULL;
-   static const char *lasttamper = NULL;
+   static char *lastfault = NULL;
+   int faults = 0;
+   static char *lasttamper = NULL;
+   int tampers = 0;
    {                            // Faults
-      const char *fault = NULL;
-      const char *module = NULL;
-      int faults = 0;
-#define m(n) extern const char *n##_fault;if(n##_fault){fault=n##_fault;module=#n;faults++;}
+      jo_t j = jo_create_alloc();
+      jo_object(j, NULL);
+#define m(n) extern const char *n##_fault;if(n##_fault){jo_string(j,#n,n##_fault);faults++;}
       modules m(controller)
 #undef m
-      if (!fault && force && reason >= 0)
+      char *fault = jo_finisha(&j);
+      if (!faults && force && reason >= 0)
       {
          const char *r = NULL;
          if (reason == ESP_RST_POWERON)
@@ -62,41 +64,51 @@ static void status_report(int force)
          else
             r = "Restart";
          if (r)
-            revk_event("warning", "%s", r);
+         {
+            jo_t j = jo_create_alloc();
+            jo_object(j, NULL);
+            jo_string(j, "controller", r);
+            char *res = jo_finisha(&j);
+            if (res)
+            {
+               revk_event("warning", "%s", res);
+               free(res);
+            }
+         }
          reason = -1;           // Just once
       }
-      if (lastfault != fault || force)
+      if (strcmp(fault ? : "", lastfault ? : "") || force)
       {
+         if (lastfault)
+            free(lastfault);
          lastfault = fault;
-         if (faults > 1)
-            revk_state("fault", "1 %s: %s (+%d other)", module, fault, faults - 1);
-         else if (fault)
-            revk_state("fault", "1 %s: %s", module, fault);
-         else
-            revk_state("fault", "0");
+         fault = NULL;
+         revk_state("fault", "%s", lastfault);
       }
+      if (fault)
+         free(fault);
    }
    {                            // Tampers
-      const char *tamper = NULL;
-      const char *module = NULL;
-      int tampers = 0;
-#define m(n) extern const char *n##_tamper;if(n##_tamper){tamper=n##_tamper;module=#n;tampers++;}
+      jo_t j = jo_create_alloc();
+      jo_object(j, NULL);
+#define m(n) extern const char *n##_tamper;if(n##_tamper){jo_string(j,#n,n##_tamper);tampers++;}
       modules m(controller)
 #undef m
-      if (lasttamper != tamper || force)
+      char *tamper = jo_finisha(&j);
+      if (strcmp(tamper ? : "", lasttamper ? : "") || force)
       {
+         if (lasttamper)
+            free(lasttamper);
          lasttamper = tamper;
-         if (tampers > 1)
-            revk_state("tamper", "1 %s: %s (+%d other)", module, tamper, tampers);
-         else if (tamper)
-            revk_state("tamper", "1 %s: %s", module, tamper);
-         else
-            revk_state("tamper", "0");
+         tamper = NULL;
+         revk_state("tamper", "%s", lasttamper);
       }
+      if (tamper)
+         free(tamper);
    }
-   if (lasttamper)
+   if (tampers)
       revk_blink(1, 1);
-   else if (lastfault)
+   else if (faults)
       revk_blink(1, 5);
    else
       revk_blink(0, 0);
@@ -169,7 +181,7 @@ void app_main()
          if (gpio_get_level(port_mask(tamper)) ^ ((tamper & PORT_INV) ? 1 : 0))
          {
             if (!controller_tamper)
-               status(controller_tamper = "Tamper");
+               status(controller_tamper = "Tamper switch");
          } else
          {
             if (controller_tamper)

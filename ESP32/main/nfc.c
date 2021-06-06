@@ -169,7 +169,7 @@ static void task(void *pvParameters)
             if (nfctamper)
             {                   // Check tamper
                if (p3 & (1 << gpio_mask(nfctamper)))
-                  status(nfc_tamper = "Tamper");
+                  status(nfc_tamper = "Tamper switch");
                else
                   status(nfc_tamper = NULL);
             }

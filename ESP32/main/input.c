@@ -2,7 +2,6 @@
 // Copyright © 2019 Adrian Kennard, Andrews & Arnold Ltd. See LICENCE file for details. GPL 3.0
 static const char TAG[] = "input";
 #include "SS.h"
-#include "jo.h"
 const char *input_fault = NULL;
 const char *input_tamper = NULL;
 
@@ -81,7 +80,7 @@ static void task(void *pvParameters)
       int64_t now = esp_timer_get_time();
       char report = reportall;
       reportall = 0;
-      char jout = 0;
+      char changed = 0;
       int i;
       for (i = 0; i < MAXINPUT; i++)
          if (input[i])
@@ -89,18 +88,10 @@ static void task(void *pvParameters)
             int v = gpio_get_level(port_mask(input[i]));
             if ((1ULL << i) & input_invert)
                v = 1 - v;
-            char changed = report;
             if ((input_hold[i] < now) && (report || v != ((input_stable >> i) & 1)))
             {                   // Change of stable state
                input_stable = ((input_stable & ~(1ULL << i)) | ((uint64_t) v << i));
                changed = 1;
-            }
-            if (changed)
-            {
-               char tag[20];
-               sprintf(tag, "%s%d", TAG, i + 1);
-               revk_state(tag, "%d", (input_stable >> i) & 1);
-               jout = 1;
             }
             if (v != ((input_raw >> i) & 1))
             {                   // Change of raw state
@@ -108,8 +99,8 @@ static void task(void *pvParameters)
                input_hold[i] = now + (int64_t) inputhold *1000LL;
             }
          }
-      if (jout)
-      {                         // JSON version
+      if (changed)
+      {                         // JSON
          jo_t j = jo_create_alloc();
          jo_array(j, NULL);
          int t = MAXINPUT;
@@ -120,12 +111,7 @@ static void task(void *pvParameters)
                jo_null(j, NULL);
             else
                jo_bool(j, NULL, (input_stable >> i) & 1);
-         char *res = jo_finisha(&j);
-         if (res)
-         {
-            revk_state(TAG, "%s", res);
-            free(res);
-         }
+         revk_statej(TAG, &j);
       }
       // Sleep
       usleep((inputpoll ? : 1) * 1000);

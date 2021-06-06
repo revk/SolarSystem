@@ -2700,7 +2700,7 @@ static void *do_keypad_update(keypad_t * k, char key)
    int p;
    char *l1 = (char *) k->k.text[0];
    char *l2 = (char *) k->k.text[1];
-   int ll=sizeof(k->k.text[0]);
+   int ll = sizeof(k->k.text[0]);
    k->when = (now.tv_sec + 60) / 60 * 60;       // Next update default if not set below
    if (k->user && k->when_logout)
    {                            // Auto logout
@@ -4456,19 +4456,36 @@ int main(int argc, const char *argv[])
                            sende(EVENT_DOOR, DOOR_OFFLINE);
                         return;
                      }
-                     if (!strncmp(tag, "input", 5) && port->state != state)
+                     if (!strncmp(tag, "input", 5))
                      {
-                        sende(EVENT_INPUT, state);
+                        if (j)
+                        {       // JSON
+                           for (int i = 0; i < j_len(j); i++)
+                              if (j_isbool(j_index(j, i)))
+                              {
+                                 port = port_new(id, 1, i + 1);
+                                 state = j_istrue(j_index(j, i));
+                                 if (port->state != state)
+                                    sende(EVENT_INPUT, state);
+                              }
+                        } else if (port->state != state)
+                           sende(EVENT_INPUT, state);
                         return;
                      }
-                     if (!strncmp(tag, "fault", 5) && port->fault != state)
+                     if (!strncmp(tag, "fault", 5))
                      {
-                        sende(EVENT_FAULT, state);
+                        if (j)
+                           state = (j_len(j) > 0);      // JSON
+                        if (port->fault != state)
+                           sende(EVENT_FAULT, state);
                         return;
                      }
-                     if (!strncmp(tag, "tamper", 6) && port->tamper != state)
+                     if (!strncmp(tag, "tamper", 6))
                      {
-                        sende(EVENT_TAMPER, state);
+                        if (j)
+                           state = (j_len(j) > 0);      // JSON
+                        if (port->tamper != state)
+                           sende(EVENT_TAMPER, state);
                         return;
                      }
                      if (!strncmp(tag, "door", 4) && app->door != -1 && app->state)
