@@ -120,11 +120,11 @@ static void task(void *pvParameters)
                jo_null(j, NULL);
             else
                jo_bool(j, NULL, (input_stable >> i) & 1);
-         char *o = jo_result_free(&j);
-         if (o)
+         char *res = jo_finisha(&j);
+         if (res)
          {
-            revk_state(TAG, "%s", o);
-            free(o);
+            revk_state(TAG, "%s", res);
+            free(res);
          }
       }
       // Sleep
