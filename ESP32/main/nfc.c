@@ -402,7 +402,7 @@ static void report_state(void)
       return;
    jo_t j = jo_object_alloc();
    jo_stringf(j, "aid", "%02X%02X%02X", aid[0], aid[1], aid[2]);
-   jo_array(j, "key");
+   jo_array(j, "id");
    for (int i = 0; i < sizeof(aes) / sizeof(*aes) && aes[i][0]; i++)
       jo_stringf(j, NULL, "%02X", aes[i][0]);
    revk_statej("keys", &j);
