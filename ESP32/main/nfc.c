@@ -419,7 +419,7 @@ static void task(void *pvParameters)
                   jo_string(j, "type", "ISO");
                jo_string(j, "id", id);
                jo_bool(j, "secure", secure);
-               if (door >= 2)
+               if (door >= 3)
                   jo_bool(j, "allowed", allowed);
                if (secure && door >= 4)
                   jo_stringf(j, "crc", "%08X", crc);
