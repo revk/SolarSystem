@@ -43,6 +43,7 @@
 #include <galaxybus.h>
 #include <axl.h>
 #include <ajl.h>
+#include <ajl.h>
 #include <dataformat.h>
 #include <openssl/evp.h>
 #include <desfireaes.h>
@@ -4491,10 +4492,23 @@ int main(int argc, const char *argv[])
                      if (!strncmp(tag, "door", 4) && app->door != -1 && app->state)
                      {
                         state = 0;
-#define d(n,l) {const char s[]=#n;if((unsigned)msg->payloadlen>=sizeof(s)-1&&!strncmp(msg->payload,#n,sizeof(s)-1))state=DOOR_##n;}
-                        DOOR
+                        if (j)
+                        {
+                           const char *statename = j_get(j, "state");
+                           if (statename)
+                           {
+#define d(n,l) if(!strcmp(statename,#n))state=DOOR_##n;
+                              DOOR
 #undef d
-                            sende(EVENT_DOOR, state);
+                                  sende(EVENT_DOOR, state);
+                           }
+                        } else
+                        {
+#define d(n,l) {const char s[]=#n;if((unsigned)msg->payloadlen>=sizeof(s)-1&&!strncmp(msg->payload,#n,sizeof(s)-1))state=DOOR_##n;}
+                           DOOR
+#undef d
+                               sende(EVENT_DOOR, state);
+                        }
                         //syslog (LOG_INFO, "Door %d state %s [%.*s]", app->door, door_name[state], (int) msg->payloadlen, (char *) msg->payload);        // TODO
                         return;
                      }

@@ -122,7 +122,10 @@ static void task(void *pvParameters)
          {                      // Connected, get port
             p3 = pn532_read_GPIO(pn532);
             if (p3 < 0)
+            {
+               usleep(1000);    // messy
                p3 = pn532_read_GPIO(pn532);     // Try again
+            }
             if (p3 < 0)
             {
                pn532 = pn532_end(pn532);

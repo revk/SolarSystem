@@ -621,7 +621,11 @@ static void task(void *pvParameters)
          if (force || doorstate != lastdoorstate)
          {
             nfc_led(strlen(doorled[doorstate]), doorled[doorstate]);
-            revk_state("door", doortimeout && doordebug ? "%s %dms" : "%s", doorstates[doorstate], (int) (doortimeout - now) / 1000);
+            jo_t j = jo_object_alloc();
+            jo_string(j, "state", doorstates[doorstate]);
+            if (doortimeout > now)
+               jo_int(j, "timeout", (doortimeout - now) / 1000);
+            revk_statej("door", &j);
             lastdoorstate = doorstate;
          }
          output_set(OERROR, door_tamper || door_fault);
