@@ -101,12 +101,13 @@ static void task(void *pvParameters)
    pvParameters = pvParameters;
    int64_t nextpoll = 0;
    int64_t nextled = 0;
-   int64_t nexttamper = 0;
+   int64_t nextio = 0;
    char id[22];
    const char *noaccess = NULL;
    int64_t found = 0;
    uint8_t ledlast = 0xFF;
    uint8_t ledpos = 0;
+   uint8_t retry = 0;
    while (1)
    {
       esp_task_wdt_reset();
@@ -114,19 +115,24 @@ static void task(void *pvParameters)
       int64_t now = esp_timer_get_time();
       // Regular tasks
       // Check tamper
-      if (nexttamper < now)
+      if (nextio < now)
       {                         // Check tamper
-         nexttamper += (uint64_t) nfciopoll *1000LL;
+         nextio += (uint64_t) nfciopoll *1000LL;
          int p3 = -1;
          if (pn532)
          {                      // Connected, get port
             p3 = pn532_read_GPIO(pn532);
-            if (p3 < 0)
-               p3 = pn532_read_GPIO(pn532);     // Try again
-            if (p3 < 0)
+            if (p3 >= 0)
+               retry = 0;
+            else
             {
-               pn532 = pn532_end(pn532);
-               status(nfc_fault = "Failed");
+               nextio = now;    // Try again right away
+               ESP_LOGI(TAG, "Retry %d", retry + 1);
+               if (retry++ >= 10)
+               { // We don't expect this in normal operation, but some flash operations seem to stall serial a bit
+                  pn532 = pn532_end(pn532);
+                  status(nfc_fault = "Failed");
+               }
             }
          }
          if (!pn532)
@@ -408,7 +414,7 @@ const char *nfc_command(const char *tag, unsigned int len, const unsigned char *
       report_state();
    if (!pn532)
       return NULL;              // Not running
-   if (!strcmp(tag, "restart"))
+   if (!strcmp(tag, "shutdown"))
    {
       if (nfcpower)
          gpio_set_level(port_mask(nfcpower), (nfcpower & PORT_INV) ? 1 : 0);    // Off
