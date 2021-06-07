@@ -110,6 +110,7 @@ static void task(void *pvParameters)
    uint8_t ledpos = 0;
    uint8_t retry = 0;
    uint8_t secure = 0;
+   uint8_t allowed = 0;
    while (1)
    {
       esp_task_wdt_reset();
@@ -266,7 +267,7 @@ static void task(void *pvParameters)
          if (found)
          {
             nextpoll = now + (int64_t) nfcholdpoll *1000LL;     // Periodic check for card held
-            if (!held && nfchold && found < now)
+            if (!held && nfchold && found < now && allowed)
             {                   // Card has been held for a while, report
                ESP_LOGI(TAG, "held %s", id);
                jo_t j = jo_object_alloc();
@@ -295,12 +296,12 @@ static void task(void *pvParameters)
             xSemaphoreTake(nfc_mutex, portMAX_DELAY);
             nextpoll = now + (int64_t) nfcholdpoll *1000LL;     // Periodic check for card held
             jo_t j = jo_object_alloc();
-            uint8_t noaccess = 0;       // Do not allow
             uint8_t aesid = 0;
             const char *e = NULL;
             uint8_t *ats = pn532_ats(pn532);
             uint32_t crc = 0;
             secure = 0;
+            allowed = 1;
             pn532_nfcid(pn532, id);
             if (!held && aes[0][0] && (aid[0] || aid[1] || aid[2]) && *ats && ats[1] == 0x75)
             {                   // DESFire
@@ -328,7 +329,8 @@ static void task(void *pvParameters)
                {
                   secure = 1;
                   snprintf(id, sizeof(id), "%02X%02X%02X%02X%02X%02X%02X", uid[0], uid[1], uid[2], uid[3], uid[4], uid[5], uid[6]);     // Set UID with + to indicate secure, regardless of access allowed, etc.
-               }
+               } else if (!strcmp(e, "Application not found"))
+                  e = NULL;     // Just not secure
             }
             // Door check
             if (e)
@@ -337,7 +339,7 @@ static void task(void *pvParameters)
                jo_string(j, "type", "nfc");
                jo_string(j, "description", e);
                jo_close(j);
-               noaccess = 1;
+               allowed = 0;
             } else
             {
                const char *f = door_fob(id, &crc);      // Access from door control
@@ -350,7 +352,7 @@ static void task(void *pvParameters)
                      jo_string(j, "description", f);
                      jo_close(j);
                   }
-                  noaccess = 1;
+                  allowed = 0;
                }
             }
             void log(void) {    // Log and count
@@ -395,7 +397,7 @@ static void task(void *pvParameters)
                   ESP_LOGI(TAG, "ID %s", id);
                if (!e && df.keylen && nfccommit)
                   log();        // Log before reporting or opening door
-               if (!noaccess)
+               if (allowed)
                {                // Access is allowed!
                   blink(nfcred);        // Not allowed
                   door_unlock(NULL, "fob");     // Door system was happy with fob, let 'em in
@@ -414,8 +416,8 @@ static void task(void *pvParameters)
                jo_string(j, "id", id);
                jo_bool(j, "secure", secure);
                if (door >= 2)
-                  jo_bool(j, "allowed", !noaccess);
-               if (secure)
+                  jo_bool(j, "allowed", allowed);
+               if (secure && door >= 4)
                   jo_stringf(j, "crc", "%08X", crc);
                revk_eventj("access", &j);
                if (!e && df.keylen && !nfccommit)

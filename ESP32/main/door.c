@@ -215,25 +215,19 @@ const char *door_fob(char *id, uint32_t * crcp)
    {
       if (door >= 4 && df.keylen)
       {                         // Zap the access file
-         if (*afile != 1 || afile[1] != 0xA0)
-         {
-            *afile = 1;
-            afile[1] = 0xA0;    // Blacklist
-            if (crcp)
-               *crcp = df_crc(*afile, afile + 1);
-            if (df.keylen)
-            {
-               const char *e = df_write_data(&df, 0x0A, 'B', DF_MODE_CMAC, 0, *afile + 1, afile);
-               if (!e)
-                  e = df_commit(&df);   // Commit the change, as we will not commit later as access not allowed
-               if (e)
-                  return e;
-            }
-            return "Blacklist (zapped)";
-         }
+         *afile = 1;
+         afile[1] = 0xA0;       // Blacklist
          if (crcp)
             *crcp = df_crc(*afile, afile + 1);
-         return "Blacklist (already zapped)";
+         if (df.keylen)
+         {
+            const char *e = df_write_data(&df, 0x0A, 'B', DF_MODE_CMAC, 0, *afile + 1, afile);
+            if (!e)
+               e = df_commit(&df);      // Commit the change, as we will not commit later as access not allowed
+            if (e)
+               return e;
+         }
+         return "Blacklist (zapped)";
       }
       return "Blacklist";
    }
