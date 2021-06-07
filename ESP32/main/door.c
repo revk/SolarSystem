@@ -510,10 +510,10 @@ static void task(void *pvParameters)
                lock[l].i = i;
                if (doordebug && (force || last != lock[l].state))
                {
-                  jo_t j = j_object_alloc();
-                  j_string(j, "state", lockstates[lock[l].state]);
+                  jo_t j = jo_object_alloc();
+                  jo_string(j, "state", lockstates[lock[l].state]);
                   if (lock[l].timeout > now)
-                     j_int(j, "timeout", (lock[l].timeout - now) / 1000);
+                     jo_int(j, "timeout", (lock[l].timeout - now) / 1000);
                   revk_statej(l ? "deadlock" : "lock", &j);
                }
             }
