@@ -4578,7 +4578,10 @@ int main(int argc, const char *argv[])
                         e->event = (!strcmp(tag, "open") ? EVENT_OPEN : EVENT_NOTOPEN);
                         e->port = port;
                         e->door = app->door;
-                        asprintf((char **) &e->message, "%.*s", msg->payloadlen, (char *) msg->payload);
+                        if (j)
+                           asprintf((char **) &e->message, "%s", j_get(j, "trigger") ? : "unknown");
+                        else
+                           asprintf((char **) &e->message, "%.*s", msg->payloadlen, (char *) msg->payload);
                         struct timezone tz;
                         gettimeofday((void *) &e->when, &tz);
                         postevent(e);

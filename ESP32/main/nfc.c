@@ -85,7 +85,9 @@ const char *nfc_led(int len, const void *value)
 {
    if (!len)
       len = strlen(value = led);        // Default
-   revk_info("led", "%.*s", len, value);
+   jo_t j = jo_object_alloc();
+   jo_stringf(j, "sequence", "%.*s", len, value);
+   revk_infoj("led", &j);
    if (len > sizeof(ledpattern))
       len = sizeof(ledpattern);
    if (len < sizeof(ledpattern))
@@ -129,7 +131,7 @@ static void task(void *pvParameters)
                nextio = now;    // Try again right away
                ESP_LOGI(TAG, "Retry %d", retry + 1);
                if (retry++ >= 10)
-               { // We don't expect this in normal operation, but some flash operations seem to stall serial a bit
+               {                // We don't expect this in normal operation, but some flash operations seem to stall serial a bit
                   pn532 = pn532_end(pn532);
                   status(nfc_fault = "Failed");
                }

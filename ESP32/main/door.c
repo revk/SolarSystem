@@ -524,7 +524,10 @@ static void task(void *pvParameters)
          {                      // Open
             if (doorstate != DOOR_NOTCLOSED && doorstate != DOOR_PROPPED && doorstate != DOOR_OPEN)
             {                   // We have moved to open state, this can cancel the locking operation
-               revk_event("open", "%s", doorwhy ? : "");
+               jo_t j = jo_object_alloc();
+               if (doorwhy)
+                  jo_string(j, "trigger", doorwhy);
+               revk_eventj("open", &j);
                doorwhy = NULL;
                doorstate = DOOR_OPEN;
                if (lock[0].state == LOCK_LOCKING || lock[0].state == LOCK_LOCKFAIL)
@@ -567,7 +570,12 @@ static void task(void *pvParameters)
             else if (doorstate == DOOR_UNLOCKED || doorstate == DOOR_CLOSED)
             {                   // Time to lock the door
                if (doorstate == DOOR_UNLOCKED)
-                  revk_event("notopen", "%s", doorwhy ? : "");
+               {
+                  jo_t j = jo_object_alloc();
+                  if (doorwhy)
+                     jo_string(j, "trigger", doorwhy);
+                  revk_eventj("notopen", &j);
+               }
                if (doordeadlock)
                   door_deadlock(NULL);
                else
