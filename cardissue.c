@@ -598,9 +598,7 @@ main (int argc, const char *argv[])
     return s ? : 1;
   }
 
-  const unsigned char *afile = NULL;
-  if (user)
-    afile = getafile (c, user, debug, forceallow);
+  const unsigned char *afile = getafile (c, user, debug, forceallow);
 
   unsigned int size = checkfile (0x0A, 'B', comms, 0x0010, "Access");
   if (size)

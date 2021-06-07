@@ -51,7 +51,7 @@ galaxybus.o: galaxybus.c galaxybus.h port.h
 	gcc -g -Wall -Wextra -O -c -o galaxybus.o galaxybus.c -I. -DLIB -pthread
 
 afile.o: afile.c afile.h
-	gcc -g -Wall -Wextra -O -c -o afile.o afile.c -I. -IDESFireAES/include -DLIB -pthread
+	gcc -g -Wall -Wextra -O -c -o afile.o afile.c -I. -IAXL -IDESFireAES/include -DLIB -pthread
 
 door.o: door.c door.h galaxybus.h
 	gcc -g -Wall -Wextra -O -c -o door.o door.c -I. -DLIB -pthread

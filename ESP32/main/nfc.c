@@ -105,11 +105,11 @@ static void task(void *pvParameters)
    int64_t nextled = 0;
    int64_t nextio = 0;
    char id[22];
-   const char *noaccess = NULL;
    int64_t found = 0;
    uint8_t ledlast = 0xFF;
    uint8_t ledpos = 0;
    uint8_t retry = 0;
+   uint8_t secure = 0;
    while (1)
    {
       esp_task_wdt_reset();
@@ -254,7 +254,12 @@ static void task(void *pvParameters)
          {                      // Card gone
             ESP_LOGI(TAG, "gone %s", id);
             if (held && nfchold)
-               revk_event("gone", "%s", id);
+            {
+               jo_t j = jo_object_alloc();
+               jo_string(j, "id", id);
+               jo_bool(j, "secure", secure);
+               revk_eventj("gone", &j);
+            }
             found = 0;
             held = 0;
          }
@@ -263,7 +268,11 @@ static void task(void *pvParameters)
             nextpoll = now + (int64_t) nfcholdpoll *1000LL;     // Periodic check for card held
             if (!held && nfchold && found < now)
             {                   // Card has been held for a while, report
-               revk_event("held", "%s", id);
+               ESP_LOGI(TAG, "held %s", id);
+               jo_t j = jo_object_alloc();
+               jo_string(j, "id", id);
+               jo_bool(j, "secure", secure);
+               revk_eventj("held", &j);
                blink(nfcamber);
                held = 1;
             }
@@ -285,11 +294,13 @@ static void task(void *pvParameters)
          {
             xSemaphoreTake(nfc_mutex, portMAX_DELAY);
             nextpoll = now + (int64_t) nfcholdpoll *1000LL;     // Periodic check for card held
-            noaccess = "";      // Assume no auto access (not an error)
+            jo_t j = jo_object_alloc();
+            uint8_t noaccess = 0;       // Do not allow
             uint8_t aesid = 0;
             const char *e = NULL;
             uint8_t *ats = pn532_ats(pn532);
             uint32_t crc = 0;
+            secure = 0;
             pn532_nfcid(pn532, id);
             if (!held && aes[0][0] && (aid[0] || aid[1] || aid[2]) && *ats && ats[1] == 0x75)
             {                   // DESFire
@@ -314,13 +325,34 @@ static void task(void *pvParameters)
                if (!e)
                   e = df_get_uid(&df, uid);
                if (!e)
-                  snprintf(id, sizeof(id), "%02X%02X%02X%02X%02X%02X%02X+", uid[0], uid[1], uid[2], uid[3], uid[4], uid[5], uid[6]);    // Set UID with + to indicate secure, regardless of access allowed, etc.
+               {
+                  secure = 1;
+                  snprintf(id, sizeof(id), "%02X%02X%02X%02X%02X%02X%02X", uid[0], uid[1], uid[2], uid[3], uid[4], uid[5], uid[6]);     // Set UID with + to indicate secure, regardless of access allowed, etc.
+               }
             }
             // Door check
             if (e)
-               noaccess = e;    // NFC or DESFire error
-            else
-               noaccess = door_fob(id, &crc);   // Access from door control
+            {
+               jo_object(j, "error");
+               jo_string(j, "type", "nfc");
+               jo_string(j, "description", e);
+               jo_close(j);
+               noaccess = 1;
+            } else
+            {
+               const char *f = door_fob(id, &crc);      // Access from door control
+               if (f)
+               {
+                  if (*f)
+                  {
+                     jo_object(j, "error");
+                     jo_string(j, "type", "door");
+                     jo_string(j, "description", f);
+                     jo_close(j);
+                  }
+                  noaccess = 1;
+               }
+            }
             void log(void) {    // Log and count
                // Log
                uint8_t buf[10];
@@ -341,9 +373,14 @@ static void task(void *pvParameters)
                // Key update
                if (aesid)
                {
-                  revk_info("aes", "Key update %02X->%02X", *aes[aesid], *aes[0]);
                   e = df_change_key(&df, 1, aes[0][0], aes[aesid] + 1, aes[0] + 1);
+                  if (!e)
+                     jo_stringf(j, "newkey", "%02X", *aes[0]);
+                  else
+                     jo_stringf(j, "oldkey", "%02X", *aes[aesid]);
                }
+               if (!e)
+                  jo_bool(j, "updated", 1);
             }
             if (e && strstr(e, "TIMEOUT"))
             {
@@ -370,16 +407,17 @@ static void task(void *pvParameters)
                   blink(nfcamber);      // Read OK but we don't know if allowed or not as needs back end to advise
                nextled = now + 200000LL;
                // Report
-               if (door >= 4 || !noaccess)
-               {                // Autonomous door control
-                  if (noaccess && *noaccess == '*')
-                     revk_event("noaccess", "%s %08X %s", id, crc, noaccess + 1);
-                  else if (noaccess && *noaccess)
-                     revk_event("nfcfail", "%s %08X %s", id, crc, noaccess);
-                  else
-                     revk_event(noaccess ? "id" : "access", "%s %08lX%s", id, crc, *ats && ats[1] == 0x75 ? " DESFire" : *ats && ats[1] == 0x78 ? " ISO" : "");
-               } else
-                  revk_event("id", "%s%s", id, *ats && ats[1] == 0x75 ? " DESFire" : *ats && ats[1] == 0x78 ? " ISO" : "");
+               if (*ats && ats[1] == 0x75)
+                  jo_string(j, "type", "DESFire");
+               else if (*ats && ats[1] == 0x78)
+                  jo_string(j, "type", "ISO");
+               jo_string(j, "id", id);
+               jo_bool(j, "secure", secure);
+               if (door >= 2)
+                  jo_bool(j, "allowed", !noaccess);
+               if (secure)
+                  jo_stringf(j, "crc", "%08X", crc);
+               revk_eventj("access", &j);
                if (!e && df.keylen && !nfccommit)
                {
                   log();        // Can log after reporting / opening

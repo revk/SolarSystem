@@ -185,8 +185,6 @@ static int checkfob(const char *fobs, const char *id)
       return 0;
    int l = strlen(id),
        n = 0;
-   if (l && id[l - 1] == '+')
-      l--;                      // Don't check secure tag suffix
    while (*fobs)
    {
       n++;
@@ -229,9 +227,9 @@ const char *door_fob(char *id, uint32_t * crcp)
             if (e)
                return e;
          }
-         return "*Blacklist (zapped)";
+         return "Blacklist (zapped)";
       }
-      return "*Blacklisted fob";
+      return "Blacklisted fob";
    }
    if (door >= 4)
    {                            // Autonomous door control logic - check access file and times, etc
@@ -267,7 +265,7 @@ const char *door_fob(char *id, uint32_t * crcp)
             uint8_t l = (*p & 0xF);
             uint8_t c = (*p++ >> 4);
             if (p + l > e)
-               return "*Invalid access file";
+               return "Invalid access file";
             if (c == 0x0)
             {                   // Padding, ignore
             } else if (c == 0xC)
@@ -277,10 +275,10 @@ const char *door_fob(char *id, uint32_t * crcp)
             else if (c == 0xA)
             {                   // Allow
                if (!l)
-                  return "*Card blocked";       // Black list
+                  return "Card blocked";        // Black list
                ax = true;
                if (l % 3)
-                  return "*Invalid allow list";
+                  return "Invalid allow list";
                uint8_t n = l;
                while (n && !aok)
                {
@@ -291,18 +289,18 @@ const char *door_fob(char *id, uint32_t * crcp)
             } else if (c == 0xB)
             {                   // Barred
                if (l % 3)
-                  return "*Invalid barred list";
+                  return "Invalid barred list";
                uint8_t n = l;
                while (n)
                {
                   n -= 3;
                   if ((p[n] << 16) + (p[n + 1] << 8) + p[n + 2] == revk_binid)
-                     return "*Barred door";
+                     return "Barred door";
                }
             } else if (c == 0xF)
             {                   // From
                if (fok)
-                  return "*Duplicate from time";
+                  return "Duplicate from time";
                if (l == 2)
                   fok = p;
                else if (l == 4)
@@ -312,11 +310,11 @@ const char *door_fob(char *id, uint32_t * crcp)
                else if (l == 14)
                   fok = p + dow * 2;
                else
-                  return "*Bad from time";      // Bad time
+                  return "Bad from time";       // Bad time
             } else if (c == 0x2)
             {                   // To
                if (tok)
-                  return "*Duplicate to time";
+                  return "Duplicate to time";
                if (l == 2)
                   tok = p;
                else if (l == 4)
@@ -326,7 +324,7 @@ const char *door_fob(char *id, uint32_t * crcp)
                else if (l == 14)
                   tok = p + dow * 2;
                else
-                  return "*Bad to time";
+                  return "Bad to time";
             } else if (c == 0xE)
             {                   // Expiry
                if (l == 1)
@@ -336,39 +334,39 @@ const char *door_fob(char *id, uint32_t * crcp)
                   xoff = p - afile;
                   xlen = l;
                   if (memcmp(datetime, p, l) > 0)
-                     return "*Expired"; // expired
+                     return "Expired";  // expired
                }
             } else
-               return "*Unknown access code";   // Unknown access code
+               return "Unknown access code";    // Unknown access code
             p += l;
          }
          if (ax && !aok)
-            return "*Not allowed door"; // Not on allow list
+            return "Not allowed door";  // Not on allow list
          if (xoff)
          {
             if (*datetime < 0x20)
             {                   // Clock not set
                if (!clockoverride)
-                  return "*Date not set";
+                  return "Date not set";
             } else if (memcmp(datetime, afile + xoff, xlen) > 0)
-               return "*Expired";       // expired
+               return "Expired";        // expired
          }
          if (fok || tok)
          {                      // Time check
             if (*datetime < 0x20)
             {                   // Clock not set
                if (!clockoverride)
-                  return "*Time not set";
+                  return "Time not set";
             } else if (fok && tok && memcmp(fok, tok, 2) > 0)
             {                   // reverse
                if (memcmp(datetime + 4, fok, 2) < 0 && memcmp(datetime + 4, tok, 2) >= 0)
-                  return "*Outside time";
+                  return "Outside time";
             } else
             {
                if (fok && memcmp(datetime + 4, fok, 2) < 0)
-                  return "*Too soon";
+                  return "Too soon";
                if (tok && memcmp(datetime + 4, tok, 2) >= 0)
-                  return "*Too late";
+                  return "Too late";
             }
          }
       }
@@ -401,15 +399,15 @@ const char *door_fob(char *id, uint32_t * crcp)
       if (!df.keylen)
          return "";             // Don't make a fuss, control system may allow this, and it is obvious
       if (doordeadlock)
-         return "*Door deadlocked";
+         return "Door deadlocked";
       return NULL;
    }
    if (revk_offline())
    {
       if (!fallback)
-         return "*Offline, and no fallback";
+         return "Offline, and no fallback";
       if (!checkfob(fallback, id))
-         return "*Offline, and fallback not matched";
+         return "Offline, and fallback not matched";
       return NULL;
    }
    return "";                   // Just not allowed
@@ -589,8 +587,17 @@ static void task(void *pvParameters)
             if (!exit1)
             {
                exit1 = now + (int64_t) doorexit *1000LL;
-               if (door >= 2 && !doordeadlock)
-                  door_unlock(NULL, "button");
+               if (door >= 2)
+               {
+                  if (!doordeadlock)
+                     door_unlock(NULL, "button");
+                  else
+                  {             // Not opening door
+                     jo_t j = jo_object_alloc();
+                     jo_string(j, "trigger", "exit");
+                     revk_eventj("notopen", &j);
+                  }
+               }
             }
          } else
             exit1 = 0;
@@ -600,8 +607,17 @@ static void task(void *pvParameters)
             if (!exit2)
             {
                exit2 = now + (int64_t) doorexit *1000LL;
-               if (door >= 2 && !doordeadlock)
-                  door_unlock(NULL, "ranger");
+               if (door >= 2)
+               {
+                  if (!doordeadlock)
+                     door_unlock(NULL, "ranger");
+                  else
+                  {             // Not opening door
+                     jo_t j = jo_object_alloc();
+                     jo_string(j, "trigger", "ranger");
+                     revk_eventj("notopen", &j);
+                  }
+               }
             }
          } else
             exit2 = 0;
