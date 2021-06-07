@@ -309,8 +309,10 @@ static void task(void *pvParameters)
                if (!e)
                   e = df_select_application(&df, aid);
                if (e)
-                  e = NULL;     // Just treat as insecure
-               else
+               {
+                  if (!strstr(e, "TIMEOUT"))
+                     e = NULL;  // Just treat as insecure
+               } else
                {
                   if (!e && aes[1][0])
                   {             // Get key to work out which AES
