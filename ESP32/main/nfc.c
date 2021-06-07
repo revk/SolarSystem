@@ -308,29 +308,33 @@ static void task(void *pvParameters)
                // Select application
                if (!e)
                   e = df_select_application(&df, aid);
-               if (!e && aes[1][0])
-               {                // Get key to work out which AES
-                  uint8_t version = 0;
-                  e = df_get_key_version(&df, 1, &version);
-                  if (!e && version)
+               if (e)
+                  e = NULL;     // Just treat as insecure
+               else
+               {
+                  if (!e && aes[1][0])
+                  {             // Get key to work out which AES
+                     uint8_t version = 0;
+                     e = df_get_key_version(&df, 1, &version);
+                     if (!e && version)
+                     {
+                        for (aesid = 0; aesid < sizeof(aes) / sizeof(*aes) && aes[aesid][0] != version; aesid++);
+                        if (aesid == sizeof(aes) / sizeof(*aes))
+                           e = "Unknown key version";
+                     }
+                  }
+                  // Authenticate
+                  if (!e)
+                     e = df_authenticate(&df, 1, aes[aesid] + 1);
+                  uint8_t uid[7];       // Real ID
+                  if (!e)
+                     e = df_get_uid(&df, uid);
+                  if (!e)
                   {
-                     for (aesid = 0; aesid < sizeof(aes) / sizeof(*aes) && aes[aesid][0] != version; aesid++);
-                     if (aesid == sizeof(aes) / sizeof(*aes))
-                        e = "Unknown key version";
+                     secure = 1;
+                     snprintf(id, sizeof(id), "%02X%02X%02X%02X%02X%02X%02X", uid[0], uid[1], uid[2], uid[3], uid[4], uid[5], uid[6]);  // Set UID with + to indicate secure, regardless of access allowed, etc.
                   }
                }
-               // Authenticate
-               if (!e)
-                  e = df_authenticate(&df, 1, aes[aesid] + 1);
-               uint8_t uid[7];  // Real ID
-               if (!e)
-                  e = df_get_uid(&df, uid);
-               if (!e)
-               {
-                  secure = 1;
-                  snprintf(id, sizeof(id), "%02X%02X%02X%02X%02X%02X%02X", uid[0], uid[1], uid[2], uid[3], uid[4], uid[5], uid[6]);     // Set UID with + to indicate secure, regardless of access allowed, etc.
-               } else if (!strcmp(e, "Application not found"))
-                  e = NULL;     // Just not secure
             }
             // Door check
             if (e)
