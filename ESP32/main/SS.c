@@ -42,8 +42,7 @@ static void status_report(int force)
    static char *lasttamper = NULL;
    int tampers = 0;
    {                            // Faults
-      jo_t j = jo_create_alloc();
-      jo_object(j, NULL);
+      jo_t j = jo_object_alloc();
 #define m(n) extern const char *n##_fault;if(n##_fault){jo_string(j,#n,n##_fault);faults++;}
       modules m(controller)
 #undef m
@@ -65,8 +64,7 @@ static void status_report(int force)
             r = "Restart";
          if (r)
          {
-            jo_t j = jo_create_alloc();
-            jo_object(j, NULL);
+            jo_t j = jo_object_alloc();
             jo_string(j, "controller", r);
             char *res = jo_finisha(&j);
             if (res)
@@ -89,8 +87,7 @@ static void status_report(int force)
          free(fault);
    }
    {                            // Tampers
-      jo_t j = jo_create_alloc();
-      jo_object(j, NULL);
+      jo_t j = jo_object_alloc();
 #define m(n) extern const char *n##_tamper;if(n##_tamper){jo_string(j,#n,n##_tamper);tampers++;}
       modules m(controller)
 #undef m
