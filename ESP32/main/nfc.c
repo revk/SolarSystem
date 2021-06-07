@@ -400,14 +400,12 @@ static void report_state(void)
       return;
    if (revk_offline())
       return;
-   char vers[sizeof(aes) / sizeof(*aes) * 2 + 1];
-   int i;
-   for (i = 0; i < sizeof(aes) / sizeof(*aes); i++)
-      sprintf(vers + i * 2, "%02X", aes[i][0]);
-   while (i && !aes[i - 1][0])
-      i--;
-   vers[i * 2] = 0;
-   revk_state("aes", "%02X%02X%02X %s", aid[0], aid[1], aid[2], vers);
+   jo_t j = jo_object_alloc();
+   jo_stringf(j, "aid", "%02X%02X%02X", aid[0], aid[1], aid[2]);
+   jo_array(j, "key");
+   for (int i = 0; i < sizeof(aes) / sizeof(*aes) && aes[i][0]; i++)
+      jo_stringf(j, NULL, "%02X", aes[i][0]);
+   revk_statej("keys", &j);
 }
 
 const char *nfc_command(const char *tag, unsigned int len, const unsigned char *value)

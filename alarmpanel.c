@@ -4320,6 +4320,11 @@ int main(int argc, const char *argv[])
                   }
                   if (port && !strncmp(t, "state", 5) && msg->payloadlen >= 1)
                   {
+                     if (tag && !strcmp(tag, "keys")&&j)
+		     {
+ // TODO
+			     return;
+		     }
                      if (tag && !strcmp(tag, "aes"))
                      {          // AES settings, send AID/AES if needed
                         if (app->config && msg->payloadlen >= 6)
