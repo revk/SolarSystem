@@ -146,8 +146,6 @@ static void fobevent(void)
 #endif
       if (fob.afile)
          jo_stringf(j, "crc", "%08X", fob.crc);
-      if (df.keylen)
-         jo_bool(j, "online", 1);
    }
    revk_eventj("fob", &j);
 }
