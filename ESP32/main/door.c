@@ -74,14 +74,14 @@ settings
 #define door_states \
   d(DEADLOCKED,) \
   d(LOCKED,R) \
-  d(UNLOCKING,--R) \
-  d(UNLOCKED,--G) \
+  d(UNLOCKING,-R+A) \
+  d(UNLOCKED,-G) \
   d(OPEN,G) \
-  d(CLOSED,--G) \
-  d(LOCKING,R-R) \
-  d(NOTCLOSED,R-G) \
-  d(PROPPED,G-GGGG) \
-  d(AJAR,R-G) \
+  d(CLOSED,-A) \
+  d(LOCKING,-G+A) \
+  d(NOTCLOSED,RAGA) \
+  d(PROPPED,G+A4G) \
+  d(AJAR,R+A-G+A) \
 
 #define l(n) LOCK_##n,
     enum {
