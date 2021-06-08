@@ -409,10 +409,10 @@ static void task(void *pvParameters)
                   return;
                // Key update
                if (fob.aesid)
-	       {
+               {
                   e = df_change_key(&df, 1, aes[0][0], aes[fob.aesid] + 1, aes[0] + 1);
-		  fob.keyupdated=1;
-	       }
+                  fob.keyupdated = 1;
+               }
                if (!e)
                   fob.logged = 1;
             }

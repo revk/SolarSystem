@@ -198,7 +198,11 @@ const char *door_fob(fob_t * fob)
       if (!e && *afile + 1 > MINAFILE)
          e = df_read_data(&df, 0x0A, DF_MODE_CMAC, 0, *afile + 1 - MINAFILE, afile + MINAFILE); // More data
       if (e)
-         return fob->fail = e;
+      {
+         if (!strstr(e, "TIMEOUT"))
+            fob->fail = e;
+         return "Cannot access Afile";
+      }
       fob->afile = 1;
       fob->crc = df_crc(*afile, afile + 1);
       // Check access file (expected to exist)
@@ -347,7 +351,8 @@ const char *door_fob(fob_t * fob)
          fob->unlockok = 0;
          fob->disarmok = 0;
          fob->armok = 0;
-         fob->deny = "Blacklist";
+         if (!fob->deny)
+            fob->deny = "Blacklist";
          if (fob->secure && df.keylen)
          {
             *afile = 1;
