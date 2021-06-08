@@ -122,7 +122,7 @@ uint8_t *makeafile(j_t j)
             e[n++] = (a >> 24);
             a <<= 8;
          }
-         e[0] = f + 1 + n;
+         e[0] = f + n - 1;
          fwrite(e, n, 1, afilef);
       }
       area(0xA0, "allow");

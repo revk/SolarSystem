@@ -45,6 +45,36 @@
 
 int debug = 0;
 
+void addatt(j_t j, const char *tag, const char *val)
+{
+   if (!val)
+   {
+      j_store_null(j, tag);
+      return;
+   }
+   if (!strcmp(val, "true"))
+   {
+      j_store_true(j, tag);
+      return;
+   }
+   if (!strcmp(val, "false"))
+   {
+      j_store_false(j, tag);
+      return;
+   }
+   const char *v = val;
+   if (*v == '-')
+      v++;
+   while (isdigit(*v))
+      v++;
+   if (!*v)
+   {
+      j_store_literal(j, tag, val);
+      return;
+   }
+   j_store_string(j, tag, val);
+}
+
 int main(int argc, const char *argv[])
 {
    j_t j = j_create();
@@ -52,7 +82,6 @@ int main(int argc, const char *argv[])
    const char *mqttuser = NULL;
    const char *mqttpass = NULL;
    const char *mqttcert = NULL;
-   const char *setname = NULL;
    char *hexaid = NULL;
    const char *hexaes = NULL;
    const char *hexreader = NULL;
@@ -76,8 +105,6 @@ int main(int argc, const char *argv[])
          { "mqtt-cert", 'C', POPT_ARG_STRING, &mqttcert, 0, "MQTT CA",
           "filename" },
          { "mqtt-port", 'p', POPT_ARG_INT, &mqttport, 0, "MQTT port", "port" },
-         { "user", 'u', POPT_ARG_STRING, &username, 0, "Username", "username" },
-         { "name", 'n', POPT_ARG_STRING, &setname, 0, "Users name", "Full name" },
          { "config", 'c', POPT_ARG_STRING, &config, 0, "Config", "filename" },
          { "aid", 'a', POPT_ARG_STRING, &hexaid, 0, "AID", "XXXXXX" },
          { "aes", 'A', POPT_ARG_STRING, &hexaes, 0, "AES",
@@ -108,11 +135,12 @@ int main(int argc, const char *argv[])
          const char *v = poptPeekArg(optCon);
          if (!v)
             break;
-         const char *e = strchr(v, '=');
-         if (e)
+         if (strchr(v, '='))
          {
-            *(char *) e++ = 0;
-            j_store_string(j, v, e);
+            char *t = strdupa(poptGetArg(optCon));
+            char *e = strchr(t, '=');
+            *e++ = 0;
+            addatt(j, t, e);
          } else if (!hexaid && df_hex(4, NULL, v) == 3)
             hexaid = (char *) poptGetArg(optCon);
          else if (!hexreader && df_hex(4, NULL, v) == 3)
@@ -138,6 +166,8 @@ int main(int argc, const char *argv[])
    }
    if (debug)
       j_store_true(j, "debug");
+   if (username)
+      j_store_string(j, "user", username);
 
    xml_t c = NULL;
    if (config)
@@ -225,17 +255,17 @@ int main(int argc, const char *argv[])
          if (!strcasecmp(xml_get(u, "@name") ? : "", username))
             break;
       if (!u)
-         errx(1, "Cannot fine user %s", username);
-      if (!setname)
-         setname = xml_get(u, "@full-name");
+         errx(1, "Cannot find user %s", username);
+      if (!j_find(j, "name"))
+         j_store_string(j, "name", xml_get(u, "@full-name"));
       user = u;
       while ((a = xml_attribute_next(user, a)))
          if (!j_find(j, xml_attribute_name(a)))
-            j_store_string(j, xml_attribute_name(a), xml_attribute_content(a));
+            addatt(j, xml_attribute_name(a), xml_attribute_content(a));
    }
    while ((a = xml_attribute_next(c, a)))
       if (!j_find(j, xml_attribute_name(a)))
-         j_store_string(j, xml_attribute_name(a), xml_attribute_content(a));
+         addatt(j, xml_attribute_name(a), xml_attribute_content(a));
    char *fob = NULL;
 
    // Socket for responses
@@ -433,8 +463,10 @@ int main(int argc, const char *argv[])
          username = xml_get(u, "@name");
          if (username)
             printf("Username: %s\n", username);
-         if (!setname)
-            setname = xml_get(u, "@full-name");
+         xml_attribute_t a = NULL;
+         while ((a = xml_attribute_next(user, a)))
+            if (!j_find(j, xml_attribute_name(a)))
+               addatt(j, xml_attribute_name(a), xml_attribute_content(a));
       }
       return u;
    }
@@ -630,13 +662,10 @@ int main(int argc, const char *argv[])
          for (p = 0; p < *buf + 1; p++)
             printf(" %02X", buf[p]);
          printf("\n");
-         if (user)
-         {
-            if ((e = df_write_data(&d, 0x0A, 'B', comms, 0, *afile + 1, afile)))
-               errx(1, "Write file: %s", e);
-            if ((e = df_commit(&d)))
-               errx(1, "Commit file: %s", e);
-         }
+         if ((e = df_write_data(&d, 0x0A, 'B', comms, 0, *afile + 1, afile)))
+            errx(1, "Write file: %s", e);
+         if ((e = df_commit(&d)))
+            errx(1, "Commit file: %s", e);
       }
    }
 
@@ -662,6 +691,7 @@ int main(int argc, const char *argv[])
    if (afile)
       free((void *) afile);
 
+   const char *setname = j_get(j, "name");
    size = checkfile(0, 'D', comms, 0x1000, "Full name");
    if (size)
    {                            // Name file
@@ -709,7 +739,7 @@ int main(int argc, const char *argv[])
    size = checkfile(1, 'C', comms, 0x0100, "Log");
    if (size)
    {                            // Log file
-      if (size != 10)
+      if (size != 13)
       {
          printf("Log file wrong format (%d)\n", size);
          if ((e = df_delete_file(&d, 1)))
@@ -719,26 +749,26 @@ int main(int argc, const char *argv[])
          printf("Log file empty\n");
       else
       {
-         if ((e = df_read_records(&d, 1, comms, 0, recs, 10, buf)))
+         if ((e = df_read_records(&d, 1, comms, 0, recs, 13, buf)))
             errx(1, "Read data: %s", e);
          while (recs--)
          {
-            char r[7],
+            char r[13],
             *v;
-            sprintf(r, "%02X%02X%02X", buf[recs * 10 + 0], buf[recs * 10 + 1], buf[recs * 10 + 2]);
+            sprintf(r, "%02X%02X%02X%02X%02X%02X", buf[recs * 13 + 0], buf[recs * 13 + 1], buf[recs * 13 + 2], buf[recs * 13 + 3], buf[recs * 13 + 4], buf[recs * 13 + 5]);
             xml_t d = NULL;
             if (c)
                while ((d = xml_element_next_by_name(c, d, "device")))
                   if ((v = xml_get(d, "@id")) && !strcasecmp(v, r))
                      break;
-            printf("Log %s on %02X%02X-%02X-%02X %02X:%02X:%02X %s\n", r, buf[recs * 10 + 3], buf[recs * 10 + 4], buf[recs * 10 + 5], buf[recs * 10 + 6], buf[recs * 10 + 7], buf[recs * 10 + 8], buf[recs * 10 + 9], d ? xml_get(d, "@name") ? : "" : "");
+            printf("Log %s on %02X%02X-%02X-%02X %02X:%02X:%02X %s\n", r, buf[recs * 13 + 6], buf[recs * 13 + 7], buf[recs * 13 + 8], buf[recs * 13 + 9], buf[recs * 13 + 10], buf[recs * 13 + 11], buf[recs * 13 + 12], d ? xml_get(d, "@name") ? : "" : "");
          }
       }
    }
    if (!size)
    {
       printf("Creating log file\n");
-      if ((e = df_create_file(&d, 1, 'C', comms, 0x0100, 10, 0, 0, logs, 0, 0)))
+      if ((e = df_create_file(&d, 1, 'C', comms, 0x0100, 13, 0, 0, logs, 0, 0)))
          errx(1, "Create file: %s", e);
    }
 

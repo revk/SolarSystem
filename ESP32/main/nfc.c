@@ -144,9 +144,9 @@ static void fobevent(void)
 #endif
       if (fob.afile)
          jo_stringf(j, "crc", "%08X", fob.crc);
-      if (fob.override)
-         jo_bool(j, "override", 1);
    }
+   if (fob.override)
+      jo_bool(j, "override", 1);
    revk_eventj("fob", &j);
 }
 
@@ -391,14 +391,17 @@ static void task(void *pvParameters)
             void log(void) {    // Log and count
                if (fob.log)
                {                // Log
-                  uint8_t buf[10];
-                  buf[0] = revk_binid >> 16;
-                  buf[1] = revk_binid >> 8;
-                  buf[2] = revk_binid;
-                  bcdtime(0, buf + 3);
-                  if (buf[3] == 0x19)
+                  uint8_t buf[13];
+                  buf[0] = revk_binid >> 40;
+                  buf[1] = revk_binid >> 32;
+                  buf[2] = revk_binid >> 24;
+                  buf[3] = revk_binid >> 16;
+                  buf[4] = revk_binid >> 8;
+                  buf[5] = revk_binid;
+                  bcdtime(0, buf + 6);
+                  if (buf[6] == 0x19)
                      revk_error(TAG, "Clock not set");
-                  else if ((e = df_write_data(&df, 1, 'C', DF_MODE_CMAC, 0, 10, buf)))
+                  else if ((e = df_write_data(&df, 1, 'C', DF_MODE_CMAC, 0, 13, buf)))
                      return;
                }
                if (fob.count)
@@ -406,7 +409,7 @@ static void task(void *pvParameters)
                   if ((e = df_credit(&df, 2, DF_MODE_CMAC, 1)))
                      return;
                }
-               if (fob.log || fob.count)
+               if (fob.log || fob.count || fob.updated)
                {                // Commit
                   if ((e = df_commit(&df)))
                      return;

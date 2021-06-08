@@ -369,15 +369,47 @@ static void state_change(group_t g);
 static const char *real_port_name(char *v, port_p p);
 static port_app_t *port_app(port_p p);
 
+void addatt(j_t j, const char *tag, const char *val)
+{
+   if (!val)
+   {
+      j_store_null(j, tag);
+      return;
+   }
+   if (!strcmp(val, "true"))
+   {
+      j_store_true(j, tag);
+      return;
+   }
+   if (!strcmp(val, "false"))
+   {
+      j_store_false(j, tag);
+      return;
+   }
+   const char *v = val;
+   if (*v == '-')
+      v++;
+   while (isdigit(*v))
+      v++;
+   if (!*v)
+   {
+      j_store_literal(j, tag, val);
+      return;
+   }
+   j_store_string(j, tag, val);
+}
+
 static uint8_t *getafile(user_t * u)
 {
    j_t j = j_create();
    xml_attribute_t a = NULL;
-   while ((a = xml_attribute_next(config, a)))
-      j_store_string(j, xml_attribute_name(a), xml_attribute_content(a));
+   xml_t system = xml_element_next_by_name(config, NULL, "system");
+   if (system)
+      while ((a = xml_attribute_next(system, a)))
+         addatt(j, xml_attribute_name(a), xml_attribute_content(a));
    if (u && u->config)
       while ((a = xml_attribute_next(u->config, a)))
-         j_store_string(j, xml_attribute_name(a), xml_attribute_content(a));
+         addatt(j, xml_attribute_name(a), xml_attribute_content(a));
    uint8_t *afile = makeafile(j);
    j_delete(&j);
    return afile;
