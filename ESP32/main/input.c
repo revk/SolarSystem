@@ -120,7 +120,8 @@ static void task(void *pvParameters)
 
 void input_init(void)
 {
-   revk_register(TAG, MAXINPUT, sizeof(*input), &input, BITFIELDS, SETTING_BITFIELD | SETTING_SET);
+   revk_register("input", MAXINPUT, sizeof(*input), &input, BITFIELDS, SETTING_BITFIELD | SETTING_SET | SETTING_SECRET);
+   revk_register("inputgpio", MAXINPUT, sizeof(*input), &input, BITFIELDS, SETTING_BITFIELD | SETTING_SET);
 #define u16(n,v) revk_register(#n,0,sizeof(n),&n,#v,0);
    settings
 #undef u16

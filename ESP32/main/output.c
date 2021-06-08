@@ -14,6 +14,7 @@ const char *output_tamper = NULL;
 #define port_mask(p) ((p)&63)
 static uint8_t output[MAXOUTPUT];
 static uint8_t power[MAXOUTPUT];        /* fixed outputs */
+static uint32_t outputalarm[MAXOUTPUT];
 
 static uint64_t output_state = 0;       // Port state
 static uint64_t output_state_set = 0;   // Output has been set
@@ -85,7 +86,9 @@ const char *output_command(const char *tag, unsigned int len, const unsigned cha
 
 void output_init(void)
 {
-   revk_register("output", MAXOUTPUT, sizeof(*output), &output, BITFIELDS, SETTING_BITFIELD | SETTING_SET);
+   revk_register("output", MAXOUTPUT, sizeof(*output), &output, BITFIELDS, SETTING_BITFIELD | SETTING_SET | SETTING_SECRET);
+   revk_register("outputgpio", MAXOUTPUT, sizeof(*output), &output, BITFIELDS, SETTING_BITFIELD | SETTING_SET);
+   revk_register("outputalarm", MAXOUTPUT, sizeof(*outputalarm), &outputalarm, AREAS, SETTING_BITFIELD);
    revk_register("power", MAXOUTPUT, sizeof(*power), &power, BITFIELDS, SETTING_BITFIELD | SETTING_SET);
    int i,
     p;

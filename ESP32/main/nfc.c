@@ -107,7 +107,7 @@ static void fobevent(void)
          jo_bool(j, "secure", fob.secure);
       jo_string(j, "id", fob.id);
       if (fob.secure)
-         jo_stringf(j, "key", "%02X", aes[fob.aesid][0]);
+         jo_stringf(j, "ver", "%02X", aes[fob.aesid][0]);
       if (fob.keyupdated)
          jo_bool(j, "keyupdated", fob.keyupdated);
       if (fob.fail)
