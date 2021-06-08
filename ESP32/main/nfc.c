@@ -433,6 +433,7 @@ static void task(void *pvParameters)
                blink(nfcamber); // Read ID OK
                ESP_LOGI(TAG, "Retry %s %s", fob.id, e);
                nextpoll = 0;    // Try again immediately
+               memset(&fob, 0, sizeof(fob));
             } else
             {                   // Processing door
                if (fob.fail)
@@ -506,20 +507,20 @@ const char *nfc_command(const char *tag, unsigned int len, const unsigned char *
          ESP_LOGI(TAG, "NFC access override");
       } else
       {
-         jo_t j = jo_parse_mem((char*)value, len);
+         jo_t j = jo_parse_mem((char *) value, len);
          if (jo_here(j) != JO_STRING)
          {
             jo_free(&j);
             return "Expecting JSON string";
          }
          uint8_t buf[256];
-         int len = jo_strncpy(j, (char*)buf, sizeof(buf));
+         int len = jo_strncpy(j, (char *) buf, sizeof(buf));
          if (len >= sizeof(buf))
          {
             jo_free(&j);
             return "Too big";
          }
-         len = jo_based16(buf, sizeof(buf), (char*)buf, len);
+         len = jo_based16(buf, sizeof(buf), (char *) buf, len);
          const char *err = NULL;
          xSemaphoreTake(nfc_mutex, portMAX_DELAY);
          len = pn532_dx(pn532, len, buf, sizeof(buf), &err);
