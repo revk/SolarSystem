@@ -39,5 +39,5 @@ typedef struct {
    uint8_t disarmed:1;          // Door system has disarmed the door (deadlock)
    uint8_t armok:1;             // Afile checks say door can be armed (when card held done)
    uint8_t armed:1;             // Door system has armed the door (deadlock)
-
+   uint8_t override:1;		// Normal working overridden for remote NFC
 } fob_t;

@@ -75,7 +75,7 @@ pthread_t busthreads[MAX_BUS];
 device_t device[MAX_DEVICE] = { };
 
 event_t *event = NULL,
-   **eventp = NULL;
+    **eventp = NULL;
 
 pthread_mutex_t qmutex;
 pthread_mutex_t outputmutex;
@@ -95,42 +95,38 @@ const char *event_name[EVENT_COUNT] = { EVENT };
 #define RIO_DEFAULT_RESPONSE    300     // ms
 
 const rio_threshold_t rio_thresholds[3] = {
-   {"1k", 8, 9, 12, 13, 120},
-   {"2k2", 18, 20, 25, 27, 120},
-   {"4k7", 37, 42, 55, 65, 190},
+   { "1k", 8, 9, 12, 13, 120 },
+   { "2k2", 18, 20, 25, 27, 120 },
+   { "4k7", 37, 42, 55, 65, 190 },
 };
 
-int
-device_found (int id)
+int device_found(int id)
 {
    if (id < 0 || id >= MAX_DEVICE)
       return 0;
    return device[id].found;
 }
 
-void
-device_urgent (int id)
+void device_urgent(int id)
 {
    if (id < 0 || id >= MAX_DEVICE)
       return;
    device[id].urgent = 1;
 }
 
-void
-device_output (int id, int port, int value)
+void device_output(int id, int port, int value)
 {
    if (id < 0 || id >= MAX_DEVICE || port < 1 || port >= MAX_OUTPUT)
       return;
-   pthread_mutex_lock (&outputmutex);
+   pthread_mutex_lock(&outputmutex);
    if (value)
       device[id].output |= (1 << (port - 1));
    else
       device[id].output &= ~(1 << (port - 1));
-   pthread_mutex_unlock (&outputmutex);
+   pthread_mutex_unlock(&outputmutex);
 }
 
-int
-device_input (int id, int port)
+int device_input(int id, int port)
 {
    if (id < 0 || id >= MAX_DEVICE || port < 1 || port >= MAX_INPUT)
       return -1;
@@ -139,16 +135,14 @@ device_input (int id, int port)
    return 0;
 }
 
-void
-device_led (int id, int led)
+void device_led(int id, int led)
 {
    if (id < 0 || id >= MAX_DEVICE)
       return;
    device[id].led = led;
 }
 
-void
-postevent (event_t * e)
+void postevent(event_t * e)
 {
    if (e)
    {
@@ -165,60 +159,58 @@ postevent (event_t * e)
          else if (e->event == EVENT_MISSING)
             e->port->state = 0;
       }
-      pthread_mutex_lock (&qmutex);
+      pthread_mutex_lock(&qmutex);
       if (event)
          *eventp = e;
       else
          event = e;
       eventp = (void *) &e->next;
-      pthread_mutex_unlock (&qmutex);
+      pthread_mutex_unlock(&qmutex);
    }
    // Use pipe to signal that event is waiting, but it will get events anyway so non blocking
    char x = 0;
-   if (write (qpipe[1], &x, 1) < 0)
-      perror ("queue send");
+   if (write(qpipe[1], &x, 1) < 0)
+      perror("queue send");
 }
 
-void *
-poller (void *d)
+void *poller(void *d)
 {
    int busid = (long) d;
    if (busid < 0 || busid >= MAX_BUS)
-      errx (1, "Bad bus ID to start %d", busid);
+      errx(1, "Bad bus ID to start %d", busid);
    device_t *dev = device + busid * 256;
    char devname[100];
    {                            // Latency
-      snprintf (devname, sizeof (devname), "/sys/bus/usb-serial/devices/ttyUSB%d/latency_timer", busid);
-      FILE *f = fopen (devname, "w");
+      snprintf(devname, sizeof(devname), "/sys/bus/usb-serial/devices/ttyUSB%d/latency_timer", busid);
+      FILE *f = fopen(devname, "w");
       if (!f)
-         warn ("Cannot open %s", devname);
+         warn("Cannot open %s", devname);
       else
       {
-         fprintf (f, "1");
-         fclose (f);
+         fprintf(f, "1");
+         fclose(f);
       }
    }
-   snprintf (devname, sizeof (devname), "/dev/ttyUSB%d", busid);
-   int f = open (devname, O_RDWR);
+   snprintf(devname, sizeof(devname), "/dev/ttyUSB%d", busid);
+   int f = open(devname, O_RDWR);
    if (f < 0)
    {
-      warn ("Cannot open %s", devname);
+      warn("Cannot open %s", devname);
       return NULL;
    }
-   if (flock (f, LOCK_EX | LOCK_NB) < 0)
+   if (flock(f, LOCK_EX | LOCK_NB) < 0)
    {
-      warn ("Cannot lock %s", devname);
+      warn("Cannot lock %s", devname);
       return NULL;
    }
    struct termios t = { 0
    };
    t.c_cflag = B9600 | CS8 | CREAD | CLOCAL;    // 9600Baud 1n8
    t.c_cc[VTIME] = 1;
-   ioctl (f, TCSETS, &t);
+   ioctl(f, TCSETS, &t);
    dev[US].disabled = 1;        // Don't poll ourselves
    // Internal data structures
-   struct
-   {
+   struct {
       input_t input;            // confirmed inputs
       output_t output;          // confirmed outputs
       output_t invert;          // Invert outputs
@@ -239,25 +231,21 @@ poller (void *d)
       unsigned char toggle07:1; // Toggle for 0x07 message
       unsigned char toggle0B:1; // Toggle for 0x0B message
       unsigned char toggle0C:1; // Toggle for 0x0C message
-      union
-      {
+      union {
          struct keypad_data_s k;
-         struct
-         {                      // Max
+         struct {               // Max
             unsigned char disable:1;    // Reader disabled
             unsigned char config:1;     // We are doing config
             unsigned char led;
             unsigned char addr; // Programming address
             unsigned long long fobheld; // time for held
          };
-         struct
-         {                      // RIO
+         struct {               // RIO
             unsigned char response[MAX_INPUT];
             unsigned char threshold[MAX_INPUT][5];
          };
       };
-   } mydev[256] =
-   {
+   } mydev[256] = {
    };
 //
    struct timeval now = { 0
@@ -265,19 +253,18 @@ poller (void *d)
    struct timezone tz = { 0
    };
    unsigned char id = 0,
-      idleid = 0;
+       idleid = 0;
    unsigned char idlecheck = 0;
-   event_t *newevent (int etype, unsigned char isinput, unsigned char port)
-   {                            // port from 1 else assumed device level
-      event_t *e = malloc (sizeof (event_t));
+   event_t *newevent(int etype, unsigned char isinput, unsigned char port) {    // port from 1 else assumed device level
+      event_t *e = malloc(sizeof(event_t));
       if (!e)
-         errx (1, "malloc");
-      memset ((void *) e, 0, sizeof (*e));
+         errx(1, "malloc");
+      memset((void *) e, 0, sizeof(*e));
       unsigned int did = ((busid << 8) + id);
-      if (port < sizeof (device[did].port) / sizeof (device[did].port[0]))
+      if (port < sizeof(device[did].port) / sizeof(device[did].port[0]))
       {                         // Port ID reporting
          if (!device[did].port[port])
-            device[did].port[port] = port_new_bus (busid, id, isinput, port);
+            device[did].port[port] = port_new_bus(busid, id, isinput, port);
          e->port = device[did].port[port];
       }
       e->when = now;
@@ -296,19 +283,18 @@ poller (void *d)
    int retry = 0;               // Retry count
    int more = 1;                // More to same device
    int stall = 0;               // Stall count
-   time_t nextka = time (0) + 10;       // next keep alive
+   time_t nextka = time(0) + 10;        // next keep alive
    time_t lastsec = 0;          // One second events
    long long gap = 0;           // Time to first byte response for logging
    struct timeval timeout = { 0
    };
-   void sendcmd (void)
-   {                            // Send command
+   void sendcmd(void) {         // Send command
       if (!dev[id].type || dev[id].type != TYPE_PAD)
-         usleep (3000);
-      if (write (f, cmd, cmdlen) != (int) cmdlen)
+         usleep(3000);
+      if (write(f, cmd, cmdlen) != (int) cmdlen)
          errors++;
       // Delay for the sending of the command - we do not rx data at this point (though can pick up a break sometimes)
-      usleep (1000000 * (10 * cmdlen + 1) / 9600);      // We send one stop bit, then data with 1 stop on each byte
+      usleep(1000000 * (10 * cmdlen + 1) / 9600);       // We send one stop bit, then data with 1 stop on each byte
       // Timeout for reply
       timeout.tv_usec = 15000;  // 10ms inter message gap, and then some extra for slower devices
       if (dev[id].type == TYPE_MAX)
@@ -318,30 +304,30 @@ poller (void *d)
       if (dump || (debug && (cmd[1] != 0x06 || cmdlen > 3) && (cmd[1] != 0x01 || cmdlen > 3) && (cmd[1] != 0x00 || cmdlen > 4)))
       {                         // Debug does not dump boring polls
          unsigned int n;
-         printf ("%s%X%02X >", type_name[dev[id].type], busid + 1, id);
+         printf("%s%X%02X >", type_name[dev[id].type], busid + 1, id);
          for (n = 0; n < cmdlen - 1; n++)
-            printf (" %02X", cmd[n]);
-         printf ("\n");
-         fflush (stdout);
+            printf(" %02X", cmd[n]);
+         printf("\n");
+         fflush(stdout);
       }
    }
    // Main polling loop
    int wd = -1;
    if (WATCHDOG)
-      wd = open (WATCHDOG, O_RDWR);
+      wd = open(WATCHDOG, O_RDWR);
    while (1)
    {
       unsigned char type = dev[id].type;
       fd_set readfds;
-      FD_ZERO (&readfds);
-      FD_SET (f, &readfds);
-      gettimeofday (&now, &tz);
+      FD_ZERO(&readfds);
+      FD_SET(f, &readfds);
+      gettimeofday(&now, &tz);
       long long reftime = now.tv_sec * 1000000ULL + now.tv_usec;
-      int s = select (f + 1, &readfds, NULL, NULL, &timeout);
+      int s = select(f + 1, &readfds, NULL, NULL, &timeout);
       if (s > 0)
-         s = read (f, &res[reslen], 1);
+         s = read(f, &res[reslen], 1);
       if (s < 0)
-         warn ("Bad rx");
+         warn("Bad rx");
       if (s)
       {                         // we have a character
          if (!reslen && !*res)
@@ -349,11 +335,11 @@ poller (void *d)
          timeout.tv_usec = 6000;        // Inter message gap typically 9 to 10ms
          if (!reslen && (debug || dump))
          {                      // Timing for debug
-            gettimeofday (&now, &tz);
+            gettimeofday(&now, &tz);
             gap = now.tv_sec * 1000000ULL + now.tv_usec - reftime;
          }
          rx++;
-         if (reslen == sizeof (res))
+         if (reslen == sizeof(res))
          {                      // Not sensible
             errors++;
             reslen = 0;
@@ -365,39 +351,32 @@ poller (void *d)
       // Timeout
       if (reslen)
       {                         // Dump
-         if (dump
-             || (debug
-                 && (res[0] != US
-                     || ((reslen != 4 || res[1] != 0xF4 || res[2] != mydev[id].laststatus) && (reslen != 3 || res[1] != 0xFE)
-                         && (type != TYPE_RIO || (res[1] != 0xF1 && res[1] != 0xF7)) && (type != TYPE_RFR
-                                                                                         || (res[1] != 0xF7 && res[1] != 0xFE
-                                                                                             && res[1] != 0xFD))))))
+         if (dump || (debug && (res[0] != US || ((reslen != 4 || res[1] != 0xF4 || res[2] != mydev[id].laststatus) && (reslen != 3 || res[1] != 0xFE) && (type != TYPE_RIO || (res[1] != 0xF1 && res[1] != 0xF7)) && (type != TYPE_RFR || (res[1] != 0xF7 && res[1] != 0xFE && res[1] != 0xFD))))))
          {                      // debug tries not to log boring
             unsigned int n;
-            printf ("%s%X%02X <", type_name[dev[id].type], busid + 1, id);
+            printf("%s%X%02X <", type_name[dev[id].type], busid + 1, id);
             for (n = 0; n < reslen - 1; n++)
-               printf (" %02X", res[n]);
+               printf(" %02X", res[n]);
             if (reslen == 1)
-               printf (" ? %02X", res[n]);      // too short?
-            printf (" (%lld.%lldms)\n", gap / 1000, gap / 100 % 10);
-            fflush (stdout);
+               printf(" ? %02X", res[n]);       // too short?
+            printf(" (%lld.%lldms)\n", gap / 1000, gap / 100 % 10);
+            fflush(stdout);
          }
          if (reslen == 4 && res[0] == US && res[1] == 0xF4)
             mydev[id].laststatus = res[2];
       }
-      int fail (void)
-      {                         // Failed rx
+      int fail(void) {          // Failed rx
          if (cmdlen && cmd[1])
          {
             retries++;
             if (debug)
             {
                unsigned int n;
-               printf ("%s%X%02X *", type_name[dev[id].type], busid + 1, id);
+               printf("%s%X%02X *", type_name[dev[id].type], busid + 1, id);
                for (n = 0; n < cmdlen - 1; n++)
-                  printf (" %02X", cmd[n]);
-               printf ("\n");
-               fflush (stdout);
+                  printf(" %02X", cmd[n]);
+               printf("\n");
+               fflush(stdout);
             }
          }
          if (retry++ >= MAX_RETRY)
@@ -406,37 +385,37 @@ poller (void *d)
             {
                dev[id].missing = 1;
                if (debug)
-                  printf ("%s%X%02X lost\n", type_name[dev[id].type], busid + 1, id);
-               postevent (newevent (EVENT_MISSING, 0, 0));
+                  printf("%s%X%02X lost\n", type_name[dev[id].type], busid + 1, id);
+               postevent(newevent(EVENT_MISSING, 0, 0));
             }
             mydev[id].polling = 0;
             cmdlen = 0;         // we move on to next device
             return 0;
          }
          if (cmdlen)
-            sendcmd ();
+            sendcmd();
          reslen = 0;            // Ready again
          return 1;
       }
-      if (cmdlen && reslen < 2 && fail ())
+      if (cmdlen && reslen < 2 && fail())
          continue;              // Too short
       if (reslen)
       {                         // Check checksum
          unsigned int c = 0xAA,
-            n;
+             n;
          for (n = 0; n < reslen - 1; n++)
             c += res[n];
          while (c > 0xFF)
             c = (c >> 8) + (c & 0xFF);
-         if (res[reslen - 1] != c && fail ())
+         if (res[reslen - 1] != c && fail())
             continue;           // Bad checksum
       }
-      if (reslen && res[0] != US && fail ())
+      if (reslen && res[0] != US && fail())
          continue;              // Not to us - should we consider this some sort of tamper?
       if (reslen == 3 && res[1] == 0xF2)
       {                         // Did not understand
          errors++;
-         if (fail ())
+         if (fail())
             continue;
       }
       retry = 0;
@@ -471,27 +450,26 @@ poller (void *d)
             if (!dev[id].type)
             {                   // New
                if (debug)
-                  printf ("%s%X%02X found new\n", type_name[type], busid + 1, id);
+                  printf("%s%X%02X found new\n", type_name[type], busid + 1, id);
                dev[id].missing = 1;     // report found
             } else if (dev[id].type == type)
             {
                if (debug)
-                  printf ("%s%X%02X found\n", type_name[type], busid + 1, id);
+                  printf("%s%X%02X found\n", type_name[type], busid + 1, id);
             } else
             {                   // Changed
                if (debug)
-                  printf ("%s%X%02X clash %s %02X %02X %02X\n", type_name[type], busid + 1, id, type_name[dev[id].type], res[2],
-                          res[3], res[4]);
-               memset ((void *) &dev[id], 0, sizeof (dev[id]));
-               memset (&mydev[id], 0, sizeof (mydev[id]));
+                  printf("%s%X%02X clash %s %02X %02X %02X\n", type_name[type], busid + 1, id, type_name[dev[id].type], res[2], res[3], res[4]);
+               memset((void *) &dev[id], 0, sizeof(dev[id]));
+               memset(&mydev[id], 0, sizeof(mydev[id]));
                dev[id].disabled = 1;
-               postevent (newevent (EVENT_DISABLED, 0, 0));
+               postevent(newevent(EVENT_DISABLED, 0, 0));
             }
             dev[id].type = type;
             if (dev[id].missing)
             {                   // Report found
                dev[id].missing = 0;
-               postevent (newevent (EVENT_FOUND, 0, 0));
+               postevent(newevent(EVENT_FOUND, 0, 0));
             }
          }
          cmdlen = 0;            // Reset.. Possible that some responses need immediate reply.
@@ -518,14 +496,14 @@ poller (void *d)
                   if (reslen > 4)
                   {
                      unsigned long n = (res[2] & 0x0F),
-                        q;
+                         q;
                      for (q = 3; q < reslen - 1; q++)
                         n = n * 100 + (res[q] >> 4) * 10 + (res[q] & 0xF);
                      if (!(mydev[id].input & (1 << INPUT_MAX_FOB)))
                      {          // Fob starts
-                        event_t *e = newevent (EVENT_FOB, 0, 0);
-                        snprintf ((char *) e->fob, sizeof (e->fob), "%lu", n);
-                        postevent (e);
+                        event_t *e = newevent(EVENT_FOB, 0, 0);
+                        snprintf((char *) e->fob, sizeof(e->fob), "%lu", n);
+                        postevent(e);
                         mydev[id].input |= (1 << INPUT_MAX_FOB);
                         if (dev[id].fob_hold)
                            mydev[id].fobheld = now.tv_sec * 1000000ULL + now.tv_usec + dev[id].fob_hold * 100000ULL;
@@ -535,9 +513,9 @@ poller (void *d)
                      {          // Fob held
                         mydev[id].input |= (1 << INPUT_MAX_FOB_HELD);
                         mydev[id].fobheld = 0;
-                        event_t *e = newevent (EVENT_FOB_HELD, 0, 0);
-                        snprintf ((char *) e->fob, sizeof (e->fob), "%lu", n);
-                        postevent (e);
+                        event_t *e = newevent(EVENT_FOB_HELD, 0, 0);
+                        snprintf((char *) e->fob, sizeof(e->fob), "%lu", n);
+                        postevent(e);
                      }
                   } else
                      mydev[id].input &= ~((1 << INPUT_MAX_FOB) | (1 << INPUT_MAX_FOB_HELD));
@@ -557,9 +535,9 @@ poller (void *d)
                      mydev[id].tamper &= ~(1 << MAX_INPUT);
                   if (res[2] != 0x7F)
                   {             // key
-                     event_t *e = newevent ((res[2] & 0x80) ? EVENT_KEY_HELD : EVENT_KEY, 0, 0);
+                     event_t *e = newevent((res[2] & 0x80) ? EVENT_KEY_HELD : EVENT_KEY, 0, 0);
                      e->key = "0123456789BA\n\e*#"[res[2] & 0x0F];
-                     postevent (e);
+                     postevent(e);
                      // Acknowledge key
                      cmd[++cmdlen] = 0x0B;
                      cmd[++cmdlen] = (mydev[id].toggle0B ? 2 : 0);
@@ -588,13 +566,13 @@ poller (void *d)
                   }
                   for (; n < MAX_INPUT; n++)
                      dev[id].ri[n].resistance = 0;
-                  for (n = 0; n < sizeof (dev[id].voltage) / sizeof (*dev[id].voltage) && p + 1 < reslen; n++)
+                  for (n = 0; n < sizeof(dev[id].voltage) / sizeof(*dev[id].voltage) && p + 1 < reslen; n++)
                   {
                      dev[id].voltage[n] = (res[p] << 8) + res[p + 1];
                      p += 2;
                   }
-                  if (n < sizeof (dev[id].voltage) / sizeof (*dev[id].voltage))
-                     for (; n < sizeof (dev[id].voltage) / sizeof (*dev[id].voltage); n++)
+                  if (n < sizeof(dev[id].voltage) / sizeof(*dev[id].voltage))
+                     for (; n < sizeof(dev[id].voltage) / sizeof(*dev[id].voltage); n++)
                         dev[id].voltage[n] = 0;
                   else if (p + 1 < reslen)
                   {             // Flags
@@ -676,12 +654,12 @@ poller (void *d)
                   // Set up response message to device
                   // TODO
                   // TODO temp for now
-                  event_t *e = newevent (EVENT_RF, 0, 0);
+                  event_t *e = newevent(EVENT_RF, 0, 0);
                   e->rfserial = ((res[2] << 24) | (res[3] << 16) | (res[4] << 8) | res[5]);
                   e->rfstatus = ((res[6] << 24) | (res[7] << 16) | (res[8] << 8) | res[9]);
                   e->rftype = res[10];
                   e->rfsignal = res[11];
-                  postevent (e);
+                  postevent(e);
                }
                break;
             }
@@ -701,7 +679,7 @@ poller (void *d)
          if (n < 256)
          {
             if (debug)
-               printf ("%s%X%02X URGENT\n", type_name[dev[n].type], busid + 1, n);
+               printf("%s%X%02X URGENT\n", type_name[dev[n].type], busid + 1, n);
             dev[n].urgent = 0;
             id = n;
             more = 1;
@@ -728,7 +706,7 @@ poller (void *d)
                   while (m && mydev[idleid].polling);
                   idlecheck = 1;
                   if (wd >= 0)
-                     write (wd, &idlecheck, 1); // Poke watchdog
+                     write(wd, &idlecheck, 1);  // Poke watchdog
                }
             }
             if (dev[id].disabled)
@@ -756,8 +734,7 @@ poller (void *d)
                   mydev[id].send07 = 1;
                   mydev[id].toggle0C = 1;
                }
-               if (mydev[id].send0C || mydev[id].output != dev[id].output || mydev[id].invert != dev[id].invert
-                   || mydev[id].disable != dev[id].disable)
+               if (mydev[id].send0C || mydev[id].output != dev[id].output || mydev[id].invert != dev[id].invert || mydev[id].disable != dev[id].disable)
                {                // Settings changed
                   if (cmdlen)
                      more++;
@@ -770,9 +747,7 @@ poller (void *d)
                      mydev[id].led = dev[id].led;
                      cmd[++cmdlen] = 0x0C;
                      // The logic here is not 100% clear, seems we have to send the toggle on and off to latch something. Seems to work now
-                     cmd[++cmdlen] =
-                        ((mydev[id].toggle0C ? 0x09 : 0x00) | (((mydev[id].output ^ mydev[id].invert ^ 2) & 3) << 1) |
-                         ((mydev[id].disable) ? 0 : 0x80));
+                     cmd[++cmdlen] = ((mydev[id].toggle0C ? 0x09 : 0x00) | (((mydev[id].output ^ mydev[id].invert ^ 2) & 3) << 1) | ((mydev[id].disable) ? 0 : 0x80));
                      cmd[++cmdlen] = dev[id].led;
                      mydev[id].send07 = 0;      // Includes LED
                      mydev[id].toggle0C ^= 1;
@@ -794,8 +769,8 @@ poller (void *d)
                   dev[id].config = 0;   // Clear
                   mydev[id].config = 1;
                   mydev[id].addr = 0;
-                  event_t *e = newevent (EVENT_CONFIG, 0, 0);
-                  postevent (e);
+                  event_t *e = newevent(EVENT_CONFIG, 0, 0);
+                  postevent(e);
                }
                if (mydev[id].config)
                {                // Programming EEPROM
@@ -803,7 +778,7 @@ poller (void *d)
                      more++;
                   else
                   {
-                     if (mydev[id].addr >= sizeof (maxeeprom))
+                     if (mydev[id].addr >= sizeof(maxeeprom))
                      {
                         mydev[id].config = 0;   // Done - no reply to reset
                         mydev[id].addr = 0;
@@ -814,7 +789,7 @@ poller (void *d)
                         cmd[++cmdlen] = 0x00;
                         cmd[++cmdlen] = mydev[id].addr;
                         unsigned char a0 = 0,
-                           a3 = 0;
+                            a3 = 0;
                         if (mydev[id].addr == 0x0C)
                            a0 = dev[id].newid;  // Device ID at 0x0C
                         if (mydev[id].addr + 3 == 0x1F)
@@ -853,20 +828,17 @@ poller (void *d)
                      mydev[id].toggle0B ^= 1;
                   }
                }
-               if (mydev[id].send07 || mydev[id].k.blink != dev[id].k.blink || mydev[id].k.cursor != dev[id].k.cursor
-                   || memcmp (mydev[id].k.text[0], (void *) dev[id].k.text[0], 16)
-                   || memcmp (mydev[id].k.text[1], (void *) dev[id].k.text[1], 16))
+               if (mydev[id].send07 || mydev[id].k.blink != dev[id].k.blink || mydev[id].k.cursor != dev[id].k.cursor || memcmp(mydev[id].k.text[0], (void *) dev[id].k.text[0], 16) || memcmp(mydev[id].k.text[1], (void *) dev[id].k.text[1], 16))
                {                // Text change
                   int l,
-                    p;
+                   p;
                   if (cmdlen)
                      more++;
                   else
                   {             // Updating display, try to track the change in mydev text as we go and only send what we need to
                      cmd[++cmdlen] = 0x07;
                      cmd[++cmdlen] = 0x01 | ((mydev[id].k.blink = dev[id].k.blink) ? 0x08 : 0x00) | (mydev[id].toggle07 ? 0x80 : 0);
-                     unsigned int maketext (int dummy, int space)
-                     {
+                     unsigned int maketext(int dummy, int space) {
                         int q = cmdlen;
                         if (space)
                            cmd[++q] = 0x17;     // clear/home
@@ -921,17 +893,17 @@ poller (void *d)
                            for (p = 0; p < 16; p++)
                               mydev[id].k.text[l][p] = ' ';
                         mydev[id].k.cursor &= ~0x1F;    // Home
-                        cmdlen = maketext (0, ' ');
+                        cmdlen = maketext(0, ' ');
                      } else
                      {          // Work out if clear/home would be worthwhile
-                        int c1 = maketext (1, ' ');
-                        int c2 = maketext (0, 0);
+                        int c1 = maketext(1, ' ');
+                        int c2 = maketext(0, 0);
                         if (c1 < c2)
                         {       // Work from blank
                            for (l = 0; l < 2; l++)
                               for (p = 0; p < 16; p++)
                                  mydev[id].k.text[l][p] = ' ';
-                           cmdlen = maketext (0, ' ');
+                           cmdlen = maketext(0, ' ');
                         } else
                            cmdlen = c2;
                      }
@@ -1032,9 +1004,7 @@ poller (void *d)
                   }
                }
                for (n = 0; n < MAX_INPUT; n++)
-                  if ((mydev[id].send00 & (1 << n))
-                      || memcmp (mydev[id].threshold[n], (unsigned char *) dev[id].ri[n].threshold,
-                                 sizeof (mydev[id].threshold[n])))
+                  if ((mydev[id].send00 & (1 << n)) || memcmp(mydev[id].threshold[n], (unsigned char *) dev[id].ri[n].threshold, sizeof(mydev[id].threshold[n])))
                   {             // Send thresholds
                      if (cmdlen)
                         more++;
@@ -1042,8 +1012,7 @@ poller (void *d)
                      {
 
 // Has to be sent twice!
-                        if (memcmp
-                            (mydev[id].threshold[n], (unsigned char *) dev[id].ri[n].threshold, sizeof (mydev[id].threshold[n])))
+                        if (memcmp(mydev[id].threshold[n], (unsigned char *) dev[id].ri[n].threshold, sizeof(mydev[id].threshold[n])))
                            mydev[id].send00 |= (1 << n);        // Send again
                         else
                            mydev[id].send00 &= ~(1 << n);
@@ -1052,11 +1021,11 @@ poller (void *d)
                         cmd[++cmdlen] = 0x0E;
                         cmd[++cmdlen] = 0x00;
                         cmd[++cmdlen] = n;
-                        memcpy (mydev[id].threshold[n], (unsigned char *) dev[id].ri[n].threshold, sizeof (mydev[id].threshold[n]));
-                        if (mydev[id].threshold[n][sizeof (mydev[id].threshold[n]) - 1])
+                        memcpy(mydev[id].threshold[n], (unsigned char *) dev[id].ri[n].threshold, sizeof(mydev[id].threshold[n]));
+                        if (mydev[id].threshold[n][sizeof(mydev[id].threshold[n]) - 1])
                         {
-                           memcpy (cmd + cmdlen + 1, (unsigned char *) mydev[id].threshold[n], sizeof (mydev[id].threshold[n]));
-                           cmdlen += sizeof (mydev[id].threshold[n]);
+                           memcpy(cmd + cmdlen + 1, (unsigned char *) mydev[id].threshold[n], sizeof(mydev[id].threshold[n]));
+                           cmdlen += sizeof(mydev[id].threshold[n]);
                         } else
                         {
                            cmd[++cmdlen] = rio_thresholds[0].tampersc;
@@ -1125,7 +1094,7 @@ poller (void *d)
       }
       {                         // Send next command
          unsigned int c = 0xAA, // Work out checksum
-            n;
+             n;
          cmd[0] = id;
          cmdlen++;
          for (n = 0; n < cmdlen; n++)
@@ -1133,35 +1102,34 @@ poller (void *d)
          while (c > 0xFF)
             c = (c >> 8) + (c & 0xFF);
          cmd[cmdlen++] = c;
-         sendcmd ();
+         sendcmd();
       }
       reslen = 0;               // ready for next message
       if (nextka <= now.tv_sec)
       {                         // Keep alive stats
          nextka = now.tv_sec + 60;
-         event_t *e = newevent (EVENT_KEEPALIVE, 0, 0);
+         event_t *e = newevent(EVENT_KEEPALIVE, 0, 0);
          e->rx = rx;
          e->tx = tx;
          e->errors = errors;
          e->stalled = stalled;
          e->retries = retries;
-         postevent (e);
+         postevent(e);
          retries = 0;
          stalled = 0;
          errors = 0;
          tx = 0;
          rx = 0;
       }
-      void newevents (int etype, unsigned short status, unsigned short changed)
-      {                         // Post each change separately
+      void newevents(int etype, unsigned short status, unsigned short changed) {        // Post each change separately
          int i;
          for (i = 0; changed && i < MAX_TAMPER; i++)
             if (changed & (1 << i))
             {
                changed &= ~(1 << i);
-               event_t *e = newevent (etype, 1, i + 1);
+               event_t *e = newevent(etype, 1, i + 1);
                e->state = ((status & (1 << i)) ? 1 : 0);
-               postevent (e);
+               postevent(e);
             }
       }
       // Status change event?
@@ -1171,7 +1139,7 @@ poller (void *d)
          if (changed)
          {
             dev[id].input ^= changed;
-            newevents (EVENT_INPUT, dev[id].input, changed);
+            newevents(EVENT_INPUT, dev[id].input, changed);
          }
       }
       // Tamper change event?
@@ -1179,14 +1147,14 @@ poller (void *d)
       {
          unsigned short changed = (mydev[id].tamper ^ dev[id].tamper);
          dev[id].tamper ^= changed;
-         newevents (EVENT_TAMPER, dev[id].tamper, changed);
+         newevents(EVENT_TAMPER, dev[id].tamper, changed);
       }
       // Fault change event?
       if (mydev[id].fault != dev[id].fault)
       {
          unsigned short changed = (mydev[id].fault ^ dev[id].fault);
          dev[id].fault ^= changed;
-         newevents (EVENT_FAULT, dev[id].fault, changed);
+         newevents(EVENT_FAULT, dev[id].fault, changed);
       }
    }
 
@@ -1195,104 +1163,99 @@ poller (void *d)
 
 // Functions
 
-void
-bus_init (void)
+void bus_init(void)
 {                               // General init - call before anything else
 // Event queue
-   pthread_mutex_init (&qmutex, 0);
-   pthread_mutex_init (&outputmutex, 0);
-   pipe2 (qpipe, O_NONBLOCK);   // We check queue anyway an we don't want to risk stalling if app is stalled for some reason and a lot of events
+   pthread_mutex_init(&qmutex, 0);
+   pthread_mutex_init(&outputmutex, 0);
+   pipe2(qpipe, O_NONBLOCK);    // We check queue anyway an we don't want to risk stalling if app is stalled for some reason and a lot of events
 // Thread
 }
 
-void
-bus_start (int n)
+void bus_start(int n)
 {
    if (n < 0 || n >= MAX_BUS)
-      errx (1, "Bad bus ID to start %d", n);
+      errx(1, "Bad bus ID to start %d", n);
    pthread_attr_t a;
    struct sched_param s = {
       0
    };
    s.sched_priority = 10;
-   pthread_attr_init (&a);
-   pthread_attr_setschedparam (&a, &s);
-   pthread_attr_setschedpolicy (&a, SCHED_RR);
-   if (pthread_create (&busthreads[n], &a, poller, (void *) (long) n))
-      warn ("Bus start failed");
-   pthread_attr_destroy (&a);
+   pthread_attr_init(&a);
+   pthread_attr_setschedparam(&a, &s);
+   pthread_attr_setschedpolicy(&a, SCHED_RR);
+   if (pthread_create(&busthreads[n], &a, poller, (void *) (long) n))
+      warn("Bus start failed");
+   pthread_attr_destroy(&a);
 }
 
-void
-bus_stop (int n)
+void bus_stop(int n)
 {
    if (n < 0 || n >= MAX_BUS)
-      errx (1, "Bad bus ID to stop %d", n);
-   if (pthread_cancel (busthreads[n]))
-      warn ("Bad thread cancel");
+      errx(1, "Bad bus ID to stop %d", n);
+   if (pthread_cancel(busthreads[n]))
+      warn("Bad thread cancel");
 }
 
-event_t *
-bus_event (long long usec)
+event_t *bus_event(long long usec)
 {                               // Get next event
    char x;
 // Check for event waiting
-   pthread_mutex_lock (&qmutex);
+   pthread_mutex_lock(&qmutex);
    event_t *e = (event_t *) event;
    if (e)
       event = event->next;
-   pthread_mutex_unlock (&qmutex);
+   pthread_mutex_unlock(&qmutex);
    if (e)
    {                            // an event was waiting
-      if (read (qpipe[0], &x, 1) < 0)
-         perror ("queue recv");
+      if (read(qpipe[0], &x, 1) < 0)
+         perror("queue recv");
       return e;
    }
    if (usec < 0)
       return NULL;
 // No event waiting - wait timeout specified
    fd_set readfds;
-   FD_ZERO (&readfds);
-   FD_SET (qpipe[0], &readfds);
+   FD_ZERO(&readfds);
+   FD_SET(qpipe[0], &readfds);
    struct timeval timeout = { 0
    };
    timeout.tv_sec = usec / 1000000ULL;
    timeout.tv_usec = usec % 1000000ULL;
-   int s = select (qpipe[0] + 1, &readfds, NULL, NULL, &timeout);
+   int s = select(qpipe[0] + 1, &readfds, NULL, NULL, &timeout);
    if (s <= 0)
       return NULL;              // Nothing waiting in the time
-   if (read (qpipe[0], &x, 1) < 0)
-      perror ("queue recv");
+   if (read(qpipe[0], &x, 1) < 0)
+      perror("queue recv");
 // Get the waiting event
-   pthread_mutex_lock (&qmutex);
+   pthread_mutex_lock(&qmutex);
    e = (event_t *) event;
    if (e)
       event = event->next;
-   pthread_mutex_unlock (&qmutex);
+   pthread_mutex_unlock(&qmutex);
    return e;
 }
 
 #ifndef	LIB
-int
-main (int argc, const char *argv[])
+int main(int argc, const char *argv[])
 {
    {
       int c;
       poptContext optCon;       // context for parsing command-line options
       const struct poptOption optionsTable[] = {
          POPT_AUTOHELP {
-                        }
+                         }
       };
-      optCon = poptGetContext (NULL, argc, argv, optionsTable, 0);
+      optCon = poptGetContext(NULL, argc, argv, optionsTable, 0);
 //poptSetOtherOptionHelp (optCon, "]");
-      if ((c = poptGetNextOpt (optCon)) < -1)
-         errx (1, "%s: %s\n", poptBadOption (optCon, POPT_BADOPTION_NOALIAS), poptStrerror (c));
-      if (poptPeekArg (optCon))
+      if ((c = poptGetNextOpt(optCon)) < -1)
+         errx(1, "%s: %s\n", poptBadOption(optCon, POPT_BADOPTION_NOALIAS), poptStrerror(c));
+      if (poptPeekArg(optCon))
       {
-         poptPrintUsage (optCon, stderr, 0);
+         poptPrintUsage(optCon, stderr, 0);
          return -1;
       }
-      poptFreeContext (optCon);
+      poptFreeContext(optCon);
    }
 
 
