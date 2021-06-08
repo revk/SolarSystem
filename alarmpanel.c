@@ -369,6 +369,52 @@ static void state_change(group_t g);
 static const char *real_port_name(char *v, port_p p);
 static port_app_t *port_app(port_p p);
 
+void addatt(j_t j, const char *tag, const char *val)
+{
+   if (!val)
+   {
+      j_store_null(j, tag);
+      return;
+   }
+   if (!strcmp(val, "true"))
+   {
+      j_store_true(j, tag);
+      return;
+   }
+   if (!strcmp(val, "false"))
+   {
+      j_store_false(j, tag);
+      return;
+   }
+   const char *v = val;
+   if (*v == '-')
+      v++;
+   while (isdigit(*v))
+      v++;
+   if (!*v)
+   {
+      j_store_literal(j, tag, val);
+      return;
+   }
+   j_store_string(j, tag, val);
+}
+
+static uint8_t *getafile(user_t * u)
+{
+   j_t j = j_create();
+   xml_attribute_t a = NULL;
+   xml_t system = xml_element_next_by_name(config, NULL, "system");
+   if (system)
+      while ((a = xml_attribute_next(system, a)))
+         addatt(j, xml_attribute_name(a), xml_attribute_content(a));
+   if (u && u->config)
+      while ((a = xml_attribute_next(u->config, a)))
+         addatt(j, xml_attribute_name(a), xml_attribute_content(a));
+   uint8_t *afile = makeafile(j);
+   j_delete(&j);
+   return afile;
+}
+
 void mqtt_door(int d, const char *command, const unsigned char *afile)
 {                               // Send door command
    unsigned int n;
@@ -1386,7 +1432,7 @@ static void *load_config(const char *configfile)
       if (u->afile)
          free(u->afile);
       u->afiledate = time(0) / 86400 * 86400 + 86400;
-      u->afile = getafile(config, u->config, 0, 0);
+      u->afile = getafile(u);
       sprintf(u->afilecrc, "%08X", df_crc(*u->afile, u->afile + 1));
       u->name = xml_copy(x, "@name");
       u->fullname = xml_copy(x, "@full-name");
@@ -3469,7 +3515,7 @@ void doevent(event_t * e)
             if (u->afile)
                free(u->afile);
             u->afiledate = time(0) / 86400 * 86400 + 86400;
-            u->afile = getafile(config, u->config, 0, 0);
+            u->afile = getafile(u);
             sprintf(u->afilecrc, "%08X", df_crc(*u->afile, u->afile + 1));
          }
          const unsigned char *afile = (u ? u->afile : NULL);
@@ -4320,11 +4366,11 @@ int main(int argc, const char *argv[])
                   }
                   if (port && !strncmp(t, "state", 5) && msg->payloadlen >= 1)
                   {
-                     if (tag && !strcmp(tag, "keys")&&j)
-		     {
- // TODO
-			     return;
-		     }
+                     if (tag && !strcmp(tag, "keys") && j)
+                     {
+                        // TODO
+                        return;
+                     }
                      if (tag && !strcmp(tag, "aes"))
                      {          // AES settings, send AID/AES if needed
                         if (app->config && msg->payloadlen >= 6)

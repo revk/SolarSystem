@@ -1,199 +1,136 @@
-// Access file logic
+// Access file logic library
+// Creates the afile to use, based on settings in JSON
 
 #define _GNU_SOURCE
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 #include <err.h>
 #include <malloc.h>
 #include <time.h>
 #include <openssl/evp.h>
 #include <desfireaes.h>
-#include <axl.h>
+#include <ajl.h>
 
-unsigned char *getafile(xml_t config, xml_t user, int debug, int forceallow)
+uint8_t *makeafile(j_t j)
 {                               // Return malloc'd access file
-   char *afile = NULL;
+   uint8_t *afile = NULL;
    size_t afilelen = 0;
-   char *allow = NULL,
-       *deny = NULL;
-   size_t allowlen = 0,
-       denylen = 0;
-   FILE *allowf = open_memstream(&allow, &allowlen);
-   FILE *denyf = open_memstream(&deny, &denylen);
-   FILE *afilef = open_memstream(&afile, &afilelen);
-   fputc(0x00, afilef);
-   // Check doors
-   const char *open = xml_get(user, "@open") ? : "*";
-   xml_t door = NULL;
-   while ((door = xml_element_next_by_name(config, door, "door")))
+   FILE *afilef = open_memstream((void *) &afile, &afilelen);
+   fputc(0x00, afilef);         // Len place holder
+   if (j)
    {
-      const char *devname = xml_get(door, "@max");
-      if (!devname)
-         devname = xml_get(door, "@min");
-      if (!devname)
-         devname = xml_get(door, "@i_fob");
-      if (!devname)
+      int debug = j_test(j, "debug", 0);
+      if (debug)
+         j_err(j_write(j, stderr));
+      // Flags
+      if (j_test(j, "commit", 0))
+         fputc(0xF0, afilef);
+      if (j_test(j, "log", 0))
+         fputc(0xF1, afilef);
+      if (j_test(j, "count", 0))
+         fputc(0xF2, afilef);
+      if (j_test(j, "block", 0))
+         fputc(0xFB, afilef);
+      if (j_test(j, "clock", 0))
+         fputc(0xFC, afilef);
+      // Times
+      const char *t = j_get(j, "from");
+      if (t && *t)
       {
-         if (debug)
-            printf("Door with no device\n");
-         continue;
+         unsigned char times[14];
+         int l = df_hex(sizeof(times), times, t);
+         if (l == 2 || l == 4 || l == 6 || l == 14)
+         {
+            fputc(0x10 + l, afilef);
+            fwrite(times, l, 1, afilef);
+         } else if (debug)
+            warnx("from time not valid size");
       }
-      xml_t device = NULL;
-      while ((device = xml_element_next_by_name(config, device, "device")))
-         if (!strcasecmp(xml_get(device, "@id") ? : "", devname) || !strcasecmp(xml_get(device, "@name") ? : "", devname))
-            break;
-      if (!device)
+      t = j_get(j, "to");
+      if (t && *t)
       {
-         if (debug)
-            printf("Door with device not found [%s]\n", devname);
-         continue;
+         unsigned char times[14];
+         int l = df_hex(sizeof(times), times, t);
+         if (l == 2 || l == 4 || l == 6 || l == 14)
+         {
+            fputc(0x20 + l, afilef);
+            fwrite(times, l, 1, afilef);
+         } else if (debug)
+            warnx("to time not valid size");
       }
-      const char *devid = xml_get(device, "@id");
-      if (!devid)
-      {
-         if (debug)
-            printf("Door with no device id [%s]\n", devname);
-         continue;
-      }
-      unsigned char id[3];
-      if (df_hex(3, id, devid) != 3)
-      {
-         if (debug)
-            printf("Door with bad id [%s] [%s]\n", devid, devname);
-         continue;
-      }
-      const char *lock = xml_get(door, "@lock");
-      if (lock && *open != '*')
-      {                         // Check if allowed
-         const char *c;
-         for (c = open; *c && !strchr(lock, *c); c++);
-         if (!*c)
-            lock = NULL;        // Not allowed
-      }
-      if (*open == '*' || lock)
-      {
-         if (debug)
-            fprintf(stderr, "Allow %s\n", devid);
-         fwrite(id, 3, 1, allowf);
-      } else
-      {
-         if (debug)
-            fprintf(stderr, "Deny  %s\n", devid);
-         fwrite(id, 3, 1, denyf);
-      }
-   }
-   fclose(allowf);
-   fclose(denyf);
-   if (!allowlen && !forceallow)
-      warnx("User is not allowed to use any doors");
-   if (allowlen < denylen)
-      forceallow = 1;           // Allow list is shorter
-   if (denylen)
-   {
-      char *devs = allow;
-      int devslen = allowlen;
-      if (!forceallow)
-      {                         // Set allowed
-         devs = deny;
-         devslen = denylen;
-      }
-      while (devslen)
-      {
-         int l = devslen;
-         if (l > 14)
-            l = 14;
-         fputc((forceallow ? 0xA0 : 0xB0) + l, afilef);
-         fwrite(devs, l, 1, afilef);
-         devslen -= l;
-         devs += l;
-      }
-   }
-   // Times
-   const char *t = xml_get(user, "@time-from") ? : xml_get(config, "system@time-from");
-   if (t && *t)
-   {
-      unsigned char times[14];
-      int l = df_hex(sizeof(times), times, t);
-      if (l == 2 || l == 4 || l == 6 || l == 14)
-      {
-         fputc(0xF0 + l, afilef);
-         fwrite(times, l, 1, afilef);
-      }
-   }
-   t = xml_get(user, "@time-to") ? : xml_get(config, "system@time-to");
-   if (t && *t)
-   {
-      unsigned char times[14];
-      int l = df_hex(sizeof(times), times, t);
-      if (l == 2 || l == 4 || l == 6 || l == 14)
-      {
-         fputc(0x20 + l, afilef);
-         fwrite(times, l, 1, afilef);
-      }
-   }
-   t = xml_get(user, "@time-override");
-   if (t && !strcasecmp(t, "true"))
-      fputc(0xC0, afilef);
-   t = xml_get(user, "@deadlock-override");
-   if (t && !strcasecmp(t, "true"))
-      fputc(0xD0, afilef);
-   const char *ex = xml_get(user, "@expiry") ? : xml_get(config, "system@expiry");
-   if (ex)
-   {
-      time_t expiry = xml_time(ex);
-      if (expiry)
-      {                         // Explicit expiry
+
+      j_t ex = j_find(j, "expiry");
+      if (j_isnumber(ex))
+      {                         // Expiry days
+         int xdays = atoi(j_val(ex));
          struct tm t;
-         localtime_r(&expiry, &t);
-         char e[8];
-         e[0] = 0xE7;
-         e[1] = 0xE4;
+         time_t now = time(0) + 86400 * (xdays - debug);        // Note debug sets yesterday
+         localtime_r(&now, &t);
+         char e[7];
+         e[0] = 0xE1;
+         e[1] = xdays;
+         e[2] = 0xE4;           // Date only, so end of day
          int v = t.tm_year + 1900;
-         e[2] = (v / 1000) * 16 + (v / 100 % 10);
-         e[3] = (v / 10 % 10) * 16 + (v % 10);
-         v = t.tm_mon + 1;
+         e[3] = (v / 1000) * 16 + (v / 100 % 10);
          e[4] = (v / 10 % 10) * 16 + (v % 10);
-         v = t.tm_mday;
+         v = t.tm_mon + 1;
          e[5] = (v / 10 % 10) * 16 + (v % 10);
-         v = t.tm_hour;
+         v = t.tm_mday;
          e[6] = (v / 10 % 10) * 16 + (v % 10);
-         v = t.tm_min;
-         e[7] = (v / 10 % 10) * 16 + (v % 10);
-         v = t.tm_sec;
-         e[8] = (v / 10 % 10) * 16 + (v % 10);
-         fwrite(e, 8, 1, afilef);
-      } else
-      {
-         int xdays = atoi(ex);
-         if (xdays)
-         {                      // Auto expiry
-            struct tm t;
-            time_t now = time(0) + 86400 * (xdays - debug);
-            localtime_r(&now, &t);
-            char e[7];
-            e[0] = 0xE1;
-            e[1] = xdays;
-            e[2] = 0xE4;
-            int v = t.tm_year + 1900;
-            e[3] = (v / 1000) * 16 + (v / 100 % 10);
-            e[4] = (v / 10 % 10) * 16 + (v % 10);
-            v = t.tm_mon + 1;
-            e[5] = (v / 10 % 10) * 16 + (v % 10);
-            v = t.tm_mday;
-            e[6] = (v / 10 % 10) * 16 + (v % 10);
-            fwrite(e, 7, 1, afilef);
+         fwrite(e, 7, 1, afilef);
+
+      } else if (j_isstring(ex))
+      {                         // Expiry date/time
+         const char *t = j_val(ex);
+         uint8_t e[8],
+          n = 1;
+         while (*t && n < (uint8_t) sizeof(e))
+         {
+            if (isdigit(*t) && isdigit(t[1]))
+            {
+               e[n++] = ((*t - '0') << 4) + (t[1] - '0');
+               t += 2;
+            }
+            if (*t && !isdigit(*t))
+               t++;
          }
+         if (n > 1 && !*t)
+         {
+            e[0] = 0xE1 + n;
+            fwrite(e, n, 1, afilef);
+         } else if (debug)
+            warnx("Bad expiry");
       }
+      void area(uint8_t f, const char *tag) {
+         const char *p = j_get(j, tag);
+         if (!p)
+            return;
+         uint32_t a = 0;
+         while (*p)
+         {
+            if (isalpha(*p))
+               a |= (1 << (32 - (*p & 0x1F)));
+            p++;
+         }
+         uint8_t e[5],
+          n = 1;
+         while (a && n < (uint8_t) sizeof(e))
+         {
+            e[n++] = (a >> 24);
+            a <<= 8;
+         }
+         e[0] = f + n - 1;
+         fwrite(e, n, 1, afilef);
+      }
+      area(0xA0, "allow");
+      area(0xD0, "deadlock");
    }
    fclose(afilef);
    *afile = afilelen - 1;       // Store length in first byte
    if (afilelen > 256)
       errx(1, "Access file too long (%d)", (int) afilelen);
-   if (allow)
-      free(allow);
-   if (deny)
-      free(deny);
-   return (unsigned char *) afile;
+   return afile;
 }

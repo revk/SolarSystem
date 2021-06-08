@@ -1,1 +1,1 @@
-unsigned char *getafile (xml_t config, xml_t user, int debug, int forceallow);
+uint8_t *makeafile(j_t j);

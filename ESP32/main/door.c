@@ -217,6 +217,8 @@ const char *door_fob(fob_t * fob)
          {                      // Scan the afile
             uint8_t l = (*p & 0xF);
             uint8_t c = (*p++ >> 4);
+            if (c != 0xF && p + l > e)
+               return "Invalid access file";
             if (c == 0xF)
             {
                switch (l)
@@ -240,10 +242,7 @@ const char *door_fob(fob_t * fob)
                   return "Unknown flag";
                }
                l = 0;           // Flag, so no length
-            }
-            if (p + l > e)
-               return "Invalid access file";
-            if (c == 0x0)
+            } else if (c == 0x0)
             {                   // Padding
                if (!l)
                   break;        // end of file
@@ -252,11 +251,13 @@ const char *door_fob(fob_t * fob)
                fob->allow = 0;
                for (int q = 0; q < l; q++)
                   fob->allow |= (p[q] << (24 - q * 8));
+               fob->allowset = 1;
             } else if (c == 0xD)
             {                   // Deadlock arm/disarm allow
                fob->deadlock = 0;
                for (int q = 0; q < l; q++)
                   fob->deadlock |= (p[q] << (24 - q * 8));
+               fob->deadlockset = 1;
             } else if (c == 0x1)
             {                   // From
                if (fok)
@@ -330,7 +331,7 @@ const char *door_fob(fob_t * fob)
       }
       if (fob->block)
          return "Card blocked";
-      if (!(doorarea & ~fob->deadlock))
+      if (fob->deadlockset && !(doorarea & ~fob->deadlock))
       {
          if (fob->held)
             fob->armok = 1;
@@ -367,14 +368,15 @@ const char *door_fob(fob_t * fob)
             fob->deny = "Blacklist";
          if (fob->secure && df.keylen)
          {
-            *afile = 1;
-            afile[1] = 0xA0;    // Blacklist
-            fob->crc = df_crc(*afile, afile + 1);
-            const char *e = df_write_data(&df, 0x0A, 'B', DF_MODE_CMAC, 0, *afile + 1, afile);
-            if (!e)
-               e = df_commit(&df);      // Commit the change, as we will not commit later as access not allowed
-            if (!e)
-               fob->updated = 1;
+            if (*afile != 1 || afile[1] != 0xFB)
+            {
+               *afile = 1;
+               afile[1] = 0xFB; // Blocked
+               fob->crc = df_crc(*afile, afile + 1);
+               const char *e = df_write_data(&df, 0x0A, 'B', DF_MODE_CMAC, 0, *afile + 1, afile);
+               if (!e)
+                  fob->updated = 1;
+            }
          }
          break;
       }

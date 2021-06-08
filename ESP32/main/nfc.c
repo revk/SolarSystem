@@ -80,7 +80,7 @@ SemaphoreHandle_t nfc_mutex = NULL;     // PN532 has low level message mutex, bu
 
 static uint8_t ledpattern[20] = "";
 
-static fob_t fob;               // Current card state
+static fob_t fob = { };         // Current card state
 
 const char *nfc_led(int len, const void *value)
 {
@@ -145,6 +145,8 @@ static void fobevent(void)
       if (fob.afile)
          jo_stringf(j, "crc", "%08X", fob.crc);
    }
+   if (fob.override)
+      jo_bool(j, "override", 1);
    revk_eventj("fob", &j);
 }
 
@@ -302,17 +304,18 @@ static void task(void *pvParameters)
          if (found && !pn532_Present(pn532))
          {                      // Card gone
             ESP_LOGI(TAG, "gone %s", fob.id);
-            if (fob.held && nfchold)
+            if (fob.override || (fob.held && nfchold))
             {
                *fob.id = 0;
                fobevent();
             }
+            memset(&fob, 0, sizeof(fob));
             found = 0;
          }
          if (found)
          {
             nextpoll = now + (int64_t) nfcholdpoll *1000LL;
-            if (!fob.held && nfchold && found < now)
+            if (!fob.override && !fob.held && nfchold && found < now)
             {                   // Card has been held for a while, report
                fob.held = 1;
                door_fob(&fob);
@@ -336,13 +339,12 @@ static void task(void *pvParameters)
          {                      // Check for new card
             xSemaphoreTake(nfc_mutex, portMAX_DELAY);
             nextpoll = now + (int64_t) nfcholdpoll *1000LL;     // Set periodic check for card held
-            memset(&fob, 0, sizeof(fob));
             const char *e = NULL;
             uint8_t *ats = pn532_ats(pn532);
             pn532_nfcid(pn532, fob.id);
             if (*ats && ats[1] == 0x78)
                fob.iso = 1;
-            if (aes[0][0] && (aid[0] || aid[1] || aid[2]) && *ats && ats[1] == 0x75)
+            if (!fob.override && aes[0][0] && (aid[0] || aid[1] || aid[2]) && *ats && ats[1] == 0x75)
             {                   // DESFire
                fob.secureset = 1;       // We checked security
                // Select application
@@ -389,14 +391,17 @@ static void task(void *pvParameters)
             void log(void) {    // Log and count
                if (fob.log)
                {                // Log
-                  uint8_t buf[10];
-                  buf[0] = revk_binid >> 16;
-                  buf[1] = revk_binid >> 8;
-                  buf[2] = revk_binid;
-                  bcdtime(0, buf + 3);
-                  if (buf[3] == 0x19)
+                  uint8_t buf[13];
+                  buf[0] = revk_binid >> 40;
+                  buf[1] = revk_binid >> 32;
+                  buf[2] = revk_binid >> 24;
+                  buf[3] = revk_binid >> 16;
+                  buf[4] = revk_binid >> 8;
+                  buf[5] = revk_binid;
+                  bcdtime(0, buf + 6);
+                  if (buf[6] == 0x19)
                      revk_error(TAG, "Clock not set");
-                  else if ((e = df_write_data(&df, 1, 'C', DF_MODE_CMAC, 0, 10, buf)))
+                  else if ((e = df_write_data(&df, 1, 'C', DF_MODE_CMAC, 0, 13, buf)))
                      return;
                }
                if (fob.count)
@@ -404,7 +409,7 @@ static void task(void *pvParameters)
                   if ((e = df_credit(&df, 2, DF_MODE_CMAC, 1)))
                      return;
                }
-               if (fob.log || fob.count)
+               if (fob.log || fob.count || fob.updated)
                {                // Commit
                   if ((e = df_commit(&df)))
                      return;
@@ -494,10 +499,12 @@ const char *nfc_command(const char *tag, unsigned int len, const unsigned char *
    if (nfcmask && !strcmp(tag, "led"))
       return nfc_led(len, value);
    if (!strcmp(tag, TAG))
-   {
+   {                            // Direct NFC data
       if (!len)
-         fob.held = 1;
-      else
+      {
+         fob.override = 1;      // Disable normal working
+         ESP_LOGI(TAG, "NFC access override");
+      } else
       {
          uint8_t buf[256];
          if (len > sizeof(buf))
