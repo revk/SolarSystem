@@ -13,6 +13,7 @@
 #include <openssl/evp.h>
 #include <desfireaes.h>
 #include <ajl.h>
+#include "ESP32/main/areas.h"
 
 uint8_t *makeafile(j_t j)
 {                               // Return malloc'd access file
@@ -111,8 +112,12 @@ uint8_t *makeafile(j_t j)
          uint32_t a = 0;
          while (*p)
          {
-            if (isalpha(*p))
-               a |= (1 << (32 - (*p & 0x1F)));
+            static const char areas[] = AREAS;
+            const char *q = strchr(areas, *p);
+            if (q)
+               a |= (1 << (31 - (q - areas)));
+            else if (debug)
+               fprintf(stderr, "Unexpected area code '%c'", *q);
             p++;
          }
          uint8_t e[5],
