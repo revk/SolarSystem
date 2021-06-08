@@ -319,16 +319,25 @@ int main(int argc, const char *argv[])
             send(sp[0], NULL, 0, 0);    // Indicate card gone
             return;
          }
-
-         int n;
+         j_t j = j_create();
+         j_err(j_read_mem(j, msg->payload, msg->payloadlen));
+         if (!j_isstring(j))
+            errx(1, "Expecting JSON string");
+         unsigned char *data = NULL;
+         int len = j_base16d(j_val(j), &data);
+         if (len <= 0 || !data)
+            errx(1, "No data (%s)", j_val(j));
+         j_delete(&j);
          if (debug)
          {
             fprintf(stderr, "Rx        ");
-            for (n = 0; n < msg->payloadlen; n++)
-               fprintf(stderr, " %02X", ((unsigned char *) msg->payload)[n]);
+            for (int n = 0; n < len; n++)
+               fprintf(stderr, " %02X", data[n]);
             fprintf(stderr, "\n");
          }
-         send(sp[0], msg->payload, msg->payloadlen, 0);
+
+         send(sp[0], data, len, 0);
+         free(data);
       }
    }
 
@@ -426,14 +435,20 @@ int main(int argc, const char *argv[])
          errx(1, "malloc");
       if (debug)
       {
-         unsigned int n;
          fprintf(stderr, "Tx        ");
-         for (n = 0; n < len; n++)
+         for (unsigned int n = 0; n < len; n++)
             fprintf(stderr, " %02X", data[n]);
          fprintf(stderr, "\n");
       }
-      mosquitto_publish(mqtt, NULL, topic, len, data, 1, 0);
-      free(topic);
+      {                         // Send
+         char temp[len * 2 + 2];
+         temp[0] = '"';
+         for (unsigned int n = 0; n < len; n++)
+            sprintf(temp + n * 2 + 1, "%02X", data[n]);
+         temp[len * 2 + 1] = '"';
+         mosquitto_publish(mqtt, NULL, topic, len * 2 + 2, temp, 1, 0);
+         free(topic);
+      }
       return recvt(sp[1], data, max, 10);
    }
    xml_t findfob(void) {        // Find a user by fob

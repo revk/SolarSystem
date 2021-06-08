@@ -506,17 +506,29 @@ const char *nfc_command(const char *tag, unsigned int len, const unsigned char *
          ESP_LOGI(TAG, "NFC access override");
       } else
       {
+         jo_t j = jo_parse_mem((char*)value, len);
+         if (jo_here(j) != JO_STRING)
+         {
+            jo_free(&j);
+            return "Expecting JSON string";
+         }
          uint8_t buf[256];
-         if (len > sizeof(buf))
+         int len = jo_strncpy(j, (char*)buf, sizeof(buf));
+         if (len >= sizeof(buf))
+         {
+            jo_free(&j);
             return "Too big";
-         memcpy(buf, value, len);
+         }
+         len = jo_based16(buf, sizeof(buf), (char*)buf, len);
          const char *err = NULL;
          xSemaphoreTake(nfc_mutex, portMAX_DELAY);
-         int l = pn532_dx(pn532, len, buf, sizeof(buf), &err);
+         len = pn532_dx(pn532, len, buf, sizeof(buf), &err);
          xSemaphoreGive(nfc_mutex);
-         if (l < 0)
+         if (len < 0)
             return err ? : "?";
-         revk_raw(prefixinfo, TAG, l, buf, 0);
+         j = jo_create_alloc();
+         jo_base16(j, NULL, buf, len);
+         revk_infoj(TAG, &j);
       }
       return "";
    }
