@@ -44,16 +44,16 @@ uint8_t afile[256];             // Access file saved
   u32(lockdebounce,100); \
   u1(doordebug); \
   u1(doorsilent); \
-  t(fallback); \
-  t(blacklist); \
+  ta(fallback,10); \
+  ta(blacklist,10); \
 
 #define u32(n,d) uint32_t n;
 #define u16(n,d) uint16_t n;
 #define u8(n,d) uint8_t n;
 #define u1(n) uint8_t n;
-#define t(n) const char*n=NULL;
+#define ta(n,c) const char*n[c]={};
 settings
-#undef t
+#undef ta
 #undef u32
 #undef u16
 #undef u8
@@ -179,78 +179,29 @@ const char *door_prop(const uint8_t * a)
    return door_access(a);
 }
 
-static int checkfob(const char *fobs, const char *id)
-{                               // is fob in list
-   if (!fobs || !id)
-      return 0;
-   int l = strlen(id),
-       n = 0;
-   while (*fobs)
-   {
-      n++;
-      const char *p = fobs;
-      while (*p && *p != ' ')
-         p++;
-      if (p - fobs == l && !memcmp(fobs, id, l))
-         return n;
-      while (*p && *p == ' ')
-         p++;
-      fobs = p;
-   }
-   return 0;
-}
-
-const char *door_fob(char *id, uint32_t * crcp)
-{                               // Consider fob
-   // Return NULL is access allowed
-   // Return string if not
-   // - Empty string if not allowed but not an error (e.g. not autonomous door control)
-   // - String starting * if not allowed based on access rules
-   // - Other string is not allowed based on NFC or DESFire error of some sort
-   if (crcp)
-      *crcp = 0;
-   if (!door)
-      return "";                // just not allowed
-   if (blacklist && checkfob(blacklist, id))
-   {
-      if (door >= 4 && df.keylen)
-      {                         // Zap the access file
-         *afile = 1;
-         afile[1] = 0xA0;       // Blacklist
-         if (crcp)
-            *crcp = df_crc(*afile, afile + 1);
-         if (df.keylen)
-         {
-            const char *e = df_write_data(&df, 0x0A, 'B', DF_MODE_CMAC, 0, *afile + 1, afile);
-            if (!e)
-               e = df_commit(&df);      // Commit the change, as we will not commit later as access not allowed
-            if (e)
-               return e;
-         }
-         return "Blacklist (zapped)";
-      }
-      return "Blacklist";
-   }
-   if (door >= 4)
-   {                            // Autonomous door control logic - check access file and times, etc
-      if (!df.keylen)
-         return "";             // Don't make a fuss, control system may allow this, and it is obvious
-      // Just read file A
-      const char *e = df_read_data(&df, 0x0A, DF_MODE_CMAC, 0, MINAFILE, afile);
+const char *door_fob(fob_t * fob)
+{                               // Consider fob - sets details of action in the fob object
+   if (!fob || door < 3 || fob->fail || fob->deny)
+      return NULL;              // Do nothing
+   const char *id = (fob->secure ? fob->uid : fob->id);
+   // Check the card security
+   time_t now = time(0);
+   uint8_t datetime[7];         // BCD date time
+   int xoff = 0,
+       xlen = 0,
+       xdays = 0;               // Expiry data
+   char clockoverride = 0;      // Override time/expiry if clock not set
+   char deadlockoverride = 0;   // Override deadlock
+   const char *afilecheck(void) {       // Read Afile
+      fob->checked = 1;
+      const char *e = df_read_data(&df, 0x0A, DF_MODE_CMAC, 0, MINAFILE, afile);        // Initial
       if (!e && *afile + 1 > MINAFILE)
-         e = df_read_data(&df, 0x0A, DF_MODE_CMAC, 0, *afile + 1 - MINAFILE, afile + MINAFILE);
+         e = df_read_data(&df, 0x0A, DF_MODE_CMAC, 0, *afile + 1 - MINAFILE, afile + MINAFILE); // More data
       if (e)
-         return e;
-      if (crcp)
-         *crcp = df_crc(*afile, afile + 1);
+         return fob->fail = e;
+      fob->afile = 1;
+      fob->crc = df_crc(*afile, afile + 1);
       // Check access file (expected to exist)
-      time_t now = time(0);
-      uint8_t datetime[7];      // BCD date time
-      int xoff = 0,
-          xlen = 0,
-          xdays = 0;            // Expiry data
-      char clockoverride = 0;   // Override time/expiry if clock not set
-      char deadlockoverride = 0;        // Override deadlock
       if (*afile)
       {                         // Check access
          uint8_t *p = afile + 1,
@@ -370,47 +321,71 @@ const char *door_fob(char *id, uint32_t * crcp)
             }
          }
       }
-      if (!deadlockoverride && doordeadlock && door < 5)
-         return "";             // Quiet about this as normal for system controlled disarm
-      if (*datetime >= 0x20 && xdays && xoff && xlen <= 7 && df.keylen)
-      {                         // Update expiry
-         now += 86400LL * (int64_t) xdays;
-         bcdtime(now, datetime);
-         if (memcmp(datetime, afile + xoff, xlen) > 0)
-         {                      // Changed expiry
-            memcpy(afile + xoff, datetime, xlen);
-            if (crcp)
-               *crcp = df_crc(*afile, afile + 1);
-            const char *e = df_write_data(&df, 0x0A, 'B', DF_MODE_CMAC, xoff, xlen, datetime);
-            if (e)
-               revk_error("fob", "%s Expiry update failed: %s", id, e);
-            else
-               revk_info("fob", "%s Expiry updated", id);
-            // We don't really care if this fails, as we get a chance later, this means the access is allowed so will log and commit later
-         }
+      if (doordeadlock && !deadlockoverride)
+         return fob->deny = "Deadlocked";
+      // TODO arm and disarm checks from Afile
+      fob->unlockok = 1;
+      return NULL;
+   }
+   if (fob->secure && df.keylen)
+      fob->deny = afilecheck();
+   if (fob->held)
+      return NULL;
+   // Check fallback
+   for (int i = 0; i < sizeof(fallback) / sizeof(*fallback); i++)
+      if (!strcmp(fallback[i], id))
+      {
+         fob->fallback = 1;
+         fob->unlockok = 1;
+         break;
       }
-      // Allowed
-      if (doorstate == DOOR_OPEN && door >= 5)
-         door_prop(NULL);
-      return NULL;
+   // Check blacklist
+   for (int i = 0; i < sizeof(blacklist) / sizeof(*blacklist); i++)
+      if (!strcmp(blacklist[i], id))
+      {
+         fob->blacklist = 1;
+         fob->unlockok = 0;
+         fob->disarmok = 0;
+         fob->armok = 0;
+         fob->deny = "Blacklist";
+         if (fob->secure && df.keylen)
+         {
+            *afile = 1;
+            afile[1] = 0xA0;    // Blacklist
+            fob->crc = df_crc(*afile, afile + 1);
+            const char *e = df_write_data(&df, 0x0A, 'B', DF_MODE_CMAC, 0, *afile + 1, afile);
+            if (!e)
+               e = df_commit(&df);      // Commit the change, as we will not commit later as access not allowed
+            if (!e)
+               fob->updated = 1;
+         }
+         break;
+      }
+   if (door >= 4)
+   {                            // Actually do the doors (done by the caller)
+      fob->unlocked = fob->unlockok;
+      if (door >= 5)
+      {
+         fob->disarmed = fob->disarmok;
+         fob->armed = fob->armok;
+      }
    }
-   if (door == 3)
-   {
-      if (!df.keylen)
-         return "";             // Don't make a fuss, control system may allow this, and it is obvious
-      if (doordeadlock)
-         return "Door deadlocked";
-      return NULL;
+
+   if (!fob->deny && fob->secure && df.keylen && *datetime >= 0x20 && xdays && xoff && xlen <= 7)
+   {                            // Update expiry
+      now += 86400LL * (int64_t) xdays;
+      bcdtime(now, datetime);
+      if (memcmp(datetime, afile + xoff, xlen) > 0)
+      {                         // Changed expiry
+         memcpy(afile + xoff, datetime, xlen);
+         fob->crc = df_crc(*afile, afile + 1);
+         if (!df_write_data(&df, 0x0A, 'B', DF_MODE_CMAC, xoff, xlen, datetime))
+            fob->updated = 1;
+         // We don't really care if this fails, as we get a chance later, this means the access is allowed so will log and commit later
+      }
    }
-   if (revk_offline())
-   {
-      if (!fallback)
-         return "Offline, and no fallback";
-      if (!checkfob(fallback, id))
-         return "Offline, and fallback not matched";
-      return NULL;
-   }
-   return "";                   // Just not allowed
+
+   return NULL;
 }
 
 static uint8_t resend;
@@ -669,10 +644,10 @@ void door_init(void)
 #define u16(n,d) revk_register(#n,0,sizeof(n),&n,#d,0);
 #define u8(n,d) revk_register(#n,0,sizeof(n),&n,#d,0);
 #define u1(n) revk_register(#n,0,sizeof(n),&n,NULL,SETTING_BOOLEAN);
-#define t(n) revk_register(#n,0,0,&n,NULL,SETTING_LIVE);
+#define ta(n,c) revk_register(#n,c,0,&n,NULL,SETTING_LIVE);
 #define d(n,l) revk_register("led"#n,0,0,&doorled[DOOR_##n],#l,0);
    settings door_states
-#undef t
+#undef ta
 #undef u32
 #undef u16
 #undef u8

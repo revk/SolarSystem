@@ -5,9 +5,10 @@ static const char TAG[] = "nfc";
 const char *nfc_fault = NULL;
 const char *nfc_tamper = NULL;
 
+#include "desfireaes.h"
+#include "nfc.h"
 #include "door.h"
 #include "pn532.h"
-#include "desfireaes.h"
 #include <driver/gpio.h>
 
 #define port_mask(p) ((p)&0x3F)
@@ -78,8 +79,9 @@ uint8_t nfcmask = 0,
 df_t df;
 SemaphoreHandle_t nfc_mutex = NULL;     // PN532 has low level message mutex, but this is needed for DESFire level.
 
-static char held = 0;           // Card was held, also flags pre-loaded for remote card logic
 static uint8_t ledpattern[20] = "";
+
+static fob_t fob;               // Current card state
 
 const char *nfc_led(int len, const void *value)
 {
@@ -97,20 +99,70 @@ const char *nfc_led(int len, const void *value)
    return "";
 }
 
+static void fobevent(void)
+{
+   jo_t j = jo_object_alloc();
+   if (*fob.id)
+   {
+      if (fob.secureset)
+         jo_bool(j, "secure", fob.secure);
+      if (fob.secure)
+         jo_string(j, "uid", fob.uid);
+      if (!fob.secure || strcmp(fob.id, fob.uid))
+         jo_string(j, "id", fob.id);
+      if (fob.secure)
+         jo_stringf(j, "key", "%02X", aes[fob.aesid][0]);
+      if (fob.keyupdated)
+         jo_bool(j, "keyupdated", fob.keyupdated);
+      if (fob.fail)
+         jo_string(j, "fail", fob.fail);
+      if (fob.deny)
+         jo_string(j, "deny", fob.deny);
+      if (fob.updated)
+         jo_bool(j, "updated", fob.updated);
+      if (fob.logged)
+         jo_bool(j, "logged", fob.logged);
+      if (fob.checked)
+         jo_bool(j, "checked", fob.checked);
+      if (fob.held)
+         jo_bool(j, "held", fob.held);
+      if (fob.blacklist)
+         jo_bool(j, "blacklist", fob.blacklist);
+      if (fob.fallback)
+         jo_bool(j, "fallback", fob.fallback);
+      if (fob.unlocked)
+         jo_bool(j, "unlocked", fob.unlocked);
+      else if (fob.checked)
+         jo_bool(j, "unlockok", fob.unlockok);
+#if 0                           // TODO when we have this logic set up
+      if (fob.disarmed)
+         jo_bool(j, "disarmed", fob.disarmed);
+      else if (fob.checked)
+         jo_bool(j, "disarmok", fob.disarmok);
+      if (fob.armed)
+         jo_bool(j, "armed", fob.armed);
+      else if (fob.checked)
+         jo_bool(j, "armok", fob.armok);
+#endif
+      if (fob.afile)
+         jo_stringf(j, "crc", "%08X", fob.crc);
+      if (df.keylen)
+         jo_bool(j, "online", 1);
+   }
+   revk_eventj("fob", &j);
+}
+
 static void task(void *pvParameters)
 {
    esp_task_wdt_add(NULL);
    pvParameters = pvParameters;
-   int64_t nextpoll = 0;
+   int64_t nextpoll = 0;        // Timers
    int64_t nextled = 0;
    int64_t nextio = 0;
-   char id[22];
    int64_t found = 0;
    uint8_t ledlast = 0xFF;
    uint8_t ledpos = 0;
    uint8_t retry = 0;
-   uint8_t secure = 0;
-   uint8_t allowed = 0;
    while (1)
    {
       esp_task_wdt_reset();
@@ -253,29 +305,22 @@ static void task(void *pvParameters)
          nextpoll = now + (uint64_t) nfcpoll *1000LL;
          if (found && !pn532_Present(pn532))
          {                      // Card gone
-            ESP_LOGI(TAG, "gone %s", id);
-            if (held && nfchold)
+            ESP_LOGI(TAG, "gone %s", fob.id);
+            if (fob.held && nfchold)
             {
-               jo_t j = jo_object_alloc();
-               jo_string(j, "id", id);
-               jo_bool(j, "secure", secure);
-               revk_eventj("gone", &j);
+               *fob.id = 0;
+               fobevent();
             }
             found = 0;
-            held = 0;
          }
          if (found)
          {
-            nextpoll = now + (int64_t) nfcholdpoll *1000LL;     // Periodic check for card held
-            if (!held && nfchold && found < now && allowed)
+            nextpoll = now + (int64_t) nfcholdpoll *1000LL;
+            if (!fob.held && nfchold && found < now)
             {                   // Card has been held for a while, report
-               ESP_LOGI(TAG, "held %s", id);
-               jo_t j = jo_object_alloc();
-               jo_string(j, "id", id);
-               jo_bool(j, "secure", secure);
-               revk_eventj("held", &j);
-               blink(nfcamber);
-               held = 1;
+               fob.held = 1;
+               door_fob(&fob);
+               fobevent();
             }
             continue;           // Waiting for card to go
          }
@@ -292,19 +337,18 @@ static void task(void *pvParameters)
                l = pn532_rx(pn532, 0, NULL, sizeof(buf), buf, 100);
             nextpoll = 0;
          } else if (cards > 0)
-         {
+         {                      // Check for new card
             xSemaphoreTake(nfc_mutex, portMAX_DELAY);
-            nextpoll = now + (int64_t) nfcholdpoll *1000LL;     // Periodic check for card held
-            jo_t j = jo_object_alloc();
-            uint8_t aesid = 0;
+            nextpoll = now + (int64_t) nfcholdpoll *1000LL;     // Set periodic check for card held
+            memset(&fob, 0, sizeof(fob));
             const char *e = NULL;
             uint8_t *ats = pn532_ats(pn532);
-            uint32_t crc = 0;
-            secure = 0;
-            allowed = 1;
-            pn532_nfcid(pn532, id);
-            if (!held && aes[0][0] && (aid[0] || aid[1] || aid[2]) && *ats && ats[1] == 0x75)
+            pn532_nfcid(pn532, fob.id);
+            if (*ats && ats[1] == 0x78)
+               fob.iso = 1;
+            if (aes[0][0] && (aid[0] || aid[1] || aid[2]) && *ats && ats[1] == 0x75)
             {                   // DESFire
+               fob.secureset = 1;       // We checked security
                // Select application
                if (!e)
                   e = df_select_application(&df, aid);
@@ -320,47 +364,32 @@ static void task(void *pvParameters)
                      e = df_get_key_version(&df, 1, &version);
                      if (!e && version)
                      {
+                        uint8_t aesid;
                         for (aesid = 0; aesid < sizeof(aes) / sizeof(*aes) && aes[aesid][0] != version; aesid++);
                         if (aesid == sizeof(aes) / sizeof(*aes))
                            e = "Unknown key version";
+                        else
+                           fob.aesid = aesid;
                      }
                   }
                   // Authenticate
                   if (!e)
-                     e = df_authenticate(&df, 1, aes[aesid] + 1);
+                     e = df_authenticate(&df, 1, aes[fob.aesid] + 1);
                   uint8_t uid[7];       // Real ID
                   if (!e)
                      e = df_get_uid(&df, uid);
                   if (!e)
                   {
-                     secure = 1;
-                     snprintf(id, sizeof(id), "%02X%02X%02X%02X%02X%02X%02X", uid[0], uid[1], uid[2], uid[3], uid[4], uid[5], uid[6]);  // Set UID with + to indicate secure, regardless of access allowed, etc.
+                     fob.secure = 1;
+                     snprintf(fob.uid, sizeof(fob.uid), "%02X%02X%02X%02X%02X%02X%02X", uid[0], uid[1], uid[2], uid[3], uid[4], uid[5], uid[6]);
                   }
                }
             }
             // Door check
             if (e)
-            {
-               jo_object(j, "error");
-               jo_string(j, "type", "nfc");
-               jo_string(j, "description", e);
-               jo_close(j);
-               allowed = 0;
-            } else
-            {
-               const char *f = door_fob(id, &crc);      // Access from door control
-               if (f)
-               {
-                  if (*f)
-                  {
-                     jo_object(j, "error");
-                     jo_string(j, "type", "door");
-                     jo_string(j, "description", f);
-                     jo_close(j);
-                  }
-                  allowed = 0;
-               }
-            }
+               fob.fail = e;
+            else
+               door_fob(&fob);
             void log(void) {    // Log and count
                // Log
                uint8_t buf[10];
@@ -379,59 +408,45 @@ static void task(void *pvParameters)
                if ((e = df_commit(&df)))
                   return;
                // Key update
-               if (aesid)
-               {
-                  e = df_change_key(&df, 1, aes[0][0], aes[aesid] + 1, aes[0] + 1);
-                  if (!e)
-                     jo_stringf(j, "newkey", "%02X", *aes[0]);
-                  else
-                     jo_stringf(j, "oldkey", "%02X", *aes[aesid]);
-               }
+               if (fob.aesid)
+	       {
+                  e = df_change_key(&df, 1, aes[0][0], aes[fob.aesid] + 1, aes[0] + 1);
+		  fob.keyupdated=1;
+	       }
                if (!e)
-                  jo_bool(j, "updated", 1);
+                  fob.logged = 1;
             }
             if (e && strstr(e, "TIMEOUT"))
             {
                blink(nfcamber); // Read ID OK
-               ESP_LOGI(TAG, "Retry %s %s", id, e);
+               ESP_LOGI(TAG, "Retry %s %s", fob.id, e);
                nextpoll = 0;    // Try again immediately
             } else
             {                   // Processing door
-               if (e)
-                  ESP_LOGI(TAG, "Error %s %s", id, e);
+               if (fob.fail)
+                  ESP_LOGI(TAG, "Fail %s: %s", fob.id, fob.fail);
+               else if (fob.deny)
+                  ESP_LOGI(TAG, "Deny %s: %s", fob.id, fob.deny);
                else
-                  ESP_LOGI(TAG, "ID %s", id);
+                  ESP_LOGI(TAG, "Read %s", fob.id);
                if (!e && df.keylen && nfccommit)
                   log();        // Log before reporting or opening door
-               if (allowed)
-               {                // Access is allowed!
-                  blink(nfcred);        // Not allowed
-                  door_unlock(NULL, "fob");     // Door system was happy with fob, let 'em in
-               } else if (door >= 4)
-                  blink(nfcgreen);      // Allowed
-               else if (nfccard)
-                  blink(nfccard);
+               if (fob.unlockok)
+                  blink(nfcgreen);
+               else if (fob.deny)
+                  blink(nfcred);
                else
-                  blink(nfcamber);      // Read OK but we don't know if allowed or not as needs back end to advise
+                  blink(nfcamber);
+               if (fob.unlocked)
+                  door_unlock(NULL, "fob");     // Door system was happy with fob, let 'em in
                nextled = now + 200000LL;
-               // Report
-               if (*ats && ats[1] == 0x75)
-                  jo_string(j, "type", "DESFire");
-               else if (*ats && ats[1] == 0x78)
-                  jo_string(j, "type", "ISO");
-               jo_string(j, "id", id);
-               jo_bool(j, "secure", secure);
-               if (door >= 3)
-                  jo_bool(j, "allowed", allowed);
-               if (secure && door >= 4)
-                  jo_stringf(j, "crc", "%08X", crc);
-               revk_eventj("access", &j);
                if (!e && df.keylen && !nfccommit)
                {
                   log();        // Can log after reporting / opening
                   if (e && !strstr(e, "TIMEOUT"))
                      revk_error(TAG, "%s", e);  // Log new error anyway, unless simple timeout
                }
+               fobevent();
                found = now + (uint64_t) nfchold *1000LL;
             }
             xSemaphoreGive(nfc_mutex);
@@ -470,7 +485,7 @@ const char *nfc_command(const char *tag, unsigned int len, const unsigned char *
    if (!strcmp(tag, TAG))
    {
       if (!len)
-         held = 1;
+         fob.held = 1;
       else
       {
          uint8_t buf[256];
