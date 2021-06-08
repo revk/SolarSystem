@@ -673,7 +673,7 @@ int main(int argc, const char *argv[])
       if (!user || size != 256 || memcmp(buf, afile, *afile + 1))
       {                         // Report content
          int p;
-         printf("Access was (%08X)", df_crc(*buf, buf + 1));
+         printf("Access was  (%08X)", df_crc(*buf, buf + 1));
          for (p = 0; p < *buf + 1; p++)
             printf(" %02X", buf[p]);
          printf("\n");
