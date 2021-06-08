@@ -30,7 +30,6 @@ inline int16_t gpio_mask(uint8_t p)
 
 // Other settings
 #define settings  \
-  u1(nfccommit) \
   gpio(nfcred) \
   gpio(nfcamber) \
   gpio(nfcgreen) \
@@ -106,10 +105,7 @@ static void fobevent(void)
    {
       if (fob.secureset)
          jo_bool(j, "secure", fob.secure);
-      if (fob.secure)
-         jo_string(j, "uid", fob.uid);
-      if (!fob.secure || strcmp(fob.id, fob.uid))
-         jo_string(j, "id", fob.id);
+      jo_string(j, "id", fob.id);
       if (fob.secure)
          jo_stringf(j, "key", "%02X", aes[fob.aesid][0]);
       if (fob.keyupdated)
@@ -126,6 +122,8 @@ static void fobevent(void)
          jo_bool(j, "checked", fob.checked);
       if (fob.held)
          jo_bool(j, "held", fob.held);
+      if (fob.block)
+         jo_bool(j, "block", fob.block);
       if (fob.blacklist)
          jo_bool(j, "blacklist", fob.blacklist);
       if (fob.fallback)
@@ -379,7 +377,7 @@ static void task(void *pvParameters)
                   if (!e)
                   {
                      fob.secure = 1;
-                     snprintf(fob.uid, sizeof(fob.uid), "%02X%02X%02X%02X%02X%02X%02X", uid[0], uid[1], uid[2], uid[3], uid[4], uid[5], uid[6]);
+                     snprintf(fob.id, sizeof(fob.id), "%02X%02X%02X%02X%02X%02X%02X", uid[0], uid[1], uid[2], uid[3], uid[4], uid[5], uid[6]);
                   }
                }
             }
@@ -389,22 +387,28 @@ static void task(void *pvParameters)
             else
                door_fob(&fob);
             void log(void) {    // Log and count
-               // Log
-               uint8_t buf[10];
-               buf[0] = revk_binid >> 16;
-               buf[1] = revk_binid >> 8;
-               buf[2] = revk_binid;
-               bcdtime(0, buf + 3);
-               if (buf[3] == 0x19)
-                  revk_error(TAG, "Clock not set");
-               else if ((e = df_write_data(&df, 1, 'C', DF_MODE_CMAC, 0, 10, buf)))
-                  return;
-               // Count
-               if ((e = df_credit(&df, 2, DF_MODE_CMAC, 1)))
-                  return;
-               // Commit
-               if ((e = df_commit(&df)))
-                  return;
+               if (fob.log)
+               {                // Log
+                  uint8_t buf[10];
+                  buf[0] = revk_binid >> 16;
+                  buf[1] = revk_binid >> 8;
+                  buf[2] = revk_binid;
+                  bcdtime(0, buf + 3);
+                  if (buf[3] == 0x19)
+                     revk_error(TAG, "Clock not set");
+                  else if ((e = df_write_data(&df, 1, 'C', DF_MODE_CMAC, 0, 10, buf)))
+                     return;
+               }
+               if (fob.count)
+               {                // Count
+                  if ((e = df_credit(&df, 2, DF_MODE_CMAC, 1)))
+                     return;
+               }
+               if (fob.log || fob.count)
+               {                // Commit
+                  if ((e = df_commit(&df)))
+                     return;
+               }
                // Key update
                if (fob.aesid)
                {
@@ -412,7 +416,12 @@ static void task(void *pvParameters)
                   fob.keyupdated = 1;
                }
                if (!e)
-                  fob.logged = 1;
+               {
+                  if (fob.log)
+                     fob.logged = 1;
+                  if (fob.count)
+                     fob.counted = 1;
+               }
             }
             if (e && strstr(e, "TIMEOUT"))
             {
@@ -427,8 +436,12 @@ static void task(void *pvParameters)
                   ESP_LOGI(TAG, "Deny %s: %s", fob.id, fob.deny);
                else
                   ESP_LOGI(TAG, "Read %s", fob.id);
-               if (!e && df.keylen && nfccommit)
+               if (!e && df.keylen && fob.commit)
+               {
                   log();        // Log before reporting or opening door
+                  if (e)
+                     fob.unlocked = 0;
+               }
                if (fob.unlockok)
                   blink(nfcgreen);
                else if (fob.deny)
@@ -438,13 +451,13 @@ static void task(void *pvParameters)
                if (fob.unlocked)
                   door_unlock(NULL, "fob");     // Door system was happy with fob, let 'em in
                nextled = now + 200000LL;
-               if (!e && df.keylen && !nfccommit)
+               fobevent();      // Report
+               if (!e && df.keylen && !fob.commit)
                {
                   log();        // Can log after reporting / opening
                   if (e && !strstr(e, "TIMEOUT"))
                      revk_error(TAG, "%s", e);  // Log new error anyway, unless simple timeout
                }
-               fobevent();
                found = now + (uint64_t) nfchold *1000LL;
             }
             xSemaphoreGive(nfc_mutex);

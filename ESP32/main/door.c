@@ -34,6 +34,7 @@ uint8_t afile[256];             // Access file saved
 
 #define settings  \
   u8(door,0);   \
+  area(doorarea); \
   u32(doorunlock,1000); \
   u32(doorlock,3000); \
   u32(dooropen,5000); \
@@ -52,7 +53,9 @@ uint8_t afile[256];             // Access file saved
 #define u8(n,d) uint8_t n;
 #define u1(n) uint8_t n;
 #define ta(n,c) const char*n[c]={};
+#define area(n) uint32_t n;
 settings
+#undef	area
 #undef ta
 #undef u32
 #undef u16
@@ -183,15 +186,12 @@ const char *door_fob(fob_t * fob)
 {                               // Consider fob - sets details of action in the fob object
    if (!fob || door < 3 || fob->fail || fob->deny)
       return NULL;              // Do nothing
-   const char *id = (fob->secure ? fob->uid : fob->id);
    // Check the card security
    time_t now = time(0);
    uint8_t datetime[7];         // BCD date time
    int xoff = 0,
        xlen = 0,
        xdays = 0;               // Expiry data
-   char clockoverride = 0;      // Override time/expiry if clock not set
-   char deadlockoverride = 0;   // Override deadlock
    const char *afilecheck(void) {       // Read Afile
       fob->checked = 1;
       const char *e = df_read_data(&df, 0x0A, DF_MODE_CMAC, 0, MINAFILE, afile);        // Initial
@@ -210,49 +210,54 @@ const char *door_fob(fob_t * fob)
       {                         // Check access
          uint8_t *p = afile + 1,
              *e = afile + 1 + *afile;
-         uint8_t ax = false,
-             aok = false;
          uint8_t *fok = NULL,
              *tok = NULL;
          uint8_t dow = bcdtime(now, datetime);
          while (p < e)
-         {
+         {                      // Scan the afile
             uint8_t l = (*p & 0xF);
             uint8_t c = (*p++ >> 4);
+            if (c == 0xF)
+            {
+               switch (l)
+               {
+               case 0x0:
+                  fob->commit = 1;
+                  break;
+               case 0x1:
+                  fob->log = 1;
+                  break;
+               case 0x2:
+                  fob->count = 1;
+                  break;
+               case 0xB:
+                  fob->block = 1;
+                  break;
+               case 0xC:
+                  fob->clock = 1;
+                  break;
+               default:
+                  return "Unknown flag";
+               }
+               l = 0;           // Flag, so no length
+            }
             if (p + l > e)
                return "Invalid access file";
             if (c == 0x0)
-            {                   // Padding, ignore
-            } else if (c == 0xC)
-               clockoverride = 1;
-            else if (c == 0xD)
-               deadlockoverride = 1;
-            else if (c == 0xA)
-            {                   // Allow
+            {                   // Padding
                if (!l)
-                  return "Card blocked";        // Black list
-               ax = true;
-               if (l % 3)
-                  return "Invalid allow list";
-               uint8_t n = l;
-               while (n && !aok)
-               {
-                  n -= 3;
-                  if ((p[n] << 16) + (p[n + 1] << 8) + p[n + 2] == revk_binid)
-                     aok = 1;
-               }
-            } else if (c == 0xB)
-            {                   // Barred
-               if (l % 3)
-                  return "Invalid barred list";
-               uint8_t n = l;
-               while (n)
-               {
-                  n -= 3;
-                  if ((p[n] << 16) + (p[n + 1] << 8) + p[n + 2] == revk_binid)
-                     return "Barred door";
-               }
-            } else if (c == 0xF)
+                  break;        // end of file
+            } else if (c == 0xA)
+            {                   // Allow
+               fob->allow = 0;
+               for (int q = 0; q < l; q++)
+                  fob->allow |= (p[q] << (24 - q * 8));
+            } else if (c == 0xD)
+            {                   // Deadlock arm/disarm allow
+               fob->deadlock = 0;
+               for (int q = 0; q < l; q++)
+                  fob->deadlock |= (p[q] << (24 - q * 8));
+            } else if (c == 0x1)
             {                   // From
                if (fok)
                   return "Duplicate from time";
@@ -295,13 +300,11 @@ const char *door_fob(fob_t * fob)
                return "Unknown access code";    // Unknown access code
             p += l;
          }
-         if (ax && !aok)
-            return "Not allowed door";  // Not on allow list
          if (xoff)
          {
             if (*datetime < 0x20)
             {                   // Clock not set
-               if (!clockoverride)
+               if (!fob->clock)
                   return "Date not set";
             } else if (memcmp(datetime, afile + xoff, xlen) > 0)
                return "Expired";        // expired
@@ -310,7 +313,7 @@ const char *door_fob(fob_t * fob)
          {                      // Time check
             if (*datetime < 0x20)
             {                   // Clock not set
-               if (!clockoverride)
+               if (!fob->clock)
                   return "Time not set";
             } else if (fok && tok && memcmp(fok, tok, 2) > 0)
             {                   // reverse
@@ -325,10 +328,19 @@ const char *door_fob(fob_t * fob)
             }
          }
       }
-      if (doordeadlock && !deadlockoverride)
-         return fob->deny = "Deadlocked";
-      // TODO arm and disarm checks from Afile
-      fob->unlockok = 1;
+      if (fob->block)
+         return "Card blocked";
+      if (!(doorarea & ~fob->deadlock))
+      {
+         if (fob->held)
+            fob->armok = 1;
+         else
+            fob->disarmok = 1;
+      }
+      if (doordeadlock && !fob->disarmok)
+         return "Deadlocked";
+      if (!(doorarea & ~fob->allow))
+         fob->unlockok = 1;
       return NULL;
    }
    if (fob->secure && df.keylen)
@@ -337,7 +349,7 @@ const char *door_fob(fob_t * fob)
       return NULL;
    // Check fallback
    for (int i = 0; i < sizeof(fallback) / sizeof(*fallback); i++)
-      if (!strcmp(fallback[i], id))
+      if (!strcmp(fallback[i], fob->id))
       {
          fob->fallback = 1;
          fob->unlockok = 1;
@@ -345,7 +357,7 @@ const char *door_fob(fob_t * fob)
       }
    // Check blacklist
    for (int i = 0; i < sizeof(blacklist) / sizeof(*blacklist); i++)
-      if (!strcmp(blacklist[i], id))
+      if (!strcmp(blacklist[i], fob->id))
       {
          fob->blacklist = 1;
          fob->unlockok = 0;
@@ -651,7 +663,9 @@ void door_init(void)
 #define u1(n) revk_register(#n,0,sizeof(n),&n,NULL,SETTING_BOOLEAN);
 #define ta(n,c) revk_register(#n,c,0,&n,NULL,SETTING_LIVE);
 #define d(n,l) revk_register("led"#n,0,0,&doorled[DOOR_##n],#l,0);
+#define area(n) revk_register(#n,0,sizeof(n),&n,AREAS,SETTING_BITFIELD);
    settings door_states
+#undef area
 #undef ta
 #undef u32
 #undef u16

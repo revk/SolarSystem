@@ -40,6 +40,7 @@
 #include <openssl/evp.h>
 #include <desfireaes.h>
 #include <axl.h>
+#include <ajl.h>
 #include "afile.h"
 
 int debug = 0;
@@ -242,8 +243,9 @@ main (int argc, const char *argv[])
 	send (sp[0], NULL, 0, 0);	// Indicate card gone
 	return;
       }
-    if (!strcasecmp (m, "id") || !strcasecmp (m, "access") || !strcasecmp (m, "noaccess") || !strcasecmp (m, "card"))
+    if (!strcasecmp (m, "fob"))
       {
+	      j_t j=j_create();
 	asprintf (&fob, "%.*s", msg->payloadlen, (char *) msg->payload);
 	printf ("Card found %s\n", fob);
 	int n;

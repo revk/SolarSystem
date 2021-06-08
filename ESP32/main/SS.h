@@ -4,6 +4,8 @@
 #include "revk.h"
 #include "esp_task_wdt.h"
 
+#define	AREAS "ABCDEFGHIJKLMNOPQRSTUVWXYZ------"
+
 void status (const char *);     // Report change in tamper/fault (arg is ignored, but used xxx_fault="whatever");
 
 #define	MAX_PORT	40
