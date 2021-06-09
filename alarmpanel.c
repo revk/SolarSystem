@@ -3113,7 +3113,7 @@ void doevent(event_t * e)
          printf("%d", e->state);
       if (e->event == EVENT_KEY)
          printf("%02X", e->key);
-      if (e->event == EVENT_FOB || e->event == EVENT_FOB_HELD || e->event == EVENT_FOB_ACCESS || e->event == EVENT_FOB_GONE || e->event == EVENT_FOB_NOACCESS || e->event == EVENT_FOB_FAIL)
+      if (e->event == EVENT_FOB || e->event == EVENT_FOB_HELD || e->event == EVENT_FOB_ACCESS || e->event == EVENT_FOB_GONE || e->event == EVENT_FOB_NOACCESS || e->event == EVENT_FOB_FAIL || e->event == EVENT_FOB_BLOCKED)
          printf(" %s", e->fob);
       if (e->event == EVENT_RF)
          printf("%08X %08X %02X %2d/10", e->rfserial, e->rfstatus, e->rftype, e->rfsignal);
@@ -3500,6 +3500,7 @@ void doevent(event_t * e)
    case EVENT_FOB_HELD:
    case EVENT_FOB_ACCESS:
    case EVENT_FOB_NOACCESS:
+   case EVENT_FOB_BLOCKED:
    case EVENT_FOB_FAIL:
       {                         // Check users, doors?
          int d;
@@ -3607,14 +3608,28 @@ void doevent(event_t * e)
          {
             char doorno[30];
             snprintf(doorno, sizeof(doorno), "DOOR%02u", d);
+            if (e->event == EVENT_FOB_BLOCKED)
+            {
+               xml_t b = NULL;
+               while ((b = xml_element_next_by_name(config, b, "blacklist")))
+                  if (!strcmp((char *) e->fob, xml_get(b, "@fob") ? : ""))
+                  {
+                     xml_element_delete(b);
+                     configchanged = 1;
+                     dolog(mydoor[d].group_lock, "BLACKLISTCLEARED", u ? u->name : NULL, doorno, "Blacklist clearer %s%s %s", e->fob, secure ? " (secure)" : "", e->message ? : "");
+                     break;
+                  }
+            }
             if (!u)
             {
                door_error(d, afile);
                door_lock(d, afile);     // Cancel open
                dolog(mydoor[d].group_lock, e->event == EVENT_FOB_ACCESS ? "FOBBADACCESS" : "FOBBAD", NULL, doorno, "Unrecognised fob %s%s", e->fob, secure ? " (secure)" : "");
-            } else if (e->event == EVENT_FOB || e->event == EVENT_FOB_ACCESS || e->event == EVENT_FOB_NOACCESS || e->event == EVENT_FOB_FAIL)
+            } else if (e->event == EVENT_FOB || e->event == EVENT_FOB_ACCESS || e->event == EVENT_FOB_NOACCESS || e->event == EVENT_FOB_BLOCKED || e->event == EVENT_FOB_FAIL)
             {                   // disarm is the groups that can be disarmed by this user on this door.
-               if (e->event == EVENT_FOB_NOACCESS)
+               if (e->event == EVENT_FOB_BLOCKED)
+                  dolog(mydoor[d].group_lock, "FOBBLOCKED", u->name, doorno, "Autonomous access blocked %s%s %s", e->fob, secure ? " (secure)" : "", e->message ? : "");
+               else if (e->event == EVENT_FOB_NOACCESS)
                   dolog(mydoor[d].group_lock, "FOBNOACCESS", u->name, doorno, "Autonomous access not allowed %s%s %s", e->fob, secure ? " (secure)" : "", e->message ? : "");
                else if (e->event == EVENT_FOB_FAIL)
                   dolog(mydoor[d].group_lock, "FOBFAIL", u->name, doorno, "Autonomous access failed %s%s %s", e->fob, secure ? " (secure)" : "", e->message ? : "");
@@ -4403,7 +4418,13 @@ int main(int argc, const char *argv[])
                               while ((a = xml_attribute_next(app->config, a)))
                                  if (match(xml_attribute_name(a)))
                                     j_store_string(set, xml_attribute_name(a), xml_attribute_content(a));
-                           // TODO Blacklist and fallback logic
+                           xml_t e = NULL;
+                           j_t b = j_store_array(set, "blacklist");
+                           while ((e = xml_element_next_by_name(config, e, "blacklist")))
+                              j_append_string(b, xml_get(e, "@fob"));
+                           j_t f = j_store_array(set, "fallback");
+                           while ((e = xml_element_next_by_name(config, e, "fallback")))
+                              j_append_string(f, xml_get(e, "@fob"));
                            char *topic,
                            *json;
                            size_t len;
@@ -4507,6 +4528,8 @@ int main(int argc, const char *argv[])
                            e->event = EVENT_FOB_HELD;
                         else if (j_test(j, "unlocked", 0))
                            e->event = EVENT_FOB_ACCESS;
+                        else if (j_test(j, "block", 0))
+                           e->event = EVENT_FOB_BLOCKED;
                         else if (j_test(j, "checked", 0))
                            e->event = EVENT_FOB_NOACCESS;
                         else if (msg)
