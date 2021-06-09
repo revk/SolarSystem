@@ -537,7 +537,7 @@ const char *nfc_command(const char *tag, unsigned int len, const unsigned char *
 
 void nfc_init(void)
 {
-   revk_register("nfc", 0, sizeof(nfcuart), &nfcuart, "1", SETTING_SIGNED | SETTING_SECRET);   // parent setting
+   revk_register("nfc", 0, sizeof(nfctx), &nfctx, BITFIELDS, SETTING_SET | SETTING_BITFIELD | SETTING_SECRET);  // parent setting
 #define i8(n,d) revk_register(#n,0,sizeof(n),&n,#d,SETTING_SIGNED);
 #define io(n) revk_register(#n,0,sizeof(n),&n,BITFIELDS,SETTING_SET|SETTING_BITFIELD);
 #define gpio(n) revk_register(#n,0,sizeof(n),&n,BITFIELDS,SETTING_BITFIELD);
