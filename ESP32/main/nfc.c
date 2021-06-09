@@ -499,7 +499,17 @@ const char *nfc_command(const char *tag, unsigned int len, const unsigned char *
          gpio_set_level(port_mask(nfcpower), (nfcpower & PORT_INV) ? 1 : 0);    // Off
    }
    if (nfcmask && !strcmp(tag, "led"))
-      return nfc_led(len, value);
+   {
+      jo_t j = jo_parse_mem(value, len);
+      char temp[sizeof(ledpattern)];
+      int l = jo_strncpy(j, temp, sizeof(temp));
+      jo_free(&j);
+      if (l < 0)
+         return "Expecting JSON string";
+      if (l > sizeof(temp))
+         return "Too long";
+      return nfc_led(l, temp);
+   }
    if (!strcmp(tag, TAG))
    {                            // Direct NFC data
       if (!len)

@@ -198,7 +198,7 @@ int main(int argc, const char *argv[])
       }
       xml_t d = NULL;
       while ((d = xml_element_next_by_name(c, d, "device")))
-         if ((v = xml_get(d, "@nfc")))
+         if ((v = xml_get(d, "@nfc")) || (v = xml_get(d, "@nfctx")))
          {
             if (!xml_get(d, "@input1") && !xml_get(d, "@output1") && !hexreader)
                hexreader = xml_get(d, "@id");   // Assume management reader as no input or output
@@ -378,10 +378,17 @@ int main(int argc, const char *argv[])
    }
 
    void led(const char *led) {
+      j_t j = j_create();
+      j_string(j, led);
+      char *buf;
+      size_t len;
+      if (j_write_mem(j, &buf, &len))
+         warnx("Bad JSON");
+      j_delete(&j);
       char *topic;
       if (asprintf(&topic, "command/SS/%s/led", hexreader) < 0)
          errx(1, "malloc");
-      mosquitto_publish(mqtt, NULL, topic, strlen(led), led, 1, 0);
+      mosquitto_publish(mqtt, NULL, topic, len, buf, 1, 0);
       free(topic);
    }
    volatile int done = -1;

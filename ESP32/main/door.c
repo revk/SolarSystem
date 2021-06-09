@@ -413,11 +413,11 @@ const char *door_command(const char *tag, unsigned int len, const unsigned char 
 {                               // Called for incoming MQTT messages
    if (!doorauto)
       return false;             // No door control in operation
+   const char *e = NULL;
    char temp[256];
    const uint8_t *afile = NULL;
    if (len)
    {
-      const char *e = NULL;
       jo_t j = jo_parse_mem((char *) value, len);
       if (jo_here(j) == JO_STRING)
       {
@@ -433,19 +433,17 @@ const char *door_command(const char *tag, unsigned int len, const unsigned char 
       if (!e)
          e = jo_error(j, NULL);
       jo_free(&j);
-      if (e)
-         return e;
    }
    if (!strcasecmp(tag, "deadlock"))
-      return door_deadlock(afile);
+      return e ? : door_deadlock(afile);
    if (!strcasecmp(tag, "lock"))
-      return door_lock(afile);
+      return e ? : door_lock(afile);
    if (!strcasecmp(tag, "unlock"))
-      return door_unlock(afile, "remote");
+      return e ? : door_unlock(afile, "remote");
    if (!strcasecmp(tag, "prop"))
-      return door_prop(afile);
+      return e ? : door_prop(afile);
    if (!strcasecmp(tag, "access"))
-      return door_access(afile);
+      return e ? : door_access(afile);
    if (!strcasecmp(tag, "connect"))
       resend = 1;
    return NULL;
