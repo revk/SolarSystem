@@ -33,7 +33,7 @@ const char *door_tamper = NULL;
 uint8_t afile[256];             // Access file saved
 
 #define settings  \
-  u8(door,0);   \
+  u8(doorauto,0);   \
   area(doorarea); \
   u32(doorunlock,1000); \
   u32(doorlock,3000); \
@@ -42,7 +42,7 @@ uint8_t afile[256];             // Access file saved
   u32(doorprop,60000); \
   u32(doorexit,60000); \
   u32(doorpoll,100); \
-  u32(lockdebounce,100); \
+  u32(doordebounce,100); \
   u1(doordebug); \
   u1(doorsilent); \
   ta(fallback,10); \
@@ -184,7 +184,7 @@ const char *door_prop(const uint8_t * a)
 
 const char *door_fob(fob_t * fob)
 {                               // Consider fob - sets details of action in the fob object
-   if (!fob || door < 3 || fob->fail || fob->deny)
+   if (!fob || doorauto < 3 || fob->fail || fob->deny)
       return NULL;              // Do nothing
    // Check the card security
    time_t now = time(0);
@@ -380,10 +380,10 @@ const char *door_fob(fob_t * fob)
          }
          break;
       }
-   if (door >= 4)
+   if (doorauto >= 4)
    {                            // Actually do the doors (done by the caller)
       fob->unlocked = fob->unlockok;
-      if (door >= 5)
+      if (doorauto >= 5)
       {
          fob->disarmed = fob->disarmok;
          fob->armed = fob->armok;
@@ -411,7 +411,7 @@ static uint8_t resend;
 
 const char *door_command(const char *tag, unsigned int len, const unsigned char *value)
 {                               // Called for incoming MQTT messages
-   if (!door)
+   if (!doorauto)
       return false;             // No door control in operation
    if (!len || *value != len - 1)
       value = NULL;             // Not sensible access file (which is arg that we accept here)
@@ -489,7 +489,7 @@ static void task(void *pvParameters)
                   if (lock[l].timeout)
                   {             // Timeout running
                      if (lock[l].i != i)
-                        lock[l].timeout = now + (int64_t) lockdebounce *1000LL; // Allow some debounce before ending timeout
+                        lock[l].timeout = now + (int64_t) doordebounce *1000LL; // Allow some debounce before ending timeout
                      if (lock[l].timeout <= now)
                      {          // End of timeout
                         lock[l].timeout = 0;
@@ -581,7 +581,7 @@ static void task(void *pvParameters)
             if (!exit1)
             {
                exit1 = now + (int64_t) doorexit *1000LL;
-               if (door >= 2)
+               if (doorauto >= 2)
                {
                   if (!doordeadlock)
                      door_unlock(NULL, "button");
@@ -601,7 +601,7 @@ static void task(void *pvParameters)
             if (!exit2)
             {
                exit2 = now + (int64_t) doorexit *1000LL;
-               if (door >= 2)
+               if (doorauto >= 2)
                {
                   if (!doordeadlock)
                      door_unlock(NULL, "ranger");
@@ -659,6 +659,9 @@ static void task(void *pvParameters)
 
 void door_init(void)
 {
+   extern char *ledIDLE;
+   revk_register("door", 0, sizeof(doorauto), &doorauto, NULL, SETTING_SECRET); // Parent
+   revk_register("led", 0, 0, &ledIDLE, NULL, SETTING_SECRET);    // Parent
 #define u32(n,d) revk_register(#n,0,sizeof(n),&n,#d,0);
 #define u16(n,d) revk_register(#n,0,sizeof(n),&n,#d,0);
 #define u8(n,d) revk_register(#n,0,sizeof(n),&n,#d,0);
@@ -674,7 +677,7 @@ void door_init(void)
 #undef u8
 #undef u1
 #undef d
-   if (!door)
+   if (!doorauto)
        return;                  // No door control in operation
    revk_task(TAG, task, NULL);
 }

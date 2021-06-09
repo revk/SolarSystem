@@ -36,20 +36,19 @@ inline int16_t gpio_mask(uint8_t p)
   gpio(nfccard) \
   gpio(nfctamper) \
   gpio(nfcbell) \
-  t(mqttbell) \
   u16(nfcpoll,50) \
   u16(nfchold,3000) \
   u16(nfcholdpoll,500) \
   u16(nfcledpoll,100) \
   u16(nfciopoll,200) \
-  b(nfcbus,1) \
-  bap(aes,17,3) \
-  b(aid,3) \
   io(nfctx) \
   io(nfcrx) \
   io(nfcpower) \
   u8(nfcuart,1) \
-  t(led)	\
+  t(nfcmqttbell) \
+  bap(aes,17,3) \
+  b(aid,3) \
+  t(ledIDLE) \
 
 #define i8(n,d) int8_t n;
 #define io(n) uint8_t n;
@@ -85,7 +84,7 @@ static fob_t fob = { };         // Current card state
 const char *nfc_led(int len, const void *value)
 {
    if (!len)
-      len = strlen(value = led);        // Default
+      len = strlen(value = ledIDLE);    // Default
    jo_t j = jo_object_alloc();
    jo_stringf(j, "sequence", "%.*s", len, value);
    revk_infoj("led", &j);
@@ -240,9 +239,9 @@ static void task(void *pvParameters)
                   if (!bell)
                   {
                      bell = 1;
-                     if (mqttbell)
+                     if (nfcmqttbell)
                      {
-                        char *topic = strdup(mqttbell);
+                        char *topic = strdup(nfcmqttbell);
                         char *data = strchr(topic, ' ');
                         if (data)
                            *data++ = 0;
@@ -538,6 +537,7 @@ const char *nfc_command(const char *tag, unsigned int len, const unsigned char *
 
 void nfc_init(void)
 {
+   revk_register("nfc", 0, sizeof(nfcuart), &nfcuart, "1", SETTING_SIGNED | SETTING_SECRET);   // parent setting
 #define i8(n,d) revk_register(#n,0,sizeof(n),&n,#d,SETTING_SIGNED);
 #define io(n) revk_register(#n,0,sizeof(n),&n,BITFIELDS,SETTING_SET|SETTING_BITFIELD);
 #define gpio(n) revk_register(#n,0,sizeof(n),&n,BITFIELDS,SETTING_BITFIELD);

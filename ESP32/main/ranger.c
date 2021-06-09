@@ -148,6 +148,7 @@ static void task(void *pvParameters)
 
 void ranger_init(void)
 {
+   revk_register("ranger", 0, sizeof(rangerport), &rangerport, NULL, SETTING_SECRET);   // Parent
 #define p(n) revk_register(#n,0,sizeof(n),&n,BITFIELDS,SETTING_BITFIELD|SETTING_SET);
 #define u8(n,d) revk_register(#n,0,sizeof(n),&n,#d,0);
 #define u16(n,d) revk_register(#n,0,sizeof(n),&n,#d,0);
