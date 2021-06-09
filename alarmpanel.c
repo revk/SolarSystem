@@ -4536,6 +4536,7 @@ int main(int argc, const char *argv[])
                            if (strlen(id) == 14 && j_test(j, "secure", 0))
                               strcpy((char *) e->fob + 14, "+");        // Mark secure
                         }
+                        const char *crc = j_get(j, "crc");
 
                         const char *msg = j_get(j, "fail") ? : j_get(j, "deny");
                         if (msg)
@@ -4551,7 +4552,11 @@ int main(int argc, const char *argv[])
                            e->event = EVENT_FOB_NOACCESS;
                         else if (msg)
                            e->event = EVENT_FOB_FAIL;
-                        else
+                        else if (crc)
+                        {
+                           e->message = strdup(crc);
+                           e->event = EVENT_FOB;
+                        } else
                            e->event = EVENT_FOB;
 
                         e->port = port;

@@ -3,6 +3,6 @@
    <system name="Test" watchdog="false" engineering="*" aid="123456" aes="0100112233445566778899AABBCCDDEEFF" expiry="200" mqtt-host="mqtt.iot"/>
    <group id="0" name="Test"/>
    <door max="Test" name="Test" lock="0" arm="0" id="DOOR00"/>
-   <user name="test" full-name="Test"/>
+   <user name="test" full-name="Test" fob="083AF20D6E00"/>
    <device name="Test" id="083AF20D6E00" doorauto="5"/>
 </panel>

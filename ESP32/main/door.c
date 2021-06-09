@@ -136,7 +136,7 @@ const char *door_access(const uint8_t * a)
    if (*a == *afile && !memcmp(a + 1, afile + 1, *afile))
       return "";                // Same
    if (!df.keylen)
-      return "";
+      return ""; // Not logged in
    xSemaphoreTake(nfc_mutex, portMAX_DELAY);
    memcpy(afile, a, *a + 1);
    const char *e = df_write_data(&df, 0x0A, 'B', DF_MODE_CMAC, 0, *afile + 1, afile);
@@ -413,18 +413,25 @@ const char *door_command(const char *tag, unsigned int len, const unsigned char 
 {                               // Called for incoming MQTT messages
    if (!doorauto)
       return false;             // No door control in operation
-   if (!len || *value != len - 1)
-      value = NULL;             // Not sensible access file (which is arg that we accept here)
+   char temp[256];
+   const uint8_t*afile = NULL;
+   jo_t j = jo_parse_mem((char *) value, len);
+   if (jo_here(j) == JO_STRING)
+   {
+      int len = jo_strncpy(j, temp, sizeof(temp));
+      if (len > 0 && *temp == len - 1)
+         afile = (uint8_t*)temp;
+   }
    if (!strcasecmp(tag, "deadlock"))
-      return door_deadlock(value);
+      return door_deadlock(afile);
    if (!strcasecmp(tag, "lock"))
-      return door_lock(value);
+      return door_lock(afile);
    if (!strcasecmp(tag, "unlock"))
-      return door_unlock(value, "remote");
+      return door_unlock(afile, "remote");
    if (!strcasecmp(tag, "prop"))
-      return door_prop(value);
+      return door_prop(afile);
    if (!strcasecmp(tag, "access"))
-      return door_access(value);
+      return door_access(afile);
    if (!strcasecmp(tag, "connect"))
       resend = 1;
    return false;
@@ -661,7 +668,7 @@ void door_init(void)
 {
    extern char *ledIDLE;
    revk_register("door", 0, sizeof(doorauto), &doorauto, NULL, SETTING_SECRET); // Parent
-   revk_register("led", 0, 0, &ledIDLE, NULL, SETTING_SECRET);    // Parent
+   revk_register("led", 0, 0, &ledIDLE, NULL, SETTING_SECRET);  // Parent
 #define u32(n,d) revk_register(#n,0,sizeof(n),&n,#d,0);
 #define u16(n,d) revk_register(#n,0,sizeof(n),&n,#d,0);
 #define u8(n,d) revk_register(#n,0,sizeof(n),&n,#d,0);
