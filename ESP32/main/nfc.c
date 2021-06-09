@@ -151,6 +151,8 @@ static void fobevent(void)
 
 static void task(void *pvParameters)
 {
+   if (!nfciopoll)
+      nfciopoll = 100;          // Should not happen
    esp_task_wdt_add(NULL);
    pvParameters = pvParameters;
    int64_t nextpoll = 0;        // Timers

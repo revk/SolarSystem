@@ -328,7 +328,7 @@ static void task(void *pvParameters)
 
 void keypad_init(void)
 {
-   revk_register("keypad", 0, sizeof(keypadaddress), &keypadaddress, "10", SETTING_HEX | SETTING_SECRET);       // Parent
+   revk_register("keypad", 0, sizeof(keypadtx), &keypadtx, NULL, SETTING_SET | SETTING_SECRET);       // Parent
 #define u8(n,d) revk_register(#n,0,sizeof(n),&n,#d,0);
 #define u8h(n,d) revk_register(#n,0,sizeof(n),&n,#d,SETTING_HEX);
 #define b(n) revk_register(#n,0,sizeof(n),&n,NULL,SETTING_BOOLEAN|SETTING_LIVE);
