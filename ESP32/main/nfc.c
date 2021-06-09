@@ -307,7 +307,7 @@ static void task(void *pvParameters)
          if (found && !pn532_Present(pn532))
          {                      // Card gone
             ESP_LOGI(TAG, "gone %s", fob.id);
-	    fob.gone=1;
+            fob.gone = 1;
             if (fob.override || (fob.held && nfchold))
                fobevent();
             memset(&fob, 0, sizeof(fob));
@@ -515,13 +515,12 @@ const char *nfc_command(const char *tag, unsigned int len, const unsigned char *
             return "Expecting JSON string";
          }
          uint8_t buf[256];
-         int len = jo_strncpy(j, (char *) buf, sizeof(buf));
-         if (len >= sizeof(buf))
+         int len = jo_strncpy16(j, (char *) buf, sizeof(buf));
+         if (len < 0 || len > sizeof(buf))
          {
             jo_free(&j);
             return "Too big";
          }
-         len = jo_based16(buf, sizeof(buf), (char *) buf, len);
          const char *err = NULL;
          xSemaphoreTake(nfc_mutex, portMAX_DELAY);
          len = pn532_dx(pn532, len, buf, sizeof(buf), &err);

@@ -421,9 +421,13 @@ const char *door_command(const char *tag, unsigned int len, const unsigned char 
       jo_t j = jo_parse_mem((char *) value, len);
       if (jo_here(j) == JO_STRING)
       {
-         int len = jo_strncpy(j, temp, sizeof(temp));
-         if (len > 0 && *temp == len - 1)
+         int len = jo_strncpy16(j, temp, sizeof(temp));
+         if (len < 0)
+            e = "Bad hex";
+         else if (len > 0 && *temp == len - 1)
             afile = (uint8_t *) temp;
+         else
+            e = "Bad afile";
       } else
          e = "Expecting JSON string";
       if (!e)
