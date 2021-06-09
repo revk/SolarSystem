@@ -47,6 +47,7 @@ int debug = 0;
 
 void addatt(j_t j, const char *tag, const char *val)
 {
+	if(debug)warnx("Setting %s=%s",tag,val);
    if (!val)
    {
       j_store_null(j, tag);
@@ -263,9 +264,12 @@ int main(int argc, const char *argv[])
          if (!j_find(j, xml_attribute_name(a)))
             addatt(j, xml_attribute_name(a), xml_attribute_content(a));
    }
-   while ((a = xml_attribute_next(c, a)))
-      if (!j_find(j, xml_attribute_name(a)))
-         addatt(j, xml_attribute_name(a), xml_attribute_content(a));
+   {
+      xml_t system = xml_find(c, "system");
+      while ((a = xml_attribute_next(system, a)))
+         if (!j_find(j, xml_attribute_name(a)))
+            addatt(j, xml_attribute_name(a), xml_attribute_content(a));
+   }
    char *fob = NULL;
 
    // Socket for responses
