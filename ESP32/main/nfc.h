@@ -20,6 +20,7 @@ typedef struct {
    uint8_t secureset:1;         // If secure is set
    uint8_t secure:1;            // Set if DESFire, AID selected, AES done, and real UID retrieved
    uint8_t held:1;              // Card was held
+   uint8_t gone:1;              // Card has gone
    uint8_t keyupdated:1;        // AES key successfully updated
    uint8_t updated:1;           // Afile successfully updated
    uint8_t checked:1;           // Door system has checked the card

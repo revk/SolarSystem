@@ -121,6 +121,8 @@ static void fobevent(void)
          jo_bool(j, "checked", fob.checked);
       if (fob.held)
          jo_bool(j, "held", fob.held);
+      if (fob.gone)
+         jo_bool(j, "gone", fob.gone);
       if (fob.block)
          jo_bool(j, "block", fob.block);
       if (fob.blacklist)
@@ -305,11 +307,9 @@ static void task(void *pvParameters)
          if (found && !pn532_Present(pn532))
          {                      // Card gone
             ESP_LOGI(TAG, "gone %s", fob.id);
+	    fob.gone=1;
             if (fob.override || (fob.held && nfchold))
-            {
-               *fob.id = 0;
                fobevent();
-            }
             memset(&fob, 0, sizeof(fob));
             found = 0;
          }

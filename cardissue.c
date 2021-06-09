@@ -291,7 +291,7 @@ int main(int argc, const char *argv[])
             if (fob)
                free(fob);
             fob = (char *) j_get(j, "fob");
-            if (fob)
+            if (fob && !j_test(j, "gone", 0))
             {
                fob = strdup(fob);
                printf("Card found %s\n", fob);
