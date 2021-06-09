@@ -4537,10 +4537,10 @@ int main(int argc, const char *argv[])
                         if (msg)
                            e->message = strdup(msg);
 
-                        if (j_test(j, "held", 0))
-                           e->event = EVENT_FOB_HELD;
-                        else if (j_test(j, "gone", 0))
+                        if (j_test(j, "gone", 0))
                            e->event = EVENT_FOB_GONE;
+			else if (j_test(j, "held", 0))
+                           e->event = EVENT_FOB_HELD;
                         else if (j_test(j, "unlocked", 0))
                            e->event = EVENT_FOB_ACCESS;
                         else if (j_test(j, "checked", 0))
