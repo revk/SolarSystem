@@ -545,7 +545,6 @@ NoConn ~ 2700 3000
 NoConn ~ 2700 3200
 NoConn ~ 2700 3300
 NoConn ~ 2700 3400
-NoConn ~ 2700 1700
 NoConn ~ 7400 1500
 NoConn ~ 9400 9850
 Wire Wire Line
