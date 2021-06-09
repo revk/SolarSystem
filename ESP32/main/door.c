@@ -136,7 +136,7 @@ const char *door_access(const uint8_t * a)
    if (*a == *afile && !memcmp(a + 1, afile + 1, *afile))
       return "";                // Same
    if (!df.keylen)
-      return ""; // Not logged in
+      return "";                // Not logged in
    xSemaphoreTake(nfc_mutex, portMAX_DELAY);
    memcpy(afile, a, *a + 1);
    const char *e = df_write_data(&df, 0x0A, 'B', DF_MODE_CMAC, 0, *afile + 1, afile);
@@ -414,13 +414,23 @@ const char *door_command(const char *tag, unsigned int len, const unsigned char 
    if (!doorauto)
       return false;             // No door control in operation
    char temp[256];
-   const uint8_t*afile = NULL;
-   jo_t j = jo_parse_mem((char *) value, len);
-   if (jo_here(j) == JO_STRING)
+   const uint8_t *afile = NULL;
+   if (len)
    {
-      int len = jo_strncpy(j, temp, sizeof(temp));
-      if (len > 0 && *temp == len - 1)
-         afile = (uint8_t*)temp;
+      const char *e = NULL;
+      jo_t j = jo_parse_mem((char *) value, len);
+      if (jo_here(j) == JO_STRING)
+      {
+         int len = jo_strncpy(j, temp, sizeof(temp));
+         if (len > 0 && *temp == len - 1)
+            afile = (uint8_t *) temp;
+      } else
+         e = "Expecting JSON string";
+      if (!e)
+         e = jo_error(j, NULL);
+      jo_free(&j);
+      if (e)
+         return e;
    }
    if (!strcasecmp(tag, "deadlock"))
       return door_deadlock(afile);
@@ -434,7 +444,7 @@ const char *door_command(const char *tag, unsigned int len, const unsigned char 
       return door_access(afile);
    if (!strcasecmp(tag, "connect"))
       resend = 1;
-   return false;
+   return NULL;
 }
 
 static void task(void *pvParameters)

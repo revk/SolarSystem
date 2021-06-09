@@ -242,9 +242,9 @@ int main(int argc, const char *argv[])
       errx(1, "AES is hex XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX (%s)", hexaes);
    if (!hexreader)
       errx(1, "Specify Reader");
-   unsigned char reader[3];
+   unsigned char reader[6];
    if (df_hex(sizeof(reader), reader, hexreader) != sizeof(reader))
-      errx(1, "Reader is hex XXXXXX (%s)", hexreader);
+      errx(1, "Reader is hex XXXXXXXXXXXX (%s)", hexreader);
 
    xml_attribute_t a = NULL;
    xml_t user = NULL;

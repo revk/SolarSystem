@@ -424,11 +424,22 @@ void mqtt_door(int d, const char *command, const unsigned char *afile)
          port_p p = mydoor[d].i_fob[n];
          if (!p || !p->mqtt)
             continue;
-         int afilelen = (afile ? *afile + 1 : 0);
+         char *f = NULL;
+         size_t len = 0;
+         if (afile)
+         {
+            j_t j = j_create();
+            j_string(j, j_base16(*afile + 1, afile));
+            if (j_write_mem(j, &f, &len))
+               warnx("JSON fail");
+            j_delete(&j);
+         }
          char *topic;
          asprintf(&topic, "command/SS/%s/%s", p->mqtt, command);
-         mosquitto_publish(mqtt, NULL, topic, afilelen, afile, 1, 0);
+         mosquitto_publish(mqtt, NULL, topic, len, f, 1, 0);
          free(topic);
+         if (f)
+            free(f);
       }
 }
 
@@ -3604,9 +3615,9 @@ void doevent(event_t * e)
             } else if (e->event == EVENT_FOB || e->event == EVENT_FOB_ACCESS || e->event == EVENT_FOB_NOACCESS || e->event == EVENT_FOB_FAIL)
             {                   // disarm is the groups that can be disarmed by this user on this door.
                if (e->event == EVENT_FOB_NOACCESS)
-                  dolog(mydoor[d].group_lock, "FOBNOACCESS", u->name, doorno, "Autonomous access not allowed %s%s%s", e->fob, secure ? " (secure)" : "", e->message ? : "");
+                  dolog(mydoor[d].group_lock, "FOBNOACCESS", u->name, doorno, "Autonomous access not allowed %s%s %s", e->fob, secure ? " (secure)" : "", e->message ? : "");
                else if (e->event == EVENT_FOB_FAIL)
-                  dolog(mydoor[d].group_lock, "FOBFAIL", u->name, doorno, "Autonomous access failed %s%s%s", e->fob, secure ? " (secure)" : "", e->message ? : "");
+                  dolog(mydoor[d].group_lock, "FOBFAIL", u->name, doorno, "Autonomous access failed %s%s %s", e->fob, secure ? " (secure)" : "", e->message ? : "");
                group_t disarm = ((u->group_arm[secure] & mydoor[d].group_arm & state[STATE_ARM]) | (port_name(port),
                                                                                                     u->group_disarm[secure] & mydoor[d].group_disarm & state[STATE_SET]));
                if (door[d].state == DOOR_NOTCLOSED || door[d].state == DOOR_OPEN || door[d].state == DOOR_PROPPED)
