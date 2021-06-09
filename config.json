@@ -1,0 +1,20 @@
+{
+	"nfc":{
+		"power":-5,
+		"rx":16,
+		"tx":17,
+		"bell":72,
+		"tamper":30,
+		"green":31,
+		"amber":32,
+		"red":33
+	},
+	"aid":"123456",
+	"aes":"0100112233445566778899AABBCCDDEEFF",
+	"tamper":13,
+	"blink":14,
+	"doorauto":5,
+	"input":[-18,-21],
+	"output":[15],
+	"otahost":"ota.revk.uk"
+}

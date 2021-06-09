@@ -605,24 +605,24 @@ static port_p port_parse(const char *v, const char **ep, int i)
          return port_new_bus(id >> 8, id & 0xFF, i, port);
       }
    }
-   if (strlen(v) < 6 || !isxdigit(v[0]) || !isxdigit(v[1]) || !isxdigit(v[2]) || !isxdigit(v[3]) || !isxdigit(v[4]) || !isxdigit(v[5]))
+   if (strlen(v) < 12 || !isxdigit(v[0]) || !isxdigit(v[1]) || !isxdigit(v[2]) || !isxdigit(v[3]) || !isxdigit(v[4]) || !isxdigit(v[5]) || !isxdigit(v[6]) || !isxdigit(v[7]) || !isxdigit(v[8]) || !isxdigit(v[9]) || !isxdigit(v[10]) || !isxdigit(v[11]))
       return NULL;
-   if (v[6] == 'I')
+   if (v[12] == 'I')
    {
       if (port)
          return NULL;           // # and I
-      if (i != 1 || !isdigit(v[7]) || v[8])
+      if (i != 1 || !isdigit(v[13]) || v[14])
          return NULL;
-      port = v[7] - '0';
-   } else if (v[6] == 'O')
+      port = v[13] - '0';
+   } else if (v[12] == 'O')
    {
       if (port)
          return NULL;           // # and O
-      if (i != 0 || !isdigit(v[7]) || v[8])
+      if (i != 0 || !isdigit(v[13]) || v[14])
          return NULL;
-      port = v[7] - '0';
+      port = v[13] - '0';
    }
-   ((char *) v)[6] = 0;
+   ((char *) v)[12] = 0;
    if (!port && i >= 0)
       return NULL;              // Expecting a port
    if (port && i < 0)
@@ -672,7 +672,7 @@ static const char *real_port_name(char *v, port_p p)
    char *o = v;
    if (port_mqtt(p))
    {
-      o += sprintf(o, "%.6s", port_mqtt(p));
+      o += sprintf(o, "%.12s", port_mqtt(p));
       if (port)
          o += sprintf(o, "%d", port);
       return v;
@@ -1565,7 +1565,7 @@ static void *load_config(const char *configfile)
                {
                   if (((v = xml_get(c, "@nfc")) || (v = xml_get(c, "@nfctx"))) && *v)
                      port_set(g, mydoor[d].i_fob, max, 0, doorname, "Reader");
-                  int da = atoi(xml_get(c, "@door") ? : "");
+                  int da = atoi(xml_get(c, "@doorauto") ? : "");
                   door[d].autonomous = da;
                   // Add door controls defaults, even if we do not work them directly they show on status nicely
                   int i = atoi(xml_get(c, "@input") ? : "");    // Old style inputs count
@@ -4199,103 +4199,108 @@ int main(int argc, const char *argv[])
       printf("%s Groups found\n", group_list(groups));
 #ifdef	LIBMQTT
    mosquitto_lib_init();
-   iot = mosquitto_new(xml_get(config, "system@name"), true, NULL);
-   if (!iot)
-      warnx("IoT init failed");
-   else
+   if (xml_get(config, "system@iot-host") || xml_get(config, "system@iot-ca"))
    {
-      group_t iot_arm = group_parse(xml_get(config, "system@iot-arm"));
-      group_t iot_unset = group_parse(xml_get(config, "system@iot-unset"));
-      char *iot_topic = NULL;
-      void iot_connected(struct mosquitto *iot, void *obj, int rc) {
-         obj = obj;
-         dolog(groups, "IOT", NULL, NULL, "Server connected %d", rc);
-         if (iot_arm || iot_unset)
-         {                      // Subscribe
-            if (asprintf(&iot_topic, "cmnd/%s/+", xml_get(config, "system@name") ? : "SolarSystem") < 0)
-               errx(1, "malloc");
-            if (mosquitto_subscribe(iot, NULL, iot_topic, 0))
-               dolog(groups, "IOT", NULL, NULL, "Subscribe failed %s", iot_topic);
+      iot = mosquitto_new(xml_get(config, "system@name"), true, NULL);
+      if (!iot)
+         warnx("IoT init failed");
+      else
+      {
+         group_t iot_arm = group_parse(xml_get(config, "system@iot-arm"));
+         group_t iot_unset = group_parse(xml_get(config, "system@iot-unset"));
+         char *iot_topic = NULL;
+         void iot_connected(struct mosquitto *iot, void *obj, int rc) {
+            obj = obj;
+            dolog(groups, "IOT", NULL, NULL, "Server connected %d", rc);
+            if (iot_arm || iot_unset)
+            {                   // Subscribe
+               if (asprintf(&iot_topic, "cmnd/%s/+", xml_get(config, "system@name") ? : "SolarSystem") < 0)
+                  errx(1, "malloc");
+               if (mosquitto_subscribe(iot, NULL, iot_topic, 0))
+                  dolog(groups, "IOT", NULL, NULL, "Subscribe failed %s", iot_topic);
+            }
          }
-      }
-      void iot_message(struct mosquitto *iot, void *obj, const struct mosquitto_message *msg) {
-         iot = iot;
-         obj = obj;
-         j_t j = j_create();
-         if (j_read_mem(j, msg->payload, msg->payloadlen))
-            j_delete(&j);
-         void process(void) {
-            if (iot_topic)
-            {
-               int l = strlen(iot_topic) - 1;
-               if (!strncmp(msg->topic, iot_topic, l))
+         void iot_message(struct mosquitto *iot, void *obj, const struct mosquitto_message *msg) {
+            iot = iot;
+            obj = obj;
+            j_t j = j_create();
+            if (j_read_mem(j, msg->payload, msg->payloadlen))
+               j_delete(&j);
+            if (!j)
+               return;          // Must have JSON payload
+            void process(void) {
+               if (iot_topic)
                {
-                  char *m = malloc(msg->payloadlen + 1);
-                  if (!m)
-                     errx(1, "malloc");
-                  memcpy(m, msg->payload, msg->payloadlen);
-                  m[msg->payloadlen] = 0;
-                  group_t g = group_parse(m);
-                  free(m);
-                  if (!strcmp(msg->topic + l, "arm"))
+                  int l = strlen(iot_topic) - 1;
+                  if (!strncmp(msg->topic, iot_topic, l))
                   {
-                     if (g & ~iot_arm)
-                        dolog(g & ~iot_arm, "IOT", NULL, NULL, "Attempting arm of invalid groups");
-                     g &= iot_arm;
-                     pthread_mutex_lock(&eventmutex);
-                     alarm_arm("IOT", NULL, g, 0);
-                     pthread_mutex_unlock(&eventmutex);
-                     return;
-                  }
-                  if (!strcmp(msg->topic + l, "cancel"))
-                  {
-                     if (g & ~iot_arm)
-                        dolog(g & ~iot_arm, "IOT", NULL, NULL, "Attempting cancel of invalid groups");
-                     g &= state[STATE_ARM];     // Must be arming
-                     g &= iot_arm;
-                     pthread_mutex_lock(&eventmutex);
-                     alarm_unset("IOT", NULL, g);
-                     pthread_mutex_unlock(&eventmutex);
-                     return;
-                  }
-                  if (!strcmp(msg->topic + l, "unset"))
-                  {
-                     if (g & ~iot_unset)
-                        dolog(g & ~iot_unset, "IOT", NULL, NULL, "Attempting unset of invalid groups");
-                     g &= iot_unset;
-                     pthread_mutex_lock(&eventmutex);
-                     alarm_unset("IOT", NULL, g);
-                     pthread_mutex_unlock(&eventmutex);
-                     return;
+                     char *m = malloc(msg->payloadlen + 1);
+                     if (!m)
+                        errx(1, "malloc");
+                     memcpy(m, msg->payload, msg->payloadlen);
+                     m[msg->payloadlen] = 0;
+                     group_t g = group_parse(m);
+                     free(m);
+                     if (!strcmp(msg->topic + l, "arm"))
+                     {
+                        if (g & ~iot_arm)
+                           dolog(g & ~iot_arm, "IOT", NULL, NULL, "Attempting arm of invalid groups");
+                        g &= iot_arm;
+                        pthread_mutex_lock(&eventmutex);
+                        alarm_arm("IOT", NULL, g, 0);
+                        pthread_mutex_unlock(&eventmutex);
+                        return;
+                     }
+                     if (!strcmp(msg->topic + l, "cancel"))
+                     {
+                        if (g & ~iot_arm)
+                           dolog(g & ~iot_arm, "IOT", NULL, NULL, "Attempting cancel of invalid groups");
+                        g &= state[STATE_ARM];  // Must be arming
+                        g &= iot_arm;
+                        pthread_mutex_lock(&eventmutex);
+                        alarm_unset("IOT", NULL, g);
+                        pthread_mutex_unlock(&eventmutex);
+                        return;
+                     }
+                     if (!strcmp(msg->topic + l, "unset"))
+                     {
+                        if (g & ~iot_unset)
+                           dolog(g & ~iot_unset, "IOT", NULL, NULL, "Attempting unset of invalid groups");
+                        g &= iot_unset;
+                        pthread_mutex_lock(&eventmutex);
+                        alarm_unset("IOT", NULL, g);
+                        pthread_mutex_unlock(&eventmutex);
+                        return;
+                     }
                   }
                }
+               dolog(groups, "IOT", NULL, NULL, "Unexpected message %s", msg->topic);
             }
-            dolog(groups, "IOT", NULL, NULL, "Unexpected message %s", msg->topic);
+            process();
+            j_delete(&j);
          }
-         process();
-         j_delete(&j);
+         void iot_disconnected(struct mosquitto *iot, void *obj, int rc) {
+            obj = obj;
+            mosquitto_reconnect_async(iot);
+            dolog(groups, "IOT", NULL, NULL, "Server disconnected %s", mosquitto_strerror(rc));
+            commfailcount++;
+         }
+         mosquitto_connect_callback_set(iot, iot_connected);
+         if (iot_arm || iot_unset)
+            mosquitto_message_callback_set(iot, iot_message);
+         mosquitto_disconnect_callback_set(iot, iot_disconnected);
+         mosquitto_username_pw_set(iot, xml_get(config, "system@iot-user"), xml_get(config, "system@iot-pass"));
+         char *host = xml_get(config, "system@iot-host") ? : "localhost";
+         char *ca = xml_get(config, "system@iot-ca");
+         if (ca && mosquitto_tls_set(iot, ca, NULL, NULL, NULL, NULL))
+            warnx("IoT cert failed %s", ca);
+         int port = atoi(xml_get(config, "system@iot-port") ? : ca ? "8883" : "1883");
+         if (mosquitto_connect_async(iot, host, port, 60))
+            warnx("IoT connect failed %s:%d", host, port);
+         mosquitto_loop_start(iot);
       }
-      void iot_disconnected(struct mosquitto *iot, void *obj, int rc) {
-         obj = obj;
-         mosquitto_reconnect_async(iot);
-         dolog(groups, "IOT", NULL, NULL, "Server disconnected %s", mosquitto_strerror(rc));
-         commfailcount++;
-      }
-      mosquitto_connect_callback_set(iot, iot_connected);
-      if (iot_arm || iot_unset)
-         mosquitto_message_callback_set(iot, iot_message);
-      mosquitto_disconnect_callback_set(iot, iot_disconnected);
-      mosquitto_username_pw_set(iot, xml_get(config, "system@iot-user"), xml_get(config, "system@iot-pass"));
-      char *host = xml_get(config, "system@iot-host") ? : "localhost";
-      char *ca = xml_get(config, "system@iot-ca");
-      if (ca && mosquitto_tls_set(iot, ca, NULL, NULL, NULL, NULL))
-         warnx("IoT cert failed %s", ca);
-      int port = atoi(xml_get(config, "system@iot-port") ? : ca ? "8883" : "1883");
-      if (mosquitto_connect_async(iot, host, port, 60))
-         warnx("IoT connect failed %s:%d", host, port);
-      mosquitto_loop_start(iot);
    }
-   if (xml_get(config, "system@mqtt-ca"))
+   if (xml_get(config, "system@mqtt-host") || xml_get(config, "system@mqtt-ca"))
    {
       mqtt = mosquitto_new(xml_get(config, "system@name"), true, NULL);
       if (!mqtt)
@@ -4317,27 +4322,30 @@ int main(int argc, const char *argv[])
             j_t j = j_create();
             if (j_read_mem(j, msg->payload, msg->payloadlen))
                j_delete(&j);
-            void process(void) {
-               if (msg && (!strncmp(t, "state/SS/", 9) || !strncmp(t, "event/SS/", 9)) && strlen(t + 9) >= 6)
-               {
+            if (!j)
+               return;          // Must have JSON payload
+            void process(void) {        // SUb function to ensure J is freed
+               if (msg && (!strncmp(t, "state/SS/", 9) || !strncmp(t, "event/SS/", 9)) && strlen(t + 9) >= 12)
+               {                // Looks like a valid message
                   char *id = t + 9;
-                  char *tag = id + 6;
+                  char *tag = id + 12;
                   if (*tag == '/')
                      tag++;
                   else
                      tag = NULL;
-                  id[6] = 0;
+                  id[12] = 0;
+
                   port_p port = NULL;
-                  if (tag)
-                  {
-                     char *e = tag + strlen(tag);
-                     if (e > tag && isdigit(e[-1]) && e[-1] > '0')
-                        port = port_new(id, 1, e[-1] - '0');    // Input port
-                     else
-                        port = port_new(id, 0, 0);      // Device
-                  } else
-                     port = port_new(id, 0, 0); // Device
+                  port = port_new(id, 0, 0);    // Device
                   port_app_t *app = port_app(port);
+
+                  if (!app->config)
+                  {             // New device
+                     app->config = xml_element_add(config, "device");
+                     xml_add(app->config, "@id", id);
+                     configchanged = 1;
+                  }
+
                   void sende(int etype, int state) {
                      event_t *e = malloc(sizeof(*e));
                      if (!e)
@@ -4358,89 +4366,48 @@ int main(int argc, const char *argv[])
                      }
                      postevent(e);
                   }
-                  void set(const char *tag, const char *val) {
-                     char *topic;
-                     asprintf(&topic, "setting/SS/%s/%s", port->mqtt, tag);
-                     mosquitto_publish(mqtt, NULL, topic, strlen(val ? : ""), val, 1, 0);
-                     free(topic);
-                  }
-                  if (port && !strncmp(t, "state", 5) && msg->payloadlen >= 1)
-                  {
-                     if (tag && !strcmp(tag, "keys") && j)
-                     {
-                        // TODO
-                        return;
-                     }
-                     if (tag && !strcmp(tag, "aes"))
-                     {          // AES settings, send AID/AES if needed
-                        if (app->config && msg->payloadlen >= 6)
+                  if (!strncmp(t, "state", 5))
+                  {             // State message
+                     if (!tag)
+                     {          // Device level state
+                        j_t up = j_find(j, "up");
+                        if (up && j_isnumber(up))
+                        {       // Send settings
+                           j_t set = j_create();
+                           xml_t system = xml_element_next_by_name(config, NULL, "system");
+
+
+
+                           {    // Send
+                              char *topic,
+                              *json;
+                              size_t len;
+                              if (j_write_mem(set, &json, &len))
+                                 warnx("json error");
+                              j_delete(&set);
+                              asprintf(&topic, "setting/SS/%s", port->mqtt);
+                              mosquitto_publish(mqtt, NULL, topic, len, json, 1, 0);
+                              free(topic);
+                           }
+                           sende(EVENT_FOUND, 1);
+                        }
+                        if (up && j_isbool(up) && !j_istrue(up))
                         {
-                           char *v;
-                           v = xml_get(app->config, "@aid") ? : xml_get(config, "system@aid");
-                           if (v && strlen(v) == 6 && strncmp(msg->payload, v, 6))
-                              set("aid", v);
-                           v = xml_get(app->config, "@aes") ? : xml_get(config, "system@aes");
-                           if (v && strlen(v) == 32 && (msg->payloadlen < 9 || strncmp(msg->payload + 7, "01", 2)))
-                           {
-                              char *p;
-                              if (asprintf(&p, "01%s", v) < 0)
-                                 errx(1, "malloc");
-                              set("aes1", p);
-                              free(p);
-                           }
-                           int i = 0;
-                           for (i = 0; i < 9; i++)
-                           {
-                              char a[] = "system@aesX";
-                              a[10] = '1' + i;
-                              v = xml_get(app->config, a + 6) ? : xml_get(config, a);
-                              if (!i && !v)
-                                 continue;
-                              if (v && strlen(v) == 34)
-                              {
-                                 if (msg->payloadlen < 9 + i * 2 || strncmp(msg->payload + 7 + 2 * i, v, 2))
-                                    set(a + 7, v);
-                              } else if (msg->payloadlen >= 9 + i * 2)
-                                 set(a + 7, "");
-                           }
+                           sende(EVENT_MISSING, 0);
+                           sende(EVENT_DOOR, DOOR_OFFLINE);
                         }
                         return;
                      }
-                     int state = (((char *) msg->payload)[0] > '0' ? 1 : 0);
-                     if (!tag && j)
-                        state = j_test(j, "up", 1);     // up is sent as false if down
-                     if (app->invert)
-                        state = 1 - state;
-                     if (!tag)
-                        app->state = state;
-                     if (!tag && !app->config)
-                     {          // New device
-                        app->config = xml_element_add(config, "device");
-                        xml_add(app->config, "@id", id);
-                        configchanged = 1;
+                     if (!strcmp(tag, "keys"))
+                     {          // Reporting keys
+
+                        return;
                      }
+#if 0
                      if (!tag && state)
                      {          // Load settings
-                        if (!j && (msg->payloadlen < 7 || strncmp(msg->payload + 2, "ESP32", 5)))
-                        {       // Old system - Set timezone
-                           char tz[10];
-                           sprintf(tz, "%d", settimezone);
-                           set("timezone", tz);
-                        }
-                        xml_attribute_t a = NULL;
-                        while ((a = xml_attribute_next(app->config, a)))
                         {
-                           char *n = xml_attribute_name(a);
-                           if (!strcmp(n, "aes") || !strcmp(n, "aid"))
-                              continue; // Not settings
-                           char *v = xml_attribute_content(a);
-                           if (!strcmp(n, "id"))
-                              continue;
-                           if (!strcmp(n, "name"))
-                              continue;
-                           set(n, v);
-                        }
-                        {       // Top level settings, which can be overridden per device
+                           // Top level settings, which can be overridden per device
                            const char *settings[] = {
                               "@mqttreset",
                               "@wifissid",
@@ -4501,50 +4468,40 @@ int main(int argc, const char *argv[])
                            if (o->mqtt && port_isoutput(o) && !strcmp(o->mqtt, id))
                               mqtt_output(o, o->state);
                      }
-                     if (!tag)
+#endif
+                     if (!strcmp(tag, "input"))
                      {
-                        sende(state ? EVENT_FOUND : EVENT_MISSING, state);
-                        if (!state)
-                           sende(EVENT_DOOR, DOOR_OFFLINE);
-                        return;
-                     }
-                     if (!strncmp(tag, "input", 5))
-                     {
-                        if (j)
-                        {       // JSON
+                        if (j_isarray(j))
                            for (int i = 0; i < j_len(j); i++)
                               if (j_isbool(j_index(j, i)))
                               {
                                  port = port_new(id, 1, i + 1);
-                                 state = j_istrue(j_index(j, i));
+                                 app = port_app(port);
+                                 int state = j_istrue(j_index(j, i));
                                  if (port->state != state)
                                     sende(EVENT_INPUT, state);
                               }
-                        } else if (port->state != state)
-                           sende(EVENT_INPUT, state);
                         return;
                      }
-                     if (!strncmp(tag, "fault", 5))
+                     if (!strcmp(tag, "fault"))
                      {
-                        if (j)
-                           state = (j_len(j) > 0);      // JSON
+                        int state = (j_len(j) > 0);
                         if (port->fault != state)
                            sende(EVENT_FAULT, state);
                         return;
                      }
-                     if (!strncmp(tag, "tamper", 6))
+                     if (!strcmp(tag, "tamper"))
                      {
-                        if (j)
-                           state = (j_len(j) > 0);      // JSON
+                        int state = (j_len(j) > 0);
                         if (port->tamper != state)
                            sende(EVENT_TAMPER, state);
                         return;
                      }
-                     if (!strncmp(tag, "door", 4) && app->door != -1 && app->state)
+                     if (!strcmp(tag, "door"))
                      {
-                        state = 0;
-                        if (j)
+                        if (app->door != -1 && app->state)
                         {
+                           int state = 0;
                            const char *statename = j_get(j, "state");
                            if (statename)
                            {
@@ -4553,59 +4510,53 @@ int main(int argc, const char *argv[])
 #undef d
                                   sende(EVENT_DOOR, state);
                            }
-                        } else
-                        {
-#define d(n,l) {const char s[]=#n;if((unsigned)msg->payloadlen>=sizeof(s)-1&&!strncmp(msg->payload,#n,sizeof(s)-1))state=DOOR_##n;}
-                           DOOR
-#undef d
-                               sende(EVENT_DOOR, state);
+                           //syslog (LOG_INFO, "Door %d state %s [%.*s]", app->door, door_name[state], (int) msg->payloadlen, (char *) msg->payload);        // TODO
                         }
-                        //syslog (LOG_INFO, "Door %d state %s [%.*s]", app->door, door_name[state], (int) msg->payloadlen, (char *) msg->payload);        // TODO
                         return;
                      }
                      return;
                   }
-                  if (port && !strncmp(t, "event", 5) && msg->payloadlen >= 1)
-                  {
-                     if (!strncmp(tag, "warning", 5))
+                  if (!strncmp(t, "event", 5))
+                  {             // Event message
+                     if (!strcmp(tag, "warning"))
                      {
                         sende(EVENT_WARNING, 1);
                         return;
                      }
-                     if (!strcmp(tag, "id") || !strcmp(tag, "held") || !strcmp(tag, "access") || !strcmp(tag, "gone") || !strcmp(tag, "noaccess") || !strcmp(tag, "nfcfail"))
+                     if (!strcmp(tag, "fob"))
                      {          // Fob
-                        int l;
-                        for (l = 0; l < msg->payloadlen && ((char *) msg->payload)[l] != ' '; l++);
-                        char *m = alloca(l + 1);
-                        memcpy(m, msg->payload, l);
-                        m[l] = 0;
                         event_t *e = malloc(sizeof(*e));
                         if (!e)
                            errx(1, "malloc");
                         memset((void *) e, 0, sizeof(*e));
-                        if (!strcmp(tag, "id"))
-                           e->event = EVENT_FOB;
-                        else if (!strcmp(tag, "held"))
+                        const char *id = j_get(j, "id");
+                        if (id)
+                           strncpy((char*)e->fob, id, sizeof(e->fob));
+
+                        const char *msg = j_get(j, "fail") ? : j_get(j, "deny");
+                        if (msg)
+                           e->message = strdup(msg);
+
+                        if (j_test(j, "held", 0))
                            e->event = EVENT_FOB_HELD;
-                        else if (!strcmp(tag, "access"))
-                           e->event = EVENT_FOB_ACCESS;
-                        else if (!strcmp(tag, "gone"))
+                        else if (j_test(j, "gone", 0))
                            e->event = EVENT_FOB_GONE;
-                        else if (!strcmp(tag, "noaccess"))
+                        else if (j_test(j, "unlocked", 0))
+                           e->event = EVENT_FOB_ACCESS;
+                        else if (j_test(j, "checked", 0))
                            e->event = EVENT_FOB_NOACCESS;
-                        else if (!strcmp(tag, "nfcfail"))
+                        else if (msg)
                            e->event = EVENT_FOB_FAIL;
-                        while (l < msg->payloadlen && ((char *) msg->payload)[l] == ' ')
-                           l++;
-                        if (l < msg->payloadlen)
-                           asprintf((char **) &e->message, "%.*s", msg->payloadlen - l, ((char *) msg->payload) + l);
+                        else
+                           e->event = EVENT_FOB;
+
                         e->port = port;
-                        strncpy((char *) e->fob, m, sizeof(e->fob));
                         struct timezone tz;
                         gettimeofday((void *) &e->when, &tz);
                         postevent(e);
                         return;
                      }
+#if 0
                      if (!strcmp(tag, "key") || !strcmp(tag, "held"))
                      {
                         event_t *e = malloc(sizeof(*e));
@@ -4620,6 +4571,7 @@ int main(int argc, const char *argv[])
                         postevent(e);
                         return;
                      }
+#endif
                      if (!strcmp(tag, "open") || !strcmp(tag, "notopen"))
                      {
                         event_t *e = malloc(sizeof(*e));
@@ -4629,10 +4581,7 @@ int main(int argc, const char *argv[])
                         e->event = (!strcmp(tag, "open") ? EVENT_OPEN : EVENT_NOTOPEN);
                         e->port = port;
                         e->door = app->door;
-                        if (j)
-                           asprintf((char **) &e->message, "%s", j_get(j, "trigger") ? : "unknown");
-                        else
-                           asprintf((char **) &e->message, "%.*s", msg->payloadlen, (char *) msg->payload);
+                        asprintf((char **) &e->message, "%s", j_get(j, "trigger") ? : "unknown");
                         struct timezone tz;
                         gettimeofday((void *) &e->when, &tz);
                         postevent(e);
@@ -4640,7 +4589,7 @@ int main(int argc, const char *argv[])
                      }
                   }
                   if (tag)
-                     id[6] = '/';
+                     id[12] = '/';      // reinstate for error
                }
                dolog(groups, "MQTT", NULL, NULL, "Unexpected message %s", msg->topic);
             }
@@ -4656,7 +4605,9 @@ int main(int argc, const char *argv[])
          mosquitto_connect_callback_set(mqtt, mqtt_connected);
          mosquitto_message_callback_set(mqtt, mqtt_message);
          mosquitto_disconnect_callback_set(mqtt, mqtt_disconnected);
-         mosquitto_username_pw_set(mqtt, xml_get(config, "system@mqtt-user"), xml_get(config, "system@mqtt-pass"));
+         char *user = xml_get(config, "system@mqtt-user");
+         if (user)
+            mosquitto_username_pw_set(mqtt, user, xml_get(config, "system@mqtt-pass"));
          char *host = xml_get(config, "system@mqtt-host") ? : "localhost";
          char *ca = xml_get(config, "system@mqtt-ca");
          int port = atoi(xml_get(config, "system@mqtt-port") ? : ca ? "8883" : "1883");
@@ -4669,7 +4620,7 @@ int main(int argc, const char *argv[])
    }
 #endif
 #ifdef	LIBWS
-   //if (wsport || wskeyfile)
+   if (wsport || wskeyfile)
    {
       const char *e = websocket_bind(wsport, wsorigin, wshost, NULL, wscertfile, wskeyfile,
     xml:                            wscallback);

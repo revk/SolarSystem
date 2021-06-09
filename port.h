@@ -46,7 +46,7 @@ port_p port_new_bus (unsigned char bus, // Bus ID (from 0)
                      unsigned char id,  // Device ID on bus
                      unsigned char isinput,     // 1 if input
                      unsigned char port);       // port number, from 1 (0 means device level)
-port_p port_new (const char *mqtt,      // Device id (6 char hex normally)
+port_p port_new (const char *mqtt,      // Device id (12 char hex normally)
                  unsigned char isinput, // 1 if input
                  unsigned char port);   // port number, from 1 (0 means device level)
 port_p port_new_base (port_p parent, unsigned char isinput, unsigned char port);        // Based on parent port
