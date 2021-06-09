@@ -47,7 +47,8 @@ int debug = 0;
 
 void addatt(j_t j, const char *tag, const char *val)
 {
-	if(debug)warnx("Setting %s=%s",tag,val);
+   if (debug)
+      warnx("Setting %s=%s", tag, val);
    if (!val)
    {
       j_store_null(j, tag);
