@@ -4531,7 +4531,11 @@ int main(int argc, const char *argv[])
                         memset((void *) e, 0, sizeof(*e));
                         const char *id = j_get(j, "id");
                         if (id)
-                           strncpy((char*)e->fob, id, sizeof(e->fob));
+                        {
+                           strncpy((char *) e->fob, id, sizeof(e->fob));
+                           if (strlen(id) == 14 && j_test(j, "secure", 0))
+                              strcpy((char *) e->fob + 14, "+");        // Mark secure
+                        }
 
                         const char *msg = j_get(j, "fail") ? : j_get(j, "deny");
                         if (msg)
@@ -4539,7 +4543,7 @@ int main(int argc, const char *argv[])
 
                         if (j_test(j, "gone", 0))
                            e->event = EVENT_FOB_GONE;
-			else if (j_test(j, "held", 0))
+                        else if (j_test(j, "held", 0))
                            e->event = EVENT_FOB_HELD;
                         else if (j_test(j, "unlocked", 0))
                            e->event = EVENT_FOB_ACCESS;
