@@ -15,10 +15,10 @@ static const char *port_inuse[MAX_PORT];
 #define modules	\
 	m(input)	\
 	m(output)	\
-	m(nfc)		\
 	m(ranger)	\
 	m(keypad)	\
 	m(door)		\
+	m(nfc)		\
 
 // Other settings
 #define settings  \

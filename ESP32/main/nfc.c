@@ -45,10 +45,10 @@ inline int16_t gpio_mask(uint8_t p)
   io(nfcrx) \
   io(nfcpower) \
   u8(nfcuart,1) \
-  t(nfcmqttbell) \
+  t(nfcmqttbell,NULL) \
   bap(aes,17,3) \
   b(aid,3) \
-  t(ledIDLE) \
+  t(ledIDLE,"3R3-") \
 
 #define i8(n,d) int8_t n;
 #define io(n) uint8_t n;
@@ -59,7 +59,7 @@ inline int16_t gpio_mask(uint8_t p)
 #define ba(n,l,a) uint8_t n[a][l];
 #define bap(n,l,a) uint8_t n[a][l];
 #define u1(n) uint8_t n;
-#define t(n) const char*n=NULL;
+#define t(n,d) const char*n=NULL;
 settings
 #undef t
 #undef i8
@@ -151,6 +151,8 @@ static void fobevent(void)
 
 static void task(void *pvParameters)
 {
+   if (!nfciopoll)
+      nfciopoll = 100;          // Should not happen
    esp_task_wdt_add(NULL);
    pvParameters = pvParameters;
    int64_t nextpoll = 0;        // Timers
@@ -547,7 +549,7 @@ void nfc_init(void)
 #define ba(n,l,a) revk_register(#n,a,sizeof(n[0]),n,NULL,SETTING_BINARY|SETTING_HEX);
 #define bap(n,l,a) revk_register(#n,a,sizeof(n[0]),n,NULL,SETTING_BINARY|SETTING_HEX|SETTING_SECRET);
 #define u1(n) revk_register(#n,0,sizeof(n),&n,NULL,SETTING_BOOLEAN);
-#define t(n) revk_register(#n,0,0,&n,NULL,0);
+#define t(n,d) revk_register(#n,0,0,&n,d,0);
    settings
 #undef t
 #undef io
