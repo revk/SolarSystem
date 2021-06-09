@@ -4384,22 +4384,35 @@ int main(int argc, const char *argv[])
                         j_t up = j_find(j, "up");
                         if (up && j_isnumber(up))
                         {       // Send settings
+                           int match(const char *tag) {
+                              return (!strncmp(tag, "nfc", 3)   //
+                                      || !strncmp(tag, "led", 3)        //
+                                      || !strncmp(tag, "door", 4)       //
+                                      || !strncmp(tag, "input", 5)      //
+                                      || !strncmp(tag, "output", 6)     //
+                                      || !strncmp(tag, "ranger", 6)     //
+                                  );
+                           }
                            j_t set = j_create();
                            xml_t system = xml_element_next_by_name(config, NULL, "system");
-
-
-
-                           {    // Send
-                              char *topic,
-                              *json;
-                              size_t len;
-                              if (j_write_mem(set, &json, &len))
-                                 warnx("json error");
-                              j_delete(&set);
-                              asprintf(&topic, "setting/SS/%s", port->mqtt);
-                              mosquitto_publish(mqtt, NULL, topic, len, json, 1, 0);
-                              free(topic);
-                           }
+                           xml_attribute_t a = NULL;
+                           while ((a = xml_attribute_next(system, a)))
+                              if (match(xml_attribute_name(a)))
+                                 j_store_string(set, xml_attribute_name(a), xml_attribute_content(a));
+                           if (app && app->config)
+                              while ((a = xml_attribute_next(app->config, a)))
+                                 if (match(xml_attribute_name(a)))
+                                    j_store_string(set, xml_attribute_name(a), xml_attribute_content(a));
+                           // TODO Blacklist and fallback logic
+                           char *topic,
+                           *json;
+                           size_t len;
+                           if (j_write_mem(set, &json, &len))
+                              warnx("json error");
+                           j_delete(&set);
+                           asprintf(&topic, "setting/SS/%s", port->mqtt);
+                           mosquitto_publish(mqtt, NULL, topic, len, json, 1, 0);
+                           free(topic);
                            sende(EVENT_FOUND, 1);
                         }
                         if (up && j_isbool(up) && !j_istrue(up))
@@ -4414,72 +4427,6 @@ int main(int argc, const char *argv[])
 
                         return;
                      }
-#if 0
-                     if (!tag && state)
-                     {          // Load settings
-                        {
-                           // Top level settings, which can be overridden per device
-                           const char *settings[] = {
-                              "@mqttreset",
-                              "@wifissid",
-                              "@wifipass",
-                              "@wifissid2",
-                              "@wifipass2",
-                              "@wifissid3",
-                              "@wifipass3",
-                              "@mqtthost2",
-                              "@fallback",
-                              "@blacklist",
-                              "@offline",
-                              "@rangerdebug",
-                              "@rangerpoll",
-                              "@raangerhold",
-                              "@rangermax",
-                              "@rangerset",
-                              "@inputhold",
-                              "@doorprop",
-                              "@dooropen",
-                              "@doorclose",
-                              "@doorlock",
-                              "@doorunlock",
-                              "@doorexit",
-                              "@doorbeep",
-                              "@doorsilent",
-                           };
-                           xml_t system = xml_element_next_by_name(config, NULL, "system");
-                           if (system)
-                           {
-                              const char *v;
-                              unsigned int n;
-                              for (n = 0; n < sizeof(settings) / sizeof(*settings); n++)
-                                 if (!xml_get(app->config, settings[n]) && (v = xml_get(system, settings[n])))
-                                    set(settings[n] + 1, v);
-                           }
-                        }
-                        char *v;
-                        if ((v = xml_get(app->config, "@nfc")) && *v)
-                        {
-                           v = xml_get(app->config, "@aid") ? : xml_get(config, "system@aid");
-                           if (v && strlen(v) == 6)
-                              set("0xaid", v);
-                           v = xml_get(app->config, "@aes") ? : xml_get(config, "system@aes");
-                           if (v && strlen(v) == 32)
-                              set("0xaes", v);
-                           if (app->door < 0 || !door[app->door].autonomous)
-                           {
-                              char *led = app->led;
-                              app->led = NULL;
-                              mqtt_led(port, led);
-                              if (led)
-                                 free(led);
-                           }
-                        }
-                        port_p o;
-                        for (o = ports; o; o = o->next)
-                           if (o->mqtt && port_isoutput(o) && !strcmp(o->mqtt, id))
-                              mqtt_output(o, o->state);
-                     }
-#endif
                      if (!strcmp(tag, "input"))
                      {
                         if (j_isarray(j))
