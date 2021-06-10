@@ -72,8 +72,8 @@ settings
   l(FAULT) \
 
 #define door_states \
-  d(DEADLOCKED,) \
-  d(LOCKED,R) \
+  d(DEADLOCKED,R) \
+  d(LOCKED,5RR+A) \
   d(UNLOCKING,-R+A) \
   d(UNLOCKED,-G) \
   d(OPEN,G) \

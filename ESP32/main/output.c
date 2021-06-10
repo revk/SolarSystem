@@ -77,11 +77,9 @@ const char *output_command(const char *tag, unsigned int len, const unsigned cha
    if (!strcmp(tag, "connect"))
       output_changed = 1;       // Report
    const char *e = NULL;
-   if (!strcmp(tag, TAG))
+   if (!strncmp(tag, TAG, strlen(TAG)))
    {                            // Set output
       jo_t j = jo_parse_mem(value, len);
-      if (jo_here(j) != JO_ARRAY)
-         e = "Expecting JSON array";
       if (!e)
          jo_skip(j);
       if (!e)
@@ -92,27 +90,48 @@ const char *output_command(const char *tag, unsigned int len, const unsigned cha
          return e;
       }
       jo_rewind(j);
-      jo_next(j);
-      int i = 0;
-      jo_type_t t = jo_here(j);
-      while (t && i < MAXOUTPUT)
-      {
-         if (t >= JO_TRUE)
+      int i = atoi(tag + strlen(TAG));
+      if (!i)
+      {                         // Array expected}
+         if (jo_here(j) != JO_ARRAY)
+            e = "Expecting JSON array";
+         jo_next(j);
+         int i = 0;
+         jo_type_t t = jo_here(j);
+         while (t && i < MAXOUTPUT)
          {
-            if (!output[i])
-               e = "Trying to set unconfigured output";
-            else if (t == JO_TRUE)
-               output_set(i, 1);
-            else if (t == JO_FALSE)
-               output_set(i, 0);
-         } else if (t != JO_NULL)
-            e = "Expecting boolean or null entries";
-         i++;
-         t = jo_next(j);
+            i++;
+            if (t >= JO_TRUE)
+            {
+               if (!output[i-1])
+                  e = "Trying to set unconfigured output";
+               else if (t == JO_TRUE)
+                  output_set(i, 1);
+               else if (t == JO_FALSE)
+                  output_set(i, 0);
+            } else if (t != JO_NULL)
+               e = "Expecting boolean or null entries";
+            t = jo_next(j);
+         }
+         if (!e && t)
+            e = "Too many outputs";
+      } else
+      {                         // Single entry
+         jo_type_t t = jo_here(j);
+         if (i > MAXOUTPUT)
+            e = "Output too high";
+         else if (!output[i-1])
+            e = "Output not active";
+         else if (t == JO_TRUE)
+            output_set(i, 1);
+         else if (t == JO_FALSE)
+            output_set(i, 0);
+         else
+            e = "Expecting boolean";
       }
-      if (!e && t)
-         e = "Too many outputs";
       jo_free(&j);
+      if (!e)
+         e = "";
    }
    return e;
 }
@@ -143,7 +162,6 @@ static void task(void *pvParameters)
       usleep(100000);
    }
 }
-
 
 void output_init(void)
 {

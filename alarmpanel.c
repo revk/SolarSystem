@@ -483,8 +483,8 @@ void mqtt_output(port_p p, int v)
       v = 1 - v;
    char *topic;
    asprintf(&topic, "command/SS/%s/output%d", p->mqtt, port);
-   char msg = v + '0';
-   mosquitto_publish(mqtt, NULL, topic, 1, &msg, 1, 0);
+   char *msg = { v ? "true" : "false" };
+   mosquitto_publish(mqtt, NULL, topic, strlen(msg), msg, 1, 0);
    free(topic);
 }
 
@@ -1182,12 +1182,12 @@ static void *load_config(const char *configfile)
       warnx("Config check devices");
    while ((x = xml_element_next_by_name(config, x, "device")))
    {
-         if ((e = xml_attribute_by_name(x, "door")))
-         {
-            xml_attribute_set(x, "doorauto", xml_attribute_content(e));
-            xml_attribute_delete(e);
-            configchanged = 1;
-         }
+      if ((e = xml_attribute_by_name(x, "door")))
+      {
+         xml_attribute_set(x, "doorauto", xml_attribute_content(e));
+         xml_attribute_delete(e);
+         configchanged = 1;
+      }
       if (((v = xml_get(x, "@nfc")) || (v = xml_get(x, "@nfctx"))) && *v)
          securefobs = 1;
       if (!(pl = xml_get(x, "@id")) || !*pl)
@@ -4441,7 +4441,7 @@ int main(int argc, const char *argv[])
                      configchanged = 1;
                   }
 
-                  void sende(int etype, int state) {
+                  void sende(int etype, int state, const char *msg) {
                      event_t *e = malloc(sizeof(*e));
                      if (!e)
                         errx(1, "malloc");
@@ -4449,7 +4449,8 @@ int main(int argc, const char *argv[])
                      e->event = etype;
                      e->port = port;
                      e->state = state;
-                     asprintf((char **) &e->message, "%.*s", msg->payloadlen, (char *) msg->payload);
+                     if (msg)
+                        e->message = strdup(msg);
                      struct timezone tz;
                      gettimeofday((void *) &e->when, &tz);
                      if (etype == EVENT_DOOR)
@@ -4473,6 +4474,9 @@ int main(int argc, const char *argv[])
                                       || !strncmp(tag, "led", 3)        //
                                       || !strncmp(tag, "door", 4)       //
                                       || !strncmp(tag, "input", 5)      //
+                                      || !strncmp(tag, "blink", 5)      //
+                                      || !strncmp(tag, "power", 5)     //
+                                      || !strncmp(tag, "tamper", 6)     //
                                       || !strncmp(tag, "output", 6)     //
                                       || !strncmp(tag, "ranger", 6)     //
                                   );
@@ -4505,12 +4509,12 @@ int main(int argc, const char *argv[])
                            asprintf(&topic, "setting/SS/%s", port->mqtt);
                            mosquitto_publish(mqtt, NULL, topic, len, json, 1, 0);
                            free(topic);
-                           sende(EVENT_FOUND, 1);
+                           sende(EVENT_FOUND, 1, j_get(j, "id"));
                         }
                         if (up && j_isbool(up) && !j_istrue(up))
                         {
-                           sende(EVENT_MISSING, 0);
-                           sende(EVENT_DOOR, DOOR_OFFLINE);
+                           sende(EVENT_MISSING, 0, NULL);
+                           sende(EVENT_DOOR, DOOR_OFFLINE, NULL);
                         }
                         return;
                      }
@@ -4528,8 +4532,10 @@ int main(int argc, const char *argv[])
                                  port = port_new(id, 1, i + 1);
                                  app = port_app(port);
                                  int state = j_istrue(j_index(j, i));
+                                 if (app->invert)
+                                    state = !state;
                                  if (port->state != state)
-                                    sende(EVENT_INPUT, state);
+                                    sende(EVENT_INPUT, state, NULL);
                               }
                         return;
                      }
@@ -4537,14 +4543,14 @@ int main(int argc, const char *argv[])
                      {
                         int state = (j_len(j) > 0);
                         if (port->fault != state)
-                           sende(EVENT_FAULT, state);
+                           sende(EVENT_FAULT, state, j_val(j_index(j, 0)));
                         return;
                      }
                      if (!strcmp(tag, "tamper"))
                      {
                         int state = (j_len(j) > 0);
                         if (port->tamper != state)
-                           sende(EVENT_TAMPER, state);
+                           sende(EVENT_TAMPER, state, j_val(j_index(j, 0)));
                         return;
                      }
                      if (!strcmp(tag, "door"))
@@ -4558,7 +4564,7 @@ int main(int argc, const char *argv[])
 #define d(n,l) if(!strcmp(statename,#n))state=DOOR_##n;
                               DOOR
 #undef d
-                                  sende(EVENT_DOOR, state);
+                                  sende(EVENT_DOOR, state, statename);
                            }
                            //syslog (LOG_INFO, "Door %d state %s [%.*s]", app->door, door_name[state], (int) msg->payloadlen, (char *) msg->payload);        // TODO
                         }
@@ -4570,7 +4576,7 @@ int main(int argc, const char *argv[])
                   {             // Event message
                      if (!strcmp(tag, "warning"))
                      {
-                        sende(EVENT_WARNING, 1);
+                        sende(EVENT_WARNING, 1, j_val(j_index(j, 0)));
                         return;
                      }
                      if (!strcmp(tag, "fob"))
