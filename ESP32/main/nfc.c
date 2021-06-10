@@ -203,6 +203,8 @@ static void task(void *pvParameters)
             {                   // Try talking to it
                ESP_LOGE(TAG, "NFC re-init");
                pn532 = pn532_init(nfcuart, port_mask(nfctx), port_mask(nfcrx), nfcmask);
+               if (!pn532)
+                  pn532 = pn532_init(nfcuart, port_mask(nfctx), port_mask(nfcrx), nfcmask);
                if (pn532)
                {                // All good!
                   df_init(&df, pn532, pn532_dx);
@@ -211,16 +213,18 @@ static void task(void *pvParameters)
                } else
                {                // Failed
                   on = 0;
+                  gpio_set_direction(port_mask(nfctx), GPIO_MODE_DISABLE);        // Don't drive via tx
                   if (nfcpower)
                      gpio_set_level(port_mask(nfcpower), (nfcpower & PORT_INV) ? 1 : 0);        // Off
-                  wait = 2000 / nfciopoll;      // off wait
+                  wait = 500 / nfciopoll;      // off wait
                }
             } else
             {                   // Off, so turn on
                on = 1;
                if (nfcpower)
                   gpio_set_level(port_mask(nfcpower), (nfcpower & PORT_INV) ? 0 : 1);   // On
-               wait = 200 / nfciopoll;  // on wait
+               gpio_set_direction(port_mask(nfctx), GPIO_MODE_OUTPUT);
+               wait = 500 / nfciopoll;  // on wait
             }
          }
          if (!pn532)
@@ -495,6 +499,8 @@ const char *nfc_command(const char *tag, unsigned int len, const unsigned char *
       return NULL;              // Not running
    if (!strcmp(tag, "shutdown"))
    {
+      if (nfctx)
+         gpio_set_direction(port_mask(nfctx), GPIO_MODE_DISABLE); // Don't drive via Tx
       if (nfcpower)
          gpio_set_level(port_mask(nfcpower), (nfcpower & PORT_INV) ? 1 : 0);    // Off
    }
