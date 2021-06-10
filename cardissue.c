@@ -490,10 +490,6 @@ int main(int argc, const char *argv[])
          username = xml_get(u, "@name");
          if (username)
             printf("Username: %s\n", username);
-         xml_attribute_t a = NULL;
-         while ((a = xml_attribute_next(user, a)))
-            if (!j_find(j, xml_attribute_name(a)))
-               addatt(j, xml_attribute_name(a), xml_attribute_content(a));
       }
       return u;
    }
@@ -566,9 +562,7 @@ int main(int argc, const char *argv[])
    }
 
    if (!username && !user)
-   {
       user = findfob();
-   }
 
    if (chdir(hexaid) && (mkdir(hexaid, 0700) || chdir(hexaid)))
       err(1, "Cannot make directory");
@@ -675,6 +669,13 @@ int main(int argc, const char *argv[])
       return s ? : 1;
    }
 
+   if(user)
+   {
+      xml_attribute_t a = NULL;
+      while ((a = xml_attribute_next(user, a)))
+         if (!j_find(j, xml_attribute_name(a)))
+            addatt(j, xml_attribute_name(a), xml_attribute_content(a));
+   }
    const unsigned char *afile = makeafile(j);
 
    unsigned int size = checkfile(0x0A, 'B', comms, 0x0010, "Access");

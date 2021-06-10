@@ -25,7 +25,11 @@ uint8_t *makeafile(j_t j)
    {
       int debug = j_test(j, "debug", 0);
       if (debug)
+      {
+         fprintf(stderr, "Afile:");
          j_err(j_write(j, stderr));
+         fprintf(stderr, "\n");
+      }
       // Flags
       if (j_test(j, "commit", 0))
          fputc(0xF0, afilef);

@@ -369,7 +369,18 @@ static void state_change(group_t g);
 static const char *real_port_name(char *v, port_p p);
 static port_app_t *port_app(port_p p);
 
-void addatt(j_t j, const char *tag, const char *val)
+static const char *grouparea(group_t g)
+{                               // Note static return string, use immediately
+   static char area[MAX_GROUP + 1];
+   int p = 0;
+   for (int b = 0; b < MAX_GROUP; b++)
+      if (g & (1 << b))
+         area[p++] = 'A' + b;
+   area[p++] = 0;
+   return area;
+}
+
+static void addatt(j_t j, const char *tag, const char *val)
 {
    if (!val)
    {
@@ -1125,6 +1136,7 @@ static void *load_config(const char *configfile)
    if (debug)
       warnx("Config parsed");
    xml_t x = NULL;
+   xml_attribute_t e;
    {
       int g = 0;
       for (g = 0; g < MAX_GROUP; g++)
@@ -1437,6 +1449,24 @@ static void *load_config(const char *configfile)
    x = NULL;
    while ((x = xml_element_next_by_name(config, x, "user")))
    {                            // Scan users
+      if ((e = xml_attribute_by_name(x, "time-override")))
+      {
+         xml_attribute_set(x, "clock", xml_attribute_content(e));
+         xml_attribute_delete(e);
+         configchanged = 1;
+      }
+      if ((e = xml_attribute_by_name(x, "time-from")))
+      {
+         xml_attribute_set(x, "from", xml_attribute_content(e));
+         xml_attribute_delete(e);
+         configchanged = 1;
+      }
+      if ((e = xml_attribute_by_name(x, "time-to")))
+      {
+         xml_attribute_set(x, "to", xml_attribute_content(e));
+         xml_attribute_delete(e);
+         configchanged = 1;
+      }
       user_t *u = malloc(sizeof(*u));
       memset(u, 0, sizeof(*u));
       u->config = x;
@@ -1519,6 +1549,20 @@ static void *load_config(const char *configfile)
       u->group_disarm[1] = mask & (u->group_disarm[0] | group_parse(xml_get(x, "@disarm")));    // Default is no groups
       u->group_reset[1] = mask & (u->group_reset[0] | group_parse(xml_get(x, "@reset")));
       u->group_prop[1] = mask & (u->group_prop[0] | group_parse(xml_get(x, "@prop")));
+      v = grouparea(u->group_open[1]);
+      e = xml_attribute_by_name(x, "allow");
+      if (!e || strcmp(xml_element_content(e), v))
+      {
+         xml_attribute_set(x, "allow", v);
+         configchanged = 1;
+      }
+      v = grouparea(u->group_arm[1] | u->group_disarm[1]);
+      e = xml_attribute_by_name(x, "deadlock");
+      if (!e || strcmp(xml_element_content(e), v))
+      {
+         xml_attribute_set(x, "deadlock", v);
+         configchanged = 1;
+      }
       u->next = users;
       users = u;
    }
@@ -1672,6 +1716,18 @@ static void *load_config(const char *configfile)
    // System
    if ((x = xml_element_next_by_name(config, NULL, "system")))
    {
+      if ((e = xml_attribute_by_name(x, "time-from")))
+      {
+         xml_attribute_set(x, "from", xml_attribute_content(e));
+         xml_attribute_delete(e);
+         configchanged = 1;
+      }
+      if ((e = xml_attribute_by_name(x, "time-to")))
+      {
+         xml_attribute_set(x, "to", xml_attribute_content(e));
+         xml_attribute_delete(e);
+         configchanged = 1;
+      }
       state[STATE_ENGINEERING] = group_parse(xml_get(x, "@engineering"));
       walkthrough = xml_get(x, "@walk-through") ? 1 : 0;
       char *wd = xml_get(x, "@watchdog");
@@ -3546,8 +3602,8 @@ void doevent(event_t * e)
                dolog(groups, e->event == EVENT_FOB_ACCESS ? "FOBBADACCESS" : "FOBEXPIRED", NULL, port_name(port), "Expired fob %s%s %s", e->fob, secure ? " (secure)" : "", xml_datetimelocal(expiry));
                return;
             }
-            const char *from = xml_get(u->config, "@time-from") ? : xml_get(config, "system@time-from");
-            const char *to = xml_get(u->config, "@time-to") ? : xml_get(config, "system@time-to");
+            const char *from = xml_get(u->config, "@from") ? : xml_get(config, "system@from");
+            const char *to = xml_get(u->config, "@to") ? : xml_get(config, "system@to");
             if (from || to)
             {
                struct tm t;
@@ -4418,6 +4474,8 @@ int main(int argc, const char *argv[])
                               while ((a = xml_attribute_next(app->config, a)))
                                  if (match(xml_attribute_name(a)))
                                     j_store_string(set, xml_attribute_name(a), xml_attribute_content(a));
+                           if (app->door != -1)
+                              j_store_string(set, "doorarea", grouparea(mydoor[app->door].group_lock));
                            xml_t e = NULL;
                            j_t b = j_store_array(set, "blacklist");
                            while ((e = xml_element_next_by_name(config, e, "blacklist")))

@@ -2,7 +2,7 @@
 <panel>
    <system name="Test" watchdog="false" engineering="*" aid="123456" aes="00112233445566778899AABBCCDDEEFF" expiry="200" mqtt-host="mqtt.iot"/>
    <group id="0" name="Test"/>
-   <door max="Test" name="Test" lock="0" arm="0" id="DOOR00"/>
-   <user name="test" full-name="Test" fob="045281FA186280"/>
+   <door max="Test" name="Test" lock="0" id="DOOR00"/>
+   <user name="test" full-name="Test" fob="045281FA186280" allow="A" deadlock="A" open="0" arm="0" disarm="0"/>
    <device name="Test" id="083AF20D6E00" doorauto="5" nfctx="17" nfcrx="16" nfcpower="-5" nfctamper="30" nfcgreen="31" nfcamber="32" nfcred="33" nfcbell="72"/>
 </panel>
