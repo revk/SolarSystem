@@ -41,13 +41,15 @@ void output_set(int p, int v)
       if ((output_state & (1ULL << p)) && (output_state_set & (1ULL << p)))
          return;                // No change
       output_state |= (1ULL << p);
-      output_changed = 1;
+      if (output[p])
+         output_changed = 1;
    } else
    {
       if (!(output_state & (1ULL << p)) && (output_state_set & (1ULL << p)))
          return;                // No change
       output_state &= ~(1ULL << p);
-      output_changed = 1;
+      if (output[p])
+         output_changed = 1;
    }
    if (output[p])
    {
@@ -129,7 +131,7 @@ static void task(void *pvParameters)
          jo_t j = jo_create_alloc();
          jo_array(j, NULL);
          int t = MAXOUTPUT;
-         while (t && (!output[t-1] || !((output_state_set >> (t - 1)) & 1)))
+         while (t && (!output[t - 1] || !((output_state_set >> (t - 1)) & 1)))
             t--;
          for (int i = 0; i < t; i++)
             if (output[i] && ((output_state_set >> i) & 1))
