@@ -18,6 +18,7 @@ static uint32_t outputalarm[MAXOUTPUT];
 
 static uint64_t output_state = 0;       // Port state
 static uint64_t output_state_set = 0;   // Output has been set
+static uint8_t output_changed = 0;
 
 int output_active(int p)
 {
@@ -40,11 +41,13 @@ void output_set(int p, int v)
       if ((output_state & (1ULL << p)) && (output_state_set & (1ULL << p)))
          return;                // No change
       output_state |= (1ULL << p);
+      output_changed = 1;
    } else
    {
       if (!(output_state & (1ULL << p)) && (output_state_set & (1ULL << p)))
          return;                // No change
       output_state &= ~(1ULL << p);
+      output_changed = 1;
    }
    if (output[p])
    {
@@ -69,20 +72,76 @@ int output_get(int p)
 
 const char *output_command(const char *tag, unsigned int len, const unsigned char *value)
 {
-   if (!strncmp(tag, TAG, sizeof(TAG) - 1))
+   if (!strcmp(tag, "connect"))
+      output_changed = 1;       // Report
+   const char *e = NULL;
+   if (!strcmp(tag, TAG))
    {                            // Set output
-      int index = atoi(tag + sizeof(TAG) - 1);
-      if (index >= 1 && index <= MAXOUTPUT)
+      jo_t j = jo_parse_mem(value, len);
+      if (jo_here(j) != JO_ARRAY)
+         e = "Expecting JSON array";
+      if (!e)
+         jo_skip(j);
+      if (!e)
+         e = jo_error(j, NULL);
+      if (e)
       {
-         if (len && *value == '1')
-            output_set(index, 1);
-         else
-            output_set(index, 0);
-         return "";             // Done
+         jo_free(&j);
+         return e;
       }
+      jo_rewind(j);
+      jo_next(j);
+      int i = 0;
+      jo_type_t t = jo_here(j);
+      while (t && i < MAXOUTPUT)
+      {
+         if (t >= JO_TRUE)
+         {
+            if (!output[i])
+               e = "Trying to set unconfigured output";
+            else if (t == JO_TRUE)
+               output_set(i, 1);
+            else if (t == JO_FALSE)
+               output_set(i, 0);
+         } else if (t != JO_NULL)
+            e = "Expecting boolean or null entries";
+         i++;
+         t = jo_next(j);
+      }
+      if (!e && t)
+         e = "Too many outputs";
+      jo_free(&j);
    }
-   return NULL;
+   return e;
 }
+
+static void task(void *pvParameters)
+{                               // Main RevK task
+   esp_task_wdt_add(NULL);
+   pvParameters = pvParameters;
+   // Scan inputs
+   while (1)
+   {
+      esp_task_wdt_reset();
+      if (output_changed)
+      {                         // JSON
+         output_changed = 0;
+         jo_t j = jo_create_alloc();
+         jo_array(j, NULL);
+         int t = MAXOUTPUT;
+         while (t && (!output[t-1] || !((output_state_set >> (t - 1)) & 1)))
+            t--;
+         for (int i = 0; i < t; i++)
+            if (output[i] && ((output_state_set >> i) & 1))
+               jo_bool(j, NULL, (output_state >> i) & 1);
+            else
+               jo_null(j, NULL);
+         revk_statej(TAG, &j);
+      }
+      usleep(100000);
+   }
+}
+
 
 void output_init(void)
 {
@@ -125,4 +184,5 @@ void output_init(void)
          }
       }
    }
+   revk_task(TAG, task, NULL);
 }
