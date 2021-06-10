@@ -1182,6 +1182,12 @@ static void *load_config(const char *configfile)
       warnx("Config check devices");
    while ((x = xml_element_next_by_name(config, x, "device")))
    {
+         if ((e = xml_attribute_by_name(x, "door")))
+         {
+            xml_attribute_set(x, "doorauto", xml_attribute_content(e));
+            xml_attribute_delete(e);
+            configchanged = 1;
+         }
       if (((v = xml_get(x, "@nfc")) || (v = xml_get(x, "@nfctx"))) && *v)
          securefobs = 1;
       if (!(pl = xml_get(x, "@id")) || !*pl)
@@ -1595,6 +1601,13 @@ static void *load_config(const char *configfile)
          mydoor[d].group_arm = group_parse(xml_get(x, "@arm") ? : xml_get(x, "@lock") ? : "*");
          mydoor[d].group_disarm = group_parse(xml_get(x, "@disarm") ? : xml_get(x, "@lock") ? : "*");
          group_t g = (mydoor[d].group_lock | mydoor[d].group_fire | mydoor[d].group_arm | mydoor[d].group_disarm);
+         v = grouparea(mydoor[d].group_lock);
+         e = xml_attribute_by_name(x, "doorarea");
+         if (!e || strcmp(xml_element_content(e), v))
+         {
+            xml_attribute_set(x, "doorarea", v);
+            configchanged = 1;
+         }
          mydoor[d].name = xml_copy(x, "@name");
          char *doorname = mydoor[d].name ? : doorno;
          const char *max = xml_get(x, "@max");
