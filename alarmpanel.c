@@ -4475,7 +4475,7 @@ int main(int argc, const char *argv[])
                                       || !strncmp(tag, "door", 4)       //
                                       || !strncmp(tag, "input", 5)      //
                                       || !strncmp(tag, "blink", 5)      //
-                                      || !strncmp(tag, "power", 5)     //
+                                      || !strncmp(tag, "power", 5)      //
                                       || !strncmp(tag, "tamper", 6)     //
                                       || !strncmp(tag, "output", 6)     //
                                       || !strncmp(tag, "ranger", 6)     //
@@ -4500,15 +4500,19 @@ int main(int argc, const char *argv[])
                            j_t f = j_store_array(set, "fallback");
                            while ((e = xml_element_next_by_name(config, e, "fallback")))
                               j_append_string(f, xml_get(e, "@fob"));
-                           char *topic,
-                           *json;
-                           size_t len;
-                           if (j_write_mem(set, &json, &len))
-                              warnx("json error");
+                           if (!j_isnull(set))
+                           {
+                              char *topic,
+                              *json;
+                              size_t len;
+                              if (j_write_mem(set, &json, &len))
+                                 warnx("json error");
+                              asprintf(&topic, "setting/SS/%s", port->mqtt);
+                              mosquitto_publish(mqtt, NULL, topic, len, json, 1, 0);
+                              free(topic);
+                              free(json);
+                           }
                            j_delete(&set);
-                           asprintf(&topic, "setting/SS/%s", port->mqtt);
-                           mosquitto_publish(mqtt, NULL, topic, len, json, 1, 0);
-                           free(topic);
                            sende(EVENT_FOUND, 1, j_get(j, "id"));
                         }
                         if (up && j_isbool(up) && !j_istrue(up))
@@ -4520,7 +4524,34 @@ int main(int argc, const char *argv[])
                      }
                      if (!strcmp(tag, "keys"))
                      {          // Reporting keys
-
+                        j_t set = j_create();
+                        char *aid = xml_get(config, "system@aid");
+                        if (aid)
+                        {
+                           const char *a = j_get(j, "aid");
+                           if (!a || strcmp(a, aid))
+                              j_store_string(set, "aid", aid);
+                        }
+                        char *aes = xml_get(config, "system@aes");
+                        {       // Single AES key ID 01 - maybe work out backup aes one day
+                           // Maybe work out how to check AES is right?
+                           j_t a = j_find(j, "ver");
+                           if (!a || !j_isarray(a) || j_len(a) != 1 || strcmp("01", j_val(j_index(a, 0))))
+                              j_store_stringf(set, "aes", "01%s", aes);
+                        }
+                        if (!j_isnull(set))
+                        {
+                           char *topic,
+                           *json;
+                           size_t len;
+                           if (j_write_mem(set, &json, &len))
+                              warnx("json error");
+                           asprintf(&topic, "setting/SS/%s", port->mqtt);
+                           mosquitto_publish(mqtt, NULL, topic, len, json, 1, 0);
+                           free(topic);
+                           free(json);
+                        }
+                        j_delete(&set);
                         return;
                      }
                      if (!strcmp(tag, "input"))
