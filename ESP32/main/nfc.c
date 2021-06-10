@@ -213,10 +213,10 @@ static void task(void *pvParameters)
                } else
                {                // Failed
                   on = 0;
-                  gpio_set_direction(port_mask(nfctx), GPIO_MODE_DISABLE);        // Don't drive via tx
+                  gpio_set_direction(port_mask(nfctx), GPIO_MODE_DISABLE);      // Don't drive via tx
                   if (nfcpower)
                      gpio_set_level(port_mask(nfcpower), (nfcpower & PORT_INV) ? 1 : 0);        // Off
-                  wait = 500 / nfciopoll;      // off wait
+                  wait = 500 / nfciopoll;       // off wait
                }
             } else
             {                   // Off, so turn on
@@ -479,12 +479,11 @@ static void task(void *pvParameters)
 
 static void report_state(void)
 {
-   if (!aid[0] && !aid[1] && !aid[2])
-      return;
    if (revk_offline())
       return;
    jo_t j = jo_object_alloc();
-   jo_stringf(j, "aid", "%02X%02X%02X", aid[0], aid[1], aid[2]);
+   if (aid[0] || aid[1] || aid[2])
+      jo_stringf(j, "aid", "%02X%02X%02X", aid[0], aid[1], aid[2]);
    jo_array(j, "ver");
    for (int i = 0; i < sizeof(aes) / sizeof(*aes) && aes[i][0]; i++)
       jo_stringf(j, NULL, "%02X", aes[i][0]);
@@ -500,7 +499,7 @@ const char *nfc_command(const char *tag, unsigned int len, const unsigned char *
    if (!strcmp(tag, "shutdown"))
    {
       if (nfctx)
-         gpio_set_direction(port_mask(nfctx), GPIO_MODE_DISABLE); // Don't drive via Tx
+         gpio_set_direction(port_mask(nfctx), GPIO_MODE_DISABLE);       // Don't drive via Tx
       if (nfcpower)
          gpio_set_level(port_mask(nfcpower), (nfcpower & PORT_INV) ? 1 : 0);    // Off
    }
@@ -603,6 +602,11 @@ void nfc_init(void)
       gpio_set_level(port_mask(nfcpower), (nfcpower & PORT_INV) ? 0 : 1);
       gpio_set_direction(port_mask(nfcpower), GPIO_MODE_OUTPUT);
       usleep(100000);
+      // These pins could try to power the nfc when power off
+      if (nfctx)
+         gpio_set_pull_mode(port_mask(nfctx), GPIO_PULLUP_PULLDOWN);
+      if (nfcrx)
+         gpio_set_pull_mode(port_mask(nfcrx), GPIO_PULLUP_PULLDOWN);
    }
    nfc_led(0, NULL);
    if (nfctx && nfcrx)

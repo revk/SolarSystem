@@ -169,6 +169,7 @@ void app_main()
    {
       port_check(port_mask(tamper), "Tamper", 1);
       gpio_reset_pin(port_mask(tamper));
+      gpio_set_direction(port_mask(tamper), GPIO_MODE_INPUT);
       gpio_set_pull_mode(port_mask(tamper), GPIO_PULLUP_ONLY);
    }
    while (1)
