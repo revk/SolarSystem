@@ -179,7 +179,7 @@ void app_main()
          if (gpio_get_level(port_mask(tamper)) ^ ((tamper & PORT_INV) ? 1 : 0))
          {
             if (!controller_tamper)
-               status(controller_tamper = "Tamper switch");
+               status(controller_tamper = "Main board tamper switch");
          } else
          {
             if (controller_tamper)
