@@ -1562,6 +1562,7 @@ static void *load_config(const char *configfile)
          xml_attribute_set(x, "allow", v);
          configchanged = 1;
       }
+#if 0	// Done by controller
       v = grouparea(u->group_arm[1] | u->group_disarm[1]);
       e = xml_attribute_by_name(x, "deadlock");
       if (!e || strcmp(xml_element_content(e), v))
@@ -1569,6 +1570,7 @@ static void *load_config(const char *configfile)
          xml_attribute_set(x, "deadlock", v);
          configchanged = 1;
       }
+#endif
       u->next = users;
       users = u;
    }

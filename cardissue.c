@@ -202,6 +202,9 @@ int main(int argc, const char *argv[])
       while ((d = xml_element_next_by_name(c, d, "device")))
          if ((v = xml_get(d, "@nfc")) || (v = xml_get(d, "@nfctx")))
          {
+		 char *name=xml_get(d,"@name");
+		 if(name&&hexreader&&!strcmp(hexreader,name))
+               hexreader = xml_get(d, "@id");   // Assume management reader as name matches
             if (!xml_get(d, "@input1") && !xml_get(d, "@output1") && !hexreader)
                hexreader = xml_get(d, "@id");   // Assume management reader as no input or output
             if (!found && hexaid)
