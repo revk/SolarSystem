@@ -144,7 +144,7 @@ $EndComp
 Text GLabel 2700 1400 2    50   Input ~ 0
 O
 Text GLabel 2700 1300 2    50   Input ~ 0
-CBUS0
+BOOT
 Wire Wire Line
 	2100 1100 2100 1200
 Wire Wire Line
@@ -423,7 +423,7 @@ F 3 "" H 3300 6050 50  0001 C CNN
 	0    -1   -1   0   
 $EndComp
 Text GLabel 3300 6150 2    50   Input ~ 0
-CBUS0
+BOOT
 Text GLabel 3300 5750 2    50   Input ~ 0
 I
 Text GLabel 3300 5850 2    50   Input ~ 0
