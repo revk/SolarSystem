@@ -4,6 +4,7 @@
 #include "revk.h"
 #include "esp_task_wdt.h"
 #include "areas.h"
+#include "states.h"
 
 void status (const char *);     // Report change in tamper/fault (arg is ignored, but used xxx_fault="whatever");
 

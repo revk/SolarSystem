@@ -113,13 +113,13 @@ uint8_t *makeafile(j_t j)
          const char *p = j_get(j, tag);
          if (!p)
             return;
-         uint32_t a = 0;
+         area_t a = 0;
          while (*p)
          {
             static const char areas[] = AREAS;
             const char *q = strchr(areas, *p);
             if (q)
-               a |= (1 << (31 - (q - areas)));
+               a |= (1 << ((sizeof(area_t)*8-1) - (q - areas)));
             else if (debug)
                fprintf(stderr, "Unexpected area code '%c'", *q);
             p++;
@@ -128,7 +128,7 @@ uint8_t *makeafile(j_t j)
           n = 1;
          while (a && n < (uint8_t) sizeof(e))
          {
-            e[n++] = (a >> 24);
+            e[n++] = (a >> (sizeof(area_t)*8-8));
             a <<= 8;
          }
          e[0] = f + n - 1;

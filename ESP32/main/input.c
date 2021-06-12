@@ -13,6 +13,11 @@ const char *input_tamper = NULL;
 #define	PORT_INV 0x40
 #define	port_mask(p) ((p)&63)
 static uint8_t input[MAXINPUT];
+#define i(x) static area_t input##x[MAXINPUT];
+#define s(x)
+states;
+#undef i
+#undef s
 
 // Other settings
 #define settings	\
@@ -122,6 +127,11 @@ void input_init(void)
 {
    revk_register("input", MAXINPUT, sizeof(*input), &input, BITFIELDS, SETTING_BITFIELD | SETTING_SET | SETTING_SECRET);
    revk_register("inputgpio", MAXINPUT, sizeof(*input), &input, BITFIELDS, SETTING_BITFIELD | SETTING_SET);
+#define i(x) revk_register("input"#x, MAXINPUT, sizeof(*input##x), &input##x, AREAS, SETTING_BITFIELD);
+#define s(x)
+   states;
+#undef i
+#undef s
 #define u16(n,v) revk_register(#n,0,sizeof(n),&n,#v,0);
    settings
 #undef u16

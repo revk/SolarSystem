@@ -53,7 +53,7 @@ uint8_t afile[256];             // Access file saved
 #define u8(n,d) uint8_t n;
 #define u1(n) uint8_t n;
 #define ta(n,c) const char*n[c]={};
-#define area(n) uint32_t n;
+#define area(n) area_t n;
 settings
 #undef	area
 #undef ta

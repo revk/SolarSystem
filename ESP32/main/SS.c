@@ -32,6 +32,14 @@ settings
 #define PORT_INV 0x40
 static esp_reset_reason_t reason = -1;  // Restart reason
 
+#if 0
+#define i(x) s(x)
+#define s(x) static area_t local##x=0; static area_t global##x=0;
+states
+#define i
+#define s
+#endif
+
 const char *controller_fault = NULL;
 const char *controller_tamper = NULL;
 
