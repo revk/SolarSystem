@@ -133,7 +133,6 @@ static void fobevent(void)
          jo_bool(j, "unlocked", fob.unlocked);
       else if (fob.checked)
          jo_bool(j, "unlockok", fob.unlockok);
-#if 0                           // TODO when we have this logic set up
       if (fob.disarmed)
          jo_bool(j, "disarmed", fob.disarmed);
       else if (fob.checked)
@@ -142,7 +141,6 @@ static void fobevent(void)
          jo_bool(j, "armed", fob.armed);
       else if (fob.checked)
          jo_bool(j, "armok", fob.armok);
-#endif
       if (fob.afile)
          jo_stringf(j, "crc", "%08X", fob.crc);
    }

@@ -338,7 +338,7 @@ const char *door_fob(fob_t * fob)
          else
             fob->disarmok = 1;
       }
-      if (doordeadlock && !fob->disarmok)
+      if (doordeadlock && (doorauto < 5 || !fob->disarmok))
          return "Deadlocked";
       if (!(doorarea & ~fob->allow))
          fob->unlockok = 1;
@@ -346,8 +346,6 @@ const char *door_fob(fob_t * fob)
    }
    if (fob->secure && df.keylen)
       fob->deny = afilecheck();
-   if (fob->held)
-      return NULL;
    // Check fallback
    for (int i = 0; i < sizeof(fallback) / sizeof(*fallback); i++)
       if (!strcmp(fallback[i], fob->id))
@@ -381,13 +379,19 @@ const char *door_fob(fob_t * fob)
          break;
       }
    if (doorauto >= 4)
-   {                            // Actually do the doors (done by the caller)
+   {                            // Actually do the doors (the open is done by the caller)
       fob->unlocked = fob->unlockok;
       if (doorauto >= 5)
       {
          fob->disarmed = fob->disarmok;
          fob->armed = fob->armok;
       }
+   }
+   if (fob->held)
+   {
+      if (fob->armed)
+         door_deadlock(NULL);	// Deadlock the door
+      return NULL;
    }
 
    if (!fob->deny && fob->secure && df.keylen && *datetime >= 0x20 && xdays && xoff && xlen <= 7)

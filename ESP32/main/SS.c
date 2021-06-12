@@ -24,6 +24,11 @@ static const char *port_inuse[MAX_PORT];
 #define settings  \
   io(tamper) \
 
+// TODO
+// belltime	Auto clear bell input
+// alarmtime	Auto clear alarm
+// alarmholdoff	Block new alarm time
+
 #define io(n) uint8_t n;
 settings
 #undef io
