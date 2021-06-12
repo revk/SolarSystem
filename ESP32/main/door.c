@@ -390,7 +390,7 @@ const char *door_fob(fob_t * fob)
    if (fob->held)
    {
       if (fob->armed)
-         door_deadlock(NULL);	// Deadlock the door
+         door_deadlock(NULL);   // Deadlock the door
       return NULL;
    }
 
@@ -540,6 +540,8 @@ static void task(void *pvParameters)
             if (doorstate != DOOR_NOTCLOSED && doorstate != DOOR_PROPPED && doorstate != DOOR_OPEN)
             {                   // We have moved to open state, this can cancel the locking operation
                jo_t j = jo_object_alloc();
+               if (!doorwhy)
+                  doorwhy = ((lock[0].state == LOCK_LOCKED) ? "forced" : "manual");
                if (doorwhy)
                   jo_string(j, "trigger", doorwhy);
                revk_eventj("open", &j);

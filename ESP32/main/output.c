@@ -107,7 +107,7 @@ const char *output_command(const char *tag, unsigned int len, const unsigned cha
             i++;
             if (t >= JO_TRUE)
             {
-               if (!output[i-1])
+               if (!output[i - 1])
                   e = "Trying to set unconfigured output";
                else if (t == JO_TRUE)
                   output_set(i, 1);
@@ -124,7 +124,7 @@ const char *output_command(const char *tag, unsigned int len, const unsigned cha
          jo_type_t t = jo_here(j);
          if (i > MAXOUTPUT)
             e = "Output too high";
-         else if (!output[i-1])
+         else if (!output[i - 1])
             e = "Output not active";
          else if (t == JO_TRUE)
             output_set(i, 1);
@@ -190,11 +190,10 @@ void output_init(void)
             output[i] = 0;
          } else
          {
-            REVK_ERR_CHECK(gpio_reset_pin(p));
-            if (output[i] & PORT_INV)
-               REVK_ERR_CHECK(gpio_set_level(p, 1));
+            //REVK_ERR_CHECK(gpio_reset_pin(p)); // This can cause lock to blip on restart!
+            REVK_ERR_CHECK(gpio_set_level(p, (p & PORT_INV) ? 0 : 1));
             REVK_ERR_CHECK(gpio_set_direction(p, GPIO_MODE_OUTPUT));
-            gpio_hold_en(p);
+            REVK_ERR_CHECK(gpio_hold_en(p));
          }
       }
       if (power[i])
