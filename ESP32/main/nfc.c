@@ -201,8 +201,7 @@ static void task(void *pvParameters)
             {                   // Try talking to it
                ESP_LOGE(TAG, "NFC re-init");
                pn532 = pn532_init(nfcuart, port_mask(nfctx), port_mask(nfcrx), nfcmask);
-               if (!pn532)
-                  pn532 = pn532_init(nfcuart, port_mask(nfctx), port_mask(nfcrx), nfcmask);
+               if (!pn532) pn532 = pn532_init(nfcuart, port_mask(nfctx), port_mask(nfcrx), nfcmask);
                if (pn532)
                {                // All good!
                   df_init(&df, pn532, pn532_dx);
