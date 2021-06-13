@@ -294,7 +294,7 @@ int main(int argc, const char *argv[])
       {
          j_t j = j_create();
          j_err(j_read_mem(j, msg->payload, msg->payloadlen));
-         if (j_test(j, "override", 0))
+         if (j_test(j, "remote", 0))
          {
             if (fob)
                free(fob);

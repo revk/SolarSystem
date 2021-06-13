@@ -5,7 +5,7 @@
    <door max="Test" name="Test" lock="0" id="DOOR00"/>
    <door max="Test2" name="Test2" lock="0" id="DOOR01"/>
    <door max="Test3" name="Test3" lock="0" id="DOOR02"/>
-   <user name="test" full-name="Test" fob="045281FA186280 047671FA186280 047785FA186280" allow="A" open="0" arm="0" disarm="0"/>
+   <user name="test" full-name="Test" fob="045281FA186280 047671FA186280 047785FA186280" allow="A" open="0" arm="0" disarm="0" override="true"/>
    <device name="Test" id="083AF20D6E00" nfctx="17" nfcrx="16" nfcpower="-5" nfctamper="30" nfcgreen="31" nfcamber="32" nfcred="33" nfcbell="-72" doorauto="5" input1="-18" input2="21" input3="22" output1="-15" blink="12"/>
    <device name="Test2" id="34AB95823EA4" nfctx="17" nfcrx="16" nfcpower="-5" nfctamper="30" nfcgreen="31" nfcamber="32" nfcred="33" nfcbell="-72" doorauto="5" input1="-18" input2="21" input3="" input13="-22" output1="-15" blink="14" tamper="13"/>
    <device name="Test3" id="A4CF127D9FD8" nfctx="17" nfcrx="16" nfcpower="-5" nfctamper="30" nfcgreen="31" nfcamber="32" nfcred="33" nfcbell="-72" doorauto="5" input1="-18" input2="21" input3="" input13="-22" output1="-15" blink="14" tamper="13"/>

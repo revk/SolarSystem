@@ -29,6 +29,7 @@ typedef struct {
    uint8_t afile:1;             // Afile present (crc is set) and access permissions checked (deny is set)
    uint8_t allowset:1;          // Afile has allow setting
    uint8_t deadlockset:1;       // Afile has deadlock setting
+   uint8_t override:1;             // Afile says block card
    uint8_t block:1;             // Afile says block card
    uint8_t commit:1;            // Afile says commit before opening
    uint8_t clock:1;             // Afile says time ignore if not set
@@ -42,5 +43,5 @@ typedef struct {
    uint8_t disarmed:1;          // Door system has disarmed the door (deadlock)
    uint8_t armok:1;             // Afile checks say door can be armed (when card held done)
    uint8_t armed:1;             // Door system has armed the door (deadlock)
-   uint8_t override:1;          // Normal working overridden for remote NFC
+   uint8_t remote:1;          // Normal working overridden for remote NFC
 } fob_t;

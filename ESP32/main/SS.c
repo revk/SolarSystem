@@ -48,7 +48,6 @@ states
 #define i
 #define s
 #endif
-
 const char *controller_fault = NULL;
 const char *controller_tamper = NULL;
 
@@ -173,7 +172,7 @@ void app_main()
 #define io(n) revk_register(#n,0,sizeof(n),&n,BITFIELDS,SETTING_SET|SETTING_BITFIELD);
 #define dev(n,a) revk_register(#n,a,sizeof(*n),&n,NULL,SETTING_BINARY|SETTING_HEX);
 #define s(n) revk_register(#n,0,0,&n,NULL,0);
-   #define area(n) revk_register(#n,0,sizeof(n),&n,AREAS,SETTING_BITFIELD);
+#define area(n) revk_register(#n,0,sizeof(n),&n,AREAS,SETTING_BITFIELD);
    settings
 #undef io
 #undef dev

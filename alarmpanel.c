@@ -1455,6 +1455,12 @@ static void *load_config(const char *configfile)
    x = NULL;
    while ((x = xml_element_next_by_name(config, x, "user")))
    {                            // Scan users
+      if ((e = xml_attribute_by_name(x, "deadlock-override")))
+      {
+         xml_attribute_set(x, "override", xml_attribute_content(e));
+         xml_attribute_delete(e);
+         configchanged = 1;
+      }
       if ((e = xml_attribute_by_name(x, "time-override")))
       {
          xml_attribute_set(x, "clock", xml_attribute_content(e));

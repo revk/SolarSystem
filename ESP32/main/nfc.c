@@ -143,9 +143,11 @@ static void fobevent(void)
          jo_bool(j, "armok", fob.armok);
       if (fob.afile)
          jo_stringf(j, "crc", "%08X", fob.crc);
+      if (fob.override)
+         jo_bool(j, "override", fob.override);
    }
-   if (fob.override)
-      jo_bool(j, "override", 1);
+   if (fob.remote)
+      jo_bool(j, "remote", 1);
    revk_eventj("fob", &j);
 }
 
@@ -201,7 +203,8 @@ static void task(void *pvParameters)
             {                   // Try talking to it
                ESP_LOGE(TAG, "NFC re-init");
                pn532 = pn532_init(nfcuart, port_mask(nfctx), port_mask(nfcrx), nfcmask);
-               if (!pn532) pn532 = pn532_init(nfcuart, port_mask(nfctx), port_mask(nfcrx), nfcmask);
+               if (!pn532)
+                  pn532 = pn532_init(nfcuart, port_mask(nfctx), port_mask(nfcrx), nfcmask);
                if (pn532)
                {                // All good!
                   df_init(&df, pn532, pn532_dx);
@@ -309,7 +312,7 @@ static void task(void *pvParameters)
          {                      // Card gone
             ESP_LOGI(TAG, "gone %s", fob.id);
             fob.gone = 1;
-            if (fob.override || (fob.held && nfchold))
+            if (fob.remote || (fob.held && nfchold))
                fobevent();
             memset(&fob, 0, sizeof(fob));
             found = 0;
@@ -317,7 +320,7 @@ static void task(void *pvParameters)
          if (found)
          {
             nextpoll = now + (int64_t) nfcholdpoll *1000LL;
-            if (!fob.override && !fob.held && nfchold && found < now)
+            if (!fob.remote && !fob.held && nfchold && found < now)
             {                   // Card has been held for a while, report
                fob.held = 1;
                door_fob(&fob);
@@ -346,7 +349,7 @@ static void task(void *pvParameters)
             pn532_nfcid(pn532, fob.id);
             if (*ats && ats[1] == 0x78)
                fob.iso = 1;
-            if (!fob.override && aes[0][0] && (aid[0] || aid[1] || aid[2]) && *ats && ats[1] == 0x75)
+            if (!fob.remote && aes[0][0] && (aid[0] || aid[1] || aid[2]) && *ats && ats[1] == 0x75)
             {                   // DESFire
                fob.secureset = 1;       // We checked security
                // Select application
@@ -458,6 +461,8 @@ static void task(void *pvParameters)
                   blink(nfcamber);
                if (fob.unlocked)
                   door_unlock(NULL, "fob");     // Door system was happy with fob, let 'em in
+               else if (fob.override)
+                  door_unlock(NULL, "override");        // Fob override
                nextled = now + 200000LL;
                fobevent();      // Report
                if (!e && df.keylen && !fob.commit)
@@ -516,8 +521,8 @@ const char *nfc_command(const char *tag, unsigned int len, const unsigned char *
    {                            // Direct NFC data
       if (!len)
       {
-         fob.override = 1;      // Disable normal working
-         ESP_LOGI(TAG, "NFC access override");
+         fob.remote = 1;        // Disable normal working
+         ESP_LOGI(TAG, "NFC access remote");
       } else
       {
          jo_t j = jo_parse_mem((char *) value, len);

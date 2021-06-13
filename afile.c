@@ -37,6 +37,8 @@ uint8_t *makeafile(j_t j)
          fputc(0xF1, afilef);
       if (j_test(j, "count", 0))
          fputc(0xF2, afilef);
+      if (j_test(j, "override", 0))
+         fputc(0xFA, afilef);
       if (j_test(j, "block", 0))
          fputc(0xFB, afilef);
       if (j_test(j, "clock", 0))

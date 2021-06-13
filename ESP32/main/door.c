@@ -229,6 +229,9 @@ const char *door_fob(fob_t * fob)
                case 0x2:
                   fob->count = 1;
                   break;
+               case 0xA:
+                  fob->override = 1;
+                  break;
                case 0xB:
                   fob->block = 1;
                   break;
@@ -670,6 +673,8 @@ static void task(void *pvParameters)
             nfc_led(strlen(doorled[doorstate]), doorled[doorstate]);
             jo_t j = jo_object_alloc();
             jo_string(j, "state", doorstates[doorstate]);
+            if (doorwhy && doorstate == DOOR_UNLOCKING)
+               jo_string(j, "trigger", doorwhy);
             if (doortimeout > now)
                jo_int(j, "timeout", (doortimeout - now) / 1000);
             revk_statej("door", &j);
