@@ -197,9 +197,10 @@ void output_init(void)
             output[i] = 0;
          } else
          {
-            REVK_ERR_CHECK(gpio_reset_pin(p)); // This can cause lock to blip on restart!
+            //REVK_ERR_CHECK(gpio_reset_pin(p)); // This can cause lock to blip on restart!
             REVK_ERR_CHECK(gpio_set_level(p, (p & PORT_INV) ? 0 : 1));
             REVK_ERR_CHECK(gpio_set_direction(p, GPIO_MODE_OUTPUT));
+            REVK_ERR_CHECK(gpio_hold_dis(p));
             REVK_ERR_CHECK(gpio_hold_en(p));
          }
       }
