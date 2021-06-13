@@ -23,18 +23,16 @@ static const char *port_inuse[MAX_PORT];
 // Other settings
 #define settings  	\
   	io(tamper) 	\
+	area(area)	\
 	dev(device,50)	\
 
-// TODO
-// belltime	Auto clear bell input
-// alarmtime	Auto clear alarm
-// alarmholdoff	Block new alarm time
-
-#define io(n) uint8_t n;
-#define	dev(n,a) uint8_t n[a][6];
+#define io(n) static uint8_t n;
+#define	dev(n,a) static uint8_t n[a][6];
+#define area(n) area_t n;
 settings
 #undef io
 #undef dev
+#undef area
 #define port_mask(p) ((p)&63)
 #define BITFIELDS "-"
 #define PORT_INV 0x40
@@ -171,9 +169,11 @@ void app_main()
    revk_init(&app_command);
 #define io(n) revk_register(#n,0,sizeof(n),&n,BITFIELDS,SETTING_SET|SETTING_BITFIELD);
 #define dev(n,a) revk_register(#n,a,sizeof(*n),&n,NULL,SETTING_BINARY|SETTING_HEX);
+   #define area(n) revk_register(#n,0,sizeof(n),&n,AREAS,SETTING_BITFIELD);
    settings
 #undef io
 #undef dev
+#undef area
    int p;
    for (p = 6; p <= 11; p++)
       port_check(p, "Flash", 0);        // Flash chip uses 6-11

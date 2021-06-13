@@ -34,7 +34,6 @@ uint8_t afile[256];             // Access file saved
 
 #define settings  \
   u8(doorauto,0);   \
-  area(doorarea); \
   u32(doorunlock,1000); \
   u32(doorlock,3000); \
   u32(dooropen,5000); \
@@ -53,9 +52,7 @@ uint8_t afile[256];             // Access file saved
 #define u8(n,d) uint8_t n;
 #define u1(n) uint8_t n;
 #define ta(n,c) const char*n[c]={};
-#define area(n) area_t n;
 settings
-#undef	area
 #undef ta
 #undef u32
 #undef u16
@@ -331,7 +328,7 @@ const char *door_fob(fob_t * fob)
       }
       if (fob->block)
          return "Card blocked";
-      if (fob->deadlockset && !(doorarea & ~fob->deadlock))
+      if (fob->deadlockset && !(area & ~fob->deadlock))
       {
          if (fob->held)
             fob->armok = 1;
@@ -340,7 +337,7 @@ const char *door_fob(fob_t * fob)
       }
       if (doordeadlock && (doorauto < 5 || !fob->disarmok))
          return "Deadlocked";
-      if (!(doorarea & ~fob->allow))
+      if (!(area & ~fob->allow))
          fob->unlockok = 1;
       return NULL;
    }
@@ -693,9 +690,7 @@ void door_init(void)
 #define u1(n) revk_register(#n,0,sizeof(n),&n,NULL,SETTING_BOOLEAN);
 #define ta(n,c) revk_register(#n,c,0,&n,NULL,SETTING_LIVE);
 #define d(n,l) revk_register("led"#n,0,0,&doorled[DOOR_##n],#l,0);
-#define area(n) revk_register(#n,0,sizeof(n),&n,AREAS,SETTING_BITFIELD);
    settings door_states
-#undef area
 #undef ta
 #undef u32
 #undef u16

@@ -1604,10 +1604,10 @@ static void *load_config(const char *configfile)
          mydoor[d].group_disarm = group_parse(xml_get(x, "@disarm") ? : xml_get(x, "@lock") ? : "*");
          group_t g = (mydoor[d].group_lock | mydoor[d].group_fire | mydoor[d].group_arm | mydoor[d].group_disarm);
          v = grouparea(mydoor[d].group_lock);
-         e = xml_attribute_by_name(x, "doorarea");
+         e = xml_attribute_by_name(x, "area");
          if (!e || strcmp(xml_element_content(e), v))
          {
-            xml_attribute_set(x, "doorarea", v);
+            xml_attribute_set(x, "area", v);
             configchanged = 1;
          }
          mydoor[d].name = xml_copy(x, "@name");
@@ -4474,6 +4474,7 @@ int main(int argc, const char *argv[])
                            int match(const char *tag) {
                               return (!strncmp(tag, "nfc", 3)   //
                                       || !strncmp(tag, "led", 3)        //
+                                      || !strncmp(tag, "area", 4)       //
                                       || !strncmp(tag, "door", 4)       //
                                       || !strncmp(tag, "input", 5)      //
                                       || !strncmp(tag, "blink", 5)      //
@@ -4494,7 +4495,7 @@ int main(int argc, const char *argv[])
                                  if (match(xml_attribute_name(a)))
                                     j_store_string(set, xml_attribute_name(a), xml_attribute_content(a));
                            if (app->door != -1)
-                              j_store_string(set, "doorarea", grouparea(mydoor[app->door].group_lock));
+                              j_store_string(set, "area", grouparea(mydoor[app->door].group_lock));
                            xml_t e = NULL;
                            j_t b = j_store_array(set, "blacklist");
                            while ((e = xml_element_next_by_name(config, e, "blacklist")))
