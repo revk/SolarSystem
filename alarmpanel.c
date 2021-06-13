@@ -1562,7 +1562,7 @@ static void *load_config(const char *configfile)
          xml_attribute_set(x, "allow", v);
          configchanged = 1;
       }
-#if 0	// Done by controller
+#if 0                           // Done by controller
       v = grouparea(u->group_arm[1] | u->group_disarm[1]);
       e = xml_attribute_by_name(x, "deadlock");
       if (!e || strcmp(xml_element_content(e), v))
@@ -1603,13 +1603,6 @@ static void *load_config(const char *configfile)
          mydoor[d].group_arm = group_parse(xml_get(x, "@arm") ? : xml_get(x, "@lock") ? : "*");
          mydoor[d].group_disarm = group_parse(xml_get(x, "@disarm") ? : xml_get(x, "@lock") ? : "*");
          group_t g = (mydoor[d].group_lock | mydoor[d].group_fire | mydoor[d].group_arm | mydoor[d].group_disarm);
-         v = grouparea(mydoor[d].group_lock);
-         e = xml_attribute_by_name(x, "area");
-         if (!e || strcmp(xml_element_content(e), v))
-         {
-            xml_attribute_set(x, "area", v);
-            configchanged = 1;
-         }
          mydoor[d].name = xml_copy(x, "@name");
          char *doorname = mydoor[d].name ? : doorno;
          const char *max = xml_get(x, "@max");
@@ -4485,12 +4478,16 @@ int main(int argc, const char *argv[])
                            }
                            xml_t e = NULL;
                            xml_attribute_t a = NULL;
-			   const char *v;
+                           const char *v;
                            j_t set = j_create();
                            xml_t system = xml_element_next_by_name(config, NULL, "system");
-			   if((v=xml_get(system,"area")))j_store_string(set,"area",v); // System area
-			   if((v=xml_get(app->config,"name")))j_store_string(set,"name",v); // Device name
-                           j_t d = j_store_array(set, "device"); // Device list (for mesh)
+                           if ((v = xml_get(app->config, "name")))
+                              j_store_string(set, "name", v);   // Device name
+                           else if (app->door != -1)
+                              j_store_string(set, "name", mydoor[app->door].name);
+                           if (app->door != -1)
+                              j_store_string(set, "area", grouparea(mydoor[app->door].group_lock));
+                           j_t d = j_store_array(set, "device");        // Device list (for mesh)
                            while ((e = xml_element_next_by_name(config, e, "device")))
                               j_append_string(d, xml_get(e, "@id"));
                            while ((a = xml_attribute_next(system, a)))
@@ -4500,8 +4497,6 @@ int main(int argc, const char *argv[])
                               while ((a = xml_attribute_next(app->config, a)))
                                  if (match(xml_attribute_name(a)))
                                     j_store_string(set, xml_attribute_name(a), xml_attribute_content(a));
-                           if (app->door != -1)
-                              j_store_string(set, "area", grouparea(mydoor[app->door].group_lock));
                            j_t b = j_store_array(set, "blacklist");
                            while ((e = xml_element_next_by_name(config, e, "blacklist")))
                               j_append_string(b, xml_get(e, "@fob"));
