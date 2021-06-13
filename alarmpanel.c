@@ -4502,6 +4502,9 @@ int main(int argc, const char *argv[])
                            j_t f = j_store_array(set, "fallback");
                            while ((e = xml_element_next_by_name(config, e, "fallback")))
                               j_append_string(f, xml_get(e, "@fob"));
+                           j_t d = j_store_array(set, "device");
+                           while ((e = xml_element_next_by_name(config, e, "device")))
+                              j_append_string(d, xml_get(e, "@id"));
                            if (!j_isnull(set))
                            {
                               char *topic,

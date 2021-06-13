@@ -1,5 +1,5 @@
 #define	states		\
-	i(bell)		\
+	i(doorbell)	\
 	i(warning)	\
 	i(fault)	\
 	i(access)	\

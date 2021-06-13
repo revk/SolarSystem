@@ -12,7 +12,7 @@ static const char __attribute__((unused)) TAG[] = "SS";
 // Common
 static const char *port_inuse[MAX_PORT];
 
-#define modules	\
+#define modules		\
 	m(input)	\
 	m(output)	\
 	m(ranger)	\
@@ -21,8 +21,9 @@ static const char *port_inuse[MAX_PORT];
 	m(nfc)		\
 
 // Other settings
-#define settings  \
-  io(tamper) \
+#define settings  	\
+  	io(tamper) 	\
+	dev(device,50)	\
 
 // TODO
 // belltime	Auto clear bell input
@@ -30,8 +31,10 @@ static const char *port_inuse[MAX_PORT];
 // alarmholdoff	Block new alarm time
 
 #define io(n) uint8_t n;
+#define	dev(n,a) uint8_t n[a][6];
 settings
 #undef io
+#undef dev
 #define port_mask(p) ((p)&63)
 #define BITFIELDS "-"
 #define PORT_INV 0x40
@@ -167,8 +170,10 @@ void app_main()
    reason = esp_reset_reason();
    revk_init(&app_command);
 #define io(n) revk_register(#n,0,sizeof(n),&n,BITFIELDS,SETTING_SET|SETTING_BITFIELD);
+#define dev(n,a) revk_register(#n,a,sizeof(*n),&n,NULL,SETTING_BINARY|SETTING_HEX);
    settings
 #undef io
+#undef dev
    int p;
    for (p = 6; p <= 11; p++)
       port_check(p, "Flash", 0);        // Flash chip uses 6-11
