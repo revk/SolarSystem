@@ -4464,64 +4464,72 @@ int main(int argc, const char *argv[])
                         j_t up = j_find(j, "up");
                         if (up && j_isnumber(up))
                         {       // Send settings
-                           int match(const char *tag) {
-                              return (!strncmp(tag, "nfc", 3)   //
-                                      || !strncmp(tag, "led", 3)        //
-                                      || !strncmp(tag, "door", 4)       //
-                                      || !strncmp(tag, "input", 5)      //
-                                      || !strncmp(tag, "blink", 5)      //
-                                      || !strncmp(tag, "power", 5)      //
-                                      || !strncmp(tag, "tamper", 6)     //
-                                      || !strncmp(tag, "output", 6)     //
-                                      || !strncmp(tag, "ranger", 6)     //
-                                  );
-                           }
-                           xml_t e = NULL;
-                           xml_attribute_t a = NULL;
-                           const char *v;
-                           j_t set = j_create();
-                           xml_t system = xml_element_next_by_name(config, NULL, "system");
-                           if ((v = xml_get(app->config, "name")))
-                              j_store_string(set, "name", v);   // Device name
-                           else if (app->door != -1)
-                              j_store_string(set, "name", mydoor[app->door].name);
-                           if (app->door != -1)
-                              j_store_string(set, "area", grouparea(mydoor[app->door].group_lock));
-                           j_t d = j_store_array(set, "device");        // Device list (for mesh)
-                           while ((e = xml_element_next_by_name(config, e, "device")))
-                              j_append_string(d, xml_get(e, "@id"));
-                           while ((a = xml_attribute_next(system, a)))
-                              if (match(xml_attribute_name(a)))
-                                 j_store_string(set, xml_attribute_name(a), xml_attribute_content(a));
-                           if (app && app->config)
-                              while ((a = xml_attribute_next(app->config, a)))
+                           if (!app->state)
+                           {
+                              app->state = 1;
+                              int match(const char *tag) {
+                                 return (!strncmp(tag, "nfc", 3)        //
+                                         || !strncmp(tag, "led", 3)     //
+                                         || !strncmp(tag, "door", 4)    //
+                                         || !strncmp(tag, "input", 5)   //
+                                         || !strncmp(tag, "blink", 5)   //
+                                         || !strncmp(tag, "power", 5)   //
+                                         || !strncmp(tag, "tamper", 6)  //
+                                         || !strncmp(tag, "output", 6)  //
+                                         || !strncmp(tag, "ranger", 6)  //
+                                     );
+                              }
+                              xml_t e = NULL;
+                              xml_attribute_t a = NULL;
+                              const char *v;
+                              j_t set = j_create();
+                              xml_t system = xml_element_next_by_name(config, NULL, "system");
+                              if ((v = xml_get(app->config, "name")))
+                                 j_store_string(set, "name", v);        // Device name
+                              else if (app->door != -1)
+                                 j_store_string(set, "name", mydoor[app->door].name);
+                              if (app->door != -1)
+                                 j_store_string(set, "area", grouparea(mydoor[app->door].group_lock));
+                              j_t d = j_store_array(set, "device");     // Device list (for mesh)
+                              while ((e = xml_element_next_by_name(config, e, "device")))
+                                 j_append_string(d, xml_get(e, "@id"));
+                              while ((a = xml_attribute_next(system, a)))
                                  if (match(xml_attribute_name(a)))
                                     j_store_string(set, xml_attribute_name(a), xml_attribute_content(a));
-                           j_t b = j_store_array(set, "blacklist");
-                           while ((e = xml_element_next_by_name(config, e, "blacklist")))
-                              j_append_string(b, xml_get(e, "@fob"));
-                           j_t f = j_store_array(set, "fallback");
-                           while ((e = xml_element_next_by_name(config, e, "fallback")))
-                              j_append_string(f, xml_get(e, "@fob"));
-                           if (!j_isnull(set))
-                           {
-                              char *topic,
-                              *json;
-                              size_t len;
-                              if (j_write_mem(set, &json, &len))
-                                 warnx("json error");
-                              asprintf(&topic, "setting/SS/%s", port->mqtt);
-                              mosquitto_publish(mqtt, NULL, topic, len, json, 1, 0);
-                              free(topic);
-                              free(json);
+                              if (app && app->config)
+                                 while ((a = xml_attribute_next(app->config, a)))
+                                    if (match(xml_attribute_name(a)))
+                                       j_store_string(set, xml_attribute_name(a), xml_attribute_content(a));
+                              j_t b = j_store_array(set, "blacklist");
+                              while ((e = xml_element_next_by_name(config, e, "blacklist")))
+                                 j_append_string(b, xml_get(e, "@fob"));
+                              j_t f = j_store_array(set, "fallback");
+                              while ((e = xml_element_next_by_name(config, e, "fallback")))
+                                 j_append_string(f, xml_get(e, "@fob"));
+                              if (!j_isnull(set))
+                              {
+                                 char *topic,
+                                 *json;
+                                 size_t len;
+                                 if (j_write_mem(set, &json, &len))
+                                    warnx("json error");
+                                 asprintf(&topic, "setting/SS/%s", port->mqtt);
+                                 mosquitto_publish(mqtt, NULL, topic, len, json, 1, 0);
+                                 free(topic);
+                                 free(json);
+                              }
+                              j_delete(&set);
+                              sende(EVENT_FOUND, 1, j_get(j, "id"));
                            }
-                           j_delete(&set);
-                           sende(EVENT_FOUND, 1, j_get(j, "id"));
                         }
                         if (up && j_isbool(up) && !j_istrue(up))
                         {
-                           sende(EVENT_MISSING, 0, NULL);
-                           sende(EVENT_DOOR, DOOR_OFFLINE, NULL);
+                           if (app->state)
+                           {
+                              app->stae = 0;
+                              sende(EVENT_MISSING, 0, NULL);
+                              sende(EVENT_DOOR, DOOR_OFFLINE, NULL);
+                           }
                         }
                         return;
                      }
