@@ -9,6 +9,7 @@
 	i(panic)	\
 	s(arming)	\
 	s(armed)	\
+	s(disarming)	\
 	s(prealarm)	\
 	s(alarm)	\
 	s(alarmed)	\
