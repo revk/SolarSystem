@@ -12,10 +12,11 @@ const char *output_tamper = NULL;
 #define BITFIELDS "-"
 #define PORT_INV 0x40
 #define port_mask(p) ((p)&63)
-static uint8_t output[MAXOUTPUT];
-static char *outputname[MAXOUTPUT];
-static uint8_t power[MAXOUTPUT];        /* fixed outputs */
-static char *powername[MAXOUTPUT];
+static uint8_t output[MAXOUTPUT] = { };
+static char *outputname[MAXOUTPUT] = { };
+static uint8_t power[MAXOUTPUT] = { };  /* fixed outputs */
+static char *powername[MAXOUTPUT] = { };
+
 #define i(x) s(x)
 #define s(x) static area_t output##x[MAXOUTPUT];
 states;
@@ -196,7 +197,7 @@ void output_init(void)
             output[i] = 0;
          } else
          {
-            //REVK_ERR_CHECK(gpio_reset_pin(p)); // This can cause lock to blip on restart!
+            REVK_ERR_CHECK(gpio_reset_pin(p)); // This can cause lock to blip on restart!
             REVK_ERR_CHECK(gpio_set_level(p, (p & PORT_INV) ? 0 : 1));
             REVK_ERR_CHECK(gpio_set_direction(p, GPIO_MODE_OUTPUT));
             REVK_ERR_CHECK(gpio_hold_en(p));

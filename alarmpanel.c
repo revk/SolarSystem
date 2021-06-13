@@ -4521,12 +4521,12 @@ int main(int argc, const char *argv[])
                               j_delete(&set);
                               sende(EVENT_FOUND, 1, j_get(j, "id"));
                            }
-                        }
+                        } else
                         if (up && j_isbool(up) && !j_istrue(up))
                         {
                            if (app->state)
                            {
-                              app->stae = 0;
+                              app->state = 0;
                               sende(EVENT_MISSING, 0, NULL);
                               sende(EVENT_DOOR, DOOR_OFFLINE, NULL);
                            }

@@ -12,8 +12,9 @@ const char *input_tamper = NULL;
 #define	BITFIELDS "-"
 #define	PORT_INV 0x40
 #define	port_mask(p) ((p)&63)
-static uint8_t input[MAXINPUT];
-static char *inputname[MAXINPUT];
+static uint8_t input[MAXINPUT] = { };
+static char *inputname[MAXINPUT] = { };
+
 #define i(x) static area_t input##x[MAXINPUT];
 #define s(x)
 states;
