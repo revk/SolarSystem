@@ -578,10 +578,11 @@ static void task(void *pvParameters)
          } else if (doortimeout && doortimeout < now)
          {                      // timeout
             output_set(OBEEP, 0);
-            doortimeout = 0;
             if (doorstate == DOOR_OPEN)
+            {
                doorstate = DOOR_NOTCLOSED;
-            else if (doorstate == DOOR_UNLOCKED || doorstate == DOOR_CLOSED)
+               doortimeout = 0;
+            } else if (doorstate == DOOR_UNLOCKED || doorstate == DOOR_CLOSED)
             {                   // Time to lock the door
                if (doorstate == DOOR_UNLOCKED)
                {
