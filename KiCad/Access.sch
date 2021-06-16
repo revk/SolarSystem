@@ -208,7 +208,7 @@ F 3 "~" H 5675 3075 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L Connector_Generic:Conn_01x02 J4
+L RevK:PowerIn J4
 U 1 1 6074263F
 P 8400 925
 F 0 "J4" H 8480 917 50  0000 L CNN
