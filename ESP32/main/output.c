@@ -199,7 +199,7 @@ void output_init(void)
             } else
             {                   // Set up output pin
                c.pin_bit_mask |= (1ULL << p);
-               REVK_ERR_CHECK(gpio_set_level(p, (p & PORT_INV) ? 0 : 1));
+               REVK_ERR_CHECK(gpio_set_level(p, (output[i] & PORT_INV) ? 1 : 0));
                REVK_ERR_CHECK(gpio_hold_en(p));
             }
          }
