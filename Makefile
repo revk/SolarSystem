@@ -21,14 +21,17 @@ update:
 PCBCase/case: PCBCase/case.c
 	make -C PCBCase
 
-scad:
+scad: KiCad/Bell.scad
 
-stl: KiCad/Access.stl
+stl: KiCad/Access.stl KiCad/Bell.stl
 
 %.stl: %.scad
 	echo "Making $@"
 	/Applications/OpenSCAD.app/Contents/MacOS/OpenSCAD $< -o $@
 	echo "Made $@"
+
+KiCad/Bell.scad: KiCad/Bell.kicad_pcb PCBCase/case Makefile
+	PCBCase/case -o $@ $< --base=3 --top=5.2
 
 AXL/axl.o: AXL/axl.c
 	make -C AXL
