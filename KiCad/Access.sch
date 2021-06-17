@@ -360,7 +360,7 @@ U 1 1 6084108B
 P 2600 6350
 F 0 "U2" H 2600 7431 50  0000 C CNN
 F 1 "FT231XQ" H 2600 7340 50  0000 C CNN
-F 2 "RevK:QFN-20-(hand)-1EP_4x4mm_P0.5mm_EP2.5x2.5mm" H 3950 5550 50  0001 C CNN
+F 2 "RevK:QFN-20-1EP_4x4mm_P0.5mm_EP2.5x2.5mm" H 3950 5550 50  0001 C CNN
 F 3 "https://www.ftdichip.com/Support/Documents/DataSheets/ICs/DS_FT231X.pdf" H 2600 6350 50  0001 C CNN
 	1    2600 6350
 	1    0    0    -1  
