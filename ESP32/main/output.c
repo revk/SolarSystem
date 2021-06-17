@@ -183,39 +183,41 @@ void output_init(void)
    states;
 #undef i
 #undef s
-   int i,
-    p;
-   for (i = 0; i < MAXOUTPUT; i++)
-   {
-      if (output[i])
+   {                            // GPIO
+    gpio_config_t c = { mode:GPIO_MODE_OUTPUT };
+      int i,
+       p;
+      for (i = 0; i < MAXOUTPUT; i++)
       {
-         const char *e = port_check(p = port_mask(output[i]), TAG, 0);
-         if (e)
+         if (output[i])
          {
-            status(output_fault = e);
-            output[i] = 0;
-         } else
+            const char *e = port_check(p = port_mask(output[i]), TAG, 0);
+            if (e)
+            {
+               status(output_fault = e);
+               output[i] = 0;
+            } else
+            {                   // Set up output pin
+               c.pin_bit_mask |= (1ULL << p);
+               REVK_ERR_CHECK(gpio_set_level(p, (p & PORT_INV) ? 0 : 1));
+               REVK_ERR_CHECK(gpio_hold_en(p));
+            }
+         }
+         if (power[i])
          {
-            REVK_ERR_CHECK(gpio_reset_pin(p));  // This can cause lock to blip on restart!
-            REVK_ERR_CHECK(gpio_set_level(p, (p & PORT_INV) ? 0 : 1));
-            REVK_ERR_CHECK(gpio_set_direction(p, GPIO_MODE_OUTPUT));
-            REVK_ERR_CHECK(gpio_hold_en(p));
+            const char *e = port_check(p = port_mask(power[i]), TAG, 0);
+            if (e)
+               status(output_fault = e);
+            else
+            {                   // Set up power output pin
+               c.pin_bit_mask |= (1ULL << p);
+               REVK_ERR_CHECK(gpio_hold_dis(p));
+               REVK_ERR_CHECK(gpio_set_level(p, (power[i] & PORT_INV) ? 0 : 1));
+               REVK_ERR_CHECK(gpio_set_drive_capability(p, GPIO_DRIVE_CAP_3));
+            }
          }
       }
-      if (power[i])
-      {
-         const char *e = port_check(p = port_mask(power[i]), TAG, 0);
-         if (e)
-            status(output_fault = e);
-         else
-         {
-            REVK_ERR_CHECK(gpio_reset_pin(p));
-            REVK_ERR_CHECK(gpio_hold_dis(p));
-            REVK_ERR_CHECK(gpio_set_level(p, (power[i] & PORT_INV) ? 0 : 1));
-            REVK_ERR_CHECK(gpio_set_drive_capability(p, GPIO_DRIVE_CAP_3));
-            REVK_ERR_CHECK(gpio_set_direction(p, GPIO_MODE_OUTPUT));
-         }
-      }
+      REVK_ERR_CHECK(gpio_config(&c));
    }
    revk_task(TAG, task, NULL);
 }

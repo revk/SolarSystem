@@ -138,26 +138,27 @@ void input_init(void)
 #define u16(n,v) revk_register(#n,0,sizeof(n),&n,#v,0);
    settings
 #undef u16
-       // Check config
-   int i,
-    p;
-   for (i = 0; i < MAXINPUT; i++)
-      if (input[i])
-      {
-         const char *e = port_check(p = port_mask(input[i]), TAG, 1);
-         if (e)
+   {                            // GPIO
+    gpio_config_t c = { mode: GPIO_MODE_INPUT, pull_up_en:GPIO_PULLUP_ENABLE };
+      int i,
+       p;
+      for (i = 0; i < MAXINPUT; i++)
+         if (input[i])
          {
-            input[i] = 0;
-            status(input_fault = e);
-         } else
-         {
-            REVK_ERR_CHECK(gpio_reset_pin(p));
-            REVK_ERR_CHECK(gpio_hold_dis(p));
-            REVK_ERR_CHECK(gpio_set_pull_mode(p, GPIO_PULLUP_ONLY));
-            REVK_ERR_CHECK(gpio_set_direction(p, GPIO_MODE_INPUT));
-            if (input[i] & PORT_INV)
-               input_invert |= (1ULL << i);     // TODO can this not be done at hardware level?
+            const char *e = port_check(p = port_mask(input[i]), TAG, 1);
+            if (e)
+            {
+               input[i] = 0;
+               status(input_fault = e);
+            } else
+            {
+               c.pin_bit_mask |= (1ULL << p);
+               REVK_ERR_CHECK(gpio_hold_dis(p));
+               if (input[i] & PORT_INV)
+                  input_invert |= (1ULL << i);
+            }
          }
-      }
+      REVK_ERR_CHECK(gpio_config(&c));
+   }
    revk_task(TAG, task, NULL);
 }
