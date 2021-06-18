@@ -5,7 +5,7 @@ $Descr A4 11693 8268
 encoding utf-8
 Sheet 1 1
 Title "bell box control"
-Date "2021-06-12"
+Date "2021-06-18"
 Rev "1"
 Comp "Adrian Kennard Andrews & Arnold Ltd"
 Comment1 "@TheRealRevK"
@@ -560,7 +560,7 @@ F 1 "NX6020CAKS" H 4380 4430 50  0000 L CNN
 F 2 "Package_TO_SOT_SMD:SOT-363_SC-70-6" H 4225 3900 50  0001 C CNN
 F 3 "" H 4225 3900 50  0001 C CNN
 	2    4275 4475
-	1    0    0    -1  
+	1    0    0    1   
 $EndComp
 $Comp
 L Device:R R3
@@ -637,7 +637,7 @@ F 1 "NX6020CAKS" H 5580 4430 50  0000 L CNN
 F 2 "Package_TO_SOT_SMD:SOT-363_SC-70-6" H 5425 3900 50  0001 C CNN
 F 3 "" H 5425 3900 50  0001 C CNN
 	2    5475 4475
-	1    0    0    -1  
+	1    0    0    1   
 $EndComp
 $Comp
 L Device:R R5
@@ -714,7 +714,7 @@ F 1 "NX6020CAKS" H 6780 4430 50  0000 L CNN
 F 2 "Package_TO_SOT_SMD:SOT-363_SC-70-6" H 6625 3900 50  0001 C CNN
 F 3 "" H 6625 3900 50  0001 C CNN
 	2    6675 4475
-	1    0    0    -1  
+	1    0    0    1   
 $EndComp
 $Comp
 L Device:R R7
@@ -791,7 +791,7 @@ F 1 "NX6020CAKS" H 7980 4430 50  0000 L CNN
 F 2 "Package_TO_SOT_SMD:SOT-363_SC-70-6" H 7825 3900 50  0001 C CNN
 F 3 "" H 7825 3900 50  0001 C CNN
 	2    7875 4475
-	1    0    0    -1  
+	1    0    0    1   
 $EndComp
 $Comp
 L Device:R R15
