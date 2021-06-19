@@ -191,44 +191,29 @@ F 3 "" H 7750 950 50  0001 C CNN
 	1    7750 950 
 	0    1    1    0   
 $EndComp
-NoConn ~ 2700 3100
-$Comp
-L Device:LED D5
-U 1 1 60818BC0
-P 7900 3300
-F 0 "D5" H 7893 3517 50  0000 C CNN
-F 1 "LED" H 7893 3426 50  0000 C CNN
-F 2 "LED_SMD:LED_0603_1608Metric_Pad1.05x0.95mm_HandSolder" H 7900 3300 50  0001 C CNN
-F 3 "~" H 7900 3300 50  0001 C CNN
-	1    7900 3300
-	1    0    0    -1  
-$EndComp
+NoConn ~ 2700 2200
 $Comp
 L Device:R R16
 U 1 1 60819C12
-P 7600 3300
-F 0 "R16" V 7393 3300 50  0000 C CNN
-F 1 "680R" V 7484 3300 50  0000 C CNN
-F 2 "RevK:R_0603" V 7530 3300 50  0001 C CNN
-F 3 "~" H 7600 3300 50  0001 C CNN
-	1    7600 3300
+P 7550 3725
+F 0 "R16" V 7450 3725 50  0000 C CNN
+F 1 "732R" V 7550 3725 50  0000 C CNN
+F 2 "RevK:R_0603" V 7480 3725 50  0001 C CNN
+F 3 "~" H 7550 3725 50  0001 C CNN
+	1    7550 3725
 	0    1    1    0   
 $EndComp
 $Comp
 L power:+3.3V #PWR047
 U 1 1 6081C3D8
-P 8050 3300
-F 0 "#PWR047" H 8050 3150 50  0001 C CNN
-F 1 "+3.3V" V 8065 3428 50  0000 L CNN
-F 2 "" H 8050 3300 50  0001 C CNN
-F 3 "" H 8050 3300 50  0001 C CNN
-	1    8050 3300
+P 8100 3925
+F 0 "#PWR047" H 8100 3775 50  0001 C CNN
+F 1 "+3.3V" V 8115 4053 50  0000 L CNN
+F 2 "" H 8100 3925 50  0001 C CNN
+F 3 "" H 8100 3925 50  0001 C CNN
+	1    8100 3925
 	0    1    1    0   
 $EndComp
-Text GLabel 7450 3300 0    50   Input ~ 0
-LED
-Text GLabel 2700 2100 2    50   Input ~ 0
-LED
 $Comp
 L Interface_USB:FT231XQ U2
 U 1 1 6084108B
@@ -343,8 +328,8 @@ F 3 "" H 3300 6450 50  0001 C CNN
 	0    -1   -1   0   
 $EndComp
 NoConn ~ 2700 1500
-NoConn ~ 2700 3000
-NoConn ~ 2700 3200
+NoConn ~ 2700 1900
+NoConn ~ 2700 2300
 NoConn ~ 2700 3300
 NoConn ~ 2700 3400
 NoConn ~ 9400 9850
@@ -602,9 +587,7 @@ Text GLabel 2700 2900 2    50   Input ~ 0
 OUT4
 NoConn ~ 2700 1700
 NoConn ~ 2700 1800
-NoConn ~ 2700 2200
 NoConn ~ 2700 2500
-NoConn ~ 2700 2300
 NoConn ~ 2700 2400
 $Comp
 L power:GND #PWR017
@@ -725,7 +708,7 @@ F 3 "https://assets.nexperia.com/documents/data-sheet/BAV99_SER.pdf" H 5975 6225
 	2    5975 6225
 	1    0    0    -1  
 $EndComp
-Text GLabel 2700 1900 2    50   Input ~ 0
+Text GLabel 2700 2100 2    50   Input ~ 0
 IN1
 Text GLabel 6475 3375 2    50   Input ~ 0
 ~BACKLIGHT
@@ -834,4 +817,49 @@ F 3 "http://www.intersil.com/content/dam/Intersil/documents/el72/el7202-12-22.pd
 	1    6075 3475
 	1    0    0    -1  
 $EndComp
+$Comp
+L Device:LED_RGBA D2
+U 1 1 60CE13C1
+P 7900 3925
+F 0 "D2" H 7900 4422 50  0000 C CNN
+F 1 "LED_RGBA" H 7900 4331 50  0000 C CNN
+F 2 "RevK:LED-RGB-1.6x1.6" H 7900 3875 50  0001 C CNN
+F 3 "~" H 7900 3875 50  0001 C CNN
+	1    7900 3925
+	1    0    0    -1  
+$EndComp
+$Comp
+L Device:R R2
+U 1 1 60CE4750
+P 7550 3925
+F 0 "R2" V 7450 3925 50  0000 C CNN
+F 1 "324R" V 7550 3925 50  0000 C CNN
+F 2 "RevK:R_0603" V 7480 3925 50  0001 C CNN
+F 3 "~" H 7550 3925 50  0001 C CNN
+	1    7550 3925
+	0    1    1    0   
+$EndComp
+$Comp
+L Device:R R3
+U 1 1 60CE4FE8
+P 7550 4125
+F 0 "R3" V 7450 4125 50  0000 C CNN
+F 1 "324R" V 7550 4125 50  0000 C CNN
+F 2 "RevK:R_0603" V 7480 4125 50  0001 C CNN
+F 3 "~" H 7550 4125 50  0001 C CNN
+	1    7550 4125
+	0    1    1    0   
+$EndComp
+Text GLabel 7400 3725 0    50   Input ~ 0
+R
+Text GLabel 7400 3925 0    50   Input ~ 0
+G
+Text GLabel 7400 4125 0    50   Input ~ 0
+B
+Text GLabel 2700 3000 2    50   Input ~ 0
+R
+Text GLabel 2700 3200 2    50   Input ~ 0
+G
+Text GLabel 2700 3100 2    50   Input ~ 0
+B
 $EndSCHEMATC
