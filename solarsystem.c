@@ -9,7 +9,9 @@
 #include <ctype.h>
 #include <err.h>
 
+// System wide settings, mostly taken from config file - these define defaults as well
 int debug = 0;
+
 
 int
 main (int argc, const char *argv[])
@@ -17,8 +19,7 @@ main (int argc, const char *argv[])
    {                            // POPT
       poptContext optCon;       // context for parsing command-line options
       const struct poptOption optionsTable[] = {
-//      {"string", 's', POPT_ARG_STRING, &string, 0, "String", "string"},
-//      {"string-default", 'S', POPT_ARG_STRING | POPT_ARGFLAG_SHOW_DEFAULT, &string, 0, "String", "string"},
+      {"string-default", 'S', POPT_ARG_STRING | POPT_ARGFLAG_SHOW_DEFAULT, &configfile, 0, "Config file", "filename"},
          {"debug", 'v', POPT_ARG_NONE, &debug, 0, "Debug",NULL},
          POPT_AUTOHELP {}
       };
@@ -37,6 +38,7 @@ main (int argc, const char *argv[])
       }
       poptFreeContext (optCon);
    }
+   // Load config file and extract settings
 
    return 0;
 }
