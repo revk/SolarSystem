@@ -8,10 +8,14 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include <err.h>
+#include "AJL/ajl.h"
 
 // System wide settings, mostly taken from config file - these define defaults as well
 int debug = 0;
-
+const char *configfile="solarsystem.conf";
+#define s(n,d,h)	const char *n=#d;
+#define i(n,d,h)	int n=d;
+#include "ssconfig.h"
 
 int
 main (int argc, const char *argv[])
@@ -39,6 +43,12 @@ main (int argc, const char *argv[])
       poptFreeContext (optCon);
    }
    // Load config file and extract settings
+   j_t j=j_create();
+   j_err(j_read_file(j,configfile));
+#define s(n,d,h) {j_t e=j_find(j,#n);if(e){if(!j_isstring(e))errx(1,#n" should be a string");n=j_val(e);}if(debug)warnx(#h" set to:\t%s",n);}
+#define i(n,d,h) {j_t e=j_find(j,#n);if(e){if(!j_isnumber(e))errx(1,#n" should be a number");n=atoi(j_val(e));}if(debug)warnx(#h" set to:\t%d",n);}
+#include "ssconfig.h"
+		   j_delete(&j);
 
    return 0;
 }

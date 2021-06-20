@@ -1,6 +1,7 @@
 alarmpanel
 cardissue
 solarsystem
+solarsystem.conf
 *.o
 *~
 *.swp
