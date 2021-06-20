@@ -217,7 +217,8 @@ void output_init(void)
             }
          }
       }
-      REVK_ERR_CHECK(gpio_config(&c));
+      if (c.pin_bit_mask)
+         REVK_ERR_CHECK(gpio_config(&c));
    }
    revk_task(TAG, task, NULL);
 }

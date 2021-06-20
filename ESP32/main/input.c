@@ -158,7 +158,8 @@ void input_init(void)
                   input_invert |= (1ULL << i);
             }
          }
-      REVK_ERR_CHECK(gpio_config(&c));
+      if (c.pin_bit_mask)
+         REVK_ERR_CHECK(gpio_config(&c));
    }
    revk_task(TAG, task, NULL);
 }
