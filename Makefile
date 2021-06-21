@@ -46,7 +46,7 @@ KiCad/Bell.scad: KiCad/Bell.kicad_pcb PCBCase/case Makefile
 
 AXL/axl.o: AXL/axl.c
 	make -C AXL
-AJL/axl.o: AJL/axl.c
+AJL/ajl.o: AJL/ajl.c
 	make -C AJL
 SQLlib/sqllib.o: SQLlib/sqllib.c
 	make -C SQLlib
