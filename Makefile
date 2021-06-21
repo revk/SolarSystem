@@ -58,25 +58,28 @@ DESFireAES/desfireaes.o: DESFireAES/desfireaes.c
 	make -C DESFireAES
 
 cardissue: cardissue.c DESFireAES/desfireaes.o AXL/axl.o AJL/ajl.o afile.o Makefile
-	gcc -g -Wall -Wextra -O -o cardissue cardissue.c -I. -IDESFireAES/include DESFireAES/desfireaes.o -IAXL AXL/axl.o -IAJL AJL/ajl.o -lcrypto -lpopt -pthread -lcurl -lmosquitto afile.o
+	gcc -g -Wall -Wextra -O -o $@ $< -I. -IDESFireAES/include DESFireAES/desfireaes.o -IAXL AXL/axl.o -IAJL AJL/ajl.o -lcrypto -lpopt -pthread -lcurl -lmosquitto afile.o
 
 alarmpanel: alarmpanel.c galaxybus.o galaxybus.h port.o port.h afile.o door.o door.h AXL/axl.o AJL/ajl.o Dataformat/dataformat.o websocket/websocketxml.o DESFireAES/desfireaes.o trace.h Makefile
-	gcc -g -Wall -Wextra -O -o alarmpanel alarmpanel.c galaxybus.o port.o afile.o door.o -I. -IAXL -IAJL -IDataformat -Iwebsocket -IDESFireAES/include AXL/axl.o AJL/ajl.o Dataformat/dataformat.o websocket/websocketxml.o DESFireAES/desfireaes.o -lcurl -pthread -lpopt -DLIBWS ${LIBEMAIL} ${LIBMQTT} -lcrypto -lssl
+	gcc -g -Wall -Wextra -O -o $@ $< galaxybus.o port.o afile.o door.o -I. -IAXL -IAJL -IDataformat -Iwebsocket -IDESFireAES/include AXL/axl.o AJL/ajl.o Dataformat/dataformat.o websocket/websocketxml.o DESFireAES/desfireaes.o -lcurl -pthread -lpopt -DLIBWS ${LIBEMAIL} ${LIBMQTT} -lcrypto -lssl
 
 galaxybus.o: galaxybus.c galaxybus.h port.h Makefile
-	gcc -g -Wall -Wextra -O -c -o galaxybus.o galaxybus.c -I. -DLIB -pthread
+	gcc -g -Wall -Wextra -O -c -o $@ $< -I. -DLIB -pthread
 
 afile.o: afile.c afile.h Makefile
-	gcc -g -Wall -Wextra -O -c -o afile.o afile.c -I. -IAJL -IDESFireAES/include -DLIB -pthread
+	gcc -g -Wall -Wextra -O -c -o $@ $< -I. -IAJL -IDESFireAES/include -DLIB -pthread
 
 door.o: door.c door.h galaxybus.h Makefile
-	gcc -g -Wall -Wextra -O -c -o door.o door.c -I. -DLIB -pthread
+	gcc -g -Wall -Wextra -O -c -o $@ $< -I. -DLIB -pthread
 
 port.o: port.c port.h galaxybus.h Makefile
-	gcc -g -Wall -Wextra -O -c -o port.o port.c -I. -DLIB -pthread
+	gcc -g -Wall -Wextra -O -c -o $@ $< -I. -DLIB -pthread
 
-solarsystem: solarsystem.c afile.o AXL/axl.o AJL/ajl.o Dataformat/dataformat.o websocket/websocketxml.o DESFireAES/desfireaes.o SQLlib/sqllib.o Makefile
-	gcc -g -Wall -Wextra -O -o solarsystem solarsystem.c afile.o AJL/ajl.o AXL/axl.o Dataformat/dataformat.o websocket/websocketxml.o DESFireAES/desfireaes.o SQLlib/sqllib.o ${SQLINC} ${SQLLIB} -lpopt -lcrypto -pthread -lcurl -lssl
+ssdatabase.o: ssdatabase.c ssdatabase.h Makefile
+	gcc -g -Wall -Wextra -O -c -o $@ $< ${SQLINC}
+
+solarsystem: solarsystem.c afile.o AXL/axl.o AJL/ajl.o Dataformat/dataformat.o websocket/websocketxml.o DESFireAES/desfireaes.o SQLlib/sqllib.o Makefile ssdatabase.o
+	gcc -g -Wall -Wextra -O -o $@ $< afile.o ssdatabase.o AJL/ajl.o AXL/axl.o Dataformat/dataformat.o websocket/websocketxml.o DESFireAES/desfireaes.o SQLlib/sqllib.o ${SQLINC} ${SQLLIB} -lpopt -lcrypto -pthread -lcurl -lssl
 
 clean:
 	rm -f *.o alarmpanel
