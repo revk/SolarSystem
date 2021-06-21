@@ -86,7 +86,12 @@ int main(int argc, const char *argv[])
       j_delete(&j);
    }
    if (sqldebug)
-      printf("%s\n", cacert);
+   {
+      char *key=makekey();
+      char *cert=makecert(key,cakey,cacert,"112233445566");
+      printf("CA cert:\n%s\nTest key:\n%s\nTest cert:\n%s\n", cacert,key,cert);
+   }
+
    mqtt_start();
    while (1)
       sleep(1);
