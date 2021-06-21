@@ -60,8 +60,8 @@ int main(int argc, const char *argv[])
          changed = "";
       } else
          j_err(j_read_file(j, configfile));
-#define s(p,n,d,h) {j_t e=j_find(j,#p"."#n);if(e){if(!j_isstring(e))errx(1,#p"."#n" should be a string");p##n=strdup(j_val(e)?:"");}if(sqldebug)warnx(#h" set to:\t%s",p##n);}
-#define i(p,n,d,h) {j_t e=j_find(j,#p"."#n);if(e){if(!j_isnumber(e))errx(1,#p"."#n" should be a number");p##n=atoi(j_val(e));}if(sqldebug)warnx(#h" set to:\t%d",p##n);}
+#define s(p,n,d,h) {j_t e=j_find(j,#p"."#n);if(e){if(!j_isstring(e))errx(1,#p"."#n" should be a string");p##n=strdup(j_val(e)?:"");}}
+#define i(p,n,d,h) {j_t e=j_find(j,#p"."#n);if(e){if(!j_isnumber(e))errx(1,#p"."#n" should be a number");p##n=atoi(j_val(e));}}
 #include "ssconfig.h"
       // Some housekeeping
       sql_cnf_connect(&sql, *sqlconfig ? sqlconfig : NULL);
@@ -84,6 +84,7 @@ int main(int argc, const char *argv[])
       }
       j_delete(&j);
    }
+   if(sqldebug)printf("%s\n",cacert);
    mqtt_start();
    while (1)
       sleep(1);

@@ -89,6 +89,15 @@ static void *listener(void *arg)
       SSL_CTX_use_certificate(ctx, cert);
       X509_free(cert);
    }
+   if (*cacert)
+   {
+      FILE *k = fmemopen((void *) cacert, strlen(cacert), "r");
+      X509 *cert = PEM_read_X509(k, NULL, NULL, NULL);
+      fclose(k);
+      SSL_CTX_add_client_CA(ctx, cert);
+      X509_free(cert);
+      SSL_CTX_set_verify(ctx,SSL_VERIFY_PEER|SSL_VERIFY_FAIL_IF_NO_PEER_CERT,NULL);
+   }
    int slisten = -1;
  struct addrinfo base = { ai_flags: AI_PASSIVE, ai_family: AF_UNSPEC, ai_socktype:SOCK_STREAM };
    struct addrinfo *a = 0,
