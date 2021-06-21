@@ -70,9 +70,10 @@ int main(int argc, const char *argv[])
          j_string(j_path(j, "ca.key"), changed = cakey = makekey());
       if (!*mqttkey)
          j_string(j_path(j, "mqtt.key"), changed = mqttkey = makekey());
-      if (!*cacert)
+      // TODO new certs every time maybe?
+      if (!*cacert||sqldebug)
          j_string(j_path(j, "ca.cert"), changed = cacert = makecert(cakey, NULL, NULL, "SolarSystem"));
-      if (!*mqttcert)
+      if (!*mqttcert||sqldebug)
          j_string(j_path(j, "mqtt.cert"), changed = mqttcert = makecert(mqttkey, cakey, cacert, mqtthost));
       // Update config file if needed
       if (changed)
@@ -84,7 +85,8 @@ int main(int argc, const char *argv[])
       }
       j_delete(&j);
    }
-   if(sqldebug)printf("%s\n",cacert);
+   if (sqldebug)
+      printf("%s\n", cacert);
    mqtt_start();
    while (1)
       sleep(1);

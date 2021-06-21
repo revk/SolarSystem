@@ -90,22 +90,17 @@ char *makecert(const char *keypem, const char *cakeypem, const char *cacertpem, 
    X509V3_CTX ctx;
    X509V3_set_ctx_nodb(&ctx);
    X509V3_set_ctx(&ctx, cacert, cert, NULL, NULL, 0);
-   if(!cacertpem||!*cacertpem)
-   nz(X509_add_ext(cert,X509V3_EXT_conf_nid(NULL,&ctx,NID_basic_constraints,(char*)"critical, CA:TRUE"),-1));
-   nz(X509_add_ext(cert,X509V3_EXT_conf_nid(NULL,&ctx,NID_subject_key_identifier,(char*)"hash"),-1));
+   if (!cacertpem || !*cacertpem)
+      nz(X509_add_ext(cert, X509V3_EXT_conf_nid(NULL, &ctx, NID_basic_constraints, "critical, CA:TRUE"), -1));
+   else
+      nz(X509_add_ext(cert, X509V3_EXT_conf_nid(NULL, &ctx, NID_issuer_alt_name, "issuer:copy"), -1));
+   nz(X509_add_ext(cert, X509V3_EXT_conf_nid(NULL, &ctx, NID_ext_key_usage, "critical, clientAuth, serverAuth"), -1));
+   nz(X509_add_ext(cert, X509V3_EXT_conf_nid(NULL, &ctx, NID_subject_key_identifier, "hash"), -1));
 #if 0
-           X509v3 extensions:
-            X509v3 Subject Key Identifier:
-                32:94:4A:8E:BA:F8:2A:2E:EA:7E:6A:BE:8A:E0:CC:FD:B4:AE:A0:38
-            X509v3 Authority Key Identifier:
-                keyid:32:94:4A:8E:BA:F8:2A:2E:EA:7E:6A:BE:8A:E0:CC:FD:B4:AE:A0:38
-
-            X509v3 Basic Constraints: critical
-                CA:TRUE
+   X509v3 extensions:X509v3 Subject Key Identifier:32:94:4 A:8E: BA:F8:2 A:2E: EA:7E:6 A:BE:8 A:E0:CC:FD:B4:AE:A0:38 X509v3 Authority Key Identifier:keyid:32:94:4 A:8E: BA:F8:2 A:2E: EA:7E:6 A:BE:8 A:E0:CC:FD:B4:AE:A0:38 X509v3 Basic Constraints:critical CA:TRUE
 #endif
-
-   // Sign
-   nz(X509_sign(cert, cakey ? : key, EVP_sha256()));
+       // Sign
+    nz(X509_sign(cert, cakey ? : key, EVP_sha256()));
    // Write cert
    BIO *bio = BIO_new(BIO_s_mem());
    PEM_write_bio_X509(bio, cert);
