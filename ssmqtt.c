@@ -73,6 +73,22 @@ static void *listener(void *arg)
    ctx = SSL_CTX_new(SSLv23_server_method());
    if (!ctx)
       errx(1, "CTX fail");
+   if (*mqttkey)
+   {
+      FILE *k = fmemopen((void *) mqttkey, strlen(mqttkey), "r");
+      EVP_PKEY *key = PEM_read_PrivateKey(k, NULL, NULL, NULL); // No password
+      fclose(k);
+      SSL_CTX_use_PrivateKey(ctx, key);
+      EVP_PKEY_free(key);
+   }
+   if (*mqttcert)
+   {
+      FILE *k = fmemopen((void *) mqttcert, strlen(mqttcert), "r");
+      X509 *cert = PEM_read_X509(k, NULL, NULL, NULL);
+      fclose(k);
+      SSL_CTX_use_certificate(ctx, cert);
+      X509_free(cert);
+   }
    int slisten = -1;
  struct addrinfo base = { ai_flags: AI_PASSIVE, ai_family: AF_UNSPEC, ai_socktype:SOCK_STREAM };
    struct addrinfo *a = 0,

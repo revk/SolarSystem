@@ -75,8 +75,8 @@ char *makecert(const char *keypem, const char *cakeypem, const char *cacertpem, 
    X509_NAME *subject = X509_NAME_new();
    nz(X509_NAME_add_entry_by_txt(subject, "C", MBSTRING_ASC, (const unsigned char *) "UK", -1, -1, 0));
    nz(X509_NAME_add_entry_by_txt(subject, "O", MBSTRING_ASC, (const unsigned char *) "Solar System", -1, -1, 0));
-   if(name&&*name)
-   nz(X509_NAME_add_entry_by_txt(subject, "CN", MBSTRING_ASC, (const unsigned char *) name, -1, -1, 0));
+   if (name && *name)
+      nz(X509_NAME_add_entry_by_txt(subject, "CN", MBSTRING_ASC, (const unsigned char *) name, -1, -1, 0));
    nz(X509_set_subject_name(cert, subject));
    if (cacert)
       nz(X509_set_issuer_name(cert, X509_get_subject_name(cacert)));
@@ -84,15 +84,15 @@ char *makecert(const char *keypem, const char *cakeypem, const char *cacertpem, 
       nz(X509_set_issuer_name(cert, subject));  // Self signed
    X509_NAME_free(subject);
    nz(X509_set_pubkey(cert, key));
-   nz(X509_gmtime_adj(X509_get_notBefore(cert),0));
-   nz(X509_gmtime_adj(X509_get_notAfter(cert),50*365*86400)); // Long long time in the future
+   nz(X509_gmtime_adj(X509_get_notBefore(cert), 0));
+   nz(X509_gmtime_adj(X509_get_notAfter(cert), 50 * 365 * 86400));      // Long long time in the future
 
    X509V3_CTX ctx;
-     X509V3_set_ctx_nodb(&ctx);
-     X509V3_set_ctx(&ctx, cacert, cert, NULL, NULL, 0);
+   X509V3_set_ctx_nodb(&ctx);
+   X509V3_set_ctx(&ctx, cacert, cert, NULL, NULL, 0);
 
    // Sign
-   nz(X509_sign(cert, cakey?:key, EVP_sha256()));
+   nz(X509_sign(cert, cakey ? : key, EVP_sha256()));
    // Write cert
    BIO *bio = BIO_new(BIO_s_mem());
    PEM_write_bio_X509(bio, cert);

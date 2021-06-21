@@ -84,8 +84,6 @@ int main(int argc, const char *argv[])
       }
       j_delete(&j);
    }
-   if (sqldebug)
-      printf("%s\n", mqttcert);
    mqtt_start();
    while (1)
       sleep(1);

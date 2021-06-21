@@ -27,8 +27,7 @@
 	d(BLIP,--------R) \
 
 #define d(x,l) DOOR_##x,
-enum
-{
+enum {
    DOOR DOOR_COUNT
 };
 #undef d
@@ -37,8 +36,7 @@ const char *door_name[DOOR_COUNT];
 typedef volatile struct door_s door_t;
 
 typedef struct lock_s lock_t;
-struct lock_s
-{
+struct lock_s {
    // Config
    port_p o_unlock;             // Output active to unlock
    port_p i_unlock;             // Input, active if unlocked
@@ -50,8 +48,7 @@ struct lock_s
    signed char timer;           // Timer, +ve for waiting to lock/unlock, 0 for lock/unlock done, -1 for lock/unlock fault
 };
 
-struct door_s
-{                               // general door object
+struct door_s {                 // general door object
    lock_t mainlock;             // Main lock
    lock_t deadlock;             // Deadlock for when alarm set
    port_p o_led[2];             // Max readers on which to show LED status. port is mask of LEDs we se
@@ -77,23 +74,23 @@ struct door_s
 // Reference to a device on a bus is (busid<<16)+(deviceid<<8)
 // Reference to a port on a device on a bus is (busid<<16)+(deviceid<<8)+(1<<port)
 // Reference to an RF device is 0x10000000+(serialno<<8) optionally +(1<<port)
-typedef void port_output_callback_t (port_p);
+typedef void port_output_callback_t(port_p);
 extern port_output_callback_t *port_output_callback;
 
-typedef void port_led_callback_t (port_p, unsigned char led);
+typedef void port_led_callback_t(port_p, unsigned char led);
 extern port_led_callback_t *port_led_callback;
 
 extern door_t door[MAX_DOOR];   // Door table
 
-void door_start (void);
-void door_error (int d, const unsigned char *afile);    // Indicate error
-void door_confirm (int d, const unsigned char *afile);  // Indicate confirmation
-void door_open (int d, const unsigned char *afile);     // Open the door
-void door_auth (int d, const unsigned char *afile);     // Auth propped
-void door_lock (int d, const unsigned char *afile);     // Lock the door
-void door_deadlock (int d, const unsigned char *afile); // Deadlock the door
-void door_unlock (int d, const unsigned char *afile);   // Unlock the door
-void door_undeadlock (int d, const unsigned char *afile);       // Un deadlock the door
-void door_access (int d, const unsigned char *afile);
+void door_start(void);
+void door_error(int d, const unsigned char *afile);     // Indicate error
+void door_confirm(int d, const unsigned char *afile);   // Indicate confirmation
+void door_open(int d, const unsigned char *afile);      // Open the door
+void door_auth(int d, const unsigned char *afile);      // Auth propped
+void door_lock(int d, const unsigned char *afile);      // Lock the door
+void door_deadlock(int d, const unsigned char *afile);  // Deadlock the door
+void door_unlock(int d, const unsigned char *afile);    // Unlock the door
+void door_undeadlock(int d, const unsigned char *afile);        // Un deadlock the door
+void door_access(int d, const unsigned char *afile);
 
 #endif

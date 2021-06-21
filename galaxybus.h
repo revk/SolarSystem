@@ -53,8 +53,7 @@ extern char *WATCHDOG;          // Watchdog device if needed (default NULL)
 	t(RFR)	\
 
 #define t(x)	TYPE_##x,
-enum
-{                               // Type of device, in events and commands...
+enum {                          // Type of device, in events and commands...
    TYPE MAX_TYPE                // How many device types we handle
 };
 #undef t
@@ -85,30 +84,26 @@ const char *type_name[MAX_TYPE];        // Device type name
 	e(RF)		\
 
 #define e(x) EVENT_##x,
-enum
-{                               // Events
+enum {                          // Events
    EVENT EVENT_COUNT
 };
 #undef e
 
 const char *event_name[EVENT_COUNT];    // Event name
 
-enum
-{                               // Max input mappings
+enum {                          // Max input mappings
    INPUT_MAX_OPEN,              // Door open sense
    INPUT_MAX_EXIT,              // Exit button
    INPUT_MAX_FOB,               // Keyfob present
    INPUT_MAX_FOB_HELD,          // Keyfob held
 };
 
-enum
-{                               // Settings for Max
+enum {                          // Settings for Max
    OUTPUT_MAX_BEEP,             // Beep output
    OUTPUT_MAX_OPEN,             // Operate door lock to open
 };
 
-enum
-{
+enum {
    FAULT_RIO_NO_PWR = MAX_INPUT,        // Mains missing
    FAULT_RIO_NO_BAT,            // Battery missing
    FAULT_RIO_BAD_BAT,           // Battery fault
@@ -116,8 +111,7 @@ enum
 
 // RIO presets
 typedef struct rio_threshold_s rio_threshold_t;
-struct rio_threshold_s
-{
+struct rio_threshold_s {
    const char *name;
    // Resistance, upper for each bank, in 100 ohm multiples.
    unsigned char tampersc;
@@ -134,8 +128,7 @@ typedef volatile struct device_s device_t;      // Device
 typedef volatile struct event_s event_t;
 typedef volatile struct keypad_data_s keypad_data_t;
 
-struct keypad_data_s
-{                               // Keypad
+struct keypad_data_s {          // Keypad
    unsigned char backlight:1;   // Backlight
    unsigned char blink:1;       // Blink led
    unsigned char quiet:1;       // Quiet key beeps
@@ -146,8 +139,7 @@ struct keypad_data_s
    unsigned char cursor;        // 0x80 for solid, 0x40 for underline, 0x10 for second line, 0x0P for position
 };
 
-struct device_s
-{                               // Device on the bus...
+struct device_s {               // Device on the bus...
    port_p port[MAX_TAMPER + 1]; // Device ports in use for event reporting (base device ID, and then inputs and extra tampers)
    input_t input;               // Bit map of inputs
    input_t inhibit;             // Inhibited inputs
@@ -160,11 +152,9 @@ struct device_s
    unsigned char missing:1;     // Device is missing
    unsigned char found:1;       // Device has been found
    unsigned char urgent:1;      // Device needs urgent update as time critical
-   union
-   {                            // type specific
+   union {                      // type specific
       struct keypad_data_s k;
-      struct
-      {                         // Max
+      struct {                  // Max
          unsigned char disable:1;       // Disable reader
          unsigned char pad:1;   // Is keypad attached proxy
          unsigned char config:1;        // Set to program EEPROM to change ID (self clearing)
@@ -172,18 +162,15 @@ struct device_s
          unsigned char led;     // LED state
          unsigned char newid;   // New ID for Max to be configured
       };
-      struct
-      {                         // RIO
+      struct {                  // RIO
          input_t low;           // Low res fault or short circuit tamper, set by library
          voltage_t voltage[8];  // Reported voltages, seems 5 is battery and 6 is mains on the RIO PSU, 0 is main power on normal RIO
-         struct
-         {
+         struct {
             unsigned char response;     // Response time in 10ms units
             unsigned char threshold[5]; // Resistance thresholds (Tamper/Low/Close/High/Open/Tamper) in 100 ohm units
             unsigned short resistance;  // Resistance in ohms (0xFFFF for infinity / open circuit) set by library
          } ri[MAX_INPUT];
-         struct
-         {
+         struct {
             unsigned char invert:1;
          } ro[MAX_OUTPUT];
       };
@@ -194,38 +181,31 @@ struct device_s
    };
 };
 
-struct event_s
-{
+struct event_s {
    event_t *next;               // Next event in queue
    struct timeval when;
    unsigned char event;
    port_p port;                 // The device/port
    char *message;
-   union
-   {
-      struct
-      {                         // EVENT_KEEPALIVE
+   union {
+      struct {                  // EVENT_KEEPALIVE
          int tx,
-           rx,
-           errors,
-           stalled,
-           retries;
+          rx,
+          errors,
+          stalled,
+          retries;
       };
-      struct
-      {                         // EVENT_KEY
+      struct {                  // EVENT_KEY
          char key;              // ASCII key
       };
-      struct
-      {                         // EVENT DOOR
+      struct {                  // EVENT DOOR
          unsigned char door;    // Which door for DOOR event
          unsigned char state;   // The state of the door (or state for input/tamper/fault)
       };
-      struct
-      {                         // EVENT_FOB / EVENT_FOB_HELD
+      struct {                  // EVENT_FOB / EVENT_FOB_HELD
          fob_t fob;             // Decimal fob ID for FOB related door events
       };
-      struct
-      {                         // EVENT_RF
+      struct {                  // EVENT_RF
          unsigned int rfserial;
          unsigned int rfstatus;
          unsigned char rftype;  // Type
@@ -243,15 +223,15 @@ extern event_t *event,
 **eventp;                       // Event queue
 
 // Functions
-void bus_init (void);
-void bus_start (int bus);
-void bus_stop (int bus);
-event_t *bus_event (long long usec);    // Get next event, wait up to usec if none ready
-void postevent (event_t * e);   // Post an event (updates input/tamper/fault on port from state)
+void bus_init(void);
+void bus_start(int bus);
+void bus_stop(int bus);
+event_t *bus_event(long long usec);     // Get next event, wait up to usec if none ready
+void postevent(event_t * e);    // Post an event (updates input/tamper/fault on port from state)
 
 // Access to devices for door control, etc
-int device_found (int id);      // Check device exists
-void device_urgent (int id);    // Mark device urgent
-void device_output (int id, int port, int value);       // Set output
-void device_led (int id, int led);
-int device_input (int id, int port);    // Read input
+int device_found(int id);       // Check device exists
+void device_urgent(int id);     // Mark device urgent
+void device_output(int id, int port, int value);        // Set output
+void device_led(int id, int led);
+int device_input(int id, int port);     // Read input
