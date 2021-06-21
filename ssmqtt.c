@@ -57,10 +57,20 @@ static void *server(void *arg)
       fail();
    if (sqldebug)
       warnx("Connect from %s", j_get(j, "address"));
-   // SSL_get_verify_result
-   // SSL_get_peer_certificate
-
-   warnx("TODO %s", j_get(j, "address"));
+   X509 *cert = SSL_get_peer_certificate(ssl);
+   if (cert)
+   {
+      X509_NAME *subject = X509_get_subject_name(cert);
+      if (subject)
+      {
+         char id[100];
+         if (X509_NAME_get_text_by_NID(subject, NID_commonName, id, sizeof(id)) >= 0)
+            j_store_string(j, "device", id);
+      }
+   }
+   j_err(j_write_pretty(j,stderr));
+   warnx("TODO");
+   sleep(10);
    SSL_shutdown(ssl);
    SSL_free(ssl);
    close(s);
@@ -97,9 +107,9 @@ static void *listener(void *arg)
       X509 *cert = PEM_read_X509(k, NULL, NULL, NULL);
       fclose(k);
       SSL_CTX_add_client_CA(ctx, cert);
-      X509_STORE *ca=X509_STORE_new();
-      X509_STORE_add_cert(ca,cert);
-      SSL_CTX_set_cert_store(ctx,ca);
+      X509_STORE *ca = X509_STORE_new();
+      X509_STORE_add_cert(ca, cert);
+      SSL_CTX_set_cert_store(ctx, ca);
       X509_free(cert);
    }
    int slisten = -1;
