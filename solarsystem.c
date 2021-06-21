@@ -28,7 +28,7 @@ const char *configfile = "solarsystem.conf";
 
 int main(int argc, const char *argv[])
 {
-	umask(0007);
+   umask(0007);
    {                            // POPT
       poptContext optCon;       // context for parsing command-line options
       const struct poptOption optionsTable[] = {
@@ -60,7 +60,7 @@ int main(int argc, const char *argv[])
          changed = "";
       } else
          j_err(j_read_file(j, configfile));
-#define s(p,n,d,h) {j_t e=j_find(j,#p"."#n);if(e){if(!j_isstring(e))errx(1,#p"."#n" should be a string");p##n=j_val(e);}if(sqldebug)warnx(#h" set to:\t%s",p##n);}
+#define s(p,n,d,h) {j_t e=j_find(j,#p"."#n);if(e){if(!j_isstring(e))errx(1,#p"."#n" should be a string");p##n=strdup(j_val(e)?:"");}if(sqldebug)warnx(#h" set to:\t%s",p##n);}
 #define i(p,n,d,h) {j_t e=j_find(j,#p"."#n);if(e){if(!j_isnumber(e))errx(1,#p"."#n" should be a number");p##n=atoi(j_val(e));}if(sqldebug)warnx(#h" set to:\t%d",p##n);}
 #include "ssconfig.h"
       // Some housekeeping
@@ -70,11 +70,22 @@ int main(int argc, const char *argv[])
          j_string(j_path(j, "ca.key"), changed = cakey = makekey());
       if (!*mqttkey)
          j_string(j_path(j, "mqtt.key"), changed = mqttkey = makekey());
+      if (!*cacert)
+         j_string(j_path(j, "ca.cert"), changed = cacert = makecert(cakey, NULL, NULL, "SolarSystem"));
+      if (!*mqttcert)
+         j_string(j_path(j, "mqtt.cert"), changed = mqttcert = makecert(mqttkey, cakey, cacert, mqtthost));
       // Update config file if needed
       if (changed)
-         j_err(j_write_file(j, configfile));
+      {
+         FILE *f = fopen(configfile, "w");
+         if (!f)
+            err(1, "Cannot write config file %s", configfile);
+         j_err(j_write_pretty_close(j, f));
+      }
       j_delete(&j);
    }
+   if (sqldebug)
+      printf("%s\n", mqttcert);
    mqtt_start();
    while (1)
       sleep(1);

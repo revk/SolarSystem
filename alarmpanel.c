@@ -4527,8 +4527,7 @@ int main(int argc, const char *argv[])
                               j_delete(&set);
                               sende(EVENT_FOUND, 1, j_get(j, "id"));
                            }
-                        } else
-                        if (up && j_isbool(up) && !j_istrue(up))
+                        } else if (up && j_isbool(up) && !j_istrue(up))
                         {
                            if (app->state)
                            {
