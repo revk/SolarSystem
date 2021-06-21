@@ -7,11 +7,12 @@
 #define i(p,n,d,h)
 #endif
 
-s(ca,key,cakey.pem,MQTT TLS client CA file);
-s(ca,cert,cacert.pem,MQTT TLS client CA file);
-s(mqtt,key,mqttkey.pem,CA key file);
-s(mqtt,cert,mqttcert.pem,CA cert file);
-i(mqtt,port,8883,MQTT port);
+s(ca,key,,MQTT TLS CA private key PEM);
+s(ca,cert,,MQTT TLS CA certificate PEM);
+s(mqtt,host,,MQTT hostname);
+s(mqtt,key,,MQTT CA key PEM);
+s(mqtt,cert,,MQTT CA cert PEM);
+s(mqtt,port,8883,MQTT port name/number);
 s(sql,config,,SQL connection config file);
 s(sql,database,SS,Database name);
 

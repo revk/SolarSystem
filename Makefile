@@ -78,8 +78,14 @@ port.o: port.c port.h galaxybus.h Makefile
 ssdatabase.o: ssdatabase.c ssdatabase.h Makefile
 	gcc -g -Wall -Wextra -O -c -o $@ $< ${SQLINC}
 
-solarsystem: solarsystem.c afile.o AXL/axl.o AJL/ajl.o Dataformat/dataformat.o websocket/websocketxml.o DESFireAES/desfireaes.o SQLlib/sqllib.o Makefile ssdatabase.o
-	gcc -g -Wall -Wextra -O -o $@ $< afile.o ssdatabase.o AJL/ajl.o AXL/axl.o Dataformat/dataformat.o websocket/websocketxml.o DESFireAES/desfireaes.o SQLlib/sqllib.o ${SQLINC} ${SQLLIB} -lpopt -lcrypto -pthread -lcurl -lssl
+ssmqtt.o: ssmqtt.c ssmqtt.h Makefile
+	gcc -g -Wall -Wextra -O -c -o $@ $< ${SQLINC}
+
+sscert.o: sscert.c sscert.h Makefile
+	gcc -g -Wall -Wextra -O -c -o $@ $< ${SQLINC}
+
+solarsystem: solarsystem.c afile.o AXL/axl.o AJL/ajl.o Dataformat/dataformat.o websocket/websocketxml.o DESFireAES/desfireaes.o SQLlib/sqllib.o Makefile ssdatabase.o ssmqtt.o sscert.o
+	gcc -g -Wall -Wextra -O -o $@ $< afile.o ssdatabase.o ssmqtt.o sscert.o AJL/ajl.o AXL/axl.o Dataformat/dataformat.o websocket/websocketxml.o DESFireAES/desfireaes.o SQLlib/sqllib.o ${SQLINC} ${SQLLIB} -lpopt -lcrypto -pthread -lcurl -lssl
 
 clean:
 	rm -f *.o alarmpanel
