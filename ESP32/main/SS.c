@@ -6,7 +6,7 @@ static const char __attribute__((unused)) TAG[] = "SS";
 #include <driver/gpio.h>
 
 #ifdef	CONFIG_REVK_APCONFIG
-#error	You do not want door controller running CONFIG_REVK_APCONFIG
+#warning	You do not want door controller running CONFIG_REVK_APCONFIG
 #endif
 
 // Common
