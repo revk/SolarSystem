@@ -70,11 +70,9 @@ int main(int argc, const char *argv[])
          j_string(j_path(j, "ca.key"), changed = cakey = makekey());
       if (!*mqttkey)
          j_string(j_path(j, "mqtt.key"), changed = mqttkey = makekey());
-      // TODO new certs every time maybe?
-      if (!*cacert||sqldebug)
-         j_string(j_path(j, "ca.cert"), changed = cacert = makecert(cakey, NULL, NULL, "SolarSystem"));
-      if (!*mqttcert||sqldebug)
-         j_string(j_path(j, "mqtt.cert"), changed = mqttcert = makecert(mqttkey, cakey, cacert, mqtthost));
+      // May as well make certs anyway
+      j_string(j_path(j, "ca.cert"), changed = cacert = makecert(cakey, NULL, NULL, "SolarSystem"));
+      j_string(j_path(j, "mqtt.cert"), changed = mqttcert = makecert(mqttkey, cakey, cacert, mqtthost));
       // Update config file if needed
       if (changed)
       {
@@ -87,9 +85,9 @@ int main(int argc, const char *argv[])
    }
    if (sqldebug)
    {
-      char *key=makekey();
-      char *cert=makecert(key,cakey,cacert,"112233445566");
-      printf("CA cert:\n%s\nTest key:\n%s\nTest cert:\n%s\n", cacert,key,cert);
+      char *key = makekey();
+      char *cert = makecert(key, cakey, cacert, "112233445566");
+      printf("CA cert:\n%s\nTest key:\n%s\nTest cert:\n%s\n", cacert, key, cert);
    }
 
    mqtt_start();
