@@ -53,9 +53,9 @@ const char *upgrade(SQL_RES * res, long long instance)
    if (!upgrade || j_time(upgrade) > time(0))
       return NULL;
    j_t m = j_create();
-   j_store_null(m,"_data");
+   j_store_null(m, "_data");
    j_t meta = j_store_object(m, "_meta");
-   j_store_string(meta,"suffix","upgrade");
+   j_store_string(meta, "suffix", "upgrade");
    j_store_int(meta, "instance", instance);
    command(&m);
    return upgrade;
@@ -227,14 +227,10 @@ int main(int argc, const char *argv[])
             {                   // State
                if (!device)
                   return NULL;  // Not authenticated
-	       if(!suffix)
-	       { // System level
-		       j_t up=j_find(j,"up");
-		       const char *reason=j_get(j,"reason");
-		       if(up&&j_isbool(up)&&!j_istrue(up)&&reason&&!strcmp(reason,"OTA"))
-			       sql_safe_query_free(&sql,sql_printf("UPDATE `device` SET `upgrade`=NULL WHERE `device`=%#s",deviceid));
-		       return NULL;
-	       }
+               if (!suffix)
+               {                // System level
+                  return NULL;
+               }
                return NULL;
             }
             if (prefix && !strcmp(prefix, "event"))
@@ -253,6 +249,9 @@ int main(int argc, const char *argv[])
             {
                if (!device)
                   return NULL;  // Not authenticated
+               if (suffix && !strcmp(suffix, "upgrade") && j_find(j, "complete"))
+                  sql_safe_query_free(&sql, sql_printf("UPDATE `device` SET `upgrade`=NULL WHERE `device`=%#s", deviceid));     // Upgrade done
+
                return NULL;
             }
             return "Unknown message";
