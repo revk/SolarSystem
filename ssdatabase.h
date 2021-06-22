@@ -50,6 +50,7 @@ table(device, 12);
 link(site);
 time(online);
 time(lastonline);
+time(upgrade);
 ip(address);
 num(instance);
 text(deport,0);

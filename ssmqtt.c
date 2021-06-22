@@ -129,7 +129,10 @@ static void *server(void *arg)
    long long message = 0;
    void addq(j_t j, int tlen, char *topic) {
 
-      j_t meta = j_store_object(j, "_meta");
+      j_t meta = j_find(j, "_meta");
+      if (meta)
+         j_delete(&meta);       // Naughty
+      meta = j_store_object(j, "_meta");
       j_store_int(meta, "instance", slot->instance);
       j_store_int(meta, "message", message++);
       if (*device)
@@ -536,9 +539,14 @@ static void txmessage(j_t * jp)
          memcpy(tx + txp, topic, l);
       txp += l;
       // QoS 0 so not packet ID
+      size_t len = 0;
       j_delete(&meta);
-      size_t len;
-      if (j_write_mem(j, &buf, &len))
+      j_t data = j_find(j, "_data");
+      if (data)
+      {                         // Direct data
+         if (!j_isnull(data) && j_write_mem(data, &buf, &len))
+            return "Bad JSON make";
+      } else if (j_write_mem(j, &buf, &len))
          return "Bad JSON make";
       if (txp + len > sizeof(tx))
          return "Payload too big";

@@ -31,6 +31,36 @@ const char *configfile = "solarsystem.conf";
 #define i(p,n,d,h)	int p##n=d;
 #include "ssconfig.h"
 
+const char *deport(SQL_RES * res, long long instance)
+{                               // Check if deport needed
+   const char *deport = sql_col(res, "deport");
+   if (!deport || !*deport)
+      return NULL;
+   j_t m = j_create();
+   j_store_string(m, "clientkey", "");
+   j_store_string(m, "clientcert", "");
+   j_store_string(m, "mqttcert", "");
+   j_store_string(m, "mqtthost", deport);
+   j_t meta = j_store_object(m, "_meta");
+   j_store_int(meta, "instance", instance);
+   setting(&m);
+   return deport;
+}
+
+const char *upgrade(SQL_RES * res, long long instance)
+{
+   const char *upgrade = sql_col(res, "upgrade");
+   if (!upgrade || j_time(upgrade) > time(0))
+      return NULL;
+   j_t m = j_create();
+   j_store_null(m,"_data");
+   j_t meta = j_store_object(m, "_meta");
+   j_store_string(meta,"suffix","upgrade");
+   j_store_int(meta, "instance", instance);
+   command(&m);
+   return upgrade;
+}
+
 int main(int argc, const char *argv[])
 {
    {                            // POPT
@@ -156,14 +186,18 @@ int main(int argc, const char *argv[])
             }
             const char *address = j_get(meta, "address");
             const char *prefix = j_get(meta, "prefix");
-            //const char *suffix = j_get(meta, "suffix");
+            const char *suffix = j_get(meta, "suffix");
             if (!message)
             {                   // Connect (first message ID 0)
                if (device)
                {                // known
                   long long i = strtoull(sql_colz(device, "instance"), NULL, 10);
                   if (i != instance)
-                     sql_safe_query_free(&sql, sql_printf("UPDATE `device` SET `online`=NOW(),`instance`=%lld WHERE `device`=%#s", instance, deviceid));
+                     sql_safe_query_free(&sql, sql_printf("UPDATE `device` SET `online`=NOW(),`lastonline`=NOW(),`instance`=%lld,`address`=%#s WHERE `device`=%#s", instance, address, deviceid));
+                  //if(deport(device,instance))return NULL;
+                  if (upgrade(device, instance))
+                     return NULL;
+                  // TODO settings update (should this included deport?)
                } else           // pending
                {
                   const char *id = j_get(j, "id");
@@ -171,18 +205,8 @@ int main(int argc, const char *argv[])
                   SQL_RES *res = sql_safe_query_store_free(&sql, sql_printf("SELECT * FROM `device` WHERE `device`=%#s", id));
                   if (sql_fetch_row(res))
                   {
-                     const char *deport = sql_col(res, "deport");
-                     if (deport && *deport)
-                     {          // Send to another server
-                        j_t m = j_create();
-                        j_store_string(m, "clientkey", "");
-                        j_store_string(m, "clientcert", "");
-                        j_store_string(m, "mqttcert", "");
-                        j_store_string(m, "mqtthost", deport);
-                        j_t meta = j_store_object(m, "_meta");
-                        j_store_int(meta, "instance", instance);
-                        setting(&m);
-                     }
+                     if (!upgrade(res, instance))
+                        deport(res, instance);
                   }
                   sql_free_result(res);
                }
@@ -201,10 +225,34 @@ int main(int argc, const char *argv[])
             }
             if (prefix && !strcmp(prefix, "state"))
             {                   // State
+               if (!device)
+                  return NULL;  // Not authenticated
+	       if(!suffix)
+	       { // System level
+		       j_t up=j_find(j,"up");
+		       const char *reason=j_get(j,"reason");
+		       if(up&&j_isbool(up)&&!j_istrue(up)&&reason&&!strcmp(reason,"OTA"))
+			       sql_safe_query_free(&sql,sql_printf("UPDATE `device` SET `upgrade`=NULL WHERE `device`=%#s",deviceid));
+		       return NULL;
+	       }
                return NULL;
             }
             if (prefix && !strcmp(prefix, "event"))
             {
+               if (!device)
+                  return NULL;  // Not authenticated
+               return NULL;
+            }
+            if (prefix && !strcmp(prefix, "error"))
+            {
+               if (!device)
+                  return NULL;  // Not authenticated
+               return NULL;
+            }
+            if (prefix && !strcmp(prefix, "info"))
+            {
+               if (!device)
+                  return NULL;  // Not authenticated
                return NULL;
             }
             return "Unknown message";
