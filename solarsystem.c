@@ -118,11 +118,22 @@ int main(int argc, const char *argv[])
       char *key = makekey();
       char *cert = makecert(key, cakey, cacert, "112233445566");
       printf("CA cert:\n%s\nTest key:\n%s\nTest cert:\n%s\n", cacert, key, cert);
+      free(key);
+      free(cert);
    }
    syslog(LOG_INFO, "Starting");
    mqtt_start();
    while (1)
-      sleep(1);
+   {
+      j_t j = incoming();
+      if (!j)
+         warnx("WTF");
+      else
+      {
+         j_err(j_write_pretty(j, stderr));
+         j_delete(&j);
+      }
+   }
    sql_close(&sql);
    return 0;
 }
