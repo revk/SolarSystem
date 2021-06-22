@@ -29,17 +29,19 @@ extern const char *mqttport;
 extern int sqldebug;
 SSL_CTX *ctx = NULL;
 
-// TODO may want hash or something
-typedef struct client_s client_t;
-struct client_s {
-   client_t *next;              // Double linked list
-   client_t **prev;
-   device_t device;             // Device ID
+#define	MAXSLOTS	65536
+
+typedef struct slot_s slot_t;
+struct slot_s {
+   long long instance;          // Instance for checking, (mod MAXSLOT is slot) 0 if free
    int txsock;                  // Socket for sending data
 };
 
-static client_t *clients = NULL;
-static pthread_mutex_t clients_mutex;
+static slot_t slots[MAXSLOTS] = { };
+
+static long long instance = 1;  // Next instance to allocate
+static int slotcount = 0;
+static pthread_mutex_t slot_mutex;
 
 typedef struct rxq_s rxq_t;
 struct rxq_s {
@@ -56,17 +58,39 @@ static void *server(void *arg)
 {
    int sock = -1;
    device_t device = "";
-   char *address;
+   char address[40] = "";
    {                            // Get passed settings
       j_t j = arg;
       sock = atoi(j_get(j, "socket") ? : "");
       if (!sock)
          errx(1, "socket not set");
-      address = strdup(j_get(j, "address") ? : "");
+      strncpy(address, j_get(j, "address") ? : "", sizeof(address));
       j_delete(&j);
    }
    if (sqldebug)
       warnx("Connect from %s", address);
+   int txsock = -1;             // Rx socket
+   pthread_mutex_lock(&slot_mutex);
+   if (slotcount >= MAXSLOTS)
+   {
+      warnx("Too many connections %s", address);
+      close(sock);
+      pthread_mutex_unlock(&slot_mutex);
+      return NULL;
+   }
+   slot_t *slot;
+   while ((slot = &slots[instance % MAXSLOTS])->instance)
+      instance++;
+   {
+      int sp[2];
+      if (socketpair(AF_LOCAL, SOCK_DGRAM, 0, sp) < 0)
+         err(1, "socketpair");
+      slot->txsock = sp[0];
+      txsock = sp[1];
+   }
+   slot->instance = instance;
+   slotcount++;
+   pthread_mutex_unlock(&slot_mutex);
    // TLS
    SSL *ssl = SSL_new(ctx);
    if (!ssl)
@@ -86,7 +110,6 @@ static void *server(void *arg)
       }
       SSL_free(ssl);
       warnx("Failed SSL from %s", address);
-      free(address);
       return NULL;
    }
    X509 *cert = SSL_get_peer_certificate(ssl);
@@ -101,33 +124,40 @@ static void *server(void *arg)
       }
       X509_free(cert);
    }
-   int txsock = -1;             // Rx socket
-   client_t *c = malloc(sizeof(*c));
-   if (!c)
-      errx(1, "malloc");
-   {
-      int sp[2];
-      if (socketpair(AF_LOCAL, SOCK_DGRAM, 0, sp) < 0)
-         err(1, "socketpair");
-      c->txsock = sp[0];
-      txsock = sp[1];
-   }
-   strcpy(c->device, device);
-   pthread_mutex_lock(&clients_mutex);
-   c->next = clients;
-   c->prev = &clients;
-   if (c->next)
-      c->next->prev = &c->next;
-   clients = c;
-   pthread_mutex_unlock(&clients_mutex);
-   void addq(j_t j, int tlen, void *topic) {
+   long long message = 0;
+   void addq(j_t j, int tlen, char *topic) {
 
       j_t meta = j_store_object(j, "_meta");
+      j_store_int(meta, "instance", slot->instance);
+      j_store_int(meta, "message", message++);
       if (*device)
          j_store_string(meta, "device", device);
       j_store_string(meta, "address", address);
       if (topic)
+      {
          j_store_stringn(meta, "topic", topic, tlen);
+         int n;
+         for (n = 0; n < tlen && topic[n] != '/'; n++);
+         if (n < tlen)
+         {
+            j_store_stringn(meta, "prefix", topic, n);
+            n++;
+            while (n < tlen && topic[n] != '/')
+               n++;             // SS
+            if (n < tlen)
+            {
+               n++;
+               while (n < tlen && topic[n] != '/')
+                  n++;          // ID
+               if (n < tlen)
+               {
+                  n++;
+                  if (n < tlen)
+                     j_store_stringn(meta, "suffix", topic + n, tlen - n);
+               }
+            }
+         }
+      }
       rxq_t *q = malloc(sizeof(*q));
       q->j = j;
       q->next = NULL;
@@ -245,7 +275,7 @@ static void *server(void *arg)
                   uint16_t tlen = (data[0] << 8) + data[1];
                   uint16_t id = 0;
                   data += 2;
-                  uint8_t *topic = data;
+                  char *topic = (void *) data;
                   data += tlen;
                   if (data > end)
                      return "Too short";
@@ -351,16 +381,16 @@ static void *server(void *arg)
          SSL_write(ssl, tx, txp);
       }
    }
-   j_t j=j_create();
-   j_store_false(j,"up");
-   addq(j,0,NULL);
-   pthread_mutex_lock(&clients_mutex);
-   *c->prev = c->next;
-   if (c->next)
-      c->next->prev = c->prev;
-   pthread_mutex_unlock(&clients_mutex);
-   close(c->txsock);
-   free(c);
+   {                            // Down
+      j_t j = j_create();
+      addq(j, 0, NULL);
+   }
+   pthread_mutex_lock(&slot_mutex);
+   close(slot->txsock);
+   slot->txsock = -1;
+   slot->instance = 0;
+   slotcount--;
+   pthread_mutex_unlock(&slot_mutex);
    close(txsock);
    if (fail)
       warnx("Fail from %s (%s)", address, fail);
@@ -369,7 +399,6 @@ static void *server(void *arg)
    SSL_shutdown(ssl);
    SSL_free(ssl);
    close(sock);
-   free(address);
    return NULL;
 }
 
@@ -454,7 +483,7 @@ static void *listener(void *arg)
 
 void mqtt_start(void)
 {                               // Start MQTT server (not a real MQTT server, just talks MQTT)
-   pthread_mutex_init(&clients_mutex, NULL);
+   pthread_mutex_init(&slot_mutex, NULL);
    pthread_mutex_init(&rxq_mutex, NULL);
    sem_init(&rxq_sem, 0, 0);
    {                            // Set up listen thread
@@ -466,13 +495,13 @@ void mqtt_start(void)
 }
 
 void command(j_t * jp)
-{                               // Send command j."command" to j."device", and free j
+{                               // Send command (expects _meta.instance to be set)
 
    j_delete(jp);
 }
 
 void setting(j_t * jp)
-{                               // Send setting to j."device", and free j
+{                               // Send setting (expects _meta.instance to be set)
 
    j_delete(jp);
 }

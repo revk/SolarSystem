@@ -16,6 +16,14 @@
 #define num(n)                  // Simple numeric field (integer)
 #endif
 
+#ifndef time
+#define time(n)                  // Simple time field
+#endif
+
+#ifndef ip
+#define ip(n)                  // Simple IP field
+#endif
+
 table(user, 0);
 
 table(usersite, 0);
@@ -40,6 +48,15 @@ link(user);
 
 table(device, 12);
 link(site);
+time(online);
+time(lastonline);
+ip(address);
+num(instance);
+
+table(pending,12);
+time(online);
+ip(address);
+num(instance);
 
 table(template, 0);
 
@@ -61,3 +78,5 @@ text(key, 32);
 #undef link
 #undef text
 #undef num
+#undef time
+#undef ip

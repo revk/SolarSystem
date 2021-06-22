@@ -74,11 +74,11 @@ void ssdatabase(SQL * sqlp, const char *sqldatabase)
          sql_safe_query_free(sqlp, sql_printf("ALTER TABLE `%#S` ADD `%#S` INT UNSIGNED DEFAULT NULL", tablename, name));
    }
 
-   void num(const char *name) {
+   void field(const char *name, const char *type) {
       if (sql_colnum(res, name) >= 0)
          return;                // Exists - we are not updating type for now
       warnx("Creating field %s/%s", tablename, name);
-      sql_safe_query_free(sqlp, sql_printf("ALTER TABLE `%#S` ADD `%#S` INT DEFAULT NULL", tablename, name));
+      sql_safe_query_free(sqlp, sql_printf("ALTER TABLE `%#S` ADD `%#S` %s DEFAULT NULL", tablename, name, type));
    }
 
 
@@ -88,7 +88,9 @@ void ssdatabase(SQL * sqlp, const char *sqldatabase)
 #define table(n,l)	table(#n,l);
 #define link(n)		link(#n);
 #define	text(n,l)	text(#n,l);
-#define	num(n)		num(#n);
+#define	num(n)		field(#n,"INT");
+#define	ip(n)		field(#n,"VARCHAR(39)");
+#define	time(n)		field(#n,"DATETIME");
 #include "ssdatabase.h"
    endtable();
    sql_safe_commit(sqlp);

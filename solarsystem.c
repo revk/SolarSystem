@@ -122,7 +122,11 @@ int main(int argc, const char *argv[])
       free(cert);
    }
    syslog(LOG_INFO, "Starting");
+   sql_safe_query(&sql, "DELETE FROM `pending` WHERE `instance` IS NOT NULL");
+   sql_safe_query(&sql, "UPDATE `device` SET `instance`=NULL,`online`=NULL WHERE `instance` IS NOT NULL");
    mqtt_start();
+   // TODO start websocket (proxy from apache)
+   // Main loop getting messages (from MQTT or websocket)
    while (1)
    {
       j_t j = incoming();
@@ -130,7 +134,66 @@ int main(int argc, const char *argv[])
          warnx("WTF");
       else
       {
-         j_err(j_write_pretty(j, stderr));
+         if (sqldebug)
+            j_err(j_write_pretty(j, stderr));
+         SQL_RES *device = NULL;
+         const char *process(void) {
+            j_t meta = j_find(j, "_meta");
+            if (!meta)
+               return "No meta data";
+
+            long long message = strtoull(j_get(meta, "message") ? : "", NULL, 10);
+            long long instance = strtoull(j_get(meta, "instance") ? : "", NULL, 10);
+            if (!instance)
+               return "No instance";
+            const char *deviceid;
+            if ((deviceid = j_get(meta, "device")) && *deviceid && (device = sql_safe_query_store_free(&sql, sql_printf("SELECT * FROM `device` WHERE `device`=%#s", deviceid))) && !sql_fetch_row(device))
+            {                   // Not found - new device
+               sql_free_result(device);
+               sql_safe_query_free(&sql, sql_printf("INSERT INTO `device` SET `device`=%#s", deviceid));
+               device = sql_safe_query_store_free(&sql, sql_printf("SELECT * FROM `device` WHERE `device`=%#s", deviceid));
+               sql_fetch_row(device);;
+            }
+            const char *address = j_get(meta, "address");
+            const char *prefix = j_get(meta, "prefix");
+            //const char *suffix = j_get(meta, "suffix");
+            if (!message)
+            {                   // Connect (first message ID 0)
+               if (device)
+               {                // known
+                  long long i = strtoull(sql_colz(device, "instance"), NULL, 10);
+                  if (i != instance)
+                     sql_safe_query_free(&sql, sql_printf("UPDATE `device` SET `online`=NOW(),`instance`=%lld WHERE `device`=%#s", instance, deviceid));
+               } else           // pending
+                  sql_safe_query_free(&sql, sql_printf("REPLACE INTO `pending` SET `pending`=%#s,`online`=NOW(),`address`=%#s,`instance`=%lld", j_get(j, "id"), address, instance));
+	       // Continue as the message could be anything
+            }
+            if (!prefix)
+            {                   // Down (all other messages have a topic)
+               if (device)
+               {                // known
+                  long long i = strtoull(sql_colz(device, "instance"), NULL, 10);
+                  if (i == instance)
+                     sql_safe_query_free(&sql, sql_printf("UPDATE `device` SET `online`=NULL,`instance`=NULL,`lastonline`=NOW() WHERE `device`=%#s AND `instance`=%lld", deviceid, instance));
+               } else           // pending
+                  sql_safe_query_free(&sql, sql_printf("DELETE FROM `pending` WHERE instance`=%lld", instance));
+               return NULL;
+            }
+            if (prefix && !strcmp(prefix, "state"))
+            {                   // State
+               return NULL;
+            }
+            if (prefix && !strcmp(prefix, "event"))
+            {
+               return NULL;
+            }
+            return "Unknown message";
+         }
+         const char *fail = process();
+         if (device)
+            sql_free_result(device);
+         if (fail)
+            warnx("Failed to process message: %s", fail);
          j_delete(&j);
       }
    }
