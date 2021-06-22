@@ -41,25 +41,27 @@ const char *deport(SQL_RES * res, long long instance)
    j_store_string(m, "clientcert", "");
    j_store_string(m, "mqttcert", "");
    j_store_string(m, "mqtthost", deport);
-   j_t meta = j_store_object(m, "_meta");
-   j_store_int(meta, "instance", instance);
-   setting(&m);
+   setting(instance, NULL, &m);
    return deport;
 }
 
 const char *upgrade(SQL_RES * res, long long instance)
-{
+{                               // Send upgrade if needed
    const char *upgrade = sql_col(res, "upgrade");
    if (!upgrade || j_time(upgrade) > time(0))
       return NULL;
-   j_t m = j_create();
-   j_store_null(m, "_data");
-   j_t meta = j_store_object(m, "_meta");
-   j_store_string(meta, "suffix", "upgrade");
-   j_store_int(meta, "instance", instance);
-   command(&m);
+   command(instance, "upgrade", NULL);
    return upgrade;
 }
+
+void bogus(long long instance)
+{                               // This is bogus auth
+   j_t m = j_create();
+   j_store_string(m, "clientkey", "");
+   j_store_string(m, "clientcert", "");
+   setting(instance, NULL, &m);
+}
+
 
 int main(int argc, const char *argv[])
 {
@@ -194,13 +196,16 @@ int main(int argc, const char *argv[])
                   long long i = strtoull(sql_colz(device, "instance"), NULL, 10);
                   if (i != instance)
                      sql_safe_query_free(&sql, sql_printf("UPDATE `device` SET `online`=NOW(),`lastonline`=NOW(),`instance`=%lld,`address`=%#s WHERE `device`=%#s", instance, address, deviceid));
-                  //if(deport(device,instance))return NULL;
+                  if (deport(device, instance))
+                     return NULL;
                   if (upgrade(device, instance))
                      return NULL;
                   // TODO settings update (should this included deport?)
                } else           // pending
                {
                   const char *id = j_get(j, "id");
+                  if (!id)
+                     return NULL;
                   sql_safe_query_free(&sql, sql_printf("REPLACE INTO `pending` SET `pending`=%#s,`online`=NOW(),`address`=%#s,`instance`=%lld", id, address, instance));
                   SQL_RES *res = sql_safe_query_store_free(&sql, sql_printf("SELECT * FROM `device` WHERE `device`=%#s", id));
                   if (sql_fetch_row(res))
@@ -229,6 +234,9 @@ int main(int argc, const char *argv[])
                   return NULL;  // Not authenticated
                if (!suffix)
                {                // System level
+                  const char *id = j_get(j, "id");
+                  if (id && strcmp(id, deviceid))
+                     bogus(instance);
                   return NULL;
                }
                return NULL;
