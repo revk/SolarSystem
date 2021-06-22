@@ -84,7 +84,7 @@ ssmqtt.o: ssmqtt.c ssmqtt.h Makefile
 sscert.o: sscert.c sscert.h Makefile
 	gcc -g -Wall -Wextra -O -c -o $@ $< ${SQLINC}
 
-solarsystem: solarsystem.c afile.o AXL/axl.o AJL/ajl.o Dataformat/dataformat.o websocket/websocketxml.o DESFireAES/desfireaes.o SQLlib/sqllib.o Makefile ssdatabase.o ssmqtt.o sscert.o
+solarsystem: solarsystem.c afile.o AXL/axl.o AJL/ajl.o Dataformat/dataformat.o websocket/websocketxml.o DESFireAES/desfireaes.o SQLlib/sqllib.o Makefile ssdatabase.o ssmqtt.o sscert.o ssconfig.h
 	gcc -g -Wall -Wextra -O -o $@ $< afile.o ssdatabase.o ssmqtt.o sscert.o AJL/ajl.o AXL/axl.o Dataformat/dataformat.o websocket/websocketxml.o DESFireAES/desfireaes.o SQLlib/sqllib.o ${SQLINC} ${SQLLIB} -lpopt -lcrypto -pthread -lcurl -lssl
 
 clean:
