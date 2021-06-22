@@ -31,6 +31,10 @@ table(customer, 0);
 table(site, 0);
 link(customer);
 
+table(sitearea,0);
+link(site);
+text(area,1);
+
 table(fob, 14);
 link(user);
 

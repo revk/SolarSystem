@@ -12,10 +12,36 @@
 #include <openssl/bio.h>
 #include <openssl/rand.h>
 #include <openssl/rsa.h>
-#include <openssl/pem.h>
 #include <openssl/x509v3.h>
+#include "AJL/ajl.h"
 
 #define KEYLEN  2048            // Default key length (we want to fit in an MQTT message)
+
+EVP_PKEY *der2pkey(const char *der)
+{
+   uint8_t *buf;
+   ssize_t len = j_base64d(der, &buf);
+   if (len < 0)
+      errx(1, "Bad DER %s", der);
+   BIO *mem = BIO_new_mem_buf(buf, len);
+   EVP_PKEY *key = d2i_PrivateKey_bio(mem, NULL);
+   BIO_free(mem);
+   free(buf);
+   return key;
+}
+
+X509 *der2x509(const char *der)
+{
+   uint8_t *buf;
+   ssize_t len = j_base64d(der, &buf);
+   if (len < 0)
+      errx(1, "Bad DER %s", der);
+   BIO *mem = BIO_new_mem_buf(buf, len);
+   X509 *x509 = d2i_X509_bio(mem, NULL);
+   BIO_free(mem);
+   free(buf);
+   return x509;
+}
 
 char *makekey(void)
 {                               // Make a key and return (malloc'd) PEM private key
@@ -29,39 +55,27 @@ char *makekey(void)
    RAND_poll();
    RSA_generate_key_ex(rsa, KEYLEN, bn, NULL);
    EVP_PKEY_assign_RSA(pkey, rsa);
-   BIO *bio = BIO_new(BIO_s_mem());
-   PEM_write_bio_RSAPrivateKey(bio, rsa, NULL, NULL, 0, NULL, NULL);
-   int keylen = BIO_pending(bio);
-   char *key = calloc(keylen + 1, 1);
-   BIO_read(bio, key, keylen);
-   BIO_free(bio);
+   uint8_t *buf = NULL;
+   int len = i2d_PrivateKey(pkey, &buf);
+   if (len < 0)
+      errx(1, "Bad private key DER");
+   char *key = strdup(j_base64(len, buf));
+   free(buf);
    EVP_PKEY_free(pkey);
    return key;
 }
 
-char *makecert(const char *keypem, const char *cakeypem, const char *cacertpem, const char *name)
-{                               // Make a cert and return (malloc'd) PEM - self signed if certpem is NULL
+char *makecert(const char *keyder, const char *cakeyder, const char *cacertder, const char *name)
+{                               // Make a cert and return (malloc'd) PEM - self signed if certder is NULL
    EVP_PKEY *key = NULL,
        *cakey = NULL;
    X509 *cacert = NULL;
-   if (keypem && *keypem)
-   {
-      FILE *k = fmemopen((void *) keypem, strlen(keypem), "r");
-      key = PEM_read_PrivateKey(k, NULL, NULL, NULL);   // No password
-      fclose(k);
-   }
-   if (cakeypem && *cakeypem)
-   {
-      FILE *k = fmemopen((void *) cakeypem, strlen(cakeypem), "r");
-      cakey = PEM_read_PrivateKey(k, NULL, NULL, NULL); // No password
-      fclose(k);
-   }
-   if (cacertpem && *cacertpem)
-   {
-      FILE *k = fmemopen((void *) cacertpem, strlen(cacertpem), "r");
-      cacert = PEM_read_X509(k, NULL, NULL, NULL);
-      fclose(k);
-   }
+   if (keyder && *keyder)
+      key = der2pkey(keyder);
+   if (cakeyder && *cakeyder)
+      cakey = der2pkey(cakeyder);
+   if (cacertder && *cacertder)
+      cacert = der2x509(cacertder);
 #define nz(x) do if(!(x))errx(1,"Failed %s",#x); while(0)
    // Make cert
    X509 *cert = X509_new();
@@ -90,7 +104,7 @@ char *makecert(const char *keypem, const char *cakeypem, const char *cacertpem, 
    X509V3_CTX ctx;
    X509V3_set_ctx_nodb(&ctx);
    X509V3_set_ctx(&ctx, cacert, cert, NULL, NULL, 0);
-   if (!cacertpem || !*cacertpem)
+   if (!cacertder || !*cacertder)
       nz(X509_add_ext(cert, X509V3_EXT_conf_nid(NULL, &ctx, NID_basic_constraints, "critical, CA:TRUE"), -1));
    else
       nz(X509_add_ext(cert, X509V3_EXT_conf_nid(NULL, &ctx, NID_issuer_alt_name, "issuer:copy"), -1));
@@ -102,12 +116,12 @@ char *makecert(const char *keypem, const char *cakeypem, const char *cacertpem, 
        // Sign
     nz(X509_sign(cert, cakey ? : key, EVP_sha256()));
    // Write cert
-   BIO *bio = BIO_new(BIO_s_mem());
-   PEM_write_bio_X509(bio, cert);
-   int keylen = BIO_pending(bio);
-   char *pem_cert = calloc(keylen + 1, 1);
-   BIO_read(bio, pem_cert, keylen);
-   BIO_free(bio);
+   uint8_t *buf = NULL;
+   int len = i2d_X509(cert, &buf);
+   if (len < 0)
+      errx(1, "Bad cert DER");
+   char *der_cert = strdup(j_base64(len, buf));
+   free(buf);
    X509_free(cert);
    if (cacert)
       X509_free(cacert);
@@ -116,5 +130,5 @@ char *makecert(const char *keypem, const char *cakeypem, const char *cacertpem, 
    if (cakey)
       EVP_PKEY_free(cakey);
 #undef nz
-   return pem_cert;
+   return der_cert;
 }

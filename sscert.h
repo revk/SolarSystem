@@ -1,4 +1,7 @@
 // Cert stuff
 
 char *makekey(void);
-char *makecert(const char *keypem, const char *cakeypem, const char *cacertpem, const char *name);
+char *makecert(const char *keyder, const char *cakeyder, const char *cacertder, const char *name);
+EVP_PKEY *der2pkey(const char *der);
+X509* der2x509(const char *der);
+

@@ -56,7 +56,6 @@ inline int16_t gpio_mask(uint8_t p)
 #define u8(n,d) uint8_t n;
 #define u16(n,d) uint16_t n;
 #define b(n,l) uint8_t n[l];
-#define ba(n,l,a) uint8_t n[a][l];
 #define bap(n,l,a) uint8_t n[a][l];
 #define u1(n) uint8_t n;
 #define t(n,d) const char*n=NULL;
@@ -68,7 +67,6 @@ settings
 #undef u8
 #undef u16
 #undef b
-#undef ba
 #undef bap
 #undef u1
     pn532_t * pn532 = NULL;
@@ -561,9 +559,8 @@ void nfc_init(void)
 #define gpio(n) revk_register(#n,0,sizeof(n),&n,BITFIELDS,SETTING_BITFIELD);
 #define u8(n,d) revk_register(#n,0,sizeof(n),&n,#d,0);
 #define u16(n,d) revk_register(#n,0,sizeof(n),&n,#d,0);
-#define b(n,l) revk_register(#n,0,sizeof(n),n,NULL,SETTING_BINARY|SETTING_HEX);
-#define ba(n,l,a) revk_register(#n,a,sizeof(n[0]),n,NULL,SETTING_BINARY|SETTING_HEX);
-#define bap(n,l,a) revk_register(#n,a,sizeof(n[0]),n,NULL,SETTING_BINARY|SETTING_HEX|SETTING_SECRET);
+#define b(n,l) revk_register(#n,0,sizeof(n),n,NULL,SETTING_BINDATA|SETTING_HEX);
+#define bap(n,l,a) revk_register(#n,a,sizeof(n[0]),n,NULL,SETTING_BINDATA|SETTING_HEX|SETTING_SECRET);
 #define u1(n) revk_register(#n,0,sizeof(n),&n,NULL,SETTING_BOOLEAN);
 #define t(n,d) revk_register(#n,0,0,&n,d,0);
    settings
@@ -574,7 +571,6 @@ void nfc_init(void)
 #undef u8
 #undef u16
 #undef b
-#undef ba
 #undef bap
 #undef u1
        // Set up ports */

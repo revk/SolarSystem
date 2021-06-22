@@ -1,10 +1,12 @@
 // Back end management / control for SolarSystem modules
 
+#define _GNU_SOURCE             /* See feature_test_macros(7) */
 #include <stdio.h>
 #include <string.h>
 #include <popt.h>
 #include <time.h>
 #include <sys/time.h>
+#include <sys/resource.h>
 #include <stdlib.h>
 #include <ctype.h>
 #include <err.h>
@@ -12,6 +14,9 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <signal.h>
+#include <syslog.h>
+#include <openssl/evp.h>
 #include "SQLlib/sqllib.h"
 #include "AJL/ajl.h"
 #include "ssmqtt.h"
@@ -28,7 +33,6 @@ const char *configfile = "solarsystem.conf";
 
 int main(int argc, const char *argv[])
 {
-   umask(0007);
    {                            // POPT
       poptContext optCon;       // context for parsing command-line options
       const struct poptOption optionsTable[] = {
@@ -50,6 +54,26 @@ int main(int argc, const char *argv[])
    }
    if (!sqldebug)
       daemon(1, 1);
+   // Get started
+   umask(0077);                 // Owner only
+   signal(SIGPIPE, SIG_IGN);    // Don't crash on pipe errors
+   openlog("SS", LOG_CONS | LOG_PID, LOG_USER); // Main logging is to syslog
+   {                            // File limits - allow lots of connections at once
+      struct rlimit l = {
+      };
+      if (!getrlimit(RLIMIT_NOFILE, &l))
+      {
+         l.rlim_cur = l.rlim_max;
+         if (setrlimit(RLIMIT_NOFILE, &l))
+            syslog(LOG_INFO, "Could not increase files");
+      }
+      if (!getrlimit(RLIMIT_NPROC, &l))
+      {
+         l.rlim_cur = l.rlim_max;
+         if (setrlimit(RLIMIT_NPROC, &l))
+            syslog(LOG_INFO, "Could not increase threads");
+      }
+   }
    SQL sql;
    {                            // Load config file and extract settings
       const char *changed = NULL;
@@ -76,10 +100,16 @@ int main(int argc, const char *argv[])
       // Update config file if needed
       if (changed)
       {
-         FILE *f = fopen(configfile, "w");
+         char *temp;
+         if (asprintf(&temp, "%s+", configfile) < 0)
+            errx(1, "malloc");
+         FILE *f = fopen(temp, "w");
          if (!f)
             err(1, "Cannot write config file %s", configfile);
          j_err(j_write_pretty_close(j, f));
+         if (rename(temp, configfile))
+            err(1, "Cannot make config file");
+         free(temp);
       }
       j_delete(&j);
    }
@@ -89,7 +119,7 @@ int main(int argc, const char *argv[])
       char *cert = makecert(key, cakey, cacert, "112233445566");
       printf("CA cert:\n%s\nTest key:\n%s\nTest cert:\n%s\n", cacert, key, cert);
    }
-
+   syslog(LOG_INFO, "Starting");
    mqtt_start();
    while (1)
       sleep(1);

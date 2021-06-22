@@ -17,6 +17,7 @@
 #include <openssl/err.h>
 #include <pthread.h>
 #include "AJL/ajl.h"
+#include "sscert.h"
 
 extern const char *cacert;
 extern const char *mqtthost;
@@ -169,7 +170,7 @@ static void *server(void *arg)
                }
                int plen = end - data;
                // TODO process message
-               warnx("QOS%d ID %04X Topic %.*s payload %.*s", qos,id,tlen, topic, plen, data);       // TODO
+               warnx("QOS%d ID %04X Topic %.*s payload %.*s", qos, id, tlen, topic, plen, data);        // TODO
                if (qos)
                {
                   tx[txp++] = (qos == 1 ? 0x40 : 0x50); // puback/pubrec
@@ -189,11 +190,12 @@ static void *server(void *arg)
             break;
          case 6:               // pubpel
             {
-		    if(data+2>end)return "Too short";
-		    tx[txp++]=0x70; // pubcomp
-		    tx[txp++]=2;
-		    tx[txp++]=data[0];
-		    tx[txp++]=data[1];
+               if (data + 2 > end)
+                  return "Too short";
+               tx[txp++] = 0x70;        // pubcomp
+               tx[txp++] = 2;
+               tx[txp++] = data[0];
+               tx[txp++] = data[1];
             }
             break;
          case 7:               // pubcomp
@@ -217,12 +219,12 @@ static void *server(void *arg)
             break;
          case 12:              // pingreq
             {
-		    tx[txp++]=0xD0;
-		    tx[txp++]=0;
+               tx[txp++] = 0xD0;
+               tx[txp++] = 0;
             }
             break;
          case 14:              // disconnect
-	    return "Disconnected";
+            return "Disconnected";
          default:
             return "Unexpected MQTT message code";
          }
@@ -232,7 +234,7 @@ static void *server(void *arg)
          fail = process();
       if (!fail && txp)
       {
-	      // TODO queue for sender?
+         // TODO queue for sender?
          if (sqldebug)
          {
             fprintf(stderr, "%s>", j_get(j, "device"));
@@ -265,25 +267,19 @@ static void *listener(void *arg)
       errx(1, "CTX fail");
    if (*mqttkey)
    {
-      FILE *k = fmemopen((void *) mqttkey, strlen(mqttkey), "r");
-      EVP_PKEY *key = PEM_read_PrivateKey(k, NULL, NULL, NULL); // No password
-      fclose(k);
+      EVP_PKEY *key = der2pkey(mqttkey);
       SSL_CTX_use_PrivateKey(ctx, key);
       EVP_PKEY_free(key);
    }
    if (*mqttcert)
    {
-      FILE *k = fmemopen((void *) mqttcert, strlen(mqttcert), "r");
-      X509 *cert = PEM_read_X509(k, NULL, NULL, NULL);
-      fclose(k);
+      X509 *cert = der2x509(mqttcert);
       SSL_CTX_use_certificate(ctx, cert);
       X509_free(cert);
    }
    if (*cacert)
    {
-      FILE *k = fmemopen((void *) cacert, strlen(cacert), "r");
-      X509 *cert = PEM_read_X509(k, NULL, NULL, NULL);
-      fclose(k);
+      X509 *cert = der2x509(cacert);
       SSL_CTX_add_client_CA(ctx, cert);
       X509_STORE *ca = X509_STORE_new();
       X509_STORE_add_cert(ca, cert);

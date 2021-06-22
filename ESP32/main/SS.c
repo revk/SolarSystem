@@ -24,16 +24,13 @@ static const char *port_inuse[MAX_PORT];
 #define settings  	\
   	io(tamper) 	\
 	area(area)	\
-	dev(device,50)	\
 	s(name)		\
 
 #define io(n) static uint8_t n;
-#define	dev(n,a) static uint8_t n[a][6];
 #define area(n) area_t n;
 #define	s(n) char *n;
 settings
 #undef io
-#undef dev
 #undef area
 #undef s
 #define port_mask(p) ((p)&63)
@@ -170,12 +167,10 @@ void app_main()
    reason = esp_reset_reason();
    revk_init(&app_command);
 #define io(n) revk_register(#n,0,sizeof(n),&n,BITFIELDS,SETTING_SET|SETTING_BITFIELD);
-#define dev(n,a) revk_register(#n,a,sizeof(*n),&n,NULL,SETTING_BINARY|SETTING_HEX);
 #define s(n) revk_register(#n,0,0,&n,NULL,0);
 #define area(n) revk_register(#n,0,sizeof(n),&n,AREAS,SETTING_BITFIELD);
    settings
 #undef io
-#undef dev
 #undef area
 #undef s
    int p;
