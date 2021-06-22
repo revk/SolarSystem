@@ -165,8 +165,28 @@ int main(int argc, const char *argv[])
                   if (i != instance)
                      sql_safe_query_free(&sql, sql_printf("UPDATE `device` SET `online`=NOW(),`instance`=%lld WHERE `device`=%#s", instance, deviceid));
                } else           // pending
-                  sql_safe_query_free(&sql, sql_printf("REPLACE INTO `pending` SET `pending`=%#s,`online`=NOW(),`address`=%#s,`instance`=%lld", j_get(j, "id"), address, instance));
-	       // Continue as the message could be anything
+               {
+                  const char *id = j_get(j, "id");
+                  sql_safe_query_free(&sql, sql_printf("REPLACE INTO `pending` SET `pending`=%#s,`online`=NOW(),`address`=%#s,`instance`=%lld", id, address, instance));
+                  SQL_RES *res = sql_safe_query_store_free(&sql, sql_printf("SELECT * FROM `device` WHERE `device`=%#s", id));
+                  if (sql_fetch_row(res))
+                  {
+                     const char *deport = sql_col(res, "deport");
+                     if (deport && *deport)
+                     {          // Send to another server
+                        j_t m = j_create();
+                        j_store_string(m, "clientkey", "");
+                        j_store_string(m, "clientcert", "");
+                        j_store_string(m, "mqttcert", "");
+                        j_store_string(m, "mqtthost", deport);
+                        j_t meta = j_store_object(m, "_meta");
+                        j_store_int(meta, "instance", instance);
+                        setting(&m);
+                     }
+                  }
+                  sql_free_result(res);
+               }
+               // Continue as the message could be anything
             }
             if (!prefix)
             {                   // Down (all other messages have a topic)
@@ -176,7 +196,7 @@ int main(int argc, const char *argv[])
                   if (i == instance)
                      sql_safe_query_free(&sql, sql_printf("UPDATE `device` SET `online`=NULL,`instance`=NULL,`lastonline`=NOW() WHERE `device`=%#s AND `instance`=%lld", deviceid, instance));
                } else           // pending
-                  sql_safe_query_free(&sql, sql_printf("DELETE FROM `pending` WHERE instance`=%lld", instance));
+                  sql_safe_query_free(&sql, sql_printf("DELETE FROM `pending` WHERE `instance`=%lld", instance));
                return NULL;
             }
             if (prefix && !strcmp(prefix, "state"))

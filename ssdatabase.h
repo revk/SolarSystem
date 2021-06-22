@@ -52,6 +52,7 @@ time(online);
 time(lastonline);
 ip(address);
 num(instance);
+text(deport,0);
 
 table(pending,12);
 time(online);

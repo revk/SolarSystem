@@ -1,4 +1,6 @@
 // MQTT handling for Solar System
+
+#define _GNU_SOURCE             /* See feature_test_macros(7) */
 #include <stdio.h>
 #include <string.h>
 #include <popt.h>
@@ -494,16 +496,94 @@ void mqtt_start(void)
    }
 }
 
+static void txmessage(j_t * jp)
+{
+   char *buf = NULL;
+   j_t j = *jp;
+   *jp = NULL;
+   const char *process(void) {
+      j_t meta = j_find(j, "_meta");
+      if (!meta)
+         return "No meta";
+      long long instance = strtoull(j_get(meta, "instance") ? : "", NULL, 10);
+      if (!instance)
+         return "No instance";
+      char *topic = (char *) j_get(meta, "topic");
+      if (!topic)
+      {                         // Make topic
+         const char *prefix = j_get(meta, "prefix");
+         if (!prefix)
+            return "Missing prefix";
+         const char *suffix = j_get(meta, "suffix");
+         if (suffix)
+            j_store_stringf(meta, "topic", "%s/SS/*/%s", prefix, suffix);
+         else
+            j_store_stringf(meta, "topic", "%s/SS/*", prefix);
+         topic = (char *) j_get(meta, "topic");
+      }
+      // Make publish
+      uint8_t tx[2048];         // Sane limit
+      unsigned int txp = 0;
+      tx[txp++] = 0x30;         // Not dup, qos=0, no retain
+      tx[txp++] = 0;            // Len TBA
+      tx[txp++] = 0;
+      unsigned int l = strlen(topic);
+      if (txp + l > sizeof(tx))
+         return "Topic too big";
+      tx[txp++] = (l >> 8);
+      tx[txp++] = l;
+      if (l)
+         memcpy(tx + txp, topic, l);
+      txp += l;
+      // QoS 0 so not packet ID
+      j_delete(&meta);
+      size_t len;
+      if (j_write_mem(j, &buf, &len))
+         return "Bad JSON make";
+      if (txp + len > sizeof(tx))
+         return "Payload too big";
+      if (len)
+         memcpy(tx + txp, buf, len);
+      txp += len;
+      // Store len
+      tx[1] = ((txp - 3) & 0x7F) + 0x80;
+      tx[2] = ((txp - 3) >> 7);
+      pthread_mutex_lock(&slot_mutex);
+      if (slots[instance % MAXSLOTS].instance != instance)
+      {
+         pthread_mutex_unlock(&slot_mutex);
+         return "Old instance";
+      }
+      if (send(slots[instance % MAXSLOTS].txsock, tx, txp, 0) < 0)
+      {
+         pthread_mutex_unlock(&slot_mutex);
+         return "Failed to send";
+      }
+      pthread_mutex_unlock(&slot_mutex);
+      if (sqldebug)
+         fprintf(stderr, "Send to %lld: %s\n", instance, buf);
+      return NULL;
+   }
+   if (buf)
+      free(buf);
+   const char *fail = process();
+   if (fail)
+      warnx("tx MQTT fail: %s", fail);
+   j_delete(&j);
+}
+
 void command(j_t * jp)
 {                               // Send command (expects _meta.instance to be set)
-
-   j_delete(jp);
+   j_t j = *jp;
+   j_string(j_path(j, "_meta.prefix"), "command");
+   txmessage(jp);
 }
 
 void setting(j_t * jp)
 {                               // Send setting (expects _meta.instance to be set)
-
-   j_delete(jp);
+   j_t j = *jp;
+   j_string(j_path(j, "_meta.prefix"), "setting");
+   txmessage(jp);
 }
 
 j_t incoming(void)

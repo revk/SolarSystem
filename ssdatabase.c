@@ -71,7 +71,7 @@ void ssdatabase(SQL * sqlp, const char *sqldatabase)
       if (l)
          sql_safe_query_free(sqlp, sql_printf("ALTER TABLE `%#S` ADD `%#S` CHAR(%d) DEFAULT NULL", tablename, name, l));
       else
-         sql_safe_query_free(sqlp, sql_printf("ALTER TABLE `%#S` ADD `%#S` INT UNSIGNED DEFAULT NULL", tablename, name));
+         sql_safe_query_free(sqlp, sql_printf("ALTER TABLE `%#S` ADD `%#S` TEXT DEFAULT NULL", tablename, name));
    }
 
    void field(const char *name, const char *type) {
