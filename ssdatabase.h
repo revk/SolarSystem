@@ -12,6 +12,10 @@
 #define unique(a,b)             // Unique key for a/b
 #endif
 
+#ifndef	key
+#define key(n,l)             // Unique key for a(l)
+#endif
+
 #ifndef text
 #define text(n,l)               // Text field (l set for fixed size)
 #endif
@@ -46,6 +50,11 @@
 
 table(user, 0);                 // Users of the system
 text(description, 0);           // Users name
+text(email,0);			// Users email - we expect unique
+key(email,128);			
+text(pass,0);			// Password has
+text(session,0);		// Login session
+key(session,32);
 bool (canprovisiondevice);      // Global permission - admin who can provision new devices
 bool (canprovisionfob);         // Global permission - admin who can provision new fobs
 
@@ -137,6 +146,7 @@ text(key, 32);
 #undef table
 #undef link
 #undef unique
+#undef key
 #undef text
 #undef num
 #undef time

@@ -21,10 +21,10 @@ SQLLIB=$(shell mariadb_config --libs)
 SQLVER=$(shell mariadb_config --version | sed 'sx\..*xx')
 endif
 
-all: git alarmpanel cardissue solarsystem
+all: alarmpanel cardissue solarsystem login/envcgi
 
 update:
-	git submodule update --init --remote --merge
+	git submodule update --init --remote --merge --recursive
 	git commit -a -m "Library update"
 	git push
 
@@ -56,6 +56,8 @@ websocket/websocketxml.o: websocket/websocket.c
 	make -C websocket
 DESFireAES/desfireaes.o: DESFireAES/desfireaes.c
 	make -C DESFireAES
+login/envcgi: login/envcgi.c
+	make -C login
 
 cardissue: cardissue.c DESFireAES/desfireaes.o AXL/axl.o AJL/ajl.o afile.o Makefile
 	gcc -g -Wall -Wextra -O -o $@ $< -I. -IDESFireAES/include DESFireAES/desfireaes.o -IAXL AXL/axl.o -IAJL AJL/ajl.o -lcrypto -lpopt -pthread -lcurl -lmosquitto afile.o
@@ -89,6 +91,3 @@ solarsystem: solarsystem.c afile.o AXL/axl.o AJL/ajl.o Dataformat/dataformat.o w
 
 clean:
 	rm -f *.o alarmpanel
-
-git:
-	git submodule update --init
