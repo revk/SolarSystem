@@ -21,7 +21,7 @@ SQLLIB=$(shell mariadb_config --libs)
 SQLVER=$(shell mariadb_config --version | sed 'sx\..*xx')
 endif
 
-all: alarmpanel cardissue solarsystem login/envcgi
+all: alarmpanel cardissue solarsystem login/envcgi SQLlib/sql
 
 update:
 	git submodule update --init --remote --merge --recursive
@@ -49,6 +49,8 @@ AXL/axl.o: AXL/axl.c
 AJL/ajl.o: AJL/ajl.c
 	make -C AJL
 SQLlib/sqllib.o: SQLlib/sqllib.c
+	make -C SQLlib
+SQLlib/sql: SQLlib/sql.c
 	make -C SQLlib
 Dataformat/dataformat.o: Dataformat/dataformat.c
 	make -C Dataformat
