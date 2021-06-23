@@ -15,7 +15,7 @@ s(mqtt, cert,, MQTT CA cert PEM);
 s(mqtt, port, 8883, MQTT port name / number);
 s(sql, config,, SQL connection config file);
 s(sql, database, SS, Database name);
-s(ota,host,,OTA hostname);
+s(ota, host,, OTA hostname);
 
 #undef s
 #undef i

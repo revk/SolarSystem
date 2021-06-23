@@ -85,7 +85,7 @@ static void *server(void *arg)
       instance++;
    {
       int sp[2];
-      if (socketpair(AF_LOCAL, SOCK_DGRAM, 0, sp) < 0)
+      if (socketpair(AF_LOCAL, SOCK_DGRAM | SOCK_NONBLOCK, 0, sp) < 0)
          err(1, "socketpair");
       slot->txsock = sp[0];
       txsock = sp[1];
@@ -499,7 +499,7 @@ void mqtt_start(void)
    }
 }
 
-void mqtt_send(long long instance, const char *prefix, const char *suffix, j_t * jp)
+const char *mqtt_send(long long instance, const char *prefix, const char *suffix, j_t * jp)
 {
    char *buf = NULL;
    char *topic = NULL;
@@ -563,16 +563,17 @@ void mqtt_send(long long instance, const char *prefix, const char *suffix, j_t *
       warnx("tx MQTT fail: %s", fail);
    if (j)
       j_delete(&j);
+   return fail;
 }
 
-void command(long long instance, const char *suffix, j_t * jp)
+const char * command(long long instance, const char *suffix, j_t * jp)
 {                               // Send command (expects _meta.instance to be set)
-   mqtt_send(instance, "command", suffix, jp);
+   return mqtt_send(instance, "command", suffix, jp);
 }
 
-void setting(long long instance, const char *suffix, j_t * jp)
+const char* setting(long long instance, const char *suffix, j_t * jp)
 {                               // Send setting (expects _meta.instance to be set)
-   mqtt_send(instance, "setting", suffix, jp);
+   return mqtt_send(instance, "setting", suffix, jp);
 }
 
 j_t incoming(void)
