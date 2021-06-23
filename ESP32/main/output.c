@@ -89,10 +89,7 @@ const char *output_command(const char *tag, jo_t j)
       if (!e)
          e = jo_error(j, NULL);
       if (e)
-      {
-         jo_free(&j);
          return e;
-      }
       int i = atoi(tag + strlen(TAG));
       if (!i)
       {                         // Array expected}
