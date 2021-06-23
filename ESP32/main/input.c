@@ -65,7 +65,7 @@ int input_get(int p)
    return 0;
 }
 
-const char *input_command(const char *tag, unsigned int len, const unsigned char *value)
+const char *input_command(const char *tag, jo_t j)
 {
    if (!strcmp(tag, "connect"))
       reportall = 1;

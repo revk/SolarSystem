@@ -77,14 +77,13 @@ int output_get(int p)
    return 0;
 }
 
-const char *output_command(const char *tag, unsigned int len, const unsigned char *value)
+const char *output_command(const char *tag, jo_t j)
 {
    if (!strcmp(tag, "connect"))
       output_changed = 1;       // Report
    const char *e = NULL;
    if (!strncmp(tag, TAG, strlen(TAG)))
    {                            // Set output
-      jo_t j = jo_parse_mem(value, len);
       if (!e)
          jo_skip(j);
       if (!e)
@@ -94,7 +93,6 @@ const char *output_command(const char *tag, unsigned int len, const unsigned cha
          jo_free(&j);
          return e;
       }
-      jo_rewind(j);
       int i = atoi(tag + strlen(TAG));
       if (!i)
       {                         // Array expected}
@@ -134,7 +132,6 @@ const char *output_command(const char *tag, unsigned int len, const unsigned cha
          else
             e = "Expecting boolean";
       }
-      jo_free(&j);
       if (!e)
          e = "";
    }

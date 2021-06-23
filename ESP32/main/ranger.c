@@ -37,7 +37,7 @@ settings
 #undef u8
 #undef b
 static char newforce;
-const char *ranger_command(const char *tag, unsigned int len, const unsigned char *value)
+const char *ranger_command(const char *tag, jo_t j)
 {
    if (!strcmp(tag, "connect"))
       newforce = 1;

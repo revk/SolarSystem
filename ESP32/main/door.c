@@ -413,16 +413,15 @@ const char *door_fob(fob_t * fob)
 
 static uint8_t resend;
 
-const char *door_command(const char *tag, unsigned int len, const unsigned char *value)
+const char *door_command(const char *tag, jo_t j)
 {                               // Called for incoming MQTT messages
    if (!doorauto)
       return false;             // No door control in operation
    const char *e = NULL;
    char temp[256];
    const uint8_t *afile = NULL;
-   if (len)
+   if (j)
    {
-      jo_t j = jo_parse_mem((char *) value, len);
       if (jo_here(j) == JO_STRING)
       {
          int len = jo_strncpy16(j, temp, sizeof(temp));
@@ -436,7 +435,6 @@ const char *door_command(const char *tag, unsigned int len, const unsigned char 
          e = "Expecting JSON string";
       if (!e)
          e = jo_error(j, NULL);
-      jo_free(&j);
    }
    if (!strcasecmp(tag, "deadlock"))
       return e ? : door_deadlock(afile);

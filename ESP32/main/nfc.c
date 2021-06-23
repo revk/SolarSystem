@@ -490,7 +490,7 @@ static void report_state(void)
    revk_statej("keys", &j);
 }
 
-const char *nfc_command(const char *tag, unsigned int len, const unsigned char *value)
+const char *nfc_command(const char *tag, jo_t j)
 {
    if (!strcmp(tag, "connect"))
       report_state();
@@ -505,10 +505,8 @@ const char *nfc_command(const char *tag, unsigned int len, const unsigned char *
    }
    if (nfcmask && !strcmp(tag, "led"))
    {
-      jo_t j = jo_parse_mem(value, len);
       char temp[sizeof(ledpattern)];
       int l = jo_strncpy(j, temp, sizeof(temp));
-      jo_free(&j);
       if (l < 0)
          return "Expecting JSON string";
       if (l > sizeof(temp))
@@ -517,34 +515,27 @@ const char *nfc_command(const char *tag, unsigned int len, const unsigned char *
    }
    if (!strcmp(tag, TAG))
    {                            // Direct NFC data
-      if (!len)
+      if (!j)
       {
          fob.remote = 1;        // Disable normal working
          ESP_LOGI(TAG, "NFC access remote");
       } else
       {
-         jo_t j = jo_parse_mem((char *) value, len);
          if (jo_here(j) != JO_STRING)
-         {
-            jo_free(&j);
             return "Expecting JSON string";
-         }
          uint8_t buf[256];
          int len = jo_strncpy16(j, (char *) buf, sizeof(buf));
          if (len < 0 || len > sizeof(buf))
-         {
-            jo_free(&j);
             return "Too big";
-         }
          const char *err = NULL;
          xSemaphoreTake(nfc_mutex, portMAX_DELAY);
          len = pn532_dx(pn532, len, buf, sizeof(buf), &err);
          xSemaphoreGive(nfc_mutex);
          if (len < 0)
             return err ? : "?";
-         j = jo_create_alloc();
-         jo_base16(j, NULL, buf, len);
-         revk_infoj(TAG, &j);
+         jo_t i = jo_create_alloc();
+         jo_base16(i, NULL, buf, len);
+         revk_infoj(TAG, &i);
       }
       return "";
    }

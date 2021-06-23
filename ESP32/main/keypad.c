@@ -46,11 +46,15 @@ settings
 #undef  f
 static volatile uint8_t force;
 
-const char *keypad_command(const char *tag, unsigned int len, const unsigned char *value)
+const char *keypad_command(const char *tag, jo_t j)
 {
+   char val[100];
+   int len = jo_strncpy(j, val, sizeof(val));
+   if (len < 0)
+      val[len = 0] = 0;
    if (!strcmp(tag, "connect") || !strcmp(tag, "disconnect") || !strcmp(tag, "change"))
       force = 1;
-#define f(i,n,l,d) if(!strcasecmp(tag,#n)&&len<=l){memcpy(n,value,len);n##_len=len;if(len<l)memset(n+len,0,l-len);send##i=1;return "";}
+#define f(i,n,l,d) if(!strcasecmp(tag,#n)&&len<=l){memcpy(n,val,len);n##_len=len;if(len<l)memset(n+len,0,l-len);send##i=1;return "";}
    commands
 #undef f
        return NULL;

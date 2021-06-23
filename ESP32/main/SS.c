@@ -148,10 +148,10 @@ const char *port_check(int p, const char *module, int in)
    return NULL;                 // OK
 }
 
-const char *app_command(const char *tag, unsigned int len, const unsigned char *value)
+const char *app_command(const char *tag, jo_t j)
 {
    const char *e = NULL;
-#define m(x) extern const char * x##_command(const char *tag,unsigned int len,const unsigned char *value); if(!e)e=x##_command(tag,len,value);
+#define m(x) extern const char * x##_command(const char *,jo_t); if(!e)e=x##_command(tag,j);
    modules;
 #undef m
    if (!strcmp(tag, "connect"))

@@ -33,7 +33,7 @@ void ssdatabase(SQL * sqlp, const char *sqldatabase)
       tabledef = NULL;
    }
 
-   void create(const char *name, int l) {
+   void create(const char *name, int l) {       // Make table
       res = sql_query_store_free(sqlp, sql_printf("DESCRIBE `%S`", name));
       if (res)
       {                         // Exists
@@ -48,7 +48,7 @@ void ssdatabase(SQL * sqlp, const char *sqldatabase)
          sql_safe_query_free(sqlp, sql_printf("CREATE TABLE `%#S` (`%#S` int unsigned NOT NULL AUTO_INCREMENT PRIMARY KEY)", name, name));
    }
 
-   void table(const char *name, int l) {
+   void created(const char *name, int l) {      // Get tabledef
       endtable();
       tablename = name;
       l = l;
@@ -57,6 +57,13 @@ void ssdatabase(SQL * sqlp, const char *sqldatabase)
          errx(1, "WTF %s", name);
       tabledef = strdup(res->current_row[1]);
       sql_free_result(res);
+      res = NULL;
+   }
+
+   void table(const char *name, int l) {        // Get rows
+      endtable();
+      tablename = name;
+      l = l;
       res = sql_safe_query_store_free(sqlp, sql_printf("SELECT * FROM `%#S` LIMIT 0", name));
    }
 
@@ -124,7 +131,7 @@ void ssdatabase(SQL * sqlp, const char *sqldatabase)
 #define	bool(n)		field(#n,"enum('false','true')");
 #define	areas(n)	field(#n,"set('A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z')");
 #include "ssdatabase.h"
-#define table(n,l)	table(#n,l);    // Get table info
+#define table(n,l)	created(#n,l);  // Get table info
 #define link(n)		foreign(#n);    // Foreign key
 #define unique(a,b)	unique(#a,#b);  // Make extra keys
 #include "ssdatabase.h"
