@@ -41,3 +41,7 @@
 [submodule "SQLlib"]
 	path = SQLlib
 	url = https://github.com/revk/SQLlib
+[submodule "login"]
+	path = login
+	url = https://github.com/revk/login
+	branch = main

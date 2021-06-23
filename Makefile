@@ -56,7 +56,7 @@ websocket/websocketxml.o: websocket/websocket.c
 	make -C websocket
 DESFireAES/desfireaes.o: DESFireAES/desfireaes.c
 	make -C DESFireAES
-login/envcgi: login/envcgi.c
+login/envcgi: login/envcgi.c login/.config
 	make -C login
 
 cardissue: cardissue.c DESFireAES/desfireaes.o AXL/axl.o AJL/ajl.o afile.o Makefile
