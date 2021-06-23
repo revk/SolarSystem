@@ -8,7 +8,7 @@ const char *output_tamper = NULL;
 #include <driver/gpio.h>
 
 // Output ports
-#define MAXOUTPUT 26
+#define MAXOUTPUT 10
 #define BITFIELDS "-"
 #define PORT_INV 0x40
 #define port_mask(p) ((p)&63)
@@ -19,9 +19,7 @@ static char *powername[MAXOUTPUT];
 
 #define i(x) s(x)
 #define s(x) static area_t output##x[MAXOUTPUT];
-states;
-#undef i
-#undef s
+#include "states.h"
 
 static uint64_t output_state = 0;       // Port state
 static uint64_t output_state_set = 0;   // Output has been set
@@ -180,9 +178,7 @@ void output_init(void)
    revk_register("powername", MAXOUTPUT, 0, &powername, NULL, 0);
 #define i(x) s(x)
 #define s(x) revk_register("output"#x, MAXOUTPUT, sizeof(*output##x), &output##x, AREAS, SETTING_BITFIELD);
-   states;
-#undef i
-#undef s
+#include "states.h"
    {                            // GPIO
     gpio_config_t c = { mode:GPIO_MODE_OUTPUT };
       int i,
