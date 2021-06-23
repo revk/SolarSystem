@@ -49,8 +49,8 @@ static volatile uint8_t force;
 const char *keypad_command(const char *tag, jo_t j)
 {
    char val[100];
-   int len = jo_strncpy(j, val, sizeof(val));
-   if (len < 0)
+   int len = 0;
+   if (j && (len = jo_strncpy(j, val, sizeof(val))) < 0)
       val[len = 0] = 0;
    if (!strcmp(tag, "connect") || !strcmp(tag, "disconnect") || !strcmp(tag, "change"))
       force = 1;
