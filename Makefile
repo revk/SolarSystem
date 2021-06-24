@@ -58,6 +58,8 @@ websocket/websocketxml.o: websocket/websocket.c
 	make -C websocket
 DESFireAES/desfireaes.o: DESFireAES/desfireaes.c
 	make -C DESFireAES
+login/.config:
+	make -C login menuconfig
 login/envcgi: login/envcgi.c login/.config
 	make -C login
 
