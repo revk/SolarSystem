@@ -44,6 +44,6 @@ echo ""
 	</table>
 	<input type=submit value="Login" name=LOGIN>
 	<input type=submit value="Forgotten password" name=FORGOT>
-	<input type=submit value="Register" name=NEW>
+	<input type=submit value="Register as new user" name=NEW>
 </form>
 END

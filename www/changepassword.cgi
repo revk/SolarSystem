@@ -26,7 +26,7 @@ setenv NEWPASSWORD `password`
 <form method=post action=changepassword.cgi>
 	<table>
 		<IF Z=0><tr><td>Old password</td><td><input size=40 type=password name=OLDPASSWORD autofocus></td></tr></if>
-		<tr><td>New password</td><td><input size=40 name=NEWPASSWORD autofocus></td></td>
+		<tr><td>New password</td><td><input size=40 name=NEWPASSWORD></td></td>
 	</table>
 	<input type=submit value="Change" name=CHANGE>
 </form>
