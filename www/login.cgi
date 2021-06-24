@@ -35,7 +35,6 @@ echo "Content-Type: text/html"
 echo ""
 /projects/tools/bin/xmlsql head.html - foot.html << END
 <h1>Access.me.uk</h1>
-<p>Solar System security management portal.</p>
 <if FAIL><p><b><output name=FAIL></b></p></if>
 <form method=post action=login.cgi>
 	<table>
