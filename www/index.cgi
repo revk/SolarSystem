@@ -1,4 +1,4 @@
-#!../login/loggedin /bin/csh
+#!../login/loggedin /bin/csh -f
 echo "Content-Type: text/html"
 echo ""
 /projects/tools/bin/xmlsql head.html - foot.html << END
