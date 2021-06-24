@@ -59,9 +59,9 @@ websocket/websocketxml.o: websocket/websocket.c
 DESFireAES/desfireaes.o: DESFireAES/desfireaes.c
 	make -C DESFireAES
 login/.config:
-	make -C login menuconfig
+	make KCONFIG_CONFIG=../login.conf -C login menuconfig
 login/envcgi: login/envcgi.c login/.config
-	make -C login
+	make KCONFIG_CONFIG=../login.conf -C login
 
 cardissue: cardissue.c DESFireAES/desfireaes.o AXL/axl.o AJL/ajl.o afile.o Makefile
 	gcc -g -Wall -Wextra -O -o $@ $< -I. -IDESFireAES/include DESFireAES/desfireaes.o -IAXL AXL/axl.o -IAJL AJL/ajl.o -lcrypto -lpopt -pthread -lcurl -lmosquitto afile.o
