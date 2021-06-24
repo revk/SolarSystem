@@ -58,7 +58,7 @@ websocket/websocketxml.o: websocket/websocket.c
 	make -C websocket
 DESFireAES/desfireaes.o: DESFireAES/desfireaes.c
 	make -C DESFireAES
-login.conf: login Makefile
+login.conf: login/Kconfig
 	make KCONFIG_CONFIG=../login.conf -C login ../login.conf
 	make -C login
 
