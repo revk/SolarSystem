@@ -4,10 +4,27 @@ if($?FORGOT || $?NEW) then
 		setenv FAIL "Specify email address"
 		goto done
 	endif
+	setenv LINK `weblink --make='$USERNAME'`
+	if($?NEW) then
+	email --subject="New user registration" --to="$USERNAME" --name="$SERVER_NAME" --from="noreply@$SERVER_NAME" << END
+You have asked to create a new user account.
+Please use this link.
 
+${ENVCGI_SERVER}register.cgi?$LINK
+END
+	else
+	email --subject="Forgetting password" --to="$USERNAME" --name="$SERVER_NAME" --from="noreply@$SERVER_NAME" << END
+You have requested a password change.
+Please use this link.
+
+${ENVCGI_SERVER}forgot.cgi?$LINK
+END
+	endif
+	setenv FAIL "We have emailed $USERNAME, check your email and follow the link"
+	goto done
 	exit 0
 endif
-if($?USERNAME) then
+if($?PASSWORD) then
 	dologin --redirect
 	exit 0
 endif
