@@ -21,7 +21,7 @@ SQLLIB=$(shell mariadb_config --libs)
 SQLVER=$(shell mariadb_config --version | sed 'sx\..*xx')
 endif
 
-all: alarmpanel cardissue solarsystem login/envcgi SQLlib/sql
+all: alarmpanel cardissue solarsystem login.conf SQLlib/sql
 
 update:
 	git submodule update --init --remote --merge --recursive
@@ -58,9 +58,7 @@ websocket/websocketxml.o: websocket/websocket.c
 	make -C websocket
 DESFireAES/desfireaes.o: DESFireAES/desfireaes.c
 	make -C DESFireAES
-login/.config:
-	make KCONFIG_CONFIG=../login.conf -C login menuconfig
-login/envcgi: login/envcgi.c login/.config
+login.conf: login Makefile
 	make KCONFIG_CONFIG=../login.conf -C login
 
 cardissue: cardissue.c DESFireAES/desfireaes.o AXL/axl.o AJL/ajl.o afile.o Makefile
