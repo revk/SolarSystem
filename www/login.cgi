@@ -1,14 +1,10 @@
 #!../login/logincheck /bin/csh
-if($?FORGOT) then
-	# TODO
-	exit 0
-endif
-if($?NEW) then
+if($?FORGOT || $?NEW) then
 	if("$USERNAME" == "") then
 		setenv FAIL "Specify email address"
 		goto done
 	endif
-	# TODO
+
 	exit 0
 endif
 if($?USERNAME) then
