@@ -59,6 +59,7 @@ bool (canprovisionfob);         // Global permission - admin who can provision n
 table(session,36);		// Login session
 link(user);			// Which user
 time(logintime);		// Login time
+time(expires);			// Session expiry
 ip(loginip);			// Login ip
 
 table(usersite, 0);             // Which sites a user has access to
