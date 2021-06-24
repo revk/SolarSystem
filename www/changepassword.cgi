@@ -1,8 +1,8 @@
-#!../login/loggedin /bin/csh
-setenv Z `sql -dSS 'SELECT COUNT(*) FROM user WHERE email="$USER_ID" AND hash=NULL'`
+#!../login/loggedin /bin/csh -x
+setenv Z `sql -c -v -dSS 'SELECT COUNT(*) FROM user WHERE user="$USER_ID" AND hash IS NULL'`
 if($?NEWPASSWORD) then
 	if("$Z" == 1) then
-		setenv FAIL `changepassword`
+		setenv FAIL `changepassword --force`
 	else
 		setenv FAIL `changepassword`
 	endif
@@ -16,14 +16,16 @@ if($?NEWPASSWORD) then
 endif
 echo "Content-Type: text/html"
 echo ""
+setenv NEWPASSWORD `password`
 /projects/tools/bin/xmlsql head.html - foot.html << END
 <h1>Access.me.uk</h1>
 <p>Solar System security management portal.</p>
 <if FAIL><p><b><output name=FAIL></b></p></if>
+<p>We suggest a new password for you, but you can enter one of your choice if you prefer.</p>
 <form method=post action=changepassword.cgi>
 	<table>
-		<tr><td>Old password</td><td><input size=40 type=password name=OLDPASSWORD autofocus></td></tr>
-		<tr><td>New password</td><td><input size=40 type=password name=NEWPASSWORD></td></td>
+		<IF Z=0><tr><td>Old password</td><td><input size=40 type=password name=OLDPASSWORD autofocus></td></tr></if>
+		<tr><td>New password</td><td><input size=40 name=NEWPASSWORD autofocus></td></td>
 	</table>
 	<input type=submit value="Change" name=CHANGE>
 </form>

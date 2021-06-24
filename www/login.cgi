@@ -41,7 +41,7 @@ echo ""
 		<tr><td>Password</td><td><input size=40 type=password name=PASSWORD></td></td>
 	</table>
 	<input type=submit value="Login" name=LOGIN>
-	<input type=submit value="Forgotten password" name=FORGET>
+	<input type=submit value="Forgotten password" name=FORGOT>
 	<input type=submit value="Register" name=NEW>
 </form>
 END
