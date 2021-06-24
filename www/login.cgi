@@ -4,6 +4,10 @@ if($?FORGOT) then
 	exit 0
 endif
 if($?NEW) then
+	if("$USERNAME" == "") then
+		setenv FAIL "Specify email address"
+		goto done
+	endif
 	# TODO
 	exit 0
 endif
@@ -11,6 +15,7 @@ if($?USERNAME) then
 	dologin --redirect
 	exit 0
 endif
+done:
 echo "Content-Type: text/html"
 echo ""
 /projects/tools/bin/xmlsql head.html - foot.html << END
