@@ -1,6 +1,11 @@
 #!../login/loggedin /bin/csh
+setenv Z `sql -dSS 'SELECT COUNT(*) FROM user WHERE email="$USER_ID" AND hash=NULL'`
 if($?NEWPASSWORD) then
-	setenv FAIL `changepassword`
+	if("$Z" == 1) then
+		setenv FAIL `changepassword`
+	else
+		setenv FAIL `changepassword`
+	endif
 	if(! $status) then
 		echo "Location: $ENVCGI_SERVER"
 		echo ""
