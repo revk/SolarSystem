@@ -61,6 +61,9 @@ DESFireAES/desfireaes.o: DESFireAES/desfireaes.c
 login.conf: login/Kconfig
 	make KCONFIG_CONFIG=../login.conf -C login ../login.conf
 	make -C login
+menuconfig:
+	make KCONFIG_CONFIG=../login.conf -C login menuconfig
+	make -C login
 
 cardissue: cardissue.c DESFireAES/desfireaes.o AXL/axl.o AJL/ajl.o afile.o Makefile
 	gcc -g -Wall -Wextra -O -o $@ $< -I. -IDESFireAES/include DESFireAES/desfireaes.o -IAXL AXL/axl.o -IAJL AJL/ajl.o -lcrypto -lpopt -pthread -lcurl -lmosquitto afile.o
