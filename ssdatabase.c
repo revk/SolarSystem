@@ -112,6 +112,15 @@ void ssdatabase(SQL * sqlp, const char *sqldatabase)
       free(key);
    }
 
+   void index(const char *name) {
+      char *key;
+      if (asprintf(&key, "KEY `%s_%s`", tablename, name) < 0)
+         errx(1, "malloc");
+      if (!strstr(tabledef, key))
+         sql_safe_query_free(sqlp, sql_printf("ALTER TABLE `%#S` ADD %s (`%#S`)", tablename, key, name));
+      free(key);
+   }
+
    void text(const char *name, int l) {
       if (sql_colnum(res, name) >= 0)
          return;                // Exists - we are not updating type for now
@@ -147,7 +156,8 @@ void ssdatabase(SQL * sqlp, const char *sqldatabase)
 #define table(n,l)	created(#n,l);  // Get table info
 #define link(n)		foreign(#n);    // Foreign key
 #define unique(a,b)	unique(#a,#b);  // Make extra keys
-#define key(n,l)	key(#n,l);      // Make extra keys
+#define key(n,l)	key(#n,l);      // Make extra key
+#define index(n)	index(#n);      // Make extra index
 #include "ssdatabase.h"
    endtable();
    sql_safe_commit(sqlp);

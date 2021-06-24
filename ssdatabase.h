@@ -16,6 +16,10 @@
 #define key(n,l)                // Unique key for a(l)
 #endif
 
+#ifndef	index
+#define index(n)		// Simple index
+#endif
+
 #ifndef text
 #define text(n,l)               // Text field (l set for fixed size)
 #endif
@@ -63,6 +67,7 @@ table(session, 36);             // Login session
 link(user);                     // Which user
 time(logintime);                // Login time
 time(expires);                  // Session expiry
+index(expires);			// Easier to delete
 ip(loginip);                    // Login ip
 
 table(usersite, 0);             // Which sites a user has access to
@@ -158,6 +163,7 @@ text(key, 32);
 #undef link
 #undef unique
 #undef key
+#undef index
 #undef text
 #undef num
 #undef time
