@@ -69,6 +69,7 @@ time(logintime);                // Login time
 time(expires);                  // Session expiry
 index(expires);			// Easier to delete
 ip(loginip);                    // Login ip
+text(useragent,0);		// User agent
 
 table(usersite, 0);             // Which sites a user has access to
 link(user);
