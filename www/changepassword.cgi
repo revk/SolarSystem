@@ -1,4 +1,5 @@
-#!../login/loggedin /bin/csh -x
+#!../login/logincheck /bin/csh -x
+if(! $?USER_ID) exit 0
 setenv Z `sql -c -v -dSS 'SELECT COUNT(*) FROM user WHERE user="$USER_ID" AND hash IS NULL'`
 if($?NEWPASSWORD) then
 	if("$Z" == 1) then
