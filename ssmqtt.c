@@ -566,12 +566,12 @@ const char *mqtt_send(long long instance, const char *prefix, const char *suffix
    return fail;
 }
 
-const char * command(long long instance, const char *suffix, j_t * jp)
+const char *command(long long instance, const char *suffix, j_t * jp)
 {                               // Send command (expects _meta.instance to be set)
    return mqtt_send(instance, "command", suffix, jp);
 }
 
-const char* setting(long long instance, const char *suffix, j_t * jp)
+const char *setting(long long instance, const char *suffix, j_t * jp)
 {                               // Send setting (expects _meta.instance to be set)
    return mqtt_send(instance, "setting", suffix, jp);
 }

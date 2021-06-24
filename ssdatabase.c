@@ -98,16 +98,16 @@ void ssdatabase(SQL * sqlp, const char *sqldatabase)
       free(key);
    }
 
-   void key(const char *name,int l) {
+   void key(const char *name, int l) {
       char *key;
       if (asprintf(&key, "UNIQUE KEY `%s_%s`", tablename, name) < 0)
          errx(1, "malloc");
       if (!strstr(tabledef, key))
       {
-	      if(l)
-         sql_safe_query_free(sqlp, sql_printf("ALTER TABLE `%#S` ADD %s (`%#S`(%d))", tablename, key, name, l));
-	      else
-         sql_safe_query_free(sqlp, sql_printf("ALTER TABLE `%#S` ADD %s (`%#S`)", tablename, key, name));
+         if (l)
+            sql_safe_query_free(sqlp, sql_printf("ALTER TABLE `%#S` ADD %s (`%#S`(%d))", tablename, key, name, l));
+         else
+            sql_safe_query_free(sqlp, sql_printf("ALTER TABLE `%#S` ADD %s (`%#S`)", tablename, key, name));
       }
       free(key);
    }
@@ -147,7 +147,7 @@ void ssdatabase(SQL * sqlp, const char *sqldatabase)
 #define table(n,l)	created(#n,l);  // Get table info
 #define link(n)		foreign(#n);    // Foreign key
 #define unique(a,b)	unique(#a,#b);  // Make extra keys
-#define key(n,l)	key(#n,l);  // Make extra keys
+#define key(n,l)	key(#n,l);      // Make extra keys
 #include "ssdatabase.h"
    endtable();
    sql_safe_commit(sqlp);

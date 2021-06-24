@@ -13,7 +13,7 @@
 #endif
 
 #ifndef	key
-#define key(n,l)             // Unique key for a(l)
+#define key(n,l)                // Unique key for a(l)
 #endif
 
 #ifndef text
@@ -50,22 +50,26 @@
 
 table(user, 0);                 // Users of the system
 text(description, 0);           // Users name
-text(email,0);			// Users email - we expect unique
-key(email,128);			
-text(hash,0);			// Password has
+text(email, 0);                 // Users email - we expect unique
+key(email, 128);
+text(hash, 0);                  // Password has
 bool (canprovisiondevice);      // Global permission - admin who can provision new devices
 bool (canprovisionfob);         // Global permission - admin who can provision new fobs
+bool (canedituser);             // Global permission - admin who can edit user database
+bool (caneditcustomer);         // Global permission - admin who can edit customer database
+bool (caneditself);             // Allowed to change own user details (password is always allowed)
 
-table(session,36);		// Login session
-link(user);			// Which user
-time(logintime);		// Login time
-time(expires);			// Session expiry
-ip(loginip);			// Login ip
+table(session, 36);             // Login session
+link(user);                     // Which user
+time(logintime);                // Login time
+time(expires);                  // Session expiry
+ip(loginip);                    // Login ip
 
 table(usersite, 0);             // Which sites a user has access to
 link(user);
 link(site);
 unique(user, site);
+bool (caneditsite);             // Can edit this site
 
 table(useraid, 0);              // User capabilities per AID
 areas(access);                  // Where user is allowed access
@@ -83,6 +87,9 @@ table(usercustomer, 0);         // User link to customers, many to many
 link(user);
 link(customer);
 unique(user, customer);
+bool (caneditcustomer);         // Can edit this customer record.
+bool (caneditsite);             // Can edit sites related to this customer record.
+bool (canedituser);             // Can edit users relating to this customer.
 
 table(customer, 0);             // Customer (may be more than one site)
 text(description, 0);
