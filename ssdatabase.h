@@ -52,11 +52,14 @@ table(user, 0);                 // Users of the system
 text(description, 0);           // Users name
 text(email,0);			// Users email - we expect unique
 key(email,128);			
-text(pass,0);			// Password has
-text(session,0);		// Login session
-key(session,32);
+text(hash,0);			// Password has
 bool (canprovisiondevice);      // Global permission - admin who can provision new devices
 bool (canprovisionfob);         // Global permission - admin who can provision new fobs
+
+table(session,36);		// Login session
+link(user);			// Which user
+time(logintime);		// Login time
+ip(loginip);			// Login ip
 
 table(usersite, 0);             // Which sites a user has access to
 link(user);
