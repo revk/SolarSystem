@@ -5,7 +5,7 @@
 #endif
 
 #ifndef	join
-#define	join(a,b) table(a##b,0);link(a);link(b);unique(a,b); // Table linking two tables
+#define	join(a,b)
 #endif
 
 #ifndef	link

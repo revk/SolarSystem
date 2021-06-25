@@ -50,22 +50,6 @@ void ssdatabase(SQL * sqlp, const char *sqldatabase)
          sql_safe_query_free(sqlp, sql_printf("CREATE TABLE `%#S` (`%#S` int unsigned NOT NULL AUTO_INCREMENT PRIMARY KEY)", name, name));
    }
 
-   void created(const char *name) {     // Get tabledef
-      tablename = name;
-      SQL_RES *res = sql_safe_query_store_free(sqlp, sql_printf("SHOW CREATE TABLE `%#S`", name));
-      if (!sql_fetch_row(res))
-         errx(1, "WTF %s", name);
-      tabledef = strdup(res->current_row[1]);
-      sql_free_result(res);
-   }
-
-   void table(const char *name, int l) {        // Get rows
-      endtable();
-      tablename = name;
-      l = l;
-      res = sql_safe_query_store_free(sqlp, sql_printf("SELECT * FROM `%#S` LIMIT 0", name));
-   }
-
    void link(const char *name) {
       if (sql_colnum(res, name) >= 0)
          return;                // Exists - we are not updating type for now
@@ -79,6 +63,30 @@ void ssdatabase(SQL * sqlp, const char *sqldatabase)
          sql_safe_query_free(sqlp, sql_printf("ALTER TABLE `%#S` ADD `%#S` int unsigned DEFAULT NULL", tablename, name));
    }
 
+   void unique(const char *a, const char *b) {
+      char *key;
+      if (asprintf(&key, "UNIQUE KEY `%s_%s_%s`", tablename, a, b) < 0)
+         errx(1, "malloc");
+      if (!strstr(tabledef, key))
+         sql_safe_query_free(sqlp, sql_printf("ALTER TABLE `%#S` ADD %s (`%#S`,`%#S`)", tablename, key, a, b));
+      free(key);
+   }
+
+   void getrows(const char *name) {       // Get rows
+      endtable();
+      tablename = name;
+      res = sql_safe_query_store_free(sqlp, sql_printf("SELECT * FROM `%#S` LIMIT 0", name));
+   }
+
+   void getdefs(const char *name) {     // Get tabledef
+      tablename = name;
+      SQL_RES *res = sql_safe_query_store_free(sqlp, sql_printf("SHOW CREATE TABLE `%#S`", name));
+      if (!sql_fetch_row(res))
+         errx(1, "WTF %s", name);
+      tabledef = strdup(res->current_row[1]);
+      sql_free_result(res);
+   }
+
    void foreign(const char *name) {
       char *constraint;
       if (asprintf(&constraint, "CONSTRAINT `%s_%s` FOREIGN KEY", tablename, name) < 0)
@@ -88,13 +96,22 @@ void ssdatabase(SQL * sqlp, const char *sqldatabase)
       free(constraint);
    }
 
-   void unique(const char *a, const char *b) {
-      char *key;
-      if (asprintf(&key, "UNIQUE KEY `%s_%s_%s`", tablename, a, b) < 0)
-         errx(1, "malloc");
-      if (!strstr(tabledef, key))
-         sql_safe_query_free(sqlp, sql_printf("ALTER TABLE `%#S` ADD %s (`%#S`,`%#S`)", tablename, key, a, b));
-      free(key);
+   void join(const char *name, const char *a, const char *b) {
+      res = sql_query_store_free(sqlp, sql_printf("DESCRIBE `%S`", name));
+      if (res)
+      {                         // Exists
+         sql_free_result(res);
+         res = NULL;
+         return;
+      }
+      warnx("Creating table %s", name);
+      sql_safe_query_free(sqlp, sql_printf("CREATE TABLE `%#S` (`%#S` int unsigned NOT NULL AUTO_INCREMENT PRIMARY KEY)", name,name));
+      getrows(name);
+      getdefs(name);
+      link(a);
+      link(b);
+      unique(a,b);
+      sql_safe_query_free(sqlp,sql_printf("ALTER TABLE `%#S` DROP `%#S`",name,name));
    }
 
    void key(const char *name, int l) {
@@ -166,8 +183,10 @@ void ssdatabase(SQL * sqlp, const char *sqldatabase)
 
    sql_transaction(sqlp);
 #define table(n,l)	create(#n,l);   // Make tables first
+#define join(a,b)	join(#a#b,#a,#b);
 #include "ssdatabase.h"
-#define table(n,l)	table(#n,l);created(#n);        // Get table info
+#define table(n,l)	getrows(#n);getdefs(#n);  // Get table info
+#define	join(a,b)	getrows(#a#b);getdefs(#a#b);
 #define link(n)		link(#n);       // Foreign key
 #define	text(n,l)	text(#n,l);
 #define	num(n)		field(#n,"int(10)");
@@ -179,7 +198,8 @@ void ssdatabase(SQL * sqlp, const char *sqldatabase)
 #define	areas(n)	field(#n,areastype);
 #define	area(n	)	field(#n,areatype);
 #include "ssdatabase.h"
-#define table(n,l)	created(#n);    // Get table info
+#define table(n,l)	getdefs(#n);    // Get table info
+#define join(a,b)	getdefs(#a#b);foreign(#a);foreign(#b);  // Get table info
 #define link(n)		foreign(#n);    // Foreign key
 #define unique(a,b)	unique(#a,#b);  // Make extra keys
 #define key(n,l)	key(#n,l);      // Make extra key
