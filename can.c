@@ -62,9 +62,9 @@ int main(int argc, const char *argv[])
       errx(1, "%s: %s\n", poptBadOption(optCon, POPT_BADOPTION_NOALIAS), poptStrerror(c));
 
    SQL sql;
-   sql_cnf_connect(&sql,CONFIG_SQL_CONFIG_FILE);
-   if(*CONFIG_SQL_DATABASE)
-   sql_safe_select_db(&sql,CONFIG_SQL_DATABASE);
+   sql_cnf_connect(&sql, CONFIG_SQL_CONFIG_FILE);
+   if (*CONFIG_SQL_DATABASE)
+      sql_safe_select_db(&sql, CONFIG_SQL_DATABASE);
    SQL_RES *resus = NULL;
    const char *check(void) {
       if (!us)
