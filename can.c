@@ -10,10 +10,11 @@
 #include <err.h>
 #include "AJL/ajl.h"
 #include "SQLlib/sqllib.h"
+#include "login/redirect.h"
 
 int main(int argc, const char *argv[])
 {
-   int as = 0,
+   int us = 0,
        user = 0,
        organisation = 0,
        site = 0,
@@ -25,7 +26,7 @@ int main(int argc, const char *argv[])
    {                            // POPT
       poptContext optCon;       // context for parsing command-line options
       const struct poptOption optionsTable[] = {
-         { "as", 0, POPT_ARG_INT, &as, 0, "Check as user", "N" },
+         { "as", 0, POPT_ARG_INT, &us, 0, "Check as user", "N" },
          { "user", 'u', POPT_ARG_INT, &user, 0, "Check access to user", "N" },
          { "organisation", 'o', POPT_ARG_INT, &organisation, 0, "Check access to organisation", "N" },
          { "site", 's', POPT_ARG_INT, &site, 0, "Check access to site", "N" },
@@ -33,7 +34,7 @@ int main(int argc, const char *argv[])
          { "class", 'c', POPT_ARG_INT, &class, 0, "Check access to class", "N" },
          { "config-file", 0, POPT_ARG_STRING | POPT_ARGFLAG_SHOW_DEFAULT, &configfile, 0, "Config file", "filename" },
          { "redirect", 'r', POPT_ARG_NONE, &redirect, 0, "Redirect", NULL },
-         { "reason", 0, POPT_ARG_NONE, &reason, 0, "Output reason", NULL },
+         { "reason", 0, POPT_ARG_NONE, &reason, 0, "Output reason allowed", NULL },
          { "debug", 'v', POPT_ARG_NONE, &sqldebug, 0, "Debug", NULL },
          POPT_AUTOHELP { }
       };
@@ -70,14 +71,24 @@ int main(int argc, const char *argv[])
    SQL_RES *resaid = NULL;
    SQL_RES *resclass = NULL;
    const char *check(void) {
-      if (!as)
-         as = atoi(getenv("USER_ID") ? : "");
-      if (!as)
-         return "No user";
+      if (!us)
+         us = atoi(getenv("USER_ID") ? : "");
+      if (!us)
+      {
+	      warnx("No --as/$USER_ID provided for can");
+         return NULL;
+      }
+      resus=sql_safe_query_store_free(&sql,sql_printf("SELECT * FROM `user` WHERE `user`=%d",us));
+      if(!sql_fetch_row(resus))
+      {
+	      warnx("User does not exist %d",us);
+	      return NULL;
+      }
+      if(*sql_colz(resus,"admin")=='t')return "User is top level admin.";
 
-      return NULL;              // OK
+      return NULL;              // Fail
    }
-   const char *fail = check();
+   const char *why = check();
    if (resus)
       sql_free_result(resus);
    if (resuser)
@@ -90,14 +101,11 @@ int main(int argc, const char *argv[])
       sql_free_result(resaid);
    if (resclass)
       sql_free_result(resclass);
-   if (fail)
-   {
-      if (redirect)
-      {
-         // TODO
-      } else if (reason)
-         printf("%s", fail);
-   }
+   if (!why)
+   { // not allowed
+      if (redirect) sendredirect(NULL,"Sorry, access not allowed to this page");
+   } else if(reason)
+         printf("%s", why);
    sql_close(&sql);
-   return fail ? 1 : 0;
+   return why ? 0 : 1;
 }

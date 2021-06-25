@@ -59,10 +59,11 @@ websocket/websocketxml.o: websocket/websocket.c
 DESFireAES/desfireaes.o: DESFireAES/desfireaes.c
 	make -C DESFireAES
 login.conf: login/Kconfig
-	make KCONFIG_CONFIG=../login.conf -C login ../login.conf
-	make -C login
+	make -C login ../login.conf
+login/redirect.o: login/redirect.c login.conf
+	make -C login redirect.o
 menuconfig:
-	make KCONFIG_CONFIG=../login.conf -C login menuconfig
+	make -C login menuconfig
 	make -C login
 
 cardissue: cardissue.c DESFireAES/desfireaes.o AXL/axl.o AJL/ajl.o afile.o Makefile
@@ -95,8 +96,8 @@ sscert.o: sscert.c sscert.h Makefile
 solarsystem: solarsystem.c afile.o AXL/axl.o AJL/ajl.o Dataformat/dataformat.o websocket/websocketxml.o DESFireAES/desfireaes.o SQLlib/sqllib.o Makefile ssdatabase.o ssmqtt.o sscert.o ssconfig.h
 	gcc -g -Wall -Wextra -O -o $@ $< afile.o ssdatabase.o ssmqtt.o sscert.o AJL/ajl.o AXL/axl.o Dataformat/dataformat.o websocket/websocketxml.o DESFireAES/desfireaes.o SQLlib/sqllib.o ${SQLINC} ${SQLLIB} -lpopt -lcrypto -pthread -lcurl -lssl
 
-can: can.c Makefile
-	gcc -g -Wall -Wextra -O -o $@ $< SQLlib/sqllib.o ${SQLINC} ${SQLLIB} -lpopt -lcurl AJL/ajl.o
+can: can.c Makefile login/redirect.o
+	gcc -g -Wall -Wextra -O -o $@ $< SQLlib/sqllib.o ${SQLINC} ${SQLLIB} -lpopt -lcurl AJL/ajl.o login/redirect.o
 
 clean:
 	rm -f *.o alarmpanel
