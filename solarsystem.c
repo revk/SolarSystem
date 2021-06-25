@@ -54,6 +54,14 @@ const char *upgrade(SQL_RES * res, long long instance)
    return upgrade;
 }
 
+const char *settings(SQL_RES * res, long long instance)
+{                               // Send base settings
+   res = res;
+   instance = instance;
+   // TODO
+   return NULL;
+}
+
 void bogus(long long instance)
 {                               // This is bogus auth
    j_t m = j_create();
@@ -62,6 +70,11 @@ void bogus(long long instance)
    setting(instance, NULL, &m);
 }
 
+void daily(SQL * sqlp)
+{
+   sql_safe_query(sqlp, "DELETE FROM `session` WHERE `expires`<NOW()");
+   // TODO afile updates?
+}
 
 int main(int argc, const char *argv[])
 {
@@ -157,10 +170,18 @@ int main(int argc, const char *argv[])
    sql_safe_query(&sql, "DELETE FROM `pending` WHERE `instance` IS NOT NULL");
    sql_safe_query(&sql, "UPDATE `device` SET `instance`=NULL,`online`=NULL WHERE `instance` IS NOT NULL");
    mqtt_start();
-   // TODO start websocket (proxy from apache)
    // Main loop getting messages (from MQTT or websocket)
    while (1)
    {
+      {                         // Daily jobs
+         static int today = 0;
+         time_t now = time(0);
+         if (now / 86400 != today)
+         {
+            today = now / 86400;
+            daily(&sql);
+         }
+      }
       j_t j = incoming();
       if (!j)
          warnx("WTF");
@@ -190,31 +211,51 @@ int main(int argc, const char *argv[])
             const char *prefix = j_get(meta, "prefix");
             const char *suffix = j_get(meta, "suffix");
             if (!message)
-            {                   // Connect (first message ID 0)
+            {                   // Connect (first message ID 0) - *MUST* be a top level state message
+               const char *id = j_get(j, "id");
+               if (!id)
+                  return "No id";
+               if (!prefix || strcmp(prefix, "state") || suffix)
+                  return "Bad initial message";
+               sql_string_t s = { };
                if (device)
-               {                // known
-                  long long i = strtoull(sql_colz(device, "instance"), NULL, 10);
-                  if (i != instance)
-                     sql_safe_query_free(&sql, sql_printf("UPDATE `device` SET `online`=NOW(),`lastonline`=NOW(),`instance`=%lld,`address`=%#s WHERE `device`=%#s", instance, address, deviceid));
-                  if (deport(device, instance))
-                     return NULL;
-                  if (upgrade(device, instance))
-                     return NULL;
-                  // TODO settings update (should this included deport?)
-               } else           // pending
                {
-                  const char *id = j_get(j, "id");
-                  if (!id)
-                     return NULL;
-                  sql_safe_query_free(&sql, sql_printf("REPLACE INTO `pending` SET `pending`=%#s,`online`=NOW(),`address`=%#s,`instance`=%lld", id, address, instance));
+                  sql_sprintf(&s, "UPDATE `device` SET ");      // known, update
+                  sql_sprintf(&s, "`lastonline`=NOW(),");
+                  if (!deport(device, instance) && !upgrade(device, instance))
+                     settings(device, instance);
+               } else           // pending - update pending
+               {
+                  sql_sprintf(&s, "REPLACE INTO `pending` SET ");
+                  sql_sprintf(&s, "`pending`=%#s,", id);
                   SQL_RES *res = sql_safe_query_store_free(&sql, sql_printf("SELECT * FROM `device` WHERE `device`=%#s", id));
                   if (sql_fetch_row(res))
-                  {
-                     if (!upgrade(res, instance))
-                        deport(res, instance);
+                  {             // exists, check deport/upgrade
+                     if (!deport(res, instance))
+                        upgrade(res, instance);
                   }
                   sql_free_result(res);
                }
+               if (!device || (address && strcmp(sql_colz(device, "address"), address)))
+                  sql_sprintf(&s, "`address`=%#s,", address);
+               const char *version = j_get(j, "version");
+               if (!device || (version && strcmp(sql_colz(device, "version"), version)))
+                  sql_sprintf(&s, "`version`=%#s,", version);
+               const char *secureboot = (j_test(j, "secureboot", 0) ? "true" : "false");
+               if (!device || (secureboot && strcmp(sql_colz(device, "secureboot"), secureboot)))
+                  sql_sprintf(&s, "`secureboot`=%#s,", secureboot);
+               const char *encryptednvs = (j_test(j, "encryptednvs", 0) ? "true" : "falencryptednvs");
+               if (!device || (encryptednvs && strcmp(sql_colz(device, "encryptednvs"), encryptednvs)))
+                  sql_sprintf(&s, "`encryptednvs`=%#s,", secureboot);
+               sql_sprintf(&s, "`online`=NOW(),");
+               sql_sprintf(&s, "`instance`=%lld,", instance);
+               if (sql_back_s(&s) == ',')
+               {
+                  if (device)
+                     sql_sprintf(&s, " WHERE `device`=%#s", deviceid);
+                  sql_safe_query_s(&sql, &s);
+               } else
+                  sql_free_s(&s);
                // Continue as the message could be anything
             }
             if (!prefix)
@@ -259,7 +300,6 @@ int main(int argc, const char *argv[])
                   return NULL;  // Not authenticated
                if (suffix && !strcmp(suffix, "upgrade") && j_find(j, "complete"))
                   sql_safe_query_free(&sql, sql_printf("UPDATE `device` SET `upgrade`=NULL WHERE `device`=%#s", deviceid));     // Upgrade done
-
                return NULL;
             }
             return "Unknown message";

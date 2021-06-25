@@ -134,7 +134,7 @@ static void *server(void *arg)
          j_delete(&meta);       // Naughty
       meta = j_store_object(j, "_meta");
       j_store_int(meta, "instance", slot->instance);
-      j_store_int(meta, "message", message++);
+      j_store_int(meta, "message", message );
       if (*device)
          j_store_string(meta, "device", device);
       j_store_string(meta, "address", address);
@@ -163,6 +163,13 @@ static void *server(void *arg)
             }
          }
       }
+      if (!message && (strcmp(j_get(meta, "prefix") ? : "", "state") || j_find(meta, "suffix")))
+      {                         // First message has to be system state message, else ignore
+         warnx("Unexpected initial message from %s", address);
+         j_delete(&j);
+         return;                // Not sent
+      }
+      message++;
       rxq_t *q = malloc(sizeof(*q));
       q->j = j;
       q->next = NULL;
@@ -436,7 +443,8 @@ static void *listener(void *arg)
       SSL_CTX_set_verify(ctx, SSL_VERIFY_PEER, NULL);
    }
    int slisten = -1;
- struct addrinfo base = { ai_flags: AI_PASSIVE, ai_family: AF_UNSPEC, ai_socktype:SOCK_STREAM };
+   // TODO binding only to IPv4 is messy
+ struct addrinfo base = { ai_flags: AI_PASSIVE, ai_family: AF_INET, ai_socktype:SOCK_STREAM };
    struct addrinfo *a = 0,
        *p;
    if (getaddrinfo(*mqtthost ? mqtthost : NULL, mqttport, &base, &a) || !a)
@@ -458,6 +466,7 @@ static void *listener(void *arg)
    }
    if (slisten < 0)
       err(1, "Cannot bind local address %s:%s", mqtthost, mqttport);
+   if(sqldebug)warnx("Bind %s:%s",mqtthost,mqttport);
    while (1)
    {
       struct sockaddr_in6 addr = { 0 };

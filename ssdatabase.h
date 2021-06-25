@@ -114,8 +114,10 @@ text(key, 32);                  // Fob AES master key
 table(device, 12);
 text(description, 0);
 link(pcb);                      // What type of device this is
-link(site);                     // What site this is on
-link(aid);                      // The AID for door access
+text(version,0);		// S/w version
+bool(encryptednvs);		// Built with encrypted NVS
+bool(secureboot);		// Built with secure boot
+link(aid);                      // The AID for door access (defines what site it is)
 text(deport, 0);                // Send this device to another MQTT server
 areas(doorarea);                // Areas covered by this door
 time(online);                   // When online, if online
@@ -139,6 +141,9 @@ table(pending, 12);
 time(online);
 ip(address);
 num(instance);
+text(version,0);		// S/w version
+bool(encryptednvs);		// Built with encrypted NVS
+bool(secureboot);		// Built with secure boot
 
 table(pcb, 0);                  // PCB type
 text(description, 0);
