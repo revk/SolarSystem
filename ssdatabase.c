@@ -92,7 +92,7 @@ void ssdatabase(SQL * sqlp, const char *sqldatabase)
       if (asprintf(&constraint, "CONSTRAINT `%s_%s` FOREIGN KEY", tablename, name) < 0)
          errx(1, "malloc");
       if (!strstr(tabledef, constraint))
-         sql_safe_query_free(sqlp, sql_printf("ALTER TABLE `%#S` ADD %s (%#S) REFERENCES `%#S` (%#S) ON DELETE CASCADE ON UPDATE CASCADE", tablename, constraint, name, name, name));
+         sql_safe_query_free(sqlp, sql_printf("ALTER TABLE `%#S` ADD %s (%#S) REFERENCES `%#S` (%#S) ON DELETE RESTRICT ON UPDATE CASCADE", tablename, constraint, name, name, name));
       free(constraint);
    }
 

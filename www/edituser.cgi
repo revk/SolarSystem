@@ -44,4 +44,5 @@ xmlsql -d SS head.html - foot.html << 'END'
 <input type=submit value="Update">
 </form>
 </sql>
+<a href="/changepassword.cgi">Change password</a>
 'END'
