@@ -35,7 +35,7 @@ echo "Content-Type: text/html"
 echo ""
 /projects/tools/bin/xmlsql head.html - foot.html << END
 <h1>Access.me.uk</h1>
-<if FAIL><p><b><output name=FAIL></b></p></if>
+<if FAIL><p class=error><output name=FAIL></p></if>
 <form method=post action=login.cgi>
 	<table>
 		<tr><td>Email</td><td><input size=40 type=email name=USERNAME autofocus></td></tr>
