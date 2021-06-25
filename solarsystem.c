@@ -1,6 +1,7 @@
 // Back end management / control for SolarSystem modules
 
 #define _GNU_SOURCE             /* See feature_test_macros(7) */
+#include "config.h"
 #include <stdio.h>
 #include <string.h>
 #include <popt.h>
@@ -23,17 +24,12 @@
 #include "sscert.h"
 
 void ssdatabase(SQL *, const char *);
+const char *cakey = NULL,
+    *cacert = NULL;
+const char *mqttkey = NULL,
+    *mqttcert = NULL;
 
-// System wide settings, mostly taken from config file - these define defaults as well
 extern int sqldebug;
-const char *configfile = "solarsystem.conf";
-const char *keyfile = "solarsystem.key";
-#define s(p,n,d,h)	const char *p##n=#d;
-#define sd(p,n,d,h)	const char *p##n=#d;
-#define sk(p,n,d,h)	const char *p##n=#d;
-#define i(p,n,d,h)	int p##n=d;
-#define b(p,n,d,h)	char p##n=d;
-#include "ssconfig.h"
 
 const char *deport(SQL_RES * res, long long instance)
 {                               // Check if deport needed
@@ -82,10 +78,12 @@ void daily(SQL * sqlp)
 
 int main(int argc, const char *argv[])
 {
+#ifdef	SQL_DEBUG
+   sqldebug = 1;
+#endif
    {                            // POPT
       poptContext optCon;       // context for parsing command-line options
       const struct poptOption optionsTable[] = {
-         { "config-file", 0, POPT_ARG_STRING | POPT_ARGFLAG_SHOW_DEFAULT, &configfile, 0, "Config file", "filename" },
          { "debug", 'v', POPT_ARG_NONE, &sqldebug, 0, "Debug", NULL },
          POPT_AUTOHELP { }
       };
@@ -122,82 +120,31 @@ int main(int argc, const char *argv[])
             syslog(LOG_INFO, "Could not increase threads");
       }
    }
-   SQL sql;
-   {                            // Load config file and extract settings
-      const char *changed = NULL;
-   umask(0077);                 // Owner only
-      // Keys
-      j_t j = j_create();
-      if (access(keyfile, R_OK | W_OK))
-      {
-         j_object(j);
-         changed = "";
-      } else
-         j_err(j_read_file(j, keyfile));
-#define sk(p,n,d,h) {j_t e=j_find(j,#p"."#n);if(e){if(!j_isstring(e))errx(1,#p"."#n" should be a string");p##n=strdup(j_val(e)?:"");}else j_string(j_path(j,#p"."#n),changed=#d);}
-#include "ssconfig.h"
-      if (!*cakey)
-         j_string(j_path(j, "ca.key"), changed = cakey = makekey());
-      if (!*mqttkey)
-         j_string(j_path(j, "mqtt.key"), changed = mqttkey = makekey());
-      // Update key file if needed
-      if (changed)
-      {
-         char *temp;
-         if (asprintf(&temp, "%s+", keyfile) < 0)
-            errx(1, "malloc");
-         FILE *f = fopen(temp, "w");
-         if (!f)
-            err(1, "Cannot write key file %s", keyfile);
-         j_err(j_write_pretty_close(j, f));
-         if (rename(temp, keyfile))
-            err(1, "Cannot make key file");
-         free(temp);
-      }
-      j_delete(&j);
-      // Config
-   umask(0007);                 // Owner and group
-      changed = NULL;
-      j = j_create();
-      if (access(configfile, R_OK | W_OK))
-      {
-         j_object(j);
-         changed = "";
-      } else
-         j_err(j_read_file(j, configfile));
-#define s(p,n,d,h) {j_t e=j_find(j,#p"."#n);if(e){if(!j_isstring(e))errx(1,#p"."#n" should be a string");p##n=strdup(j_val(e)?:"");}}
-#define sd(p,n,d,h) {j_t e=j_find(j,#p"."#n);if(e){if(!j_isstring(e))errx(1,#p"."#n" should be a string");p##n=strdup(j_val(e)?:"");}else j_string(j_path(j,#p"."#n),changed=#d);}
-#define i(p,n,d,h) {j_t e=j_find(j,#p"."#n);if(e){if(!j_isnumber(e))errx(1,#p"."#n" should be a number");p##n=atoi(j_val(e));}}
-#define b(p,n,d,h) {j_t e=j_find(j,#p"."#n);if(e){if(!j_isbool(e))errx(1,#p"."#n" should be a bool");p##n=j_istrue(e);}}
-      b(sql,debug,0,SQL debug); // clashes in definition so added manually
-#include "ssconfig.h"
-      // Some housekeeping
-      sql_cnf_connect(&sql, *sqlconfig ? sqlconfig : NULL);
-      ssdatabase(&sql, sqldatabase);    // Check database integrity
-      if (!*cakey)
-         j_string(j_path(j, "ca.key"), changed = cakey = makekey());
-      if (!*mqttkey)
-         j_string(j_path(j, "mqtt.key"), changed = mqttkey = makekey());
-      // May as well make certs anyway
-      j_string(j_path(j, "ca.cert"), changed = cacert = makecert(cakey, NULL, NULL, "SolarSystem"));
-      j_string(j_path(j, "mqtt.cert"), changed = mqttcert = makecert(mqttkey, cakey, cacert, mqtthost));
-      // Update config file if needed
-      if (changed)
-      {
-         char *temp;
-         if (asprintf(&temp, "%s+", configfile) < 0)
-            errx(1, "malloc");
-         FILE *f = fopen(temp, "w");
-         if (!f)
-            err(1, "Cannot write config file %s", configfile);
-         j_err(j_write_pretty_close(j, f));
-         if (rename(temp, configfile))
-            err(1, "Cannot make config file");
-         free(temp);
-      }
-      j_delete(&j);
-
+   // Load (or make) keys
+   j_t j = j_create();
+   if (access(CONFIG_KEYS_FILE, R_OK ))
+   {
+	   unlink(CONFIG_KEYS_FILE);
+      j_object(j);
+      j_store_string(j, "ca", cakey = makekey());
+      j_store_string(j, "mqtt", mqttkey = makekey());
+      j_err(j_write_pretty(j,stderr));
+      int f = open(CONFIG_KEYS_FILE, O_CREAT|O_WRONLY, 0400);
+      if (f < 0)
+         err(1, "Cannot make %s", CONFIG_KEYS_FILE);
+      j_err(j_write_fd(j, f));
+      close(f);
+   } else
+   {
+      j_err(j_read_file(j, CONFIG_KEYS_FILE));
+      cakey = strdup(j_get(j, "ca"));
+      mqttkey = strdup(j_get(j, "mqtt"));
    }
+   j_delete(&j);
+   // Connect
+   SQL sql;
+   sql_cnf_connect(&sql, CONFIG_SQL_CONFIG_FILE);
+   ssdatabase(&sql, CONFIG_SQL_DATABASE);
    if (sqldebug)
    {
       char *key = makekey();

@@ -1,6 +1,7 @@
 // MQTT handling for Solar System
 
 #define _GNU_SOURCE             /* See feature_test_macros(7) */
+#include "config.h"
 #include <stdio.h>
 #include <string.h>
 #include <popt.h>
@@ -23,11 +24,10 @@
 #include "sscert.h"
 #include "ssmqtt.h"
 
+extern const char *cakey;
 extern const char *cacert;
-extern const char *mqtthost;
-extern const char *mqttcert;
 extern const char *mqttkey;
-extern const char *mqttport;
+extern const char *mqttcert;
 extern int sqldebug;
 SSL_CTX *ctx = NULL;
 
@@ -443,12 +443,17 @@ static void *listener(void *arg)
       SSL_CTX_set_verify(ctx, SSL_VERIFY_PEER, NULL);
    }
    int slisten = -1;
-   // TODO binding only to IPv4 is messy
- struct addrinfo base = { ai_flags: AI_PASSIVE, ai_family: AF_INET, ai_socktype:SOCK_STREAM };
+ struct addrinfo base = { ai_flags: AI_PASSIVE, ai_family:
+#ifdef	CONFIG_MQTT_IPV4
+	 AF_INET
+#else
+		 AF_ANY
+#endif
+	 , ai_socktype:SOCK_STREAM };
    struct addrinfo *a = 0,
        *p;
-   if (getaddrinfo(*mqtthost ? mqtthost : NULL, mqttport, &base, &a) || !a)
-      errx(1, "Failed to find address for %s:%s", mqtthost, mqttport);
+   if (getaddrinfo(CONFIG_MQTT_HOSTNAME, CONFIG_MQTT_PORT, &base, &a) || !a)
+      errx(1, "Failed to find address for %s:%s", CONFIG_MQTT_HOSTNAME, CONFIG_MQTT_PORT);
    for (p = a; p; p = p->ai_next)
    {
       slisten = socket(p->ai_family, p->ai_socktype, p->ai_protocol);
@@ -465,8 +470,8 @@ static void *listener(void *arg)
       break;
    }
    if (slisten < 0)
-      err(1, "Cannot bind local address %s:%s", mqtthost, mqttport);
-   if(sqldebug)warnx("Bind %s:%s",mqtthost,mqttport);
+      err(1, "Cannot bind local address %s:%s", CONFIG_MQTT_HOSTNAME, CONFIG_MQTT_PORT);
+   if(sqldebug)warnx("Bind %s:%s",CONFIG_MQTT_HOSTNAME,CONFIG_MQTT_PORT);
    while (1)
    {
       struct sockaddr_in6 addr = { 0 };

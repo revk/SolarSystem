@@ -98,6 +98,7 @@ bool (caneditclass);
 
 join(user, organisation);
 link(class);                    // defines users permissions
+text(jobtitle,0);			// Job Title
 
 table(organisation, 0);         // Customer (may be more than one site)
 text(description, 0);
@@ -114,8 +115,10 @@ unique(site, area);
 text(description, 0);
 
 table(fob, 14);
-link(user);                     // The Fobs user
+link(user);                     // The Fobs user (optional)
+link(class);			// The fobs class (required)
 text(key, 32);                  // Fob AES master key
+bool(block);			// All AID block (i.e. lost fob)
 
 table(device, 12);
 text(description, 0);

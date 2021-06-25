@@ -1,0 +1,57 @@
+menu "SolarSystem web control"
+
+
+menu "MQTT"
+
+    config MQTT_HOSTNAME
+    string "MQTT hostname - needs to match domain name for certificates to work"
+    default ""
+    help
+   	Set the hostname used for your server
+
+    config MQTT_PORT
+    string "MQTT TCP port (name or number)"
+    default "8883"
+    help
+   	The TCP port you listen to
+
+    config MQTT_IPV4
+    bool "MQTT Bind only to IPv4 "
+
+endmenu
+
+menu "SQL"
+
+    config SQL_CONFIG_FILE
+    string "SQL config file"
+    default ""
+    help
+    	SQL connection configuration file
+
+    config SQL_DATABASE
+    string "SQL database"
+    default "SS"
+    help
+    	SQL database name
+
+    config SQL_DEBUG
+    bool "SQL debug"
+    default n
+    help
+    	SQL debug
+
+endmenu
+
+    config OTA_HOSTNAME
+    string "OTA hostname"
+    default "ota.revk.uk"
+    help
+  	The default OTA host name for device upgrade
+
+    config KEYS_FILE
+    string "Filename for keys"
+    default "solarsystem.keys"
+    help
+    	Filename for CA/MQTT keys
+
+endmenu

@@ -1,6 +1,7 @@
 // Security check
 
 #define _GNU_SOURCE             /* See feature_test_macros(7) */
+#include "config.h"
 #include <stdio.h>
 #include <string.h>
 #include <popt.h>
@@ -61,18 +62,9 @@ int main(int argc, const char *argv[])
       errx(1, "%s: %s\n", poptBadOption(optCon, POPT_BADOPTION_NOALIAS), poptStrerror(c));
 
    SQL sql;
-   {                            // Load config file and extract settings
-      j_t j = j_create();
-      j_err(j_read_file(j, configfile));
-      // Some housekeeping
-      const char *sqlconfig = j_get(j, "sql.config");
-      const char *sqldatabase = j_get(j, "sql.database");
-      if (j_test(j, "sql.debug", 0))
-         sqldebug = 1;
-      sql_cnf_connect(&sql, *sqlconfig ? sqlconfig : NULL);
-      sql_select_db(&sql, sqldatabase); // Check database integrity
-      j_delete(&j);
-   }
+   sql_cnf_connect(&sql,CONFIG_SQL_CONFIG_FILE);
+   if(*CONFIG_SQL_DATABASE)
+   sql_safe_select_db(&sql,CONFIG_SQL_DATABASE);
    SQL_RES *resus = NULL;
    const char *check(void) {
       if (!us)

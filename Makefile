@@ -21,6 +21,10 @@ SQLLIB=$(shell mariadb_config --libs)
 SQLVER=$(shell mariadb_config --version | sed 'sx\..*xx')
 endif
 
+ifndef KCONFIG_CONFIG
+KCONFIG_CONFIG=solarsystem.conf
+endif
+
 all: alarmpanel cardissue solarsystem can login.conf SQLlib/sql
 
 update:
@@ -62,9 +66,6 @@ login.conf: login/Kconfig
 	make -C login ../login.conf
 login/redirect.o: login/redirect.c login.conf
 	make -C login redirect.o
-menuconfig:
-	make -C login menuconfig
-	make -C login
 
 cardissue: cardissue.c DESFireAES/desfireaes.o AXL/axl.o AJL/ajl.o afile.o Makefile
 	gcc -g -Wall -Wextra -O -o $@ $< -I. -IDESFireAES/include DESFireAES/desfireaes.o -IAXL AXL/axl.o -IAJL AJL/ajl.o -lcrypto -lpopt -pthread -lcurl -lmosquitto afile.o
@@ -93,7 +94,7 @@ ssmqtt.o: ssmqtt.c ssmqtt.h Makefile
 sscert.o: sscert.c sscert.h Makefile
 	gcc -g -Wall -Wextra -O -c -o $@ $< ${SQLINC}
 
-solarsystem: solarsystem.c afile.o AXL/axl.o AJL/ajl.o Dataformat/dataformat.o websocket/websocketxml.o DESFireAES/desfireaes.o SQLlib/sqllib.o Makefile ssdatabase.o ssmqtt.o sscert.o ssconfig.h
+solarsystem: solarsystem.c afile.o AXL/axl.o AJL/ajl.o Dataformat/dataformat.o websocket/websocketxml.o DESFireAES/desfireaes.o SQLlib/sqllib.o Makefile ssdatabase.o ssmqtt.o sscert.o
 	gcc -g -Wall -Wextra -O -o $@ $< afile.o ssdatabase.o ssmqtt.o sscert.o AJL/ajl.o AXL/axl.o Dataformat/dataformat.o websocket/websocketxml.o DESFireAES/desfireaes.o SQLlib/sqllib.o ${SQLINC} ${SQLLIB} -lpopt -lcrypto -pthread -lcurl -lssl
 
 can: can.c Makefile login/redirect.o
@@ -101,3 +102,12 @@ can: can.c Makefile login/redirect.o
 
 clean:
 	rm -f *.o alarmpanel
+
+menuconfig:
+	login/makek ${KCONFIG_CONFIG} config.h
+
+config.h: ${KCONFIG_CONFIG}
+	login/makek ${KCONFIG_CONFIG} config.h
+
+${KCONFIG_CONFIG}: Kconfig
+	login/makek ${KCONFIG_CONFIG} config.h
