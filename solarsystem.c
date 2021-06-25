@@ -28,6 +28,7 @@ void ssdatabase(SQL *, const char *);
 extern int sqldebug;
 const char *configfile = "solarsystem.conf";
 #define s(p,n,d,h)	const char *p##n=#d;
+#define sd(p,n,d,h)	const char *p##n=#d;
 #define i(p,n,d,h)	int p##n=d;
 #include "ssconfig.h"
 
@@ -81,7 +82,7 @@ int main(int argc, const char *argv[])
    {                            // POPT
       poptContext optCon;       // context for parsing command-line options
       const struct poptOption optionsTable[] = {
-         { "string-default", 'S', POPT_ARG_STRING | POPT_ARGFLAG_SHOW_DEFAULT, &configfile, 0, "Config file", "filename" },
+         { "config-file", 0, POPT_ARG_STRING | POPT_ARGFLAG_SHOW_DEFAULT, &configfile, 0, "Config file", "filename" },
          { "debug", 'v', POPT_ARG_NONE, &sqldebug, 0, "Debug", NULL },
          POPT_AUTOHELP { }
       };
@@ -130,6 +131,7 @@ int main(int argc, const char *argv[])
       } else
          j_err(j_read_file(j, configfile));
 #define s(p,n,d,h) {j_t e=j_find(j,#p"."#n);if(e){if(!j_isstring(e))errx(1,#p"."#n" should be a string");p##n=strdup(j_val(e)?:"");}}
+#define sd(p,n,d,h) {j_t e=j_find(j,#p"."#n);if(e){if(!j_isstring(e))errx(1,#p"."#n" should be a string");p##n=strdup(j_val(e)?:"");}else j_string(j_path(j,#p"."#n),changed=#d);}
 #define i(p,n,d,h) {j_t e=j_find(j,#p"."#n);if(e){if(!j_isnumber(e))errx(1,#p"."#n" should be a number");p##n=atoi(j_val(e));}}
 #include "ssconfig.h"
       // Some housekeeping
