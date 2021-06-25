@@ -21,7 +21,7 @@ SQLLIB=$(shell mariadb_config --libs)
 SQLVER=$(shell mariadb_config --version | sed 'sx\..*xx')
 endif
 
-all: alarmpanel cardissue solarsystem login.conf SQLlib/sql
+all: alarmpanel cardissue solarsystem can login.conf SQLlib/sql
 
 update:
 	git submodule update --init --remote --merge --recursive
@@ -94,6 +94,9 @@ sscert.o: sscert.c sscert.h Makefile
 
 solarsystem: solarsystem.c afile.o AXL/axl.o AJL/ajl.o Dataformat/dataformat.o websocket/websocketxml.o DESFireAES/desfireaes.o SQLlib/sqllib.o Makefile ssdatabase.o ssmqtt.o sscert.o ssconfig.h
 	gcc -g -Wall -Wextra -O -o $@ $< afile.o ssdatabase.o ssmqtt.o sscert.o AJL/ajl.o AXL/axl.o Dataformat/dataformat.o websocket/websocketxml.o DESFireAES/desfireaes.o SQLlib/sqllib.o ${SQLINC} ${SQLLIB} -lpopt -lcrypto -pthread -lcurl -lssl
+
+can: can.c Makefile
+	gcc -g -Wall -Wextra -O -o $@ $< SQLlib/sqllib.o ${SQLINC} ${SQLLIB} -lpopt -lcurl
 
 clean:
 	rm -f *.o alarmpanel
