@@ -1,4 +1,4 @@
-#!../login/loggedin --query /bin/csh -f
+#!../login/logincheck --query /bin/csh -f
 setenv LINK `weblink --check`
 if($status) then
         setenv FAIL "The link you have used is not valid or has expired, sorry"
@@ -8,11 +8,16 @@ endif
 unset user
 setenv user "$LINK:e"
 setenv USERNAME "$LINK:r"
-sql SS 'UPDATE user SET email="$USERNAME" WHERE user=$user'
+setenv C `sql -c SS 'UPDATE user SET email="$USERNAME" WHERE user=$user'`
+if($status || "$C" == 0) then
+	echo "Location: ${ENVCGI_SERVER}login.cgi?FAIL=Cannot+update+email"
+	echo ""
+	exit 0
+endif
 dologin --force --silent
 if($status) then
-echo "Location: ${ENVCGI_SERVER}login.cgi"
+	echo "Location: ${ENVCGI_SERVER}login.cgi"
 else
-echo "Location: $ENVCGI_SERVER?FAIL=Updated"
+	echo "Location: $ENVCGI_SERVER?FAIL=Updated"
 endif
 echo ""

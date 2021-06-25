@@ -1,4 +1,4 @@
-#!../login/logincheck --query /bin/csh -fx
+#!../login/logincheck --query /bin/csh -f
 setenv USERNAME `weblink --check`
 if($status) then
 	setenv FAIL "The link you have used is not valid or has expired, sorry"

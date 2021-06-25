@@ -1,4 +1,4 @@
-#!../login/logincheck /bin/csh -f
+#!../login/logincheck --query /bin/csh -f
 if(! $?USER_ID) exit 0
 setenv Z `sql -c -v -dSS 'SELECT COUNT(*) FROM user WHERE user="$USER_ID" AND hash IS NULL'`
 if($?NEWPASSWORD) then
@@ -8,7 +8,7 @@ if($?NEWPASSWORD) then
 		setenv FAIL `changepassword`
 	endif
 	if(! $status) then
-		echo "Location: $ENVCGI_SERVER"
+		echo "Location: $ENVCGI_SERVER?FAIL=Updated"
 		echo ""
 		exit 0
 	endif
@@ -21,7 +21,7 @@ setenv NEWPASSWORD `password`
 /projects/tools/bin/xmlsql head.html - foot.html << END
 <h1>Access.me.uk</h1>
 <p>Solar System security management portal.</p>
-<if FAIL><p><b><output name=FAIL></b></p></if>
+<if FAIL><p class=error><output name=FAIL></p></if>
 <p>We suggest a new password for you, but you can enter one of your choice if you prefer.</p>
 <form method=post action=changepassword.cgi>
 	<table>

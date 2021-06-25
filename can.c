@@ -89,6 +89,7 @@ int main(int argc, const char *argv[])
 	      return NULL;
       }
       if(*sql_colz(resus,"admin")=='t')return "User is top level admin.";
+      if(user&&user==us)return "TODO allowing edit self for now";
 
       return NULL;              // Fail
    }
