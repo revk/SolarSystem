@@ -65,7 +65,7 @@ text(description, 0);           // Users name
 text(email, 0);                 // Users email - we expect unique
 key(email, 128);
 text(hash, 0);                  // Password hash
-bool(admin);			// Top level admin user - can do anything
+bool (admin);                   // Top level admin user - can do anything
 
 table(session, 36);             // Login session
 link(user);                     // Which user
@@ -75,7 +75,7 @@ index(expires);                 // Easier to delete
 ip(loginip);                    // Login ip
 text(useragent, 0);             // User agent
 
-join(class,aid);
+join(class, aid);
 areas(access);                  // Where user is allowed access
 areas(arm);                     // Where user is allowed to arm/disarm
 bool (dooroverride);            // Override all door controls
@@ -84,16 +84,17 @@ bool (doorblock);               // Block this card
 
 join(site, aid);
 
-table(class,0);			// Classification (organisation wide)
+table(class, 0);                // Classification (organisation wide)
 link(organisation);
-text(description,0);
-bool (admin);			// Customer level admin user - can do anything relating to this organisation
-bool (caneditorganisation); 
+text(description, 0);
+bool (admin);                   // Customer level admin user - can do anything relating to this organisation
+bool (caneditorganisation);
 bool (caneditsite);
 bool (canedituser);
 bool (caneditself);
 bool (caneditdevice);
-bool (caneditfob);  
+bool (caneditfob);
+bool (caneditclass);
 
 join(user, organisation);
 link(class);                    // defines users permissions
@@ -103,13 +104,13 @@ text(description, 0);
 
 table(site, 0);                 // Site
 link(organisation);
-text(meshid,12);		// Hex Mesh ID
+text(meshid, 12);               // Hex Mesh ID
 // TODO key / crypto?
 
-table(area,0);
+table(area, 0);
 link(site);
 area(area);
-unique(site,area);
+unique(site, area);
 text(description, 0);
 
 table(fob, 14);
@@ -131,10 +132,10 @@ time(upgrade);                  // When to do upgrade
 ip(address);                    // IP address when last online
 num(instance);                  // Instance for communications when on line
 
-table(devicegpio,0);
+table(devicegpio, 0);
 link(device);
 gpio(gpio);
-unique(device,gpio);
+unique(device, gpio);
 gpiotype(type);
 bool (polarity);
 num(ionum);
@@ -153,7 +154,7 @@ bool (secureboot);              // Built with secure boot
 table(pcb, 0);                  // PCB type
 text(description, 0);
 
-table(pcbgpio,0);
+table(pcbgpio, 0);
 link(pcb);
 gpio(gpio);
 unique(pcb, gpio);
