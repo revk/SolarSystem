@@ -1,7 +1,7 @@
 #!../login/loggedin --query /bin/csh -f
 unset user # clash with csh variable, duh
 if(! $?user) setenv user "$USER_ID"	# Edit self
-can --redirect --user="$user" edituser
+can --redirect --user="$user"
 if($?email) then # save
 	# update other fields... not email
 	sqlwrite -o SS user user="$user" user description
