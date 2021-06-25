@@ -31,6 +31,9 @@ update:
 	git submodule update --init --remote --merge --recursive
 	git commit -a -m "Library update"
 	git push
+	make -C login
+	make -C SQLlib
+	make -C AJL
 
 
 PCBCase/case: PCBCase/case.c
