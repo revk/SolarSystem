@@ -1,7 +1,7 @@
 // Database checking
 
 #define _GNU_SOURCE             /* See feature_test_macros(7) */
-typedef	unsigned int uint32_t;
+typedef unsigned int uint32_t;
 #include <stdio.h>
 #include <string.h>
 #include <popt.h>
@@ -50,16 +50,13 @@ void ssdatabase(SQL * sqlp, const char *sqldatabase)
          sql_safe_query_free(sqlp, sql_printf("CREATE TABLE `%#S` (`%#S` int unsigned NOT NULL AUTO_INCREMENT PRIMARY KEY)", name, name));
    }
 
-   void created(const char *name, int l) {      // Get tabledef
-      endtable();
+   void created(const char *name) {     // Get tabledef
       tablename = name;
-      l = l;
-      res = sql_safe_query_store_free(sqlp, sql_printf("SHOW CREATE TABLE `%#S`", name));
+      SQL_RES *res = sql_safe_query_store_free(sqlp, sql_printf("SHOW CREATE TABLE `%#S`", name));
       if (!sql_fetch_row(res))
          errx(1, "WTF %s", name);
       tabledef = strdup(res->current_row[1]);
       sql_free_result(res);
-      res = NULL;
    }
 
    void table(const char *name, int l) {        // Get rows
@@ -118,7 +115,7 @@ void ssdatabase(SQL * sqlp, const char *sqldatabase)
       char *key;
       if (asprintf(&key, "KEY `%s_%s`", tablename, name) < 0)
          errx(1, "malloc");
-      if (!strstr(tabledef, key))
+      if (!strcasestr(tabledef, key))
          sql_safe_query_free(sqlp, sql_printf("ALTER TABLE `%#S` ADD %s (`%#S`)", tablename, key, name));
       free(key);
    }
@@ -130,38 +127,50 @@ void ssdatabase(SQL * sqlp, const char *sqldatabase)
       if (l)
          sql_safe_query_free(sqlp, sql_printf("ALTER TABLE `%#S` ADD `%#S` char(%d) DEFAULT NULL", tablename, name, l));
       else
-         sql_safe_query_free(sqlp, sql_printf("ALTER TABLE `%#S` ADD `%#S` TEXT DEFAULT NULL", tablename, name));
+         sql_safe_query_free(sqlp, sql_printf("ALTER TABLE `%#S` ADD `%#S` text DEFAULT NULL", tablename, name));
    }
 
    void field(const char *name, const char *type) {
-      if (sql_colnum(res, name) >= 0)
-         return;                // Exists - we are not updating type for now
-      warnx("Creating field %s/%s", tablename, name);
-      sql_safe_query_free(sqlp, sql_printf("ALTER TABLE `%#S` ADD `%#S` %s DEFAULT NULL", tablename, name, type));
+      char *def;
+      if (asprintf(&def, "`%s` %s ", name, type) < 0)
+         errx(1, "malloc");
+      if (sql_colnum(res, name) < 0)
+      {
+         warnx("Creating field %s/%s", tablename, name);
+         sql_safe_query_free(sqlp, sql_printf("ALTER TABLE `%#S` ADD %s DEFAULT NULL", tablename, def));
+      } else if (!strcasestr(tabledef, def))
+      {
+         warnx("Updating field %s/%s", tablename, name);
+         sql_safe_query_free(sqlp, sql_printf("ALTER TABLE `%#S` MODIFY %s DEFAULT NULL", tablename, def));
+      }
+      free(def);
    }
 
-   char *areatype=NULL;
-   char *areastype=NULL;
+   char *areatype = NULL;
+   char *areastype = NULL;
    {
-	   char *a=NULL;
-	   size_t l;
-	   FILE *f=open_memstream(&a,&l);
-	   char *p;
-	   for(p=AREAS;*p;p++)if(*p!='-')
-		   fprintf(f,",'%c'",*p);
-	   fclose(f);
-	   if(asprintf(&areatype,"enum(%s)",a+1)<0)errx(1,"malloc");
-	   if(asprintf(&areastype,"set(%s)",a+1)<0)errx(1,"malloc");
-	   free(a);
+      char *a = NULL;
+      size_t l;
+      FILE *f = open_memstream(&a, &l);
+      char *p;
+      for (p = AREAS; *p; p++)
+         if (*p != '-')
+            fprintf(f, ",'%c'", *p);
+      fclose(f);
+      if (asprintf(&areatype, "enum(%s)", a + 1) < 0)
+         errx(1, "malloc");
+      if (asprintf(&areastype, "set(%s)", a + 1) < 0)
+         errx(1, "malloc");
+      free(a);
    }
 
    sql_transaction(sqlp);
 #define table(n,l)	create(#n,l);   // Make tables first
 #include "ssdatabase.h"
-#define table(n,l)	table(#n,l);    // Get table info
+#define table(n,l)	table(#n,l);created(#n);        // Get table info
 #define link(n)		link(#n);       // Foreign key
 #define	text(n,l)	text(#n,l);
-#define	num(n)		field(#n,"int");
+#define	num(n)		field(#n,"int(10)");
 #define	ip(n)		field(#n,"varchar(39)");
 #define	time(n)		field(#n,"datetime");
 #define	gpio(n)		field(#n,"enum('2','4','5','12','13','14','15','16','17','18','19','21','22','23','25','26','27','32','33','34','35','36','39')");
@@ -170,7 +179,7 @@ void ssdatabase(SQL * sqlp, const char *sqldatabase)
 #define	areas(n)	field(#n,areastype);
 #define	area(n	)	field(#n,areatype);
 #include "ssdatabase.h"
-#define table(n,l)	created(#n,l);  // Get table info
+#define table(n,l)	created(#n);    // Get table info
 #define link(n)		foreign(#n);    // Foreign key
 #define unique(a,b)	unique(#a,#b);  // Make extra keys
 #define key(n,l)	key(#n,l);      // Make extra key
