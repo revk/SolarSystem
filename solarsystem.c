@@ -121,26 +121,37 @@ int main(int argc, const char *argv[])
       }
    }
    // Load (or make) keys
-   j_t j = j_create();
-   if (access(CONFIG_KEYS_FILE, R_OK ))
+   if (!access(CONFIG_KEYS_FILE, R_OK))
    {
-	   unlink(CONFIG_KEYS_FILE);
+      j_t j = j_create();
+      if (!j_read_file(j, CONFIG_KEYS_FILE))
+      {
+         cakey = strdup(j_get(j, "ca") ? : "");
+         mqttkey = strdup(j_get(j, "mqtt") ? : "");
+      }
+      j_delete(&j);
+   }
+   if (!cakey || !*cakey || !mqttkey || !*mqttkey)
+   {
+      if (!cakey || !*cakey)
+         cakey = makekey();
+      if (!mqttkey || !*mqttkey)
+         mqttkey = makekey();
+      unlink(CONFIG_KEYS_FILE);
+      j_t j = j_create();
       j_object(j);
-      j_store_string(j, "ca", cakey = makekey());
-      j_store_string(j, "mqtt", mqttkey = makekey());
-      j_err(j_write_pretty(j,stderr));
-      int f = open(CONFIG_KEYS_FILE, O_CREAT|O_WRONLY, 0400);
+      j_store_string(j, "ca", cakey);
+      j_store_string(j, "mqtt", mqttkey);
+      j_err(j_write_pretty(j, stderr));
+      int f = open(CONFIG_KEYS_FILE, O_CREAT | O_WRONLY, 0400);
       if (f < 0)
          err(1, "Cannot make %s", CONFIG_KEYS_FILE);
       j_err(j_write_fd(j, f));
       close(f);
-   } else
-   {
-      j_err(j_read_file(j, CONFIG_KEYS_FILE));
-      cakey = strdup(j_get(j, "ca"));
-      mqttkey = strdup(j_get(j, "mqtt"));
+      j_delete(&j);
    }
-   j_delete(&j);
+   cacert = makecert(cakey, NULL, NULL, "SolarSystem");
+   mqttcert = makecert(mqttkey, cakey, cacert, CONFIG_MQTT_HOSTNAME);
    // Connect
    SQL sql;
    sql_cnf_connect(&sql, CONFIG_SQL_CONFIG_FILE);

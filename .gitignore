@@ -4,7 +4,7 @@ solarsystem
 can
 solarsystem.conf
 config.h
-solarsystem.key
+solarsystem.keys
 login.conf
 *.old
 *.o

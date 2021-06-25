@@ -64,7 +64,7 @@ DESFireAES/desfireaes.o: DESFireAES/desfireaes.c
 	make -C DESFireAES
 login.conf: login/Kconfig
 	make -C login ../login.conf
-login/redirect.o: login/redirect.c login.conf
+login/redirect.o: login/redirect.c
 	make -C login redirect.o
 
 cardissue: cardissue.c DESFireAES/desfireaes.o AXL/axl.o AJL/ajl.o afile.o Makefile
