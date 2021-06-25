@@ -107,6 +107,8 @@ text(description, 0);
 
 table(site, 0);                 // Site
 link(organisation);
+text(meshid,12);		// Hex Mesh ID
+// TODO key / crypto?
 
 table(area,0);
 link(site);
