@@ -32,6 +32,7 @@ const char *keyfile = "solarsystem.key";
 #define sd(p,n,d,h)	const char *p##n=#d;
 #define sk(p,n,d,h)	const char *p##n=#d;
 #define i(p,n,d,h)	int p##n=d;
+#define b(p,n,d,h)	char p##n=d;
 #include "ssconfig.h"
 
 const char *deport(SQL_RES * res, long long instance)
@@ -167,6 +168,8 @@ int main(int argc, const char *argv[])
 #define s(p,n,d,h) {j_t e=j_find(j,#p"."#n);if(e){if(!j_isstring(e))errx(1,#p"."#n" should be a string");p##n=strdup(j_val(e)?:"");}}
 #define sd(p,n,d,h) {j_t e=j_find(j,#p"."#n);if(e){if(!j_isstring(e))errx(1,#p"."#n" should be a string");p##n=strdup(j_val(e)?:"");}else j_string(j_path(j,#p"."#n),changed=#d);}
 #define i(p,n,d,h) {j_t e=j_find(j,#p"."#n);if(e){if(!j_isnumber(e))errx(1,#p"."#n" should be a number");p##n=atoi(j_val(e));}}
+#define b(p,n,d,h) {j_t e=j_find(j,#p"."#n);if(e){if(!j_isbool(e))errx(1,#p"."#n" should be a bool");p##n=j_istrue(e);}}
+      b(sql,debug,0,SQL debug); // clashes in definition so added manually
 #include "ssconfig.h"
       // Some housekeeping
       sql_cnf_connect(&sql, *sqlconfig ? sqlconfig : NULL);

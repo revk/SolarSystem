@@ -60,6 +60,7 @@ int main(int argc, const char *argv[])
       // Some housekeeping
       const char *sqlconfig = j_get(j, "sql.config");
       const char *sqldatabase = j_get(j, "sql.database");
+      if(j_test(j,"sql.debug",0))sqldebug=1;
       sql_cnf_connect(&sql, *sqlconfig ? sqlconfig : NULL);
       sql_select_db(&sql, sqldatabase); // Check database integrity
       j_delete(&j);
