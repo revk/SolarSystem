@@ -64,7 +64,7 @@ table(user, 0);                 // Users of the system
 text(description, 0);           // Users name
 text(email, 0);                 // Users email - we expect unique
 key(email, 128);
-text(hash, 0);                  // Password has
+text(hash, 0);                  // Password hash
 bool(admin);			// Top level admin user - can do anything
 
 table(session, 36);             // Login session
@@ -75,21 +75,17 @@ index(expires);                 // Easier to delete
 ip(loginip);                    // Login ip
 text(useragent, 0);             // User agent
 
-join(user, site);
-bool (caneditsite);             // Can edit this site
-
 join(class,aid);
 areas(access);                  // Where user is allowed access
 areas(arm);                     // Where user is allowed to arm/disarm
-bool(admin);			// AID level admin, can do anything relating to this AID
 bool (dooroverride);            // Override all door controls
 bool (doorclock);               // Override time when clock not set on door
 bool (doorblock);               // Block this card
 
 join(site, aid);
 
-table(class,0);			// Classification (customer wide)
-link(customer);
+table(class,0);			// Classification (organisation wide)
+link(organisation);
 text(description,0);
 bool (admin);			// Customer level admin user - can do anything relating to this organisation
 bool (caneditorganisation); 

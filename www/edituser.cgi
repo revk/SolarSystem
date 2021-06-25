@@ -1,4 +1,4 @@
-#!../login/loggedin /bin/csh -f
+#!../login/loggedin --query /bin/csh -f
 unset user # clash with csh variable, duh
 if(! $?user) setenv user "$USER_ID"	# Edit self
 can --redirect --user="$user" edituser
@@ -34,6 +34,7 @@ echo "Content-Type: text/html"
 echo ""
 xmlsql -d SS head.html - foot.html << 'END'
 <h1>Edit user</h1>
+<if FAIL><p class=error><output name=FAIL></p></if>
 <sql table=user where="user=$user">
 <form method=post><input type=hidden name=user>
 <table>

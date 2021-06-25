@@ -8,7 +8,7 @@ if($?NEWPASSWORD) then
 		setenv FAIL `changepassword`
 	endif
 	if(! $status) then
-		echo "Location: $ENVCGI_SERVER?FAIL=Updated"
+		echo "Location: ${ENVCGI_SERVER}edituser.cgi?FAIL=Updated"
 		echo ""
 		exit 0
 	endif
