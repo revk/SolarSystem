@@ -4,6 +4,10 @@
 #define table(n,l)              // Table (n is name, and field name for auto increment id if l=0, or fixed string len l, as primary key)
 #endif
 
+#ifndef	join
+#define	join(a,b) table(a##b,0);link(a);link(b);unique(a,b); // Table linking two tables
+#endif
+
 #ifndef	link
 #define	link(n)                 // Foreign key link to table n
 #endif
@@ -17,7 +21,7 @@
 #endif
 
 #ifndef	index
-#define index(n)		// Simple index
+#define index(n)                // Simple index
 #endif
 
 #ifndef text
@@ -52,71 +56,74 @@
 #define areas(n)                // Area list
 #endif
 
+#ifndef area
+#define area(n)                 // Area
+#endif
+
 table(user, 0);                 // Users of the system
 text(description, 0);           // Users name
 text(email, 0);                 // Users email - we expect unique
 key(email, 128);
 text(hash, 0);                  // Password has
-bool (canprovisiondevice);      // Global permission - admin who can provision new devices
-bool (canprovisionfob);         // Global permission - admin who can provision new fobs
-bool (canedituser);             // Global permission - admin who can edit user database
-bool (caneditcustomer);         // Global permission - admin who can edit customer database
-bool (caneditself);             // Allowed to change own user details (password is always allowed)
+bool(admin);			// Top level admin user - can do anything
 
 table(session, 36);             // Login session
 link(user);                     // Which user
 time(logintime);                // Login time
 time(expires);                  // Session expiry
-index(expires);			// Easier to delete
+index(expires);                 // Easier to delete
 ip(loginip);                    // Login ip
-text(useragent,0);		// User agent
+text(useragent, 0);             // User agent
 
-table(usersite, 0);             // Which sites a user has access to
-link(user);
-link(site);
-unique(user, site);
+join(user, site);
 bool (caneditsite);             // Can edit this site
 
-table(useraid, 0);              // User capabilities per AID
+join(class,aid);
 areas(access);                  // Where user is allowed access
 areas(arm);                     // Where user is allowed to arm/disarm
+bool(admin);			// AID level admin, can do anything relating to this AID
 bool (dooroverride);            // Override all door controls
 bool (doorclock);               // Override time when clock not set on door
 bool (doorblock);               // Block this card
 
-table(siteaid, 0);              // AIDs linked to a site (must belong to customer)
-link(site);
-link(aid);
-unique(site, aid);
+join(site, aid);
 
-table(usercustomer, 0);         // User link to customers, many to many
-link(user);
+table(class,0);			// Classification (customer wide)
 link(customer);
-unique(user, customer);
-bool (caneditcustomer);         // Can edit this customer record.
-bool (caneditsite);             // Can edit sites related to this customer record.
-bool (canedituser);             // Can edit users relating to this customer.
+text(description,0);
+bool (admin);			// Customer level admin user - can do anything relating to this organisation
+bool (caneditorganisation); 
+bool (caneditsite);
+bool (canedituser);
+bool (caneditself);
+bool (caneditdevice);
+bool (caneditfob);  
 
-table(customer, 0);             // Customer (may be more than one site)
+join(user, organisation);
+link(class);                    // defines users permissions
+
+table(organisation, 0);         // Customer (may be more than one site)
 text(description, 0);
 
 table(site, 0);                 // Site
-link(customer);
+link(organisation);
 
-table(sitearea, 0);             // Describe a site's areas
+table(area,0);
 link(site);
-text(area, 1);
-unique(site, area);
-text(description, 0) table(fob, 14);
+area(area);
+unique(site,area);
+text(description, 0);
+
+table(fob, 14);
 link(user);                     // The Fobs user
 text(key, 32);                  // Fob AES master key
 
 table(device, 12);
 text(description, 0);
 link(pcb);                      // What type of device this is
-text(version,0);		// S/w version
-bool(encryptednvs);		// Built with encrypted NVS
-bool(secureboot);		// Built with secure boot
+text(version, 0);               // S/w version
+bool (encryptednvs);            // Built with encrypted NVS
+bool (secureboot);              // Built with secure boot
 link(aid);                      // The AID for door access (defines what site it is)
 text(deport, 0);                // Send this device to another MQTT server
 areas(doorarea);                // Areas covered by this door
@@ -126,10 +133,10 @@ time(upgrade);                  // When to do upgrade
 ip(address);                    // IP address when last online
 num(instance);                  // Instance for communications when on line
 
-table(devicegpio, 0);
+table(devicegpio,0);
 link(device);
 gpio(gpio);
-unique(device, gpio);
+unique(device,gpio);
 gpiotype(type);
 bool (polarity);
 num(ionum);
@@ -141,14 +148,14 @@ table(pending, 12);
 time(online);
 ip(address);
 num(instance);
-text(version,0);		// S/w version
-bool(encryptednvs);		// Built with encrypted NVS
-bool(secureboot);		// Built with secure boot
+text(version, 0);               // S/w version
+bool (encryptednvs);            // Built with encrypted NVS
+bool (secureboot);              // Built with secure boot
 
 table(pcb, 0);                  // PCB type
 text(description, 0);
 
-table(pcbgpio, 0);
+table(pcbgpio,0);
 link(pcb);
 gpio(gpio);
 unique(pcb, gpio);
@@ -156,16 +163,14 @@ gpiotype(type);
 bool (invert);
 text(description, 0);
 
-table(aid, 6);                  // AID (linked to customer)
-link(customer) text(key, 32);
+table(aid, 6);                  // AID (linked to organisation)
+link(organisation) text(key, 32);
 
-table(fobaid, 0);               // Holds FOB AID key
-link(fob);
-link(aid);
-unique(fob, aid);
+join(fob, aid);
 text(key, 32);
 
 #undef table
+#undef join
 #undef link
 #undef unique
 #undef key
@@ -178,3 +183,4 @@ text(key, 32);
 #undef gpiotype
 #undef bool
 #undef areas
+#undef area

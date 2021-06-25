@@ -1,6 +1,7 @@
 // Database checking
 
 #define _GNU_SOURCE             /* See feature_test_macros(7) */
+typedef	unsigned int uint32_t;
 #include <stdio.h>
 #include <string.h>
 #include <popt.h>
@@ -10,6 +11,7 @@
 #include <ctype.h>
 #include <err.h>
 #include "SQLlib/sqllib.h"
+#include "ESP32/main/areas.h"
 
 void ssdatabase(SQL * sqlp, const char *sqldatabase)
 {                               // Check database integrity
@@ -138,6 +140,20 @@ void ssdatabase(SQL * sqlp, const char *sqldatabase)
       sql_safe_query_free(sqlp, sql_printf("ALTER TABLE `%#S` ADD `%#S` %s DEFAULT NULL", tablename, name, type));
    }
 
+   char *areatype=NULL;
+   char *areastype=NULL;
+   {
+	   char *a=NULL;
+	   size_t l;
+	   FILE *f=open_memstream(&a,&l);
+	   char *p;
+	   for(p=AREAS;*p;p++)if(*p!='-')
+		   fprintf(f,",'%c'",*p);
+	   fclose(f);
+	   if(asprintf(&areatype,"enum(%s)",a+1)<0)errx(1,"malloc");
+	   if(asprintf(&areastype,"set(%s)",a+1)<0)errx(1,"malloc");
+	   free(a);
+   }
 
    sql_transaction(sqlp);
 #define table(n,l)	create(#n,l);   // Make tables first
@@ -151,7 +167,8 @@ void ssdatabase(SQL * sqlp, const char *sqldatabase)
 #define	gpio(n)		field(#n,"enum('2','4','5','12','13','14','15','16','17','18','19','21','22','23','25','26','27','32','33','34','35','36','39')");
 #define	gpiotype(n)	field(#n,"enum('I','O','T','A','R','G','B','I1','I2','I3','I4','I8','O1','O2','O3','O4')");
 #define	bool(n)		field(#n,"enum('false','true')");
-#define	areas(n)	field(#n,"set('A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z')");
+#define	areas(n)	field(#n,areastype);
+#define	area(n	)	field(#n,areatype);
 #include "ssdatabase.h"
 #define table(n,l)	created(#n,l);  // Get table info
 #define link(n)		foreign(#n);    // Foreign key
