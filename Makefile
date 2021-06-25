@@ -35,7 +35,6 @@ update:
 	make -C SQLlib
 	make -C AJL
 
-
 PCBCase/case: PCBCase/case.c
 	make -C PCBCase
 
