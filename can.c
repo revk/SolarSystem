@@ -46,11 +46,14 @@ int main(int argc, const char *argv[])
       if ((c = poptGetNextOpt(optCon)) < -1)
          errx(1, "%s: %s\n", poptBadOption(optCon, POPT_BADOPTION_NOALIAS), poptStrerror(c));
 
+      
+#if 0
       if (poptPeekArg(optCon))
-      {                         // TODO
+      {
          poptPrintUsage(optCon, stderr, 0);
          return -1;
       }
+#endif
       poptFreeContext(optCon);
    }
    SQL sql;
