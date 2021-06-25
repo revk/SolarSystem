@@ -2,7 +2,7 @@
 CONFIG_DB_DATABASE="SS"
 CONFIG_DB_USERNAME_FIELD="email"
 CONFIG_DB_USER_ID_FIELD="user"
-CONFIG_CGI_PATH="../login:../login/SQLlib:/projects/tools/bin:/usr/local/bin:/bin:/usr/bin:/usr/local/mysql/bin"
-
-
+CONFIG_CGI_PATH="..:../login:../login/SQLlib:/projects/tools/bin:/usr/local/bin:/bin:/usr/bin:/usr/local/mysql/bin"
+CONFIG_FORM_SECURITY_POSTS=y
+CONFIG_BLOCK_GET=y
 

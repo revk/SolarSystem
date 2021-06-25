@@ -1,4 +1,4 @@
-#!../login/logincheck /bin/csh -f
+#!../login/logincheck --query /bin/csh -f
 if($?FORGOT || $?NEW) then
 	if("$USERNAME" == "") then
 		setenv FAIL "Specify email address"
