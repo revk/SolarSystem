@@ -3,6 +3,7 @@ cardissue
 solarsystem
 can
 solarsystem.conf
+solarsystem.key
 login.conf
 *.old
 *.o

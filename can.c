@@ -21,7 +21,7 @@ int main(int argc, const char *argv[])
        class = 0;
    int redirect = 0;
    int reason = 0;
-   const char *configfile = "solarsystem.conf";
+   const char *configfile = "../solarsystem.conf";
    {                            // POPT
       poptContext optCon;       // context for parsing command-line options
       const struct poptOption optionsTable[] = {

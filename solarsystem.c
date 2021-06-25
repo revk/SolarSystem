@@ -27,8 +27,10 @@ void ssdatabase(SQL *, const char *);
 // System wide settings, mostly taken from config file - these define defaults as well
 extern int sqldebug;
 const char *configfile = "solarsystem.conf";
+const char *keyfile = "solarsystem.key";
 #define s(p,n,d,h)	const char *p##n=#d;
 #define sd(p,n,d,h)	const char *p##n=#d;
+#define sk(p,n,d,h)	const char *p##n=#d;
 #define i(p,n,d,h)	int p##n=d;
 #include "ssconfig.h"
 
@@ -101,7 +103,6 @@ int main(int argc, const char *argv[])
    if (!sqldebug)
       daemon(1, 1);
    // Get started
-   umask(0077);                 // Owner only
    signal(SIGPIPE, SIG_IGN);    // Don't crash on pipe errors
    openlog("SS", LOG_CONS | LOG_PID, LOG_USER); // Main logging is to syslog
    {                            // File limits - allow lots of connections at once
@@ -123,7 +124,40 @@ int main(int argc, const char *argv[])
    SQL sql;
    {                            // Load config file and extract settings
       const char *changed = NULL;
+   umask(0077);                 // Owner only
+      // Keys
       j_t j = j_create();
+      if (access(keyfile, R_OK | W_OK))
+      {
+         j_object(j);
+         changed = "";
+      } else
+         j_err(j_read_file(j, keyfile));
+#define sk(p,n,d,h) {j_t e=j_find(j,#p"."#n);if(e){if(!j_isstring(e))errx(1,#p"."#n" should be a string");p##n=strdup(j_val(e)?:"");}else j_string(j_path(j,#p"."#n),changed=#d);}
+#include "ssconfig.h"
+      if (!*cakey)
+         j_string(j_path(j, "ca.key"), changed = cakey = makekey());
+      if (!*mqttkey)
+         j_string(j_path(j, "mqtt.key"), changed = mqttkey = makekey());
+      // Update key file if needed
+      if (changed)
+      {
+         char *temp;
+         if (asprintf(&temp, "%s+", keyfile) < 0)
+            errx(1, "malloc");
+         FILE *f = fopen(temp, "w");
+         if (!f)
+            err(1, "Cannot write key file %s", keyfile);
+         j_err(j_write_pretty_close(j, f));
+         if (rename(temp, keyfile))
+            err(1, "Cannot make key file");
+         free(temp);
+      }
+      j_delete(&j);
+      // Config
+   umask(0007);                 // Owner and group
+      changed = NULL;
+      j = j_create();
       if (access(configfile, R_OK | W_OK))
       {
          j_object(j);
@@ -159,6 +193,7 @@ int main(int argc, const char *argv[])
          free(temp);
       }
       j_delete(&j);
+
    }
    if (sqldebug)
    {
