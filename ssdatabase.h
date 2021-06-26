@@ -95,12 +95,11 @@ link(organisation);
 text(description, 0);
 bool (admin);                   // Customer level admin user - can do anything relating to this organisation
 bool (caneditorganisation);
+bool (caneditclass);
 bool (caneditsite);
 bool (canedituser);
-bool (caneditself);
 bool (caneditdevice);
 bool (caneditfob);
-bool (caneditclass);
 
 join(user, organisation);
 link(class);                    // defines users permissions

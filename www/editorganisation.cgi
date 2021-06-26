@@ -22,6 +22,7 @@ if($?description) then
   sql "$DB" 'INSERT INTO class SET description="Staff",organisation=$organisation'
   sql "$DB" 'INSERT INTO class SET description="Contractor",organisation=$organisation'
   sql "$DB" 'INSERT INTO class SET description="Visitor",organisation=$organisation'
+  sql "$DB" 'UPDATE session SET organisation=$organisation WHERE session="$ENVCGI"'
  endif
  sqlwrite -o "$DB" organisation organisation description
  if($?adduser && $NOTADMIN == 0) then
@@ -36,10 +37,9 @@ if($?description) then
     goto done
    endif
    sql "$DB" 'INSERT INTO userorganisation SET user=$user,organisation=$organisation,class=$class'
-   goto done
   endif
  endif
- echo "Location: ${ENVCGI_SERVER}listorganisation.cgi"
+ echo "Location: ${ENVCGI_SERVER}"
  echo ""
  exit 0
 endif
@@ -65,13 +65,5 @@ xmlsql -d "$DB" head.html - foot.html << 'END'
 <input type=submit value="Update">
 <IF NOT organisation=0 USER_ADMIN><input type=submit value="Delete" name=DELETE></IF>
 </form>
-<IF not organisation=0>
-<h2>Users</h2>
-<table>
-<sql select="*,class.description AS C" table="userorganisation LEFT JOIN user USING (user) LEFT JOIN class ON userorganisation.class=class.class" where="userorganisation.organisation=$organisation">
-<tr><td><output name=C></td><td><output name=description blank="Unnamed"></td></tr>
-</sql>
-</table>
-</if>
 </sql>
 'END'
