@@ -18,7 +18,7 @@ if($?pending) then
 	endif
 	setenv i `sql "$DB" 'SELECT instance FROM pending WHERE pending="$pending"'`
 	setenv MSG "Provisioning..."
-	message --instance="$i" --provision="$pending"
+	message --device="$pending" --provision="$pending"
 	if($status) setenv MSG "Failed"
 endif
 done:

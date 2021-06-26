@@ -216,15 +216,21 @@ int main(int argc, const char *argv[])
          if (meta)
             meta = j_detach(meta);
          const char *local(void) {      // Commands sent to us from local system
-            long long instance = strtoll(j_get(meta, "instance") ? : "", NULL, 10);
-            const char *v;
-            if ((v = j_get(meta, "prefix")))
-            {                   // Send to device
-               const char *suffix = j_get(meta, "suffix");
-               if (!instance)
-                  return "No instance";
-               return mqtt_send(instance, v, suffix, &j);
-            } else if ((v = j_get(meta, "provision")))
+            const char *v = j_get(meta, "provision");
+            const char *device = j_get(meta, "device");
+            if (!device)
+               return "No device";
+            SQL_RES *res = sql_safe_query_store_free(&sql, sql_printf("SELECT `instance` FROM `%#S` WHERE `%#S`=%#s", v ? "pending" : "device", v ? "pending" : "device", device));
+            if (!sql_fetch_row(res))
+            {
+               sql_free_result(res);
+               return "Device not found";
+            }
+            long long instance = strtoll(sql_colz(res, "instance") ? : "", NULL, 10);
+            if (!instance)
+               return "Device not online";
+            sql_free_result(res);
+            if (v)
             {                   // JSON is rest of settings to send
                char *key = makekey();
                char *cert = makecert(key, cakey, cacert, v);
@@ -245,16 +251,30 @@ int main(int argc, const char *argv[])
                j_store_string(j, "mqttcert", "");
                j_store_null(j, "mqttport");
                return mqtt_send(instance, "setting", NULL, &j);
-            }
-            return "Unknown local request";
+            } else if ((v = j_get(meta, "prefix")))
+            {                   // Send to device
+               const char *suffix = j_get(meta, "suffix");
+               if (!instance)
+                  return "No instance";
+               return mqtt_send(instance, v, suffix, &j);
+            } else
+               return "Unknown local request";
             return NULL;
          }
          const char *process(void) {
             if (!meta)
                return "No meta data";
 
-            if (j_test(meta, "local", 0))
-               return local();
+            if (j_find(meta, "local"))
+            {
+               const char *reply = local();
+               long long instance = strtoull(j_get(meta, "local") ? : "", NULL, 10);
+               j_t j = j_create();
+               if (reply)
+                  j_string(j, reply);
+               mqtt_send(instance, NULL, NULL, &j);     // reply
+               return reply;
+            }
 
             long long message = strtoull(j_get(meta, "message") ? : "", NULL, 10);
             long long instance = strtoull(j_get(meta, "instance") ? : "", NULL, 10);

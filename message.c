@@ -21,13 +21,14 @@
 
 int main(int argc, const char *argv[])
 {
+   int ret = 0;
    char *json = NULL;
+   const char *device = NULL;
    const char *topic = "";
    const char *command = NULL;
    const char *provision = NULL;
    const char *deport = NULL;
    int setting = 0;
-   long long instance = 0;
    {                            // POPT
       poptContext optCon;       // context for parsing command-line options
       const struct poptOption optionsTable[] = {
@@ -35,7 +36,7 @@ int main(int argc, const char *argv[])
          { "settings", 0, POPT_ARG_NONE, &setting, 0, "Setting", NULL },
          { "provision", 0, POPT_ARG_STRING, &provision, 0, "Provision", "deviceid" },
          { "deport", 0, POPT_ARG_STRING, &deport, 0, "Deport", "mqtthost" },
-         { "instance", 'i', POPT_ARG_LONGLONG, &instance, 0, "Instance", "N" },
+         { "device", 'd', POPT_ARG_STRING, &device, 0, "Device", "XXXXXXXXXXXX" },
          POPT_AUTOHELP { }
       };
 
@@ -67,8 +68,8 @@ int main(int argc, const char *argv[])
    }
    if (setting)
       j_store_string(meta, "prefix", "setting");
-   if (instance)
-      j_store_int(meta, "instance", instance);
+   if (device)
+      j_store_string(meta, "device", device);
    j_err(j_write_mem(j, &json, NULL));
    j_delete(&j);
 
@@ -190,11 +191,45 @@ int main(int argc, const char *argv[])
       SSL_write(ssl, buf, b - buf);
    }
    {                            // Wait confirmation
-
       unsigned char buf[100];
       size_t len = SSL_read(ssl, buf, sizeof(buf));
       if (len < 4 || *buf != 0x40 || buf[1] != 2 || (buf[2] << 8) + buf[3] != id)
          errx(1, "Bad reply to message %d %02X %02X %02X %02X %04X", (int) len, buf[0], buf[1], buf[2], buf[3], id);
+   }
+   {                            // Wait reply
+      unsigned char buf[1000],
+      *b = buf;
+      size_t len = SSL_read(ssl, buf, sizeof(buf));
+      if (len < 2 && *buf != 0x30)
+         errx(1, "Bad reply");
+      b++;
+      int n = 0,
+          q = 0;
+      while (*b & 0x80)
+      {
+         n |= ((*b & 0x7F) << q);
+         q += 7;
+         b++;
+      }
+      n |= ((*b++ & 0x7F) << q);
+      if (b + n > buf + len)
+         errx(1, "Bad len");
+      int tlen = (*b << 8) + b[1];
+      b += 2;
+      b += tlen;                // Ignore
+      if (b > buf + len)
+         errx(1, "Bad topic len");
+      j_t j = j_create();
+      j_err(j_read_mem(j, (char *) b, len - (b - buf)));
+      if (!j_isnull(j))
+      {
+         ret = 1;
+         if (j_isstring(j))
+            fprintf(stderr, "%s", j_val(j));
+         else
+            j_err(j_write_pretty(j, stderr));
+      }
+      j_delete(&j);
    }
    {                            // End
       unsigned char buf[100],
@@ -207,5 +242,5 @@ int main(int argc, const char *argv[])
    SSL_free(ssl);
    close(sock);
 
-   return 0;
+   return ret;
 }

@@ -129,7 +129,7 @@ static void *server(void *arg)
    long long message = 0;
    void addq(j_t j, int tlen, char *topic) {
       if (*device == '-')
-         j_true(j_path(j, "_meta.local"));
+         j_int(j_path(j, "_meta.local"), instance);
       else
       {
          j_t meta = j_find(j, "_meta");
@@ -536,7 +536,7 @@ const char *mqtt_send(long long instance, const char *prefix, const char *suffix
       *jp = NULL;
    }
    const char *process(void) {
-      if (asprintf(&topic, "%s/SS/*%s%s", prefix, suffix ? "/" : "", suffix ? : "") < 0)
+      if ((!prefix && !(topic = strdup(""))) || asprintf(&topic, "%s/SS/*%s%s", prefix, suffix ? "/" : "", suffix ? : "") < 0)
          return "malloc";
       // Make publish
       uint8_t tx[2048];         // Sane limit
