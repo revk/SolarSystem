@@ -39,17 +39,18 @@ int main(int argc, const char *argv[])
        site = 0,
        aid = 0,
        class = 0;
+   const char *sus=NULL,*suser=NULL,*sorganisation=NULL,*ssite=NULL,*said=NULL,*sclass=NULL;
    int redirect = 0;
    int reason = 0;
    const char *configfile = "../solarsystem.conf";
    poptContext optCon;          // context for parsing command-line options
    const struct poptOption optionsTable[] = {
-      { "as", 0, POPT_ARG_INT, &us, 0, "Check as user", "N" },
-      { "user", 'u', POPT_ARG_INT, &user, 0, "Check access to user", "N" },
-      { "organisation", 'o', POPT_ARG_INT, &organisation, 0, "Check access to organisation", "N" },
-      { "site", 's', POPT_ARG_INT, &site, 0, "Check access to site", "N" },
-      { "aid", 'a', POPT_ARG_INT, &aid, 0, "Check access to aid", "N" },
-      { "class", 'c', POPT_ARG_INT, &class, 0, "Check access to class", "N" },
+      { "as", 0, POPT_ARG_STRING, &sus, 0, "Check as user", "N" },
+      { "user", 'u', POPT_ARG_STRING, &suser, 0, "Check access to user", "N" },
+      { "organisation", 'o', POPT_ARG_STRING, &sorganisation, 0, "Check access to organisation", "N" },
+      { "site", 's', POPT_ARG_STRING, &ssite, 0, "Check access to site", "N" },
+      { "aid", 'a', POPT_ARG_STRING, &said, 0, "Check access to aid", "N" },
+      { "class", 'c', POPT_ARG_STRING, &sclass, 0, "Check access to class", "N" },
       { "config-file", 0, POPT_ARG_STRING | POPT_ARGFLAG_SHOW_DEFAULT, &configfile, 0, "Config file", "filename" },
       { "redirect", 'r', POPT_ARG_NONE, &redirect, 0, "Redirect", NULL },
       { "reason", 0, POPT_ARG_NONE, &reason, 0, "Output reason allowed", NULL },
@@ -63,6 +64,20 @@ int main(int argc, const char *argv[])
    int c;
    if ((c = poptGetNextOpt(optCon)) < -1)
       errx(1, "%s: %s\n", poptBadOption(optCon, POPT_BADOPTION_NOALIAS), poptStrerror(c));
+
+   int getval(const char *v)
+   {
+	   if(!v)return 0;
+	   if(*v=='$')v=getenv(v+1);
+	   if(!v||!*v)return 0;
+	   return atoi(v);
+   }
+   us=getval(sus);
+   user=getval(suser);
+   organisation=getval(sorganisation);
+   site=getval(ssite);
+   aid=getval(said);
+   class=getval(sclass);
 
    SQL sql;
    sql_cnf_connect(&sql, CONFIG_SQL_CONFIG_FILE);

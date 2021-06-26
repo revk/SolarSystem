@@ -1,4 +1,4 @@
-#!../login/loggedin /bin/csh -fx
+#!../login/loggedin /bin/csh -f
 unset user # csh
 setenv organisation "$PATH_INFO:t"
 can --redirect --organisation=$organisation editorganisation
