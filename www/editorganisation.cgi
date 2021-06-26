@@ -23,8 +23,8 @@ if($?description) then
   sql "$DB" 'INSERT INTO class SET description="Staff",organisation=$organisation'
   sql "$DB" 'INSERT INTO class SET description="Contractor",organisation=$organisation'
   sql "$DB" 'INSERT INTO class SET description="Visitor",organisation=$organisation'
-  setenv site `sql -i "$DB" 'INSERT INTO site SET description="$description",organisation=$organisation'`
-  sql "$DB" 'INSERT INTO area SET site=$site,area="A",description="Main area"'
+  setenv site `sql -i "$DB" 'INSERT INTO site SET description="Main building",organisation=$organisation'`
+  sql "$DB" 'INSERT INTO area SET site=$site,area="A",description="Main building"'
   sql "$DB" 'UPDATE session SET organisation=$organisation,site=$site WHERE session="$ENVCGI"'
  endif
  sqlwrite -o "$DB" organisation organisation description
