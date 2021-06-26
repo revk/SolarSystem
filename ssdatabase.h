@@ -86,7 +86,6 @@ areas(access);                  // Where user is allowed access
 areas(arm);                     // Where user is allowed to arm/disarm
 bool (dooroverride);            // Override all door controls
 bool (doorclock);               // Override time when clock not set on door
-bool (doorblock);               // Block this card
 
 join(site, aid);
 
