@@ -198,23 +198,35 @@ int main(int argc, const char *argv[])
          if (meta)
             meta = j_detach(meta);
          const char *local(void) {      // Commands sent to us from local system
-            const char *prefix = j_get(meta, "prefix");
-            if (prefix)
+            long long instance = strtoll(j_get(meta, "instance") ? : "", NULL, 10);
+            const char *v;
+            if ((v = j_get(meta, "prefix")))
             {                   // Send to device
                const char *suffix = j_get(meta, "suffix");
-               long long instance = strtoll(j_get(meta, "instance") ? : "", NULL, 10);
                if (!instance)
                   return "No instance";
-               return mqtt_send(instance, prefix, suffix, &j);
-            } else
-               return "Unknown local request";
+               return mqtt_send(instance, v, suffix, &j);
+            } else if ((v = j_get(meta, "provision")))
+            { // JSON is rest of settings to send
+               char *key = makekey();
+               char *cert = makecert(key, cakey, cacert, v);
+               j_store_string(j, "clientcert", cert);
+               free(cert);
+               const char*fail= mqtt_send(instance, "setting", NULL, &j);
+	       j=j_create();
+               j_store_string(j, "clientkey", key);
+               free(key);
+	       if(fail)return fail;
+               return mqtt_send(instance, "setting", NULL, &j);
+            }
+            return "Unknown local request";
             return NULL;
          }
          const char *process(void) {
             if (!meta)
                return "No meta data";
 
-            if (j_test(meta,"local",0))
+            if (j_test(meta, "local", 0))
                return local();
 
             long long message = strtoull(j_get(meta, "message") ? : "", NULL, 10);
@@ -232,7 +244,7 @@ int main(int argc, const char *argv[])
             const char *address = j_get(meta, "address");
             const char *prefix = j_get(meta, "prefix");
             const char *suffix = j_get(meta, "suffix");
-            if (!message&&(!deviceid||*deviceid!='-'))
+            if (!message && (!deviceid || *deviceid != '-'))
             {                   // Connect (first message ID 0) - *MUST* be a top level state message
                const char *id = j_get(j, "id");
                if (!id)

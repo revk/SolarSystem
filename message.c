@@ -24,6 +24,7 @@ int main(int argc, const char *argv[])
    char *json = NULL;
    const char *topic = "";
    const char *command = NULL;
+   const char *provision = NULL;
    int setting = 0;
    long long instance = 0;
    {                            // POPT
@@ -31,6 +32,7 @@ int main(int argc, const char *argv[])
       const struct poptOption optionsTable[] = {
          { "command", 'c', POPT_ARG_STRING, &command, 0, "Command", "tag" },
          { "settings", 's', POPT_ARG_NONE, &setting, 0, "Setting", NULL },
+         { "provision", 'p', POPT_ARG_STRING, &provision, 0, "Provision", "deviceid" },
          { "instance", 'i', POPT_ARG_LONGLONG, &instance, 0, "Instance", "N" },
          POPT_AUTOHELP { }
       };
@@ -51,6 +53,8 @@ int main(int argc, const char *argv[])
    if (json)
       j_err(j_read_mem(j, json, strlen(json)));
    j_t meta = j_store_object(j, "_meta");
+   if(provision)
+	   j_store_string(meta,"provision",provision);
    if (command)
    {
       j_store_string(meta, "prefix", "command");

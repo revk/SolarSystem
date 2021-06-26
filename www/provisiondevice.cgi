@@ -6,6 +6,17 @@ if($?pending) then
 		setenv MSG "Pick PCB to provision"
 		goto done
 	endif
+	setenv p `sql "$DB" 'SELECT pcb FROM device WHERE device="$pending"'`
+	if("$p" != "" && "$p" != "NULL") then
+	 	if("$p" != "$pcb") then
+			sql "$DB" 'DELETE FROM devicegpio WHERE device="$pending"'
+			sql "$DB" 'UPDATE device SET pcb="$pcb" WHERE device="$pending"'
+		endif
+	else
+		sql "$DB" 'INSERT INTO device SET device="$pending"'
+	endif
+	setenv i `sql "$DB" 'SELECT instance FROM pending WHERE pending="$pending"'`
+	message --instance="$i" --provision="$pending"
 	setenv MSG "Provisioning..."
 endif
 done:
