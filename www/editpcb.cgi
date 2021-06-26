@@ -1,4 +1,4 @@
-#!../login/loggedin /bin/csh -fx
+#!../login/loggedin /bin/csh -f
 can --redirect admin
 if($status) exit 0
 
@@ -17,29 +17,40 @@ if($?description) then # save
   setenv pcb `sql -i "$DB" 'INSERT INTO pcb SET pcb=0'`
  endif
  sqlwrite "$DB" pcb
+ set pcbgpio=(`printenv pcbgpio|sed 's/[^0-9 	]//g'`)
  set gpio=(`printenv gpio|sed 's/[^-0-9 	]//g'`)
  set type=(`printenv type|sed 's/[^-0-9A-Z 	]//g'`)
  set init=(`printenv init|sed 's/[^-0-9A-Z 	]//g'`)
- set n=0
+ set changed=0
  setenv set ""
- foreach g ($gpio)
-	setenv g "$g"
+ foreach n ($pcbgpio)
+	setenv n "$n"
+	setenv g "$gpio[1]"
+	shift gpio
 	setenv t "$type[1]"
 	shift type
 	setenv i "$init[1]"
 	shift init
-	if("$g" == 0) continue
-	setenv c `sql -v "$DB" 'SELECT COUNT(*) FROM pcbgpio WHERE pcb=$pcb AND gpio="$g" AND type="$t" AND init="$i"'`
-	if("$c" == "0" || "$c" == "") then
-		@ n = $n + `sql -v -c "$DB" 'INSERT INTO pcbgpio SET pcb=$pcb,gpio="$g",type="$t",init="$i",pinname="$pinname" ON DUPLICATE KEY UPDATE gpio="$g",type="$t",init="$i"'`
+	if("$n" == 0) then
+		if("$g" != "-") then
+			@ changed = $changed + `sql -c "$DB" 'INSERT INTO pcbgpio SET pcb="$pcb",gpio="$g",type="$t",init="$i",pinname="$pinname"'`
+		endif
+	else
+		if("$g" == "-") then
+			@ changed = $changed + `sql -c "$DB" 'DELETE FROM pcbgpio WHERE pcbgpio="$n" AND pcb="$pcb"'`
+		else
+			@ changed = $changed + `sql -c "$DB" 'UPDATE pcbgpio SET gpio="$g",type="$t",init="$i" WHERE pcbgpio="$n" AND pcb="$pcb" AND (gpio<>"$g" OR type<>"$t" OR init<>"$i")'`
+		endif
 	endif
 	setenv set "$set,$g"
  end
- @ n = $n + `sql -c "$DB" 'DELETE FROM pcbgpio WHERE pcb=$pcb AND gpio NOT IN ($,set)'`
+ @ changed = $changed + `sql -c "$DB" 'DELETE FROM pcbgpio WHERE pcb=$pcb AND gpio NOT IN ($,set)'`
+ unsetenv pcbgpio
  unsetenv gpio
+ unsetenv init
  unsetenv type
  unsetenv pinname
- if($n)goto done
+ if($changed)goto done
  echo "Location: ${ENVCGI_SERVER}/editpcb.cgi"
  echo ""
  exit 0
@@ -81,9 +92,9 @@ xmlsql -d "$DB" head.html - foot.html << END
 <tr><td><select name=nfcbell>$PICKGPIONFC</select></td><td>PN532 NFC Bell input</td></tr>
 </if>
 <sql table=pcbgpio where="pcb=\$pcb" order=pinname>
-<tr><td><select name=gpio>$PICKGPIO</select></td><td><select name=type>$PICKGPIOPCB</select><select name=init>$PICKGPIOTYPE</select> <output name=pinname></td></tr></td>
+<tr><td><input name=pcbgpio type=hidden><select name=gpio>$PICKGPIO</select></td><td><select name=type>$PICKGPIOPCB</select><select name=init>$PICKGPIOTYPE</select> <output name=pinname></td></tr></td>
 </sql>
-<tr><td><select name=gpio>$PICKGPIO</select></td><td><select name=type>$PICKGPIOPCB</select><select name=init>$PICKGPIOTYPE</select> <input name=pinname size=10 placeholder='New pin'></td></tr></td>
+<tr><td><input name=pcbgpio type=hidden value=0><select name=gpio>$PICKGPIO</select></td><td><select name=type>$PICKGPIOPCB</select><select name=init>$PICKGPIOTYPE</select> <input name=pinname size=10 placeholder='New pin'></td></tr></td>
 </table>
 </sql>
 <input type=submit value="Update">
