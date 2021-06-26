@@ -232,7 +232,7 @@ int main(int argc, const char *argv[])
             const char *address = j_get(meta, "address");
             const char *prefix = j_get(meta, "prefix");
             const char *suffix = j_get(meta, "suffix");
-            if (!message)
+            if (!message&&(!deviceid||*deviceid!='-'))
             {                   // Connect (first message ID 0) - *MUST* be a top level state message
                const char *id = j_get(j, "id");
                if (!id)
