@@ -1,5 +1,5 @@
 <html><head><title>Access.me.uk</title><link rel=stylesheet href=/access.css /></head><body>
-<h1 style='float:right'>Access.me.uk</h1>
+<div style='float:right'>Access.me.uk</div>
 <if USER_ID>
 <select name=SESSION_ORGANISATION>
 	<sql table="userorganisation LEFT JOIN organisation USING (organisation)" WHERE="user=$USER_ID" ORDER="description">
