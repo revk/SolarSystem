@@ -28,7 +28,7 @@ endif
 all: alarmpanel cardissue solarsystem can login.conf SQLlib/sql
 
 update:
-	git submodule update --init --remote --merge --recursive
+	git submodule update --init --remote --recursive
 	git commit -a -m "Library update"
 	git push
 	make -C login
