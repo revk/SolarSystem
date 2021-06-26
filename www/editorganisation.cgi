@@ -6,36 +6,36 @@ if($status) exit 0
 can --organisation=$organisation admin
 setenv NOTADMIN $status
 if($?DELETE) then
- setenv C `sql -c SS 'DELETE FROM organisation WHERE organisation=$organisation'`
+ setenv C `sql -c "$DB" 'DELETE FROM organisation WHERE organisation=$organisation'`
  if("$C" == "" || "$C" == "0") then
-  setenv FAIL "Cannot delete as in use"
+  setenv MSG "Cannot delete as in use"
   goto done
  endif
- echo "Location: ${ENVCGI_SERVER}listorganisation.cgi"
+ echo "Location: ${ENVCGI_SERVER}?MSG=Deleted"
  echo ""
  exit 0
 endif
 if($?description) then
  if($organisation == 0) then
-  setenv organisation `sql -i SS 'INSERT INTO organisation SET organisation=0'`
-  sql SS 'INSERT INTO class SET description="Admin",admin="true",organisation=$organisation'
-  sql SS 'INSERT INTO class SET description="Staff",organisation=$organisation'
-  sql SS 'INSERT INTO class SET description="Contractor",organisation=$organisation'
-  sql SS 'INSERT INTO class SET description="Visitor",organisation=$organisation'
+  setenv organisation `sql -i "$DB" 'INSERT INTO organisation SET organisation=0'`
+  sql "$DB" 'INSERT INTO class SET description="Admin",admin="true",organisation=$organisation'
+  sql "$DB" 'INSERT INTO class SET description="Staff",organisation=$organisation'
+  sql "$DB" 'INSERT INTO class SET description="Contractor",organisation=$organisation'
+  sql "$DB" 'INSERT INTO class SET description="Visitor",organisation=$organisation'
  endif
- sqlwrite -o SS organisation organisation description
+ sqlwrite -o "$DB" organisation organisation description
  if($?adduser && $NOTADMIN == 0) then
   if("$adduser" != "") then
-   setenv user `sql SS 'SELECT user FROM user WHERE email="$adduser"'`
+   setenv user `sql "$DB" 'SELECT user FROM user WHERE email="$adduser"'`
    if("$user" == NULL || "$user" == "") then
-    setenv FAIL "Unknown user";
+    setenv MSG "Unknown user";
     goto done
    endif
    if("$class" == "0") then
-    setenv FAIL "Pick a class"
+    setenv MSG "Pick a class"
     goto done
    endif
-   sql SS 'INSERT INTO userorganisation SET user=$user,organisation=$organisation,class=$class'
+   sql "$DB" 'INSERT INTO userorganisation SET user=$user,organisation=$organisation,class=$class'
    goto done
   endif
  endif
@@ -46,13 +46,12 @@ endif
 done:
 echo "Content-Type: text/html"
 echo ""
-xmlsql -d SS head.html - foot.html << 'END'
+xmlsql -d "$DB" head.html - foot.html << 'END'
 <h1>Organisation</h1>
-<if FAIL><p class=error><output name=FAIL></p></if>
 <form method=post>
 <sql table=organisation key=organisation>
 <table>
-<tr><td>Name</td><td><input name=description size=40></td></tr>
+<tr><td>Name</td><td><input name=description size=40 autofocus></td></tr>
 <IF NOTADMIN=0 NOT organisation=0>
 <tr><td>Add user</td><td><input name=adduser type=email size=40></td></tr>
 <tr><td>Class</td><td><select name=class><option value='0'>-- Pick class --</option>

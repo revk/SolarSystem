@@ -1,11 +1,22 @@
 <html><head><title>Access.me.uk</title><link rel=stylesheet href=/access.css /></head><body>
 <div style='float:right'>Access.me.uk</div>
 <if USER_ID>
-<select name=SESSION_ORGANISATION>
-	<sql table="userorganisation LEFT JOIN organisation USING (organisation)" WHERE="user=$USER_ID" ORDER="description">
-	<option value=$organisation><output name=description></option>
-	</sql>
+<form style='display:inline-block;' name=organisation method=post action=setorganisation.cgi>
+<if SESSION_ORGANISATION><set SET_ORGANISATION=$SESSION_ORGANISATION></if>
+<select name=SET_ORGANISATION onchange='organisation.submit()'>
+	<if USER_ADMIN>
+		<IF NOT SESSION_ORGANISATION><option value=0>-- Select organisation --</option></if>
+		<sql table="organisation" ORDER="description">
+		<option value=$organisation><output name=description></option>
+		</sql>
+	</if><if else>
+		<IF NOT SESSION_ORGANISATION><option value=0>-- Select organisation --</option></if>
+		<sql table="userorganisation LEFT JOIN organisation USING (organisation)" WHERE="user=$USER_ID" ORDER="description">
+		<option value=$organisation><output name=description></option>
+		</sql>
+	</if>
 </select>
+</form>
 </if>
-<if FAIL><p class=error><output name=FAIL></p></if>
+<if MSG><p class=error><output name=MSG></p></if>
 

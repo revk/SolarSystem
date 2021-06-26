@@ -8,9 +8,9 @@ endif
 unset user
 setenv user "$LINK:e"
 setenv USERNAME "$LINK:r"
-setenv C `sql -c SS 'UPDATE user SET email="$USERNAME" WHERE user=$user'`
+setenv C `sql -c "$DB" 'UPDATE user SET email="$USERNAME" WHERE user=$user'`
 if($status || "$C" == 0) then
-	echo "Location: ${ENVCGI_SERVER}login.cgi?FAIL=Cannot+update+email"
+	echo "Location: ${ENVCGI_SERVER}login.cgi?MSG=Cannot+update+email"
 	echo ""
 	exit 0
 endif
@@ -18,6 +18,6 @@ dologin --force --silent
 if($status) then
 	echo "Location: ${ENVCGI_SERVER}login.cgi"
 else
-	echo "Location: $ENVCGI_SERVER?FAIL=Updated"
+	echo "Location: $ENVCGI_SERVER?MSG=Updated"
 endif
 echo ""

@@ -2,12 +2,12 @@
 setenv Z `sql -v "$DB" 'SELECT COUNT(*) FROM user WHERE user="$USER_ID" AND hash IS NULL'`
 if($?NEWPASSWORD) then
 	if("$Z" == 1) then
-		setenv FAIL `changepassword --force`
+		setenv MSG `changepassword --force`
 	else
-		setenv FAIL `changepassword`
+		setenv MSG `changepassword`
 	endif
 	if(! $status) then
-		echo "Location: ${ENVCGI_SERVER}edituser.cgi?FAIL=Updated"
+		echo "Location: ${ENVCGI_SERVER}edituser.cgi?MSG=Updated"
 		echo ""
 		exit 0
 	endif

@@ -1,7 +1,7 @@
 #!../login/logincheck --query /bin/csh -f
 if($?FORGOT || $?NEW) then
 	if("$USERNAME" == "") then
-		setenv FAIL "Specify email address"
+		setenv MSG "Specify email address"
 		goto done
 	endif
 	setenv LINK `weblink --make='$USERNAME'`
@@ -20,8 +20,8 @@ Please use this link.
 ${ENVCGI_SERVER}forgot.cgi?$LINK
 END
 	endif
-	setenv FAIL "We have emailed $USERNAME, check your email and follow the link"
-	if("$PASSWORD" != "") setenv FAIL "$FAIL. You will be asked a password when you follow the link."
+	setenv MSG "We have emailed $USERNAME, check your email and follow the link"
+	if("$PASSWORD" != "") setenv MSG "$MSG. You will be asked a password when you follow the link."
 	unsetenv PASSWORD
 	goto done
 	exit 0
