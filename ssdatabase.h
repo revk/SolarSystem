@@ -133,6 +133,7 @@ bool (encryptednvs);            // Built with encrypted NVS
 bool (secureboot);              // Built with secure boot
 num(flash);			// Flash size
 link(aid);                      // The AID for door access (defines what site it is)
+bool(trusted);			// Trusted device for fob provisioning
 text(deport, 0);                // Send this device to another MQTT server
 areas(doorarea);                // Areas covered by this door
 time(online);                   // When online, if online
@@ -159,7 +160,7 @@ num(instance);
 text(version, 0);               // S/w version
 bool (encryptednvs);            // Built with encrypted NVS
 bool (secureboot);              // Built with secure boot
-num(flash);			// Flash size
+(flash);			// Flash size
 
 table(pcb, 0);                  // PCB type
 text(description, 0);

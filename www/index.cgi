@@ -32,7 +32,7 @@ source ../setcan
 <if CANEDITAREA><li><a href="editarea.cgi">Edit area</a></li></if>
 </if>
 <IF USER_ADMIN><sql table=pending limit=1><li><a href="provisiondevice.cgi">Provision new device</a></li></sql></if>
-<IF USER_ADMIN><li><a href="provisionfob.cgi">Provision new fob</a></li></if>
+<IF USER_ADMIN><sql table=device where="online is not null AND trusted='true'" limit=1><li><a href="provisionfob.cgi">Provision new fob</a></li></sql></if>
 </ul>
 <pre>
 'END'
