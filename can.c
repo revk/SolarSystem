@@ -30,6 +30,9 @@ int can(SQL_RES * res, const char *test)
 
 int main(int argc, const char *argv[])
 {
+#ifdef CONFIG_SQL_DEBUG
+   sqldebug = 1;
+#endif
    int us = 0,
        user = 0,
        organisation = 0,
@@ -128,7 +131,7 @@ int main(int argc, const char *argv[])
             return NULL;
          }
          // Now check permissions
-         if (*sql_colz(resus, "admin") == 't')
+         if (*sql_colz(res, "admin") == 't')
             return "User is top level admin.";
          if (!poptPeekArg(optCon))
             return NULL;        // No args is checking admin
