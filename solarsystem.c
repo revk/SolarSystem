@@ -32,20 +32,6 @@ const char *mqttkey = NULL,
 
 extern int sqldebug;
 
-const char *deport(SQL_RES * res, long long instance)
-{                               // Check if deport needed
-   const char *deport = sql_col(res, "deport");
-   if (!deport || !*deport)
-      return NULL;
-   j_t m = j_create();
-   j_store_string(m, "clientkey", "");
-   j_store_string(m, "clientcert", "");
-   j_store_string(m, "mqttcert", "");
-   j_store_string(m, "mqtthost", deport);
-   setting(instance, NULL, &m);
-   return deport;
-}
-
 const char *upgrade(SQL_RES * res, long long instance)
 {                               // Send upgrade if needed
    const char *upgrade = sql_col(res, "upgrade");
@@ -224,7 +210,7 @@ int main(int argc, const char *argv[])
                {
                   sql_sprintf(&s, "UPDATE `device` SET ");      // known, update
                   sql_sprintf(&s, "`lastonline`=NOW(),");
-                  if (!deport(device, instance) && !upgrade(device, instance))
+                  if (!upgrade(device, instance))
                      settings(device, instance);
                } else           // pending - update pending
                {
@@ -232,10 +218,7 @@ int main(int argc, const char *argv[])
                   sql_sprintf(&s, "`pending`=%#s,", id);
                   SQL_RES *res = sql_safe_query_store_free(&sql, sql_printf("SELECT * FROM `device` WHERE `device`=%#s", id));
                   if (sql_fetch_row(res))
-                  {             // exists, check deport/upgrade
-                     if (!deport(res, instance))
                         upgrade(res, instance);
-                  }
                   sql_free_result(res);
                }
                if (!device || (address && strcmp(sql_colz(device, "address"), address)))

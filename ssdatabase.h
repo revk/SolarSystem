@@ -48,6 +48,10 @@
 #define gpionfc(n)                 // NFC GPIO number field (and inverted)
 #endif
 
+#ifndef gpiopcb
+#define gpiopcb(n)                 // PCB template GPIO type
+#endif
+
 #ifndef gpiotype
 #define gpiotype(n)             // GPIO assignment field
 #endif
@@ -134,7 +138,6 @@ bool (secureboot);              // Built with secure boot
 num(flash);			// Flash size
 link(aid);                      // The AID for door access (defines what site it is)
 bool(trusted);			// Trusted device for fob provisioning
-text(deport, 0);                // Send this device to another MQTT server
 areas(doorarea);                // Areas covered by this door
 num(doorauto);			// Door auto mode
 time(online);                   // When online, if online
@@ -165,9 +168,6 @@ table(pcb, 0);                  // PCB type
 text(description, 0);
 gpio(tamper);			// Fixed GPIOs
 gpio(blink);		
-gpio(red);
-gpio(green);
-gpio(blue);
 gpio(nfctx);
 gpio(nfcrx);
 gpio(nfcpower);
@@ -182,7 +182,8 @@ table(pcbgpio, 0);
 link(pcb);
 gpio(gpio);
 unique(pcb, gpio);
-gpiotype(type);
+gpiopcb(type);
+text(pinname,0);
 
 table(aid, 6);                  // AID (linked to organisation)
 link(organisation);
@@ -202,6 +203,7 @@ join(fob, aid);			// Fob is in AID
 #undef ip
 #undef gpio
 #undef gpionfc
+#undef gpiopcb
 #undef gpiotype
 #undef bool
 #undef areas
