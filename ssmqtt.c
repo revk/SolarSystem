@@ -128,7 +128,6 @@ static void *server(void *arg)
    }
    long long message = 0;
    void addq(j_t j, int tlen, char *topic) {
-
       j_t meta = j_find(j, "_meta");
       if (meta)
          j_delete(&meta);       // Naughty
@@ -165,7 +164,7 @@ static void *server(void *arg)
       }
       if (!message && (strcmp(j_get(meta, "prefix") ? : "", "state") || j_find(meta, "suffix")))
       {                         // First message has to be system state message, else ignore
-         warnx("Unexpected initial message from %s", address);
+         warnx("Unexpected initial message from %s %s", address, device);
          j_delete(&j);
          return;                // Not sent
       }
@@ -217,9 +216,14 @@ static void *server(void *arg)
          {                      // Next block
             int len = SSL_read(ssl, rx + pos, sizeof(rx) - pos);
             if (len <= 0)
+            {
+               fail = "Closed";
                break;
+            }
             pos += len;
          }
+         if (fail)
+            break;
          if (pos < 2)
             continue;
          uint32_t i,
@@ -393,6 +397,7 @@ static void *server(void *arg)
          SSL_write(ssl, tx, txp);
       }
    }
+   if(message)
    {                            // Down
       j_t j = j_create();
       addq(j, 0, NULL);
