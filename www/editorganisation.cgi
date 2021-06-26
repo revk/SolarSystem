@@ -59,7 +59,7 @@ xmlsql -d "$DB" head.html - foot.html << 'END'
 <tr><td>Add user</td><td><input name=adduser type=email size=40></td></tr>
 <tr><td>Class</td><td><select name=class><option value='0'>-- Pick class --</option>
 <sql table=class WHERE="organisation=$organisation">
-<option value="$class"><output name=description blank="Unspecified"></option>
+<option value="$class"><output name=description blank="Unspecified"><if admin=true> (ADMIN)</if></option>
 </sql>
 </select></td></tr>
 </IF>
