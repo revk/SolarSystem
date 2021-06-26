@@ -145,7 +145,7 @@ int main(int argc, const char *argv[])
       if (!*mqttcert)
          mqttcert = makecert(mqttkey, cakey, cacert, CONFIG_MQTT_HOSTNAME);
       if (!*msgcert)
-         msgcert = makecert(msgkey, cakey, cacert, "---MESSAGE--");
+         msgcert = makecert(msgkey, cakey, cacert, "-LOCAL--MSG-");
       unlink(CONFIG_KEYS_FILE);
       j_t j = j_create();
       j_object(j);
