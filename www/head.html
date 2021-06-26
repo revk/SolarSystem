@@ -1,2 +1,11 @@
 <html><head><title>Access.me.uk</title><link rel=stylesheet href=/access.css /></head><body>
+<h1 style='float:right'>Access.me.uk</h1>
+<if USER_ID>
+<select name=SESSION_ORGANISATION>
+	<sql table="userorganisation LEFT JOIN organisation USING (organisation)" WHERE="user=$USER_ID" ORDER="description">
+	<option value=$organisation><output name=description></option>
+	</sql>
+</select>
+</if>
+<if FAIL><p class=error><output name=FAIL></p></if>
 

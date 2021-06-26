@@ -32,7 +32,7 @@ menu "SQL"
     string "SQL database"
     default "SS"
     help
-    	SQL database name
+    	SQL database name (should match config for login module)
 
     config SQL_KEY_CONFIG_FILE
     string "SQL config file"
