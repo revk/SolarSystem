@@ -23,7 +23,7 @@ if($?description) then
 	if($?CANEDITFOB) setenv allow "$allow caneditfob"
 	if($?CANEDITUSER) setenv allow "$allow canedituser"
 	if($?CANEDITAREA) setenv allow "$allow caneditarea"
-	sqlwrite -v -o "$DB" class $allow
+	sqlwrite -o "$DB" class $allow
 endif
 echo "Content-Type: text/html"
 echo ""

@@ -17,6 +17,22 @@ if($?description) then # save
   setenv pcb `sql -i "$DB" 'INSERT INTO pcb SET pcb=0'`
  endif
  sqlwrite "$DB" pcb
+ set gpio=(`printenv gpio|sed 's/^-[0-9] //g'`)
+ set gpiotype=(`printenv gpiotype|sed 's/^-[0-9] //g'`)
+ set n=0
+ setenv set ""
+ foreach g ($gpio)
+	setenv g "$g"
+	setenv t "$gpiotype[1]"
+	shift gpiotype
+	if("$g" == 0) continue
+	@ n = $n + `sql -c "$DB" 'INSERT IGNORE INTO pcbgpio SET pcb=$pcb,gpio="$g",type="$t"'`
+	setenv set "$set,$g"
+ end
+ @ n = $n + `sql -c "$DB" 'DELETE FROM pcbgpio WHERE pcb=$pcb AND gpio NOT IN ($,set)'`
+ unsetenv gpio
+ unsetenv gpiotype
+ if($n)goto done
  echo "Location: ${ENVCGI_SERVER}/editpcb.cgi"
  echo ""
  exit 0
@@ -24,18 +40,19 @@ endif
 done:
 echo "Content-Type: text/html"
 echo ""
-setenv GPIO "2 4 5 12 13 14 15 16 17 18 19 21 22 23 25 26 27 32 33 34 35 36 39"
-setenv NFCGPIO "30 31 32 33 34 35 71 72"
+setenv PICKGPIO '<option value="">-- None --</option><for space G="2 4 5 12 13 14 15 16 17 18 19 21 22 23 25 26 27 32 33 34 35 36 39"><option value=\$G><output name=G></option><option value=-\$G><output name=G> (inverted)</option></for>'
+setenv PICKNFCGPIO '<option value="">-- None --</option><for space G="30 31 32 33 34 35 71 72"><option value=\$G><output name=G></option><option value=-\$G><output name=G> (inverted)</option></for>'
+setenv PICKTYPE	'<option value=I>Input</option><option value=O>Output</option><option value=P>Power output</option><option value=I1>Exit button</option><option value=I2>Door open</option><option value=I3>Lock engaged</option><option value=I3>Deadlock engaged</option><option value=I8>Ranger input</option><option value=O1>Lock output</option><option value=O2>Deadlock output</option><option value=O3>Beep output</option><option value=O4>Error output</option><option value=R>Controller red LED</option><option value=G>Controller green LED</option><option value=B>Controller blue LED</option><option value=A>Controller amber LED</option><option value=T>Controller tamper input</option>'
 if($?PATH_INFO) then
 	setenv pcb "$PATH_INFO:t"
 endif
-xmlsql -d "$DB" head.html - foot.html << 'END'
+xmlsql -d "$DB" head.html - foot.html << END
 <h1>PCB template</h1>
 <if not pcb>
 <table>
 <sql table=pcb order=description>
 <tr>
-<td><output name=description blank="Unspecified" missing="?"  href="/editpcb.cgi/$pcb"></td>
+<td><output name=description blank="Unspecified" missing="?"  href="/editpcb.cgi/\$pcb"></td>
 </tr>
 </sql>
 </table>
@@ -45,15 +62,19 @@ xmlsql -d "$DB" head.html - foot.html << 'END'
 <sql table=pcb key=pcb>
 <table>
 <tr><td>Name</td><td><input name=description ize=40 autofocus></td></tr>
-<tr><td><select name=nfcpower><option value=''>-- None --</option><for space G="$GPIO"><option value=$G><output name=G></option><option value=-$G><output name=G> (inverted)</option></for></select></td><td>GPIO NFC Power</td></tr>
-<tr><td><select name=nfctx><option value=''>-- None --</option><for space G="$GPIO"><option value=$G><output name=G></option><option value=-$G><output name=G> (inverted)</option></for></select></td><td>GPIO NFC Tx</td></tr>
-<tr><td><select name=nfcrx><option value=''>-- None --</option><for space G="$GPIO"><option value=$G><output name=G></option><option value=-$G><output name=G> (inverted)</option></for></select></td><td>GPIO NFC Rx</td></tr>
-<tr><td><select name=nfcred><option value=''>-- None --</option><for space G="$NFCGPIO"><option value=$G><output name=G></option><option value=-$G><output name=G> (inverted)</option></for></select></td><td>PN532 NFC Red LED</td></tr>
-<tr><td><select name=nfcamber><option value=''>-- None --</option><for space G="$NFCGPIO"><option value=$G><output name=G></option><option value=-$G><output name=G> (inverted)</option></for></select></td><td>PN532 NFC Amber LED</td></tr>
-<tr><td><select name=nfcgreen><option value=''>-- None --</option><for space G="$NFCGPIO"><option value=$G><output name=G></option><option value=-$G><output name=G> (inverted)</option></for></select></td><td>PN532 NFC Green LED</td></tr>
-<tr><td><select name=nfccard><option value=''>-- None --</option><for space G="$NFCGPIO"><option value=$G><output name=G></option><option value=-$G><output name=G> (inverted)</option></for></select></td><td>PN532 NFC LED to blink for card</td></tr>
-<tr><td><select name=nfctamper><option value=''>-- None --</option><for space G="$NFCGPIO"><option value=$G><output name=G></option><option value=-$G><output name=G> (inverted)</option></for></select></td><td>PN532 NFC Tamper button</td></tr>
-<tr><td><select name=nfcbell><option value=''>-- None --</option><for space G="$NFCGPIO"><option value=$G><output name=G></option><option value=-$G><output name=G> (inverted)</option></for></select></td><td>PN532 NFC Bell input</td></tr>
+<tr><td><select name=nfcpower>$PICKGPIO</select></td><td>GPIO NFC Power</td></tr>
+<tr><td><select name=nfctx>$PICKGPIO</select></td><td>GPIO NFC Tx</td></tr>
+<tr><td><select name=nfcrx>$PICKGPIO</select></td><td>GPIO NFC Rx</td></tr>
+<tr><td><select name=nfcred>$PICKNFCGPIO</select></td><td>PN532 NFC red LED</td></tr>
+<tr><td><select name=nfcamber>$PICKNFCGPIO</select></td><td>PN532 NFC amber LED</td></tr>
+<tr><td><select name=nfcgreen>$PICKNFCGPIO</select></td><td>PN532 NFC green LED</td></tr>
+<tr><td><select name=nfccard>$PICKNFCGPIO</select></td><td>PN532 NFC LED to blink for card</td></tr>
+<tr><td><select name=nfctamper>$PICKNFCGPIO</select></td><td>PN532 NFC Tamper button</td></tr>
+<tr><td><select name=nfcbell>$PICKNFCGPIO</select></td><td>PN532 NFC Bell input</td></tr>
+<sql table=pcbgpio where="pcb=\$pcb" order=type>
+<tr><td><select name=gpio>$PICKGPIO</select></td><td><select name=gpiotype>$PICKTYPE</select></td></tr></td>
+</sql>
+<tr><td><select name=gpio>$PICKGPIO</select></td><td><select name=gpiotype>$PICKTYPE</select> Add GPIO</td></tr></td>
 </table>
 </sql>
 <input type=submit value="Update">
@@ -61,4 +82,4 @@ xmlsql -d "$DB" head.html - foot.html << 'END'
 </form>
 </if>
 </sql>
-'END'
+END

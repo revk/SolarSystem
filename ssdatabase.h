@@ -41,11 +41,7 @@
 #endif
 
 #ifndef gpio
-#define gpio(n)                 // GPIO number field
-#endif
-
-#ifndef gpioinv
-#define gpioinv(n)                 // GPIO number field (and inverted)
+#define gpio(n)                 // GPIO number field (and inverted)
 #endif
 
 #ifndef gpionfc
@@ -140,13 +136,14 @@ link(aid);                      // The AID for door access (defines what site it
 bool(trusted);			// Trusted device for fob provisioning
 text(deport, 0);                // Send this device to another MQTT server
 areas(doorarea);                // Areas covered by this door
+num(doorauto);			// Door auto mode
 time(online);                   // When online, if online
 time(lastonline);               // When last went offline
 time(upgrade);                  // When to do upgrade
 ip(address);                    // IP address when last online
 num(instance);                  // Instance for communications when on line
 
-table(devicgpio, 0);
+table(devicegpio, 0);
 link(device);
 gpio(gpio);
 unique(device, gpio);		// Which GPIO (from PCB)
@@ -166,14 +163,14 @@ num(flash);			// Flash size
 
 table(pcb, 0);                  // PCB type
 text(description, 0);
-gpioinv(tamper);			// Fixed GPIOs
-gpioinv(blink);		
-gpioinv(red);
-gpioinv(green);
-gpioinv(blue);
-gpioinv(nfctx);
-gpioinv(nfcrx);
-gpioinv(nfcpower);
+gpio(tamper);			// Fixed GPIOs
+gpio(blink);		
+gpio(red);
+gpio(green);
+gpio(blue);
+gpio(nfctx);
+gpio(nfcrx);
+gpio(nfcpower);
 gpionfc(nfcred);		// NFC GPIO (actually NFC PCB specific, but set here, so PCB for PCB+NFC combination)
 gpionfc(nfcamber);
 gpionfc(nfcgreen);
@@ -186,8 +183,6 @@ link(pcb);
 gpio(gpio);
 unique(pcb, gpio);
 gpiotype(type);
-bool (invert);
-text(description, 0);
 
 table(aid, 6);                  // AID (linked to organisation)
 link(organisation);
@@ -206,7 +201,6 @@ join(fob, aid);			// Fob is in AID
 #undef time
 #undef ip
 #undef gpio
-#undef gpioinv
 #undef gpionfc
 #undef gpiotype
 #undef bool
