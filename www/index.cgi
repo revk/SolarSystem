@@ -5,7 +5,7 @@ source ../setses
 source ../setcan
 /projects/tools/bin/xmlsql -d "$DB" head.html - foot.html << 'END'
 <IF SESSION_ORGANISATION>
-<form style='display:inline-block;' name=site method=post action=setsite.cgi>
+<form style='display:inline;' name=site method=post action=setsite.cgi>
 <if SESSION_SITE><set SET_SITE=$SESSION_SITE></if>
 <select name=SET_SITE onchange='site.submit()'>
 <IF NOT SESSION_SITE><option value=0>-- Select site --</option></if>

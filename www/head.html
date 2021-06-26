@@ -1,7 +1,7 @@
 <html><head><title>Access.me.uk</title><link rel=stylesheet href=/access.css /></head><body>
 <div style='float:right'>Access.me.uk</div>
 <if USER_ID>
-<form style='display:inline-block;' name=organisation method=post action=setorganisation.cgi>
+<form style='display:inline;' name=organisation method=post action=setorganisation.cgi>
 <if SESSION_ORGANISATION><set SET_ORGANISATION=$SESSION_ORGANISATION></if>
 <select name=SET_ORGANISATION onchange='organisation.submit()'>
 	<if USER_ADMIN>
@@ -18,5 +18,5 @@
 </select>
 </form>
 </if>
-<if MSG><p class=error><output name=MSG></p></if>
+<if MSG><span class=error><output name=MSG></span></if>
 

@@ -22,19 +22,13 @@ void sskeydatabase(SQL * sqlp)
       sql_safe_query_free(sqlp, sql_printf("CREATE DATABASE `%#S`", CONFIG_SQL_KEY_DATABASE));
       sql_select_db(sqlp, CONFIG_SQL_KEY_DATABASE);
    }
-      SQL_RES *res = sql_query_store(sqlp, "DESCRIBE `AES`");
-      if(res)sql_free_result(res);
-      else
-      {
-	      sql_safe_query(sqlp,"CREATE TABLE `AES` (" \
-			      "`created` datetime DEFAULT CURRENT_TIMESTAMP," \
-			      "`aid` char(6) DEFAULT NULL," \
-			      "`fob` char(14) DEFAULT NULL," \
-			      "`ver` char(2) DEFAULT NULL," \
-			      "`key` char(32) DEFAULT NULL," \
-			      "UNIQUE KEY `key` (`aid`,`fob`,`ver`)" \
-			      ")");
-      }
+   SQL_RES *res = sql_query_store(sqlp, "DESCRIBE `AES`");
+   if (res)
+      sql_free_result(res);
+   else
+   {
+      sql_safe_query(sqlp, "CREATE TABLE `AES` (" "`created` datetime DEFAULT CURRENT_TIMESTAMP," "`aid` char(6) DEFAULT NULL," "`fob` char(14) DEFAULT NULL," "`ver` char(2) DEFAULT NULL," "`key` char(32) DEFAULT NULL," "UNIQUE KEY `key` (`aid`,`fob`,`ver`)" ")");
+   }
 }
 
 void ssdatabase(SQL * sqlp)
@@ -96,7 +90,7 @@ void ssdatabase(SQL * sqlp)
       free(key);
    }
 
-   void getrows(const char *name) {       // Get rows
+   void getrows(const char *name) {     // Get rows
       endtable();
       tablename = name;
       res = sql_safe_query_store_free(sqlp, sql_printf("SELECT * FROM `%#S` LIMIT 0", name));
@@ -129,13 +123,13 @@ void ssdatabase(SQL * sqlp)
          return;
       }
       warnx("Creating table %s", name);
-      sql_safe_query_free(sqlp, sql_printf("CREATE TABLE `%#S` (`%#S` int unsigned NOT NULL AUTO_INCREMENT PRIMARY KEY)", name,name));
+      sql_safe_query_free(sqlp, sql_printf("CREATE TABLE `%#S` (`%#S` int unsigned NOT NULL AUTO_INCREMENT PRIMARY KEY)", name, name));
       getrows(name);
       getdefs(name);
       link(a);
       link(b);
-      unique(a,b);
-      sql_safe_query_free(sqlp,sql_printf("ALTER TABLE `%#S` DROP `%#S`",name,name));
+      unique(a, b);
+      sql_safe_query_free(sqlp, sql_printf("ALTER TABLE `%#S` DROP `%#S`", name, name));
    }
 
    void key(const char *name, int l) {
@@ -171,9 +165,9 @@ void ssdatabase(SQL * sqlp)
          sql_safe_query_free(sqlp, sql_printf("ALTER TABLE `%#S` ADD `%#S` text DEFAULT NULL", tablename, name));
    }
 
-   void field(const char *name, const char *type,const char *deflt) {
+   void field(const char *name, const char *type, const char *deflt) {
       char *def;
-      if (asprintf(&def, "`%s` %s %sDEFAULT %s", name, type,strcmp(deflt,"NULL")?"NOT NULL ":"",deflt) < 0)
+      if (asprintf(&def, "`%s` %s %sDEFAULT %s", name, type, strcmp(deflt, "NULL") ? "NOT NULL " : "", deflt) < 0)
          errx(1, "malloc");
       if (sql_colnum(res, name) < 0)
       {
@@ -209,7 +203,7 @@ void ssdatabase(SQL * sqlp)
 #define table(n,l)	create(#n,l);   // Make tables first
 #define join(a,b)	join(#a#b,#a,#b);
 #include "ssdatabase.h"
-#define table(n,l)	getrows(#n);getdefs(#n);  // Get table info
+#define table(n,l)	getrows(#n);getdefs(#n);        // Get table info
 #define	join(a,b)	getrows(#a#b);getdefs(#a#b);
 #define link(n)		link(#n);       // Foreign key
 #define	text(n,l)	text(#n,l);
@@ -221,8 +215,8 @@ void ssdatabase(SQL * sqlp)
 #define	gpiotype(n)	field(#n,"enum('-','I','O','P','I1','I2','I3','I4','I8','O1','O2','O3','O4')","'-'");
 #define	gpiopcb(n)	field(#n,"enum('-','IO','I','O')","'-'");
 #define	bool(n)		field(#n,"enum('false','true')","'false'");
-#define	areas(n)	field(#n,areastype,"NULL");
-#define	area(n	)	field(#n,areatype,"NULL");
+#define	areas(n)	field(#n,areastype,"''");
+#define	area(n)		field(#n,areatype,"'A'");
 #include "ssdatabase.h"
 #define table(n,l)	getdefs(#n);    // Get table info
 #define join(a,b)	getdefs(#a#b);foreign(#a);foreign(#b);  // Get table info
