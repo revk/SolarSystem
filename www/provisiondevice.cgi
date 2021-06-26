@@ -7,7 +7,7 @@ if($?pending) then
 		goto done
 	endif
 	setenv p `sql "$DB" 'SELECT pcb FROM device WHERE device="$pending"'`
-	if("$p" != "" && "$p" != "NULL") then
+	if("$p" != "") then
 	 	if("$p" != "$pcb") then
 			sql "$DB" 'UPDATE device SET pcb="$pcb" WHERE device="$pending"'
 			sql "$DB" 'DELETE FROM devicegpio WHERE device="$pending"'
@@ -17,8 +17,10 @@ if($?pending) then
 		sql "$DB" 'INSERT INTO device SET device="$pending"'
 	endif
 	setenv i `sql "$DB" 'SELECT instance FROM pending WHERE pending="$pending"'`
-	message --instance="$i" --provision="$pending"
 	setenv MSG "Provisioning..."
+# Messy need to sort keys access somehow...
+	(cd ..;./message --instance="$i" --provision="$pending")
+	if($status) setenv MSG "Failed"
 endif
 done:
 echo "Content-Type: text/html"
