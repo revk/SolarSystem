@@ -150,7 +150,7 @@ table(devicegpio, 0);
 link(device);
 gpio(gpio);
 unique(device, gpio);		// Which GPIO (from PCB)
-bool (polarity);		// Invert
+bool (invert);		// Invert
 #define i(state) areas(state)
 #define s(state) areas(state)
 #include "ESP32/main/states.h"

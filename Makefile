@@ -102,8 +102,8 @@ solarsystem: solarsystem.c config.h afile.o AXL/axl.o AJL/ajl.o Dataformat/dataf
 can: can.c config.h Makefile login/redirect.o
 	gcc -g -Wall -Wextra -O -o $@ $< SQLlib/sqllib.o ${SQLINC} ${SQLLIB} -lpopt -lcurl AJL/ajl.o login/redirect.o
 
-message: message.c config.h Makefile 
-	gcc -g -Wall -Wextra -O -o $@ $< -lpopt AJL/ajl.o
+message: message.c config.h Makefile sscert.o
+	gcc -g -Wall -Wextra -O -o $@ $< -lpopt AJL/ajl.o sscert.o -lcrypto
 
 clean:
 	rm -f *.o alarmpanel
