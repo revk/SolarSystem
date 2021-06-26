@@ -44,8 +44,12 @@
 #define gpio(n)                 // GPIO number field
 #endif
 
-#ifndef nfcgpio
-#define nfcgpio(n)                 // NFC GPIO number field
+#ifndef gpioinv
+#define gpioinv(n)                 // GPIO number field (and inverted)
+#endif
+
+#ifndef gpionfc
+#define gpionfc(n)                 // NFC GPIO number field (and inverted)
 #endif
 
 #ifndef gpiotype
@@ -142,13 +146,11 @@ time(upgrade);                  // When to do upgrade
 ip(address);                    // IP address when last online
 num(instance);                  // Instance for communications when on line
 
-table(devicegpio, 0);
+table(devicgpio, 0);
 link(device);
 gpio(gpio);
-unique(device, gpio);
-gpiotype(type);
-bool (polarity);
-num(ionum);
+unique(device, gpio);		// Which GPIO (from PCB)
+bool (polarity);		// Invert
 #define i(state) areas(state)
 #define s(state) areas(state)
 #include "ESP32/main/states.h"
@@ -160,23 +162,23 @@ num(instance);
 text(version, 0);               // S/w version
 bool (encryptednvs);            // Built with encrypted NVS
 bool (secureboot);              // Built with secure boot
-(flash);			// Flash size
+num(flash);			// Flash size
 
 table(pcb, 0);                  // PCB type
 text(description, 0);
-gpio(tamper);			// Fixed GPIOs
-gpio(blink);		
-gpio(red);
-gpio(green);
-gpio(blue);
-gpio(nfctx);
-gpio(nfcrx);
-gpio(nfcpower);
-nfcgpio(nfcred);		// NFC GPIO (actually NFC PCB specific, but set here, so PCB for PCB+NFC combination)
-nfcgpio(nfcamber);
-nfcgpio(nfcgreen);
-nfcgpio(nfctamper);
-nfcgpio(nfcbell);
+gpioinv(tamper);			// Fixed GPIOs
+gpioinv(blink);		
+gpioinv(red);
+gpioinv(green);
+gpioinv(blue);
+gpioinv(nfctx);
+gpioinv(nfcrx);
+gpioinv(nfcpower);
+gpionfc(nfcred);		// NFC GPIO (actually NFC PCB specific, but set here, so PCB for PCB+NFC combination)
+gpionfc(nfcamber);
+gpionfc(nfcgreen);
+gpionfc(nfctamper);
+gpionfc(nfcbell);
 
 table(pcbgpio, 0);
 link(pcb);
@@ -203,7 +205,8 @@ join(fob, aid);			// Fob is in AID
 #undef time
 #undef ip
 #undef gpio
-#undef nfcgpio
+#undef gpioinv
+#undef gpionfc
 #undef gpiotype
 #undef bool
 #undef areas
