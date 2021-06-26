@@ -116,8 +116,16 @@ int main(int argc, const char *argv[])
       if (!j_read_file(j, CONFIG_KEYS_FILE))
       {
          cakey = strdup(j_get(j, "ca.key") ? : "");
-         msgkey = strdup(j_get(j, "msg.key") ? : "");
          mqttkey = strdup(j_get(j, "mqtt.key") ? : "");
+      }
+      j_delete(&j);
+   }
+   if (!access(CONFIG_MSG_KEY_FILE, R_OK))
+   {
+      j_t j = j_create();
+      if (!j_read_file(j, CONFIG_MSG_KEY_FILE))
+      {
+         msgkey = strdup(j_get(j, "msg.key") ? : "");
          cacert = strdup(j_get(j, "ca.cert") ? : "");
          msgcert = strdup(j_get(j, "msg.cert") ? : "");
          mqttcert = strdup(j_get(j, "mqtt.cert") ? : "");
@@ -143,12 +151,22 @@ int main(int argc, const char *argv[])
       j_object(j);
       j_string(j_path(j, "ca.key"), cakey);
       j_string(j_path(j, "mqtt.key"), mqttkey);
+      j_err(j_write_pretty(j, stderr));
+      int f = open(CONFIG_KEYS_FILE, O_CREAT | O_WRONLY, 0400);
+      if (f < 0)
+         err(1, "Cannot make %s", CONFIG_KEYS_FILE);
+      j_err(j_write_fd(j, f));
+      close(f);
+      j_delete(&j);
+      unlink(CONFIG_MSG_KEY_FILE);
+      j = j_create();
+      j_object(j);
       j_string(j_path(j, "msg.key"), msgkey);
       j_string(j_path(j, "ca.cert"), cacert);
       j_string(j_path(j, "mqtt.cert"), mqttcert);
       j_string(j_path(j, "msg.cert"), msgcert);
       j_err(j_write_pretty(j, stderr));
-      int f = open(CONFIG_KEYS_FILE, O_CREAT | O_WRONLY, 0400);
+      f = open(CONFIG_MSG_KEY_FILE, O_CREAT | O_WRONLY, 0440);
       if (f < 0)
          err(1, "Cannot make %s", CONFIG_KEYS_FILE);
       j_err(j_write_fd(j, f));

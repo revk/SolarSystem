@@ -73,7 +73,11 @@ int main(int argc, const char *argv[])
    j_delete(&j);
 
    j = j_create();
-   j_err(j_read_file(j, CONFIG_KEYS_FILE));
+   const char *fail = j_read_file(j, CONFIG_MSG_KEY_FILE);
+   if (fail)
+      fail = j_read_file(j, "../" CONFIG_MSG_KEY_FILE); // Gets run from www dir
+   if (fail)
+      errx(1, "Cannot read keys %s", CONFIG_MSG_KEY_FILE);
    const char *cacert = strdup(j_get(j, "ca.cert") ? : "");
    const char *msgkey = strdup(j_get(j, "msg.key") ? : "");
    const char *msgcert = strdup(j_get(j, "msg.cert") ? : "");

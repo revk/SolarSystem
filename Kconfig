@@ -66,4 +66,10 @@ endmenu
     help
     	Filename for CA/MQTT keys
 
+    config MSG_KEY_FILE
+    string "Filename for internal messaging key"
+    default "message.keys"
+    help
+    	Filename message command internal keys
+
 endmenu
