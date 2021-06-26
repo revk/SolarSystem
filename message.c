@@ -24,6 +24,7 @@ int main(int argc, const char *argv[])
    int ret = 0;
    char *json = NULL;
    const char *device = NULL;
+   const char *pending = NULL;
    const char *topic = "";
    const char *command = NULL;
    const char *provision = NULL;
@@ -37,6 +38,7 @@ int main(int argc, const char *argv[])
          { "provision", 0, POPT_ARG_STRING, &provision, 0, "Provision", "deviceid" },
          { "deport", 0, POPT_ARG_STRING, &deport, 0, "Deport", "mqtthost" },
          { "device", 'd', POPT_ARG_STRING, &device, 0, "Device", "XXXXXXXXXXXX" },
+         { "pending", 'p', POPT_ARG_STRING, &pending, 0, "Pending device", "XXXXXXXXXXXX" },
          POPT_AUTOHELP { }
       };
 
@@ -70,6 +72,8 @@ int main(int argc, const char *argv[])
       j_store_string(meta, "prefix", "setting");
    if (device)
       j_store_string(meta, "device", device);
+   if (pending)
+      j_store_string(meta, "pending", device);
    j_err(j_write_mem(j, &json, NULL));
    j_delete(&j);
 

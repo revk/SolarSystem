@@ -216,11 +216,14 @@ int main(int argc, const char *argv[])
          if (meta)
             meta = j_detach(meta);
          const char *local(void) {      // Commands sent to us from local system
-            const char *v = j_get(meta, "provision");
-            const char *device = j_get(meta, "device");
-            if (!device)
-               return "No device";
-            SQL_RES *res = sql_safe_query_store_free(&sql, sql_printf("SELECT `instance` FROM `%#S` WHERE `%#S`=%#s", v ? "pending" : "device", v ? "pending" : "device", device));
+            const char *v;
+            SQL_RES *res = NULL;
+            if ((v = j_get(meta, "device")))
+               res = sql_safe_query_store_free(&sql, sql_printf("SELECT `instance` FROM `device` WHERE `device`=%#s", v));
+            else if ((v = j_get(meta, "pending")))
+               res = sql_safe_query_store_free(&sql, sql_printf("SELECT `instance` FROM `pending` WHERE `pending`=%#s", v));
+            if (!res)
+               return "No device specified";
             if (!sql_fetch_row(res))
             {
                sql_free_result(res);
@@ -230,7 +233,7 @@ int main(int argc, const char *argv[])
             if (!instance)
                return "Device not online";
             sql_free_result(res);
-            if (v)
+            if ((v = j_get(meta, "provision")))
             {                   // JSON is rest of settings to send
                char *key = makekey();
                char *cert = makecert(key, cakey, cacert, v);
