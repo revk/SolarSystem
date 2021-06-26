@@ -131,6 +131,7 @@ link(pcb);                      // What type of device this is
 text(version, 0);               // S/w version
 bool (encryptednvs);            // Built with encrypted NVS
 bool (secureboot);              // Built with secure boot
+num(flash);			// Flash size
 link(aid);                      // The AID for door access (defines what site it is)
 text(deport, 0);                // Send this device to another MQTT server
 areas(doorarea);                // Areas covered by this door
@@ -158,6 +159,7 @@ num(instance);
 text(version, 0);               // S/w version
 bool (encryptednvs);            // Built with encrypted NVS
 bool (secureboot);              // Built with secure boot
+num(flash);			// Flash size
 
 table(pcb, 0);                  // PCB type
 text(description, 0);

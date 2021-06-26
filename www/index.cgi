@@ -31,6 +31,8 @@ source ../setcan
 <if CANEDITDEVICE><li><a href="editdevice.cgi">Edit devices</a></li></if>
 <if CANEDITAREA><li><a href="editarea.cgi">Edit area</a></li></if>
 </if>
+<IF USER_ADMIN><sql table=pending limit=1><li><a href="provisiondevice.cgi">Provision new device</a></li></sql></if>
+<IF USER_ADMIN><li><a href="provisionfob.cgi">Provision new fob</a></li></if>
 </ul>
 <pre>
 'END'

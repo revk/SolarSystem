@@ -249,6 +249,9 @@ int main(int argc, const char *argv[])
                const char *encryptednvs = (j_test(j, "encryptednvs", 0) ? "true" : "falencryptednvs");
                if (!device || (encryptednvs && strcmp(sql_colz(device, "encryptednvs"), encryptednvs)))
                   sql_sprintf(&s, "`encryptednvs`=%#s,", secureboot);
+	       int flash=atoi(j_get(j,"flash")?:"");
+	       if(flash&&(!device||(flash!=atoi(sql_colz(device, "flash")))))
+		       sql_sprintf(&s,"`flash`=%d,",flash);
                sql_sprintf(&s, "`online`=NOW(),");
                sql_sprintf(&s, "`instance`=%lld,", instance);
                if (sql_back_s(&s) == ',')
