@@ -20,9 +20,9 @@ can --organisation='$SESSION_ORGANISATION' edituser
 if(! $status)setenv CANEDITUSER
 endif
 if($?SESSION_SITE) then
-can --organisation='$SESSION_ORGANISATION' editsite
+can --organisation='$SESSION_ORGANISATION' --site='$SESSION_SITE' editsite
 if(! $status)setenv CANEDITSITE
-can --organisation='$SESSION_ORGANISATION' editdevice
+can --organisation='$SESSION_ORGANISATION' --site='$SESSION_SITE' editdevice
 if(! $status)setenv CANEDITDEVICE
 can --organisation='$SESSION_ORGANISATION' --site='$SESSION_SITE' editarea
 if(! $status)setenv CANEDITAREA

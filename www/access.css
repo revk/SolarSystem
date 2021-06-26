@@ -1,2 +1,10 @@
 body {background: #8cf;}
 p.error {color:red;}
+input[type=checkbox] {
+}
+input[type=checkbox]::after {
+}
+input[type=checkbox]:checked {
+}
+input[type=checkbox]:checked::after {
+}

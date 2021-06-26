@@ -27,7 +27,7 @@ if($?description) then
   sql "$DB" 'INSERT INTO area SET site=$site,area="A",description="Main building"'
   sql "$DB" 'UPDATE session SET organisation=$organisation,site=$site WHERE session="$ENVCGI"'
  endif
- sqlwrite -o "$DB" organisation organisation description
+ sqlwrite -o "$DB" organisation description
  if($?adduser && $NOTADMIN == 0) then
   if("$adduser" != "") then
    setenv user `sql "$DB" 'SELECT user FROM user WHERE email="$adduser"'`
