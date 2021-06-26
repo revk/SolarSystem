@@ -1,5 +1,5 @@
 #!../login/loggedin --query /bin/csh -fx
-setenv Z `sql "$DB" 'SELECT COUNT(*) FROM user WHERE user="$USER_ID" AND hash IS NULL'`
+setenv Z `sql -v "$DB" 'SELECT COUNT(*) FROM user WHERE user="$USER_ID" AND hash IS NULL'`
 if($?NEWPASSWORD) then
 	if("$Z" == 1) then
 		setenv FAIL `changepassword --force`
