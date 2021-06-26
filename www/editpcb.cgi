@@ -24,6 +24,8 @@ endif
 done:
 echo "Content-Type: text/html"
 echo ""
+setenv GPIO "2 4 5 12 13 14 15 16 17 18 19 21 22 23 25 26 27 32 33 34 35 36 39"
+setenv NFCGPIO "30 31 32 33 34 35 71 72"
 if($?PATH_INFO) then
 	setenv pcb "$PATH_INFO:t"
 endif
@@ -43,6 +45,15 @@ xmlsql -d "$DB" head.html - foot.html << 'END'
 <sql table=pcb key=pcb>
 <table>
 <tr><td>Name</td><td><input name=description ize=40 autofocus></td></tr>
+<tr><td><select name=nfcpower><option value=''>-- None --</option><for space G="$GPIO"><option value=$G><output name=G></option><option value=-$G><output name=G> (inverted)</option></for></select></td><td>GPIO NFC Power</td></tr>
+<tr><td><select name=nfctx><option value=''>-- None --</option><for space G="$GPIO"><option value=$G><output name=G></option><option value=-$G><output name=G> (inverted)</option></for></select></td><td>GPIO NFC Tx</td></tr>
+<tr><td><select name=nfcrx><option value=''>-- None --</option><for space G="$GPIO"><option value=$G><output name=G></option><option value=-$G><output name=G> (inverted)</option></for></select></td><td>GPIO NFC Rx</td></tr>
+<tr><td><select name=nfcred><option value=''>-- None --</option><for space G="$NFCGPIO"><option value=$G><output name=G></option><option value=-$G><output name=G> (inverted)</option></for></select></td><td>PN532 NFC Red LED</td></tr>
+<tr><td><select name=nfcamber><option value=''>-- None --</option><for space G="$NFCGPIO"><option value=$G><output name=G></option><option value=-$G><output name=G> (inverted)</option></for></select></td><td>PN532 NFC Amber LED</td></tr>
+<tr><td><select name=nfcgreen><option value=''>-- None --</option><for space G="$NFCGPIO"><option value=$G><output name=G></option><option value=-$G><output name=G> (inverted)</option></for></select></td><td>PN532 NFC Green LED</td></tr>
+<tr><td><select name=nfccard><option value=''>-- None --</option><for space G="$NFCGPIO"><option value=$G><output name=G></option><option value=-$G><output name=G> (inverted)</option></for></select></td><td>PN532 NFC LED to blink for card</td></tr>
+<tr><td><select name=nfctamper><option value=''>-- None --</option><for space G="$NFCGPIO"><option value=$G><output name=G></option><option value=-$G><output name=G> (inverted)</option></for></select></td><td>PN532 NFC Tamper button</td></tr>
+<tr><td><select name=nfcbell><option value=''>-- None --</option><for space G="$NFCGPIO"><option value=$G><output name=G></option><option value=-$G><output name=G> (inverted)</option></for></select></td><td>PN532 NFC Bell input</td></tr>
 </table>
 </sql>
 <input type=submit value="Update">

@@ -171,18 +171,18 @@ void ssdatabase(SQL * sqlp)
          sql_safe_query_free(sqlp, sql_printf("ALTER TABLE `%#S` ADD `%#S` text DEFAULT NULL", tablename, name));
    }
 
-   void field(const char *name, const char *type) {
+   void field(const char *name, const char *type,const char *deflt) {
       char *def;
-      if (asprintf(&def, "`%s` %s ", name, type) < 0)
+      if (asprintf(&def, "`%s` %s %sDEFAULT %s", name, type,strcmp(deflt,"NULL")?"NOT NULL ":"",deflt) < 0)
          errx(1, "malloc");
       if (sql_colnum(res, name) < 0)
       {
          warnx("Creating field %s/%s", tablename, name);
-         sql_safe_query_free(sqlp, sql_printf("ALTER TABLE `%#S` ADD %s DEFAULT NULL", tablename, def));
+         sql_safe_query_free(sqlp, sql_printf("ALTER TABLE `%#S` ADD %s", tablename, def));
       } else if (!strcasestr(tabledef, def))
       {
          warnx("Updating field %s/%s", tablename, name);
-         sql_safe_query_free(sqlp, sql_printf("ALTER TABLE `%#S` MODIFY %s DEFAULT NULL", tablename, def));
+         sql_safe_query_free(sqlp, sql_printf("ALTER TABLE `%#S` MODIFY %s", tablename, def));
       }
       free(def);
    }
@@ -213,16 +213,16 @@ void ssdatabase(SQL * sqlp)
 #define	join(a,b)	getrows(#a#b);getdefs(#a#b);
 #define link(n)		link(#n);       // Foreign key
 #define	text(n,l)	text(#n,l);
-#define	num(n)		field(#n,"int(10)");
-#define	ip(n)		field(#n,"varchar(39)");
-#define	time(n)		field(#n,"datetime");
-#define	gpio(n)		field(#n,"enum('2','4','5','12','13','14','15','16','17','18','19','21','22','23','25','26','27','32','33','34','35','36','39')");
-#define	gpioinv(n)		field(#n,"enum('2','4','5','12','13','14','15','16','17','18','19','21','22','23','25','26','27','32','33','34','35','36','39','-2','-4','-5','-12','-13','-14','-15','-16','-17','-18','-19','-21','-22','-23','-25','-26','-27','-32','-33','-34','-35','-36','-39')");
-#define	gpionfc(n)	field(#n,"enum('30','31','32','33','34','35','71','72','-30','-31','-32','-33','-34','-35','-71','-72')");
-#define	gpiotype(n)	field(#n,"enum('I','O','T','A','R','G','B','I1','I2','I3','I4','I8','O1','O2','O3','O4')");
-#define	bool(n)		field(#n,"enum('false','true')");
-#define	areas(n)	field(#n,areastype);
-#define	area(n	)	field(#n,areatype);
+#define	num(n)		field(#n,"int(10)","NULL");
+#define	ip(n)		field(#n,"varchar(39)","NULL");
+#define	time(n)		field(#n,"datetime","NULL");
+#define	gpio(n)		field(#n,"enum('','2','4','5','12','13','14','15','16','17','18','19','21','22','23','25','26','27','32','33','34','35','36','39')","''");
+#define	gpioinv(n)	field(#n,"enum('','2','4','5','12','13','14','15','16','17','18','19','21','22','23','25','26','27','32','33','34','35','36','39','-2','-4','-5','-12','-13','-14','-15','-16','-17','-18','-19','-21','-22','-23','-25','-26','-27','-32','-33','-34','-35','-36','-39')","''");
+#define	gpionfc(n)	field(#n,"enum('','30','31','32','33','34','35','71','72','-30','-31','-32','-33','-34','-35','-71','-72')","''");
+#define	gpiotype(n)	field(#n,"enum('','I','O','T','A','R','G','B','I1','I2','I3','I4','I8','O1','O2','O3','O4')","''");
+#define	bool(n)		field(#n,"enum('false','true')","'false'");
+#define	areas(n)	field(#n,areastype,"NULL");
+#define	area(n	)	field(#n,areatype,"NULL");
 #include "ssdatabase.h"
 #define table(n,l)	getdefs(#n);    // Get table info
 #define join(a,b)	getdefs(#a#b);foreign(#a);foreign(#b);  // Get table info

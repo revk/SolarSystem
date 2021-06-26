@@ -36,14 +36,14 @@ inline int16_t gpio_mask(uint8_t p)
   gpio(nfccard) \
   gpio(nfctamper) \
   gpio(nfcbell) \
+  io(nfctx) \
+  io(nfcrx) \
+  io(nfcpower) \
   u16(nfcpoll,50) \
   u16(nfchold,3000) \
   u16(nfcholdpoll,500) \
   u16(nfcledpoll,100) \
   u16(nfciopoll,200) \
-  io(nfctx) \
-  io(nfcrx) \
-  io(nfcpower) \
   u8(nfcuart,1) \
   t(nfcmqttbell,NULL) \
   bap(aes,17,3) \

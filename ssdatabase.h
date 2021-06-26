@@ -179,6 +179,7 @@ gpionfc(nfcamber);
 gpionfc(nfcgreen);
 gpionfc(nfctamper);
 gpionfc(nfcbell);
+gpionfc(nfccard);
 
 table(pcbgpio, 0);
 link(pcb);
