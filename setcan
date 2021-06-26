@@ -1,0 +1,24 @@
+# Used in a couple of places to get a set of can for current selected organisation
+if($?SESSION_ORGANISATION) then
+unsetenv ADMINORGANISATION
+can --organisation='$SESSION_ORGANISATION' admin
+if(! $status)setenv ADMINORGANISATION
+unsetenv CANEDITORGANISATION
+can --organisation='$SESSION_ORGANISATION' editoriganisation
+if(! $status)setenv CANEDITORGANISATION
+unsetenv CANEDITCLASS
+can --organisation='$SESSION_ORGANISATION' editclass
+if(! $status)setenv CANEDITCLASS
+unsetenv CANEDITSITE
+can --organisation='$SESSION_ORGANISATION' editsite
+if(! $status)setenv CANEDITSITE
+unsetenv CANEDITDEVICE
+can --organisation='$SESSION_ORGANISATION' editdevice
+if(! $status)setenv CANEDITDEVICE
+unsetenv CANEDITFOB
+can --organisation='$SESSION_ORGANISATION' editfob
+if(! $status)setenv CANEDITFOB
+unsetenv CANEDITUSER
+can --organisation='$SESSION_ORGANISATION' edituser
+if(! $status)setenv CANEDITUSER
+endif
