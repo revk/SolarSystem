@@ -23,7 +23,8 @@
 #include "ssmqtt.h"
 #include "sscert.h"
 
-void ssdatabase(SQL *, const char *);
+void ssdatabase(SQL *);
+void sskeydatabase(SQL *);
 const char *cakey = NULL,
     *cacert = NULL;
 const char *mqttkey = NULL,
@@ -153,9 +154,12 @@ int main(int argc, const char *argv[])
    cacert = makecert(cakey, NULL, NULL, "SolarSystem");
    mqttcert = makecert(mqttkey, cakey, cacert, CONFIG_MQTT_HOSTNAME);
    // Connect
+   SQL sqlkey;
+   sql_cnf_connect(&sqlkey, CONFIG_SQL_KEY_CONFIG_FILE);
+   sskeydatabase(&sqlkey);
    SQL sql;
    sql_cnf_connect(&sql, CONFIG_SQL_CONFIG_FILE);
-   ssdatabase(&sql, CONFIG_SQL_DATABASE);
+   ssdatabase(&sql);
    if (sqldebug)
    {
       char *key = makekey();
@@ -311,5 +315,6 @@ int main(int argc, const char *argv[])
       }
    }
    sql_close(&sql);
+   sql_close(&sqlkey);
    return 0;
 }

@@ -34,6 +34,18 @@ menu "SQL"
     help
     	SQL database name
 
+    config SQL_KEY_CONFIG_FILE
+    string "SQL config file"
+    default ""
+    help
+    	SQL connection configuration file for AES keys
+
+    config SQL_KEY_DATABASE
+    string "SQL database"
+    default "SS"
+    help
+    	SQL database name for AES keys
+
     config SQL_DEBUG
     bool "SQL debug"
     default n

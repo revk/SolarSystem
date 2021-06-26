@@ -44,6 +44,10 @@
 #define gpio(n)                 // GPIO number field
 #endif
 
+#ifndef nfcgpio
+#define nfcgpio(n)                 // NFC GPIO number field
+#endif
+
 #ifndef gpiotype
 #define gpiotype(n)             // GPIO assignment field
 #endif
@@ -74,6 +78,8 @@ time(expires);                  // Session expiry
 index(expires);                 // Easier to delete
 ip(loginip);                    // Login ip
 text(useragent, 0);             // User agent
+link(organisation);             // Current selected organisation
+link(site);                     // Current selected site
 
 join(class, aid);
 areas(access);                  // Where user is allowed access
@@ -98,7 +104,7 @@ bool (caneditclass);
 
 join(user, organisation);
 link(class);                    // defines users permissions
-text(jobtitle,0);			// Job Title
+text(jobtitle, 0);              // Job Title
 
 table(organisation, 0);         // Customer (may be more than one site)
 text(description, 0);
@@ -116,9 +122,8 @@ text(description, 0);
 
 table(fob, 14);
 link(user);                     // The Fobs user (optional)
-link(class);			// The fobs class (required)
-text(key, 32);                  // Fob AES master key
-bool(block);			// All AID block (i.e. lost fob)
+link(class);                    // The fobs class (required)
+bool (block);                   // All AID block (i.e. lost fob)
 
 table(device, 12);
 text(description, 0);
@@ -156,6 +161,19 @@ bool (secureboot);              // Built with secure boot
 
 table(pcb, 0);                  // PCB type
 text(description, 0);
+gpio(tamper);			// Fixed GPIOs
+gpio(blink);		
+gpio(red);
+gpio(green);
+gpio(blue);
+gpio(nfctx);
+gpio(nfcrx);
+gpio(nfcpower);
+nfcgpio(nfcred);		// NFC GPIO (actually NFC PCB specific, but set here, so PCB for PCB+NFC combination)
+nfcgpio(nfcamber);
+nfcgpio(nfcgreen);
+nfcgpio(nfctamper);
+nfcgpio(nfcbell);
 
 table(pcbgpio, 0);
 link(pcb);
@@ -166,10 +184,10 @@ bool (invert);
 text(description, 0);
 
 table(aid, 6);                  // AID (linked to organisation)
-link(organisation) text(key, 32);
+link(organisation);
+text(description,0);
 
-join(fob, aid);
-text(key, 32);
+join(fob, aid);			// Fob is in AID
 
 #undef table
 #undef join
@@ -182,6 +200,7 @@ text(key, 32);
 #undef time
 #undef ip
 #undef gpio
+#undef nfcgpio
 #undef gpiotype
 #undef bool
 #undef areas

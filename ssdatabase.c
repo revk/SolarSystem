@@ -2,6 +2,7 @@
 
 #define _GNU_SOURCE             /* See feature_test_macros(7) */
 typedef unsigned int uint32_t;
+#include "config.h"
 #include <stdio.h>
 #include <string.h>
 #include <popt.h>
@@ -13,13 +14,36 @@ typedef unsigned int uint32_t;
 #include "SQLlib/sqllib.h"
 #include "ESP32/main/areas.h"
 
-void ssdatabase(SQL * sqlp, const char *sqldatabase)
-{                               // Check database integrity
-   if (sql_select_db(sqlp, sqldatabase))
+void sskeydatabase(SQL * sqlp)
+{
+   if (sql_select_db(sqlp, CONFIG_SQL_KEY_DATABASE))
    {
-      warnx("Creating database %s", sqldatabase);
-      sql_safe_query_free(sqlp, sql_printf("CREATE DATABASE `%#S`", sqldatabase));
-      sql_select_db(sqlp, sqldatabase);
+      warnx("Creating database %s", CONFIG_SQL_KEY_DATABASE);
+      sql_safe_query_free(sqlp, sql_printf("CREATE DATABASE `%#S`", CONFIG_SQL_KEY_DATABASE));
+      sql_select_db(sqlp, CONFIG_SQL_KEY_DATABASE);
+   }
+      SQL_RES *res = sql_query_store(sqlp, "DESCRIBE `AES`");
+      if(res)sql_free_result(res);
+      else
+      {
+	      sql_safe_query(sqlp,"CREATE TABLE `AES` (" \
+			      "`created` datetime DEFAULT CURRENT_TIMESTAMP," \
+			      "`aid` char(6) DEFAULT NULL," \
+			      "`fob` char(14) DEFAULT NULL," \
+			      "`ver` char(2) DEFAULT NULL," \
+			      "`key` char(32) DEFAULT NULL," \
+			      "UNIQUE KEY `key` (`aid`,`fob`,`ver`)" \
+			      ")");
+      }
+}
+
+void ssdatabase(SQL * sqlp)
+{                               // Check database integrity
+   if (sql_select_db(sqlp, CONFIG_SQL_DATABASE))
+   {
+      warnx("Creating database %s", CONFIG_SQL_DATABASE);
+      sql_safe_query_free(sqlp, sql_printf("CREATE DATABASE `%#S`", CONFIG_SQL_DATABASE));
+      sql_select_db(sqlp, CONFIG_SQL_DATABASE);
    }
 
    SQL_RES *res = NULL;
@@ -193,6 +217,7 @@ void ssdatabase(SQL * sqlp, const char *sqldatabase)
 #define	ip(n)		field(#n,"varchar(39)");
 #define	time(n)		field(#n,"datetime");
 #define	gpio(n)		field(#n,"enum('2','4','5','12','13','14','15','16','17','18','19','21','22','23','25','26','27','32','33','34','35','36','39')");
+#define	nfcgpio(n)	field(#n,"enum('30','31','32','33','34','35','71','72')");
 #define	gpiotype(n)	field(#n,"enum('I','O','T','A','R','G','B','I1','I2','I3','I4','I8','O1','O2','O3','O4')");
 #define	bool(n)		field(#n,"enum('false','true')");
 #define	areas(n)	field(#n,areastype);
