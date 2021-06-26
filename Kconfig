@@ -42,7 +42,7 @@ menu "SQL"
 
     config SQL_KEY_DATABASE
     string "SQL database"
-    default "SS"
+    default "SSKey"
     help
     	SQL database name for AES keys
 

@@ -87,7 +87,7 @@ door.o: door.c door.h galaxybus.h Makefile
 port.o: port.c port.h galaxybus.h Makefile
 	gcc -g -Wall -Wextra -O -c -o $@ $< -I. -DLIB -pthread
 
-ssdatabase.o: ssdatabase.c ssdatabase.h Makefile
+ssdatabase.o: ssdatabase.c ssdatabase.h config.h Makefile
 	gcc -g -Wall -Wextra -O -c -o $@ $< ${SQLINC}
 
 ssmqtt.o: ssmqtt.c ssmqtt.h Makefile
@@ -96,10 +96,10 @@ ssmqtt.o: ssmqtt.c ssmqtt.h Makefile
 sscert.o: sscert.c sscert.h Makefile
 	gcc -g -Wall -Wextra -O -c -o $@ $< ${SQLINC}
 
-solarsystem: solarsystem.c afile.o AXL/axl.o AJL/ajl.o Dataformat/dataformat.o websocket/websocketxml.o DESFireAES/desfireaes.o SQLlib/sqllib.o Makefile ssdatabase.o ssmqtt.o sscert.o
+solarsystem: solarsystem.c config.h afile.o AXL/axl.o AJL/ajl.o Dataformat/dataformat.o websocket/websocketxml.o DESFireAES/desfireaes.o SQLlib/sqllib.o Makefile ssdatabase.o ssmqtt.o sscert.o
 	gcc -g -Wall -Wextra -O -o $@ $< afile.o ssdatabase.o ssmqtt.o sscert.o AJL/ajl.o AXL/axl.o Dataformat/dataformat.o websocket/websocketxml.o DESFireAES/desfireaes.o SQLlib/sqllib.o ${SQLINC} ${SQLLIB} -lpopt -lcrypto -pthread -lcurl -lssl
 
-can: can.c Makefile login/redirect.o
+can: can.c config.h Makefile login/redirect.o
 	gcc -g -Wall -Wextra -O -o $@ $< SQLlib/sqllib.o ${SQLINC} ${SQLLIB} -lpopt -lcurl AJL/ajl.o login/redirect.o
 
 clean:
