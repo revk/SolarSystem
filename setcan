@@ -21,4 +21,7 @@ if(! $status)setenv CANEDITFOB
 unsetenv CANEDITUSER
 can --organisation='$SESSION_ORGANISATION' edituser
 if(! $status)setenv CANEDITUSER
+unsetenv CANEDITAREA
+can --organisation='$SESSION_ORGANISATION' editarea
+if(! $status)setenv CANEDITAREA
 endif

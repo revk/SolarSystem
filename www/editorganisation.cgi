@@ -6,6 +6,7 @@ if($status) exit 0
 can --organisation=$organisation admin
 setenv NOTADMIN $status
 if($?DELETE) then
+ sql "$DB" 'UPDATE session set organisation=NULL,site=NULL WHERE organisation=$organisation'
  setenv C `sql -c "$DB" 'DELETE FROM organisation WHERE organisation=$organisation'`
  if("$C" == "" || "$C" == "0") then
   setenv MSG "Cannot delete as in use"
@@ -22,7 +23,9 @@ if($?description) then
   sql "$DB" 'INSERT INTO class SET description="Staff",organisation=$organisation'
   sql "$DB" 'INSERT INTO class SET description="Contractor",organisation=$organisation'
   sql "$DB" 'INSERT INTO class SET description="Visitor",organisation=$organisation'
-  sql "$DB" 'UPDATE session SET organisation=$organisation WHERE session="$ENVCGI"'
+  setenv site `sql -i "$DB" 'INSERT INTO site SET description="$description",organisation=$organisation'`
+  sql "$DB" 'INSERT INTO area SET site=$site,area="A",description="Main area"'
+  sql "$DB" 'UPDATE session SET organisation=$organisation,site=$site WHERE session="$ENVCGI"'
  endif
  sqlwrite -o "$DB" organisation organisation description
  if($?adduser && $NOTADMIN == 0) then

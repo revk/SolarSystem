@@ -100,6 +100,7 @@ bool (caneditsite);
 bool (canedituser);
 bool (caneditdevice);
 bool (caneditfob);
+bool (caneditarea);
 
 join(user, organisation);
 link(class);                    // defines users permissions
@@ -110,6 +111,7 @@ text(description, 0);
 
 table(site, 0);                 // Site
 link(organisation);
+text(description,0);
 text(meshid, 12);               // Hex Mesh ID
 // TODO key / crypto?
 

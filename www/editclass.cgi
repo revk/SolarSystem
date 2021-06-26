@@ -14,6 +14,7 @@ if($?description) then
 	if($?CANEDITDEVICE) setenv allow "$allow caneditdevice"
 	if($?CANEDITFOB) setenv allow "$allow caneditfob"
 	if($?CANEDITUSER) setenv allow "$allow canedituser"
+	if($?CANEDITAREA) setenv allow "$allow caneditarea"
 	sqlwrite -v -o "$DB" class $allow
 endif
 echo "Content-Type: text/html"
@@ -52,6 +53,7 @@ xmlsql -d "$DB" head.html - foot.html << 'END'
 <if CANEDITDEVICE><tr><td>Can edit device</td><td><select name=caneditdevice><option value=false>No</option><option value=true>Yes</option></select></td></tr></if>
 <if CANEDITFOB><tr><td>Can edit fob</td><td><select name=caneditfob><option value=false>No</option><option value=true>Yes</option></select></td></tr></if>
 <if CANEDITUSER><tr><td>Can edit user</td><td><select name=canedituser><option value=false>No</option><option value=true>Yes</option></select></td></tr></if>
+<if CANEDITAREA><tr><td>Can edit area</td><td><select name=caneditarea><option value=false>No</option><option value=true>Yes</option></select></td></tr></if>
 </table>
 <input type=submit value="Update">
 </form>
