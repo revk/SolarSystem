@@ -21,12 +21,17 @@
 
 int main(int argc, const char *argv[])
 {
-   const char *json = NULL;
+   char *json = NULL;
    const char *topic = "";
+   const char *command = NULL;
+   int setting = 0;
+   long long instance = 0;
    {                            // POPT
       poptContext optCon;       // context for parsing command-line options
       const struct poptOption optionsTable[] = {
-         { "topic", 't', POPT_ARG_STRING, &topic, 0, "Topic", "string" },
+         { "command", 'c', POPT_ARG_STRING, &command, 0, "Command", "tag" },
+         { "settings", 's', POPT_ARG_NONE, &setting, 0, "Setting", NULL },
+         { "instance", 'i', POPT_ARG_LONGLONG, &instance, 0, "Instance", "N" },
          POPT_AUTOHELP { }
       };
 
@@ -37,17 +42,26 @@ int main(int argc, const char *argv[])
       if ((c = poptGetNextOpt(optCon)) < -1)
          errx(1, "%s: %s\n", poptBadOption(optCon, POPT_BADOPTION_NOALIAS), poptStrerror(c));
 
-      json = poptGetArg(optCon);
-      if (!json)
-      {
-         poptPrintUsage(optCon, stderr, 0);
-         return -1;
-      }
+      if (poptPeekArg(optCon))
+         json = (char *) poptGetArg(optCon);
       poptFreeContext(optCon);
    }
 
    j_t j = j_create();
-   j_err(j_read_mem(j, json, strlen(json)));
+   if (json)
+      j_err(j_read_mem(j, json, strlen(json)));
+   j_t meta = j_store_object(j, "_meta");
+   if (command)
+   {
+      j_store_string(meta, "prefix", "command");
+      if (*command)
+         j_store_string(meta, "suffix", command);
+   }
+   if (setting)
+      j_store_string(meta, "prefix", "setting");
+   if (instance)
+      j_store_int(meta, "instance", instance);
+   j_err(j_write_mem(j, &json, NULL));
    j_delete(&j);
 
    j = j_create();
@@ -155,7 +169,7 @@ int main(int argc, const char *argv[])
       *b++ = tlen;
       memcpy(b, topic, tlen);
       b += tlen;
-      *b++ = (id >> 8);           // ID
+      *b++ = (id >> 8);         // ID
       *b++ = id;
       memcpy(b, json, plen);
       b += plen;

@@ -128,45 +128,50 @@ static void *server(void *arg)
    }
    long long message = 0;
    void addq(j_t j, int tlen, char *topic) {
-      j_t meta = j_find(j, "_meta");
-      if (meta)
-         j_delete(&meta);       // Naughty
-      meta = j_store_object(j, "_meta");
-      j_store_int(meta, "instance", slot->instance);
-      j_store_int(meta, "message", message);
-      if (*device)
-         j_store_string(meta, "device", device);
-      j_store_string(meta, "address", address);
-      if (topic)
+      if (*device == '-')
+	      j_true(j_path(j,"_meta.local"));
+      else
       {
-         j_store_stringn(meta, "topic", topic, tlen);
-         int n;
-         for (n = 0; n < tlen && topic[n] != '/'; n++);
-         if (n < tlen)
+         j_t meta = j_find(j, "_meta");
+         if (meta)
+            j_delete(&meta);    // Naughty
+         meta = j_store_object(j, "_meta");
+         j_store_int(meta, "instance", slot->instance);
+         j_store_int(meta, "message", message);
+         if (*device)
+            j_store_string(meta, "device", device);
+         j_store_string(meta, "address", address);
+         if (topic)
          {
-            j_store_stringn(meta, "prefix", topic, n);
-            n++;
-            while (n < tlen && topic[n] != '/')
-               n++;             // SS
+            j_store_stringn(meta, "topic", topic, tlen);
+            int n;
+            for (n = 0; n < tlen && topic[n] != '/'; n++);
             if (n < tlen)
             {
+               j_store_stringn(meta, "prefix", topic, n);
                n++;
                while (n < tlen && topic[n] != '/')
-                  n++;          // ID
+                  n++;          // SS
                if (n < tlen)
                {
                   n++;
+                  while (n < tlen && topic[n] != '/')
+                     n++;       // ID
                   if (n < tlen)
-                     j_store_stringn(meta, "suffix", topic + n, tlen - n);
+                  {
+                     n++;
+                     if (n < tlen)
+                        j_store_stringn(meta, "suffix", topic + n, tlen - n);
+                  }
                }
             }
          }
-      }
-      if (!message && (strcmp(j_get(meta, "prefix") ? : "", "state") || j_find(meta, "suffix")))
-      {                         // First message has to be system state message, else ignore
-         warnx("Unexpected initial message from %s %s", address, device);
-         j_delete(&j);
-         return;                // Not sent
+         if (!message && (strcmp(j_get(meta, "prefix") ? : "", "state") || j_find(meta, "suffix")))
+         {                      // First message has to be system state message, else ignore
+            warnx("Unexpected initial message from %s %s", address, device);
+            j_delete(&j);
+            return;             // Not sent
+         }
       }
       message++;
       rxq_t *q = malloc(sizeof(*q));
@@ -397,7 +402,7 @@ static void *server(void *arg)
          SSL_write(ssl, tx, txp);
       }
    }
-   if(message)
+   if (message && *device != '-')
    {                            // Down
       j_t j = j_create();
       addq(j, 0, NULL);

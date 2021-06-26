@@ -137,7 +137,7 @@ int main(int argc, const char *argv[])
       if (!*mqttcert)
          mqttcert = makecert(mqttkey, cakey, cacert, CONFIG_MQTT_HOSTNAME);
       if (!*msgcert)
-         msgcert = makecert(msgkey, cakey, cacert, "message");
+         msgcert = makecert(msgkey, cakey, cacert, "---MESSAGE--");
       unlink(CONFIG_KEYS_FILE);
       j_t j = j_create();
       j_object(j);
@@ -194,10 +194,28 @@ int main(int argc, const char *argv[])
          if (sqldebug)
             j_err(j_write_pretty(j, stderr));
          SQL_RES *device = NULL;
+         j_t meta = j_find(j, "_meta");
+         if (meta)
+            meta = j_detach(meta);
+         const char *local(void) {      // Commands sent to us from local system
+            const char *prefix = j_get(meta, "prefix");
+            if (prefix)
+            {                   // Send to device
+               const char *suffix = j_get(meta, "suffix");
+               long long instance = strtoll(j_get(meta, "instance") ? : "", NULL, 10);
+               if (!instance)
+                  return "No instance";
+               return mqtt_send(instance, prefix, suffix, &j);
+            } else
+               return "Unknown local request";
+            return NULL;
+         }
          const char *process(void) {
-            j_t meta = j_find(j, "_meta");
             if (!meta)
                return "No meta data";
+
+            if (j_test(meta,"local",0))
+               return local();
 
             long long message = strtoull(j_get(meta, "message") ? : "", NULL, 10);
             long long instance = strtoull(j_get(meta, "instance") ? : "", NULL, 10);
@@ -314,6 +332,7 @@ int main(int argc, const char *argv[])
          if (fail)
             warnx("Failed to process message: %s", fail);
          j_delete(&j);
+         j_delete(&meta);
       }
    }
    sql_close(&sql);
