@@ -218,7 +218,7 @@ void ssdatabase(SQL * sqlp)
 #define	time(n)		field(#n,"datetime","NULL");
 #define	gpio(n)		field(#n,"enum('','2','4','5','12','13','14','15','16','17','18','19','21','22','23','25','26','27','32','33','34','35','36','39','-2','-4','-5','-12','-13','-14','-15','-16','-17','-18','-19','-21','-22','-23','-25','-26','-27','-32','-33','-34','-35','-36','-39')","''");
 #define	gpionfc(n)	field(#n,"enum('','30','31','32','33','34','35','71','72','-30','-31','-32','-33','-34','-35','-71','-72')","''");
-#define	gpiotype(n)	field(#n,"enum('','I','O','P','T','A','R','G','B','I1','I2','I3','I4','I8','O1','O2','O3','O4')","''");
+#define	gpiotype(n)	field(#n,"enum('','I','O','P','I1','I2','I3','I4','I8','O1','O2','O3','O4')","''");
 #define	gpiopcb(n)	field(#n,"enum('','IO','I','O')","''");
 #define	bool(n)		field(#n,"enum('false','true')","'false'");
 #define	areas(n)	field(#n,areastype,"NULL");

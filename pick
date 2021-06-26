@@ -1,0 +1,5 @@
+setenv PICKGPIO '<option value="">-- None --</option><for space G="2 4 5 12 13 14 15 16 17 18 19 21 22 23 25 26 27 32 33 34 35 36 39"><option value=\$G><output name=G></option><option value=-\$G><output name=G> (inverted)</option></for>'
+setenv PICKGPIONFC '<option value="">-- None --</option><for space G="30 31 32 33 34 35 71 72"><option value=\$G><output name=G></option><option value=-\$G><output name=G> (inverted)</option></for>'
+setenv PICKGPIOPCB '<option value=IO>Input/Output</option><option value=I>Input</option><option value=O>Output</option>'
+setenv PICKGPIOTYPE '<option value=''>-</option><option value=I>Input</option><option value=O>Output</option><option value=P>Power</option><option value=I1>Exit button</option><option value=I2>Door open</option><option value=I3>Lock engaged</option><option value=I4>Deadlock engaged</option><option value=O1>Lock</option><option value=O2>Deadlock</option><option value=O3>Beep</option><option value=O4>Error</option>'
+

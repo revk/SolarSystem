@@ -183,6 +183,7 @@ link(pcb);
 gpio(gpio);
 unique(pcb, gpio);
 gpiopcb(type);
+gpiotype(init);
 text(pinname,0);
 
 table(aid, 6);                  // AID (linked to organisation)

@@ -17,24 +17,27 @@ if($?description) then # save
   setenv pcb `sql -i "$DB" 'INSERT INTO pcb SET pcb=0'`
  endif
  sqlwrite "$DB" pcb
- set gpio=(`printenv gpio|sed 's/^-[0-9] //g'`)
- set gpiotype=(`printenv gpiotype|sed 's/^-[0-9] //g'`)
+ set gpio=(`printenv gpio|sed 's/[^-0-9 	]//g'`)
+ set type=(`printenv type|sed 's/[^-0-9A-Z 	]//g'`)
+ set init=(`printenv init|sed 's/[^-0-9A-Z 	]//g'`)
  set n=0
  setenv set ""
  foreach g ($gpio)
 	setenv g "$g"
-	setenv t "$gpiotype[1]"
-	shift gpiotype
+	setenv t "$type[1]"
+	shift type
+	setenv i "$init[1]"
+	shift init
 	if("$g" == 0) continue
-	setenv c `sql "$DB" 'SELECT COUNT(*) FROM pcbgpio WHERE pcb=$pcb AND gpio="$g" AND type="$t"'`
+	setenv c `sql -v "$DB" 'SELECT COUNT(*) FROM pcbgpio WHERE pcb=$pcb AND gpio="$g" AND type="$t" AND init="$i"'`
 	if("$c" == "0" || "$c" == "") then
-		@ n = $n + `sql -c "$DB" 'REPLACE INTO pcbgpio SET pcb=$pcb,gpio="$g",type="$t",pinname="$pinname"'`
+		@ n = $n + `sql -v -c "$DB" 'INSERT INTO pcbgpio SET pcb=$pcb,gpio="$g",type="$t",init="$i",pinname="$pinname" ON DUPLICATE KEY UPDATE gpio="$g",type="$t",init="$i"'`
 	endif
 	setenv set "$set,$g"
  end
  @ n = $n + `sql -c "$DB" 'DELETE FROM pcbgpio WHERE pcb=$pcb AND gpio NOT IN ($,set)'`
  unsetenv gpio
- unsetenv gpiotype
+ unsetenv type
  unsetenv pinname
  if($n)goto done
  echo "Location: ${ENVCGI_SERVER}/editpcb.cgi"
@@ -44,9 +47,7 @@ endif
 done:
 echo "Content-Type: text/html"
 echo ""
-setenv PICKGPIO '<option value="">-- None --</option><for space G="2 4 5 12 13 14 15 16 17 18 19 21 22 23 25 26 27 32 33 34 35 36 39"><option value=\$G><output name=G></option><option value=-\$G><output name=G> (inverted)</option></for>'
-setenv PICKNFCGPIO '<option value="">-- None --</option><for space G="30 31 32 33 34 35 71 72"><option value=\$G><output name=G></option><option value=-\$G><output name=G> (inverted)</option></for>'
-setenv PICKTYPE	'<option value=IO>Input/Output</option><option value=I>Input</option><option value=O>Output</option>'
+source ../pick
 if($?PATH_INFO) then
 	setenv pcb "$PATH_INFO:t"
 endif
@@ -68,19 +69,21 @@ xmlsql -d "$DB" head.html - foot.html << END
 <tr><td>Name</td><td><input name=description ize=40 autofocus></td></tr>
 <tr><td><select name=tamper>$PICKGPIO</select></td><td>GPIO Controller Tamper</td></tr>
 <tr><td><select name=blink>$PICKGPIO</select></td><td>GPIO Controller LED</td></tr>
-<tr><td><select name=nfcpower>$PICKGPIO</select></td><td>GPIO NFC Power</td></tr>
 <tr><td><select name=nfctx>$PICKGPIO</select></td><td>GPIO NFC Tx</td></tr>
+<if not nfctx=''>
 <tr><td><select name=nfcrx>$PICKGPIO</select></td><td>GPIO NFC Rx</td></tr>
-<tr><td><select name=nfcred>$PICKNFCGPIO</select></td><td>PN532 NFC red LED</td></tr>
-<tr><td><select name=nfcamber>$PICKNFCGPIO</select></td><td>PN532 NFC amber LED</td></tr>
-<tr><td><select name=nfcgreen>$PICKNFCGPIO</select></td><td>PN532 NFC green LED</td></tr>
-<tr><td><select name=nfccard>$PICKNFCGPIO</select></td><td>PN532 NFC LED to blink for card</td></tr>
-<tr><td><select name=nfctamper>$PICKNFCGPIO</select></td><td>PN532 NFC Tamper button</td></tr>
-<tr><td><select name=nfcbell>$PICKNFCGPIO</select></td><td>PN532 NFC Bell input</td></tr>
-<sql table=pcbgpio where="pcb=\$pcb" order=type>
-<tr><td><select name=gpio>$PICKGPIO</select></td><td><select name=gpiotype>$PICKTYPE</select> <output name=pinname></td></tr></td>
+<tr><td><select name=nfcpower>$PICKGPIO</select></td><td>GPIO NFC Power</td></tr>
+<tr><td><select name=nfcred>$PICKGPIONFC</select></td><td>PN532 NFC red LED</td></tr>
+<tr><td><select name=nfcamber>$PICKGPIONFC</select></td><td>PN532 NFC amber LED</td></tr>
+<tr><td><select name=nfcgreen>$PICKGPIONFC</select></td><td>PN532 NFC green LED</td></tr>
+<tr><td><select name=nfccard>$PICKGPIONFC</select></td><td>PN532 NFC LED to blink for card</td></tr>
+<tr><td><select name=nfctamper>$PICKGPIONFC</select></td><td>PN532 NFC Tamper button</td></tr>
+<tr><td><select name=nfcbell>$PICKGPIONFC</select></td><td>PN532 NFC Bell input</td></tr>
+</if>
+<sql table=pcbgpio where="pcb=\$pcb" order=pinname>
+<tr><td><select name=gpio>$PICKGPIO</select></td><td><select name=type>$PICKGPIOPCB</select><select name=init>$PICKGPIOTYPE</select> <output name=pinname></td></tr></td>
 </sql>
-<tr><td><select name=gpio>$PICKGPIO</select></td><td><select name=gpiotype>$PICKTYPE</select> <input name=pinname size=10 placeholder='New pin'></td></tr></td>
+<tr><td><select name=gpio>$PICKGPIO</select></td><td><select name=type>$PICKGPIOPCB</select><select name=init>$PICKGPIOTYPE</select> <input name=pinname size=10 placeholder='New pin'></td></tr></td>
 </table>
 </sql>
 <input type=submit value="Update">
