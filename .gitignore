@@ -5,6 +5,7 @@ can
 message
 solarsystem.conf
 config.h
+message.keys
 solarsystem.keys
 login.conf
 *.old
