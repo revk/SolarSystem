@@ -9,8 +9,9 @@ if($?pending) then
 	setenv p `sql "$DB" 'SELECT pcb FROM device WHERE device="$pending"'`
 	if("$p" != "" && "$p" != "NULL") then
 	 	if("$p" != "$pcb") then
-			sql "$DB" 'DELETE FROM devicegpio WHERE device="$pending"'
 			sql "$DB" 'UPDATE device SET pcb="$pcb" WHERE device="$pending"'
+			sql "$DB" 'DELETE FROM devicegpio WHERE device="$pending"'
+			sql "$DB" 'INSERT INTO devicegpio (device,gpio,type) SELECT "$pending",gpio,init FROM pcbgpio WHERE pcb=$pcb AND init<>"-"'
 		endif
 	else
 		sql "$DB" 'INSERT INTO device SET device="$pending"'

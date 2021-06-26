@@ -149,6 +149,7 @@ num(instance);                  // Instance for communications when on line
 table(devicegpio, 0);
 link(device);
 gpio(gpio);
+gpiotype(type);
 unique(device, gpio);		// Which GPIO (from PCB)
 bool (invert);		// Invert
 #define i(state) areas(state)

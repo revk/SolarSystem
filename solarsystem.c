@@ -207,16 +207,25 @@ int main(int argc, const char *argv[])
                   return "No instance";
                return mqtt_send(instance, v, suffix, &j);
             } else if ((v = j_get(meta, "provision")))
-            { // JSON is rest of settings to send
+            {                   // JSON is rest of settings to send
                char *key = makekey();
                char *cert = makecert(key, cakey, cacert, v);
                j_store_string(j, "clientcert", cert);
                free(cert);
-               const char*fail= mqtt_send(instance, "setting", NULL, &j);
-	       j=j_create();
+               const char *fail = mqtt_send(instance, "setting", NULL, &j);
+               j = j_create();
                j_store_string(j, "clientkey", key);
                free(key);
-	       if(fail)return fail;
+               if (fail)
+                  return fail;
+               return mqtt_send(instance, "setting", NULL, &j);
+            } else if ((v = j_get(meta, "deport")))
+            {
+               j_store_null(j, "clientcert");
+               j_store_null(j, "clientkey");
+               j_store_string(j, "mqtthost", v);
+               j_store_string(j, "mqttcert", "");
+               j_store_null(j, "mqttport");
                return mqtt_send(instance, "setting", NULL, &j);
             }
             return "Unknown local request";

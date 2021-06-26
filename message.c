@@ -25,14 +25,16 @@ int main(int argc, const char *argv[])
    const char *topic = "";
    const char *command = NULL;
    const char *provision = NULL;
+   const char *deport = NULL;
    int setting = 0;
    long long instance = 0;
    {                            // POPT
       poptContext optCon;       // context for parsing command-line options
       const struct poptOption optionsTable[] = {
-         { "command", 'c', POPT_ARG_STRING, &command, 0, "Command", "tag" },
-         { "settings", 's', POPT_ARG_NONE, &setting, 0, "Setting", NULL },
-         { "provision", 'p', POPT_ARG_STRING, &provision, 0, "Provision", "deviceid" },
+         { "command", 0, POPT_ARG_STRING, &command, 0, "Command", "tag" },
+         { "settings", 0, POPT_ARG_NONE, &setting, 0, "Setting", NULL },
+         { "provision", 0, POPT_ARG_STRING, &provision, 0, "Provision", "deviceid" },
+         { "deport", 0, POPT_ARG_STRING, &deport, 0, "Deport", "mqtthost" },
          { "instance", 'i', POPT_ARG_LONGLONG, &instance, 0, "Instance", "N" },
          POPT_AUTOHELP { }
       };
@@ -53,8 +55,10 @@ int main(int argc, const char *argv[])
    if (json)
       j_err(j_read_mem(j, json, strlen(json)));
    j_t meta = j_store_object(j, "_meta");
-   if(provision)
-	   j_store_string(meta,"provision",provision);
+   if (provision)
+      j_store_string(meta, "provision", provision);
+   if (deport)
+      j_store_string(meta, "deport", deport);
    if (command)
    {
       j_store_string(meta, "prefix", "command");

@@ -129,7 +129,7 @@ static void *server(void *arg)
    long long message = 0;
    void addq(j_t j, int tlen, char *topic) {
       if (*device == '-')
-	      j_true(j_path(j,"_meta.local"));
+         j_true(j_path(j, "_meta.local"));
       else
       {
          j_t meta = j_find(j, "_meta");
