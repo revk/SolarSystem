@@ -39,7 +39,12 @@ int main(int argc, const char *argv[])
        site = 0,
        aid = 0,
        class = 0;
-   const char *sus=NULL,*suser=NULL,*sorganisation=NULL,*ssite=NULL,*said=NULL,*sclass=NULL;
+   const char *sus = NULL,
+       *suser = NULL,
+       *sorganisation = NULL,
+       *ssite = NULL,
+       *said = NULL,
+       *sclass = NULL;
    int redirect = 0;
    int reason = 0;
    const char *configfile = "../solarsystem.conf";
@@ -65,19 +70,21 @@ int main(int argc, const char *argv[])
    if ((c = poptGetNextOpt(optCon)) < -1)
       errx(1, "%s: %s\n", poptBadOption(optCon, POPT_BADOPTION_NOALIAS), poptStrerror(c));
 
-   int getval(const char *v)
-   {
-	   if(!v)return 0;
-	   if(*v=='$')v=getenv(v+1);
-	   if(!v||!*v)return 0;
-	   return atoi(v);
+   int getval(const char *v) {
+      if (!v)
+         return 0;
+      if (*v == '$')
+         v = getenv(v + 1);
+      if (!v || !*v)
+         return 0;
+      return atoi(v);
    }
-   us=getval(sus);
-   user=getval(suser);
-   organisation=getval(sorganisation);
-   site=getval(ssite);
-   aid=getval(said);
-   class=getval(sclass);
+   us = getval(sus);
+   user = getval(suser);
+   organisation = getval(sorganisation);
+   site = getval(ssite);
+   aid = getval(said);
+   class = getval(sclass);
 
    SQL sql;
    sql_cnf_connect(&sql, CONFIG_SQL_CONFIG_FILE);

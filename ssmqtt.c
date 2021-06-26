@@ -134,7 +134,7 @@ static void *server(void *arg)
          j_delete(&meta);       // Naughty
       meta = j_store_object(j, "_meta");
       j_store_int(meta, "instance", slot->instance);
-      j_store_int(meta, "message", message );
+      j_store_int(meta, "message", message);
       if (*device)
          j_store_string(meta, "device", device);
       j_store_string(meta, "address", address);
@@ -445,11 +445,12 @@ static void *listener(void *arg)
    int slisten = -1;
  struct addrinfo base = { ai_flags: AI_PASSIVE, ai_family:
 #ifdef	CONFIG_MQTT_IPV4
-	 AF_INET
+      AF_INET
 #else
-		 AF_ANY
+      AF_ANY
 #endif
-	 , ai_socktype:SOCK_STREAM };
+    , ai_socktype:SOCK_STREAM
+   };
    struct addrinfo *a = 0,
        *p;
    if (getaddrinfo(CONFIG_MQTT_HOSTNAME, CONFIG_MQTT_PORT, &base, &a) || !a)
@@ -471,7 +472,8 @@ static void *listener(void *arg)
    }
    if (slisten < 0)
       err(1, "Cannot bind local address %s:%s", CONFIG_MQTT_HOSTNAME, CONFIG_MQTT_PORT);
-   if(sqldebug)warnx("Bind %s:%s",CONFIG_MQTT_HOSTNAME,CONFIG_MQTT_PORT);
+   if (sqldebug)
+      warnx("Bind %s:%s", CONFIG_MQTT_HOSTNAME, CONFIG_MQTT_PORT);
    while (1)
    {
       struct sockaddr_in6 addr = { 0 };

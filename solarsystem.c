@@ -25,10 +25,10 @@
 
 void ssdatabase(SQL *);
 void sskeydatabase(SQL *);
-const char *cakey = NULL,
-    *cacert = NULL;
-const char *mqttkey = NULL,
-    *mqttcert = NULL;
+const char *cakey = "",
+    *cacert = "";
+const char *mqttkey = "",
+    *mqttcert = "";
 
 extern int sqldebug;
 
@@ -108,27 +108,45 @@ int main(int argc, const char *argv[])
       }
    }
    // Load (or make) keys
+   const char *msgkey = "",
+       *msgcert = "";
    if (!access(CONFIG_KEYS_FILE, R_OK))
    {
       j_t j = j_create();
       if (!j_read_file(j, CONFIG_KEYS_FILE))
       {
-         cakey = strdup(j_get(j, "ca") ? : "");
-         mqttkey = strdup(j_get(j, "mqtt") ? : "");
+         cakey = strdup(j_get(j, "ca.key") ? : "");
+         msgkey = strdup(j_get(j, "msg.key") ? : "");
+         mqttkey = strdup(j_get(j, "mqtt.key") ? : "");
+         cacert = strdup(j_get(j, "ca.cert") ? : "");
+         msgcert = strdup(j_get(j, "msg.cert") ? : "");
+         mqttcert = strdup(j_get(j, "mqtt.cert") ? : "");
       }
       j_delete(&j);
    }
-   if (!cakey || !*cakey || !mqttkey || !*mqttkey)
+   if (!*cakey || !*mqttkey || !*msgkey || !*cacert || !*mqttcert || !*msgcert)
    {
-      if (!cakey || !*cakey)
+      if (!*cakey)
          cakey = makekey();
-      if (!mqttkey || !*mqttkey)
+      if (!*mqttkey)
          mqttkey = makekey();
+      if (!*msgkey)
+         msgkey = makekey();
+      if (!*cacert)
+         cacert = makecert(cakey, NULL, NULL, "SolarSystem");
+      if (!*mqttcert)
+         mqttcert = makecert(mqttkey, cakey, cacert, CONFIG_MQTT_HOSTNAME);
+      if (!*msgcert)
+         msgcert = makecert(msgkey, cakey, cacert, "message");
       unlink(CONFIG_KEYS_FILE);
       j_t j = j_create();
       j_object(j);
-      j_store_string(j, "ca", cakey);
-      j_store_string(j, "mqtt", mqttkey);
+      j_string(j_path(j, "ca.key"), cakey);
+      j_string(j_path(j, "mqtt.key"), mqttkey);
+      j_string(j_path(j, "msg.key"), msgkey);
+      j_string(j_path(j, "ca.cert"), cacert);
+      j_string(j_path(j, "mqtt.cert"), mqttcert);
+      j_string(j_path(j, "msg.cert"), msgcert);
       j_err(j_write_pretty(j, stderr));
       int f = open(CONFIG_KEYS_FILE, O_CREAT | O_WRONLY, 0400);
       if (f < 0)
@@ -137,8 +155,6 @@ int main(int argc, const char *argv[])
       close(f);
       j_delete(&j);
    }
-   cacert = makecert(cakey, NULL, NULL, "SolarSystem");
-   mqttcert = makecert(mqttkey, cakey, cacert, CONFIG_MQTT_HOSTNAME);
    // Connect
    SQL sqlkey;
    sql_cnf_connect(&sqlkey, CONFIG_SQL_KEY_CONFIG_FILE);
@@ -218,7 +234,7 @@ int main(int argc, const char *argv[])
                   sql_sprintf(&s, "`pending`=%#s,", id);
                   SQL_RES *res = sql_safe_query_store_free(&sql, sql_printf("SELECT * FROM `device` WHERE `device`=%#s", id));
                   if (sql_fetch_row(res))
-                        upgrade(res, instance);
+                     upgrade(res, instance);
                   sql_free_result(res);
                }
                if (!device || (address && strcmp(sql_colz(device, "address"), address)))
@@ -232,9 +248,9 @@ int main(int argc, const char *argv[])
                const char *encryptednvs = (j_test(j, "encryptednvs", 0) ? "true" : "falencryptednvs");
                if (!device || (encryptednvs && strcmp(sql_colz(device, "encryptednvs"), encryptednvs)))
                   sql_sprintf(&s, "`encryptednvs`=%#s,", secureboot);
-	       int flash=atoi(j_get(j,"flash")?:"");
-	       if(flash&&(!device||(flash!=atoi(sql_colz(device, "flash")))))
-		       sql_sprintf(&s,"`flash`=%d,",flash);
+               int flash = atoi(j_get(j, "flash") ? : "");
+               if (flash && (!device || (flash != atoi(sql_colz(device, "flash")))))
+                  sql_sprintf(&s, "`flash`=%d,", flash);
                sql_sprintf(&s, "`online`=NOW(),");
                sql_sprintf(&s, "`instance`=%lld,", instance);
                if (sql_back_s(&s) == ',')
