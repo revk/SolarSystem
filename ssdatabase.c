@@ -59,16 +59,16 @@ void sstypes(const char *fn)
 #define o(g,t) out(#g,#t);
 #include "types.m"
  start("GPIOTYPEPICK");
- out("-","-- Type --");
+ pick("-","-- Type --");
 #define i(g,t) pick(#g,#t);
 #define o(g,t) pick(#g,#t);
 #include "types.m"
  start("GPIOTYPEPICKI");
- out("-","-- Type --");
+ pick("-","-- Type --");
 #define i(g,t) pick(#g,#t);
 #include "types.m"
  start("GPIOTYPEPICKO");
- out("-","-- Type --");
+ pick("-","-- Type --");
 #define o(g,t) pick(#g,#t);
 #include "types.m"
  start("GPIONUMLIST");
@@ -96,7 +96,7 @@ void sstypes(const char *fn)
 #define n(g) pick("-"#g,#g" (inverted)");
 #include "types.m"
  start("GPIONFCPICK");
- out("-","-- GPIO --");
+ pick("-","-- GPIO --");
 #define n(g) pick(#g,#g);
 #include "types.m"
 #define n(g) pick("-"#g,#g" (inverted)");
