@@ -1,4 +1,4 @@
-#!../login/loggedin /bin/csh -fx
+#!../login/loggedin /bin/csh -f
 can --redirect --site='$SESSION_SITE' admin
 if($status) exit 0
 if($?PROVISION) then
@@ -9,7 +9,7 @@ if($?PROVISION) then
 	setenv authenticated `sql "$DB" 'SELECT authenticated FROM pending WHERE pending="$PROVISION"'`
 	sql "$DB" 'DELETE FROM devicegpio WHERE device="$PROVISION"'
 	sql "$DB" 'DELETE FROM device WHERE device="$PROVISION"'
-	sql -v "$DB" 'INSERT INTO device SET device="$PROVISION",pcb="$pcb",site="$SESSION_SITE"'
+	sql "$DB" 'INSERT INTO device SET device="$PROVISION",pcb="$pcb",site="$SESSION_SITE"'
 	sql "$DB" 'INSERT INTO devicegpio (device,gpio,type) SELECT "$PROVISION",gpio,init FROM pcbgpio WHERE pcb=$pcb AND init<>"-"'
 	if("$authenticated" == "true")then
 		setenv MSG `message --pending="$PROVISION" --command="restart"`

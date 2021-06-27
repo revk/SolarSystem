@@ -3,27 +3,31 @@ can --redirect admin
 if($status) exit 0
 
 if($?DELETE) then
- setenv C `sql -c "$DB" 'DELETE FROM pcb WHERE pcb=$pcb'`
- if("$C" == "" || "$C" == "0") then
-  setenv MSG "Cannot delete as in use"
-  goto done
- endif
- unsetenv pcb
- setenv MSG Deleted
- goto done
+	if(! $?SURE) then
+		setenv MSG "Tick to say you are sure"
+		goto done
+	endif
+	setenv C `sql -c "$DB" 'DELETE FROM pcb WHERE pcb=$pcb'`
+	if("$C" == "" || "$C" == "0") then
+		setenv MSG "Cannot delete as in use"
+		goto done
+	endif
+	unsetenv pcb
+	setenv MSG Deleted
+	goto done
 endif
 if($?description) then # save
- if($pcb == 0) then
-  setenv pcb `sql -i "$DB" 'INSERT INTO pcb SET pcb=0'`
- endif
- sqlwrite "$DB" pcb
- set pcbgpio=(`printenv pcbgpio|sed 's/[^0-9 	]//g'`)
- set gpio=(`printenv gpio|sed 's/[^-0-9 	]//g'`)
- set type=(`printenv type|sed 's/[^-0-9A-Z 	]//g'`)
- set init=(`printenv init|sed 's/[^-0-9A-Z 	]//g'`)
- set changed=0
- setenv set ""
- foreach n ($pcbgpio)
+	if($pcb == 0) then
+		setenv pcb `sql -i "$DB" 'INSERT INTO pcb SET pcb=0'`
+	endif
+	sqlwrite "$DB" pcb
+	set pcbgpio=(`printenv pcbgpio|sed 's/[^0-9 	]//g'`)
+	set gpio=(`printenv gpio|sed 's/[^-0-9 	]//g'`)
+	set type=(`printenv type|sed 's/[^-0-9A-Z 	]//g'`)
+	set init=(`printenv init|sed 's/[^-0-9A-Z 	]//g'`)
+	set changed=0
+	setenv set ""
+	foreach n ($pcbgpio)
 	setenv n "$n"
 	setenv g "$gpio[1]"
 	shift gpio
@@ -43,17 +47,17 @@ if($?description) then # save
 		endif
 	endif
 	setenv set "$set,$g"
- end
- @ changed = $changed + `sql -c "$DB" 'DELETE FROM pcbgpio WHERE pcb=$pcb AND gpio NOT IN ($,set)'`
- unsetenv pcbgpio
- unsetenv gpio
- unsetenv init
- unsetenv type
- unsetenv pinname
- if($changed)goto done
- echo "Location: ${ENVCGI_SERVER}/editpcb.cgi"
- echo ""
- exit 0
+	end
+	@ changed = $changed + `sql -c "$DB" 'DELETE FROM pcbgpio WHERE pcb=$pcb AND gpio NOT IN ($,set)'`
+	unsetenv pcbgpio
+	unsetenv gpio
+	unsetenv init
+	unsetenv type
+	unsetenv pinname
+	if($changed)goto done
+	echo "Location: ${ENVCGI_SERVER}/editpcb.cgi"
+	echo ""
+	exit 0
 endif
 done:
 echo "Content-Type: text/html"
@@ -98,7 +102,7 @@ xmlsql -d "$DB" head.html - foot.html << END
 </table>
 </sql>
 <input type=submit value="Update">
-<IF not pcb=0><input type=submit value="Delete" name=DELETE></if>
+<IF not pcb=0><input type=submit value="Delete" name=DELETE><input type=checkbox name=SURE title='Tick this to say you are sure'></if>
 </form>
 </if>
 </sql>

@@ -5,22 +5,32 @@ endif
 can --redirect --device='$device' editdevice
 if($status) exit 0
 
-if($?DELETE) then
+if($?DELETE || $?FACTORY) then
+	if(! $?SURE) then
+		setenv MSG "Tick to say you are sure"
+		goto done
+	endif
+	if($?FACTORY)	then
+		setenv MSG `message --device="$device" --command=factory '"'"$device"'SS"'`
+		if($status) goto done
+	else
+		setenv MSG `message --device="$device" --command=restart`
+	endif
 	sql "DB" 'DELETE FROM devicegpio WHERE device=$device'
 	setenv C `sql -c "$DB" 'DELETE FROM device WHERE device=$device'`
 	if("$C" == "" || "$C" == "0") then
 		setenv MSG "Cannot delete as in use"
 		goto done
 	endif
-	unsetenv pcb
 	setenv MSG Deleted
+	unsetenv device
 	goto done
 endif
 if($?description) then # save
 	sqlwrite -o "$DB" device description
-	echo "Location: ${ENVCGI_SERVER}/editdevice.cgi"
-	echo ""
-	exit 0
+	setenv MSG Updated
+	unsetenv device
+	goto done
 endif
 done:
 echo "Content-Type: text/html"
@@ -54,7 +64,9 @@ xmlsql -d "$DB" head.html - foot.html << END
 </sql>
 </table>
 <input type=submit value="Update">
-<IF not device=0><input type=submit value="Delete" name=DELETE></if>
+<input type=submit value="Delete" name=DELETE>
+<if online><input type=submit value="Factory Reset" name=FACTORY></if>
+<input type=checkbox name=SURE title='Tick this to say you are sure'>
 </sql>
 </form>
 </if>
