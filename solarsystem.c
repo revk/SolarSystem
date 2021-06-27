@@ -44,23 +44,32 @@ const char *upgrade(SQL_RES * res, long long instance)
    return upgrade;
 }
 
-const char *security(SQL * sqlkeyp, SQL_RES * res, long long instance)
+const char *security(SQL * sqlp, SQL * sqlkeyp, SQL_RES * res, long long instance)
 {                               // Security settings
    j_t j = j_create();
    const char *aid = sql_colz(res, "aid");
+   int organisation = atoi(sql_colz(res, "organisation"));
    j_t aids = j_store_array(j, "aes");
    if (*aid && strcmp(sql_colz(res, "nfctx"), "-"))
    {                            // Security
       // Keys
-
       SQL_RES *r = sql_safe_query_store_free(sqlkeyp, sql_printf("SELECT * FROM `AES` WHERE `aid`=%#s AND `fob` IS NULL order BY `created` DESC LIMIT 3", aid));
       while (sql_fetch_row(r))
          j_append_stringf(aids, "%s%s", sql_colz(r, "ver"), sql_colz(r, "aes"));
       sql_free_result(r);
+      // TODO make a key!
    }
    if (!j_len(aids))
       aid = "";                 // We have not loaded any keys so no point in even trying an AID
    j_store_string(j, "aid", aid);
+   j_t blacklist = j_store_array(j, "blacklist");
+   if (*aid)
+   {
+      SQL_RES *b = sql_safe_query_store_free(sqlp, sql_printf("SELECT * FROM `foborganisation` LEFT JOIN `jobaid` USING (`fob`) WHERE `organisation`=%d AND `aid`=%#s AND `blocked` IS NOT NULL AND `confirmed` IS NULL ORDER BY `blocked` DESC LIMIT 10", organisation, aid));
+      while (sql_fetch_row(b))
+         j_append_string(blacklist, sql_colz(b, "fob"));
+      sql_free_result(b);
+   }
    if (!j_isnull(j))
       setting(instance, NULL, &j);
    j_delete(&j);
@@ -73,7 +82,7 @@ const char *settings(SQL * sqlp, SQL_RES * res, long long instance)
    int doorauto = atoi(sql_colz(res, "doorauto"));
    if (*CONFIG_OTA_HOSTNAME)
       j_store_string(j, "otahost", CONFIG_OTA_HOSTNAME);
-   j_store_string(j,"name",sql_colz(res,"description"));
+   j_store_string(j, "name", sql_colz(res, "description"));
    j_store_int(j, "doorauto", doorauto);
    int pcb = atoi(sql_colz(res, "pcb"));
    if (pcb)
@@ -418,7 +427,7 @@ int main(int argc, const char *argv[])
                   sql_sprintf(&s, "UPDATE `device` SET ");      // known, update
                   sql_sprintf(&s, "`lastonline`=NOW(),");
                   if (!upgrade(device, instance) && !settings(&sql, device, instance))
-                     security(&sqlkey, device, instance);
+                     security(&sql, &sqlkey, device, instance);
                } else           // pending - update pending
                {
                   sql_sprintf(&s, "REPLACE INTO `pending` SET ");

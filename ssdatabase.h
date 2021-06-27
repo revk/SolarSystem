@@ -127,7 +127,10 @@ text(description, 0);
 table(fob, 14);
 link(user);                     // The Fobs user (optional)
 link(class);                    // The fobs class (required)
-bool (block);                   // All AID block (i.e. lost fob)
+
+join(fob,organisation);		// Yes, per org, for security reasons
+time(blocked);			// When blocked
+time(confirmed);		// When confirmed blocked by fob read (no need to be in blacklist now)
 
 table(device, 12);
 text(description, 0);
