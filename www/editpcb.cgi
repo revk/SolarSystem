@@ -58,7 +58,7 @@ endif
 done:
 echo "Content-Type: text/html"
 echo ""
-source ../pick
+source ../types
 if($?PATH_INFO) then
 	setenv pcb "$PATH_INFO:t"
 endif
@@ -78,23 +78,23 @@ xmlsql -d "$DB" head.html - foot.html << END
 <sql table=pcb key=pcb>
 <table>
 <tr><td>Name</td><td><input name=description ize=40 autofocus></td></tr>
-<tr><td><select name=tamper>$PICKGPIO</select></td><td>GPIO Controller Tamper</td></tr>
-<tr><td><select name=blink>$PICKGPIO</select></td><td>GPIO Controller LED</td></tr>
-<tr><td><select name=nfctx>$PICKGPIO</select></td><td>GPIO NFC Tx</td></tr>
+<tr><td><select name=tamper>$GPIONUMPICK</select></td><td>GPIO Controller Tamper</td></tr>
+<tr><td><select name=blink>$GPIONUMPICK</select></td><td>GPIO Controller LED</td></tr>
+<tr><td><select name=nfctx>$GPIONUMPICK</select></td><td>GPIO NFC Tx</td></tr>
 <if not nfctx=''>
-<tr><td><select name=nfcrx>$PICKGPIO</select></td><td>GPIO NFC Rx</td></tr>
-<tr><td><select name=nfcpower>$PICKGPIO</select></td><td>GPIO NFC Power</td></tr>
-<tr><td><select name=nfcred>$PICKGPIONFC</select></td><td>PN532 NFC red LED</td></tr>
-<tr><td><select name=nfcamber>$PICKGPIONFC</select></td><td>PN532 NFC amber LED</td></tr>
-<tr><td><select name=nfcgreen>$PICKGPIONFC</select></td><td>PN532 NFC green LED</td></tr>
-<tr><td><select name=nfccard>$PICKGPIONFC</select></td><td>PN532 NFC LED to blink for card</td></tr>
-<tr><td><select name=nfctamper>$PICKGPIONFC</select></td><td>PN532 NFC Tamper button</td></tr>
-<tr><td><select name=nfcbell>$PICKGPIONFC</select></td><td>PN532 NFC Bell input</td></tr>
+<tr><td><select name=nfcrx>$GPIONUMPICK</select></td><td>GPIO NFC Rx</td></tr>
+<tr><td><select name=nfcpower>$GPIONUMPICK</select></td><td>GPIO NFC Power</td></tr>
+<tr><td><select name=nfcred>$GPIONFCPICK</select></td><td>PN532 NFC red LED</td></tr>
+<tr><td><select name=nfcamber>$GPIONFCPICK</select></td><td>PN532 NFC amber LED</td></tr>
+<tr><td><select name=nfcgreen>$GPIONFCPICK</select></td><td>PN532 NFC green LED</td></tr>
+<tr><td><select name=nfccard>$GPIONFCPICK</select></td><td>PN532 NFC LED to blink for card</td></tr>
+<tr><td><select name=nfctamper>$GPIONFCPICK</select></td><td>PN532 NFC Tamper button</td></tr>
+<tr><td><select name=nfcbell>$GPIONFCPICK</select></td><td>PN532 NFC Bell input</td></tr>
 </if>
 <sql table=pcbgpio where="pcb=\$pcb" order=pinname>
-<tr><td><input name=pcbgpio type=hidden><select name=gpio>$PICKGPIO</select></td><td><select name=type>$PICKGPIOPCB</select><select name=init>$PICKGPIOTYPE</select> <output name=pinname></td></tr></td>
+<tr><td><input name=pcbgpio type=hidden><select name=gpio>$GPIONUMPICK</select></td><td><select name=type>$GPIOIOPICK</select><select name=init>$GPIOTYPEPICK</select> <output name=pinname></td></tr></td>
 </sql>
-<tr><td><input name=pcbgpio type=hidden value=0><select name=gpio>$PICKGPIO</select></td><td><select name=type>$PICKGPIOPCB</select><select name=init>$PICKGPIOTYPE</select> <input name=pinname size=10 placeholder='New pin'></td></tr></td>
+<tr><td><input name=pcbgpio type=hidden value=0><select name=gpio>$GPIONUMPICK</select></td><td><select name=type>$GPIOIOPICK</select><select name=init>$GPIOTYPEPICK</select> <input name=pinname size=10 placeholder='New pin'></td></tr></td>
 </table>
 </sql>
 <input type=submit value="Update">

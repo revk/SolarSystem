@@ -77,6 +77,19 @@ void sstypes(const char *fn)
 #include "gpiotype.h"
 #define g(g) fprintf(f,"<option value=\"-%s\">%s (inverted)</option>",#g,#g);
 #include "gpiotype.h"
+ start("GPIONFCLIST");
+#define n(g) fprintf(f,"%s%s",gap(),#g);
+#include "gpiotype.h"
+ start("GPIONFCOUT");
+#define n(g) fprintf(f,"%s\"%s\"=\"%s\"",gap(),#g,#g);
+#include "gpiotype.h"
+#define n(g) fprintf(f,"%s\"-%s\"=\"%s (inverted)\"",gap(),#g,#g);
+#include "gpiotype.h"
+ start("GPIONFCPICK");
+#define n(g) fprintf(f,"<option value=\"%s\">%s</option>",#g,#g);
+#include "gpiotype.h"
+#define n(g) fprintf(f,"<option value=\"-%s\">%s (inverted)</option>",#g,#g);
+#include "gpiotype.h"
  start("GPIOIOLIST");
 #define io(g,t) fprintf(f,"%s%s",gap(),#g);
 #include "gpiotype.h"
