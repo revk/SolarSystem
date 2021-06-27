@@ -96,8 +96,11 @@ ssmqtt.o: ssmqtt.c ssmqtt.h Makefile
 sscert.o: sscert.c sscert.h Makefile
 	gcc -g -Wall -Wextra -O -c -o $@ $< ${SQLINC}
 
-solarsystem: solarsystem.c config.h AXL/axl.o AJL/ajl.o Dataformat/dataformat.o websocket/websocketxml.o DESFireAES/desfireaes.o SQLlib/sqllib.o Makefile ssdatabase.o ssmqtt.o sscert.o
-	gcc -g -Wall -Wextra -O -o $@ $< ssdatabase.o ssmqtt.o sscert.o AJL/ajl.o AXL/axl.o Dataformat/dataformat.o websocket/websocketxml.o DESFireAES/desfireaes.o SQLlib/sqllib.o ${SQLINC} ${SQLLIB} -lpopt -lcrypto -pthread -lcurl -lssl
+fobcommand.o: fobcommand.c fobcommand.h Makefile
+	gcc -g -Wall -Wextra -O -c -o $@ $< ${SQLINC}
+
+solarsystem: solarsystem.c config.h AXL/axl.o AJL/ajl.o Dataformat/dataformat.o websocket/websocketxml.o DESFireAES/desfireaes.o SQLlib/sqllib.o Makefile ssdatabase.o ssmqtt.o sscert.o fobcommand.o
+	gcc -g -Wall -Wextra -O -o $@ $< ssdatabase.o ssmqtt.o sscert.o AJL/ajl.o AXL/axl.o Dataformat/dataformat.o websocket/websocketxml.o DESFireAES/desfireaes.o SQLlib/sqllib.o ${SQLINC} ${SQLLIB} -lpopt -lcrypto -pthread -lcurl -lssl fobcommand.o
 
 can: can.c config.h Makefile login/redirect.o
 	gcc -g -Wall -Wextra -O -o $@ $< SQLlib/sqllib.o ${SQLINC} ${SQLLIB} -lpopt -lcurl AJL/ajl.o login/redirect.o

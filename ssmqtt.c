@@ -649,7 +649,7 @@ void mqtt_close_slot(long long instance)
    }
    pthread_mutex_unlock(&slot_mutex);
    if (sqldebug)
-      warnx("Close, slot count %d", slotcount);
+      warnx("Close %lld, slot count %d", instance,slotcount);
 }
 
 void slot_link(long long instance, slot_t * target)
