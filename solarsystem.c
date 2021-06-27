@@ -44,10 +44,11 @@ char *makeaes(SQL * sqlkeyp, const char *aid, const char *fob, const char *ver)
    if (read(f, bin, sizeof(bin)) != sizeof(bin))
       errx(1, "Failed to read random");
    close(f);
-   char *aes = j_base16(sizeof(bin),bin);
+   char *aes = j_base16(sizeof(bin), bin);
    if (sql_query_free(sqlkeyp, sql_printf("INSERT INTO `AES` SET `aid`=%#s,`fob`=%#s,`ver`=%#s,`key`=%#s", aid, fob, ver, aes)))
       aes = NULL;
-   if(aes)return strdup(aes); // was on stack
+   if (aes)
+      return strdup(aes);       // was on stack
    return NULL;
 }
 

@@ -12,4 +12,6 @@ const char *setting(long long instance, const char *suffix, j_t *);     // Send 
 typedef struct slot_s slot_t;
 void mqtt_qin(j_t j);           // Queue incoming, consumes (queues) j
 slot_t *mqtt_slot(int *txsockp);        // Create a slot
+void mqtt_close_slot(slot_t *slot);
+
 j_t incoming(void);             // Wait for and get next incoming message (not just used by MQTT, includes _meta)
