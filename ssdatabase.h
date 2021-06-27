@@ -131,6 +131,7 @@ bool (block);                   // All AID block (i.e. lost fob)
 
 table(device, 12);
 text(description, 0);
+link(site);			// The site the device is on
 link(pcb);                      // What type of device this is
 text(version, 0);               // S/w version
 bool (encryptednvs);            // Built with encrypted NVS
@@ -163,6 +164,7 @@ num(instance);
 text(version, 0);               // S/w version
 bool (encryptednvs);            // Built with encrypted NVS
 bool (secureboot);              // Built with secure boot
+bool (authenticated);		// New authenticated device
 num(flash);			// Flash size
 
 table(pcb, 0);                  // PCB type

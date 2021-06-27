@@ -87,7 +87,7 @@ door.o: door.c door.h galaxybus.h Makefile
 port.o: port.c port.h galaxybus.h Makefile
 	gcc -g -Wall -Wextra -O -c -o $@ $< -I. -DLIB -pthread
 
-ssdatabase.o: ssdatabase.c ssdatabase.h config.h Makefile
+ssdatabase.o: ssdatabase.c ssdatabase.h config.h gpiotype.h Makefile
 	gcc -g -Wall -Wextra -O -c -o $@ $< ${SQLINC}
 
 ssmqtt.o: ssmqtt.c ssmqtt.h Makefile

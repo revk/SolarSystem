@@ -8,6 +8,7 @@ config.h
 message.keys
 solarsystem.keys
 login.conf
+types
 *.old
 *.o
 *~

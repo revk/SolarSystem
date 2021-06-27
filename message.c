@@ -29,7 +29,9 @@ int main(int argc, const char *argv[])
    const char *command = NULL;
    const char *provision = NULL;
    const char *deport = NULL;
+   int debug = 0;
    int setting = 0;
+   int silent=0;
    {                            // POPT
       poptContext optCon;       // context for parsing command-line options
       const struct poptOption optionsTable[] = {
@@ -39,6 +41,8 @@ int main(int argc, const char *argv[])
          { "deport", 0, POPT_ARG_STRING, &deport, 0, "Deport", "mqtthost" },
          { "device", 'd', POPT_ARG_STRING, &device, 0, "Device", "XXXXXXXXXXXX" },
          { "pending", 'p', POPT_ARG_STRING, &pending, 0, "Pending device", "XXXXXXXXXXXX" },
+         { "silent", 'q', POPT_ARG_NONE, &silent, 0, "Silent", NULL },
+         { "debug", 'v', POPT_ARG_NONE, &debug, 0, "Debug", NULL },
          POPT_AUTOHELP { }
       };
 
@@ -73,7 +77,9 @@ int main(int argc, const char *argv[])
    if (device)
       j_store_string(meta, "device", device);
    if (pending)
-      j_store_string(meta, "pending", device);
+      j_store_string(meta, "pending", pending);
+   if (debug)
+      j_err(j_write_pretty(j, stderr));
    j_err(j_write_mem(j, &json, NULL));
    j_delete(&j);
 
@@ -225,13 +231,18 @@ int main(int argc, const char *argv[])
          errx(1, "Bad topic len");
       j_t j = j_create();
       j_err(j_read_mem(j, (char *) b, len - (b - buf)));
+      if (debug)
+         j_err(j_write_pretty(j, stderr));
       if (!j_isnull(j))
       {
          ret = 1;
+	 if(!silent)
+	 {
          if (j_isstring(j))
-            fprintf(stderr, "%s", j_val(j));
+            printf("%s", j_val(j));
          else
-            j_err(j_write_pretty(j, stderr));
+            j_err(j_write_pretty(j, stdout));
+	 }
       }
       j_delete(&j);
    }

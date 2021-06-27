@@ -29,7 +29,9 @@ extern const char *cacert;
 extern const char *mqttkey;
 extern const char *mqttcert;
 extern int sqldebug;
+extern int dump;
 SSL_CTX *ctx = NULL;
+
 
 #define	MAXSLOTS	65536
 
@@ -241,7 +243,7 @@ static void *server(void *arg)
             continue;           // Need more data
          katimeout = time(0) + keepalive * 3 / 2;
          txp = 0;
-         if (sqldebug)
+         if (dump)
          {
             fprintf(stderr, "%s<", device);
             for (uint32_t q = 0; q < i + l; q++)
@@ -309,7 +311,7 @@ static void *server(void *arg)
                   }
                   int plen = end - data;
                   if (sqldebug)
-                     warnx("%.*s: %.*s\n", tlen, topic, plen, data);
+                     warnx("%.*s: %.*s", tlen, topic, plen, data);
                   j_t j = j_create();
                   if (j_read_mem(j, (void *) data, plen))
                   {
@@ -392,7 +394,7 @@ static void *server(void *arg)
       }
       if (!fail && txp)
       {                         // Send data
-         if (sqldebug)
+         if (dump)
          {
             fprintf(stderr, "%s>", device);
             for (uint32_t i = 0; i < txp; i++)

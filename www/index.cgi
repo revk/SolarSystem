@@ -7,7 +7,7 @@ source ../setcan
 <IF SESSION_ORGANISATION>
 <form style='display:inline;' name=site method=post action=setsite.cgi>
 <if SESSION_SITE><set SET_SITE=$SESSION_SITE></if>
-<select name=SET_SITE onchange='site.submit()'>
+<br><select name=SET_SITE onchange='site.submit()'>
 <IF NOT SESSION_SITE><option value=0>-- Select site --</option></if>
 <sql table="site LEFT JOIN organisation USING (organisation)" WHERE="organisation=$SESSION_ORGANISATION" ORDER="site.description">
 <option value=$site><output name=description></option>
@@ -30,7 +30,7 @@ source ../setcan
 <if CANEDITSITE><li><a href="editsite.cgi/$SESSION_SITE">Edit site</a></li></if>
 <if CANEDITDEVICE><li><a href="editdevice.cgi">Edit devices</a></li></if>
 <if CANEDITAREA><li><a href="editarea.cgi">Edit area</a></li></if>
-<IF USER_ADMIN><sql table=pending limit=1><li><a href="provisiondevice.cgi">Provision new device</a></li></sql></if>
+<IF USER_ADMIN><sql table=pending limit=1 WHERE="online<NOW()"><li><a href="provisiondevice.cgi">Provision new device</a></li></sql></if>
 </if>
 <IF USER_ADMIN><sql table=device where="online is not null AND trusted='true'" limit=1><li><a href="provisionfob.cgi">Provision new fob</a></li></sql></if>
 <IF USER_ADMIN><li><a href="editpcb.cgi">Edit PCB</a></li></if>

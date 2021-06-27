@@ -25,12 +25,15 @@
 
 void ssdatabase(SQL *);
 void sskeydatabase(SQL *);
+void sstypes(const char *);
+
 const char *cakey = "",
     *cacert = "";
 const char *mqttkey = "",
     *mqttcert = "";
 
 extern int sqldebug;
+int dump = 0;                   // dump level debug
 
 const char *upgrade(SQL_RES * res, long long instance)
 {                               // Send upgrade if needed
@@ -72,6 +75,7 @@ int main(int argc, const char *argv[])
       poptContext optCon;       // context for parsing command-line options
       const struct poptOption optionsTable[] = {
          { "debug", 'v', POPT_ARG_NONE, &sqldebug, 0, "Debug", NULL },
+         { "dump", 'V', POPT_ARG_NONE, &dump, 0, "Debug dump", NULL },
          POPT_AUTOHELP { }
       };
       optCon = poptGetContext(NULL, argc, argv, optionsTable, 0);
@@ -151,7 +155,6 @@ int main(int argc, const char *argv[])
       j_object(j);
       j_string(j_path(j, "ca.key"), cakey);
       j_string(j_path(j, "mqtt.key"), mqttkey);
-      j_err(j_write_pretty(j, stderr));
       int f = open(CONFIG_KEYS_FILE, O_CREAT | O_WRONLY, 0400);
       if (f < 0)
          err(1, "Cannot make %s", CONFIG_KEYS_FILE);
@@ -165,7 +168,6 @@ int main(int argc, const char *argv[])
       j_string(j_path(j, "ca.cert"), cacert);
       j_string(j_path(j, "mqtt.cert"), mqttcert);
       j_string(j_path(j, "msg.cert"), msgcert);
-      j_err(j_write_pretty(j, stderr));
       f = open(CONFIG_MSG_KEY_FILE, O_CREAT | O_WRONLY, 0440);
       if (f < 0)
          err(1, "Cannot make %s", CONFIG_KEYS_FILE);
@@ -174,6 +176,7 @@ int main(int argc, const char *argv[])
       j_delete(&j);
    }
    // Connect
+   sstypes("types");
    SQL sqlkey;
    sql_cnf_connect(&sqlkey, CONFIG_SQL_KEY_CONFIG_FILE);
    sskeydatabase(&sqlkey);
@@ -209,7 +212,7 @@ int main(int argc, const char *argv[])
          warnx("WTF");
       else
       {
-         if (sqldebug)
+         if (dump)
             j_err(j_write_pretty(j, stderr));
          SQL_RES *device = NULL;
          j_t meta = j_find(j, "_meta");
@@ -245,7 +248,11 @@ int main(int argc, const char *argv[])
                free(key);
                if (fail)
                   return fail;
-               return mqtt_send(instance, "setting", NULL, &j);
+               fail = mqtt_send(instance, "setting", NULL, &j);
+	       // Set online later to remove from pending lists in UI
+               if (!fail)
+                  sql_safe_query_free(&sql, sql_printf("UPDATE `pending` SET `online`=%#T WHERE `pending`=%#s", time(0)+60,v));
+               return fail;
             } else if ((v = j_get(meta, "deport")))
             {
                j_store_null(j, "clientcert");
@@ -253,7 +260,11 @@ int main(int argc, const char *argv[])
                j_store_string(j, "mqtthost", v);
                j_store_string(j, "mqttcert", "");
                j_store_null(j, "mqttport");
-               return mqtt_send(instance, "setting", NULL, &j);
+               const char *fail = mqtt_send(instance, "setting", NULL, &j);
+	       // Set online later to remove from pending lists in UI
+               if (!fail)
+                  sql_safe_query_free(&sql, sql_printf("UPDATE `pending` SET `online`=%#T WHERE `pending`=%#s", time(0)+60,v));
+               return fail;
             } else if ((v = j_get(meta, "prefix")))
             {                   // Send to device
                const char *suffix = j_get(meta, "suffix");
@@ -285,11 +296,9 @@ int main(int argc, const char *argv[])
                return "No instance";
             const char *deviceid;
             if ((deviceid = j_get(meta, "device")) && *deviceid && (device = sql_safe_query_store_free(&sql, sql_printf("SELECT * FROM `device` WHERE `device`=%#s", deviceid))) && !sql_fetch_row(device))
-            {                   // Not found - new device
+            {                   // Not found - treat as pending even though athenticated
                sql_free_result(device);
-               sql_safe_query_free(&sql, sql_printf("INSERT INTO `device` SET `device`=%#s", deviceid));
-               device = sql_safe_query_store_free(&sql, sql_printf("SELECT * FROM `device` WHERE `device`=%#s", deviceid));
-               sql_fetch_row(device);;
+               device = NULL;
             }
             const char *address = j_get(meta, "address");
             const char *prefix = j_get(meta, "prefix");
@@ -312,6 +321,8 @@ int main(int argc, const char *argv[])
                {
                   sql_sprintf(&s, "REPLACE INTO `pending` SET ");
                   sql_sprintf(&s, "`pending`=%#s,", id);
+                  if (deviceid)
+                     sql_sprintf(&s, "`authenticated`=%#s,", "true");
                   SQL_RES *res = sql_safe_query_store_free(&sql, sql_printf("SELECT * FROM `device` WHERE `device`=%#s", id));
                   if (sql_fetch_row(res))
                      upgrade(res, instance);

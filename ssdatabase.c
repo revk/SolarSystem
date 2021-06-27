@@ -14,6 +14,84 @@ typedef unsigned int uint32_t;
 #include "SQLlib/sqllib.h"
 #include "ESP32/main/areas.h"
 
+void sstypes(const char *fn)
+{ // Create script types file
+ FILE *f=fopen(fn,"w");
+ int count=0,started=0;
+ void done(void)
+ {
+	 if(started)
+	 fprintf(f,"'\n");
+	 started=0;
+ }
+ void start(const char *v)
+ {
+	 if(started)done();
+	 fprintf(f,"setenv %s '",v);
+	 count=0;
+	 started=1;
+ }
+ const char *gap(void)
+ {
+	 return count++?" ":"";
+ }
+
+ start("GPIOTYPELIST");
+#define i(g,t) fprintf(f,"%s%s",gap(),#g);
+#define o(g,t) i(g,t)
+#include "gpiotype.h"
+ start("GPIOTYPELISTI");
+#define i(g,t) fprintf(f,"%s%s",gap(),#g);
+#include "gpiotype.h"
+ start("GPIOTYPELISTO");
+#define o(g,t) fprintf(f,"%s%s",gap(),#g);
+#include "gpiotype.h"
+ start("GPIOTYPEOUT");
+#define i(g,t) fprintf(f,"%s\"%s\"=\"%s\"",gap(),#g,#t);
+#define o(g,t) i(g,t)
+ i(0,Unspecified);
+#include "gpiotype.h"
+ start("GPIOTYPEPICK");
+#define i(g,t) fprintf(f,"<option value=\"%s\">%s</option>",#g,#t);
+#define o(g,t) i(g,t)
+ i(-,-- Type --);
+#include "gpiotype.h"
+ start("GPIOTYPEPICKI");
+#define i(g,t) fprintf(f,"<option value=\"%s\">%s</option>",#g,#t);
+ i(-,-- Type --);
+#include "gpiotype.h"
+ start("GPIOTYPEPICKO");
+#define o(g,t) fprintf(f,"<option value=\"%s\">%s</option>",#g,#t);
+ o(-,-- Type --);
+#include "gpiotype.h"
+ start("GPIONUMLIST");
+#define g(g) fprintf(f,"%s%s",gap(),#g);
+#include "gpiotype.h"
+ start("GPIONUMOUT");
+#define g(g) fprintf(f,"%s\"%s\"=\"%s\"",gap(),#g,#g);
+#include "gpiotype.h"
+#define g(g) fprintf(f,"%s\"-%s\"=\"%s (inverted)\"",gap(),#g,#g);
+#include "gpiotype.h"
+ start("GPIONUMPICK");
+#define g(g) fprintf(f,"<option value=\"%s\">%s</option>",#g,#g);
+#include "gpiotype.h"
+#define g(g) fprintf(f,"<option value=\"-%s\">%s (inverted)</option>",#g,#g);
+#include "gpiotype.h"
+ start("GPIOIOLIST");
+#define io(g,t) fprintf(f,"%s%s",gap(),#g);
+#include "gpiotype.h"
+ start("GPIOIOOUT");
+#define io(g,t) fprintf(f,"%s\"%s\"=\"%s\"",gap(),#g,#t);
+#include "gpiotype.h"
+ start("GPIOIOPICK");
+#define io(g,t) fprintf(f,"<option value=\"%s\">%s</option>",#g,#t);
+ io(-,-- Type --);
+#include "gpiotype.h"
+
+ done();
+ fclose(f);
+}
+
 void sskeydatabase(SQL * sqlp)
 {
    if (sql_select_db(sqlp, CONFIG_SQL_KEY_DATABASE))

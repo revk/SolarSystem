@@ -1,46 +1,70 @@
-#!../login/loggedin /bin/csh -f
+#!../login/loggedin /bin/csh -fx
 can --redirect --site='$SESSION_SITE' admin
 if($status) exit 0
-if($?pending) then
+if($?PROVISION) then
 	if("$pcb" == 0) then
 		setenv MSG "Pick PCB to provision"
 		goto done
 	endif
-	setenv p `sql "$DB" 'SELECT pcb FROM device WHERE device="$pending"'`
-	if("$p" != "") then
-	 	if("$p" != "$pcb") then
-			sql "$DB" 'UPDATE device SET pcb="$pcb" WHERE device="$pending"'
-			sql "$DB" 'DELETE FROM devicegpio WHERE device="$pending"'
-			sql "$DB" 'INSERT INTO devicegpio (device,gpio,type) SELECT "$pending",gpio,init FROM pcbgpio WHERE pcb=$pcb AND init<>"-"'
-		endif
+	setenv authenticated `sql "$DB" 'SELECT authenticated FROM pending WHERE pending="$PROVISION"'`
+	sql "$DB" 'DELETE FROM devicegpio WHERE device="$PROVISION"'
+	sql "$DB" 'DELETE FROM device WHERE device="$PROVISION"'
+	sql -v "$DB" 'INSERT INTO device SET device="$PROVISION",pcb="$pcb",site="$SESSION_SITE"'
+	sql "$DB" 'INSERT INTO devicegpio (device,gpio,type) SELECT "$PROVISION",gpio,init FROM pcbgpio WHERE pcb=$pcb AND init<>"-"'
+	if("$authenticated" == "true")then
+		setenv MSG `message --pending="$PROVISION" --command="restart"`
 	else
-		sql "$DB" 'INSERT INTO device SET device="$pending"'
+		setenv MSG `message --pending="$PROVISION" --provision="$PROVISION"`
 	endif
-	setenv i `sql "$DB" 'SELECT instance FROM pending WHERE pending="$pending"'`
-	setenv MSG "Provisioning..."
-	message --pending="$pending" --provision="$pending"
-	if($status) setenv MSG "Failed"
+	if(! $status) then
+		echo "Location: ${ENVCGI_SERVER}?MSG=Provisioned"
+		echo ""
+		exit 0
+	endif
+endif
+if($?DEPORT) then
+	if("$deport" == "") then
+		setenv MSG "Set deport MQTT server"
+		goto done
+	endif
+	setenv MG `message --pending="$DEPORT" --deport="$deport"`
+	if(! $status) then
+		echo "Location: ${ENVCGI_SERVER}?MSG=Deported"
+		echo ""
+		exit 0
+	endif
 endif
 done:
 echo "Content-Type: text/html"
 echo ""
 xmlsql -d "$DB" head.html - foot.html << 'END'
 <h1>Provision device</h1>
+<form style="display:inline;" method=post>
+PCB:<select name=pcb><option value=0>-- Pick PCB --</option><sql table=pcb order=description><option value=$pcb><output name=description></option></sql></select><br>
+Deport:<input name=deport size=20 placeholder='MQTT server' autofocus><br>
 <table border=1>
-<sql table="pending LEFT JOIN device ON (pending=device)" order="pending.online"><set found=1>
+<sql select="pending.*,device.device AS D,device.online AS O" table="pending LEFT JOIN device ON (pending=device)" order="pending.online" WHERE="pending.online<NOW()"><set found=1>
 <tr>
-<td><form style="display:inline;" method=post>
-<input type=hidden name=pending>
-<select name=pcb><option value=0>-- Pick PCB --</option><sql table=pcb order=description><option value=$pcb><output name=description></option></sql></select>
-<input type=submit value="Provision"></form></td>
+<td>
+<if O><input type=submit value="Assign" name="PROVISION" onclick="this.value='$pending';"><br></if>
+<if NOT O><input type=submit value="Provision" name="PROVISION" onclick="this.value='$pending';"><br></if>
+<input type=submit value="Deport" name="DEPORT" onclick="this.value='$pending';">
+</td>
 <td><output name=online></td>
 <td><output name=pending></td>
 <td><output name=address></td>
 <td><output name=version></td>
 <td><output name=flash></td>
-<td><if secureboot=false><b>Not secure boot. </b></if><if encryptednvs=false><b>Not encrypted NVS. </b></if><if device><b>Device previously in use. </b></if></td>
+<td>
+<if authenticated><b>Device is authenticated.</b><br></if>
+<if secureboot=false><b>Not secure boot.</b><br></if>
+<if encryptednvs=false><b>Not encrypted NVS.</b><br></if>
+<if O><b>DEVICE IS ON LINE AS AUTHENTICATED DEVICE</b><br></if>
+<if D NOT O><b>Device previously in use - will be replaced.</b><br></if>
+</td>
 </tr>
 </sql>
 </table>
+</form>
 <if not found><p>No pending device</p></if>
 'END'
