@@ -5,6 +5,12 @@ endif
 can --redirect --device='$device' editdevice
 if($status) exit 0
 
+if($?RESTART) then
+	setenv MSG `message --device="$device" --command=restart`
+	if(! $status) setenv MSG "Restarting"
+	unsetenv device
+	goto done
+endif
 if($?DELETE || $?FACTORY) then
 	if(! $?SURE) then
 		setenv MSG "Tick to say you are sure"
@@ -64,6 +70,7 @@ xmlsql -d "$DB" head.html - foot.html << END
 </sql>
 </table>
 <input type=submit value="Update">
+<if online><input type=submit value="Restart" name=RESTART></if>
 <input type=submit value="Delete" name=DELETE>
 <if online><input type=submit value="Factory Reset" name=FACTORY></if>
 <input type=checkbox name=SURE title='Tick this to say you are sure'>
