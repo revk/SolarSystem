@@ -64,7 +64,6 @@ void *fobcommand(void *arg)
       mqtt_qin(&j);
    }
    warnx("Ended fobcommand");
-   mqtt_close_slot(instance);
    close(sock);
    return NULL;
 }
