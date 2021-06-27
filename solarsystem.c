@@ -44,6 +44,29 @@ const char *upgrade(SQL_RES * res, long long instance)
    return upgrade;
 }
 
+const char *security(SQL * sqlkeyp, SQL_RES * res, long long instance)
+{                               // Security settings
+   j_t j = j_create();
+   const char *aid = sql_colz(res, "aid");
+   j_t aids = j_store_array(j, "aes");
+   if (*aid && strcmp(sql_colz(res, "nfctx"), "-"))
+   {                            // Security
+      // Keys
+
+      SQL_RES *r = sql_safe_query_store_free(sqlkeyp, sql_printf("SELECT * FROM `AES` WHERE `aid`=%#s AND `fob` IS NULL order BY `created` DESC LIMIT 3", aid));
+      while (sql_fetch_row(r))
+         j_append_stringf(aids, "%s%s", sql_colz(r, "ver"), sql_colz(r, "aes"));
+      sql_free_result(r);
+   }
+   if (!j_len(aids))
+      aid = "";                 // We have not loaded any keys so no point in even trying an AID
+   j_store_string(j, "aid", aid);
+   if (!j_isnull(j))
+      setting(instance, NULL, &j);
+   j_delete(&j);
+   return NULL;
+}
+
 const char *settings(SQL * sqlp, SQL_RES * res, long long instance)
 {                               // Send base settings
    j_t j = j_create();
@@ -393,8 +416,8 @@ int main(int argc, const char *argv[])
                {
                   sql_sprintf(&s, "UPDATE `device` SET ");      // known, update
                   sql_sprintf(&s, "`lastonline`=NOW(),");
-                  if (!upgrade(device, instance))
-                     settings(&sql, device, instance);
+                  if (!upgrade(device, instance) && !settings(&sql, device, instance))
+                     security(&sqlkey, device, instance);
                } else           // pending - update pending
                {
                   sql_sprintf(&s, "REPLACE INTO `pending` SET ");

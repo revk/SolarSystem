@@ -15,121 +15,123 @@ typedef unsigned int uint32_t;
 #include "ESP32/main/areas.h"
 
 void sstypes(const char *fn)
-{ // Create script types file
- FILE *f=fopen(fn,"w");
- int count=0,started=0;
- void done(void)
- {
-	 if(started)
-	 fprintf(f,"'\n");
-	 started=0;
- }
- void start(const char *v)
- {
-	 if(started)done();
-	 fprintf(f,"setenv %s '",v);
-	 count=0;
-	 started=1;
- }
- void list(const char *v)
- {
-	 fprintf(f,"%s%s",count++?" ":"",v);
- }
- void out(const char *n,const char *v)
- {
-	 fprintf(f,"%s\"%s\"=\"%s\"",count++?" ":"",n,v);
- }
- void pick(const char *n,const char *v)
- {
-	 fprintf(f,"<option value=\"%s\">%s</option>",n,v);
- }
- start("GPIOTYPELIST");
+{                               // Create script types file
+   FILE *f = fopen(fn, "w");
+   int count = 0,
+       started = 0;
+   void done(void) {
+      if (started)
+         fprintf(f, "'\n");
+      started = 0;
+   }
+   void start(const char *v) {
+      if (started)
+         done();
+      fprintf(f, "setenv %s '", v);
+      count = 0;
+      started = 1;
+   }
+   void list(const char *v) {
+      fprintf(f, "%s%s", count++ ? " " : "", v);
+   }
+   void out(const char *n, const char *v) {
+      fprintf(f, "%s\"%s\"=\"%s\"", count++ ? " " : "", n, v);
+   }
+   void pick(const char *n, const char *v) {
+      fprintf(f, "<option value=\"%s\">%s</option>", n, v);
+   }
+   start("GPIOTYPELIST");
 #define i(g,t) list(#g);
 #define o(g,t) list(#g);
 #include "types.m"
- start("GPIOTYPELISTI");
+   start("GPIOTYPELISTI");
 #define i(g,t) list(#g);
 #include "types.m"
- start("GPIOTYPELISTO");
+   start("GPIOTYPELISTO");
 #define o(g,t) list(#g);
 #include "types.m"
- start("GPIOTYPEOUT");
- out("-","Unspecified");
+   start("GPIOTYPEOUT");
+   out("-", "Unspecified");
 #define i(g,t) out(#g,#t);
 #define o(g,t) out(#g,#t);
 #include "types.m"
- start("GPIOTYPEPICK");
- pick("-","-- Type --");
+   start("GPIOTYPEPICK");
+   pick("-", "-- Type --");
 #define i(g,t) pick(#g,#t);
 #define o(g,t) pick(#g,#t);
 #include "types.m"
- start("GPIOTYPEPICKI");
- pick("-","-- Type --");
+   start("GPIOTYPEPICKI");
+   pick("-", "-- Type --");
 #define i(g,t) pick(#g,#t);
 #include "types.m"
- start("GPIOTYPEPICKO");
- pick("-","-- Type --");
+   start("GPIOTYPEPICKO");
+   pick("-", "-- Type --");
 #define o(g,t) pick(#g,#t);
 #include "types.m"
- start("GPIONUMLIST");
+   start("GPIONUMLIST");
 #define g(g) list(#g);
 #include "types.m"
- start("GPIONUMOUT");
- out("-","Unspecified");
+   start("GPIONUMOUT");
+   out("-", "Unspecified");
 #define g(g) out(#g,#g);
 #include "types.m"
 #define g(g) out("-"#g,#g" (active low)");
 #include "types.m"
- start("GPIONUMPICK");
- pick("-","-- GPIO --");
+   start("GPIONUMPICK");
+   pick("-", "-- GPIO --");
 #define g(g) pick(#g,#g);
 #include "types.m"
 #define g(g) pick("-"#g,#g" (active low)");
 #include "types.m"
- start("GPIONFCLIST");
+   start("GPIONFCLIST");
 #define n(g) list(#g);
 #include "types.m"
- start("GPIONFCOUT");
- out("-","Unspecified");
+   start("GPIONFCOUT");
+   out("-", "Unspecified");
 #define n(g) pick(#g,#g);
 #include "types.m"
 #define n(g) pick("-"#g,#g" (active low)");
 #include "types.m"
- start("GPIONFCPICK");
- pick("-","-- NFC GPIO --");
+   start("GPIONFCPICK");
+   pick("-", "-- NFC GPIO --");
 #define n(g) pick(#g,#g);
 #include "types.m"
 #define n(g) pick("-"#g,#g" (active low)");
 #include "types.m"
- start("GPIOIOLIST");
+   start("GPIOIOLIST");
 #define io(g,t) list(#g);
 #include "types.m"
- start("GPIOIOOUT");
+   start("GPIOIOOUT");
 #define io(g,t) out(#g,#t);
 #include "types.m"
- start("GPIOIOPICK");
+   start("GPIOIOPICK");
 #define io(g,t) pick(#g,#t);
 #include "types.m"
- start("DOORAUTOLIST");
+   start("DOORAUTOLIST");
 #define d(n,t) list(#n);
 #include "doorauto.m"
- start("DOORAUTOOUT");
+   start("DOORAUTOOUT");
 #define d(n,t) out(#n,#t);
 #include "doorauto.m"
- start("DOORAUTOPICK");
+   start("DOORAUTOPICK");
 #define d(n,t) pick(#n,#t);
 #include "doorauto.m"
- start("AREALIST");
-for(char *a=AREAS;*a;a++)if(*a!='-'){const char area[2]={*a};list(area);}
- start("STATELIST");
+   start("AREALIST");
+   for (char *a = AREAS; *a; a++)
+      if (*a != '-')
+      {
+         const char area[2] = { *a };
+         list(area);
+      }
+   start("STATELIST");
 #define i(n) list(#n);
 #define s(n) list(#n);
 #include "ESP32/main/states.m"
- start("STATELISTI");
+   start("STATELISTI");
 #define i(n) list(#n);
 #include "ESP32/main/states.m"
- done();
- fclose(f);
+   done();
+   fclose(f);
 }
 
 void sskeydatabase(SQL * sqlp)

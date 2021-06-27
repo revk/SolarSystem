@@ -38,14 +38,15 @@ int main(int argc, const char *argv[])
        organisation = 0,
        site = 0,
        aid = 0,
-       class = 0,gpio=0;;
+       class = 0,
+       gpio = 0;;
    const char *sus = NULL,
        *suser = NULL,
        *sorganisation = NULL,
        *ssite = NULL,
        *said = NULL,
-       *sdevice=NULL,
-       *sgpio=NULL,
+       *sdevice = NULL,
+       *sgpio = NULL,
        *sclass = NULL;
    int redirect = 0;
    int reason = 0;
@@ -88,7 +89,8 @@ int main(int argc, const char *argv[])
    aid = getval(said);
    class = getval(sclass);
    gpio = getval(sgpio);
-   if(sdevice&&*sdevice=='$')sdevice=(getenv(sdevice+1)?:"");
+   if (sdevice && *sdevice == '$')
+      sdevice = (getenv(sdevice + 1) ? : "");
 
    SQL sql;
    sql_cnf_connect(&sql, CONFIG_SQL_CONFIG_FILE);
