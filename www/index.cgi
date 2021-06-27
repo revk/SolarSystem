@@ -4,17 +4,6 @@ echo ""
 source ../setses
 source ../setcan
 /projects/tools/bin/xmlsql -d "$DB" head.html - foot.html << 'END'
-<IF SESSION_ORGANISATION>
-<form style='display:inline;' name=site method=post action=setsite.cgi>
-<if SESSION_SITE><set SET_SITE=$SESSION_SITE></if>
-<br><select name=SET_SITE onchange='site.submit()'>
-<IF NOT SESSION_SITE><option value=0>-- Select site --</option></if>
-<sql table="site LEFT JOIN organisation USING (organisation)" WHERE="organisation=$SESSION_ORGANISATION" ORDER="site.description">
-<option value=$site><output name=description></option>
-</sql>
-</select>
-</form>
-</if>
 <ul>
 <if USER_ADMIN>
 <li><a href="editorganisation.cgi/0">New organisation</a></li>
