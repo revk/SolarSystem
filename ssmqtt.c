@@ -22,6 +22,7 @@
 #include <semaphore.h>
 #include "AJL/ajl.h"
 #include "sscert.h"
+#include "mqttmsg.h"
 #include "ssmqtt.h"
 
 extern const char *cakey;
@@ -56,66 +57,6 @@ static rxq_t *rxq = NULL,
     *rxqhead = NULL;
 static pthread_mutex_t rxq_mutex;
 static sem_t rxq_sem;
-
-j_t mqtt_decode(unsigned char *buf, size_t len)
-{                               // Decode and MQTT message, return JSON payload, with topic in _meta.topic
-   if ((*buf & 0xF0) != 0x30)
-      return NULL;
-   unsigned char *b = buf,
-       *e = buf + len;
-   uint8_t qos = (*b >> 1) & 3;
-   uint8_t retain = (*b & 1);
-   uint8_t dup = ((*b >> 3) & 1);
-   b++;
-   int l = 0,
-       s = 0;
-   while (b < e && (*b & 0x80))
-   {
-      l |= (*b & 0x7F) << s;
-      s += 7;
-      b++;
-   }
-   l |= (*b++ << s);
-   if (b + l != e)
-      return NULL;
-   int id = 0;
-   int tlen = (b[0] << 8) + b[1];
-   b += 2;
-   char *topic = (char *) b;
-   b += tlen;
-   if (qos)
-   {
-      id = (b[0] << 8) + b[1];
-      b += 2;
-   }
-   int plen = len - (b - buf);
-   j_t j = j_create();
-   const char *fail = j_read_mem(j, (char *) b, plen);
-   if (fail)
-   {
-      warnx("Parse error %s %.*s", fail, plen, b);
-      j_delete(&j);
-      return NULL;
-   }
-   if (!j_isobject(j) && !j_isnull(j))
-   {
-      j_t n = j_create();
-      j_store_json(n, "_data", &j);
-      j = n;
-   }
-   if (tlen)
-      j_stringn(j_path(j, "_meta.topic"), topic, tlen);
-   if (qos)
-   {
-      j_int(j_path(j, "_meta.id"), id);
-      j_int(j_path(j, "_meta.qos"), qos);
-      if (retain)
-         j_true(j_path(j, "_meta.retain"));
-      if (dup)
-         j_true(j_path(j, "_meta.dup"));
-   }
-   return j;
-}
 
 static void *server(void *arg)
 {
@@ -649,7 +590,7 @@ void mqtt_close_slot(long long instance)
    }
    pthread_mutex_unlock(&slot_mutex);
    if (sqldebug)
-      warnx("Close %lld, slot count %d", instance,slotcount);
+      warnx("Close %lld, slot count %d", instance, slotcount);
 }
 
 void slot_link(long long instance, slot_t * target)

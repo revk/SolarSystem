@@ -50,10 +50,10 @@ void *fobcommand(void *arg)
       if (*buf != 0x30)
          continue;
       j_t j = mqtt_decode(buf, len);
-      if(j_isnull(j))
-      { // End
-	      j_delete(&j);
-	      break;
+      if (j_isnull(j))
+      {                         // End
+         j_delete(&j);
+         break;
       }
       j_err(j_write_pretty(j, stderr)); // TODO
       j_delete(&j);

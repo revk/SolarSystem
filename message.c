@@ -18,6 +18,7 @@
 #include <openssl/err.h>
 #include "sscert.h"
 #include "AJL/ajl.h"
+#include "mqttmsg.h"
 
 int main(int argc, const char *argv[])
 {
@@ -213,32 +214,12 @@ int main(int argc, const char *argv[])
          errx(1, "Bad reply to message %d %02X %02X %02X %02X %04X", (int) len, buf[0], buf[1], buf[2], buf[3], id);
    }
    {                            // Wait reply
-      unsigned char buf[1000],
-      *b = buf;
+      unsigned char buf[1000];
       size_t len = SSL_read(ssl, buf, sizeof(buf));
       if (len < 2 && *buf != 0x30)
          errx(1, "Bad reply");
-      b++;
-      int n = 0,
-          q = 0;
-      while (*b & 0x80)
-      {
-         n |= ((*b & 0x7F) << q);
-         q += 7;
-         b++;
-      }
-      n |= ((*b++ & 0x7F) << q);
-      if (b + n > buf + len)
-         errx(1, "Bad len");
-      int tlen = (*b << 8) + b[1];
-      b += 2;
-      b += tlen;                // Ignore
-      if (b > buf + len)
-         errx(1, "Bad topic len");
-      j_t j = j_create();
-      j_err(j_read_mem(j, (char *) b, len - (b - buf)));
-      if (debug)
-         j_err(j_write_pretty(j, stderr));
+      j_t j=mqtt_decode(buf,len);
+      if(!j)errx(1,"Bad reply");
       if (!j_isnull(j))
       {
          ret = 1;

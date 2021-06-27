@@ -45,11 +45,11 @@
 #endif
 
 #ifndef gpionfc
-#define gpionfc(n)                 // NFC GPIO number field (and inverted)
+#define gpionfc(n)              // NFC GPIO number field (and inverted)
 #endif
 
 #ifndef gpiopcb
-#define gpiopcb(n)                 // PCB template GPIO type
+#define gpiopcb(n)              // PCB template GPIO type
 #endif
 
 #ifndef gpiotype
@@ -114,7 +114,7 @@ text(description, 0);
 
 table(site, 0);                 // Site
 link(organisation);
-text(description,0);
+text(description, 0);
 text(meshid, 12);               // Hex Mesh ID
 // TODO key / crypto?
 
@@ -125,27 +125,27 @@ unique(site, area);
 text(description, 0);
 
 table(fob, 14);
-time(provisioned);		// When provisioned
+time(provisioned);              // When provisioned
 link(class);                    // The fobs class (required)
 
-join(fob, aid);			// Fob is in AID (adopted)
+join(fob, aid);                 // Fob is in AID (adopted)
 
-join(fob,organisation);		// Yes, per org, for security reasons
-time(blocked);			// When blocked
-time(confirmed);		// When confirmed blocked by fob read (no need to be in blacklist now)
+join(fob, organisation);        // Yes, per org, for security reasons
+time(blocked);                  // When blocked
+time(confirmed);                // When confirmed blocked by fob read (no need to be in blacklist now)
 
 table(device, 12);
 text(description, 0);
-link(site);			// The site the device is on
+link(site);                     // The site the device is on
 link(pcb);                      // What type of device this is
 text(version, 0);               // S/w version
 bool (encryptednvs);            // Built with encrypted NVS
 bool (secureboot);              // Built with secure boot
-num(flash);			// Flash size
+num(flash);                     // Flash size
 link(aid);                      // The AID for door access (defines what site it is)
-bool(trusted);			// Trusted device for fob provisioning
+bool (trusted);                 // Trusted device for fob provisioning
 areas(doorarea);                // Areas covered by this door
-num(doorauto);			// Door auto mode
+num(doorauto);                  // Door auto mode
 time(online);                   // When online, if online
 time(lastonline);               // When last went offline
 time(upgrade);                  // When to do upgrade
@@ -156,8 +156,8 @@ table(devicegpio, 0);
 link(device);
 gpio(gpio);
 gpiotype(type);
-unique(device, gpio);		// Which GPIO (from PCB)
-bool (invert);		// Invert
+unique(device, gpio);           // Which GPIO (from PCB)
+bool (invert);                  // Invert
 #define i(state) areas(state)
 #define s(state) areas(state)
 #include "ESP32/main/states.m"
@@ -169,17 +169,17 @@ num(instance);
 text(version, 0);               // S/w version
 bool (encryptednvs);            // Built with encrypted NVS
 bool (secureboot);              // Built with secure boot
-bool (authenticated);		// New authenticated device
-num(flash);			// Flash size
+bool (authenticated);           // New authenticated device
+num(flash);                     // Flash size
 
 table(pcb, 0);                  // PCB type
 text(description, 0);
-gpio(tamper);			// Fixed GPIOs
-gpio(blink);		
+gpio(tamper);                   // Fixed GPIOs
+gpio(blink);
 gpio(nfctx);
 gpio(nfcrx);
 gpio(nfcpower);
-gpionfc(nfcred);		// NFC GPIO (actually NFC PCB specific, but set here, so PCB for PCB+NFC combination)
+gpionfc(nfcred);                // NFC GPIO (actually NFC PCB specific, but set here, so PCB for PCB+NFC combination)
 gpionfc(nfcamber);
 gpionfc(nfcgreen);
 gpionfc(nfctamper);
@@ -192,11 +192,11 @@ gpio(gpio);
 unique(pcb, gpio);
 gpiopcb(type);
 gpiotype(init);
-text(pinname,0);
+text(pinname, 0);
 
 table(aid, 6);                  // AID (linked to organisation)
 link(organisation);
-text(description,0);
+text(description, 0);
 
 #undef table
 #undef join
