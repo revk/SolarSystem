@@ -66,7 +66,7 @@ xmlsql -d "$DB" head.html - foot.html << END
 <if not nfctx=='-'><tr><td>Door control</td><td><select name=doorauto>$DOORAUTOPICK</select><output name=nfxtx></td></tr></if>
 <sql table="device LEFT JOIN devicegpio USING (device) LEFT JOIN pcbgpio ON (device.pcb=pcbgpio.pcb AND devicegpio.gpio=pcbgpio.gpio)" WHERE="device='\$device'">
 <tr><td><output name=pinname href="/editgpio.cgi/\$devicegpio"></td>
-<td><output name=type $GPIOTYPEOUT><if invert=true> (inverted)</if><for space S="$STATELIST"><if not "\$S"=''> <output name=S></if></for></td>
+<td><b><output name=type $GPIOTYPEOUT><if invert=true> (inverted)</if></b><for space S="$STATELIST"><if not "\$S"=''> <output name=S></if></for></td>
 </tr>
 </sql>
 </table>
