@@ -35,7 +35,6 @@ SSL_CTX *ctx = NULL;
 
 #define	MAXSLOTS	65536
 
-typedef struct slot_s slot_t;
 struct slot_s {
    long long instance;          // Instance for checking, (mod MAXSLOT is slot) 0 if free
    int txsock;                  // Socket for sending data
@@ -73,28 +72,16 @@ static void *server(void *arg)
    }
    if (sqldebug)
       warnx("Connect from %s", address);
+
    int txsock = -1;             // Rx socket
-   pthread_mutex_lock(&slot_mutex);
-   if (slotcount >= MAXSLOTS)
+
+   slot_t *slot = mqtt_slot(&txsock);
+   if(!slot)
    {
-      warnx("Too many connections %s", address);
-      close(sock);
-      pthread_mutex_unlock(&slot_mutex);
-      return NULL;
+	   close(sock);
+	   return "Failed";
    }
-   slot_t *slot;
-   while ((slot = &slots[instance % MAXSLOTS])->instance)
-      instance++;
-   {
-      int sp[2];
-      if (socketpair(AF_LOCAL, SOCK_DGRAM | SOCK_NONBLOCK, 0, sp) < 0)
-         err(1, "socketpair");
-      slot->txsock = sp[0];
-      txsock = sp[1];
-   }
-   slot->instance = instance;
-   slotcount++;
-   pthread_mutex_unlock(&slot_mutex);
+
    // TLS
    SSL *ssl = SSL_new(ctx);
    if (!ssl)
@@ -597,6 +584,31 @@ void mqtt_qin(j_t j)
    rxqhead = q;
    sem_post(&rxq_sem);
    pthread_mutex_unlock(&rxq_mutex);
+}
+
+slot_t *mqtt_slot(int *txsockp)
+{                               // Create a slot
+   pthread_mutex_lock(&slot_mutex);
+   if (slotcount >= MAXSLOTS)
+   {
+      warnx("Too many connections" );
+      pthread_mutex_unlock(&slot_mutex);
+      return NULL;
+   }
+   slot_t *slot;
+   while ((slot = &slots[instance % MAXSLOTS])->instance)
+      instance++;
+   {
+      int sp[2];
+      if (socketpair(AF_LOCAL, SOCK_DGRAM | SOCK_NONBLOCK, 0, sp) < 0)
+         err(1, "socketpair");
+      slot->txsock = sp[0];
+      *txsockp = sp[1];
+   }
+   slot->instance = instance;
+   slotcount++;
+   pthread_mutex_unlock(&slot_mutex);
+   return slot;
 }
 
 const char *command(long long instance, const char *suffix, j_t * jp)
