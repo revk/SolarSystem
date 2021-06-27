@@ -25,6 +25,7 @@ if($?description) then
   sql "$DB" 'INSERT INTO class SET description="Visitor",organisation=$organisation'
   setenv site `sql -i "$DB" 'INSERT INTO site SET description="Main building",organisation=$organisation'`
   sql "$DB" 'INSERT INTO area SET site=$site,area="A",description="Main building"'
+# TODO make an AID
   sql "$DB" 'UPDATE session SET organisation=$organisation,site=$site WHERE session="$ENVCGI"'
  endif
  sqlwrite -o "$DB" organisation description

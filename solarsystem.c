@@ -44,11 +44,82 @@ const char *upgrade(SQL_RES * res, long long instance)
    return upgrade;
 }
 
-const char *settings(SQL_RES * res, long long instance)
+const char *settings(SQL * sqlp, SQL_RES * res, long long instance)
 {                               // Send base settings
-   res = res;
-   instance = instance;
-   // TODO
+   j_t j = j_create();
+   int doorauto = atoi(sql_colz(res, "doorauto"));
+   if (*CONFIG_OTA_HOSTNAME)
+      j_store_string(j, "otahost", CONFIG_OTA_HOSTNAME);
+   j_store_int(j, "doorauto", doorauto);
+   int pcb = atoi(sql_colz(res, "pcb"));
+   if (pcb)
+   {                            // Main PCB settings
+      SQL_RES *p = sql_safe_query_store_free(sqlp, sql_printf("SELECT * FROM `pcb` WHERE `pcb`=%d", pcb));
+      if (sql_fetch_row(p))
+      {
+#define set(n) {const char *v=sql_colz(p,#n);if(!strcmp(v,"-"))v="";j_store_string(j,#n,v);}
+         set(tamper);
+         set(blink);
+         set(nfctx);
+         set(nfcrx);
+         set(nfcpower);
+         set(nfcred);
+         set(nfcamber);
+         set(nfcgreen);
+         set(nfctamper);
+         set(nfcbell);
+         set(nfccard);
+#undef set
+      }
+      sql_free_result(p);
+      int i = (doorauto ? 4 : 0),
+          o = (doorauto ? 4 : 0);
+      j_t input = j_store_array(j, "input");
+      j_t output = j_store_array(j, "output");
+      j_t power = j_store_array(j, "power");
+      SQL_RES *g = sql_safe_query_store_free(sqlp, sql_printf("SELECT * FROM `devicegpio` WHERE `device`=%#s", sql_col(res, "device")));
+      while (sql_fetch_row(g))
+      {
+         const char *type = sql_colz(g, "type");
+         j_t gpio = NULL;
+         int n = 0;
+         if (*type == 'P')
+            gpio = j_append_null(power);
+         else if (*type == 'I')
+         {
+            if (type[1])
+               n = atoi(type + 1) - 1;
+            else
+               n = i++;
+            gpio = j_index(j_extend(input, n + 1), n);
+         } else if (*type == 'O')
+         {
+            if (type[1])
+               n = atoi(type + 1) - 1;
+            else
+               n = o++;
+            gpio = j_index(j_extend(output, n + 1), n);
+         }
+         if (gpio)
+         {
+            j_store_string(gpio, "gpio", sql_colz(g, "gpio"));
+            void addstate(const char *state) {
+               const char *areas = sql_colz(g, state);
+               if (*areas)
+               {
+                  j_store_string(gpio, state, areas);
+               }
+            }
+#define i(n) addstate(#n);
+#define s(n) i(n)
+#include "ESP32/main/states.m"
+         }
+      }
+      sql_free_result(g);
+   }
+   if (!j_isnull(j))
+      setting(instance, NULL, &j);
+   j_delete(&j);
    return NULL;
 }
 
@@ -323,7 +394,7 @@ int main(int argc, const char *argv[])
                   sql_sprintf(&s, "UPDATE `device` SET ");      // known, update
                   sql_sprintf(&s, "`lastonline`=NOW(),");
                   if (!upgrade(device, instance))
-                     settings(device, instance);
+                     settings(&sql, device, instance);
                } else           // pending - update pending
                {
                   sql_sprintf(&s, "REPLACE INTO `pending` SET ");

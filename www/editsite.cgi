@@ -24,6 +24,7 @@ if($?description) then
 	if($site == 0) then
 		setenv site `sql -i "$DB" 'INSERT INTO site SET organisation=$SESSION_ORGANISATION,site=0'`
 		sql "$DB" 'INSERT INTO area SET site=$site,area="A",description="Main building"'
+# TODO make an AID
 		sql "$DB" 'UPDATE session SET organisation=$SESSION_ORGANISATION,site=$site WHERE session="$ENVCGI"'
 	endif
 	sqlwrite -o "$DB" site description
