@@ -240,6 +240,8 @@ static void *fobcommand(void *arg)
       mqtt_qin(&j);
    }
    warnx("Ended fobcommand");
+   mqtt_close_slot(instance);
+   close(sock);
    return NULL;
 }
 
@@ -570,10 +572,7 @@ int main(int argc, const char *argv[])
                      sql_safe_query_free(&sql, sql_printf("UPDATE `device` SET `online`=NULL,`instance`=NULL,`lastonline`=NOW() WHERE `device`=%#s AND `instance`=%lld", deviceid, instance));
                   long long l = slot_linked(instance);
                   if (l)
-                  {
-                     warnx("Close linked");     // TODO
                      mqtt_send(l, NULL, NULL, NULL);    // Tell linked we are closed
-                  }
                } else           // pending
                   sql_safe_query_free(&sql, sql_printf("DELETE FROM `pending` WHERE `instance`=%lld", instance));
                mqtt_close_slot(i);
