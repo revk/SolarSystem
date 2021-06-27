@@ -38,13 +38,14 @@ int main(int argc, const char *argv[])
        organisation = 0,
        site = 0,
        aid = 0,
-       class = 0;
+       class = 0,gpio=0;;
    const char *sus = NULL,
        *suser = NULL,
        *sorganisation = NULL,
        *ssite = NULL,
        *said = NULL,
        *sdevice=NULL,
+       *sgpio=NULL,
        *sclass = NULL;
    int redirect = 0;
    int reason = 0;
@@ -57,6 +58,7 @@ int main(int argc, const char *argv[])
       { "site", 's', POPT_ARG_STRING, &ssite, 0, "Check access to site", "N" },
       { "aid", 'a', POPT_ARG_STRING, &said, 0, "Check access to aid", "N" },
       { "class", 'c', POPT_ARG_STRING, &sclass, 0, "Check access to class", "N" },
+      { "gpio", 'g', POPT_ARG_STRING, &sgpio, 0, "Check access to gpip", "N" },
       { "device", 'd', POPT_ARG_STRING, &sdevice, 0, "Check access to device", "N" },
       { "config-file", 0, POPT_ARG_STRING | POPT_ARGFLAG_SHOW_DEFAULT, &configfile, 0, "Config file", "filename" },
       { "redirect", 'r', POPT_ARG_NONE, &redirect, 0, "Redirect", NULL },
@@ -87,6 +89,7 @@ int main(int argc, const char *argv[])
    site = getval(ssite);
    aid = getval(said);
    class = getval(sclass);
+   gpio = getval(sgpio);
    if(sdevice&&*sdevice=='$')sdevice=(getenv(sdevice+1)?:"");
 
    SQL sql;
@@ -137,6 +140,8 @@ int main(int argc, const char *argv[])
       const char *e = NULL;
       if (!e && sdevice)
          e = getorg(sql_printf("SELECT * FROM `device` LEFT JOIN `site` USING (`site`) WHERE `device`=%d", sdevice));
+      if (!e && gpio)
+         e = getorg(sql_printf("SELECT * FROM `devicegpio` LEFT JOIN `device` USING (`device`) LEFT JOIN `site` USING (`site`) WHERE `gpio`=%d", gpio));
       if (!e && class)
          e = getorg(sql_printf("SELECT * FROM `class` WHERE `class`=%d", class));
       if (!e && site)
