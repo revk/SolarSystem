@@ -35,8 +35,12 @@ if($?description) then # save
 	shift type
 	setenv i "$init[1]"
 	shift init
-	if("$n" == 0) then
+	if("$n" == "0") then
 		if("$g" != "-") then
+			if("$pinname" == "") then
+				setenv MSG "Specify pin name"
+				goto done
+			endif
 			@ changed = $changed + `sql -c "$DB" 'INSERT INTO pcbgpio SET pcb="$pcb",gpio="$g",type="$t",init="$i",pinname="$pinname"'`
 		endif
 	else
@@ -49,11 +53,6 @@ if($?description) then # save
 	setenv set "$set,$g"
 	end
 	@ changed = $changed + `sql -c "$DB" 'DELETE FROM pcbgpio WHERE pcb=$pcb AND gpio NOT IN ($,set)'`
-	unsetenv pcbgpio
-	unsetenv gpio
-	unsetenv init
-	unsetenv type
-	unsetenv pinname
 	if($changed)goto done
 	echo "Location: ${ENVCGI_SERVER}/editpcb.cgi"
 	echo ""
@@ -66,6 +65,11 @@ source ../types
 if($?PATH_INFO) then
 	setenv pcb "$PATH_INFO:t"
 endif
+unsetenv pcbgpio
+unsetenv gpio
+unsetenv init
+unsetenv type
+unsetenv pinname
 xmlsql -d "$DB" head.html - foot.html << END
 <h1>PCB template</h1>
 <if not pcb>

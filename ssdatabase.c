@@ -37,7 +37,7 @@ void sstypes(const char *fn)
  }
  void out(const char *n,const char *v)
  {
-	 fprintf(f,"%s\"%s\"=\"%s\"",count++?"":" ",n,v);
+	 fprintf(f,"%s\"%s\"=\"%s\"",count++?" ":"",n,v);
  }
  void pick(const char *n,const char *v)
  {
@@ -54,32 +54,34 @@ void sstypes(const char *fn)
 #define o(g,t) list(#g);
 #include "types.m"
  start("GPIOTYPEOUT");
- out("0","Unspecified");
+ out("-","Unspecified");
 #define i(g,t) out(#g,#t);
 #define o(g,t) out(#g,#t);
 #include "types.m"
  start("GPIOTYPEPICK");
- out("i","-- Type --");
+ out("-","-- Type --");
 #define i(g,t) pick(#g,#t);
 #define o(g,t) pick(#g,#t);
 #include "types.m"
  start("GPIOTYPEPICKI");
- out("i","-- Type --");
+ out("-","-- Type --");
 #define i(g,t) pick(#g,#t);
 #include "types.m"
  start("GPIOTYPEPICKO");
- out("i","-- Type --");
+ out("-","-- Type --");
 #define o(g,t) pick(#g,#t);
 #include "types.m"
  start("GPIONUMLIST");
 #define g(g) list(#g);
 #include "types.m"
  start("GPIONUMOUT");
+ out("-","Unspecified");
 #define g(g) out(#g,#g);
 #include "types.m"
 #define g(g) out("-"#g,#g" (inverted)");
 #include "types.m"
  start("GPIONUMPICK");
+ pick("-","-- GPIO --");
 #define g(g) pick(#g,#g);
 #include "types.m"
 #define g(g) pick("-"#g,#g" (inverted)");
@@ -88,12 +90,13 @@ void sstypes(const char *fn)
 #define n(g) list(#g);
 #include "types.m"
  start("GPIONFCOUT");
+ out("-","Unspecified");
 #define n(g) pick(#g,#g);
 #include "types.m"
 #define n(g) pick("-"#g,#g" (inverted)");
 #include "types.m"
  start("GPIONFCPICK");
- out("i","-- Type --");
+ out("-","-- GPIO --");
 #define n(g) pick(#g,#g);
 #include "types.m"
 #define n(g) pick("-"#g,#g" (inverted)");
@@ -105,7 +108,6 @@ void sstypes(const char *fn)
 #define io(g,t) out(#g,#t);
 #include "types.m"
  start("GPIOIOPICK");
- out("i","-- Type --");
 #define io(g,t) pick(#g,#t);
 #include "types.m"
  start("DOORAUTOLIST");
