@@ -78,13 +78,13 @@ void sstypes(const char *fn)
  out("-","Unspecified");
 #define g(g) out(#g,#g);
 #include "types.m"
-#define g(g) out("-"#g,#g" (inverted)");
+#define g(g) out("-"#g,#g" (active low)");
 #include "types.m"
  start("GPIONUMPICK");
  pick("-","-- GPIO --");
 #define g(g) pick(#g,#g);
 #include "types.m"
-#define g(g) pick("-"#g,#g" (inverted)");
+#define g(g) pick("-"#g,#g" (active low)");
 #include "types.m"
  start("GPIONFCLIST");
 #define n(g) list(#g);
@@ -93,13 +93,13 @@ void sstypes(const char *fn)
  out("-","Unspecified");
 #define n(g) pick(#g,#g);
 #include "types.m"
-#define n(g) pick("-"#g,#g" (inverted)");
+#define n(g) pick("-"#g,#g" (active low)");
 #include "types.m"
  start("GPIONFCPICK");
- pick("-","-- GPIO --");
+ pick("-","-- NFC GPIO --");
 #define n(g) pick(#g,#g);
 #include "types.m"
-#define n(g) pick("-"#g,#g" (inverted)");
+#define n(g) pick("-"#g,#g" (active low)");
 #include "types.m"
  start("GPIOIOLIST");
 #define io(g,t) list(#g);
@@ -121,6 +121,13 @@ void sstypes(const char *fn)
 #include "doorauto.m"
  start("AREALIST");
 for(char *a=AREAS;*a;a++)if(*a!='-'){const char area[2]={*a};list(area);}
+ start("STATELIST");
+#define i(n) list(#n);
+#define s(n) list(#n);
+#include "ESP32/main/states.m"
+ start("STATELISTI");
+#define i(n) list(#n);
+#include "ESP32/main/states.m"
  done();
  fclose(f);
 }

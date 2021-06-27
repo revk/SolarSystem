@@ -89,7 +89,7 @@ xmlsql -d "$DB" head.html - foot.html << END
 <tr><td><select name=tamper>$GPIONUMPICK</select></td><td>GPIO Controller Tamper</td></tr>
 <tr><td><select name=blink>$GPIONUMPICK</select></td><td>GPIO Controller LED</td></tr>
 <tr><td><select name=nfctx>$GPIONUMPICK</select></td><td>GPIO NFC Tx</td></tr>
-<if not nfctx='-'>
+<if not nfctx=='-'>
 <tr><td><select name=nfcrx>$GPIONUMPICK</select></td><td>GPIO NFC Rx</td></tr>
 <tr><td><select name=nfcpower>$GPIONUMPICK</select></td><td>GPIO NFC Power</td></tr>
 <tr><td><select name=nfcred>$GPIONFCPICK</select></td><td>PN532 NFC red LED</td></tr>
