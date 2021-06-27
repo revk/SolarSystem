@@ -36,6 +36,7 @@ SSL_CTX *ctx = NULL;
 
 struct slot_s {
    long long instance;          // Instance for checking, (mod MAXSLOT is slot) 0 if free
+   long long linked;
    int txsock;                  // Socket for sending data
 };
 
@@ -162,7 +163,7 @@ static void *server(void *arg)
          }
       }
       message++;
-      mqtt_qin(j);
+      mqtt_qin(&j);
    }
    uint8_t rx[10000];
    uint8_t tx[10000];
@@ -381,7 +382,7 @@ static void *server(void *arg)
       }
    }
    if (message && *device != '-')
-   {                            // Down
+   {                            // Down if it sent and up and not internal
       j_t j = j_create();
       addq(j, 0, NULL);
    }
@@ -565,10 +566,11 @@ const char *mqtt_send(long long instance, const char *prefix, const char *suffix
    return fail;
 }
 
-void mqtt_qin(j_t j)
-{                               // Queue incoming, consumes (queues) j
+void mqtt_qin(j_t *jp)
+{                               // Queue incoming
    rxq_t *q = malloc(sizeof(*q));
-   q->j = j;
+   q->j = *jp;
+   *jp=NULL;
    q->next = NULL;
    pthread_mutex_lock(&rxq_mutex);
    if (rxqhead)

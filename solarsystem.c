@@ -8,6 +8,8 @@
 #include <time.h>
 #include <sys/time.h>
 #include <sys/resource.h>
+       #include <sys/types.h>
+       #include <sys/socket.h>
 #include <stdlib.h>
 #include <ctype.h>
 #include <err.h>
@@ -194,6 +196,34 @@ void daily(SQL * sqlp)
 {
    sql_safe_query(sqlp, "DELETE FROM `session` WHERE `expires`<NOW()");
    // TODO afile updates?
+}
+
+static void *fobprovision(void *arg)
+{
+   int sock = -1;
+   long long instance = 0;
+   {                            // Get passed settings
+      j_t j = arg;
+      sock = atoi(j_get(j, "socket") ? : "");
+      instance = strtoll(j_get(j, "instance"), NULL, 10);
+      if (!sock)
+         errx(1, "socket not set");
+      j_delete(&j);
+   }
+   while(1)
+   {
+	   unsigned char buf[2000];
+	   int len=recv(sock,buf,sizeof(buf),0);
+	   warnx("Prov got sock=%d len=%d %02X %02X",sock,(int)len,buf[0],buf[1]);
+	   if(len<=0)break;
+   }
+   {                            // unlink
+      j_t j = j_create();
+      j_int(j_path(j, "_meta.local"), instance);
+      j_store_null(j, "unlink");
+      mqtt_qin(&j);
+   }
+   return NULL;
 }
 
 int main(int argc, const char *argv[])
@@ -408,6 +438,21 @@ int main(int argc, const char *argv[])
                else
                   mqtt_send(instance, v, suffix, &j);
                return fail;
+            } else if (j_find(meta, "unlink"))  // Unlink thread
+               sql_safe_query_free(&sql, sql_printf("UPDATE `device` SET `linked`=NULL WHERE `instance`=%lld", instance));
+            else if (j_find(meta,"fobprovision"))
+            {
+               int txsock;
+               slot_t *s = mqtt_slot(&txsock);
+               if (!s)
+                  return "Link failed";
+               j_t j = j_create();
+               j_store_int(j, "instance", instance);
+               j_store_int(j, "socket", txsock);
+               pthread_t t;
+               if (pthread_create(&t, NULL, fobprovision, j))
+                  err(1, "Cannot create fobprovision thread");
+               pthread_detach(t);
             } else
                return "Unknown local request";
             return NULL;
@@ -495,8 +540,11 @@ int main(int argc, const char *argv[])
                if (device)
                {                // known
                   long long i = strtoull(sql_colz(device, "instance"), NULL, 10);
+                  long long l = strtoull(sql_colz(device, "linked"), NULL, 10);
                   if (i == instance)
-                     sql_safe_query_free(&sql, sql_printf("UPDATE `device` SET `online`=NULL,`instance`=NULL,`lastonline`=NOW() WHERE `device`=%#s AND `instance`=%lld", deviceid, instance));
+                     sql_safe_query_free(&sql, sql_printf("UPDATE `device` SET `online`=NULL,`instance`=NULL,`linked`=NULL,`lastonline`=NOW() WHERE `device`=%#s AND `instance`=%lld", deviceid, instance));
+                  if (l)
+                     mqtt_send(l, NULL, NULL, NULL);    // Tell linked we are closed
                } else           // pending
                   sql_safe_query_free(&sql, sql_printf("DELETE FROM `pending` WHERE `instance`=%lld", instance));
                return NULL;
@@ -533,6 +581,12 @@ int main(int argc, const char *argv[])
                if (suffix && !strcmp(suffix, "upgrade") && j_find(j, "complete"))
                   sql_safe_query_free(&sql, sql_printf("UPDATE `device` SET `upgrade`=NULL WHERE `device`=%#s", deviceid));     // Upgrade done
                return NULL;
+            }
+            if (j)
+            {
+               long long l = strtoull(sql_colz(device, "linked"), NULL, 10);
+               if (l)
+                  mqtt_send(l, prefix, suffix, &j);     // Send to linked session
             }
             return "Unknown message";
          }

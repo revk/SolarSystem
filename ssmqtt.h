@@ -10,7 +10,7 @@ const char *command(long long instance, const char *suffix, j_t *);     // Send 
 const char *setting(long long instance, const char *suffix, j_t *);     // Send setting 
 
 typedef struct slot_s slot_t;
-void mqtt_qin(j_t j);           // Queue incoming, consumes (queues) j
+void mqtt_qin(j_t *);           // Queue incoming
 slot_t *mqtt_slot(int *txsockp);        // Create a slot
 void mqtt_close_slot(slot_t *slot);
 
