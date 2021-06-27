@@ -31,7 +31,7 @@ int main(int argc, const char *argv[])
    const char *deport = NULL;
    int debug = 0;
    int setting = 0;
-   int silent=0;
+   int silent = 0;
    {                            // POPT
       poptContext optCon;       // context for parsing command-line options
       const struct poptOption optionsTable[] = {
@@ -61,6 +61,12 @@ int main(int argc, const char *argv[])
    j_t j = j_create();
    if (json)
       j_err(j_read_mem(j, json, strlen(json)));
+   if (!j_isobject(j))
+   {
+      j_t n = j_create();
+      j_store_json(n, "_data", &j);
+      j = n;
+   }
    j_t meta = j_store_object(j, "_meta");
    if (provision)
       j_store_string(meta, "provision", provision);
@@ -236,13 +242,13 @@ int main(int argc, const char *argv[])
       if (!j_isnull(j))
       {
          ret = 1;
-	 if(!silent)
-	 {
-         if (j_isstring(j))
-            printf("%s", j_val(j));
-         else
-            j_err(j_write_pretty(j, stdout));
-	 }
+         if (!silent)
+         {
+            if (j_isstring(j))
+               printf("%s", j_val(j));
+            else
+               j_err(j_write_pretty(j, stdout));
+         }
       }
       j_delete(&j);
    }

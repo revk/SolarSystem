@@ -249,9 +249,9 @@ int main(int argc, const char *argv[])
                if (fail)
                   return fail;
                fail = mqtt_send(instance, "setting", NULL, &j);
-	       // Set online later to remove from pending lists in UI
+               // Set online later to remove from pending lists in UI
                if (!fail)
-                  sql_safe_query_free(&sql, sql_printf("UPDATE `pending` SET `online`=%#T WHERE `pending`=%#s", time(0)+60,v));
+                  sql_safe_query_free(&sql, sql_printf("UPDATE `pending` SET `online`=%#T WHERE `pending`=%#s", time(0) + 60, v));
                return fail;
             } else if ((v = j_get(meta, "deport")))
             {
@@ -261,16 +261,23 @@ int main(int argc, const char *argv[])
                j_store_string(j, "mqttcert", "");
                j_store_null(j, "mqttport");
                const char *fail = mqtt_send(instance, "setting", NULL, &j);
-	       // Set online later to remove from pending lists in UI
+               // Set online later to remove from pending lists in UI
                if (!fail)
-                  sql_safe_query_free(&sql, sql_printf("UPDATE `pending` SET `online`=%#T WHERE `pending`=%#s", time(0)+60,v));
+                  sql_safe_query_free(&sql, sql_printf("UPDATE `pending` SET `online`=%#T WHERE `pending`=%#s", time(0) + 60, v));
                return fail;
             } else if ((v = j_get(meta, "prefix")))
             {                   // Send to device
                const char *suffix = j_get(meta, "suffix");
                if (!instance)
                   return "No instance";
-               return mqtt_send(instance, v, suffix, &j);
+
+               const char *fail = NULL;
+               j_t data = j_find(j, "_data");
+               if (data)
+                  mqtt_send(instance, v, suffix, &data);
+               else
+                  mqtt_send(instance, v, suffix, &j);
+               return fail;
             } else
                return "Unknown local request";
             return NULL;
