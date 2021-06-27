@@ -25,7 +25,7 @@ endif
 done:
 echo "Content-Type: text/html"
 echo ""
-source ../pick
+source ../types
 xmlsql -d "$DB" head.html - foot.html << END
 <h1>Device</h1>
 <if not device>
@@ -49,7 +49,7 @@ xmlsql -d "$DB" head.html - foot.html << END
 <tr><td>PCB</td><td><output name=D></td></tr>
 <sql table="device LEFT JOIN devicegpio USING (device) LEFT JOIN pcbgpio ON (device.pcb=pcbgpio.pcb AND devicegpio.gpio=pcbgpio.gpio)" WHERE="device='\$device'">
 <tr><td><output name=pinname href="/editgpio.cgi/\$devicegpio"></td>
-<td><output name=type></td>
+<td><output name=type $GPIOTYPEOUT></td>
 </tr>
 </sql>
 </table>
