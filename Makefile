@@ -25,7 +25,7 @@ ifndef KCONFIG_CONFIG
 KCONFIG_CONFIG=solarsystem.conf
 endif
 
-all: alarmpanel cardissue solarsystem can message login.conf SQLlib/sql
+all: alarmpanel cardissue solarsystem can message makeaid login.conf SQLlib/sql
 
 update:
 	git submodule update --init --remote --recursive
@@ -104,6 +104,9 @@ can: can.c config.h Makefile login/redirect.o
 
 message: message.c config.h Makefile sscert.o
 	gcc -g -Wall -Wextra -O -o $@ $< -lpopt AJL/ajl.o sscert.o -lcrypto -lssl
+
+makeaid: makeaid.c config.h Makefile
+	gcc -g -Wall -Wextra -O -o $@ $< -lpopt  SQLlib/sqllib.o ${SQLINC} ${SQLLIB}
 
 clean:
 	rm -f *.o alarmpanel

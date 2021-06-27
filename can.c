@@ -49,7 +49,6 @@ int main(int argc, const char *argv[])
        *sclass = NULL;
    int redirect = 0;
    int reason = 0;
-   const char *configfile = "../solarsystem.conf";
    poptContext optCon;          // context for parsing command-line options
    const struct poptOption optionsTable[] = {
       { "as", 0, POPT_ARG_STRING, &sus, 0, "Check as user", "N" },
@@ -60,7 +59,6 @@ int main(int argc, const char *argv[])
       { "class", 'c', POPT_ARG_STRING, &sclass, 0, "Check access to class", "N" },
       { "gpio", 'g', POPT_ARG_STRING, &sgpio, 0, "Check access to gpip", "N" },
       { "device", 'd', POPT_ARG_STRING, &sdevice, 0, "Check access to device", "N" },
-      { "config-file", 0, POPT_ARG_STRING | POPT_ARGFLAG_SHOW_DEFAULT, &configfile, 0, "Config file", "filename" },
       { "redirect", 'r', POPT_ARG_NONE, &redirect, 0, "Redirect", NULL },
       { "reason", 0, POPT_ARG_NONE, &reason, 0, "Output reason allowed", NULL },
       { "debug", 'v', POPT_ARG_NONE, &sqldebug, 0, "Debug", NULL },
