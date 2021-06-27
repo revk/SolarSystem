@@ -35,6 +35,22 @@ const char *mqttkey = "",
 extern int sqldebug;
 int dump = 0;                   // dump level debug
 
+char *makeaes(SQL * sqlkeyp, const char *aid, const char *fob, const char *ver)
+{                               // Make an new AES and return AES string (malloc'd)
+   unsigned char bin[16];
+   int f = open("/dev/urandom", O_RDONLY);
+   if (f < 0)
+      err(1, "Cannot open /dev/urandom");
+   if (read(f, bin, sizeof(bin)) != sizeof(bin))
+      errx(1, "Failed to read random");
+   close(f);
+   char *aes = j_base16(sizeof(bin),bin);
+   if (sql_query_free(sqlkeyp, sql_printf("INSERT INTO `AES` SET `aid`=%#s,`fob`=%#s,`ver`=%#s,`key`=%#s", aid, fob, ver, aes)))
+      aes = NULL;
+   if(aes)return strdup(aes); // was on stack
+   return NULL;
+}
+
 const char *upgrade(SQL_RES * res, long long instance)
 {                               // Send upgrade if needed
    const char *upgrade = sql_col(res, "upgrade");
@@ -49,23 +65,32 @@ const char *security(SQL * sqlp, SQL * sqlkeyp, SQL_RES * res, long long instanc
    j_t j = j_create();
    const char *aid = sql_colz(res, "aid");
    int organisation = atoi(sql_colz(res, "organisation"));
+   int doorauto = atoi(sql_colz(res, "doorauto"));
    j_t aids = j_store_array(j, "aes");
    if (*aid && strcmp(sql_colz(res, "nfctx"), "-"))
    {                            // Security
       // Keys
       SQL_RES *r = sql_safe_query_store_free(sqlkeyp, sql_printf("SELECT * FROM `AES` WHERE `aid`=%#s AND `fob` IS NULL order BY `created` DESC LIMIT 3", aid));
       while (sql_fetch_row(r))
-         j_append_stringf(aids, "%s%s", sql_colz(r, "ver"), sql_colz(r, "aes"));
+         j_append_stringf(aids, "%s%s", sql_colz(r, "ver"), sql_colz(r, "key"));
       sql_free_result(r);
-      // TODO make a key!
+      if (!j_len(aids))
+      {                         // Make first key
+         char *aes = makeaes(sqlkeyp, aid, NULL, "01");
+         if (aes)
+         {
+            j_append_stringf(aids, "01%s", aes);
+            free(aes);
+         }
+      }
    }
    if (!j_len(aids))
       aid = "";                 // We have not loaded any keys so no point in even trying an AID
    j_store_string(j, "aid", aid);
    j_t blacklist = j_store_array(j, "blacklist");
-   if (*aid)
+   if (*aid && doorauto >= 3)
    {
-      SQL_RES *b = sql_safe_query_store_free(sqlp, sql_printf("SELECT * FROM `foborganisation` LEFT JOIN `jobaid` USING (`fob`) WHERE `organisation`=%d AND `aid`=%#s AND `blocked` IS NOT NULL AND `confirmed` IS NULL ORDER BY `blocked` DESC LIMIT 10", organisation, aid));
+      SQL_RES *b = sql_safe_query_store_free(sqlp, sql_printf("SELECT * FROM `foborganisation` LEFT JOIN `fobaid` USING (`fob`) WHERE `organisation`=%d AND `aid`=%#s AND `blocked` IS NOT NULL AND `confirmed` IS NULL ORDER BY `blocked` DESC LIMIT 10", organisation, aid));
       while (sql_fetch_row(b))
          j_append_string(blacklist, sql_colz(b, "fob"));
       sql_free_result(b);
