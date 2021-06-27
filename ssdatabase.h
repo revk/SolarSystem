@@ -155,7 +155,7 @@ unique(device, gpio);		// Which GPIO (from PCB)
 bool (invert);		// Invert
 #define i(state) areas(state)
 #define s(state) areas(state)
-#include "ESP32/main/states.h"
+#include "ESP32/main/states.m"
 
 table(pending, 12);
 time(online);

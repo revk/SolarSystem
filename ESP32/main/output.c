@@ -19,7 +19,7 @@ static char *powername[MAXOUTPUT];
 
 #define i(x) s(x)
 #define s(x) static area_t output##x[MAXOUTPUT];
-#include "states.h"
+#include "states.m"
 
 static uint64_t output_state = 0;       // Port state
 static uint64_t output_state_set = 0;   // Output has been set
@@ -172,7 +172,7 @@ void output_init(void)
    revk_register("powername", MAXOUTPUT, 0, &powername, NULL, 0);
 #define i(x) s(x)
 #define s(x) revk_register("output"#x, MAXOUTPUT, sizeof(*output##x), &output##x, AREAS, SETTING_BITFIELD);
-#include "states.h"
+#include "states.m"
    {                            // GPIO
     gpio_config_t c = { mode:GPIO_MODE_OUTPUT };
       int i,

@@ -16,7 +16,7 @@ static uint8_t input[MAXINPUT];
 static char *inputname[MAXINPUT];
 
 #define i(x) static area_t input##x[MAXINPUT];
-#include "states.h"
+#include "states.m"
 
 // Other settings
 #define settings	\
@@ -128,7 +128,7 @@ void input_init(void)
    revk_register("inputgpio", MAXINPUT, sizeof(*input), &input, BITFIELDS, SETTING_BITFIELD | SETTING_SET);
    revk_register("inputname", MAXINPUT, 0, &inputname, NULL, 0);
 #define i(x) revk_register("input"#x, MAXINPUT, sizeof(*input##x), &input##x, AREAS, SETTING_BITFIELD);
-#include "states.h"
+#include "states.m"
 #define u16(n,v) revk_register(#n,0,sizeof(n),&n,#v,0);
    settings
 #undef u16

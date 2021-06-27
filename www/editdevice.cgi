@@ -63,6 +63,7 @@ xmlsql -d "$DB" head.html - foot.html << END
 <tr><td>Name</td><td><input name=description ize=40 autofocus></td></tr>
 <tr><td>Last only</td><td><if online><output name=online></if><if else>Last online <output name=lastonline missing="never"></if></td></tr>
 <tr><td>PCB</td><td><output name=D></td></tr>
+<if not nfctx='-'><tr><td>Door control</td><td><select name=doorauto>$DOORAUTOPICK</select></td></tr></if>
 <sql table="device LEFT JOIN devicegpio USING (device) LEFT JOIN pcbgpio ON (device.pcb=pcbgpio.pcb AND devicegpio.gpio=pcbgpio.gpio)" WHERE="device='\$device'">
 <tr><td><output name=pinname href="/editgpio.cgi/\$devicegpio"></td>
 <td><output name=type $GPIOTYPEOUT></td>

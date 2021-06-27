@@ -31,76 +31,94 @@ void sstypes(const char *fn)
 	 count=0;
 	 started=1;
  }
- const char *gap(void)
+ void list(const char *v)
  {
-	 return count++?" ":"";
+	 fprintf(f,"%s%s",count++?" ":"",v);
  }
-
+ void out(const char *n,const char *v)
+ {
+	 fprintf(f,"%s\"%s\"=\"%s\"",count++?"":" ",n,v);
+ }
+ void pick(const char *n,const char *v)
+ {
+	 fprintf(f,"<option value=\"%s\">%s</option>",n,v);
+ }
  start("GPIOTYPELIST");
-#define i(g,t) fprintf(f,"%s%s",gap(),#g);
-#define o(g,t) i(g,t)
-#include "gpiotype.h"
+#define i(g,t) list(#g);
+#define o(g,t) list(#g);
+#include "types.m"
  start("GPIOTYPELISTI");
-#define i(g,t) fprintf(f,"%s%s",gap(),#g);
-#include "gpiotype.h"
+#define i(g,t) list(#g);
+#include "types.m"
  start("GPIOTYPELISTO");
-#define o(g,t) fprintf(f,"%s%s",gap(),#g);
-#include "gpiotype.h"
+#define o(g,t) list(#g);
+#include "types.m"
  start("GPIOTYPEOUT");
-#define i(g,t) fprintf(f,"%s\"%s\"=\"%s\"",gap(),#g,#t);
-#define o(g,t) i(g,t)
- i(0,Unspecified);
-#include "gpiotype.h"
+ out("0","Unspecified");
+#define i(g,t) out(#g,#t);
+#define o(g,t) out(#g,#t);
+#include "types.m"
  start("GPIOTYPEPICK");
-#define i(g,t) fprintf(f,"<option value=\"%s\">%s</option>",#g,#t);
-#define o(g,t) i(g,t)
- i(-,-- Type --);
-#include "gpiotype.h"
+ out("i","-- Type --");
+#define i(g,t) pick(#g,#t);
+#define o(g,t) pick(#g,#t);
+#include "types.m"
  start("GPIOTYPEPICKI");
-#define i(g,t) fprintf(f,"<option value=\"%s\">%s</option>",#g,#t);
- i(-,-- Type --);
-#include "gpiotype.h"
+ out("i","-- Type --");
+#define i(g,t) pick(#g,#t);
+#include "types.m"
  start("GPIOTYPEPICKO");
-#define o(g,t) fprintf(f,"<option value=\"%s\">%s</option>",#g,#t);
- o(-,-- Type --);
-#include "gpiotype.h"
+ out("i","-- Type --");
+#define o(g,t) pick(#g,#t);
+#include "types.m"
  start("GPIONUMLIST");
-#define g(g) fprintf(f,"%s%s",gap(),#g);
-#include "gpiotype.h"
+#define g(g) list(#g);
+#include "types.m"
  start("GPIONUMOUT");
-#define g(g) fprintf(f,"%s\"%s\"=\"%s\"",gap(),#g,#g);
-#include "gpiotype.h"
-#define g(g) fprintf(f,"%s\"-%s\"=\"%s (inverted)\"",gap(),#g,#g);
-#include "gpiotype.h"
+#define g(g) out(#g,#g);
+#include "types.m"
+#define g(g) out("-"#g,#g" (inverted)");
+#include "types.m"
  start("GPIONUMPICK");
-#define g(g) fprintf(f,"<option value=\"%s\">%s</option>",#g,#g);
-#include "gpiotype.h"
-#define g(g) fprintf(f,"<option value=\"-%s\">%s (inverted)</option>",#g,#g);
-#include "gpiotype.h"
+#define g(g) pick(#g,#g);
+#include "types.m"
+#define g(g) pick("-"#g,#g" (inverted)");
+#include "types.m"
  start("GPIONFCLIST");
-#define n(g) fprintf(f,"%s%s",gap(),#g);
-#include "gpiotype.h"
+#define n(g) list(#g);
+#include "types.m"
  start("GPIONFCOUT");
-#define n(g) fprintf(f,"%s\"%s\"=\"%s\"",gap(),#g,#g);
-#include "gpiotype.h"
-#define n(g) fprintf(f,"%s\"-%s\"=\"%s (inverted)\"",gap(),#g,#g);
-#include "gpiotype.h"
+#define n(g) pick(#g,#g);
+#include "types.m"
+#define n(g) pick("-"#g,#g" (inverted)");
+#include "types.m"
  start("GPIONFCPICK");
-#define n(g) fprintf(f,"<option value=\"%s\">%s</option>",#g,#g);
-#include "gpiotype.h"
-#define n(g) fprintf(f,"<option value=\"-%s\">%s (inverted)</option>",#g,#g);
-#include "gpiotype.h"
+ out("i","-- Type --");
+#define n(g) pick(#g,#g);
+#include "types.m"
+#define n(g) pick("-"#g,#g" (inverted)");
+#include "types.m"
  start("GPIOIOLIST");
-#define io(g,t) fprintf(f,"%s%s",gap(),#g);
-#include "gpiotype.h"
+#define io(g,t) list(#g);
+#include "types.m"
  start("GPIOIOOUT");
-#define io(g,t) fprintf(f,"%s\"%s\"=\"%s\"",gap(),#g,#t);
-#include "gpiotype.h"
+#define io(g,t) out(#g,#t);
+#include "types.m"
  start("GPIOIOPICK");
-#define io(g,t) fprintf(f,"<option value=\"%s\">%s</option>",#g,#t);
- io(-,-- Type --);
-#include "gpiotype.h"
-
+ out("i","-- Type --");
+#define io(g,t) pick(#g,#t);
+#include "types.m"
+ start("DOORAUTOLIST");
+#define d(n,t) list(#n);
+#include "doorauto.m"
+ start("DOORAUTOOUT");
+#define d(n,t) out(#n,#t);
+#include "doorauto.m"
+ start("DOORAUTOPICK");
+#define d(n,t) pick(#n,#t);
+#include "doorauto.m"
+ start("AREALIST");
+for(char *a=AREAS;*a;a++)if(*a!='-'){const char area[2]={*a};list(area);}
  done();
  fclose(f);
 }
