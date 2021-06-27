@@ -8,7 +8,7 @@ source ../types
 
 if($?device) then
 	if(! $?invert) setenv invert false
-	sqlwrite -v -o "$DB" devicegpio $STATELIST
+	sqlwrite -v -o -n "$DB" devicegpio invert $STATELIST
 	echo "Location: ${ENVCGI_SERVER}editdevice.cgi/$device"
 	echo ""
 	exit 0
