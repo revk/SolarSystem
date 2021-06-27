@@ -37,7 +37,7 @@ if($?DELETE || $?FACTORY) then
 	goto done
 endif
 if($?description) then # save
-	sqlwrite -o "$DB" device description
+	sqlwrite -o -n "$DB" device description doorarea doorauto aid
 	setenv MSG Updated
 	unsetenv device
 	goto done
@@ -69,8 +69,8 @@ xmlsql -d "$DB" head.html - foot.html << END
 <tr><td>Name</td><td><input name=description ize=40 autofocus></td></tr>
 <tr><td>Last only</td><td><if online><output name=online></if><if else>Last online <output name=lastonline missing="never"></if></td></tr>
 <tr><td>PCB</td><td><output name=D></td></tr>
-<if not nfctx=='-'><tr><td>Area</td><td>TODO</td></tr></if>
-<if not nfctx=='-'><tr><td>AID</td><td>TODO</td></tr></if>
+<if not nfctx=='-'><tr><td>Area</td><td><sql table=area where="site=\$site"><label for=\$area><output name=area>:</label><input id=\$area name=doorarea type=checkbox></sql></td></tr></if>
+<if not nfctx=='-'><tr><td>AID</td><td><select name=aid><sql table=aid where="organisation=$SESSION_ORGANISATION"><option value="\$aid"><output name=description></option></sql></select></td></tr></if>
 <if not nfctx=='-'><tr><td>Door control</td><td><select name=doorauto>$DOORAUTOPICK</select><output name=nfxtx></td></tr></if>
 <sql table="device LEFT JOIN devicegpio USING (device) LEFT JOIN pcbgpio ON (device.pcb=pcbgpio.pcb AND devicegpio.gpio=pcbgpio.gpio)" WHERE="device='\$device'">
 <tr><td><output name=pinname href="/editgpio.cgi/\$devicegpio"></td>

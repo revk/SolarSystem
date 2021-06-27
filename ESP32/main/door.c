@@ -34,6 +34,7 @@ uint8_t afile[256];             // Access file saved
 
 #define settings  \
   u8(doorauto,0);   \
+  area(doorarea)      \
   u32(doorunlock,1000); \
   u32(doorlock,3000); \
   u32(dooropen,5000); \
@@ -52,12 +53,14 @@ uint8_t afile[256];             // Access file saved
 #define u8(n,d) uint8_t n;
 #define u1(n) uint8_t n;
 #define ta(n,c) const char*n[c]={};
+#define area(n) area_t n;
 settings
 #undef ta
 #undef u32
 #undef u16
 #undef u8
 #undef u1
+#undef area
 #define lock_states \
   l(LOCKING) \
   l(LOCKED) \
@@ -694,6 +697,7 @@ void door_init(void)
 #define u1(n) revk_register(#n,0,sizeof(n),&n,NULL,SETTING_BOOLEAN);
 #define ta(n,c) revk_register(#n,c,0,&n,NULL,SETTING_LIVE);
 #define d(n,l) revk_register("led"#n,0,0,&doorled[DOOR_##n],#l,0);
+#define area(n) revk_register(#n,0,sizeof(n),&n,AREAS,SETTING_BITFIELD);
    settings door_states
 #undef ta
 #undef u32
@@ -701,6 +705,7 @@ void door_init(void)
 #undef u8
 #undef u1
 #undef d
+#undef area
    if (!doorauto)
        return;                  // No door control in operation
    revk_task(TAG, task, NULL);

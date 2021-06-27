@@ -73,6 +73,7 @@ const char *settings(SQL * sqlp, SQL_RES * res, long long instance)
    int doorauto = atoi(sql_colz(res, "doorauto"));
    if (*CONFIG_OTA_HOSTNAME)
       j_store_string(j, "otahost", CONFIG_OTA_HOSTNAME);
+   j_store_string(j,"name",sql_colz(res,"description"));
    j_store_int(j, "doorauto", doorauto);
    int pcb = atoi(sql_colz(res, "pcb"));
    if (pcb)

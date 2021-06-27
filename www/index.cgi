@@ -14,6 +14,7 @@ source ../setcan
 <if CANEDITUSER><li><a href="edituser.cgi">Edit users</a></li></if>
 <if CANEDITFOB><li><a href="editfob.cgi">Edit fobs</a></li></if>
 <if USER_ADMIN><li><a href="editsite.cgi/0">New site</a></li></if>
+<if USER_ADMIN><li><a href="editaid.cgi/0">New AID</a></li></if>
 </if>
 <if SESSION_SITE>
 <if CANEDITSITE><li><a href="editsite.cgi/$SESSION_SITE">Edit site</a></li></if>
