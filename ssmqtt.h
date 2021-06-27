@@ -9,4 +9,5 @@ const char *mqtt_send(long long instance, const char *prefix, const char *suffix
 const char *command(long long instance, const char *suffix, j_t *);     // Send command 
 const char *setting(long long instance, const char *suffix, j_t *);     // Send setting 
 
+void mqtt_qin(j_t j);           // Queue incoming, consumes (queues) j
 j_t incoming(void);             // Wait for and get next incoming message (not just used by MQTT, includes _meta)

@@ -176,17 +176,7 @@ static void *server(void *arg)
          }
       }
       message++;
-      rxq_t *q = malloc(sizeof(*q));
-      q->j = j;
-      q->next = NULL;
-      pthread_mutex_lock(&rxq_mutex);
-      if (rxqhead)
-         rxqhead->next = q;
-      else
-         rxq = q;
-      rxqhead = q;
-      sem_post(&rxq_sem);
-      pthread_mutex_unlock(&rxq_mutex);
+      mqtt_qin(j);
    }
    uint8_t rx[10000];
    uint8_t tx[10000];
@@ -592,6 +582,21 @@ const char *mqtt_send(long long instance, const char *prefix, const char *suffix
    if (j)
       j_delete(&j);
    return fail;
+}
+
+void mqtt_qin(j_t j)
+{                               // Queue incoming, consumes (queues) j
+   rxq_t *q = malloc(sizeof(*q));
+   q->j = j;
+   q->next = NULL;
+   pthread_mutex_lock(&rxq_mutex);
+   if (rxqhead)
+      rxqhead->next = q;
+   else
+      rxq = q;
+   rxqhead = q;
+   sem_post(&rxq_sem);
+   pthread_mutex_unlock(&rxq_mutex);
 }
 
 const char *command(long long instance, const char *suffix, j_t * jp)

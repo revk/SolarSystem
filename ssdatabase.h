@@ -125,8 +125,10 @@ unique(site, area);
 text(description, 0);
 
 table(fob, 14);
-link(user);                     // The Fobs user (optional)
+time(provisioned);		// When provisioned
 link(class);                    // The fobs class (required)
+
+join(fob, aid);			// Fob is in AID (adopted)
 
 join(fob,organisation);		// Yes, per org, for security reasons
 time(blocked);			// When blocked
@@ -195,8 +197,6 @@ text(pinname,0);
 table(aid, 6);                  // AID (linked to organisation)
 link(organisation);
 text(description,0);
-
-join(fob, aid);			// Fob is in AID
 
 #undef table
 #undef join
