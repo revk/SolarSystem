@@ -57,6 +57,66 @@ static rxq_t *rxq = NULL,
 static pthread_mutex_t rxq_mutex;
 static sem_t rxq_sem;
 
+j_t mqtt_decode(unsigned char *buf, size_t len)
+{                               // Decode and MQTT message, return JSON payload, with topic in _meta.topic
+   if ((*buf & 0xF0) != 0x30)
+      return NULL;
+   unsigned char *b = buf,
+       *e = buf + len;
+   uint8_t qos = (*b >> 1) & 3;
+   uint8_t retain = (*b & 1);
+   uint8_t dup = ((*b >> 3) & 1);
+   b++;
+   int l = 0,
+       s = 0;
+   while (b < e && (*b & 0x80))
+   {
+      l |= (*b & 0x7F) << s;
+      s += 7;
+      b++;
+   }
+   l |= (*b++ << s);
+   if (b + l != e)
+      return NULL;
+   int id = 0;
+   int tlen = (b[0] << 8) + b[1];
+   b += 2;
+   char *topic = (char *) b;
+   b += tlen;
+   if (qos)
+   {
+      id = (b[0] << 8) + b[1];
+      b += 2;
+   }
+   int plen = len - (b - buf);
+   j_t j = j_create();
+   const char *fail = j_read_mem(j, (char *) b, plen);
+   if (fail)
+   {
+      warnx("Parse error %s %.*s", fail, plen, b);
+      j_delete(&j);
+      return NULL;
+   }
+   if (!j_isobject(j) && !j_isnull(j))
+   {
+      j_t n = j_create();
+      j_store_json(n, "_data", &j);
+      j = n;
+   }
+   if (tlen)
+      j_stringn(j_path(j, "_meta.topic"), topic, tlen);
+   if (qos)
+   {
+      j_int(j_path(j, "_meta.id"), id);
+      j_int(j_path(j, "_meta.qos"), qos);
+      if (retain)
+         j_true(j_path(j, "_meta.retain"));
+      if (dup)
+         j_true(j_path(j, "_meta.dup"));
+   }
+   return j;
+}
+
 static void *server(void *arg)
 {
    int sock = -1;
@@ -116,54 +176,53 @@ static void *server(void *arg)
       X509_free(cert);
    }
    long long message = 0;
-   void addq(j_t j, int tlen, char *topic) {
+   void addq(j_t * jp) {
+      j_t j = *jp;
       if (*device == '-')
          j_int(j_path(j, "_meta.local"), instance);
       else
       {
-         j_t meta = j_find(j, "_meta");
-         if (meta)
-            j_delete(&meta);    // Naughty
-         meta = j_store_object(j, "_meta");
+         j_t meta = j_store_object(j, "_meta");
          j_store_int(meta, "instance", slot->instance);
          j_store_int(meta, "message", message);
          if (*device)
             j_store_string(meta, "device", device);
          j_store_string(meta, "address", address);
+         const char *topic = j_get(meta, "topic");
          if (topic)
          {
-            j_store_stringn(meta, "topic", topic, tlen);
             int n;
-            for (n = 0; n < tlen && topic[n] != '/'; n++);
-            if (n < tlen)
+            for (n = 0; topic[n] && topic[n] != '/'; n++);
+            if (topic[n])
             {
                j_store_stringn(meta, "prefix", topic, n);
                n++;
-               while (n < tlen && topic[n] != '/')
+               while (topic[n] && topic[n] != '/')
                   n++;          // SS
-               if (n < tlen)
+               if (topic[n])
                {
                   n++;
-                  while (n < tlen && topic[n] != '/')
+                  while (topic[n] && topic[n] != '/')
                      n++;       // ID
-                  if (n < tlen)
+                  if (topic[n])
                   {
                      n++;
-                     if (n < tlen)
-                        j_store_stringn(meta, "suffix", topic + n, tlen - n);
+                     if (topic[n])
+                        j_store_string(meta, "suffix", topic + n);
                   }
                }
             }
          }
          if (!message && (strcmp(j_get(meta, "prefix") ? : "", "state") || j_find(meta, "suffix")))
          {                      // First message has to be system state message, else ignore
+            j_err(j_write_pretty(j, stderr));
             warnx("Unexpected initial message from %s %s", address, device);
             j_delete(&j);
             return;             // Not sent
          }
       }
       message++;
-      mqtt_qin(&j);
+      mqtt_qin(jp);
    }
    uint8_t rx[10000];
    uint8_t tx[10000];
@@ -266,50 +325,19 @@ static void *server(void *arg)
                break;
             case 3:            // Publish
                {
-                  //uint8_t dup = (*rx >> 3) & 1;
                   uint8_t qos = (*rx >> 1) & 3;
-                  //uint8_t retain = *rx & 1;
-                  // topic
-                  if (data + 2 > end)
-                     return "Too short";
-                  uint16_t tlen = (data[0] << 8) + data[1];
-                  uint16_t id = 0;
-                  data += 2;
-                  char *topic = (void *) data;
-                  data += tlen;
-                  if (data > end)
-                     return "Too short";
-                  if (qos)
+                  j_t j = mqtt_decode(rx, i + l);
+                  if (j)
                   {
-                     if (data + 2 > end)
-                        return "Too short";
-                     id = (data[0] << 8) + data[1];
-                     data += 2;
-                  }
-                  int plen = end - data;
-                  if (sqldebug)
-                     warnx("%.*s: %.*s", tlen, topic, plen, data);
-                  j_t j = j_create();
-                  if (j_read_mem(j, (void *) data, plen))
-                  {
-                     warnx("Non JSON from %s: %.*s", device, plen, data);
-                     j_delete(&j);
-                  } else
-                  {
-                     if (!j_isobject(j))
+                     if (qos)
                      {
-                        j_t n = j_create();
-                        j_store_json(n, "_data", &j);
-                        j = n;
+                        int id = atoi(j_get(j, "_meta.id") ? : "");
+                        tx[txp++] = (qos == 1 ? 0x40 : 0x50);   // puback/pubrec
+                        tx[txp++] = 2;
+                        tx[txp++] = (id >> 8);
+                        tx[txp++] = id;
                      }
-                     addq(j, tlen, topic);
-                  }
-                  if (qos)
-                  {
-                     tx[txp++] = (qos == 1 ? 0x40 : 0x50);      // puback/pubrec
-                     tx[txp++] = 2;
-                     tx[txp++] = (id >> 8);
-                     tx[txp++] = id;
+                     addq(&j);
                   }
                }
                break;
@@ -384,9 +412,9 @@ static void *server(void *arg)
    if (message && *device != '-')
    {                            // Down if it sent and up and not internal
       j_t j = j_create();
-      addq(j, 0, NULL);
-   }
-   mqtt_close_slot(slot);
+      addq(&j);
+   } else
+      mqtt_close_slot(slot->instance);  // done by solar system otherwise
    close(txsock);
    if (fail)
       warnx("Fail from %s (%s)", address, fail);
@@ -510,7 +538,7 @@ const char *mqtt_send(long long instance, const char *prefix, const char *suffix
       *jp = NULL;
    }
    const char *process(void) {
-      if ((!prefix && !(topic = strdup(""))) || asprintf(&topic, "%s/SS/*%s%s", prefix, suffix ? "/" : "", suffix ? : "") < 0)
+      if ((!prefix && !(topic = strdup(""))) || (prefix && asprintf(&topic, "%s/SS/*%s%s", prefix, suffix ? "/" : "", suffix ? : "") < 0))
          return "malloc";
       // Make publish
       uint8_t tx[2048];         // Sane limit
@@ -566,11 +594,11 @@ const char *mqtt_send(long long instance, const char *prefix, const char *suffix
    return fail;
 }
 
-void mqtt_qin(j_t *jp)
+void mqtt_qin(j_t * jp)
 {                               // Queue incoming
    rxq_t *q = malloc(sizeof(*q));
    q->j = *jp;
-   *jp=NULL;
+   *jp = NULL;
    q->next = NULL;
    pthread_mutex_lock(&rxq_mutex);
    if (rxqhead)
@@ -602,19 +630,46 @@ slot_t *mqtt_slot(int *txsockp)
       *txsockp = sp[1];
    }
    slot->instance = instance;
+   slot->linked = 0;
    slotcount++;
    pthread_mutex_unlock(&slot_mutex);
    return slot;
 }
 
-void mqtt_close_slot(slot_t * slot)
+void mqtt_close_slot(long long instance)
 {
+   slot_t *slot = &slots[instance % MAXSLOTS];
    pthread_mutex_lock(&slot_mutex);
-   close(slot->txsock);
-   slot->txsock = -1;
-   slot->instance = 0;
-   slotcount--;
+   if (slot->instance == instance)
+   {
+      close(slot->txsock);
+      slot->txsock = -1;
+      slot->instance = 0;
+      slotcount--;
+   }
    pthread_mutex_unlock(&slot_mutex);
+   if (sqldebug)
+      warnx("Close, slot count %d", slotcount);
+}
+
+void slot_link(long long instance, slot_t * target)
+{
+   slot_t *slot = &slots[instance % MAXSLOTS];
+   pthread_mutex_lock(&slot_mutex);
+   if (slot->instance == instance)
+   {
+      slot->linked = target->instance;
+      target->linked = instance;
+   }
+   pthread_mutex_unlock(&slot_mutex);
+}
+
+long long slot_linked(long long instance)
+{
+   slot_t *slot = &slots[instance % MAXSLOTS];
+   if (slot->instance == instance)
+      return slot->linked;
+   return 0;
 }
 
 const char *command(long long instance, const char *suffix, j_t * jp)

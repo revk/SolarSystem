@@ -151,8 +151,6 @@ time(lastonline);               // When last went offline
 time(upgrade);                  // When to do upgrade
 ip(address);                    // IP address when last online
 num(instance);                  // Instance for communications when on line
-index(instance);
-num(linked);               // Linked instance
 
 table(devicegpio, 0);
 link(device);

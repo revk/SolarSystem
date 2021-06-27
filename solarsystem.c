@@ -8,8 +8,8 @@
 #include <time.h>
 #include <sys/time.h>
 #include <sys/resource.h>
-       #include <sys/types.h>
-       #include <sys/socket.h>
+#include <sys/types.h>
+#include <sys/socket.h>
 #include <stdlib.h>
 #include <ctype.h>
 #include <err.h>
@@ -198,8 +198,9 @@ void daily(SQL * sqlp)
    // TODO afile updates?
 }
 
-static void *fobprovision(void *arg)
+static void *fobcommand(void *arg)
 {
+   warnx("Started fobcommand");
    int sock = -1;
    long long instance = 0;
    {                            // Get passed settings
@@ -210,19 +211,35 @@ static void *fobprovision(void *arg)
          errx(1, "socket not set");
       j_delete(&j);
    }
-   while(1)
+   while (1)
    {
-	   unsigned char buf[2000];
-	   int len=recv(sock,buf,sizeof(buf),0);
-	   warnx("Prov got sock=%d len=%d %02X %02X",sock,(int)len,buf[0],buf[1]);
-	   if(len<=0)break;
+      fd_set r;
+      FD_ZERO(&r);
+      FD_SET(sock, &r);
+      struct timeval to = { 3000, 0 };
+      if (select(sock + 1, &r, NULL, NULL, &to) <= 0)
+         break;
+      unsigned char buf[2000];
+      int len = recv(sock, buf, sizeof(buf), 0);
+      if (len <= 0)
+         break;
+      if (*buf != 0x30)
+         continue;
+      j_t j = mqtt_decode(buf, len);
+      if(j_isnull(j))
+      { // End
+	      j_delete(&j);
+	      break;
+      }
+      j_err(j_write_pretty(j, stderr)); // TODO
+      j_delete(&j);
    }
    {                            // unlink
       j_t j = j_create();
-      j_int(j_path(j, "_meta.local"), instance);
-      j_store_null(j, "unlink");
+      j_int(j_path(j, "_meta.loopback"), instance);
       mqtt_qin(&j);
    }
+   warnx("Ended fobcommand");
    return NULL;
 }
 
@@ -438,37 +455,46 @@ int main(int argc, const char *argv[])
                else
                   mqtt_send(instance, v, suffix, &j);
                return fail;
-            } else if (j_find(meta, "unlink"))  // Unlink thread
-               sql_safe_query_free(&sql, sql_printf("UPDATE `device` SET `linked`=NULL WHERE `instance`=%lld", instance));
-            else if (j_find(meta,"fobprovision"))
+            } else if (j_find(meta, "fobprovision"))
             {
                int txsock;
                slot_t *s = mqtt_slot(&txsock);
                if (!s)
                   return "Link failed";
+               slot_link(instance, s);
                j_t j = j_create();
                j_store_int(j, "instance", instance);
                j_store_int(j, "socket", txsock);
                pthread_t t;
-               if (pthread_create(&t, NULL, fobprovision, j))
-                  err(1, "Cannot create fobprovision thread");
+               if (pthread_create(&t, NULL, fobcommand, j))
+                  err(1, "Cannot create fobcommand thread");
                pthread_detach(t);
             } else
                return "Unknown local request";
+            return NULL;
+         }
+         const char *loopback(void) {   // From linked
+            long long instance = strtoll(j_get(meta, "loopback"), NULL, 10);
+            // TODO
             return NULL;
          }
          const char *process(void) {
             if (!meta)
                return "No meta data";
 
+            if (j_find(meta, "loopback"))
+               return loopback();
             if (j_find(meta, "local"))
             {
                const char *reply = local();
                long long instance = strtoull(j_get(meta, "local") ? : "", NULL, 10);
-               j_t j = j_create();
-               if (reply)
-                  j_string(j, reply);
-               mqtt_send(instance, NULL, NULL, &j);     // reply
+               if (instance)
+               {
+                  j_t j = j_create();
+                  if (reply)
+                     j_string(j, reply);
+                  mqtt_send(instance, NULL, NULL, &j);  // reply
+               }
                return reply;
             }
 
@@ -537,58 +563,59 @@ int main(int argc, const char *argv[])
             }
             if (!prefix)
             {                   // Down (all other messages have a topic)
+               long long i = strtoull(sql_colz(device, "instance"), NULL, 10);
                if (device)
                {                // known
-                  long long i = strtoull(sql_colz(device, "instance"), NULL, 10);
-                  long long l = strtoull(sql_colz(device, "linked"), NULL, 10);
                   if (i == instance)
-                     sql_safe_query_free(&sql, sql_printf("UPDATE `device` SET `online`=NULL,`instance`=NULL,`linked`=NULL,`lastonline`=NOW() WHERE `device`=%#s AND `instance`=%lld", deviceid, instance));
+                     sql_safe_query_free(&sql, sql_printf("UPDATE `device` SET `online`=NULL,`instance`=NULL,`lastonline`=NOW() WHERE `device`=%#s AND `instance`=%lld", deviceid, instance));
+                  long long l = slot_linked(instance);
                   if (l)
+                  {
+                     warnx("Close linked");     // TODO
                      mqtt_send(l, NULL, NULL, NULL);    // Tell linked we are closed
+                  }
                } else           // pending
                   sql_safe_query_free(&sql, sql_printf("DELETE FROM `pending` WHERE `instance`=%lld", instance));
+               mqtt_close_slot(i);
                return NULL;
             }
             if (prefix && !strcmp(prefix, "state"))
             {                   // State
-               if (!device)
-                  return NULL;  // Not authenticated
-               if (!suffix)
-               {                // System level
-                  const char *id = j_get(j, "id");
-                  if (id && strcmp(id, deviceid))
-                     bogus(instance);
-                  return NULL;
+               if (device)
+               {
+                  if (!suffix)
+                  {             // System level
+                     const char *id = j_get(j, "id");
+                     if (id && strcmp(id, deviceid))
+                        bogus(instance);
+                  }
                }
-               return NULL;
-            }
-            if (prefix && !strcmp(prefix, "event"))
+            } else if (prefix && !strcmp(prefix, "event"))
             {
-               if (!device)
-                  return NULL;  // Not authenticated
-               return NULL;
-            }
-            if (prefix && !strcmp(prefix, "error"))
+               if (device)
+               {
+               }
+            } else if (prefix && !strcmp(prefix, "error"))
             {
-               if (!device)
-                  return NULL;  // Not authenticated
-               return NULL;
-            }
-            if (prefix && !strcmp(prefix, "info"))
+               if (device)
+               {
+               }
+            } else if (prefix && !strcmp(prefix, "info"))
             {
-               if (!device)
-                  return NULL;  // Not authenticated
-               if (suffix && !strcmp(suffix, "upgrade") && j_find(j, "complete"))
-                  sql_safe_query_free(&sql, sql_printf("UPDATE `device` SET `upgrade`=NULL WHERE `device`=%#s", deviceid));     // Upgrade done
-               return NULL;
-            }
+               if (device)
+               {
+                  if (suffix && !strcmp(suffix, "upgrade") && j_find(j, "complete"))
+                     sql_safe_query_free(&sql, sql_printf("UPDATE `device` SET `upgrade`=NULL WHERE `device`=%#s", deviceid));  // Upgrade done
+               }
+            } else
+               return "Unknown message";
             if (j)
             {
-               long long l = strtoull(sql_colz(device, "linked"), NULL, 10);
+               long long l = slot_linked(instance);
                if (l)
                   mqtt_send(l, prefix, suffix, &j);     // Send to linked session
             }
-            return "Unknown message";
+            return NULL;
          }
          const char *fail = process();
          if (device)

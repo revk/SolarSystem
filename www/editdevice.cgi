@@ -50,11 +50,12 @@ xmlsql -d "$DB" head.html - foot.html << END
 <h1>Device</h1>
 <if not device>
 <table border=1>
-<tr><th>Device</th><th>Online</th><th>Version</th><th>PCB</th><th>Name</th></tr>
+<tr><th>Device</th><th>Online</th><th>IP</th><th>Version</th><th>PCB</th><th>Name</th></tr>
 <sql select="*,pcb.description AS D" table="device LEFT JOIN pcb USING (pcb)" order=device.description WHERE="site=\$SESSION_SITE"><set found=1>
 <tr>
 <td><output name=device href="/editdevice.cgi/\$device"></td>
 <td><if online><output name=online></if><if else>Last online <output name=lastonline missing="never"></if></td>
+<td><output name=address></td>
 <td><output name=version><if upgrade> (upgrade scheduled)</if></td>
 <td><output name=D></td>
 <td><output name=description blank="Unspecified" missing="Unnamed"></td>
