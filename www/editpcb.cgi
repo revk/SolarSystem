@@ -99,7 +99,7 @@ xmlsql -d "$DB" head.html - foot.html << END
 <tr><td><select name=nfctamper>$GPIONFCPICK</select></td><td>PN532 NFC Tamper button</td></tr>
 <tr><td><select name=nfcbell>$GPIONFCPICK</select></td><td>PN532 NFC Bell input</td></tr>
 </if>
-<sql table=pcbgpio where="pcb=\$pcb" order=type,pinname>
+<sql table=pcbgpio where="pcb=\$pcb" order=type,init,pinname>
 <tr><td><input name=pcbgpio type=hidden><select name=gpio>$GPIONUMPICK</select></td><td><select name=type>$GPIOIOPICK</select><select name=init>$GPIOTYPEPICK</select> <output name=pinname></td></tr></td>
 </sql>
 <tr><td><input name=pcbgpio type=hidden value=0><select name=gpio>$GPIONUMPICK</select></td><td><select name=type>$GPIOIOPICK</select><select name=init>$GPIOTYPEPICK</select> <input name=pinname size=10 placeholder='New pin'></td></tr></td>
