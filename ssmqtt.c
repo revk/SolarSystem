@@ -459,7 +459,7 @@ const char *mqtt_send(long long instance, const char *prefix, const char *suffix
          return "malloc";
 
       uint8_t tx[2048];         // Sane limit
-      unsigned int txp = mqtt_encode(tx,sizeof(tx),topic,j);;
+      unsigned int txp = mqtt_encode(tx, sizeof(tx), topic, j);;
 
       pthread_mutex_lock(&slot_mutex);
       if (slots[instance % MAXSLOTS].instance != instance)
@@ -475,8 +475,8 @@ const char *mqtt_send(long long instance, const char *prefix, const char *suffix
       pthread_mutex_unlock(&slot_mutex);
       if (mqttdump)
       {
-	      mqtt_topic(j,topic,-1);
-	      j_int(j_path(j,"_meta.instance"),instance);
+         mqtt_topic(j, topic, -1);
+         j_int(j_path(j, "_meta.instance"), instance);
          fprintf(stderr, ">:");
          j_err(j_write(j, stderr));
          fprintf(stderr, "\n");

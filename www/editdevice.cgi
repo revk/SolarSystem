@@ -1,4 +1,4 @@
-#!../login/loggedin /bin/csh -f
+#!../login/loggedin /bin/csh -fx
 if($?PATH_INFO) then
 	setenv device "$PATH_INFO:t"
 endif

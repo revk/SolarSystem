@@ -28,7 +28,7 @@ int main(int argc, const char *argv[])
    const char *pending = NULL;
    const char *topic = "";
    const char *command = NULL;
-   const char *fobprovision = NULL;
+   int fobprovision=0;
    const char *fobadopt = NULL;
    const char *provision = NULL;
    const char *deport = NULL;
@@ -39,7 +39,7 @@ int main(int argc, const char *argv[])
       poptContext optCon;       // context for parsing command-line options
       const struct poptOption optionsTable[] = {
          { "fob-adopt", 0, POPT_ARG_STRING, &fobadopt, 0, "Fob adopt", "aid/fobid" },
-         { "fob-provision", 0, POPT_ARG_STRING, &fobprovision, 0, "Fob provision", "device" },
+         { "fob-provision", 0, POPT_ARG_NONE, &fobprovision, 0, "Fob provision", NULL },
          { "command", 0, POPT_ARG_STRING, &command, 0, "Command", "tag" },
          { "settings", 0, POPT_ARG_NONE, &setting, 0, "Setting", NULL },
          { "provision", 0, POPT_ARG_STRING, &provision, 0, "Provision", "deviceid" },
@@ -86,7 +86,10 @@ int main(int argc, const char *argv[])
       j_store_stringn(j, "aid", fobadopt, f - fobadopt);
    }
    if (fobprovision)
-      j_store_string(meta, "fobprovision", fobprovision);
+   {
+	   if(!device)errx(1,"Specify device to use for fob provisioning");
+      j_store_string(meta, "fobprovision", device);
+   }
    if (command)
    {
       j_store_string(meta, "prefix", "command");

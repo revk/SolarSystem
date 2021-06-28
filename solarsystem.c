@@ -34,7 +34,7 @@ const char *mqttkey = "",
 
 extern int sqldebug;
 int dump = 0;                   // dump level debug
-int mqttdump =0 ; // mqtt logging
+int mqttdump = 0;               // mqtt logging
 
 char *makeaes(SQL * sqlkeyp, const char *aid, const char *fob, const char *ver)
 {                               // Make an new AES and return AES string (malloc'd)
@@ -234,7 +234,7 @@ int main(int argc, const char *argv[])
       }
       poptFreeContext(optCon);
    }
-   if (!sqldebug&&!mqttdump&&!dump)
+   if (!sqldebug && !mqttdump && !dump)
       daemon(1, 1);
    // Get started
    signal(SIGPIPE, SIG_IGN);    // Don't crash on pipe errors
@@ -302,7 +302,8 @@ int main(int argc, const char *argv[])
       int f = open(CONFIG_KEYS_FILE, O_CREAT | O_WRONLY, 0400);
       if (f < 0)
          err(1, "Cannot make %s", CONFIG_KEYS_FILE);
-      if(mqttdump)j_err(j_write_fd(j, f));
+      if (mqttdump)
+         j_err(j_write_fd(j, f));
       close(f);
       j_delete(&j);
       unlink(CONFIG_MSG_KEY_FILE);
@@ -380,6 +381,23 @@ int main(int argc, const char *argv[])
             if (!instance)
                return "Device not online";
             sql_free_result(res);
+            const char *forkcommand(j_t * jp) {
+               j_t j = *jp;
+               *jp = 0;
+               int txsock;
+               slot_t *s = mqtt_slot(&txsock);
+               if (!s)
+                  return "Link failed";
+               slot_link(instance, s);
+               j_store_true(j, "adopt");
+               j_store_int(j, "instance", instance);
+               j_store_int(j, "socket", txsock);
+               pthread_t t;
+               if (pthread_create(&t, NULL, fobcommand, j))
+                  err(1, "Cannot create fob adopt thread");
+               pthread_detach(t);
+               return NULL;
+            }
             if ((v = j_get(meta, "provision")))
             {                   // JSON is rest of settings to send
                char *key = makekey();
@@ -424,37 +442,17 @@ int main(int argc, const char *argv[])
                return fail;
             } else if (j_find(meta, "fobadopt"))
             {
-               int txsock;
-               slot_t *s = mqtt_slot(&txsock);
-               if (!s)
-                  return "Link failed";
-               slot_link(instance, s);
                j_t init = j_create();
                j_store_true(init, "adopt");
-               j_store_int(init, "instance", instance);
-               j_store_int(init, "socket", txsock);
                j_store_int(init, "fob", j_get(meta, "fobadopt"));
                j_store_int(init, "aid", j_get(j, "fobadopt"));
-               pthread_t t;
-               if (pthread_create(&t, NULL, fobcommand, init))
-                  err(1, "Cannot create fob adopt thread");
-               pthread_detach(t);
+               return forkcommand(&init);
             } else if (j_find(meta, "fobprovision"))
             {
-               int txsock;
-               slot_t *s = mqtt_slot(&txsock);
-               if (!s)
-                  return "Link failed";
-               slot_link(instance, s);
                j_t init = j_create();
                j_store_true(init, "provision");
-               j_store_int(init, "instance", instance);
-               j_store_int(init, "socket", txsock);
                j_store_int(init, "device", j_get(j, "fobprovision"));
-               pthread_t t;
-               if (pthread_create(&t, NULL, fobcommand, init))
-                  err(1, "Cannot create fob provision thread");
-               pthread_detach(t);
+               return forkcommand(&init);
             } else
                return "Unknown local request";
             return NULL;

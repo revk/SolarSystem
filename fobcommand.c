@@ -55,6 +55,7 @@ void *fobcommand(void *arg)
          j_delete(&j);
          break;
       }
+      fprintf(stderr,"fobcommand:");
       j_err(j_write_pretty(j, stderr)); // TODO
       j_delete(&j);
    }
