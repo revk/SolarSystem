@@ -29,7 +29,6 @@ int main(int argc, const char *argv[])
    const char *topic = "";
    const char *command = NULL;
    int fobprovision = 0;
-   const char *fobadopt = NULL;
    const char *provision = NULL;
    const char *deport = NULL;
    int debug = 0;
@@ -38,7 +37,6 @@ int main(int argc, const char *argv[])
    {                            // POPT
       poptContext optCon;       // context for parsing command-line options
       const struct poptOption optionsTable[] = {
-         { "fob-adopt", 0, POPT_ARG_STRING, &fobadopt, 0, "Fob adopt", "aid/fobid" },
          { "fob-provision", 0, POPT_ARG_NONE, &fobprovision, 0, "Fob provision", NULL },
          { "command", 0, POPT_ARG_STRING, &command, 0, "Command", "tag" },
          { "settings", 0, POPT_ARG_NONE, &setting, 0, "Setting", NULL },
@@ -77,14 +75,6 @@ int main(int argc, const char *argv[])
       j_store_string(meta, "provision", provision);
    if (deport)
       j_store_string(meta, "deport", deport);
-   if (fobadopt)
-   {
-      char *f = strchr(fobadopt, '/');
-      if (!f)
-         errx(1, "--fob-adopt needs aid and fobid");
-      j_store_string(meta, "fobadopt", f + 1);
-      j_store_stringn(j, "aid", fobadopt, f - fobadopt);
-   }
    if (fobprovision)
    {
       if (!device)
@@ -210,8 +200,8 @@ int main(int argc, const char *argv[])
       int len = mqtt_encode(buf, sizeof(buf), topic, j);
       SSL_write(ssl, buf, len);
    }
-   char done=0;
-   while(!done)
+   char done = 0;
+   while (!done)
    {                            // Wait reply
       unsigned char buf[1000];
       size_t len = SSL_read(ssl, buf, sizeof(buf));
@@ -219,7 +209,7 @@ int main(int argc, const char *argv[])
          errx(1, "Bad reply");
       j_t j = mqtt_decode(buf, len);
       mqtt_dataonly(j);
-      if (!j_isnull(j))
+      if (j && !j_isnull(j))
       {
          ret = 1;
          if (!silent)
@@ -228,9 +218,10 @@ int main(int argc, const char *argv[])
                printf("%s", j_val(j));
             else
                j_err(j_write_pretty(j, stdout));
-	       fflush(stdout);
+            fflush(stdout);
          }
-      }else done=1;
+      } else
+         done = 1;
       j_delete(&j);
    }
    {                            // End

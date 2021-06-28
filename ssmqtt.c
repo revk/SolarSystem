@@ -474,12 +474,11 @@ const char *mqtt_send(long long instance, const char *prefix, const char *suffix
          return "Failed to send";
       }
       pthread_mutex_unlock(&slot_mutex);
-      if (mqttdump && j)
+      if (mqttdump)
       {
-         mqtt_topic(j, topic, -1);
-         j_int(j_path(j, "_meta.instance"), instance);
-         fprintf(stderr, ">:");
-         j_err(j_write(j, stderr));
+         fprintf(stderr, "%lld>:%s ", instance, topic);
+         if (j)
+            j_err(j_write(j, stderr));
          fprintf(stderr, "\n");
       }
       return NULL;
@@ -500,7 +499,13 @@ void mqtt_qin(j_t * jp)
    j_t j = *jp;
    if (mqttdump)
    {
+      long long instance = strtoll(j_get(j, "_meta.instance") ? : "", NULL, 10);
+      if (instance)
+         fprintf(stderr, "%lld", instance);
       fprintf(stderr, "<:");
+      const char *topic = j_get(j, "_meta.topic");
+      if (topic)
+         fprintf(stderr, "%s ", topic);
       j_err(j_write(j, stderr));
       fprintf(stderr, "\n");
    }

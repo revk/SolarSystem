@@ -38,6 +38,7 @@ int mqttdump = 0;               // mqtt logging
 
 char *makeaes(SQL * sqlkeyp, const char *aid, const char *fob, const char *ver)
 {                               // Make an new AES and return AES string (malloc'd)
+   // TODO ver issue? cycling? not using key version 00 as we assume that is default
    unsigned char bin[16];
    int f = open("/dev/urandom", O_RDONLY);
    if (f < 0)
@@ -207,6 +208,27 @@ void daily(SQL * sqlp)
 {
    sql_safe_query(sqlp, "DELETE FROM `session` WHERE `expires`<NOW()");
    // TODO afile updates?
+}
+
+const char *forkcommand(j_t * jp, long long instance, long long local)
+{
+   j_t j = *jp;
+   *jp = 0;
+   int txsock;
+   slot_t *s = mqtt_slot(&txsock);
+   if (!s)
+      return "Link failed";
+   slot_link(instance, s);
+   if (instance)
+      j_store_int(j, "instance", instance);
+   if (local)
+      j_store_int(j, "local", local);
+   j_store_int(j, "socket", txsock);
+   pthread_t t;
+   if (pthread_create(&t, NULL, fobcommand, j))
+      err(1, "Cannot create fob adopt thread");
+   pthread_detach(t);
+   return NULL;
 }
 
 int main(int argc, const char *argv[])
@@ -381,27 +403,6 @@ int main(int argc, const char *argv[])
                if (!instance)
                   return "Device not on line";
             }
-            const char *forkcommand(j_t * jp) {
-               j_t j = *jp;
-               *jp = 0;
-               int txsock;
-               slot_t *s = mqtt_slot(&txsock);
-               if (!s)
-                  return "Link failed";
-               slot_link(instance, s);
-               j_store_true(j, "adopt");
-               if (instance)
-                  j_store_int(j, "instance", instance);
-               if (local)
-                  j_store_int(j, "local", local);
-               j_store_int(j, "socket", txsock);
-               pthread_t t;
-               if (pthread_create(&t, NULL, fobcommand, j))
-                  err(1, "Cannot create fob adopt thread");
-               pthread_detach(t);
-               forked = 1;
-               return NULL;
-            }
             if ((v = j_get(meta, "provision")))
             {                   // JSON is rest of settings to send
                char *key = makekey();
@@ -444,19 +445,15 @@ int main(int argc, const char *argv[])
                else
                   mqtt_send(instance, v, suffix, &j);
                return fail;
-            } else if (j_find(meta, "fobadopt"))
-            {
-               j_t init = j_create();
-               j_store_true(init, "adopt");
-               j_store_int(init, "fob", j_get(meta, "fobadopt"));
-               j_store_int(init, "aid", j_get(j, "fobadopt"));
-               return forkcommand(&init);
             } else if (j_find(meta, "fobprovision"))
             {
                j_t init = j_create();
                j_store_true(init, "provision");
+               if (j_test(j, "format", 0))
+                  j_store_true(init, "format");
                j_store_int(init, "device", j_get(j, "fobprovision"));
-               return forkcommand(&init);
+               forked = 1;
+               return forkcommand(&init, instance, local);
             } else
                return "Unknown local request";
             return NULL;
@@ -469,10 +466,12 @@ int main(int argc, const char *argv[])
                if (l)
                {
                   slot_unlink(instance);
-                  mqtt_send(l, NULL, NULL, NULL);       // Tell linked we are closed
-                  mqtt_close_slot(l);
+                  mqtt_send(l, NULL, NULL, NULL);       // Tell linked we are closed - it sends back confirm which closes slot
                }
+               mqtt_close_slot(instance);
             }
+            if (j_find(meta, "provision"))
+               sql_safe_query_store(&sqlkey, sql_printf("REPLACE INTO `AES` SET `fob`=%#s,`ver`='01',`key`=%#s", j_get(j, "fob"), j_get(j, "key")));
             return NULL;
          }
          const char *process(void) {
