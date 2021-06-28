@@ -607,11 +607,14 @@ int main(int argc, const char *argv[])
                         }
                         if (!secure)
                         {       // Consider adopting
-                           if (sql_col(device, "adoptnext"))
+                           if (*sql_colz(device, "adoptnext") == 't')
                            {    // Create fob record if necessary, if we have a key
                               SQL_RES *res = sql_safe_query_store_free(&sqlkey, sql_printf("SELECT * FROM `AES` WHERE `fob`=%#s AND `ver`='01' AND `aid` IS NULL", fobid));
                               if (sql_fetch_row(res))
+                              {
+                                 sql_safe_query_free(&sql, sql_printf("INSERT IGNORE INTO `fob` SET `fob`=%#s,`provisioned`=NOW()", fobid));    // Should not be needed if we have key
                                  sql_safe_query_free(&sql, sql_printf("INSERT INTO `fobaid` SET `fob`=%#s,`aid`=%#s ON DUPLICATE KEY UPDATE `adopted`=NULL", fobid, aid));
+                              }
                               sql_free_result(res);
                            }
                            SQL_RES *res = sql_safe_query_store_free(&sql, sql_printf("SELECT * FROM `fobaid` WHERE `fob`=%#s AND `aid`=%#s AND `adopted` IS NULL", fobid, aid));
