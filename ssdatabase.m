@@ -126,7 +126,7 @@ text(description, 0);
 
 table(fob, 14);
 time(provisioned);              // When provisioned
-link(class);                    // The fobs class (required)
+bool(format);			// Admin only - reformat fob when seen
 
 join(fob, aid);                 // Fob is in AID (adopted)
 time(adopted);			// When adopted
@@ -135,6 +135,7 @@ text(crc,8);			// Afile CRC
 join(fob, organisation);        // Yes, per org, for security reasons
 time(blocked);                  // When blocked
 time(confirmed);                // When confirmed blocked by fob read (no need to be in blacklist now)
+link(class);                    // The fobs class for access permissions
 
 table(device, 12);
 text(description, 0);
@@ -152,7 +153,7 @@ time(online);                   // When online, if online
 time(lastonline);               // When last went offline
 time(upgrade);                  // When to do upgrade
 ip(address);                    // IP address when last online
-num(instance);                  // Instance for communications when on line
+num(id);                  // Instance for communications when on line
 
 join(device,gpio)
 gpiotype(type);			// Pin Usage (in/out/power/exit/etc)
@@ -164,7 +165,7 @@ bool (invert);                  // Invert normal polarity for pin
 table(pending, 12);
 time(online);
 ip(address);
-num(instance);
+num(id);
 text(version, 0);               // S/w version
 bool (encryptednvs);            // Built with encrypted NVS
 bool (secureboot);              // Built with secure boot

@@ -66,6 +66,7 @@ int main(int argc, const char *argv[])
       unsigned char bin[3];
       if (read(f, bin, sizeof(bin)) != sizeof(bin))
          err(1, "Cannot read random");
+      if(!bin[0]&&!bin[1]&&bin[2])continue; // cannot be 0
       sprintf(aid, "%02X%02X%02X", bin[0], bin[1], bin[2]);
       if (sql_query_free(&sql, sql_printf("INSERT INTO `aid` SET `aid`=%#s,`organisation`=%d,`description`=%#s", aid, organisation, description)))
       {

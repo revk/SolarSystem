@@ -34,31 +34,6 @@ extern int dump;
 extern int mqttdump;
 SSL_CTX *ctx = NULL;
 
-#define	MAXSLOTS	65536
-
-struct slot_s {
-   long long instance;          // Instance for checking, (mod MAXSLOT is slot) 0 if free
-   long long linked;
-   int txsock;                  // Socket for sending data
-};
-
-static slot_t slots[MAXSLOTS] = { };
-
-static long long instance = 1;  // Next instance to allocate
-static int slotcount = 0;
-static pthread_mutex_t slot_mutex;
-
-typedef struct rxq_s rxq_t;
-struct rxq_s {
-   rxq_t *next;
-   j_t j;
-};
-
-static rxq_t *rxq = NULL,
-    *rxqhead = NULL;
-static pthread_mutex_t rxq_mutex;
-static sem_t rxq_sem;
-
 static void *server(void *arg)
 {
    int sock = -1;
@@ -76,10 +51,9 @@ static void *server(void *arg)
    if (sqldebug)
       warnx("Connect from %s", address);
 
-   int txsock = -1;             // Rx socket
-
-   slot_t *slot = mqtt_slot(&txsock);
-   if (!slot)
+   int relaysock = -1;          // The socket we listen to for tx messages to other side
+   slot_t us = slot_create(&relaysock, address);
+   if (!us)
    {
       close(sock);
       return "Failed";
@@ -118,15 +92,15 @@ static void *server(void *arg)
       }
       X509_free(cert);
    }
-   long long message = 0;
+   slot_t message = 0;
    void addq(j_t * jp) {
       j_t j = *jp;
       if (*device == '-')
-         j_int(j_path(j, "_meta.local"), instance);
+         j_int(j_path(j, "_meta.local"), us);
       else
       {
          j_t meta = j_store_object(j, "_meta");
-         j_store_int(meta, "instance", slot->instance);
+         j_store_int(meta, "id", us);
          j_store_int(meta, "message", message);
          if (*device)
             j_store_string(meta, "device", device);
@@ -144,14 +118,14 @@ static void *server(void *arg)
    }
    uint8_t rx[10000];
    uint8_t tx[10000];
-   uint32_t pos = 0,
+   int pos = 0,
        txp;
    const char *fail = NULL;
    uint16_t keepalive = 0;
    time_t katimeout = time(0) + 10;
    int nfds = sock;
-   if (txsock > sock)
-      nfds = txsock;
+   if (relaysock > sock)
+      nfds = relaysock;
    nfds++;
    while (!fail)
    {
@@ -166,11 +140,15 @@ static void *server(void *arg)
       FD_SET(sock, &r);
       if (!SSL_has_pending(ssl))
       {
-         FD_SET(txsock, &r);
+         FD_SET(relaysock, &r);
          struct timeval to = { katimeout - now, 0 };
          select(nfds, &r, NULL, NULL, &to);
-         if (FD_ISSET(txsock, &r))
-            txp = recv(txsock, tx, sizeof(tx), 0);
+         if (FD_ISSET(relaysock, &r))
+         {
+            txp = recv(relaysock, tx, sizeof(tx), 0);
+            if (txp <= 0)
+               break;           // Closed connection
+         }
       }
       if (FD_ISSET(sock, &r))
       {
@@ -187,7 +165,7 @@ static void *server(void *arg)
             break;
          if (pos < 2)
             continue;
-         uint32_t i,
+         int i,
           l = 0;                // Len is low byte first
          for (i = 1; i < pos && (rx[i] & 0x80); i++)
             l |= (rx[i] & 0x7F) << ((i - 1) * 7);
@@ -200,7 +178,7 @@ static void *server(void *arg)
          if (dump)
          {
             fprintf(stderr, "%s<", device);
-            for (uint32_t q = 0; q < i + l; q++)
+            for (int q = 0; q < i + l; q++)
                fprintf(stderr, " %02X", rx[q]);
             fprintf(stderr, "\n");
          }
@@ -320,7 +298,7 @@ static void *server(void *arg)
          if (dump)
          {
             fprintf(stderr, "%s>", device);
-            for (uint32_t i = 0; i < txp; i++)
+            for (int i = 0; i < txp; i++)
                fprintf(stderr, " %02X", tx[i]);
             fprintf(stderr, "\n");
          }
@@ -328,12 +306,14 @@ static void *server(void *arg)
       }
    }
    if (message && *device != '-')
-   {                            // Down if it sent and up and not internal
+   {                            // Down message if it sent and up and not internal
       j_t j = j_create();
       addq(&j);
-   } else
-      mqtt_close_slot(slot->instance);  // done by solar system otherwise
-   close(txsock);
+   }
+   slot_t linked = slot_linked(us);
+   if (linked)
+      slot_close(linked);       // tell linked to close (e.g. fobcommand task)
+   slot_destroy(us);
    if (fail && mqttdump)
       warnx("Fail from %s (%s)", address, fail);
    if (mqttdump)
@@ -432,6 +412,10 @@ static void *listener(void *arg)
    return NULL;
 }
 
+static pthread_mutex_t rxq_mutex;
+static sem_t rxq_sem;
+static pthread_mutex_t slot_mutex;
+
 void mqtt_start(void)
 {                               // Start MQTT server (not a real MQTT server, just talks MQTT)
    pthread_mutex_init(&slot_mutex, NULL);
@@ -445,63 +429,23 @@ void mqtt_start(void)
    }
 }
 
-const char *mqtt_send(long long instance, const char *prefix, const char *suffix, j_t * jp)
-{
-   char *buf = NULL;
-   char *topic = NULL;
-   j_t j = NULL;
-   if (jp)
-   {
-      j = *jp;
-      *jp = NULL;
-   }
-   const char *process(void) {
-      if ((!prefix && !(topic = strdup(""))) || (prefix && asprintf(&topic, "%s/SS/*%s%s", prefix, suffix ? "/" : "", suffix ? : "") < 0))
-         return "malloc";
+// Incoming queue
+typedef struct rxq_s rxq_t;
+struct rxq_s {
+   rxq_t *next;
+   j_t j;
+};
 
-      uint8_t tx[2048];         // Sane limit
-      unsigned int txp = mqtt_encode(tx, sizeof(tx), topic, j);
-
-      pthread_mutex_lock(&slot_mutex);
-      if (slots[instance % MAXSLOTS].instance != instance)
-      {
-         pthread_mutex_unlock(&slot_mutex);
-         return "Old instance";
-      }
-      if (send(slots[instance % MAXSLOTS].txsock, tx, txp, 0) < 0)
-      {
-         pthread_mutex_unlock(&slot_mutex);
-         return "Failed to send";
-      }
-      pthread_mutex_unlock(&slot_mutex);
-      if (mqttdump)
-      {
-         fprintf(stderr, "%lld>:%s ", instance, topic);
-         if (j)
-            j_err(j_write(j, stderr));
-         fprintf(stderr, "\n");
-      }
-      return NULL;
-   }
-   if (buf)
-      free(buf);
-   if (topic)
-      free(topic);
-   const char *fail = process();
-   if (fail)
-      warnx("tx MQTT fail: %s", fail);
-   j_delete(&j);
-   return fail;
-}
-
+static rxq_t *rxq = NULL,
+    *rxqhead = NULL;
 void mqtt_qin(j_t * jp)
 {                               // Queue incoming
    j_t j = *jp;
    if (mqttdump)
    {
-      long long instance = strtoll(j_get(j, "_meta.instance") ? : "", NULL, 10);
-      if (instance)
-         fprintf(stderr, "%lld", instance);
+      slot_t id = strtoll(j_get(j, "_meta.id") ? : "", NULL, 10);
+      if (id)
+         fprintf(stderr, "%lld", id);
       fprintf(stderr, "<:");
       const char *topic = j_get(j, "_meta.topic");
       if (topic)
@@ -523,95 +467,6 @@ void mqtt_qin(j_t * jp)
    pthread_mutex_unlock(&rxq_mutex);
 }
 
-slot_t *mqtt_slot(int *txsockp)
-{                               // Create a slot
-   pthread_mutex_lock(&slot_mutex);
-   if (slotcount >= MAXSLOTS)
-   {
-      warnx("Too many connections");
-      pthread_mutex_unlock(&slot_mutex);
-      return NULL;
-   }
-   slot_t *slot;
-   while ((slot = &slots[instance % MAXSLOTS])->instance)
-      instance++;
-   {
-      int sp[2];
-      if (socketpair(AF_LOCAL, SOCK_DGRAM | SOCK_NONBLOCK, 0, sp) < 0)
-         err(1, "socketpair");
-      slot->txsock = sp[0];
-      *txsockp = sp[1];
-   }
-   slot->instance = instance;
-   slot->linked = 0;
-   slotcount++;
-   pthread_mutex_unlock(&slot_mutex);
-   if (mqttdump)
-      warnx("Open %lld, slot count %d", instance, slotcount);
-   return slot;
-}
-
-void mqtt_close_slot(long long instance)
-{
-   if (!instance)
-      errx(1, "Closing instance 0?");
-   slot_t *slot = &slots[instance % MAXSLOTS];
-   pthread_mutex_lock(&slot_mutex);
-   if (slot->instance == instance)
-   {
-      close(slot->txsock);
-      slot->txsock = -1;
-      slot->instance = 0;
-      slotcount--;
-   }
-   pthread_mutex_unlock(&slot_mutex);
-   if (mqttdump)
-      warnx("Close %lld, slot count %d", instance, slotcount);
-}
-
-void slot_link(long long instance, slot_t * target)
-{
-   if (!instance)
-      errx(1, "Linking instance 0?");
-   slot_t *slot = &slots[instance % MAXSLOTS];
-   pthread_mutex_lock(&slot_mutex);
-   if (slot->instance == instance)
-   {
-      slot->linked = target->instance;
-      target->linked = instance;
-   }
-   pthread_mutex_unlock(&slot_mutex);
-}
-
-void slot_unlink(long long instance)
-{
-   if (!instance)
-      errx(1, "Unlinking instance 0?");
-   slot_t *slot = &slots[instance % MAXSLOTS];
-   pthread_mutex_lock(&slot_mutex);
-   if (slot->instance == instance)
-      slot->linked = 0;
-   pthread_mutex_unlock(&slot_mutex);
-}
-
-long long slot_linked(long long instance)
-{
-   slot_t *slot = &slots[instance % MAXSLOTS];
-   if (slot->instance == instance)
-      return slot->linked;
-   return 0;
-}
-
-const char *command(long long instance, const char *suffix, j_t * jp)
-{                               // Send command (expects _meta.instance to be set)
-   return mqtt_send(instance, "command", suffix, jp);
-}
-
-const char *setting(long long instance, const char *suffix, j_t * jp)
-{                               // Send setting (expects _meta.instance to be set)
-   return mqtt_send(instance, "setting", suffix, jp);
-}
-
 j_t incoming(void)
 {                               // Wait for next rx message
    sem_wait(&rxq_sem);
@@ -629,4 +484,150 @@ j_t incoming(void)
    j_t j = q->j;
    free(q);
    return j;
+}
+
+// Server slot
+
+#define	SLOT_MAX	65536
+static int slot_count = 0;
+struct slots_s {
+   slot_t id;                   // Slot ID
+   slot_t linked;               // Linked ID
+   int txsock;                  // Socket for sending data
+   int rxsock;                  // Socket for receiving data
+};
+typedef struct slots_s slots_t;
+static slots_t slots[SLOT_MAX] = { };
+
+slot_t slot_create(int *sockp, const char *address)
+{                               // Create a slot, and allocated the non blocking linked sockets, returns server socket
+   static slot_t slot_id = 1;   // Next id to allocate
+   pthread_mutex_lock(&slot_mutex);
+   if (slot_count >= SLOT_MAX)
+   {
+      warnx("Too many connections");
+      pthread_mutex_unlock(&slot_mutex);
+      return 0;
+   }
+   slots_t *slot;
+   while ((slot = &slots[slot_id % SLOT_MAX])->id)
+      slot_id++;                // One has to exist based on slot_count - maybe one day make a free slot linkage
+   {
+      int sp[2];
+      if (socketpair(AF_LOCAL, SOCK_DGRAM, 0, sp) < 0)
+         err(1, "socketpair");
+      slot->txsock = sp[0];
+      slot->rxsock = sp[1];
+      if (sockp)
+         *sockp = sp[1];
+   }
+   slot->id = slot_id;
+   slot->linked = 0;
+   slot_count++;
+   pthread_mutex_unlock(&slot_mutex);
+   if (mqttdump)
+      warnx("Create %lld, slot count %d, %s", slot_id, slot_count, address);
+   return slot_id;
+}
+
+slot_t slot_linked(slot_t id)
+{                               // Return the linked slot (cleared if linked slot has been destroyed)
+   slot_t linked = 0;
+   slots_t *s = &slots[id % SLOT_MAX];
+   pthread_mutex_lock(&slot_mutex);
+   if (s->id == id && (linked = s->linked) && slots[linked % SLOT_MAX].id != linked)
+      s->linked = linked = 0;   // Bad far end
+   pthread_mutex_unlock(&slot_mutex);
+   return linked;
+}
+
+void slot_link(slot_t id, slot_t linked)
+{                               // Link two slots, both show slot_linked as the other
+   slots_t *s = &slots[id % SLOT_MAX];
+   pthread_mutex_lock(&slot_mutex);
+   if (s->linked && slots[s->linked % SLOT_MAX].id && slots[s->linked % SLOT_MAX].linked == id)
+      slots[s->linked % SLOT_MAX].linked = 0;   // Unlink
+   if (s->id == id)
+      s->linked = linked;
+   pthread_mutex_unlock(&slot_mutex);
+}
+
+void slot_close(slot_t id)
+{                               // Sends the server a zero length message to the server asking it to close and destroy
+   slots_t *s = &slots[id % SLOT_MAX];
+   pthread_mutex_lock(&slot_mutex);
+   if (s->id == id)
+      send(s->txsock, NULL, 0, 0);      // Could, in theory, hang...
+   pthread_mutex_unlock(&slot_mutex);
+}
+
+void slot_destroy(slot_t id)
+{                               // Destroy a slot, called by server when closing, handles socket closing, unlinks
+   slots_t *s = &slots[id % SLOT_MAX];
+   pthread_mutex_lock(&slot_mutex);
+   if (s->id == id)
+   {
+      slot_t linked = s->linked;
+      if (slots[linked % SLOT_MAX].id == linked && slots[linked % SLOT_MAX].linked == id)
+         slots[linked % SLOT_MAX].linked = 0;
+      s->id = 0;
+      s->linked = 0;
+      close(s->txsock);
+      close(s->rxsock);
+      s->txsock = -1;
+      s->rxsock = -1;
+   }
+   pthread_mutex_unlock(&slot_mutex);
+   if (mqttdump)
+      warnx("Destroy %lld, slot count %d", id, slot_count);
+}
+
+const char *slot_send(slot_t id, const char *prefix, const char *suffix, j_t * jp)
+{
+   char *buf = NULL;
+   char *topic = NULL;
+   j_t j = NULL;
+   if (jp)
+   {
+      j = *jp;
+      *jp = NULL;
+   }
+   const char *process(void) {
+      if ((!prefix && !(topic = strdup(""))) || (prefix && asprintf(&topic, "%s/SS/*%s%s", prefix, suffix ? "/" : "", suffix ? : "") < 0))
+         return "malloc";
+
+      uint8_t tx[2048];         // Sane limit
+      unsigned int txp = mqtt_encode(tx, sizeof(tx), topic, j);
+
+      pthread_mutex_lock(&slot_mutex);
+      if (slots[id % SLOT_MAX].id != id)
+      {
+         pthread_mutex_unlock(&slot_mutex);
+         warnx("Slot Send %lld but slot is %lld", id, slots[id % SLOT_MAX].id);
+         return slots[id % SLOT_MAX].id ? "Recycled id" : "Closed id";
+      }
+      if (send(slots[id % SLOT_MAX].txsock, tx, txp, MSG_DONTWAIT) < 0)
+      {
+         pthread_mutex_unlock(&slot_mutex);
+         return "Failed to send";
+      }
+      pthread_mutex_unlock(&slot_mutex);
+      if (mqttdump)
+      {
+         fprintf(stderr, "%lld>:%s ", id, topic);
+         if (j)
+            j_err(j_write(j, stderr));
+         fprintf(stderr, "\n");
+      }
+      return NULL;
+   }
+   if (buf)
+      free(buf);
+   if (topic)
+      free(topic);
+   const char *fail = process();
+   if (fail)
+      warnx("tx MQTT fail: %s", fail);
+   j_delete(&j);
+   return fail;
 }

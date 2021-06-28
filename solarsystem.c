@@ -54,16 +54,16 @@ char *makeaes(SQL * sqlkeyp, const char *aid, const char *fob, const char *ver)
    return NULL;
 }
 
-const char *upgrade(SQL_RES * res, long long instance)
+const char *upgrade(SQL_RES * res, slot_t id)
 {                               // Send upgrade if needed
    const char *upgrade = sql_col(res, "upgrade");
    if (!upgrade || j_time(upgrade) > time(0))
       return NULL;
-   command(instance, "upgrade", NULL);
+   slot_send(id, "command", "upgrade", NULL);
    return upgrade;
 }
 
-const char *security(SQL * sqlp, SQL * sqlkeyp, SQL_RES * res, long long instance)
+const char *security(SQL * sqlp, SQL * sqlkeyp, SQL_RES * res, slot_t id)
 {                               // Security settings
    j_t j = j_create();
    const char *aid = sql_colz(res, "aid");
@@ -101,12 +101,12 @@ const char *security(SQL * sqlp, SQL * sqlkeyp, SQL_RES * res, long long instanc
       sql_free_result(b);
    }
    if (!j_isnull(j))
-      setting(instance, NULL, &j);
+      slot_send(id, "setting", NULL, &j);
    j_delete(&j);
    return NULL;
 }
 
-const char *settings(SQL * sqlp, SQL_RES * res, long long instance)
+const char *settings(SQL * sqlp, SQL_RES * res, slot_t id)
 {                               // Send base settings
    j_t j = j_create();
    int doorauto = (*sql_colz(res, "doorauto") == 't');
@@ -191,17 +191,17 @@ const char *settings(SQL * sqlp, SQL_RES * res, long long instance)
       sql_free_result(g);
    }
    if (!j_isnull(j))
-      setting(instance, NULL, &j);
+      slot_send(id, "setting", NULL, &j);
    j_delete(&j);
    return NULL;
 }
 
-void bogus(long long instance)
+void bogus(slot_t id)
 {                               // This is bogus auth
    j_t m = j_create();
    j_store_string(m, "clientkey", "");
    j_store_string(m, "clientcert", "");
-   setting(instance, NULL, &m);
+   slot_send(id, "setting", NULL, &m);
 }
 
 void daily(SQL * sqlp)
@@ -210,20 +210,21 @@ void daily(SQL * sqlp)
    // TODO afile updates?
 }
 
-const char *forkcommand(j_t * jp, long long instance, long long local)
+const char *forkcommand(j_t * jp, slot_t device, slot_t local)
 {
    j_t j = *jp;
    *jp = 0;
-   int txsock;
-   slot_t *s = mqtt_slot(&txsock);
-   if (!s)
+   int relaysock;
+   slot_t id = slot_create(&relaysock, "local");
+   if (!id)
       return "Link failed";
-   slot_link(instance, s);
-   if (instance)
-      j_store_int(j, "instance", instance);
+   slot_link(device, id);
+   j_store_int(j, "id", id);
+   if (device)
+      j_store_int(j, "device", device);
    if (local)
       j_store_int(j, "local", local);
-   j_store_int(j, "socket", txsock);
+   j_store_int(j, "socket", relaysock);
    pthread_t t;
    if (pthread_create(&t, NULL, fobcommand, j))
       err(1, "Cannot create fob adopt thread");
@@ -359,8 +360,8 @@ int main(int argc, const char *argv[])
       free(cert);
    }
    syslog(LOG_INFO, "Starting");
-   sql_safe_query(&sql, "DELETE FROM `pending` WHERE `instance` IS NOT NULL");
-   sql_safe_query(&sql, "UPDATE `device` SET `instance`=NULL,`online`=NULL WHERE `instance` IS NOT NULL");
+   sql_safe_query(&sql, "DELETE FROM `pending` WHERE `id` IS NOT NULL");
+   sql_safe_query(&sql, "UPDATE `device` SET `id`=NULL,`online`=NULL WHERE `id` IS NOT NULL");
    mqtt_start();
    // Main loop getting messages (from MQTT or websocket)
    while (1)
@@ -386,21 +387,21 @@ int main(int argc, const char *argv[])
          if (meta)
             meta = j_detach(meta);
          char forked = 0;
-         const char *local(long long local) {   // Commands sent to us from local system
-            long long instance = 0;     // Device instance
+         const char *local(slot_t local) {      // Commands sent to us from local system
+            slot_t id = 0;      // Device id
             const char *v;
             // Identify the device we want to talk to...
             SQL_RES *res = NULL;
             if ((v = j_get(meta, "device")))
-               res = sql_safe_query_store_free(&sql, sql_printf("SELECT `instance` FROM `device` WHERE `device`=%#s", v));
+               res = sql_safe_query_store_free(&sql, sql_printf("SELECT `id` FROM `device` WHERE `device`=%#s", v));
             else if ((v = j_get(meta, "pending")))
-               res = sql_safe_query_store_free(&sql, sql_printf("SELECT `instance` FROM `pending` WHERE `pending`=%#s", v));
+               res = sql_safe_query_store_free(&sql, sql_printf("SELECT `id` FROM `pending` WHERE `pending`=%#s", v));
             if (res)
-            {                   // Check device on line, find instance
+            {                   // Check device on line, find id
                if (sql_fetch_row(res))
-                  instance = strtoll(sql_colz(res, "instance") ? : "", NULL, 10);
+                  id = strtoll(sql_colz(res, "id") ? : "", NULL, 10);
                sql_free_result(res);
-               if (!instance)
+               if (!id)
                   return "Device not on line";
             }
             if ((v = j_get(meta, "provision")))
@@ -409,13 +410,13 @@ int main(int argc, const char *argv[])
                char *cert = makecert(key, cakey, cacert, v);
                j_store_string(j, "clientcert", cert);
                free(cert);
-               const char *fail = mqtt_send(instance, "setting", NULL, &j);
+               const char *fail = slot_send(id, "setting", NULL, &j);
                j = j_create();
                j_store_string(j, "clientkey", key);
                free(key);
                if (fail)
                   return fail;
-               fail = mqtt_send(instance, "setting", NULL, &j);
+               fail = slot_send(id, "setting", NULL, &j);
                // Set online later to remove from pending lists in UI
                if (!fail)
                   sql_safe_query_free(&sql, sql_printf("UPDATE `pending` SET `online`=%#T WHERE `pending`=%#s", time(0) + 60, v));
@@ -427,7 +428,7 @@ int main(int argc, const char *argv[])
                j_store_string(j, "mqtthost", v);
                j_store_string(j, "mqttcert", "");
                j_store_null(j, "mqttport");
-               const char *fail = mqtt_send(instance, "setting", NULL, &j);
+               const char *fail = slot_send(id, "setting", NULL, &j);
                // Set online later to remove from pending lists in UI
                if (!fail)
                   sql_safe_query_free(&sql, sql_printf("UPDATE `pending` SET `online`=%#T WHERE `pending`=%#s", time(0) + 60, v));
@@ -435,15 +436,15 @@ int main(int argc, const char *argv[])
             } else if ((v = j_get(meta, "prefix")))
             {                   // Send to device
                const char *suffix = j_get(meta, "suffix");
-               if (!instance)
-                  return "No instance";
+               if (!id)
+                  return "No id";
 
                const char *fail = NULL;
                j_t data = j_find(j, "_data");
                if (data)
-                  mqtt_send(instance, v, suffix, &data);
+                  slot_send(id, v, suffix, &data);
                else
-                  mqtt_send(instance, v, suffix, &j);
+                  slot_send(id, v, suffix, &j);
                return fail;
             } else if (j_find(meta, "fobprovision"))
             {
@@ -453,25 +454,19 @@ int main(int argc, const char *argv[])
                   j_store_true(init, "format");
                j_store_int(init, "device", j_get(j, "fobprovision"));
                forked = 1;
-               return forkcommand(&init, instance, local);
+               return forkcommand(&init, id, local);
             } else
                return "Unknown local request";
             return NULL;
          }
          const char *loopback(void) {   // From linked
-            long long instance = strtoll(j_get(meta, "loopback"), NULL, 10);
-            if (j_find(meta, "close"))
-            {                   // Closed command
-               long long l = slot_linked(instance);
-               if (l)
-               {
-                  slot_unlink(instance);
-                  mqtt_send(l, NULL, NULL, NULL);       // Tell linked we are closed - it sends back confirm which closes slot
-               }
-               mqtt_close_slot(instance);
-            }
             if (j_find(meta, "provision"))
+	    {
                sql_safe_query_free(&sqlkey, sql_printf("REPLACE INTO `AES` SET `fob`=%#s,`ver`='01',`key`=%#s", j_get(j, "fob"), j_get(j, "key")));
+               sql_safe_query_free(&sql, sql_printf("REPLACE INTO `fob` SET `fob`=%#s,`provisioned`=NOW()", j_get(j, "fob")));
+	    }
+            if (j_find(meta, "adopt"))
+               sql_safe_query_free(&sql, sql_printf("REPLACE INTO `fobaid` SET `fob`=%#s,`aid`=%#s,`adopted`=NOW()", j_get(j, "fob"),j_get(j,"aid")));
             return NULL;
          }
          const char *process(void) {
@@ -482,29 +477,29 @@ int main(int argc, const char *argv[])
                return loopback();
             if (j_find(meta, "local"))
             {
-               long long instance = strtoull(j_get(meta, "local") ? : "", NULL, 10);
-               const char *reply = local(instance);
-               if (instance)
+               slot_t id = strtoull(j_get(meta, "local") ? : "", NULL, 10);
+               const char *reply = local(id);
+               if (id)
                {                // Send response
                   if (reply)
                   {             // Send reply
                      j_t j = j_create();
                      j_string(j, reply);
-                     mqtt_send(instance, NULL, NULL, &j);       // reply
+                     slot_send(id, NULL, NULL, &j);     // reply
                   }
                   if (!forked)
                   {             // Tell command we are closed
                      j_t j = j_create();
-                     mqtt_send(instance, NULL, NULL, &j);
+                     slot_send(id, NULL, NULL, &j);
                   }
                }
                return reply;
             }
 
-            long long message = strtoull(j_get(meta, "message") ? : "", NULL, 10);
-            long long instance = strtoull(j_get(meta, "instance") ? : "", NULL, 10);
-            if (!instance)
-               return "No instance";
+            slot_t message = strtoull(j_get(meta, "message") ? : "", NULL, 10);
+            slot_t id = strtoull(j_get(meta, "id") ? : "", NULL, 10);
+            if (!id)
+               return "No id";
             const char *deviceid;
             if ((deviceid = j_get(meta, "device")) && *deviceid && (device = sql_safe_query_store_free(&sql, sql_printf("SELECT * FROM `device` WHERE `device`=%#s", deviceid))) && !sql_fetch_row(device))
             {                   // Not found - treat as pending even though athenticated
@@ -515,9 +510,9 @@ int main(int argc, const char *argv[])
             const char *prefix = j_get(meta, "prefix");
             const char *suffix = j_get(meta, "suffix");
             if (!message && (!deviceid || *deviceid != '-'))
-            {                   // Connect (first message ID 0) - *MUST* be a top level state message
-               const char *id = j_get(j, "id");
-               if (!id)
+            {                   // Connect (first message ID 0) - *MUST* be a top level state message unless locak
+               const char *claimedid = j_get(j, "id");
+               if (!claimedid)
                   return "No id";
                if (!prefix || strcmp(prefix, "state") || suffix)
                   return "Bad initial message";
@@ -526,17 +521,17 @@ int main(int argc, const char *argv[])
                {
                   sql_sprintf(&s, "UPDATE `device` SET ");      // known, update
                   sql_sprintf(&s, "`lastonline`=NOW(),");
-                  if (!upgrade(device, instance) && !settings(&sql, device, instance))
-                     security(&sql, &sqlkey, device, instance);
+                  if (!upgrade(device, id) && !settings(&sql, device, id))
+                     security(&sql, &sqlkey, device, id);
                } else           // pending - update pending
                {
                   sql_sprintf(&s, "REPLACE INTO `pending` SET ");
-                  sql_sprintf(&s, "`pending`=%#s,", id);
+                  sql_sprintf(&s, "`pending`=%#s,", claimedid);
                   if (deviceid)
                      sql_sprintf(&s, "`authenticated`=%#s,", "true");
-                  SQL_RES *res = sql_safe_query_store_free(&sql, sql_printf("SELECT * FROM `device` WHERE `device`=%#s", id));
+                  SQL_RES *res = sql_safe_query_store_free(&sql, sql_printf("SELECT * FROM `device` WHERE `device`=%#s", claimedid));
                   if (sql_fetch_row(res))
-                     upgrade(res, instance);
+                     upgrade(res, id);
                   sql_free_result(res);
                }
                if (!device || (address && strcmp(sql_colz(device, "address"), address)))
@@ -554,7 +549,7 @@ int main(int argc, const char *argv[])
                if (flash && (!device || (flash != atoi(sql_colz(device, "flash")))))
                   sql_sprintf(&s, "`flash`=%d,", flash);
                sql_sprintf(&s, "`online`=NOW(),");
-               sql_sprintf(&s, "`instance`=%lld,", instance);
+               sql_sprintf(&s, "`id`=%lld,", id);
                if (sql_back_s(&s) == ',')
                {
                   if (device)
@@ -566,20 +561,13 @@ int main(int argc, const char *argv[])
             }
             if (!prefix)
             {                   // Down (all other messages have a topic)
-               long long i = strtoull(sql_colz(device, "instance"), NULL, 10);
                if (device)
                {                // known
-                  if (i == instance)
-                     sql_safe_query_free(&sql, sql_printf("UPDATE `device` SET `online`=NULL,`instance`=NULL,`lastonline`=NOW() WHERE `device`=%#s AND `instance`=%lld", deviceid, instance));
-                  long long l = slot_linked(instance);
-                  if (l)
-                  {
-                     mqtt_send(l, NULL, NULL, NULL);    // Tell linked we are closed
-                     mqtt_close_slot(l);
-                  }
+                  slot_t i = strtoull(sql_colz(device, "id"), NULL, 10);
+                  if (i == id)
+                     sql_safe_query_free(&sql, sql_printf("UPDATE `device` SET `online`=NULL,`id`=NULL,`lastonline`=NOW() WHERE `device`=%#s AND `id`=%lld", deviceid, id));
                } else           // pending
-                  sql_safe_query_free(&sql, sql_printf("DELETE FROM `pending` WHERE `instance`=%lld", instance));
-               mqtt_close_slot(instance);
+                  sql_safe_query_free(&sql, sql_printf("DELETE FROM `pending` WHERE `id`=%lld", id));
                return NULL;
             }
             if (prefix && !strcmp(prefix, "state"))
@@ -588,15 +576,67 @@ int main(int argc, const char *argv[])
                {
                   if (!suffix)
                   {             // System level
-                     const char *id = j_get(j, "id");
-                     if (id && strcmp(id, deviceid))
-                        bogus(instance);
+                     const char *claimedid = j_get(j, "id");
+                     if (claimedid && strcmp(claimedid, deviceid))
+                        bogus(id);
                   }
                }
             } else if (prefix && !strcmp(prefix, "event"))
             {
                if (device)
                {
+                  if (!strcmp(suffix, "fob"))
+                  {             // Fob usage - loads of options
+                     const char *aid = sql_colz(device, "aid");
+                     const char *fobid = j_get(j, "id");
+                     char held = j_test(j, "held", 0);
+                     char gone = j_test(j, "gone", 0);
+                     char secure = j_test(j, "secure", 0);
+                     char block = j_test(j, "block", 0);
+                     if (!held && !gone)
+                     {          // Initial fob use
+                        if (block)
+                        {       // Confirm blocked
+#if 0
+                           sql_safe_query_free(&sql, sql_printf("UPDATE `foborganisation` SET `confirmed`=NOW() WHERE `organisation`=%d AND `fob`=%#s AND `confirmed` IS NULL", organisation, fobid));
+#endif
+                        }
+                        if (!secure)
+                        {       // Consider adopting
+                           SQL_RES *res = sql_safe_query_store_free(&sql, sql_printf("SELECT * FROM `fobaid` WHERE `fob`=%#s AND `aid`=%#s", fobid, aid));
+                           if (sql_fetch_row(res))
+                           {
+                              if (!sql_col(res, "adopted"))
+                              {
+                                 j_t init = j_create();
+                                 j_store_true(init, "adopt");
+				 j_store_string(init,"fob",fobid);
+				 j_store_string(init,"aid",aid);
+				 // TODO cleaner way to get latest keys
+				 // TODO creating keys if not there
+                                 SQL_RES *k = sql_safe_query_store_free(&sqlkey, sql_printf("SELECT * FROM `AES` WHERE (`fob`=%#s AND `ver`='01' AND `aid` IS NULL) OR (`fob` IS NULL AND `aid`=%#s) OR (`fob`=%#s AND `aid`=%#s) ORDER BY `created`", fobid, aid, fobid, aid));
+                                 while (sql_fetch_row(k))
+                                 { // TODO way to get latest keys - this gets all and overwrites so not tidy
+                                    char *f = sql_col(k, "fob");
+                                    char *a = sql_col(k, "aid");
+                                    char *v = sql_col(k, "ver");
+                                    char *key = sql_col(k, "key");
+                                    if (f && !a)
+                                       j_store_stringf(init, "masterkey", "%s%s", v, key);
+                                    if (f && a)
+                                       j_store_stringf(init, "aid0key", "%s%s", v, key);
+                                    if (!f && a)
+                                       j_store_stringf(init, "aid1key", "%s%s", v, key);
+                                 }
+                                 sql_free_result(k);
+                                 j_store_int(init, "device", id);
+                                 forkcommand(&init, id, 0);
+                              }
+                           }
+                           sql_free_result(res);
+                        }
+                     }
+                  }
                }
             } else if (prefix && !strcmp(prefix, "error"))
             {
@@ -614,9 +654,9 @@ int main(int argc, const char *argv[])
                return "Unknown message";
             if (j)
             {
-               long long l = slot_linked(instance);
+               slot_t l = slot_linked(id);
                if (l)
-                  mqtt_send(l, prefix, suffix, &j);     // Send to linked session
+                  slot_send(l, prefix, suffix, &j);     // Send to linked session
             }
             return NULL;
          }

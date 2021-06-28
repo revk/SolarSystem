@@ -22,12 +22,14 @@
 #include "AJL/ajl.h"
 #include <openssl/evp.h>
 #include "DESFireAES/include/desfireaes.h"
+#include "mqttmsg.h"
 #include "ssmqtt.h"
 
 typedef struct nfc_s {
    int sock;
-   long long instance;
-   long long local;
+   slot_t id;                   // Us
+   slot_t local;                // Local command
+   slot_t device;               // Remote device
    unsigned char remote:1;
    unsigned char connected:1;
    unsigned char held:1;
@@ -85,7 +87,7 @@ static int dx(void *obj, unsigned int len, unsigned char *data, unsigned int max
    {                            // Send
       j_t j = j_create();
       j_string(j, j_base16(len, data));
-      mqtt_send(f->instance, "command", "nfc", &j);
+      slot_send(f->device, "command", "nfc", &j);
    }
    len = 0;
    while (!f->done && !len)
@@ -124,15 +126,33 @@ void *fobcommand(void *arg)
    char provision = 0,
        adopt = 0,
        format = 0;
+   unsigned char aid[3] = { };
+   unsigned char masterkey[17] = { };   // Keys with version on front
+   unsigned char aid0key[17] = { };
+   unsigned char aid1key[17] = { };
    {                            // Get passed settings
       j_t j = arg;
       j_err(j_write_pretty(j, stderr)); // TODO
       f.sock = atoi(j_get(j, "socket") ? : "");
-      f.instance = strtoll(j_get(j, "instance"), NULL, 10);
-      f.local = strtoll(j_get(j, "local"), NULL, 10);
+      f.id = strtoll(j_get(j, "id") ? : "", NULL, 10);
+      f.device = strtoll(j_get(j, "device") ? : "", NULL, 10);
+      f.local = strtoll(j_get(j, "local") ? : "", NULL, 10);
       provision = j_test(j, "provision", 0);
       adopt = j_test(j, "adopt", 0);
       format = j_test(j, "format", 0);
+      void hex(unsigned char *d, size_t l, j_t j) {
+         if (!j || !j_isstring(j))
+            return;
+         unsigned char *bin;
+         size_t len = j_base16d(j_val(j), &bin);
+         if (len == l)
+            memcpy(d, bin, l);
+         free(bin);
+      }
+      hex(aid, sizeof(aid), j_find(j, "aid"));
+      hex(masterkey, sizeof(masterkey), j_find(j, "masterkey"));
+      hex(aid0key, sizeof(aid0key), j_find(j, "aid0key"));
+      hex(aid1key, sizeof(aid1key), j_find(j, "aid1key"));
       if (!sock)
          errx(1, "socket not set");
       j_delete(&j);
@@ -142,19 +162,19 @@ void *fobcommand(void *arg)
          return;
       j_t j = j_create();
       j_store_string(j, "status", msg);
-      mqtt_send(f.local, NULL, NULL, &j);
+      slot_send(f.local, NULL, NULL, &j);
    }
    void led(const char *led) {
-      if (!f.instance)
+      if (!f.device)
          return;
       j_t j = j_create();
       j_string(j, led);
-      mqtt_send(f.instance, "command", "led", &j);
+      slot_send(f.device, "command", "led", &j);
    }
    const char *e = NULL;
    if (provision || adopt)
    {
-      mqtt_send(f.instance, "command", "nfc", NULL);
+      slot_send(f.device, "command", "nfc", NULL);
       if (adopt)
          f.connected = 1;       // Already connected for adopt
       df_t d;
@@ -177,7 +197,56 @@ void *fobcommand(void *arg)
             led("A-");
 
          void doadopt(void) {
-
+            if ((e = df_select_application(&d, NULL)))
+               return;
+            if ((e = df_authenticate(&d, 0, masterkey + 1)))
+               return;
+            unsigned char uid[7];
+            if ((e = df_get_uid(&d, uid)))
+               return;
+            unsigned int n;
+            {
+               unsigned char aids[3 * 20];
+               if ((e = df_get_application_ids(&d, &n, sizeof(aids), aids)))
+                  errx(1, "Application list: %s", e);
+               while (n && memcmp(aids + n * 3 - 3, aid, 3))
+                  n--;
+            }
+            if (!n)
+            { // Create
+               if ((e = df_create_application(&d, aid, DF_SET_DEFAULT, 2)))
+                  return;
+               if ((e = df_select_application(&d, aid)))
+                  return;
+               if ((e = df_authenticate(&d, 0, NULL)))
+                  return;
+               if ((e = df_change_key(&d, 0, *aid0key, NULL, aid0key + 1)))
+                  return;
+               if ((e = df_authenticate(&d, 0, aid0key + 1)))
+                  return;
+               if ((e = df_change_key(&d, 1, *aid1key, NULL, aid1key + 1)))
+                  return;
+               if ((e = df_change_key_settings(&d, 0xEB)))
+                  return;
+               if ((e = df_create_file(&d, 0x0A, 'B', 1, 0x0010, 256, 0, 0, 0, 0, 0)))
+                  return;
+            } else
+	    { // Check auth is right
+               if ((e = df_select_application(&d, aid)))
+                  return;
+               if ((e = df_authenticate(&d, 1, aid1key + 1)))
+                  return;
+               if ((e = df_authenticate(&d, 0, aid0key + 1)))
+                  return;
+	    }
+            {                   // Tell system adopted
+               j_t j = j_create();
+               j_int(j_path(j, "_meta.loopback"), f.id);
+               j_true(j_path(j, "_meta.adopt"));
+               j_store_string(j, "fob", j_base16(sizeof(uid), uid));
+               j_store_string(j, "aid", j_base16(sizeof(aid), aid));
+               mqtt_qin(&j);
+            }
          }
 
          void doprovision(void) {
@@ -188,18 +257,20 @@ void *fobcommand(void *arg)
             unsigned char version;
             if ((e = df_get_key_version(&d, 0, &version)))
                return;
+            // TODO check version is expected
             if (!version || format)
             {                   // Formatting
                status("Formatting card");
-               if ((e = df_format(&d, NULL)))
+               if ((e = df_format(&d, masterkey + 1)))
                   return;
+               memset(masterkey, 0, sizeof(masterkey)); // Format does that
                if ((e = df_authenticate(&d, 0, NULL)))
                   return;
                if ((e = df_change_key_settings(&d, 0x09)))
                   return;
                if ((e = df_set_configuration(&d, 0)))
                   return;       // Not random or lock...
-            } else if ((e = df_authenticate(&d, 0, NULL)))
+            } else if ((e = df_authenticate(&d, 0, masterkey + 1)))
                return;
             unsigned char uid[7];
             if ((e = df_get_uid(&d, uid)))
@@ -216,7 +287,7 @@ void *fobcommand(void *arg)
             }
             {                   // Tell system new key
                j_t j = j_create();
-               j_int(j_path(j, "_meta.loopback"), f.instance);
+               j_int(j_path(j, "_meta.loopback"), f.id);
                j_true(j_path(j, "_meta.provision"));
                j_store_string(j, "fob", j_base16(sizeof(uid), uid));
                j_store_string(j, "key", j_base16(sizeof(key), key));
@@ -241,16 +312,11 @@ void *fobcommand(void *arg)
    led(e ? "R" : "G");
    if (e)
       status(*e ? e : "Card gone");
+   if (e && *e)
+      warnx("Failed: %s", e);
    // Finish
-   {                            // unlink
-      j_t j = j_create();
-      j_int(j_path(j, "_meta.loopback"), f.instance);
-      j_true(j_path(j, "_meta.close"));
-      mqtt_qin(&j);
-      if (f.local)
-         mqtt_send(f.local, NULL, 0, NULL);     // Close local
-   }
+   slot_close(f.local);
+   slot_destroy(f.id);
    warnx("Ended fobcommand");
-   //close(sock);
    return NULL;
 }
