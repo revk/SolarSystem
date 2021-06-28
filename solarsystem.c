@@ -363,24 +363,24 @@ int main(int argc, const char *argv[])
          j_t meta = j_find(j, "_meta");
          if (meta)
             meta = j_detach(meta);
-         const char *local(void) {      // Commands sent to us from local system
+         char forked = 0;
+         const char *local(long long local) {   // Commands sent to us from local system
+            long long instance = 0;     // Device instance
             const char *v;
+            // Identify the device we want to talk to...
             SQL_RES *res = NULL;
             if ((v = j_get(meta, "device")))
                res = sql_safe_query_store_free(&sql, sql_printf("SELECT `instance` FROM `device` WHERE `device`=%#s", v));
             else if ((v = j_get(meta, "pending")))
                res = sql_safe_query_store_free(&sql, sql_printf("SELECT `instance` FROM `pending` WHERE `pending`=%#s", v));
-            if (!res)
-               return "No device specified";
-            if (!sql_fetch_row(res))
-            {
+            if (res)
+            {                   // Check device on line, find instance
+               if (sql_fetch_row(res))
+                  instance = strtoll(sql_colz(res, "instance") ? : "", NULL, 10);
                sql_free_result(res);
-               return "Device not found";
+               if (!instance)
+                  return "Device not on line";
             }
-            long long instance = strtoll(sql_colz(res, "instance") ? : "", NULL, 10);
-            if (!instance)
-               return "Device not online";
-            sql_free_result(res);
             const char *forkcommand(j_t * jp) {
                j_t j = *jp;
                *jp = 0;
@@ -390,12 +390,16 @@ int main(int argc, const char *argv[])
                   return "Link failed";
                slot_link(instance, s);
                j_store_true(j, "adopt");
-               j_store_int(j, "instance", instance);
+               if (instance)
+                  j_store_int(j, "instance", instance);
+               if (local)
+                  j_store_int(j, "local", local);
                j_store_int(j, "socket", txsock);
                pthread_t t;
                if (pthread_create(&t, NULL, fobcommand, j))
                   err(1, "Cannot create fob adopt thread");
                pthread_detach(t);
+               forked = 1;
                return NULL;
             }
             if ((v = j_get(meta, "provision")))
@@ -479,14 +483,21 @@ int main(int argc, const char *argv[])
                return loopback();
             if (j_find(meta, "local"))
             {
-               const char *reply = local();
                long long instance = strtoull(j_get(meta, "local") ? : "", NULL, 10);
+               const char *reply = local(instance);
                if (instance)
-               {
-                  j_t j = j_create();
+               {                // Send response
                   if (reply)
+                  {             // Send reply
+                     j_t j = j_create();
                      j_string(j, reply);
-                  mqtt_send(instance, NULL, NULL, &j);  // reply
+                     mqtt_send(instance, NULL, NULL, &j);       // reply
+                  }
+                  if (!forked)
+                  {             // Tell command we are closed
+                     j_t j = j_create();
+                     mqtt_send(instance, NULL, NULL, &j);
+                  }
                }
                return reply;
             }

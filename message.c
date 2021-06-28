@@ -210,6 +210,8 @@ int main(int argc, const char *argv[])
       int len = mqtt_encode(buf, sizeof(buf), topic, j);
       SSL_write(ssl, buf, len);
    }
+   char done=0;
+   while(!done)
    {                            // Wait reply
       unsigned char buf[1000];
       size_t len = SSL_read(ssl, buf, sizeof(buf));
@@ -226,8 +228,9 @@ int main(int argc, const char *argv[])
                printf("%s", j_val(j));
             else
                j_err(j_write_pretty(j, stdout));
+	       fflush(stdout);
          }
-      }
+      }else done=1;
       j_delete(&j);
    }
    {                            // End

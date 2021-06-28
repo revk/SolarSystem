@@ -27,10 +27,13 @@ void *fobcommand(void *arg)
    warnx("Started fobcommand");
    int sock = -1;
    long long instance = 0;
+   long long local = 0;
    {                            // Get passed settings
       j_t j = arg;
+      j_err(j_write_pretty(j, stderr)); // TODO
       sock = atoi(j_get(j, "socket") ? : "");
       instance = strtoll(j_get(j, "instance"), NULL, 10);
+      local = strtoll(j_get(j, "local"), NULL, 10);
       if (!sock)
          errx(1, "socket not set");
       j_delete(&j);
@@ -57,6 +60,8 @@ void *fobcommand(void *arg)
       }
       fprintf(stderr, "fobcommand:");
       j_err(j_write_pretty(j, stderr)); // TODO
+      if (local)
+         mqtt_send(local, NULL, NULL, &j);
       j_delete(&j);
    }
    {                            // unlink

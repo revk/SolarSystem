@@ -72,7 +72,8 @@ static void *server(void *arg)
       strncpy(address, j_get(j, "address") ? : "", sizeof(address));
       j_delete(&j);
    }
-   if (mqttdump)
+
+   if (sqldebug)
       warnx("Connect from %s", address);
 
    int txsock = -1;             // Rx socket
