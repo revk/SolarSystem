@@ -1,6 +1,7 @@
 // MQTT message formatting
 
 #include <string.h>
+#include <stdlib.h>
 #include "AJL/ajl.h"
 #include "mqttmsg.h"
 
@@ -114,10 +115,39 @@ j_t mqtt_decode(unsigned char *buf, size_t len)
    return j;
 }
 
-size_t mqtt_encode(unsigned char *buf, size_t max, j_t j)
+size_t mqtt_encode(unsigned char *tx, size_t max, const char *topic, j_t j)
 {
-   // TODO
-   return 0;
+   // Make publish
+   unsigned int txp = 0;
+   tx[txp++] = 0x30;            // Not dup, qos=0, no retain
+   tx[txp++] = 0;               // Len TBA
+   tx[txp++] = 0;
+   unsigned int l = strlen(topic ? : "");
+   if (txp + l > max)
+      return 0;
+   tx[txp++] = (l >> 8);
+   tx[txp++] = l;
+   if (l)
+      memcpy(tx + txp, topic, l);
+   txp += l;
+   // QoS 0 so not packet ID
+   size_t len = 0;
+   char *buf = NULL;
+   if (j && !j_isnull(j) && j_write_mem(j, &buf, &len))
+      return 0;
+   if (txp + len > max)
+   {
+      free(buf);
+      return 0;
+   }
+   if (len)
+      memcpy(tx + txp, buf, len);
+   txp += len;
+   free(buf);
+   // Store len
+   tx[1] = ((txp - 3) & 0x7F) + 0x80;
+   tx[2] = ((txp - 3) >> 7);
+   return txp;
 }
 
 size_t mqtt_login(unsigned char *buf, size_t max)

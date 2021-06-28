@@ -101,19 +101,22 @@ int main(int argc, const char *argv[])
       j_store_string(meta, "pending", pending);
    if (debug)
       j_err(j_write_pretty(j, stderr));
-   j_err(j_write_mem(j, &json, NULL));
-   j_delete(&j);
 
-   j = j_create();
-   const char *fail = j_read_file(j, CONFIG_MSG_KEY_FILE);
-   if (fail)
-      fail = j_read_file(j, "../" CONFIG_MSG_KEY_FILE); // Gets run from www dir
-   if (fail)
-      errx(1, "Cannot read keys %s", CONFIG_MSG_KEY_FILE);
-   const char *cacert = strdup(j_get(j, "ca.cert") ? : "");
-   const char *msgkey = strdup(j_get(j, "msg.key") ? : "");
-   const char *msgcert = strdup(j_get(j, "msg.cert") ? : "");
-   j_delete(&j);
+   const char *cacert = NULL,
+       *msgkey = NULL,
+       *msgcert = NULL;
+   {                            // Get security
+      j_t j = j_create();
+      const char *fail = j_read_file(j, CONFIG_MSG_KEY_FILE);
+      if (fail)
+         fail = j_read_file(j, "../" CONFIG_MSG_KEY_FILE);      // Gets run from www dir
+      if (fail)
+         errx(1, "Cannot read keys %s", CONFIG_MSG_KEY_FILE);
+      cacert = strdup(j_get(j, "ca.cert") ? : "");
+      msgkey = strdup(j_get(j, "msg.key") ? : "");
+      msgcert = strdup(j_get(j, "msg.cert") ? : "");
+      j_delete(&j);
+   }
 
    int sock = -1;
  struct addrinfo base = { ai_family: AF_UNSPEC, ai_socktype:SOCK_STREAM };
@@ -198,34 +201,10 @@ int main(int argc, const char *argv[])
       if (len < 4 || *buf != 0x20 || buf[1] != 2)
          errx(1, "Bad reply to connect %d", (int) len);
    }
-   unsigned short id = time(0);
    {                            // Send message
-      int tlen = strlen(topic);
-      int plen = strlen(json);
-      if (tlen + plen + 7 > 2000)
-         errx(1, "Message too long");
-      unsigned char *buf = malloc(tlen + plen + 7),
-          *b = buf;
-      *b++ = 0x32;              // QoS 1
-      *b++ = 0;                 // Len
-      *b++ = 0;
-      *b++ = (tlen >> 8);       // Topic
-      *b++ = tlen;
-      memcpy(b, topic, tlen);
-      b += tlen;
-      *b++ = (id >> 8);         // ID
-      *b++ = id;
-      memcpy(b, json, plen);
-      b += plen;
-      buf[1] = ((b - buf - 3) & 0x7F) + 0x80;
-      buf[2] = ((b - buf - 3) >> 7);
-      SSL_write(ssl, buf, b - buf);
-   }
-   {                            // Wait confirmation
-      unsigned char buf[100];
-      size_t len = SSL_read(ssl, buf, sizeof(buf));
-      if (len < 4 || *buf != 0x40 || buf[1] != 2 || (buf[2] << 8) + buf[3] != id)
-         errx(1, "Bad reply to message %d %02X %02X %02X %02X %04X", (int) len, buf[0], buf[1], buf[2], buf[3], id);
+      unsigned char buf[2000];
+      int len = mqtt_encode(buf, sizeof(buf), topic, j);
+      SSL_write(ssl, buf, len);
    }
    {                            // Wait reply
       unsigned char buf[1000];

@@ -458,34 +458,9 @@ const char *mqtt_send(long long instance, const char *prefix, const char *suffix
       if ((!prefix && !(topic = strdup(""))) || (prefix && asprintf(&topic, "%s/SS/*%s%s", prefix, suffix ? "/" : "", suffix ? : "") < 0))
          return "malloc";
 
-      // TODO encode
-
-      // Make publish
       uint8_t tx[2048];         // Sane limit
-      unsigned int txp = 0;
-      tx[txp++] = 0x30;         // Not dup, qos=0, no retain
-      tx[txp++] = 0;            // Len TBA
-      tx[txp++] = 0;
-      unsigned int l = strlen(topic);
-      if (txp + l > sizeof(tx))
-         return "Topic too big";
-      tx[txp++] = (l >> 8);
-      tx[txp++] = l;
-      if (l)
-         memcpy(tx + txp, topic, l);
-      txp += l;
-      // QoS 0 so not packet ID
-      size_t len = 0;
-      if (j && j_write_mem(j, &buf, &len))
-         return "Bad JSON make";
-      if (txp + len > sizeof(tx))
-         return "Payload too big";
-      if (len)
-         memcpy(tx + txp, buf, len);
-      txp += len;
-      // Store len
-      tx[1] = ((txp - 3) & 0x7F) + 0x80;
-      tx[2] = ((txp - 3) >> 7);
+      unsigned int txp = mqtt_encode(tx,sizeof(tx),topic,j);;
+
       pthread_mutex_lock(&slot_mutex);
       if (slots[instance % MAXSLOTS].instance != instance)
       {
