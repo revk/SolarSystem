@@ -251,6 +251,6 @@ void *fobcommand(void *arg)
          mqtt_send(f.local, NULL, 0, NULL);     // Close local
    }
    warnx("Ended fobcommand");
-   close(sock);
+   //close(sock);
    return NULL;
 }
