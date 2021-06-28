@@ -34,6 +34,7 @@ const char *mqttkey = "",
 
 extern int sqldebug;
 int dump = 0;                   // dump level debug
+int mqttdump =0 ; // mqtt logging
 
 char *makeaes(SQL * sqlkeyp, const char *aid, const char *fob, const char *ver)
 {                               // Make an new AES and return AES string (malloc'd)
@@ -118,7 +119,7 @@ const char *settings(SQL * sqlp, SQL_RES * res, long long instance)
       SQL_RES *p = sql_safe_query_store_free(sqlp, sql_printf("SELECT * FROM `pcb` WHERE `pcb`=%d", pcb));
       if (sql_fetch_row(p))
       {
-#define set(n) {const char *v=sql_colz(p,#n);if(!strcmp(v,"-"))v="";j_store_string(j,#n,v);}
+#define set(n) {const char *v=sql_colz(p,#n);if(!strcmp(v,"-"))j_store_string(j,#n,""); else j_store_literal(j,#n,v);}
          set(tamper);
          set(blink);
          set(nfctx);
@@ -138,7 +139,7 @@ const char *settings(SQL * sqlp, SQL_RES * res, long long instance)
       j_t input = j_store_array(j, "input");
       j_t output = j_store_array(j, "output");
       j_t power = j_store_array(j, "power");
-      SQL_RES *g = sql_safe_query_store_free(sqlp, sql_printf("SELECT * FROM `devicegpio` WHERE `device`=%#s", sql_col(res, "device")));
+      SQL_RES *g = sql_safe_query_store_free(sqlp, sql_printf("SELECT * FROM `devicegpio` LEFT JOIN `gpio` USING (`gpio`) WHERE `device`=%#s", sql_col(res, "device")));
       while (sql_fetch_row(g))
       {
          const char *type = sql_colz(g, "type");
@@ -163,17 +164,27 @@ const char *settings(SQL * sqlp, SQL_RES * res, long long instance)
          }
          if (gpio)
          {
-            j_store_string(gpio, "gpio", sql_colz(g, "pin"));
-            void addstate(const char *state) {
-               const char *areas = sql_colz(g, state);
-               if (*areas)
-               {
-                  j_store_string(gpio, state, areas);
-               }
+            const char *pin = sql_colz(g, "pin");
+            int invert = (*sql_colz(g, "invert") == 't');
+            if (*pin == '-')
+            {
+               pin++;
+               invert = 1 - invert;
             }
+            if (*pin)
+            {
+               j_store_literalf(gpio, "gpio", "%s%s", (invert ? "-" : ""), pin);
+               void addstate(const char *state) {
+                  const char *areas = sql_colz(g, state);
+                  if (*areas)
+                  {             // TODO do we allow commas?
+                     j_store_string(gpio, state, areas);
+                  }
+               }
 #define i(n) addstate(#n);
 #define s(n) i(n)
 #include "ESP32/main/states.m"
+            }
          }
       }
       sql_free_result(g);
@@ -208,6 +219,7 @@ int main(int argc, const char *argv[])
       const struct poptOption optionsTable[] = {
          { "debug", 'v', POPT_ARG_NONE, &sqldebug, 0, "Debug", NULL },
          { "dump", 'V', POPT_ARG_NONE, &dump, 0, "Debug dump", NULL },
+         { "mqtt", 'm', POPT_ARG_NONE, &mqttdump, 0, "Debug mqtt", NULL },
          POPT_AUTOHELP { }
       };
       optCon = poptGetContext(NULL, argc, argv, optionsTable, 0);
@@ -222,7 +234,7 @@ int main(int argc, const char *argv[])
       }
       poptFreeContext(optCon);
    }
-   if (!sqldebug)
+   if (!sqldebug&&!mqttdump&&!dump)
       daemon(1, 1);
    // Get started
    signal(SIGPIPE, SIG_IGN);    // Don't crash on pipe errors
@@ -290,7 +302,7 @@ int main(int argc, const char *argv[])
       int f = open(CONFIG_KEYS_FILE, O_CREAT | O_WRONLY, 0400);
       if (f < 0)
          err(1, "Cannot make %s", CONFIG_KEYS_FILE);
-      j_err(j_write_fd(j, f));
+      if(mqttdump)j_err(j_write_fd(j, f));
       close(f);
       j_delete(&j);
       unlink(CONFIG_MSG_KEY_FILE);
@@ -410,6 +422,23 @@ int main(int argc, const char *argv[])
                else
                   mqtt_send(instance, v, suffix, &j);
                return fail;
+            } else if (j_find(meta, "fobadopt"))
+            {
+               int txsock;
+               slot_t *s = mqtt_slot(&txsock);
+               if (!s)
+                  return "Link failed";
+               slot_link(instance, s);
+               j_t init = j_create();
+               j_store_true(init, "adopt");
+               j_store_int(init, "instance", instance);
+               j_store_int(init, "socket", txsock);
+               j_store_int(init, "fob", j_get(meta, "fobadopt"));
+               j_store_int(init, "aid", j_get(j, "fobadopt"));
+               pthread_t t;
+               if (pthread_create(&t, NULL, fobcommand, init))
+                  err(1, "Cannot create fob adopt thread");
+               pthread_detach(t);
             } else if (j_find(meta, "fobprovision"))
             {
                int txsock;
@@ -417,12 +446,14 @@ int main(int argc, const char *argv[])
                if (!s)
                   return "Link failed";
                slot_link(instance, s);
-               j_t j = j_create();
-               j_store_int(j, "instance", instance);
-               j_store_int(j, "socket", txsock);
+               j_t init = j_create();
+               j_store_true(init, "provision");
+               j_store_int(init, "instance", instance);
+               j_store_int(init, "socket", txsock);
+               j_store_int(init, "device", j_get(j, "fobprovision"));
                pthread_t t;
-               if (pthread_create(&t, NULL, fobcommand, j))
-                  err(1, "Cannot create fobcommand thread");
+               if (pthread_create(&t, NULL, fobcommand, init))
+                  err(1, "Cannot create fob provision thread");
                pthread_detach(t);
             } else
                return "Unknown local request";

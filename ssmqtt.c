@@ -31,6 +31,7 @@ extern const char *mqttkey;
 extern const char *mqttcert;
 extern int sqldebug;
 extern int dump;
+extern int mqttdump;
 SSL_CTX *ctx = NULL;
 
 #define	MAXSLOTS	65536
@@ -71,7 +72,7 @@ static void *server(void *arg)
       strncpy(address, j_get(j, "address") ? : "", sizeof(address));
       j_delete(&j);
    }
-   if (sqldebug)
+   if (mqttdump)
       warnx("Connect from %s", address);
 
    int txsock = -1;             // Rx socket
@@ -132,7 +133,6 @@ static void *server(void *arg)
          mqtt_topic(j, NULL, 0);
          if (!message && (strcmp(j_get(meta, "prefix") ? : "", "state") || j_find(meta, "suffix")))
          {                      // First message has to be system state message, else ignore
-            j_err(j_write_pretty(j, stderr));
             warnx("Unexpected initial message from %s %s", address, device);
             j_delete(&j);
             return;             // Not sent
@@ -335,7 +335,7 @@ static void *server(void *arg)
    close(txsock);
    if (fail)
       warnx("Fail from %s (%s)", address, fail);
-   if (sqldebug)
+   if (mqttdump)
       warnx("Closed from %s", address);
    SSL_shutdown(ssl);
    SSL_free(ssl);
@@ -457,6 +457,9 @@ const char *mqtt_send(long long instance, const char *prefix, const char *suffix
    const char *process(void) {
       if ((!prefix && !(topic = strdup(""))) || (prefix && asprintf(&topic, "%s/SS/*%s%s", prefix, suffix ? "/" : "", suffix ? : "") < 0))
          return "malloc";
+
+      // TODO encode
+
       // Make publish
       uint8_t tx[2048];         // Sane limit
       unsigned int txp = 0;
@@ -495,8 +498,14 @@ const char *mqtt_send(long long instance, const char *prefix, const char *suffix
          return "Failed to send";
       }
       pthread_mutex_unlock(&slot_mutex);
-      if (sqldebug)
-         fprintf(stderr, "Send to %lld: %s %s\n", instance, topic, buf);
+      if (mqttdump)
+      {
+	      mqtt_topic(j,topic,-1);
+	      j_int(j_path(j,"_meta.instance"),instance);
+         fprintf(stderr, ">:");
+         j_err(j_write(j, stderr));
+         fprintf(stderr, "\n");
+      }
       return NULL;
    }
    if (buf)
@@ -513,8 +522,15 @@ const char *mqtt_send(long long instance, const char *prefix, const char *suffix
 
 void mqtt_qin(j_t * jp)
 {                               // Queue incoming
+   j_t j = *jp;
+   if (mqttdump)
+   {
+      fprintf(stderr, "<:");
+      j_err(j_write(j, stderr));
+      fprintf(stderr, "\n");
+   }
    rxq_t *q = malloc(sizeof(*q));
-   q->j = *jp;
+   q->j = j;
    *jp = NULL;
    q->next = NULL;
    pthread_mutex_lock(&rxq_mutex);

@@ -66,15 +66,15 @@ xmlsql -d "$DB" head.html - foot.html << END
 <if not found><p>No devices found.</p></if>
 </if><if else>
 <form method=post action=/editdevice.cgi><input type=hidden name=device>
-<sql select="*,pcb.description AS D" table="device LEFT JOIN pcb USING (pcb)" WHERE="device='\$device'">
+<sql table=device KEY=device>
 <table>
 <tr><td>Name</td><td><input name=description ize=40 autofocus></td></tr>
 <tr><td>Last only</td><td><if online><output name=online></if><if else>Last online <output name=lastonline missing="never"></if></td></tr>
-<tr><td>PCB</td><td><output name=D></td></tr>
-<if not nfctx=='-'><tr><td>Area</td><td><sql table=area where="site=\$site"><label for=\$area><output name=area>:</label><input id=\$area name=doorarea type=checkbox></sql></td></tr></if>
+<tr><td>PCB</td><td><sql table=pcb where="pcb=\$pcb"><output name=description></sql></td></tr>
+<if not nfctx=='-'><tr><td>Area</td><td><sql table=area where="site=\$site"><label for=\$tag><output name=tag>:</label><input id=\$tag name=area type=checkbox></sql></td></tr></if>
 <if not nfctx=='-'><tr><td>AID</td><td><select name=aid><sql table=aid where="organisation=$SESSION_ORGANISATION"><option value="\$aid"><output name=description></option></sql></select></td></tr></if>
 <if not nfctx=='-'><tr><td><label for doorauto>Door control</label></td><td><input type=checkbox id=doorauto name=doorauto value=true></td></tr></if>
-<sql table="device LEFT JOIN pcb USING (pcb) LEFT JOIN gpio USING (pcb) LEFT JOIN devicegpio ON (devicegpio.device=device.device AND devicegpio.gpio=gpio.gpio)" WHERE="device.device='\$device'">
+<sql table="device JOIN gpio USING (pcb) LEFT JOIN devicegpio ON (devicegpio.device=device.device AND devicegpio.gpio=gpio.gpio)" WHERE="device.device='\$device'">
 <tr><td><output name=pinname href="/editgpio.cgi/\$device/\$gpio"></td>
 <if type><td><b><output name=type $GPIOTYPEOUT><if invert=true> (inverted)</if></b><for space S="$STATELIST"><if not "\$S"=''> <output name=S></if></for></td></if>
 <if not type><td><b><output name=io $GPIOIOOUT></td></if>
