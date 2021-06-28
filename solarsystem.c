@@ -471,7 +471,7 @@ int main(int argc, const char *argv[])
                mqtt_close_slot(instance);
             }
             if (j_find(meta, "provision"))
-               sql_safe_query_store(&sqlkey, sql_printf("REPLACE INTO `AES` SET `fob`=%#s,`ver`='01',`key`=%#s", j_get(j, "fob"), j_get(j, "key")));
+               sql_safe_query_free(&sqlkey, sql_printf("REPLACE INTO `AES` SET `fob`=%#s,`ver`='01',`key`=%#s", j_get(j, "fob"), j_get(j, "key")));
             return NULL;
          }
          const char *process(void) {

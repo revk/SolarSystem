@@ -217,7 +217,7 @@ void *fobcommand(void *arg)
             {                   // Tell system new key
                j_t j = j_create();
                j_int(j_path(j, "_meta.loopback"), f.instance);
-               j_store_true(j, "_meta.provision");
+               j_true(j_path(j, "_meta.provision"));
                j_store_string(j, "fob", j_base16(sizeof(uid), uid));
                j_store_string(j, "key", j_base16(sizeof(key), key));
                mqtt_qin(&j);
@@ -245,7 +245,7 @@ void *fobcommand(void *arg)
    {                            // unlink
       j_t j = j_create();
       j_int(j_path(j, "_meta.loopback"), f.instance);
-      j_store_true(j, "_meta.close");
+      j_true(j_path(j, "_meta.close"));
       mqtt_qin(&j);
       if (f.local)
          mqtt_send(f.local, NULL, 0, NULL);     // Close local
