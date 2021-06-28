@@ -1,4 +1,4 @@
-#!../login/loggedin /bin/csh -fx
+#!../login/loggedin /bin/csh -f
 if($?PATH_INFO) then
 	setenv device "$PATH_INFO:h:t"
 	setenv gpio "$PATH_INFO:t"
@@ -18,7 +18,6 @@ endif
 done:
 echo "Content-Type: text/html"
 echo ""
-setenv XMLSQLDEBUG
 xmlsql -d "$DB" head.html - foot.html << END
 <form method=post action="/editgpio.cgi"><input name=devicegpio type=hidden>
 <sql table=area where="site=$SESSION_SITE"><IF AREAS><SET AREAS="\$AREAS "></IF><SET AREAS="\$AREAS\$area"></sql>
