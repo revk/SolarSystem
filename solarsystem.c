@@ -24,11 +24,8 @@
 #include "AJL/ajl.h"
 #include "ssmqtt.h"
 #include "sscert.h"
+#include "ssdatabase.h"
 #include "fobcommand.h"
-
-void ssdatabase(SQL *);
-void sskeydatabase(SQL *);
-void sstypes(const char *);
 
 const char *cakey = "",
     *cacert = "";
@@ -69,9 +66,11 @@ const char *security(SQL * sqlp, SQL * sqlkeyp, SQL_RES * res, long long instanc
    j_t j = j_create();
    const char *aid = sql_colz(res, "aid");
    int organisation = atoi(sql_colz(res, "organisation"));
-   int doorauto = atoi(sql_colz(res, "doorauto"));
+   const char *nfctx = sql_colz(res, "nfctx");
+   if (!strcmp(nfctx, "-"))
+      nfctx = "";
    j_t aids = j_store_array(j, "aes");
-   if (*aid && strcmp(sql_colz(res, "nfctx"), "-"))
+   if (*aid && *nfctx)
    {                            // Security
       // Keys
       SQL_RES *r = sql_safe_query_store_free(sqlkeyp, sql_printf("SELECT * FROM `AES` WHERE `aid`=%#s AND `fob` IS NULL order BY `created` DESC LIMIT 3", aid));
@@ -92,7 +91,7 @@ const char *security(SQL * sqlp, SQL * sqlkeyp, SQL_RES * res, long long instanc
       aid = "";                 // We have not loaded any keys so no point in even trying an AID
    j_store_string(j, "aid", aid);
    j_t blacklist = j_store_array(j, "blacklist");
-   if (*aid && doorauto >= 3)
+   if (*aid)
    {
       SQL_RES *b = sql_safe_query_store_free(sqlp, sql_printf("SELECT * FROM `foborganisation` LEFT JOIN `fobaid` USING (`fob`) WHERE `organisation`=%d AND `aid`=%#s AND `blocked` IS NOT NULL AND `confirmed` IS NULL ORDER BY `blocked` DESC LIMIT 10", organisation, aid));
       while (sql_fetch_row(b))
@@ -108,11 +107,11 @@ const char *security(SQL * sqlp, SQL * sqlkeyp, SQL_RES * res, long long instanc
 const char *settings(SQL * sqlp, SQL_RES * res, long long instance)
 {                               // Send base settings
    j_t j = j_create();
-   int doorauto = atoi(sql_colz(res, "doorauto"));
+   int doorauto = (*sql_colz(res, "doorauto") == 't');
    if (*CONFIG_OTA_HOSTNAME)
       j_store_string(j, "otahost", CONFIG_OTA_HOSTNAME);
    j_store_string(j, "name", sql_colz(res, "description"));
-   j_store_int(j, "doorauto", doorauto);
+   j_store_int(j, "doorauto", doorauto ? 5 : 0);
    int pcb = atoi(sql_colz(res, "pcb"));
    if (pcb)
    {                            // Main PCB settings
@@ -164,7 +163,7 @@ const char *settings(SQL * sqlp, SQL_RES * res, long long instance)
          }
          if (gpio)
          {
-            j_store_string(gpio, "gpio", sql_colz(g, "gpio"));
+            j_store_string(gpio, "gpio", sql_colz(g, "pin"));
             void addstate(const char *state) {
                const char *areas = sql_colz(g, state);
                if (*areas)
@@ -532,7 +531,7 @@ int main(int argc, const char *argv[])
                   }
                } else           // pending
                   sql_safe_query_free(&sql, sql_printf("DELETE FROM `pending` WHERE `instance`=%lld", instance));
-               mqtt_close_slot(i);
+               mqtt_close_slot(instance);
                return NULL;
             }
             if (prefix && !strcmp(prefix, "state"))

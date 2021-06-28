@@ -24,6 +24,7 @@ static const char *port_inuse[MAX_PORT];
 #define settings  	\
   	io(tamper) 	\
 	s(name)		\
+	area(area)	\
 
 #define io(n) static uint8_t n;
 #define area(n) area_t n;

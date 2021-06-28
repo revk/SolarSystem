@@ -34,7 +34,6 @@ uint8_t afile[256];             // Access file saved
 
 #define settings  \
   u8(doorauto,0);   \
-  area(doorarea)      \
   u32(doorunlock,1000); \
   u32(doorlock,3000); \
   u32(dooropen,5000); \

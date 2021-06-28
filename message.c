@@ -28,6 +28,7 @@ int main(int argc, const char *argv[])
    const char *pending = NULL;
    const char *topic = "";
    const char *command = NULL;
+   const char *fobcommand = NULL;
    const char *provision = NULL;
    const char *deport = NULL;
    int debug = 0;
@@ -36,6 +37,7 @@ int main(int argc, const char *argv[])
    {                            // POPT
       poptContext optCon;       // context for parsing command-line options
       const struct poptOption optionsTable[] = {
+         { "fobcommand", 0, POPT_ARG_STRING, &fobcommand, 0, "Fob command", "tag" },
          { "command", 0, POPT_ARG_STRING, &command, 0, "Command", "tag" },
          { "settings", 0, POPT_ARG_NONE, &setting, 0, "Setting", NULL },
          { "provision", 0, POPT_ARG_STRING, &provision, 0, "Provision", "deviceid" },
@@ -73,6 +75,8 @@ int main(int argc, const char *argv[])
       j_store_string(meta, "provision", provision);
    if (deport)
       j_store_string(meta, "deport", deport);
+   if (fobcommand)
+      j_store_string(meta, "fobcommand", fobcommand);
    if (command)
    {
       j_store_string(meta, "prefix", "command");
@@ -218,8 +222,8 @@ int main(int argc, const char *argv[])
       size_t len = SSL_read(ssl, buf, sizeof(buf));
       if (len < 2 && *buf != 0x30)
          errx(1, "Bad reply");
-      j_t j=mqtt_decode(buf,len);
-      if(!j)errx(1,"Bad reply");
+      j_t j = mqtt_decode(buf, len);
+      mqtt_dataonly(j);
       if (!j_isnull(j))
       {
          ret = 1;

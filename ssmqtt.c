@@ -67,7 +67,7 @@ static void *server(void *arg)
       j_t j = arg;
       sock = atoi(j_get(j, "socket") ? : "");
       if (!sock)
-         errx(1, "socket not set");
+         errx(1, "server socket not set");
       strncpy(address, j_get(j, "address") ? : "", sizeof(address));
       j_delete(&j);
    }
@@ -129,31 +129,7 @@ static void *server(void *arg)
          if (*device)
             j_store_string(meta, "device", device);
          j_store_string(meta, "address", address);
-         const char *topic = j_get(meta, "topic");
-         if (topic)
-         {
-            int n;
-            for (n = 0; topic[n] && topic[n] != '/'; n++);
-            if (topic[n])
-            {
-               j_store_stringn(meta, "prefix", topic, n);
-               n++;
-               while (topic[n] && topic[n] != '/')
-                  n++;          // SS
-               if (topic[n])
-               {
-                  n++;
-                  while (topic[n] && topic[n] != '/')
-                     n++;       // ID
-                  if (topic[n])
-                  {
-                     n++;
-                     if (topic[n])
-                        j_store_string(meta, "suffix", topic + n);
-                  }
-               }
-            }
-         }
+         mqtt_topic(j, NULL, 0);
          if (!message && (strcmp(j_get(meta, "prefix") ? : "", "state") || j_find(meta, "suffix")))
          {                      // First message has to be system state message, else ignore
             j_err(j_write_pretty(j, stderr));
@@ -574,11 +550,15 @@ slot_t *mqtt_slot(int *txsockp)
    slot->linked = 0;
    slotcount++;
    pthread_mutex_unlock(&slot_mutex);
+   if (sqldebug)
+      warnx("Open %lld, slot count %d", instance, slotcount);
    return slot;
 }
 
 void mqtt_close_slot(long long instance)
 {
+   if (!instance)
+      errx(1, "Closing instance 0?");
    slot_t *slot = &slots[instance % MAXSLOTS];
    pthread_mutex_lock(&slot_mutex);
    if (slot->instance == instance)
@@ -595,6 +575,8 @@ void mqtt_close_slot(long long instance)
 
 void slot_link(long long instance, slot_t * target)
 {
+   if (!instance)
+      errx(1, "Linking instance 0?");
    slot_t *slot = &slots[instance % MAXSLOTS];
    pthread_mutex_lock(&slot_mutex);
    if (slot->instance == instance)

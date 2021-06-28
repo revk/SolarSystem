@@ -13,6 +13,7 @@ typedef unsigned int uint32_t;
 #include <err.h>
 #include "SQLlib/sqllib.h"
 #include "ESP32/main/areas.h"
+#include "ssdatabase.h"
 
 void sstypes(const char *fn)
 {                               // Create script types file
@@ -107,15 +108,6 @@ void sstypes(const char *fn)
    start("GPIOIOPICK");
 #define io(g,t) pick(#g,#t);
 #include "types.m"
-   start("DOORAUTOLIST");
-#define d(n,t) list(#n);
-#include "doorauto.m"
-   start("DOORAUTOOUT");
-#define d(n,t) out(#n,#t);
-#include "doorauto.m"
-   start("DOORAUTOPICK");
-#define d(n,t) pick(#n,#t);
-#include "doorauto.m"
    start("AREALIST");
    for (char *a = AREAS; *a; a++)
       if (*a != '-')
@@ -193,7 +185,7 @@ void ssdatabase(SQL * sqlp)
          return;                // Exists - we are not updating type for now
       int l = 0;
 #define table(n,len) if(!strcmp(name,#n))l=len;
-#include "ssdatabase.h"
+#include "ssdatabase.m"
       warnx("Creating link %s/%s", tablename, name);
       if (l)
          sql_safe_query_free(sqlp, sql_printf("ALTER TABLE `%#S` ADD `%#S` char(%d) DEFAULT NULL", tablename, name, l));
@@ -322,7 +314,7 @@ void ssdatabase(SQL * sqlp)
    sql_transaction(sqlp);
 #define table(n,l)	create(#n,l);   // Make tables first
 #define join(a,b)	join(#a#b,#a,#b);
-#include "ssdatabase.h"
+#include "ssdatabase.m"
 #define table(n,l)	getrows(#n);getdefs(#n);        // Get table info
 #define	join(a,b)	getrows(#a#b);getdefs(#a#b);
 #define link(n)		link(#n);       // Foreign key
@@ -337,14 +329,14 @@ void ssdatabase(SQL * sqlp)
 #define	bool(n)		field(#n,"enum('false','true')","'false'");
 #define	areas(n)	field(#n,areastype,"''");
 #define	area(n)		field(#n,areatype,"'A'");
-#include "ssdatabase.h"
+#include "ssdatabase.m"
 #define table(n,l)	getdefs(#n);    // Get table info
 #define join(a,b)	getdefs(#a#b);foreign(#a);foreign(#b);  // Get table info
 #define link(n)		foreign(#n);    // Foreign key
 #define unique(a,b)	unique(#a,#b);  // Make extra keys
 #define key(n,l)	key(#n,l);      // Make extra key
 #define index(n)	index(#n);      // Make extra index
-#include "ssdatabase.h"
+#include "ssdatabase.m"
    endtable();
    sql_safe_commit(sqlp);
 }

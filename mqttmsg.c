@@ -1,6 +1,56 @@
 // MQTT message formatting
-//
+
+#include <string.h>
 #include "AJL/ajl.h"
+#include "mqttmsg.h"
+
+void mqtt_topic(j_t j, const char *topic, int tlen)
+{                               // Break down _meta.topic in to prefix and suffix (optionally store it too)
+   if (!j)
+      return;
+   j_t meta = j_path(j, "_meta");
+   if (topic)
+   {
+      if (tlen < 0)
+         j_store_string(meta, "topic", topic);
+      else
+         j_store_stringn(meta, "topic", topic, tlen);
+   }
+   topic = j_get(meta, "topic");
+   if (!topic)
+      return;
+   int n;
+   for (n = 0; topic[n] && topic[n] != '/'; n++);
+   if (topic[n])
+   {
+      j_store_stringn(meta, "prefix", topic, n);
+      n++;
+      while (topic[n] && topic[n] != '/')
+         n++;                   // SS
+      if (topic[n])
+      {
+         n++;
+         while (topic[n] && topic[n] != '/')
+            n++;                // ID
+         if (topic[n])
+         {
+            n++;
+            if (topic[n])
+               j_store_string(meta, "suffix", topic + n);
+         }
+      }
+   }
+}
+
+void mqtt_dataonly(j_t j)
+{                               // Remove meta
+   j_t meta = j_find(j, "_meta");
+   if (meta)
+      j_delete(&meta);
+   j_t data = j_find(j, "_data");
+   if (data)
+      j_replace(j, &data);
+}
 
 j_t mqtt_decode(unsigned char *buf, size_t len)
 {                               // Decode and MQTT message, return JSON payload, with topic in _meta.topic
@@ -35,21 +85,23 @@ j_t mqtt_decode(unsigned char *buf, size_t len)
    }
    int plen = len - (b - buf);
    j_t j = j_create();
-   const char *fail = j_read_mem(j, (char *) b, plen);
-   if (fail)
+   if (plen)
    {
-      warnx("Parse error %s %.*s", fail, plen, b);
-      j_delete(&j);
-      return NULL;
+      const char *fail = j_read_mem(j, (char *) b, plen);
+      if (fail)
+      {
+         warnx("Parse error %s %.*s", fail, plen, b);
+         j_delete(&j);
+         return NULL;
+      }
    }
-   if (!j_isobject(j) && !j_isnull(j))
+   if (!j_isobject(j))
    {
       j_t n = j_create();
       j_store_json(n, "_data", &j);
       j = n;
    }
-   if (tlen)
-      j_stringn(j_path(j, "_meta.topic"), topic, tlen);
+   mqtt_topic(j, topic, tlen);
    if (qos)
    {
       j_int(j_path(j, "_meta.id"), id);
@@ -64,10 +116,12 @@ j_t mqtt_decode(unsigned char *buf, size_t len)
 
 size_t mqtt_encode(unsigned char *buf, size_t max, j_t j)
 {
+   // TODO
    return 0;
 }
 
 size_t mqtt_login(unsigned char *buf, size_t max)
 {
+   // TODO
    return 0;
 }

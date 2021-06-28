@@ -26,7 +26,7 @@ if($?DELETE || $?FACTORY) then
 	else
 		setenv MSG `message --device="$device" --command=restart`
 	endif
-	sql "DB" 'DELETE FROM devicegpio WHERE device=$device'
+	sql "$DB" 'DELETE FROM devicegpio WHERE device=$device'
 	setenv C `sql -c "$DB" 'DELETE FROM device WHERE device=$device'`
 	if("$C" == "" || "$C" == "0") then
 		setenv MSG "Cannot delete as in use"
@@ -37,6 +37,7 @@ if($?DELETE || $?FACTORY) then
 	goto done
 endif
 if($?description) then # save
+	if(! $?doorauto) setenv doorauto false
 	sqlwrite -o -n "$DB" device description doorarea doorauto aid
 	setenv MSG Updated
 	unsetenv device
@@ -72,10 +73,11 @@ xmlsql -d "$DB" head.html - foot.html << END
 <tr><td>PCB</td><td><output name=D></td></tr>
 <if not nfctx=='-'><tr><td>Area</td><td><sql table=area where="site=\$site"><label for=\$area><output name=area>:</label><input id=\$area name=doorarea type=checkbox></sql></td></tr></if>
 <if not nfctx=='-'><tr><td>AID</td><td><select name=aid><sql table=aid where="organisation=$SESSION_ORGANISATION"><option value="\$aid"><output name=description></option></sql></select></td></tr></if>
-<if not nfctx=='-'><tr><td>Door control</td><td><select name=doorauto>$DOORAUTOPICK</select><output name=nfxtx></td></tr></if>
-<sql table="device LEFT JOIN devicegpio USING (device) LEFT JOIN pcbgpio ON (device.pcb=pcbgpio.pcb AND devicegpio.gpio=pcbgpio.gpio)" WHERE="device='\$device'">
-<tr><td><output name=pinname href="/editgpio.cgi/\$devicegpio"></td>
-<td><b><output name=type $GPIOTYPEOUT><if invert=true> (inverted)</if></b><for space S="$STATELIST"><if not "\$S"=''> <output name=S></if></for></td>
+<if not nfctx=='-'><tr><td><label for doorauto>Door control</label></td><td><input type=checkbox id=doorauto name=doorauto value=true></td></tr></if>
+<sql table="device LEFT JOIN pcb USING (pcb) LEFT JOIN gpio USING (pcb) LEFT JOIN devicegpio ON (devicegpio.device=device.device AND devicegpio.gpio=gpio.gpio)" WHERE="device.device='\$device'">
+<tr><td><output name=pinname href="/editgpio.cgi/\$device/\$gpio"></td>
+<if type><td><b><output name=type $GPIOTYPEOUT><if invert=true> (inverted)</if></b><for space S="$STATELIST"><if not "\$S"=''> <output name=S></if></for></td></if>
+<if not type><td><b><output name=io $GPIOIOOUT></td></if>
 </tr>
 </sql>
 </table>

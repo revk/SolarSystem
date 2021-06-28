@@ -13,7 +13,7 @@ if($?PROVISION) then
 	sql "$DB" 'DELETE FROM devicegpio WHERE device="$PROVISION"'
 	sql "$DB" 'DELETE FROM device WHERE device="$PROVISION"'
 	sql "$DB" 'INSERT INTO device SET device="$PROVISION",pcb="$pcb",site="$SESSION_SITE",aid="$aid"'
-	sql "$DB" 'INSERT INTO devicegpio (device,gpio,type) SELECT "$PROVISION",gpio,init FROM pcbgpio WHERE pcb=$pcb AND init<>"-"'
+	sql "$DB" 'INSERT INTO devicegpio (device,gpio,type) SELECT "$PROVISION",gpio,init FROM gpio WHERE pcb=$pcb AND init<>"-"'
 	if("$authenticated" == "true")then
 		setenv MSG `message --pending="$PROVISION" --command="restart"`
 	else

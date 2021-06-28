@@ -1,0 +1,4 @@
+#!/bin/csh -f
+# Save some fields
+mysqldump -t --compact -c SS user organisation class pcb gpio
+

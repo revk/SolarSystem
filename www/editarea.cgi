@@ -8,9 +8,9 @@ if($?AREAA) then #save
 		setenv A "$a"
 		setenv D `printenv "AREA$A"`
 		if("$D" == "") then
-			sql "$DB" 'DELETE FROM area WHERE site=$SESSION_SITE AND area="$A"'
+			sql "$DB" 'DELETE FROM area WHERE site=$SESSION_SITE AND tag="$A"'
 		else
-			sql "$DB" 'REPLACE INTO area SET  site=$SESSION_SITE,area="$A",description="$D"'
+			sql "$DB" 'REPLACE INTO area SET  site=$SESSION_SITE,tag="$A",description="$D"'
 		endif
 	end
 	echo "Location: $ENVCGI_SERVER?MSG=Updated"
@@ -24,7 +24,7 @@ echo ""
 xmlsql -d "$DB" head.html - foot.html << END
 <form method=post>
 <table>
-<sql table=area WHERE="site=$SESSION_SITE"><set "AREA\$area"="\$description"></sql>
+<sql table=area WHERE="site=$SESSION_SITE"><set "AREA\$tag"="\$description"></sql>
 <for space A="$AREALIST">
 <tr>
 <td><output name=A></td>

@@ -21,18 +21,18 @@ if($?description) then # save
 		setenv pcb `sql -i "$DB" 'INSERT INTO pcb SET pcb=0'`
 	endif
 	sqlwrite "$DB" pcb
-	set pcbgpio=(`printenv pcbgpio|sed 's/[^0-9 	]//g'`)
-	set gpio=(`printenv gpio|sed 's/[^-0-9 	]//g'`)
-	set type=(`printenv type|sed 's/[^-0-9A-Z 	]//g'`)
+	set gpio=(`printenv gpio|sed 's/[^0-9 	]//g'`)
+	set pin=(`printenv pin|sed 's/[^-0-9 	]//g'`)
+	set io=(`printenv io|sed 's/[^-0-9A-Z 	]//g'`)
 	set init=(`printenv init|sed 's/[^-0-9A-Z 	]//g'`)
 	set changed=0
 	setenv set ""
-	foreach n ($pcbgpio)
+	foreach n ($gpio)
 	setenv n "$n"
-	setenv g "$gpio[1]"
-	shift gpio
-	setenv t "$type[1]"
-	shift type
+	setenv g "$pin[1]"
+	shift pin
+	setenv t "$io[1]"
+	shift io
 	setenv i "$init[1]"
 	shift init
 	if("$n" == "0") then
@@ -41,18 +41,19 @@ if($?description) then # save
 				setenv MSG "Specify pin name"
 				goto done
 			endif
-			@ changed = $changed + `sql -c "$DB" 'INSERT INTO pcbgpio SET pcb="$pcb",gpio="$g",type="$t",init="$i",pinname="$pinname"'`
+			@ changed = $changed + 1
+			set n=`sql -i "$DB" 'INSERT INTO gpio SET pcb="$pcb",pin="$g",io="$t",init="$i",pinname="$pinname"'`
 		endif
 	else
 		if("$g" == "-") then
-			@ changed = $changed + `sql -c "$DB" 'DELETE FROM pcbgpio WHERE pcbgpio="$n" AND pcb="$pcb"'`
+			@ changed = $changed + `sql -c "$DB" 'DELETE FROM gpio WHERE pin="$n" AND pcb="$pcb"'`
 		else
-			@ changed = $changed + `sql -c "$DB" 'UPDATE pcbgpio SET gpio="$g",type="$t",init="$i" WHERE pcbgpio="$n" AND pcb="$pcb" AND (gpio<>"$g" OR type<>"$t" OR init<>"$i")'`
+			@ changed = $changed + `sql -c "$DB" 'UPDATE gpio SET pin="$g",io="$t",init="$i" WHERE gpio="$n" AND pcb="$pcb" AND (pin<>"$g" OR io<>"$t" OR init<>"$i")'`
 		endif
 	endif
-	setenv set "$set,$g"
+	setenv set "$set,$n"
 	end
-	@ changed = $changed + `sql -c "$DB" 'DELETE FROM pcbgpio WHERE pcb=$pcb AND gpio NOT IN ($,set)'`
+	@ changed = $changed + `sql -c "$DB" 'DELETE FROM gpio WHERE pcb=$pcb AND gpio NOT IN ($,set)'`
 	if($changed)goto done
 	echo "Location: ${ENVCGI_SERVER}/editpcb.cgi"
 	echo ""
@@ -65,10 +66,10 @@ source ../types
 if($?PATH_INFO) then
 	setenv pcb "$PATH_INFO:t"
 endif
-unsetenv pcbgpio
 unsetenv gpio
+unsetenv pin
 unsetenv init
-unsetenv type
+unsetenv io
 unsetenv pinname
 xmlsql -d "$DB" head.html - foot.html << END
 <h1>PCB template</h1>
@@ -99,10 +100,10 @@ xmlsql -d "$DB" head.html - foot.html << END
 <tr><td><select name=nfctamper>$GPIONFCPICK</select></td><td>PN532 NFC Tamper button</td></tr>
 <tr><td><select name=nfcbell>$GPIONFCPICK</select></td><td>PN532 NFC Bell input</td></tr>
 </if>
-<sql table=pcbgpio where="pcb=\$pcb" order=type,init,pinname>
-<tr><td><input name=pcbgpio type=hidden><select name=gpio>$GPIONUMPICK</select></td><td><select name=type>$GPIOIOPICK</select><select name=init>$GPIOTYPEPICK</select> <output name=pinname></td></tr></td>
+<sql table=gpio where="pcb=\$pcb" order=io,init,pinname>
+<tr><td><input name=gpio type=hidden><select name=pin>$GPIONUMPICK</select></td><td><select name=io>$GPIOIOPICK</select><select name=init>$GPIOTYPEPICK</select> <output name=pinname></td></tr></td>
 </sql>
-<tr><td><input name=pcbgpio type=hidden value=0><select name=gpio>$GPIONUMPICK</select></td><td><select name=type>$GPIOIOPICK</select><select name=init>$GPIOTYPEPICK</select> <input name=pinname size=10 placeholder='New pin'></td></tr></td>
+<tr><td><input name=gpio type=hidden value=0><select name=pin>$GPIONUMPICK</select></td><td><select name=io>$GPIOIOPICK</select><select name=init>$GPIOTYPEPICK</select> <input name=pinname size=10 placeholder='New pin'></td></tr></td>
 </table>
 </sql>
 <input type=submit value="Update">

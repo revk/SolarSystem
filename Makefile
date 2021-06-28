@@ -32,8 +32,10 @@ update:
 	git commit -a -m "Library update"
 	git push
 	make -C login
+	make -C login/SQLlib
 	make -C SQLlib
 	make -C AJL
+	make -C DESFireAES
 
 PCBCase/case: PCBCase/case.c
 	make -C PCBCase
@@ -87,7 +89,7 @@ door.o: door.c door.h galaxybus.h Makefile
 port.o: port.c port.h galaxybus.h Makefile
 	gcc -g -Wall -Wextra -O -c -o $@ $< -I. -DLIB -pthread
 
-ssdatabase.o: ssdatabase.c ssdatabase.h config.h types.m Makefile ESP32/main/states.m
+ssdatabase.o: ssdatabase.c ssdatabase.m ssdatabase.h config.h types.m Makefile ESP32/main/states.m
 	gcc -g -Wall -Wextra -O -c -o $@ $< ${SQLINC}
 
 ssmqtt.o: ssmqtt.c ssmqtt.h Makefile

@@ -1,14 +1,15 @@
 #!../login/loggedin /bin/csh -fx
 if($?PATH_INFO) then
-	setenv devicegpio "$PATH_INFO:t"
+	setenv device "$PATH_INFO:h:t"
+	setenv gpio "$PATH_INFO:t"
 endif
-can --redirect --gpio='$devicegpio' editdevice
+can --redirect --device='$device' editdevice
 if($status) exit 0
 source ../types
 
-if($?device) then
+if($?type) then
 	if(! $?invert) setenv invert false
-	sqlwrite -v -o -n "$DB" devicegpio invert $STATELIST
+	sqlwrite -q -v -o -n "$DB" devicegpio device gpio type invert $STATELIST
 	echo "Location: ${ENVCGI_SERVER}editdevice.cgi/$device"
 	echo ""
 	exit 0
@@ -17,30 +18,31 @@ endif
 done:
 echo "Content-Type: text/html"
 echo ""
+setenv XMLSQLDEBUG
 xmlsql -d "$DB" head.html - foot.html << END
 <form method=post action="/editgpio.cgi"><input name=devicegpio type=hidden>
 <sql table=area where="site=$SESSION_SITE"><IF AREAS><SET AREAS="\$AREAS "></IF><SET AREAS="\$AREAS\$area"></sql>
-<sql select="*,pcb.description AS D"  table="devicegpio LEFT JOIN device USING (device) LEFT JOIN pcb USING (pcb) LEFT JOIN pcbgpio ON (pcb.pcb=pcbgpio.pcb and pcbgpio.gpio=devicegpio.gpio)" WHERE="devicegpio=$devicegpio">
-<input name=device type=hidden>
+<sql select="*,pcb.description AS D"  table="devicegpio LEFT JOIN device USING (device) LEFT JOIN pcb USING (pcb) LEFT JOIN gpio USING (pcb)" WHERE="device.device='\$device' AND gpio.gpio=\$gpio">
+<input name=device type=hidden><input name=gpio type=hidden>
 <table>
 <tr><td>Device</td><td><output name=description blank="Unnamed" missing="Unnamed"></td></tr>
 <tr><td>PCB</td><td><output name=D></td></tr>
-<tr><td>Type</td><td><output name=type $GPIOTYPEOUT></td></tr>
 <tr><td>GPIO</td><td><output name=pinname></td></tr>
+<tr><td>Type</td><td><output name=io $GPIOIOOUT>:<if io=I><select name=type>$GPIOTYPEPICKI</select></if><if io=O><select name=type>$GPIOTYPEPICKO</select></if><if io=IO><select name=type>$GPIOTYPEPICK</select></if></td></tr>
 <tr><td><label for=invert>Invert</label></td><td><input id=invert name=invert type=checkbox value=true></td></tr>
 </table>
 <if not type=*P>
 <if type=*O><set SL="$STATELIST"></if><if else><set SL="$STATELISTI"></if>
 <table>
 <tr><th></th><for space STATE="\$SL"><th><output name=STATE></th></for></tr>
-<for space A="\$AREAS">
+<sql table=area where="site=$SESSION_SITE" order=tag>
 <tr>
-<td><output name=A></td>
-<for space STATE="\$SL"><td><input type=checkbox name="\$STATE" value="\$A"></td></for>
-<td><sql table=area where="site=$SESSION_SITE AND area='\$A'"><output name=description></sql></td>
+<td><output name=tag></td>
+<for space STATE="\$SL"><td><input type=checkbox name="\$STATE" value="\$tag"></td></for>
+<td><output name=description></td>
 </for>
 </tr>
-</for>
+</sql>
 </table>
 </if>
 </sql>
