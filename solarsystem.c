@@ -603,6 +603,10 @@ int main(int argc, const char *argv[])
                         }
                         if (!secure)
                         {       // Consider adopting
+				if(sql_col(device,"adoptnext"))
+				{ // Create fob record if necessary, if we have a key
+					// TODO
+				}
                            SQL_RES *res = sql_safe_query_store_free(&sql, sql_printf("SELECT * FROM `fobaid` WHERE `fob`=%#s AND `aid`=%#s", fobid, aid));
                            if (sql_fetch_row(res))
                            {

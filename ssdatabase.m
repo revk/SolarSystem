@@ -144,6 +144,7 @@ link(pcb);                      // What type of device this is
 text(version, 0);               // S/w version
 bool (encryptednvs);            // Built with encrypted NVS
 bool (secureboot);              // Built with secure boot
+bool (adoptnext);		// Adopt next unknown fob seen, if possible
 num(flash);                     // Flash size
 link(aid);                      // The AID for door access (defines what site it is)
 bool (trusted);                 // Trusted device for fob provisioning
