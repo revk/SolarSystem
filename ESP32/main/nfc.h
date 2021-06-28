@@ -12,7 +12,6 @@ typedef struct {
    char id[22];                 // Initial card ID (insecure), hex null terminated
    const char *fail;            // NFC fail message
    const char *deny;            // Door system entry deny message
-   uint64_t found;              // When card last found
    uint32_t crc;                // Afile CRC
    uint32_t allow;              // Allow area
    uint32_t deadlock;           // Deadlock allow areas
@@ -47,4 +46,5 @@ typedef struct {
    uint8_t armok:1;             // Afile checks say door can be armed (when card held done)
    uint8_t armed:1;             // Door system has armed the door (deadlock)
    uint8_t remote:1;            // Normal working overridden for remote NFC
+   uint8_t release:1;            // Request we release
 } fob_t;

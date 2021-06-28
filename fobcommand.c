@@ -182,7 +182,7 @@ void *fobcommand(void *arg)
    const char *e = NULL;
    if (provision || adopt)
    {
-      slot_send(f.device, "command", "nfc", NULL);
+      slot_send(f.device, "command", "nfcremote", NULL);
       if (adopt)
          f.connected = 1;       // Already connected for adopt
       df_t d;
@@ -317,6 +317,7 @@ void *fobcommand(void *arg)
          }
 
       }
+      slot_send(f.device, "command", "nfcdone", NULL);
    }
    led(e ? "R" : "G");
    if (e)
