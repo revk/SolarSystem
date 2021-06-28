@@ -103,8 +103,8 @@ static void fobevent(void)
       if (fob.secureset)
          jo_bool(j, "secure", fob.secure);
       jo_string(j, "id", fob.id);
-      if (fob.secure)
-         jo_stringf(j, "ver", "%02X", aes[fob.aesid][0]);
+      if (fob.verset)
+         jo_stringf(j, "ver", "%02X", fob.ver);
       if (fob.keyupdated)
          jo_bool(j, "keyupdated", fob.keyupdated);
       if (fob.fail)
@@ -363,6 +363,11 @@ static void task(void *pvParameters)
                   {             // Get key to work out which AES
                      uint8_t version = 0;
                      e = df_get_key_version(&df, 1, &version);
+                     if (!e)
+                     {
+                        fob.ver = version;
+                        fob.verset = 1;
+                     }
                      if (!e && version)
                      {
                         uint8_t aesid;

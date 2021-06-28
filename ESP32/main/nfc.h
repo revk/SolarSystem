@@ -16,6 +16,8 @@ typedef struct {
    uint32_t allow;              // Allow area
    uint32_t deadlock;           // Deadlock allow areas
    uint8_t aesid;               // The AES key index used
+   uint8_t ver;			// AES key version on fob
+   uint8_t verset:1;		// Ver is set
    uint8_t iso:1;               // Fob looks like an ISO card
    uint8_t secureset:1;         // If secure is set
    uint8_t secure:1;            // Set if DESFire, AID selected, AES done, and real UID retrieved
