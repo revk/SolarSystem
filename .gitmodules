@@ -45,3 +45,7 @@
 	path = login
 	url = https://github.com/revk/login
 	branch = main
+[submodule "xmlsql"]
+	path = xmlsql
+	url = https://github.com/revk/xmlsql
+	branch = main
