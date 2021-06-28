@@ -67,12 +67,27 @@ const char *security(SQL * sqlp, SQL * sqlkeyp, SQL_RES * res, slot_t id)
 {                               // Security settings
    j_t j = j_create();
    const char *aid = sql_colz(res, "aid");
-   int organisation = atoi(sql_colz(res, "organisation"));
+   int site = atoi(sql_colz(res, "site"));
+   int pcb = atoi(sql_colz(res, "pcb"));
+   int organisation = 0;
+   char nfc=0;
+   {
+      SQL_RES *r = sql_safe_query_store_free(sqlp, sql_printf("SELECT * FROM `site` WHERE `site`=%d", site));
+      if (r && sql_fetch_row(r))
+         organisation = atoi(sql_colz(r, "organisation"));
+      sql_free_result(r);
+   }
+   {
+      SQL_RES *r = sql_safe_query_store_free(sqlp, sql_printf("SELECT * FROM `pcb` WHERE `pcb`=%d", pcb));
+      if (r && sql_fetch_row(r))
+        nfc = (strcmp(sql_colz(r, "nfctx"),"-")?1:0);
+      sql_free_result(r);
+   }
    const char *nfctx = sql_colz(res, "nfctx");
    if (!strcmp(nfctx, "-"))
       nfctx = "";
    j_t aids = j_store_array(j, "aes");
-   if (*aid && *nfctx)
+   if (*aid && nfc)
    {                            // Security
       // Keys
       SQL_RES *r = sql_safe_query_store_free(sqlkeyp, sql_printf("SELECT * FROM `AES` WHERE `aid`=%#s AND `fob` IS NULL order BY `created` DESC LIMIT 3", aid));
