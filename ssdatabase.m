@@ -104,6 +104,7 @@ bool (canedituser);
 bool (caneditdevice);
 bool (caneditfob);
 bool (caneditarea);
+bool (canviewlog);
 
 join(user, organisation);
 link(class);                    // defines users permissions
