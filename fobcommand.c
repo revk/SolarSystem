@@ -130,6 +130,8 @@ void *fobcommand(void *arg)
    unsigned char masterkey[17] = { };   // Keys with version on front
    unsigned char aid0key[17] = { };
    unsigned char aid1key[17] = { };
+   char *deviceid = NULL;
+   char *fob = NULL;
    {                            // Get passed settings
       j_t j = arg;
       j_err(j_write_pretty(j, stderr)); // TODO
@@ -140,6 +142,12 @@ void *fobcommand(void *arg)
       provision = j_test(j, "provision", 0);
       adopt = j_test(j, "adopt", 0);
       format = j_test(j, "format", 0);
+      const char *v = j_get(j, "deviceid");
+      if (v)
+         deviceid = strdupa(v);
+      v = j_get(j, "fob");
+      if (v)
+         fob = strdupa(v);
       void hex(unsigned char *d, size_t l, j_t j) {
          if (!j || !j_isstring(j))
             return;
@@ -213,7 +221,7 @@ void *fobcommand(void *arg)
                   n--;
             }
             if (!n)
-            { // Create
+            {                   // Create
                if ((e = df_create_application(&d, aid, DF_SET_DEFAULT, 2)))
                   return;
                if ((e = df_select_application(&d, aid)))
@@ -231,20 +239,21 @@ void *fobcommand(void *arg)
                if ((e = df_create_file(&d, 0x0A, 'B', 1, 0x0010, 256, 0, 0, 0, 0, 0)))
                   return;
             } else
-	    { // Check auth is right
+            {                   // Check auth is right
                if ((e = df_select_application(&d, aid)))
                   return;
                if ((e = df_authenticate(&d, 1, aid1key + 1)))
                   return;
                if ((e = df_authenticate(&d, 0, aid0key + 1)))
                   return;
-	    }
+            }
             {                   // Tell system adopted
                j_t j = j_create();
                j_int(j_path(j, "_meta.loopback"), f.id);
                j_true(j_path(j, "_meta.adopt"));
                j_store_string(j, "fob", j_base16(sizeof(uid), uid));
                j_store_string(j, "aid", j_base16(sizeof(aid), aid));
+               j_store_string(j, "deviceid", deviceid);
                mqtt_qin(&j);
             }
          }

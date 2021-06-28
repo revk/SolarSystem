@@ -461,15 +461,15 @@ int main(int argc, const char *argv[])
          }
          const char *loopback(void) {   // From linked
             if (j_find(meta, "provision"))
-	    {
+            {
                sql_safe_query_free(&sqlkey, sql_printf("REPLACE INTO `AES` SET `fob`=%#s,`ver`='01',`key`=%#s", j_get(j, "fob"), j_get(j, "key")));
                sql_safe_query_free(&sql, sql_printf("REPLACE INTO `fob` SET `fob`=%#s,`provisioned`=NOW()", j_get(j, "fob")));
-	    }
+            }
             if (j_find(meta, "adopt"))
-	    {
-               sql_safe_query_free(&sql, sql_printf("REPLACE INTO `fobaid` SET `fob`=%#s,`aid`=%#s,`adopted`=NOW()", j_get(j, "fob"),j_get(j,"aid")));
-	       // TODO Update device not to adopt next
-	    }
+            {
+               sql_safe_query_free(&sql, sql_printf("REPLACE INTO `fobaid` SET `fob`=%#s,`aid`=%#s,`adopted`=NOW()", j_get(j, "fob"), j_get(j, "aid")));
+               sql_safe_query_free(&sql, sql_printf("UPDATE `device` SET `adoptnext`='false' WHERE `device`=%#s", j_get(j, "deviceid")));
+            }
 
             return NULL;
          }
@@ -607,39 +607,40 @@ int main(int argc, const char *argv[])
                         }
                         if (!secure)
                         {       // Consider adopting
-				if(sql_col(device,"adoptnext"))
-				{ // Create fob record if necessary, if we have a key
-					// TODO
-				}
-                           SQL_RES *res = sql_safe_query_store_free(&sql, sql_printf("SELECT * FROM `fobaid` WHERE `fob`=%#s AND `aid`=%#s", fobid, aid));
+                           if (sql_col(device, "adoptnext"))
+                           {    // Create fob record if necessary, if we have a key
+                              SQL_RES *res = sql_safe_query_store_free(&sqlkey, sql_printf("SELECT * FROM `AES` WHERE `fob`=%#s AND `ver`='01' AND `aid` IS NULL", fobid));
+                              if (sql_fetch_row(res))
+                                 sql_safe_query_free(&sql, sql_printf("INSERT INTO `fobaid` SET `fob`=%#s,`aid`=%#s ON DUPLICATE KEY UPDATE `adopted`=NULL", fobid, aid));
+                              sql_free_result(res);
+                           }
+                           SQL_RES *res = sql_safe_query_store_free(&sql, sql_printf("SELECT * FROM `fobaid` WHERE `fob`=%#s AND `aid`=%#s AND `adopted` IS NULL", fobid, aid));
                            if (sql_fetch_row(res))
                            {
-                              if (!sql_col(res, "adopted"))
-                              {
-                                 j_t init = j_create();
-                                 j_store_true(init, "adopt");
-				 j_store_string(init,"fob",fobid);
-				 j_store_string(init,"aid",aid);
-				 // TODO cleaner way to get latest keys
-				 // TODO creating keys if not there
-                                 SQL_RES *k = sql_safe_query_store_free(&sqlkey, sql_printf("SELECT * FROM `AES` WHERE (`fob`=%#s AND `ver`='01' AND `aid` IS NULL) OR (`fob` IS NULL AND `aid`=%#s) OR (`fob`=%#s AND `aid`=%#s) ORDER BY `created`", fobid, aid, fobid, aid));
-                                 while (sql_fetch_row(k))
-                                 { // TODO way to get latest keys - this gets all and overwrites so not tidy
-                                    char *f = sql_col(k, "fob");
-                                    char *a = sql_col(k, "aid");
-                                    char *v = sql_col(k, "ver");
-                                    char *key = sql_col(k, "key");
-                                    if (f && !a)
-                                       j_store_stringf(init, "masterkey", "%s%s", v, key);
-                                    if (f && a)
-                                       j_store_stringf(init, "aid0key", "%s%s", v, key);
-                                    if (!f && a)
-                                       j_store_stringf(init, "aid1key", "%s%s", v, key);
-                                 }
-                                 sql_free_result(k);
-                                 j_store_int(init, "device", id);
-                                 forkcommand(&init, id, 0);
+                              j_t init = j_create();
+                              j_store_true(init, "adopt");
+                              j_store_string(init, "fob", fobid);
+                              j_store_string(init, "aid", aid);
+                              j_store_string(init, "deviceid", deviceid);
+                              // TODO cleaner way to get latest keys
+                              // TODO creating keys if not there
+                              SQL_RES *k = sql_safe_query_store_free(&sqlkey, sql_printf("SELECT * FROM `AES` WHERE (`fob`=%#s AND `ver`='01' AND `aid` IS NULL) OR (`fob` IS NULL AND `aid`=%#s) OR (`fob`=%#s AND `aid`=%#s) ORDER BY `created`", fobid, aid, fobid, aid));
+                              while (sql_fetch_row(k))
+                              { // TODO way to get latest keys - this gets all and overwrites so not tidy
+                                 char *f = sql_col(k, "fob");
+                                 char *a = sql_col(k, "aid");
+                                 char *v = sql_col(k, "ver");
+                                 char *key = sql_col(k, "key");
+                                 if (f && !a)
+                                    j_store_stringf(init, "masterkey", "%s%s", v, key);
+                                 if (f && a)
+                                    j_store_stringf(init, "aid0key", "%s%s", v, key);
+                                 if (!f && a)
+                                    j_store_stringf(init, "aid1key", "%s%s", v, key);
                               }
+                              sql_free_result(k);
+                              j_store_int(init, "device", id);
+                              forkcommand(&init, id, 0);
                            }
                            sql_free_result(res);
                         }
