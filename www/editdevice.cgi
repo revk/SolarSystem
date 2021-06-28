@@ -44,10 +44,8 @@ if($?description) then # save
 	goto done
 endif
 done:
-echo "Content-Type: text/html"
-echo ""
 source ../types
-xmlsql -d "$DB" head.html - foot.html << END
+xmlsql -C -d "$DB" head.html - foot.html << END
 <h1>Device</h1>
 <if not device>
 <table border=1>

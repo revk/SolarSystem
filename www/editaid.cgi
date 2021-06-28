@@ -23,9 +23,7 @@ if($?AIDS) then #save
 endif
 
 done:
-echo "Content-Type: text/html"
-echo ""
-xmlsql -d "$DB" head.html - foot.html << 'END'
+xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <h1>AIDs in use</h1>
 <form method=post>
 <table>

@@ -14,10 +14,8 @@ if($?NEWPASSWORD) then
 	unsetenv OLDPASSWORD
 	unsetenv NEWPASSWORD
 endif
-echo "Content-Type: text/html"
-echo ""
 setenv NEWPASSWORD `password`
-/projects/tools/bin/xmlsql head.html - foot.html << END
+xmlsql -C -d "$DB" head.html - foot.html << END
 <p>We suggest a new password for you, but you can enter one of your choice if you prefer.</p>
 <form method=post action=changepassword.cgi>
 	<table>

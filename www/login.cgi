@@ -31,9 +31,7 @@ if($?PASSWORD) then
 	exit 0
 endif
 done:
-echo "Content-Type: text/html"
-echo ""
-/projects/tools/bin/xmlsql head.html - foot.html << END
+xmlsql -C -d "$DB" head.html - foot.html << END
 <form method=post action=login.cgi>
 	<table>
 		<tr><td>Email</td><td><input size=40 type=email name=USERNAME autofocus></td></tr>

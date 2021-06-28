@@ -60,8 +60,6 @@ if($?description) then # save
 	exit 0
 endif
 done:
-echo "Content-Type: text/html"
-echo ""
 source ../types
 if($?PATH_INFO) then
 	setenv pcb "$PATH_INFO:t"
@@ -71,7 +69,7 @@ unsetenv pin
 unsetenv init
 unsetenv io
 unsetenv pinname
-xmlsql -d "$DB" head.html - foot.html << END
+xmlsql -C -d "$DB" head.html - foot.html << END
 <h1>PCB template</h1>
 <if not pcb>
 <table>

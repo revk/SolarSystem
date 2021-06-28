@@ -19,9 +19,7 @@ if($?AREAA) then #save
 endif
 
 done:
-echo "Content-Type: text/html"
-echo ""
-xmlsql -d "$DB" head.html - foot.html << END
+xmlsql -C -d "$DB" head.html - foot.html << END
 <form method=post>
 <table>
 <sql table=area WHERE="site=$SESSION_SITE"><set "AREA\$tag"="\$description"></sql>

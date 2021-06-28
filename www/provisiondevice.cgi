@@ -38,9 +38,7 @@ if($?DEPORT) then
 	endif
 endif
 done:
-echo "Content-Type: text/html"
-echo ""
-xmlsql -d "$DB" head.html - foot.html << 'END'
+xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <h1>Provision device</h1>
 <form style="display:inline;" method=post>
 PCB:<select name=pcb><option value=0>-- Pick PCB --</option><sql table=pcb order=description><option value=$pcb><output name=description></option></sql></select><br>

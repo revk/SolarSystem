@@ -25,11 +25,9 @@ if($?description) then
 	if($?CANEDITAREA) setenv allow "$allow caneditarea"
 	sqlwrite -o "$DB" class $allow
 endif
-echo "Content-Type: text/html"
-echo ""
 if(! $?PATH_INFO) then
 # list classes
-xmlsql -d "$DB" head.html - foot.html << 'END'
+xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <table>
 <sql table=class WHERE="organisation=$SESSION_ORGANISATION">
 <tr>
@@ -49,7 +47,7 @@ else # edit
 	can --organisation='$SESSION_ORGANISATION' --class="$class"
 	if($status) exit 0
 endif
-xmlsql -d "$DB" head.html - foot.html << 'END'
+xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <sql table=class KEY=class>
 <form method=post action="/editclass.cgi"><input type=hidden name=class>
 <table>

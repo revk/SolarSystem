@@ -16,9 +16,7 @@ if($?type) then
 endif
 
 done:
-echo "Content-Type: text/html"
-echo ""
-xmlsql -d "$DB" head.html - foot.html << END
+xmlsql -C -d "$DB" head.html - foot.html << END
 <form method=post action="/editgpio.cgi"><input name=devicegpio type=hidden>
 <sql table=area where="site=$SESSION_SITE"><IF AREAS><SET AREAS="\$AREAS "></IF><SET AREAS="\$AREAS\$area"></sql>
 <sql table="devicegpio LEFT JOIN device USING (device) LEFT JOIN gpio ON (devicegpio.gpio=gpio.gpio)" WHERE="devicegpio.device='\$device' AND devicegpio.gpio=\$gpio">

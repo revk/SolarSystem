@@ -30,9 +30,7 @@ END
 	echo ""
 	exit 0
 endif
-echo "Content-Type: text/html"
-echo ""
-xmlsql -d "$DB" head.html - foot.html << 'END'
+xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <h1>Edit user</h1>
 <sql table=user where="user=$user">
 <form method=post><input type=hidden name=user>

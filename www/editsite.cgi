@@ -32,9 +32,7 @@ if($?description) then
 	exit 0
 endif
 done:
-echo "Content-Type: text/html"
-echo ""
-xmlsql -d "$DB" head.html - foot.html << 'END'
+xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <h1>Site</h1>
 <form method=post>
 <sql table=site key=site>
