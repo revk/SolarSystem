@@ -15,6 +15,7 @@ slot_t *mqtt_slot(int *txsockp);        // Create a slot
 void mqtt_close_slot(long long instance);
 void slot_link(long long instance, slot_t * target);
 long long slot_linked(long long instance);
+void slot_unlink(long long instance);
 
 j_t mqtt_decode(unsigned char *buf, size_t len);        // Decode and MQTT message, return JSON payload, with topic in _meta.topic
 

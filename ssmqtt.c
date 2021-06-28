@@ -459,7 +459,7 @@ const char *mqtt_send(long long instance, const char *prefix, const char *suffix
          return "malloc";
 
       uint8_t tx[2048];         // Sane limit
-      unsigned int txp = mqtt_encode(tx, sizeof(tx), topic, j);;
+      unsigned int txp = mqtt_encode(tx, sizeof(tx), topic, j);
 
       pthread_mutex_lock(&slot_mutex);
       if (slots[instance % MAXSLOTS].instance != instance)
@@ -473,7 +473,7 @@ const char *mqtt_send(long long instance, const char *prefix, const char *suffix
          return "Failed to send";
       }
       pthread_mutex_unlock(&slot_mutex);
-      if (mqttdump)
+      if (mqttdump && j)
       {
          mqtt_topic(j, topic, -1);
          j_int(j_path(j, "_meta.instance"), instance);
@@ -490,8 +490,7 @@ const char *mqtt_send(long long instance, const char *prefix, const char *suffix
    const char *fail = process();
    if (fail)
       warnx("tx MQTT fail: %s", fail);
-   if (j)
-      j_delete(&j);
+   j_delete(&j);
    return fail;
 }
 
@@ -575,6 +574,17 @@ void slot_link(long long instance, slot_t * target)
       slot->linked = target->instance;
       target->linked = instance;
    }
+   pthread_mutex_unlock(&slot_mutex);
+}
+
+void slot_unlink(long long instance)
+{
+   if (!instance)
+      errx(1, "Unlinking instance 0?");
+   slot_t *slot = &slots[instance % MAXSLOTS];
+   pthread_mutex_lock(&slot_mutex);
+   if (slot->instance == instance)
+      slot->linked = 0;
    pthread_mutex_unlock(&slot_mutex);
 }
 

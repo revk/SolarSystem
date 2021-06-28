@@ -62,6 +62,7 @@ void *fobcommand(void *arg)
    {                            // unlink
       j_t j = j_create();
       j_int(j_path(j, "_meta.loopback"), instance);
+      j_store_true(j,"_meta.close");
       mqtt_qin(&j);
    }
    warnx("Ended fobcommand");
