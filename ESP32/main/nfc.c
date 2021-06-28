@@ -158,7 +158,6 @@ static void task(void *pvParameters)
    int64_t nextpoll = 0;        // Timers
    int64_t nextled = 0;
    int64_t nextio = 0;
-   int64_t found = 0;
    uint8_t ledlast = 0xFF;
    uint8_t ledpos = 0;
    uint8_t retry = 0;
@@ -292,7 +291,7 @@ static void task(void *pvParameters)
                   newled |= (1 << gpio_mask(nfcamber));
                if (nfcgreen && ledpattern[ledpos] == 'G')
                   newled |= (1 << gpio_mask(nfcgreen));
-               if (nfccard && found)
+               if (nfccard && fob.found)
                   newled |= (1 << gpio_mask(nfccard));
                if (ledpos + 1 >= sizeof(ledpattern) || ledpattern[ledpos + 1] != '+')
                   break;        // Combined LED pattern with +
@@ -306,19 +305,18 @@ static void task(void *pvParameters)
       if (nextpoll < now)
       {                         // Check for card
          nextpoll = now + (uint64_t) nfcpoll *1000LL;
-         if (found && !pn532_Present(pn532))
+         if (fob.found && !pn532_Present(pn532))
          {                      // Card gone
             ESP_LOGI(TAG, "gone %s", fob.id);
             fob.gone = 1;
             if (fob.remote || (fob.held && nfchold))
                fobevent();
             memset(&fob, 0, sizeof(fob));
-            found = 0;
          }
-         if (found)
+         if (fob.found)
          {
             nextpoll = now + (int64_t) nfcholdpoll *1000LL;
-            if (!fob.remote && !fob.held && nfchold && found < now)
+            if (!fob.remote && !fob.held && nfchold && fob.found < now)
             {                   // Card has been held for a while, report
                fob.held = 1;
                door_fob(&fob);
@@ -332,11 +330,7 @@ static void task(void *pvParameters)
          if (cards > 1)
          {
             ESP_LOGI(TAG, "Release 2nd card");
-            uint8_t buf[2];
-            buf[0] = 0x02;
-            int l = pn532_tx(pn532, 0x52, 1, buf, 0, NULL);
-            if (l >= 0)
-               l = pn532_rx(pn532, 0, NULL, sizeof(buf), buf, 100);
+            pn532_release(pn532, 2);
             nextpoll = 0;
          } else if (cards > 0)
          {                      // Check for new card
@@ -474,7 +468,7 @@ static void task(void *pvParameters)
                   if (e && !strstr(e, "TIMEOUT"))
                      revk_error(TAG, "%s", e);  // Log new error anyway, unless simple timeout
                }
-               found = now + (uint64_t) nfchold *1000LL;
+               fob.found = now + (uint64_t) nfchold *1000LL;
             }
             xSemaphoreGive(nfc_mutex);
          }
@@ -520,38 +514,39 @@ const char *nfc_command(const char *tag, jo_t j)
    }
    if (!strcmp(tag, "nfcremote"))
    {                            // Direct NFC data
-         fob.remote = 1;        // Disable normal working
-         ESP_LOGI(TAG, "NFC access remote");
-	 return "";
-   }
-      else
-   if (!strcmp(tag, "nfc"))
-      {
-         if (jo_here(j) != JO_STRING)
-            return "Expecting JSON string";
-	 if(!fob.remote)return "Send nfcremote first";
-         uint8_t buf[256];
-         int len = jo_strncpy16(j, (char *) buf, sizeof(buf));
-         if (len < 0 || len > sizeof(buf))
-            return "Too big";
-         const char *err = NULL;
-         xSemaphoreTake(nfc_mutex, portMAX_DELAY);
-         len = pn532_dx(pn532, len, buf, sizeof(buf), &err);
-         xSemaphoreGive(nfc_mutex);
-         if (len < 0)
-            return err ? : "?";
-         jo_t i = jo_create_alloc();
-         jo_base16(i, NULL, buf, len);
-         revk_infoj(TAG, &i);
-      }
+      fob.remote = 1;           // Disable normal working
+      ESP_LOGI(TAG, "NFC access remote");
       return "";
    }
+   if (!strcmp(tag, "nfc"))
+   {
+      if (jo_here(j) != JO_STRING)
+         return "Expecting JSON string";
+      if (!fob.remote)
+         return "Send nfcremote first";
+      uint8_t buf[256];
+      int len = jo_strncpy16(j, (char *) buf, sizeof(buf));
+      if (len < 0 || len > sizeof(buf))
+         return "Too big";
+      const char *err = NULL;
+      xSemaphoreTake(nfc_mutex, portMAX_DELAY);
+      len = pn532_dx(pn532, len, buf, sizeof(buf), &err);
+      xSemaphoreGive(nfc_mutex);
+      if (len < 0)
+         return err ? : "?";
+      jo_t i = jo_create_alloc();
+      jo_base16(i, NULL, buf, len);
+      revk_infoj(TAG, &i);
+      return "";
+   }
+
    if (!strcmp(tag, "nfcdone"))
    {
 
-         ESP_LOGI(TAG, "NFC access remote ended");
-	 fob.remote=0;
-	   return "";
+      ESP_LOGI(TAG, "NFC access remote ended");
+      fob.remote = 0;
+      fob.found = 0;            // See if we can re-see it
+      return "";
    }
    return NULL;
 }
