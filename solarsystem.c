@@ -466,7 +466,11 @@ int main(int argc, const char *argv[])
                sql_safe_query_free(&sql, sql_printf("REPLACE INTO `fob` SET `fob`=%#s,`provisioned`=NOW()", j_get(j, "fob")));
 	    }
             if (j_find(meta, "adopt"))
+	    {
                sql_safe_query_free(&sql, sql_printf("REPLACE INTO `fobaid` SET `fob`=%#s,`aid`=%#s,`adopted`=NOW()", j_get(j, "fob"),j_get(j,"aid")));
+	       // TODO Update device not to adopt next
+	    }
+
             return NULL;
          }
          const char *process(void) {
