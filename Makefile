@@ -25,14 +25,14 @@ ifndef KCONFIG_CONFIG
 KCONFIG_CONFIG=solarsystem.conf
 endif
 
-all: alarmpanel cardissue solarsystem can message makeaid login.conf SQLlib/sql
+all: alarmpanel cardissue solarsystem can message makeaid login.conf SQLlib/sql xmlsql/xmlsql
 
 update:
 	git submodule update --init --remote --recursive
 	git commit -a -m "Library update"
 	git push
 	make -C login
-	make -C login/SQLlib
+	make -C xmlsql
 	make -C SQLlib
 	make -C AJL
 	make -C DESFireAES
@@ -51,7 +51,8 @@ stl: KiCad/Access.stl KiCad/Bell.stl
 
 KiCad/Bell.scad: KiCad/Bell.kicad_pcb PCBCase/case Makefile
 	PCBCase/case -o $@ $< --base=3 --top=5.2
-
+xmlsql/xmlsql: xmlsql/xmlsql.c
+	make -C xmlsql
 AXL/axl.o: AXL/axl.c
 	make -C AXL
 AJL/ajl.o: AJL/ajl.c

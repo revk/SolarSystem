@@ -3,7 +3,7 @@ CONFIG_DB_DATABASE="SS"
 CONFIG_DB_USERNAME_FIELD="email"
 CONFIG_DB_USER_ID_FIELD="user"
 CONFIG=DB_USER_NAME_FIELD="description"
-CONFIG_CGI_PATH="..:../login:../login/SQLlib:/projects/tools/bin:/usr/local/bin:/bin:/usr/bin:/usr/local/mysql/bin"
+CONFIG_CGI_PATH="..:../login:../xmlsql:../login/SQLlib:/projects/tools/bin:/usr/local/bin:/bin:/usr/bin:/usr/local/mysql/bin"
 CONFIG_FORM_SECURITY_POSTS=y
 CONFIG_BLOCK_GET=y
 CONFIG_ENV_FIELD_LIST=description,admin
