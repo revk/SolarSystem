@@ -518,16 +518,18 @@ const char *nfc_command(const char *tag, jo_t j)
          return "Too long";
       return nfc_led(l, temp);
    }
-   if (!strcmp(tag, TAG))
+   if (!strcmp(tag, "nfcremote"))
    {                            // Direct NFC data
-      if (!j)
-      {
          fob.remote = 1;        // Disable normal working
          ESP_LOGI(TAG, "NFC access remote");
-      } else
+	 return "";
+   }
+      else
+   if (!strcmp(tag, "nfc"))
       {
          if (jo_here(j) != JO_STRING)
             return "Expecting JSON string";
+	 if(!fob.remote)return "Send nfcremote first";
          uint8_t buf[256];
          int len = jo_strncpy16(j, (char *) buf, sizeof(buf));
          if (len < 0 || len > sizeof(buf))
@@ -543,6 +545,13 @@ const char *nfc_command(const char *tag, jo_t j)
          revk_infoj(TAG, &i);
       }
       return "";
+   }
+   if (!strcmp(tag, "nfcdone"))
+   {
+
+         ESP_LOGI(TAG, "NFC access remote ended");
+	 fob.remote=0;
+	   return "";
    }
    return NULL;
 }

@@ -379,7 +379,7 @@ int main(int argc, const char *argv[])
 
    {                            // Poke reader (disable normal door checks)
       char *topic;
-      if (asprintf(&topic, "command/SS/%s/nfc", hexreader) < 0)
+      if (asprintf(&topic, "command/SS/%s/nfcremote", hexreader) < 0)
          errx(1, "malloc");
       mosquitto_publish(mqtt, NULL, topic, 0, NULL, 1, 0);
       free(topic);
