@@ -459,16 +459,16 @@ int main(int argc, const char *argv[])
          }
          const char *loopback(void) {   // From linked
             long long instance = strtoll(j_get(meta, "loopback"), NULL, 10);
-	    if(j_find(meta,"close"))
-	    { // Closed command
-                  long long l = slot_linked(instance);
-                  if (l)
-                  {
-		     slot_unlink(instance);
-                     mqtt_send(l, NULL, NULL, NULL);    // Tell linked we are closed
-                     mqtt_close_slot(l);
-                  }
-	    }
+            if (j_find(meta, "close"))
+            {                   // Closed command
+               long long l = slot_linked(instance);
+               if (l)
+               {
+                  slot_unlink(instance);
+                  mqtt_send(l, NULL, NULL, NULL);       // Tell linked we are closed
+                  mqtt_close_slot(l);
+               }
+            }
             return NULL;
          }
          const char *process(void) {

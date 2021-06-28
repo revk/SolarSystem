@@ -28,7 +28,7 @@ int main(int argc, const char *argv[])
    const char *pending = NULL;
    const char *topic = "";
    const char *command = NULL;
-   int fobprovision=0;
+   int fobprovision = 0;
    const char *fobadopt = NULL;
    const char *provision = NULL;
    const char *deport = NULL;
@@ -87,7 +87,8 @@ int main(int argc, const char *argv[])
    }
    if (fobprovision)
    {
-	   if(!device)errx(1,"Specify device to use for fob provisioning");
+      if (!device)
+         errx(1, "Specify device to use for fob provisioning");
       j_store_string(meta, "fobprovision", device);
    }
    if (command)

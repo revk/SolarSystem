@@ -333,7 +333,7 @@ static void *server(void *arg)
    } else
       mqtt_close_slot(slot->instance);  // done by solar system otherwise
    close(txsock);
-   if (fail)
+   if (fail && mqttdump)
       warnx("Fail from %s (%s)", address, fail);
    if (mqttdump)
       warnx("Closed from %s", address);
@@ -540,7 +540,7 @@ slot_t *mqtt_slot(int *txsockp)
    slot->linked = 0;
    slotcount++;
    pthread_mutex_unlock(&slot_mutex);
-   if (sqldebug)
+   if (mqttdump)
       warnx("Open %lld, slot count %d", instance, slotcount);
    return slot;
 }
@@ -559,7 +559,7 @@ void mqtt_close_slot(long long instance)
       slotcount--;
    }
    pthread_mutex_unlock(&slot_mutex);
-   if (sqldebug)
+   if (mqttdump)
       warnx("Close %lld, slot count %d", instance, slotcount);
 }
 

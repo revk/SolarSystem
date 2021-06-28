@@ -67,7 +67,7 @@ xmlsql -C -d "$DB" head.html - foot.html << END
 <sql table=device KEY=device>
 <table>
 <tr><td>Name</td><td><input name=description ize=40 autofocus></td></tr>
-<tr><td>Online</td><td><if online><output name=online></if><if else>Last online <output name=lastonline missing="never"></if></td></tr>
+<tr><td>Online</td><td><if online><output name=online></if><if else>Last online <output name=lastonline missing="never"></if><if upgrade> (upgrade scheduled)</if></td></tr>
 <sql table=pcb where="pcb=\$pcb">
 <tr><td>PCB</td><td><output name=description></td></tr>
 <if not nfctx=='-'><tr><td>Area</td><td><sql select="tag" table=area where="site=\$site"><label for=\$tag><output name=tag>:</label><input id=\$tag name=area type=checkbox value=\$tag></sql></td></tr></if>
@@ -83,7 +83,7 @@ xmlsql -C -d "$DB" head.html - foot.html << END
 </table>
 <input type=submit value="Update">
 <if online><input type=submit value="Restart" name=RESTART></if>
-<input type=submit value="Upgrade" name=UPGRADE>
+<if not upgrade><input type=submit value="Upgrade" name=UPGRADE></if>
 <input type=submit value="Delete" name=DELETE>
 <if online><input type=submit value="Factory Reset" name=FACTORY></if>
 <input type=checkbox name=SURE title='Tick this to say you are sure'>
