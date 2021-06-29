@@ -307,7 +307,7 @@ static void task(void *pvParameters)
       {                         // Check for card
          nextpoll = now + (uint64_t) nfcpoll *1000LL;
          if (fob.release)
-         { // An attempt to make it re-see the fob...
+         {                      // An attempt to make it re-see the fob...
             pn532_release(pn532, 1);
             fob.release = 0;
          }
@@ -361,7 +361,7 @@ static void task(void *pvParameters)
                } else
                {
                   if (!e && aes[1][0])
-                  {             // Get key to work out which AES
+                  {             // We have more than one key, get key version
                      uint8_t version = 0;
                      e = df_get_key_version(&df, 1, &version);
                      if (!e)
@@ -381,7 +381,18 @@ static void task(void *pvParameters)
                   }
                   // Authenticate
                   if (!e)
+                  {
                      e = df_authenticate(&df, 1, aes[fob.aesid] + 1);
+                     if (e)
+                     {          // Log key version as auth failed
+                        uint8_t version = 0;
+                        if (!df_get_key_version(&df, 1, &version))
+                        {
+                           fob.ver = version;
+                           fob.verset = 1;
+                        }
+                     }
+                  }
                   uint8_t uid[7];       // Real ID
                   if (!e)
                      e = df_get_uid(&df, uid);
