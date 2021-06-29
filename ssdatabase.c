@@ -165,7 +165,31 @@ void ssdatabase(SQL * sqlp)
       tabledef = NULL;
    }
 
+   int db=0;
+   const char **dbs = NULL;
+   int dbn = 0;
+   const char ***tbs = NULL;
+   int *tbn = NULL;
+   void addtable(const char *name) {
+	   for(db=0;db<dbn&&strcmp(dbs[db],name);db++);
+	   if(db<dbn)return;
+      dbn++;
+      dbs = realloc(dbs, sizeof(*dbs) * dbn);
+      dbs[db] = name;
+      tbs = realloc(tbs, sizeof(*tbs) * dbn);
+      tbs[db] = NULL;
+      tbn = realloc(tbn, sizeof(*tbn) * dbn);
+      tbn[db] = 0;
+   }
+   void addfield(const char *field) {
+      tbn[db]++;
+      tbs[db] = realloc(tbs[db], sizeof(*tbs) * tbn[db]);
+      tbs[db][tbn[db] - 1] = field;
+   }
+
    void create(const char *name, int l) {       // Make table
+      addtable(name);
+      addfield(name);
       res = sql_query_store_free(sqlp, sql_printf("DESCRIBE `%S`", name));
       if (res)
       {                         // Exists
@@ -181,6 +205,7 @@ void ssdatabase(SQL * sqlp)
    }
 
    void link(const char *name) {
+      addfield(name);
       if (sql_colnum(res, name) >= 0)
          return;                // Exists - we are not updating type for now
       int l = 0;
@@ -204,11 +229,13 @@ void ssdatabase(SQL * sqlp)
 
    void getrows(const char *name) {     // Get rows
       endtable();
+      addtable(name);
       tablename = name;
       res = sql_safe_query_store_free(sqlp, sql_printf("SELECT * FROM `%#S` LIMIT 0", name));
    }
 
    void getdefs(const char *name) {     // Get tabledef
+      addtable(name);
       tablename = name;
       SQL_RES *res = sql_safe_query_store_free(sqlp, sql_printf("SHOW CREATE TABLE `%#S`", name));
       if (!sql_fetch_row(res))
@@ -218,6 +245,7 @@ void ssdatabase(SQL * sqlp)
    }
 
    void foreign(const char *name) {
+	   addfield(name);
       char *constraint;
       if (asprintf(&constraint, "CONSTRAINT `%s_%s` FOREIGN KEY", tablename, name) < 0)
          errx(1, "malloc");
@@ -268,6 +296,7 @@ void ssdatabase(SQL * sqlp)
    }
 
    void text(const char *name, int l) {
+      addfield(name);
       if (sql_colnum(res, name) >= 0)
          return;                // Exists - we are not updating type for now
       warnx("Creating field %s/%s", tablename, name);
@@ -278,6 +307,7 @@ void ssdatabase(SQL * sqlp)
    }
 
    void field(const char *name, const char *type, const char *deflt) {
+      addfield(name);
       char *def;
       if (asprintf(&def, "`%s` %s %sDEFAULT %s", name, type, strcmp(deflt, "NULL") ? "NOT NULL " : "", deflt) < 0)
          errx(1, "malloc");
@@ -338,5 +368,21 @@ void ssdatabase(SQL * sqlp)
 #define index(n)	index(#n);      // Make extra index
 #include "ssdatabase.m"
    endtable();
+   // Delete extras
+   for (int t = 0; t < dbn; t++)
+   {
+      SQL_RES *res = sql_safe_query_store_free(sqlp, sql_printf("SELECT * FROM `%#S` LIMIT 1", dbs[t]));
+      for (size_t f = 0; f < res->field_count; f++)
+      {
+         int q;
+         for (q = 0; q < tbn[t] && strcasecmp(tbs[t][q], res->fields[f].name); q++);
+         if (q == tbn[t])
+		 sql_safe_query_free(sqlp,sql_printf("ALTER TABLE `%#S` DROP `%#S`", dbs[t], res->fields[f].name));
+      }
+      sql_free_result(res);
+   }
+   free(dbs);
+   free(tbs);
+   free(tbn);
    sql_safe_commit(sqlp);
 }
