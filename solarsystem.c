@@ -225,20 +225,6 @@ void bogus(slot_t id)
 void daily(SQL * sqlp)
 {
    sql_safe_query(sqlp, "DELETE FROM `session` WHERE `expires`<NOW()");
-   SQL_RES *res = sql_safe_query_store_free(sqlp, sql_printf("SELECT * FROM `fobaid`"));
-   while (sql_fetch_row(res))
-   {
-      int access = atoi(sql_colz(res, "access"));
-      const char *fob = sql_col(res, "fob");
-      const char *aid = sql_col(res, "aid");
-      unsigned int was = strtoull(sql_colz(res, "crc"), NULL, 16);
-      unsigned char afile[256];
-      unsigned int crc = makeafile(sqlp, access, afile);
-      if (was != crc)
-         sql_safe_query_free(sqlp, sql_printf("UPDATE `fobaid` SET `crc`='%08X' WHERE `fob`=%#s AND `aid`=%#s", crc, fob, aid));
-
-   }
-   sql_free_result(res);
 }
 
 const char *forkcommand(j_t * jp, slot_t device, slot_t local)
