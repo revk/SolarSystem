@@ -213,8 +213,8 @@ void *fobcommand(void *arg)
             if (mqttdump)
                warnx("Fob connect");
             df(select_application(&d, NULL));
-            if (df_format(&d, masterkey + 1))
-               df(format(&d, NULL));
+            if (df_authenticate(&d, 0, masterkey + 1))
+               df(authenticate(&d, 0, NULL));
             df(get_uid(&d, uid));
             if (!fob)
                return;
@@ -253,21 +253,34 @@ void *fobcommand(void *arg)
                   n--;
             }
             if (!n)
-            {                   // Create
                df(create_application(&d, aid, DF_SET_DEFAULT, 2));
-               df(select_application(&d, aid));
+            df(select_application(&d, aid));
+            // Check keys
+            unsigned char version;
+            df(get_key_version(&d, 0, &version));
+            if (!version)
+            { // Check key 0
                df(authenticate(&d, 0, NULL));
                df(change_key(&d, 0, *aid0key, NULL, aid0key + 1));
                df(authenticate(&d, 0, aid0key + 1));
+            }
+            df(authenticate(&d, 0, aid0key + 1));
+            df(get_key_version(&d, 1, &version));
+            if (!version)
+            { // Check key 1
                df(change_key(&d, 1, *aid1key, NULL, aid1key + 1));
                df(change_key_settings(&d, 0xEB));
-               df(create_file(&d, 0x0A, 'B', 1, 0x0010, 256, 0, 0, 0, 0, 0));
-            } else
-            {                   // Check auth is right
-               df(select_application(&d, aid));
-               df(authenticate(&d, 1, aid1key + 1));
-               df(authenticate(&d, 0, aid0key + 1));
             }
+            df(authenticate(&d, 1, aid1key + 1));
+	    // Check file
+	    unsigned long long fids;
+            df(get_file_ids(&d, &fids));
+	    if(!(fids&(1<<0x0A)))
+	    {
+               df(authenticate(&d, 0, aid0key + 1));
+               df(create_file(&d, 0x0A, 'B', 1, 0x0010, 256, 0, 0, 0, 0, 0));
+               df(authenticate(&d, 1, aid1key + 1));
+	    }
             df(write_data(&d, 0x0A, 'B', 1, 0, *afile + 1, afile));
             df(commit(&d));
 
