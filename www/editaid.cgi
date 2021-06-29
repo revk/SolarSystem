@@ -2,8 +2,9 @@
 can --redirect --site='$SESSION_SITE' admin
 if($status) exit 0
 
-if($?AIDS) then #save
-	foreach a ($AIDS)
+if($?aids) then #save
+        set aids=(`printenv aids|sed 's/[^0-9A-F	]//g'`)
+	foreach a ($aids)
 		setenv A "$a"
 		setenv D `printenv "NAME$A"`
 		if("$D" == "") then
@@ -29,7 +30,7 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <table>
 <sql table=aid WHERE="site=$SESSION_SITE">
 <tr>
-<td><input type=hidden name=AIDS value="$aid"><input name="NAME$aid" size=20 value="$aidname"></td>
+<td><input type=hidden name=aids value="$aid"><input name="NAME$aid" size=20 value="$aidname"></td>
 </tr>
 </sql>
 <if USER_ADMIN><tr><td><input name=NEW> New AID</if>

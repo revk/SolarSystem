@@ -227,6 +227,14 @@ void *fobcommand(void *arg)
                warnx("Fob format");
             if (df_format(&d, masterkey + 1))
                df(format(&d, NULL));
+            if (*masterkey)
+            {                   // Provision
+               df(authenticate(&d, 0, NULL));
+               df(change_key_settings(&d, 0x09));
+               df(set_configuration(&d, 0));
+               df(change_key(&d, 0x80, *masterkey, NULL, masterkey+1));
+               df(authenticate(&d, 0, masterkey + 1));
+            }
             unsigned int mem;
             df(free_memory(&d, &mem));
             {                   // Tell system formatted
@@ -259,7 +267,7 @@ void *fobcommand(void *arg)
             unsigned char version;
             df(get_key_version(&d, 0, &version));
             if (!version)
-            { // Check key 0
+            {                   // Check key 0
                df(authenticate(&d, 0, NULL));
                df(change_key(&d, 0, *aid0key, NULL, aid0key + 1));
                df(authenticate(&d, 0, aid0key + 1));
@@ -267,22 +275,28 @@ void *fobcommand(void *arg)
             df(authenticate(&d, 0, aid0key + 1));
             df(get_key_version(&d, 1, &version));
             if (!version)
-            { // Check key 1
+            {                   // Check key 1
                df(change_key(&d, 1, *aid1key, NULL, aid1key + 1));
                df(change_key_settings(&d, 0xEB));
             }
             df(authenticate(&d, 1, aid1key + 1));
-	    // Check file
-	    unsigned long long fids;
+            df(authenticate(&d, 0, aid0key + 1));
+            // Check files
+            unsigned long long fids;
             df(get_file_ids(&d, &fids));
-	    if(!(fids&(1<<0x0A)))
-	    {
-               df(authenticate(&d, 0, aid0key + 1));
+            if (!(fids & (1 << 0x0A)))
                df(create_file(&d, 0x0A, 'B', 1, 0x0010, 256, 0, 0, 0, 0, 0));
+            // Not doing name file
+            if (!(fids & (1 << 0x01)))
+               df(create_file(&d, 1, 'C', 1, 0x0100, 13, 0, 0, 10, 0, 0));
+            if (!(fids & (1 << 0x02)))
+               df(create_file(&d, 0x02, 'V', 1, 0x0010, 0, 0, 0x7FFFFFFF, 0, 0, 0));
+            if (*afile)
+            {
                df(authenticate(&d, 1, aid1key + 1));
-	    }
-            df(write_data(&d, 0x0A, 'B', 1, 0, *afile + 1, afile));
-            df(commit(&d));
+               df(write_data(&d, 0x0A, 'B', 1, 0, *afile + 1, afile));
+               df(commit(&d));
+            }
 
             unsigned int mem;
             df(free_memory(&d, &mem));

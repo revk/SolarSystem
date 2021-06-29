@@ -24,9 +24,21 @@ if($?ADOPT) then
 		goto list
 	endif
 	sql "$DB" 'INSERT IGNORE INTO foborganisation SET fob="$fob",organisation="$SESSION_ORGANISATION"'
-	sql "$DB" 'INSERT  INTO fobaid SET fob="$fob",aid="$SESSION_SITE"'
+	sql "$DB" 'INSERT INTO fobaid SET fob="$fob",aid="$aid"'
 	setenv MSG "Fob is set up to be adopted"
 	unsetenv fob
+	goto list
+endif
+if($?fobname) then
+	set aids=(`printenv aids|sed 's/[^0-9A-F        ]//g'`)
+	foreach a ($aids)
+		setenv A "$a"
+		setenv access `printenv "access$A"`
+		sql "$DB" 'UPDATE fobaid SET access=$access WHERE fob="$fob" AND aid="$A"'
+	end
+	setenv organisation "$SESSION_ORGANISATION"
+	sqlwrite -o -n "$DB" foborganisation fob organisation fobname
+	setenv MSG "Updated"
 	goto list
 endif
 
@@ -43,7 +55,7 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 </form><br>
 <form method=post style="display:inline;">
 <select name=device>
-<sql table="device LEFT JOIN aid USING (site)" where="site=$SESSION_SITE AND online IS NOT NULL AND (nfctrusted='true' OR nfcadmin='true')"><set found=1>
+<sql table="device LEFT JOIN aid USING (aid)" where="device.site=$SESSION_SITE AND online IS NOT NULL AND (nfctrusted='true' OR nfcadmin='true')"><set found=1>
 <option value="$device"><output name=aidname>:<output name=devicename blank=Unnamed> <output name=address></option>
 </sql>
 </select>
@@ -64,12 +76,13 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <if found><set found></if><if else><p>No devices set to auto adopt fobs.</p></if>
 </if>
 <table>
-<sql table="foborganisation LEFT JOIN fobaid USING (fob) LEFT JOIN aid USING (aid)" where="organisation=$SESSION_ORGANISATION" order="adopted DESC">
+<sql table="foborganisation LEFT JOIN fobaid USING (fob) LEFT JOIN aid USING (aid) LEFT JOIN access USING (access)" where="organisation=$SESSION_ORGANISATION" group="fob" order="max(adopted) DESC">
 <if not found><set found=1><tr><th>Fobs</th></tr></if>
 <tr>
 <td><output name=fob href="editfob.cgi/$fob"></td>
 <td><output name=aidname></td></td>
-<td><output name=devicename blank="Unnamed"></td>
+<td><output name=accessname missing="Access not set"></td></td>
+<td><output name=fobname></td>
 <td><if not adopted>Waiting to be adopted</if></td>
 </tr>
 </sql>
@@ -87,5 +100,16 @@ if("$OK" == 0 || "$OK" == "" || "$OK" == NULL) then
 	goto list
 endif
 xmlsql -C -d "$DB" head.html - foot.html << 'END'
-
+<h1>Fob <output name=fob></h1>
+<form method=post action=/editfob.cgi><input name=fob type=hidden>
+<table>
+<sql table=foborganisation where="fob='$fob'">
+<tr><td>Name</td><td><input name=fobname size=30 autofocus></td></tr>
+</sql>
+<sql table="fobaid LEFT JOIN aid USING (aid)" where="fob='$fob'">
+<tr><td><input type=hidden name=aids value="$aid"><output name=aidname></td><td><select name="access$aid"><sql table=access where="site=$site"><option value="$access"><output name=accessname></option></sql></select></td></tr>
+</sql>
+</table>
+<input type=submit value="Update">
+</form>
 'END'

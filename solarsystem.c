@@ -517,11 +517,9 @@ int main(int argc, const char *argv[])
             }
             if (j_find(meta, "formatted"))
             {
-               if (sql_query_free(&sql, sql_printf("DELETE FROM `foborganisation` WHERE `fob`=%#s", j_get(j, "fob")))   //
-                   || sql_query_free(&sql, sql_printf("DELETE FROM `fobaid` WHERE `fob`=%#s", j_get(j, "fob"))) //
-                   || sql_query_free(&sql, sql_printf("DELETE FROM `fob` WHERE `fob`=%#s", j_get(j, "fob")))    //
-                   || sql_query_free(&sql, sql_printf("UPDATE `device` SET `formatnext`='false' WHERE `device`=%#s", j_get(j, "deviceid"))))
-                  warnx("failed to clean fob");
+               sql_safe_query_free(&sql, sql_printf("UPDATE `fobaid` SET `adopted`=NULL WHERE `fob`=%#s", j_get(j, "fob")));
+               sql_safe_query_free(&sql, sql_printf("UPDATE `fob` SET `provisioned`=NOW() WHERE `fob`=%#s", j_get(j, "fob")));
+               sql_safe_query_free(&sql, sql_printf("UPDATE `device` SET `formatnext`='false' WHERE `device`=%#s", j_get(j, "deviceid")));
             }
             return NULL;
          }
@@ -674,7 +672,7 @@ int main(int argc, const char *argv[])
                            }
                         }
                      }
-                     if (!secure && *sql_colz(device, "adoptnext") == 't')
+                     if (!secure && ((*sql_colz(device, "adoptnext") == 't') || (fa && !sql_col(fa, "adopted"))))
                      {          // Create fob record if necessary, if we have a key
                         if (!fa)
                         {       // Do we know the key, if so, we can add to this aid now
