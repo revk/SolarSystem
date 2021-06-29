@@ -20,6 +20,7 @@ if($?organisationname) then
  if($organisation == 0) then
   setenv organisation `sql -i "$DB" 'INSERT INTO organisation SET organisation=0'`
   setenv site `sql -i "$DB" 'INSERT INTO site SET description="Main building",organisation=$organisation,wifissid="SolarSystem",wifipass="security"'`
+  sql "$DB" 'INSERT INTO access SET site="$site",accessname="Default access"'
   sql "$DB" 'INSERT INTO area SET site=$site,tag="A",description="Main building"'
   setenv aid `makeaid --organisation="$organisation"`
   sql "$DB" 'UPDATE session SET organisation=$organisation,site=$site WHERE session="$ENVCGI"'

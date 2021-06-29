@@ -422,7 +422,7 @@ static void task(void *pvParameters)
                   buf[3] = revk_binid >> 16;
                   buf[4] = revk_binid >> 8;
                   buf[5] = revk_binid;
-                  bcdtime(0, buf + 6);
+                  bcdutctime(0, buf + 6);
                   if (buf[6] == 0x19)
                      revk_error(TAG, "Clock not set");
                   else if ((e = df_write_data(&df, 1, 'C', DF_MODE_CMAC, 0, 13, buf)))

@@ -1,5 +1,5 @@
 #!../login/loggedin /bin/csh -f
-can --redirect --organisation='$SESSION_ORGANISATION' admin
+can --redirect --site='$SESSION_SITE' admin
 if($status) exit 0
 
 if($?AIDS) then #save
@@ -7,14 +7,14 @@ if($?AIDS) then #save
 		setenv A "$a"
 		setenv D `printenv "NAME$A"`
 		if("$D" == "") then
-			sql "$DB" 'DELETE FROM aid WHERE organisation=$SESSION_ORGANISATION AND aid="$A"'
+			sql "$DB" 'DELETE FROM aid WHERE site=$SESSION_SITE AND aid="$A"'
 		else
-			sql "$DB" 'REPLACE INTO aid SET organisation=$SESSION_ORGANISATION,aid="$A",aidname="$D"'
+			sql "$DB" 'REPLACE INTO aid SET site=$SESSION_SITE,aid="$A",aidname="$D"'
 		endif
 	end
 	if($?USER_ADMIN) then
 		if("$NEW" != "") then
-			setenv A `makeaid --organisation=$SESSION_ORGANISATION --organisationname="$NEW"`
+			setenv A `makeaid --site=$SESSION_SITE --name="$NEW"`
 		endif
 	endif
 	echo "Location: $ENVCGI_SERVER?MSG=Updated"
@@ -27,7 +27,7 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <h1>AIDs in use</h1>
 <form method=post>
 <table>
-<sql table=aid WHERE="organisation=$SESSION_ORGANISATION">
+<sql table=aid WHERE="site=$SESSION_SITE">
 <tr>
 <td><input type=hidden name=AIDS value="$aid"><input name="NAME$aid" size=20 value="$aidname"></td>
 </tr>

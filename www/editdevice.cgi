@@ -77,7 +77,7 @@ xmlsql -C -d "$DB" head.html - foot.html << END
 <table>
 <tr><td>PCB</td><td><output name=pcbname></td></tr>
 <tr><td>Name</td><td><input name=devicename ize=40 autofocus></td></tr>
-<tr><td>Site</td><td><select name=site><sql table=site where="organisation=$SESSION_ORGANISATION"><option value='\$S'><output name=sitename></option></sql></select></td></tr>
+<tr><td>Site</td><td><select name=site><sql table=site where="organisation=$SESSION_ORGANISATION"><option value='\$site'><output name=sitename></option></sql></select></td></tr>
 <if nfc=true><tr><td>AID</td><td><select name=aid><sql table=aid where="site=\$site"><option value="\$aid"><output name=aidname></option></sql></select></td></tr></if>
 <tr><td>Online</td><td><if online><output name=online></if><if else>Last online <output name=lastonline missing="never"></if><if upgrade> (upgrade scheduled)</if></td></tr>
 <sql table=pcb where="pcb=\$pcb">

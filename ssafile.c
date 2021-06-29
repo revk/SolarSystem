@@ -16,10 +16,43 @@
 #include <err.h>
 #include "AJL/ajl.h"
 #include "SQLlib/sqllib.h"
+#include <openssl/evp.h>
+#include "DESFireAES/include/desfireaes.h"
 
-unsigned int makeafile(SQL * sqlp, const char *fob, const char *aid, unsigned char *afile)
+unsigned int makeafile(SQL * sqlp, int access, unsigned char *afile)
 {                               // Make afile (max 256 characters) and return crc
    if (afile)
-      *afile = 0;               // TODO
-   return 0;                    // TODO
+   {                            // Default if error
+      afile[0] = 1;
+      afile[1] = 0xFB;          // Block
+   }
+   unsigned char a[256];
+   int p = 1;
+   void add(unsigned char v) {
+      if (p < 256)
+         a[p] = v;
+      p++;
+   }
+   SQL_RES *res = sql_safe_query_store_free(sqlp, sql_printf("SELECT * FROM `access` WHERE `access`=%d", access));
+   if (!sql_fetch_row(res))
+      add(0xFB);                // Block
+   else
+   {
+      if (*sql_colz(res, "commit") == 't')
+         add(0xF0);
+      if (*sql_colz(res, "count") == 't')
+         add(0xF1);
+      if (*sql_colz(res, "override") == 't')
+         add(0xFA);
+      if (*sql_colz(res, "block") == 't')
+         add(0xFB);
+      if (*sql_colz(res, "clock") == 't')
+         add(0xFC);
+   }
+   sql_free_result(res);
+   if (p >= 256)
+      return 0;                 // Too big
+   *a = p - 1;
+   memcpy(afile, a, p);
+   return df_crc(p, a);
 }

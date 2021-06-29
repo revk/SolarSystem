@@ -211,7 +211,7 @@ const char *door_fob(fob_t * fob)
              *e = afile + 1 + *afile;
          uint8_t *fok = NULL,
              *tok = NULL;
-         uint8_t dow = bcdtime(now, datetime);
+         uint8_t dow = bcdlocaltime(now, datetime);
          while (p < e)
          {                      // Scan the afile
             uint8_t l = (*p & 0xF);
@@ -399,7 +399,7 @@ const char *door_fob(fob_t * fob)
    if (!fob->deny && fob->secure && df.keylen && *datetime >= 0x20 && xdays && xoff && xlen <= 7)
    {                            // Update expiry
       now += 86400LL * (int64_t) xdays;
-      bcdtime(now, datetime);
+      bcdutctime(now, datetime);
       if (memcmp(datetime, afile + xoff, xlen) > 0)
       {                         // Changed expiry
          memcpy(afile + xoff, datetime, xlen);

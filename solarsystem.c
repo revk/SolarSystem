@@ -121,14 +121,13 @@ const char *settings(SQL * sqlp, SQL_RES * res, slot_t id)
    int door = (*sql_colz(res, "door") == 't');
    if (*CONFIG_OTA_HOSTNAME)
       j_store_string(j, "otahost", CONFIG_OTA_HOSTNAME);
-   j_store_string(j, "name", sql_colz(res, "description"));
+   j_store_string(j, "name", sql_colz(res, "devicename"));
    j_store_int(j, "doorauto", door ? 5 : 0);
    int site = atoi(sql_colz(res, "site"));
    {                            // site
       SQL_RES *s = sql_safe_query_store_free(sqlp, sql_printf("SELECT * FROM `site` WHERE `site`=%d", site));
       if (sql_fetch_row(s))
       {
-         j = j_create();
          j_store_string(j, "wifissid", sql_col(s, "wifissid"));
          j_store_string(j, "wifipass", sql_col(s, "wifipass"));
       }
@@ -227,7 +226,18 @@ void bogus(slot_t id)
 void daily(SQL * sqlp)
 {
    sql_safe_query(sqlp, "DELETE FROM `session` WHERE `expires`<NOW()");
-   // TODO afile updates?
+   SQL_RES *res=sql_safe_query_store_free(sqlp,sql_printf("SELECT * FROM `fobaid`"));
+   while(sql_fetch_row(res))
+   {
+	   int access=atoi(sql_colz(res,"access"));
+	   const char *fob=sql_col(res,"fob");
+	   const char *aid=sql_col(res,"aid");
+	   unsigned int was=strtoull(sql_colz(res,"crc"),NULL,16);
+	   unsigned char afile[256];
+	   unsigned int crc=makeafile(sqlp,access,afile);
+	   if(was!=crc)sql_safe_query_free(sqlp,sql_printf("UPDATE `fobaid` SET `crc`='%08X' WHERE `fob`=%#s AND `aid`=%#s",crc,fob,aid));
+
+   }sql_free_result(res);
 }
 
 const char *forkcommand(j_t * jp, slot_t device, slot_t local)
@@ -664,7 +674,7 @@ int main(int argc, const char *argv[])
                               if (crcnew && strcmp(crc, crcnew))
                               { // Send afile
                                  unsigned char afile[256] = { };
-                                 makeafile(&sql, fobid, aid, afile);
+                                 makeafile(&sql, atoi(sql_colz(fa,"access")), afile);
                                  j_t a = j_create();
                                  j_string(a, j_base16a(*afile + 1, afile));
                                  slot_send(id, "command", "access", &a);
@@ -690,7 +700,7 @@ int main(int argc, const char *argv[])
                               if (sql_col(fa, "adopted"))
                                  sql_safe_query_free(&sql, sql_printf("UPDATE `fobaid` SET `adopted`=NULL WHERE `fob`=%#s AND `aid`=%#s", fobid, aid));
                               unsigned char afile[256] = { };
-                              makeafile(&sql, fobid, aid, afile);
+                              makeafile(&sql, atoi(sql_colz(fa,"access")), afile);
                               j_t init = j_create();
                               j_store_true(init, "adopt");
                               j_store_string(init, "afile", j_base16a(*afile + 1, afile));

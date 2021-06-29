@@ -9,6 +9,7 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <if SESSION_ORGANISATION>
 <if CANEDITORGANISATION><li><a href="editorganisation.cgi/$SESSION_ORGANISATION">Edit organisation</a></li></if>
 <if CANEDITUSER><li><a href="edituserorganisation.cgi">Edit users</a></li></if>
+<if ADMINORGANISATION><li><a href="editaccess.cgi">Edit Access classes</a></li></if>
 <if ADMINORGANISATION><li><a href="editaid.cgi">Edit AID</a></li></if>
 <if USER_ADMIN><li><a href="editsite.cgi/0">New site</a></li></if>
 </if>

@@ -115,12 +115,20 @@ area(tag);
 unique(site, tag);
 text(areaname, 0);
 
-table(access,0);		// Fob access permissions
+table(access,0);		// Fob access permissions - available site wide, set on an aid
 link(site);
-
-join(access,aid);		// Access permissions per AID
+text(accessname,0)
 areas(open);			// Allow open
 areas(disarm);			// Allow disarm/arm
+num(expiry);			// Auto expiry (days)
+time(expires);			// Fixed (UTC) expiry
+bool(block);			// Block card
+bool(clock);			// Ignore time if clock not set
+bool(override);			// Open regardless
+bool(log);			// Log access
+bool(count);			// Count access
+bool(commit);			// Commit log/count
+// TODO times
 
 table(fob, 14);
 time(provisioned);              // When provisioned
@@ -131,10 +139,11 @@ join(fob, aid);                 // Fob is in AID (adopted)
 time(adopted);			// When adopted
 text(crc,8);			// Afile CRC
 text(ver,2);			// Key version
+link(access);			// Access permissions
 
 join(fob, organisation);        // Yes, per org, for security reasons
-time(blocked);                  // When blocked
 time(confirmed);                // When confirmed blocked by fob read (no need to be in blacklist now)
+text(fobname,0);		// Name of fob user
 
 table(device, 12);
 text(devicename, 0);
@@ -158,6 +167,7 @@ time(lastonline);               // When last went offline
 time(upgrade);                  // When to do upgrade
 ip(address);                    // IP address when last online
 num(id);                  // Instance for communications when on line
+// TODO hold times, lock times, etc...
 
 join(device,gpio)
 gpiotype(type);			// Pin Usage (in/out/power/exit/etc)

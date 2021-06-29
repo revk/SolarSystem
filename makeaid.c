@@ -26,14 +26,14 @@ int main(int argc, const char *argv[])
    int silent = 0;
    int tries = 100;
    int organisation = 0;
-   const char *description = "Default AID";
+   const char *name = "Default AID";
    char aid[7] = "";
    {
       poptContext optCon;       // context for parsing command-line options
       const struct poptOption optionsTable[] = {
          { "organisation", 'o', POPT_ARG_INT, &organisation, 0, "Site ID", "N" },
          { "tries", 0, POPT_ARG_INT | POPT_ARGFLAG_SHOW_DEFAULT, &tries, 0, "Tries", "N" },
-         { "description", 'd', POPT_ARG_STRING | POPT_ARGFLAG_SHOW_DEFAULT, &description, 0, "Description", "text" },
+         { "name", 'd', POPT_ARG_STRING | POPT_ARGFLAG_SHOW_DEFAULT, &name, 0, "Description", "text" },
          { "silent", 'q', POPT_ARG_NONE, &silent, 0, "Silent", NULL },
          { "debug", 'v', POPT_ARG_NONE, &sqldebug, 0, "Debug", NULL },
          POPT_AUTOHELP { }
@@ -69,7 +69,7 @@ int main(int argc, const char *argv[])
       if (!bin[0] && !bin[1] && bin[2])
          continue;              // cannot be 0
       sprintf(aid, "%02X%02X%02X", bin[0], bin[1], bin[2]);
-      if (sql_query_free(&sql, sql_printf("INSERT INTO `aid` SET `aid`=%#s,`organisation`=%d,`description`=%#s", aid, organisation, description)))
+      if (sql_query_free(&sql, sql_printf("INSERT INTO `aid` SET `aid`=%#s,`organisation`=%d,`aidname`=%#s", aid, organisation, name)))
       {
          *aid = 0;
          continue;

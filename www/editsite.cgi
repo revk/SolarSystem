@@ -23,6 +23,7 @@ endif
 if($?sitename) then
 	if($site == 0) then
 		setenv site `sql -i "$DB" 'INSERT INTO site SET organisation=$SESSION_ORGANISATION,site=0'`
+		sql "$DB" 'INSERT INTO access SET site="$site",accessname="Default access"'
 		sql "$DB" 'INSERT INTO area SET site=$site,area="A",areaname="Main building"'
 		sql "$DB" 'UPDATE session SET organisation=$SESSION_ORGANISATION,site=$site WHERE session="$ENVCGI"'
 	endif
