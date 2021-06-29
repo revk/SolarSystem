@@ -141,7 +141,7 @@ void *fobcommand(void *arg)
       f.device = strtoll(j_get(j, "device") ? : "", NULL, 10);
       f.local = strtoll(j_get(j, "local") ? : "", NULL, 10);
       provision = j_test(j, "provision", 0);
-      organisation=atoi(j_get(j,"organisation"));
+      organisation=atoi(j_get(j,"organisation")?:"");
       adopt = j_test(j, "adopt", 0);
       format = j_test(j, "format", 0);
       const char *v = j_get(j, "deviceid");
@@ -205,7 +205,7 @@ void *fobcommand(void *arg)
                warnx("Fob connect");
             if ((e = df_select_application(&d, NULL)))
                return;
-            if ((e = df_authenticate(&d, 0, masterkey + 1)))
+            if ((e = df_format(&d, masterkey + 1)) && (e = df_format(&d, NULL)))
                return;
             if ((e = df_get_uid(&d, uid)))
                return;

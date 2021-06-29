@@ -557,7 +557,7 @@ int main(int argc, const char *argv[])
                const char *claimedid = j_get(j, "id");
                if (!claimedid)
                   return "No id";
-               if (!prefix || strcmp(prefix, "state") || suffix||!j_find(j,"up"))
+               if (!prefix || strcmp(prefix, "state") || suffix || !j_find(j, "up"))
                   return "Bad initial message";
                sql_string_t s = { };
                if (device)
@@ -630,7 +630,7 @@ int main(int argc, const char *argv[])
                {
                   if (!strcmp(suffix, "fob"))
                   {             // Fob usage - loads of options
-		     int organisation=qtoi(sql_colz(device,"organisation"));
+                     int organisation = atoi(sql_colz(device, "organisation"));
                      const char *aid = sql_colz(device, "aid");
                      const char *fobid = j_get(j, "id");
                      char held = j_test(j, "held", 0);
@@ -670,51 +670,50 @@ int main(int argc, const char *argv[])
                                  slot_send(id, "command", "access", &a);
                               }
                            }
-                        } else if (!secure)
-                        {       // Consider adopting
-                           if (*sql_colz(device, "adoptnext") == 't')
-                           {    // Create fob record if necessary, if we have a key
-                              if (!fa)
-                              { // Do we know the key, if so, we can add to this aid now
-                                 SQL_RES *res = sql_safe_query_store_free(&sqlkey, sql_printf("SELECT * FROM `AES` WHERE `fob`=%#s AND `ver`='01' AND `aid` IS NULL", fobid));
-                                 if (sql_fetch_row(res))
-                                 {      // We know this fob...
-                                    sql_safe_query_free(&sql, sql_printf("INSERT INTO `fobaid` SET `fob`=%#s,`aid`=%#s", fobid, aid));
-                                    fa = sql_safe_query_store_free(&sql, sql_printf("SELECT * FROM `fobaid` WHERE `fob`=%#s AND `aid`=%#s", fobid, aid));
-                                    sql_fetch_row(fa);
-                                 }
-                                 sql_free_result(res);
+                        }
+                        if (!secure && *sql_colz(device, "adoptnext") == 't')
+                        {       // Create fob record if necessary, if we have a key
+                           if (!fa)
+                           {    // Do we know the key, if so, we can add to this aid now
+                              SQL_RES *res = sql_safe_query_store_free(&sqlkey, sql_printf("SELECT * FROM `AES` WHERE `fob`=%#s AND `ver`='01' AND `aid` IS NULL", fobid));
+                              if (sql_fetch_row(res))
+                              { // We know this fob...
+                                 sql_safe_query_free(&sql, sql_printf("INSERT IGNORE INTO `fob` SET `fob`=%#s", fobid));
+                                 sql_safe_query_free(&sql, sql_printf("INSERT INTO `fobaid` SET `fob`=%#s,`aid`=%#s", fobid, aid));
+                                 fa = sql_safe_query_store_free(&sql, sql_printf("SELECT * FROM `fobaid` WHERE `fob`=%#s AND `aid`=%#s", fobid, aid));
+                                 sql_fetch_row(fa);
                               }
-                              if (fa)
-                              {
-                                 if (sql_col(fa, "adopted"))
-                                    sql_safe_query_free(&sql, sql_printf("UPDATE `fobaid` SET `adopted`=NULL WHERE `fob`=%#s AND `aid`=%#s", fobid, aid));
-                                 unsigned char afile[256] = { };
-                                 makeafile(&sql, fobid, aid, afile);
-                                 j_t init = j_create();
-                                 j_store_true(init, "adopt");
-                                 j_store_string(init, "afile", j_base16a(*afile + 1, afile));
-                                 j_store_string(init, "fob", fobid);
-				 j_store_int(init,"organisation",organisation);
-                                 j_store_string(init, "aid", aid);
-                                 j_store_string(init, "deviceid", deviceid);
-                                 char temp[AES_STRING_LEN];
-                                 j_store_string(init, "masterkey", getaes(&sqlkey, temp, NULL, fobid));
-                                 j_store_string(init, "aid0key", getaes(&sqlkey, temp, aid, fobid));
-                                 j_store_string(init, "aid1key", getaes(&sqlkey, temp, aid, NULL));
-                                 j_store_int(init, "device", id);
-                                 forkcommand(&init, id, 0);
-                              }
-                           } else if (*sql_colz(device, "formatnext") == 't')
-                           {    // Format a fob
+                              sql_free_result(res);
+                           }
+                           if (fa)
+                           {
+                              if (sql_col(fa, "adopted"))
+                                 sql_safe_query_free(&sql, sql_printf("UPDATE `fobaid` SET `adopted`=NULL WHERE `fob`=%#s AND `aid`=%#s", fobid, aid));
+                              unsigned char afile[256] = { };
+                              makeafile(&sql, fobid, aid, afile);
                               j_t init = j_create();
-                              j_store_true(init, "format");
-                              j_store_string(init, "masterkey", getaes(&sqlkey, alloca(AES_STRING_LEN), NULL, fobid));
-                              j_store_int(init, "device", id);
-                              j_store_string(init, "deviceid", deviceid);
+                              j_store_true(init, "adopt");
+                              j_store_string(init, "afile", j_base16a(*afile + 1, afile));
                               j_store_string(init, "fob", fobid);
+                              j_store_int(init, "organisation", organisation);
+                              j_store_string(init, "aid", aid);
+                              j_store_string(init, "deviceid", deviceid);
+                              char temp[AES_STRING_LEN];
+                              j_store_string(init, "masterkey", getaes(&sqlkey, temp, NULL, fobid));
+                              j_store_string(init, "aid0key", getaes(&sqlkey, temp, aid, fobid));
+                              j_store_string(init, "aid1key", getaes(&sqlkey, temp, aid, NULL));
+                              j_store_int(init, "device", id);
                               forkcommand(&init, id, 0);
                            }
+                        } else if (*sql_colz(device, "formatnext") == 't')
+                        {       // Format a fob (even if secure)
+                           j_t init = j_create();
+                           j_store_true(init, "format");
+                           j_store_string(init, "masterkey", getaes(&sqlkey, alloca(AES_STRING_LEN), NULL, fobid));
+                           j_store_int(init, "device", id);
+                           j_store_string(init, "deviceid", deviceid);
+                           j_store_string(init, "fob", fobid);
+                           forkcommand(&init, id, 0);
                         }
                         if (fa)
                            sql_free_result(fa);
