@@ -391,6 +391,10 @@ static void task(void *pvParameters)
                            fob.ver = version;
                            fob.verset = 1;
                         }
+                     } else
+                     {          // Authenticated so version is as expected
+                        fob.ver = *aes[fob.aesid];
+                        fob.verset = 1;
                      }
                   }
                   uint8_t uid[7];       // Real ID

@@ -130,6 +130,7 @@ void *fobcommand(void *arg)
    unsigned char aid0key[17] = { };
    unsigned char aid1key[17] = { };
    unsigned char afile[256];
+   int organisation=0;
    char *deviceid = NULL;
    char *fob = NULL;
    {                            // Get passed settings
@@ -140,6 +141,7 @@ void *fobcommand(void *arg)
       f.device = strtoll(j_get(j, "device") ? : "", NULL, 10);
       f.local = strtoll(j_get(j, "local") ? : "", NULL, 10);
       provision = j_test(j, "provision", 0);
+      organisation=atoi(j_get(j,"organisation"));
       adopt = j_test(j, "adopt", 0);
       format = j_test(j, "format", 0);
       const char *v = j_get(j, "deviceid");
@@ -152,6 +154,7 @@ void *fobcommand(void *arg)
       j_base16D(aid0key, sizeof(aid0key), j_get(j, "aid0key"));
       j_base16D(aid1key, sizeof(aid1key), j_get(j, "aid1key"));
       j_base16D(afile, sizeof(afile), j_get(j, "afile"));
+      j_base16D(aid, sizeof(aid), j_get(j, "aid"));
       if (!sock)
          errx(1, "socket not set");
       j_delete(&j);
@@ -286,6 +289,7 @@ void *fobcommand(void *arg)
                j_store_string(j, "fob", j_base16(sizeof(uid), uid));
                j_store_string(j, "aid", j_base16(sizeof(aid), aid));
                j_store_string(j, "deviceid", deviceid);
+               if(organisation)j_store_int(j, "organisation", organisation);
                j_store_int(j, "mem", mem);
                mqtt_qin(&j);
             }

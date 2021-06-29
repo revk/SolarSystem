@@ -500,6 +500,7 @@ int main(int argc, const char *argv[])
             }
             if (j_find(meta, "adopted"))
             {
+               sql_safe_query_free(&sql, sql_printf("INSERT IGNORE INTO `foborganisation` SET `fob`=%#s,`organisation`=%s", j_get(j, "fob"), j_get(j, "organisation")));
                sql_safe_query_free(&sql, sql_printf("REPLACE INTO `fobaid` SET `fob`=%#s,`aid`=%#s,`adopted`=NOW()", j_get(j, "fob"), j_get(j, "aid")));
                sql_safe_query_free(&sql, sql_printf("UPDATE `device` SET `adoptnext`='false' WHERE `device`=%#s", j_get(j, "deviceid")));
                sql_safe_query_free(&sql, sql_printf("UPDATE `fob` SET `mem`=%s WHERE `fob`=%#s", j_get(j, "mem"), j_get(j, "fob")));
@@ -552,11 +553,11 @@ int main(int argc, const char *argv[])
             const char *prefix = j_get(meta, "prefix");
             const char *suffix = j_get(meta, "suffix");
             if (!message && (!deviceid || *deviceid != '-'))
-            {                   // Connect (first message ID 0) - *MUST* be a top level state message unless locak
+            {                   // Connect (first message ID 0) - *MUST* be a top level state message unless local
                const char *claimedid = j_get(j, "id");
                if (!claimedid)
                   return "No id";
-               if (!prefix || strcmp(prefix, "state") || suffix)
+               if (!prefix || strcmp(prefix, "state") || suffix||!j_find(j,"up"))
                   return "Bad initial message";
                sql_string_t s = { };
                if (device)
@@ -629,7 +630,7 @@ int main(int argc, const char *argv[])
                {
                   if (!strcmp(suffix, "fob"))
                   {             // Fob usage - loads of options
-                     // TODO recording key ver...
+		     int organisation=qtoi(sql_colz(device,"organisation"));
                      const char *aid = sql_colz(device, "aid");
                      const char *fobid = j_get(j, "id");
                      char held = j_test(j, "held", 0);
@@ -694,6 +695,7 @@ int main(int argc, const char *argv[])
                                  j_store_true(init, "adopt");
                                  j_store_string(init, "afile", j_base16a(*afile + 1, afile));
                                  j_store_string(init, "fob", fobid);
+				 j_store_int(init,"organisation",organisation);
                                  j_store_string(init, "aid", aid);
                                  j_store_string(init, "deviceid", deviceid);
                                  char temp[AES_STRING_LEN];
