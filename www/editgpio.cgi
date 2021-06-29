@@ -22,8 +22,8 @@ xmlsql -C -d "$DB" head.html - foot.html << END
 <sql table="devicegpio LEFT JOIN device USING (device) LEFT JOIN gpio ON (devicegpio.gpio=gpio.gpio)" WHERE="devicegpio.device='\$device' AND devicegpio.gpio=\$gpio">
 <input name=device type=hidden><input name=gpio type=hidden>
 <table>
-<tr><td>Device</td><td><output name=description blank="Unnamed" missing="Unnamed"></td></tr>
-<tr><td>PCB</td><td><sql table=pcb where="pcb=\$pcb"><output name=description></sql></td></tr>
+<tr><td>Device</td><td><output name=devicename blank="Unnamed" missing="Unnamed"></td></tr>
+<tr><td>PCB</td><td><sql table=pcb where="pcb=\$pcb"><output name=pcbname></sql></td></tr>
 <tr><td>GPIO</td><td><output name=pinname></td></tr>
 <tr><td>Type</td><td><output name=io $GPIOIOOUT>:<if io=I><select name=type>$GPIOTYPEPICKI</select></if><if io=O><select name=type>$GPIOTYPEPICKO</select></if><if io=IO><select name=type>$GPIOTYPEPICK</select></if></td></tr>
 <tr><td><label for=invert>Invert</label></td><td><input id=invert name=invert type=checkbox value=true></td></tr>
@@ -36,7 +36,7 @@ xmlsql -C -d "$DB" head.html - foot.html << END
 <tr>
 <td><output name=tag></td>
 <for space STATE="\$SL"><td><input type=checkbox name="\$STATE" value="\$tag"></td></for>
-<td><output name=description></td>
+<td><output name=areaname></td>
 </for>
 </tr>
 </sql>

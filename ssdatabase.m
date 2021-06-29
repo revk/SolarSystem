@@ -69,7 +69,7 @@
 #endif
 
 table(user, 0);                 // Users of the system (web)
-text(description, 0);           // Users name
+text(username, 0);           // Users name
 text(email, 0);                 // Users email - we expect unique
 key(email, 128);
 text(hash, 0);                  // Password hash
@@ -85,10 +85,8 @@ text(useragent, 0);             // User agent
 link(organisation);             // Current selected organisation
 link(site);                     // Current selected site
 
-join(site, aid);
-
 join(user, organisation);
-text(jobtitle, 0);              // Job Title
+text(userorganisationname, 0);              // Job Title
 bool (admin);                   // Customer level admin user - can do anything relating to this organisation
 bool (caneditorganisation);
 bool (caneditaccess);
@@ -101,11 +99,11 @@ bool (caneditarea);
 bool (canviewlog);
 
 table(organisation, 0);         // Customer (may be more than one site)
-text(description, 0);
+text(organisationname, 0);
 
 table(site, 0);                 // Site
 link(organisation);
-text(description, 0);
+text(sitename, 0);
 text(wifissid,0);		// Site WiFi settings
 text(wifipass,0);		// Site WiFi settings
 text(meshid, 12);               // Hex Mesh ID
@@ -115,7 +113,7 @@ table(area, 0);
 link(site);
 area(tag);
 unique(site, tag);
-text(description, 0);
+text(areaname, 0);
 
 table(access,0);		// Fob access permissions
 link(site);
@@ -139,7 +137,7 @@ time(blocked);                  // When blocked
 time(confirmed);                // When confirmed blocked by fob read (no need to be in blacklist now)
 
 table(device, 12);
-text(description, 0);
+text(devicename, 0);
 link(organisation);		// Yes, can get from site, but useful to reference quickly
 link(site);                     // The site the device is on
 link(pcb);                      // What type of device this is
@@ -179,7 +177,7 @@ bool (authenticated);           // New authenticated device
 num(flash);                     // Flash size
 
 table(pcb, 0);                  // PCB type
-text(description, 0);
+text(pcbname, 0);
 gpio(tamper);                   // Fixed GPIOs
 gpio(blink);
 gpio(nfctx);
@@ -202,7 +200,7 @@ text(pinname, 0);
 
 table(aid, 6);                  // AID
 link(site);
-text(description, 0);
+text(aidname, 0);
 
 #undef table
 #undef join

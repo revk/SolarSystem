@@ -20,13 +20,13 @@ if($?DELETE) then
 	echo ""
 	exit 0
 endif
-if($?description) then
+if($?sitename) then
 	if($site == 0) then
 		setenv site `sql -i "$DB" 'INSERT INTO site SET organisation=$SESSION_ORGANISATION,site=0'`
-		sql "$DB" 'INSERT INTO area SET site=$site,area="A",description="Main building"'
+		sql "$DB" 'INSERT INTO area SET site=$site,area="A",areaname="Main building"'
 		sql "$DB" 'UPDATE session SET organisation=$SESSION_ORGANISATION,site=$site WHERE session="$ENVCGI"'
 	endif
-	sqlwrite -o "$DB" site description wifissid wifipass
+	sqlwrite -o "$DB" site sitename wifissid wifipass
 	echo "Location: ${ENVCGI_SERVER}"
 	echo ""
 	exit 0
@@ -37,7 +37,7 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <form method=post>
 <sql table=site key=site>
 <table>
-<tr><td>Name</td><td><input name=description size=40 autofocus></td></tr>
+<tr><td>Name</td><td><input name=sitename size=40 autofocus></td></tr>
 <tr><td>WiFi SSID</td><td><input name=wifissid size=40 value="SolarSystem"></td></tr>
 <tr><td>WIFi pass</td><td><input name=wifipass size=40 value="security"></td></tr>
 </table>

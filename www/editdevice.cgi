@@ -36,7 +36,7 @@ if($?DELETE || $?FACTORY) then
 	unsetenv device
 	goto done
 endif
-if($?description) then # save
+if($?devicename) then # save
 	if(! $?door) setenv door false
 	setenv pcb `sql "$DB" 'SELECT pcb FROM device WHERE device="$device"'`
 	if($?pcb) then
@@ -44,7 +44,7 @@ if($?description) then # save
 	endif
 	if($?nfc && ! $?nfcadmin) setenv nfcadmin false
 	if($?nfc && ! $?nfctrusted) setenv nfctrusted false
-	setenv allow "description area nfc nfcadmin door aid site"
+	setenv allow "devicename area nfc nfcadmin door aid site"
 	if($?USER_ADMIN) setenv allow "$allow nfctrusted"
 	sqlwrite -v -o -n "$DB" device $allow
 	setenv MSG Updated
@@ -58,14 +58,14 @@ xmlsql -C -d "$DB" head.html - foot.html << END
 <if not device>
 <table border=1>
 <tr><th>Device</th><th>Online</th><th>IP</th><th>Version</th><th>PCB</th><th>Name</th></tr>
-<sql where="organisation=$SESSION_ORGANISATION" select="*,pcb.description AS D" table="device LEFT JOIN pcb USING (pcb)" order=device.description WHERE="site=\$SESSION_SITE"><set found=1>
+<sql where="organisation=$SESSION_ORGANISATION" table="device LEFT JOIN pcb USING (pcb)" order=device.devicename WHERE="site=\$SESSION_SITE"><set found=1>
 <tr>
 <td><output name=device href="/editdevice.cgi/\$device"></td>
 <td><if online><output name=online></if><if else>Last online <output name=lastonline missing="never"></if></td>
 <td><output name=address></td>
 <td><output name=version><if upgrade> (upgrade scheduled)</if></td>
-<td><output name=D></td>
-<td><output name=description blank="Unspecified" missing="Unnamed"></td>
+<td><output name=pcbname></td>
+<td><output name=devicename blank="Unspecified" missing="Unnamed"></td>
 <td><if door=true>Door </if><if nfc=true>NFC reader </if><if nfcadmin=true> (admin)</if><if nfctrusted=true><b> (trusted)</b></if></td>
 </tr>
 </sql>
@@ -75,10 +75,10 @@ xmlsql -C -d "$DB" head.html - foot.html << END
 <form method=post action=/editdevice.cgi><input type=hidden name=device>
 <sql table=device KEY=device>
 <table>
-<tr><td>PCB</td><td><output name=description></td></tr>
-<tr><td>Name</td><td><input name=description ize=40 autofocus></td></tr>
-<tr><td>Site</td><td><select name=site><sql select="site AS S,description AS D" table=site where="organisation=$SESSION_ORGANISATION"><option value='\$S'><output name=D></option></sql></select></td></tr>
-<if nfc=true><tr><td>AID</td><td><select name=aid><sql table=aid where="site=\$site"><option value="\$aid"><output name=description></option></sql></select></td></tr></if>
+<tr><td>PCB</td><td><output name=pcbname></td></tr>
+<tr><td>Name</td><td><input name=devicename ize=40 autofocus></td></tr>
+<tr><td>Site</td><td><select name=site><sql table=site where="organisation=$SESSION_ORGANISATION"><option value='\$S'><output name=sitename></option></sql></select></td></tr>
+<if nfc=true><tr><td>AID</td><td><select name=aid><sql table=aid where="site=\$site"><option value="\$aid"><output name=aidname></option></sql></select></td></tr></if>
 <tr><td>Online</td><td><if online><output name=online></if><if else>Last online <output name=lastonline missing="never"></if><if upgrade> (upgrade scheduled)</if></td></tr>
 <sql table=pcb where="pcb=\$pcb">
 <if nfc=true><tr><td>Area</td><td><sql select="tag" table=area where="site=\$site"><label for=\$tag><output name=tag>:</label><input id=\$tag name=area type=checkbox value=\$tag></sql></td></tr></if>

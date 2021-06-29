@@ -4,7 +4,7 @@ if(! $?user) setenv user "$USER_ID"	# Edit self
 can --redirect --user="$user" edituser
 if($?email) then # save
 	# update other fields... not email
-	sqlwrite -o "$DB" user user="$user" user description
+	sqlwrite -o "$DB" user user="$user" user username
 	# check email change as special handling
 	setenv was `sql "$DB" 'SELECT email FROM user WHERE user=$user'`
 	if("$email" != "$was") then
@@ -36,7 +36,7 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <form method=post><input type=hidden name=user>
 <table>
 <tr><td>Email</td><td><input name=email type=email size=40></td></tr>
-<tr><td>Name</td><td><input name=description size=40></td></tr>
+<tr><td>Name</td><td><input name=username size=40></td></tr>
 </table>
 <input type=submit value="Update">
 </form>

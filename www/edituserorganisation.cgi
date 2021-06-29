@@ -4,9 +4,9 @@ can --redirect --organisation='$SESSION_ORGANISATION' edituser
 if($status) exit 0
 source ../setcan
 # save
-if($?jobtitle) then
+if($?userorganisationname) then
 	if($status) exit 0
-	setenv allow "jobtitle"
+	setenv allow "userorganisationname"
 	if(! $?admin) setenv admin false
 	if(! $?caneditorganisation) setenv caneditorganisation false
 	if(! $?caneditaccess) setenv caneditaccess false
@@ -49,12 +49,12 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <h1>Users</h1>
 <form method=post style='inline'>
 <table>
-<sql select="userorganisation.*,user.description,user,email,user.admin AS A" table="userorganisation LEFT JOIN user USING (user)" WHERE="organisation=$SESSION_ORGANISATION"><set found=1>
+<sql table="userorganisation LEFT JOIN user USING (user)" WHERE="organisation=$SESSION_ORGANISATION"><set found=1>
 <tr>
 <td><if A=true><b>System admin</b></if><if else admin=true>Admin</if></td>
 <td><output name=email href="/edituserorganisation.cgi/$user"></td>
-<td><output name=description></td>
-<td><output name=jobtitle></td>
+<td><output name=username></td>
+<td><output name=userorganisationname></td>
 </tr>
 </sql>
 <tr>
@@ -75,9 +75,9 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <sql table="userorganisation LEFT JOIN user USING (user)"  where="user=$user AND organisation=$SESSION_ORGANISATION">
 <form method=post action="/edituserorganisation.cgi"><input type=hidden name=user><input type=hidden name=organisation>
 <table>
-<tr><td>Name</td><td><output name=description></td></tr>
+<tr><td>Name</td><td><output name=username></td></tr>
 <tr><td>Email</td><td><output name=email></td></tr>
-<tr><td>Job title</td><td><input name=jobtitle size=40 autofocus></td></tr>
+<tr><td>Job title</td><td><input name=userorganisationname size=40 autofocus></td></tr>
 <if ADMINORGANISATION><tr><td><input type=checkbox id=admin name=admin value=true></td><td><label for=admin>Admin for organisation</lable></td></tr></if>
 <if CANEDITORGANISATION><tr><td><input type=checkbox id=caneditorganisation name=caneditorganisation value=true></td><td><label for=caneditorganisation>Can edit organisation</lable></td></tr></if>
 <if CANEDITACCESS><tr><td><input type=checkbox id=caneditaccess name=caneditaccess value=true></td><td><label for=caneditaccess>Can edit access</lable></td></tr></if>

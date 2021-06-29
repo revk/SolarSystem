@@ -42,8 +42,8 @@ done:
 xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <h1>Provision device</h1>
 <form style="display:inline;" method=post>
-PCB:<select name=pcb><option value=0>-- Pick PCB --</option><sql table=pcb order=description><option value=$pcb><output name=description></option></sql></select><br>
-AID:<select name=aid><sql table=aid WHERE="site=$SESSION_SITE"><option value=$aid><output name=description></option></sql></select><br>
+PCB:<select name=pcb><option value=0>-- Pick PCB --</option><sql table=pcb order=pcbname><option value=$pcb><output name=pcbname></option></sql></select><br>
+AID:<select name=aid><sql table=aid WHERE="site=$SESSION_SITE"><option value=$aid><output name=aidname></option></sql></select><br>
 Deport:<input name=deport size=20 placeholder='MQTT server' autofocus><br>
 <table border=1>
 <sql select="pending.*,device.device AS D,device.online AS O" table="pending LEFT JOIN device ON (pending=device)" order="pending.online" WHERE="pending.online<NOW()"><set found=1>

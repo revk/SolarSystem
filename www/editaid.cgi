@@ -9,12 +9,12 @@ if($?AIDS) then #save
 		if("$D" == "") then
 			sql "$DB" 'DELETE FROM aid WHERE organisation=$SESSION_ORGANISATION AND aid="$A"'
 		else
-			sql "$DB" 'REPLACE INTO aid SET organisation=$SESSION_ORGANISATION,aid="$A",description="$D"'
+			sql "$DB" 'REPLACE INTO aid SET organisation=$SESSION_ORGANISATION,aid="$A",aidname="$D"'
 		endif
 	end
 	if($?USER_ADMIN) then
 		if("$NEW" != "") then
-			setenv A `makeaid --organisation=$SESSION_ORGANISATION --description="$NEW"`
+			setenv A `makeaid --organisation=$SESSION_ORGANISATION --organisationname="$NEW"`
 		endif
 	endif
 	echo "Location: $ENVCGI_SERVER?MSG=Updated"
@@ -29,7 +29,7 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <table>
 <sql table=aid WHERE="organisation=$SESSION_ORGANISATION">
 <tr>
-<td><input type=hidden name=AIDS value="$aid"><input name="NAME$aid" size=20 value="$description"></td>
+<td><input type=hidden name=AIDS value="$aid"><input name="NAME$aid" size=20 value="$aidname"></td>
 </tr>
 </sql>
 <if USER_ADMIN><tr><td><input name=NEW> New AID</if>

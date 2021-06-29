@@ -10,7 +10,7 @@ if($?AREAA) then #save
 		if("$D" == "") then
 			sql "$DB" 'DELETE FROM area WHERE site=$SESSION_SITE AND tag="$A"'
 		else
-			sql "$DB" 'REPLACE INTO area SET  site=$SESSION_SITE,tag="$A",description="$D"'
+			sql "$DB" 'REPLACE INTO area SET  site=$SESSION_SITE,tag="$A",areaname="$D"'
 		endif
 	end
 	echo "Location: $ENVCGI_SERVER?MSG=Updated"
@@ -22,7 +22,7 @@ done:
 xmlsql -C -d "$DB" head.html - foot.html << END
 <form method=post>
 <table>
-<sql table=area WHERE="site=$SESSION_SITE"><set "AREA\$tag"="\$description"></sql>
+<sql table=area WHERE="site=$SESSION_SITE"><set "AREA\$tag"="\$areaname"></sql>
 <for space A="$AREALIST">
 <tr>
 <td><output name=A></td>

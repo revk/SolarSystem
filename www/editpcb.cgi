@@ -16,7 +16,7 @@ if($?DELETE) then
 	setenv MSG Deleted
 	goto done
 endif
-if($?description) then # save
+if($?pcbname) then # save
 	if($pcb == 0) then
 		setenv pcb `sql -i "$DB" 'INSERT INTO pcb SET pcb=0'`
 	endif
@@ -73,9 +73,9 @@ xmlsql -C -d "$DB" head.html - foot.html << END
 <h1>PCB template</h1>
 <if not pcb>
 <table>
-<sql table=pcb order=description>
+<sql table=pcb order=pcbname>
 <tr>
-<td><output name=description blank="Unspecified" missing="?"  href="/editpcb.cgi/\$pcb"></td>
+<td><output name=pcbname blank="Unspecified" missing="?"  href="/editpcb.cgi/\$pcb"></td>
 </tr>
 </sql>
 </table>
@@ -84,7 +84,7 @@ xmlsql -C -d "$DB" head.html - foot.html << END
 <form method=post action=/editpcb.cgi><input type=hidden name=pcb>
 <sql table=pcb key=pcb>
 <table>
-<tr><td>Name</td><td><input name=description ize=40 autofocus></td></tr>
+<tr><td>Name</td><td><input name=pcbname ize=40 autofocus></td></tr>
 <tr><td><select name=tamper>$GPIONUMPICK</select></td><td>GPIO Controller Tamper</td></tr>
 <tr><td><select name=blink>$GPIONUMPICK</select></td><td>GPIO Controller LED</td></tr>
 <tr><td><select name=nfctx>$GPIONUMPICK</select></td><td>GPIO NFC Tx</td></tr>
