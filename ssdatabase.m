@@ -110,20 +110,20 @@ text(meshid, 12);               // Hex Mesh ID
 // TODO key / crypto?
 
 table(area, 0);
+link(organisation);		// Quicker
 link(site);
 area(tag);
 unique(site, tag);
 text(areaname, 0);
 
 table(access,0);		// Fob access permissions - available site wide, set on an aid
+link(organisation)		// Quicker access
 link(site);
 text(accessname,0)
 areas(open);			// Allow open
-areas(disarm);			// Allow disarm/arm
+areas(arm);			// Allow disarm/arm
 num(expiry);			// Auto expiry (days)
 time(expires);			// Fixed (UTC) expiry
-time(block);			// Block card (when blocked)
-time(blockconfirmed);		// When confirmed blocked
 bool(clock);			// Ignore time if clock not set
 bool(override);			// Open regardless
 bool(log);			// Log access
@@ -142,7 +142,8 @@ text(ver,2);			// Key version
 link(access);			// Access permissions
 
 join(fob, organisation);        // Yes, per org, for security reasons
-time(confirmed);                // When confirmed blocked by fob read (no need to be in blacklist now)
+time(blocked);			// Block card (when blocked)
+time(confirmed);		// When confirmed blocked
 text(fobname,0);		// Name of fob user
 
 table(device, 12);
@@ -209,6 +210,7 @@ gpiotype(init);
 text(pinname, 0);
 
 table(aid, 6);                  // AID
+link(organisation);
 link(site);
 text(aidname, 0);
 

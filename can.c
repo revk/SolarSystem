@@ -37,13 +37,15 @@ int main(int argc, const char *argv[])
        user = 0,
        organisation = 0,
        site = 0,
-       aid = 0;
+       area=0,
+       aid = 0,access=0;
    const char *sus = NULL,
        *suser = NULL,
        *sorganisation = NULL,
        *ssite = NULL,
        *said = NULL,
-       *sdevice = NULL;
+       *sarea=NULL,
+       *sdevice = NULL,*saccess=NULL;
    int redirect = 0;
    int reason = 0;
    poptContext optCon;          // context for parsing command-line options
@@ -53,6 +55,8 @@ int main(int argc, const char *argv[])
       { "organisation", 'o', POPT_ARG_STRING, &sorganisation, 0, "Check access to organisation", "N" },
       { "site", 's', POPT_ARG_STRING, &ssite, 0, "Check access to site", "N" },
       { "aid", 'a', POPT_ARG_STRING, &said, 0, "Check access to aid", "N" },
+      { "area", 0, POPT_ARG_STRING, &sarea, 0, "Check access to area", "N" },
+      { "access", 'A', POPT_ARG_STRING, &saccess, 0, "Check access to access class", "N" },
       { "device", 'd', POPT_ARG_STRING, &sdevice, 0, "Check access to device", "N" },
       { "redirect", 'r', POPT_ARG_NONE, &redirect, 0, "Redirect", NULL },
       { "reason", 0, POPT_ARG_NONE, &reason, 0, "Output reason allowed", NULL },
@@ -81,6 +85,8 @@ int main(int argc, const char *argv[])
    organisation = getval(sorganisation);
    site = getval(ssite);
    aid = getval(said);
+   area = getval(sarea);
+   access = getval(saccess);
    if (sdevice && *sdevice == '$')
       sdevice = (getenv(sdevice + 1) ? : "");
 
@@ -131,11 +137,15 @@ int main(int argc, const char *argv[])
       }
       const char *e = NULL;
       if (!e && sdevice)
-         e = getorg(sql_printf("SELECT * FROM `device` LEFT JOIN `site` USING (`site`) WHERE `device`=%d", sdevice));
+         e = getorg(sql_printf("SELECT * FROM `device` WHERE `device`=%d", sdevice));
       if (!e && site)
          e = getorg(sql_printf("SELECT * FROM `site` WHERE `site`=%d", site));
       if (!e && aid)
-         e = getorg(sql_printf("SELECT * FROM `aid` LEFT JOIN `site` USING (`site`) WHERE `aid`=%d", aid));
+         e = getorg(sql_printf("SELECT * FROM `aid` WHERE `aid`=%d", aid));
+      if (!e && area)
+         e = getorg(sql_printf("SELECT * FROM `area` WHERE `area`=%d", area));
+      if (!e && access)
+         e = getorg(sql_printf("SELECT * FROM `access` `access`=%d", access));
       if (e)
       {
          if (sqldebug)

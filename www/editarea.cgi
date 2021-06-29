@@ -10,7 +10,7 @@ if($?AREAA) then #save
 		if("$D" == "") then
 			sql "$DB" 'DELETE FROM area WHERE site=$SESSION_SITE AND tag="$A"'
 		else
-			sql "$DB" 'REPLACE INTO area SET  site=$SESSION_SITE,tag="$A",areaname="$D"'
+			sql "$DB" 'REPLACE INTO area SET organisation=$SESSION_ORGANISATION,site=$SESSION_SITE,tag="$A",areaname="$D"'
 		endif
 	end
 	echo "Location: $ENVCGI_SERVER?MSG=Updated"

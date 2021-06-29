@@ -37,6 +37,9 @@ if($?fobname) then
 		sql "$DB" 'UPDATE fobaid SET access=$access WHERE fob="$fob" AND aid="$A"'
 	end
 	setenv organisation "$SESSION_ORGANISATION"
+	setenv allow "fobname"
+	if($BLOCK) setenv blocked "`date +%F %T`"
+	if($?UNBLOCK||$?BLOCK) setenv allow "$allow blocked"
 	sqlwrite -o -n "$DB" foborganisation fob organisation fobname
 	setenv MSG "Updated"
 	goto list
@@ -76,14 +79,14 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <if found><set found></if><if else><p>No devices set to auto adopt fobs.</p></if>
 </if>
 <table>
-<sql table="foborganisation LEFT JOIN fobaid USING (fob) LEFT JOIN aid USING (aid) LEFT JOIN access USING (access)" where="organisation=$SESSION_ORGANISATION" group="fob" order="max(adopted) DESC">
+<sql table="foborganisation LEFT JOIN fobaid USING (fob) LEFT JOIN aid USING (aid) LEFT JOIN access USING (access)" where="foborganisation.organisation=$SESSION_ORGANISATION" group="fob" order="max(adopted) DESC" select="*,count(*) as N, sum(if(adopted IS NULL,1,0)) AS W">
 <if not found><set found=1><tr><th>Fobs</th></tr></if>
 <tr>
 <td><output name=fob href="editfob.cgi/$fob"></td>
 <td><output name=aidname></td></td>
 <td><output name=accessname missing="Access not set"></td></td>
 <td><output name=fobname></td>
-<td><if not adopted>Waiting to be adopted</if></td>
+<td><if not N=1><output name=N> AIDs</if><if not W=0><if not N=1>, <output name=W> </if>waiting to be adopted.</if></td>
 </tr>
 </sql>
 </table>
@@ -102,14 +105,16 @@ endif
 xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <h1>Fob <output name=fob></h1>
 <form method=post action=/editfob.cgi><input name=fob type=hidden>
-<table>
 <sql table=foborganisation where="fob='$fob'">
+<table>
 <tr><td>Name</td><td><input name=fobname size=30 autofocus></td></tr>
+<if blocked><tr><td>Block</td><td>Access blocked <output name=blocked> <if blocked and confirmed>(confirmed <output name=confirmed)</if></td></tr></if>
+</if>
 </sql>
 <sql table="fobaid LEFT JOIN aid USING (aid)" where="fob='$fob'">
 <tr><td><input type=hidden name=aids value="$aid"><output name=aidname></td><td><select name="access$aid"><sql table=access where="site=$site"><option value="$access"><output name=accessname></option></sql></select></td></tr>
-</sql>
 </table>
-<input type=submit value="Update">
+<input type=submit value="Update"><if blocked><input type=SUBMIT name=UNBLOCK Value="Unblock"></if><if else><input type=SUBMIT name=BLOCK Value="Block"></if>
+</sql>
 </form>
 'END'

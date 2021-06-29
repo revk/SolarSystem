@@ -10,7 +10,7 @@ if($?aids) then #save
 		if("$D" == "") then
 			sql "$DB" 'DELETE FROM aid WHERE site=$SESSION_SITE AND aid="$A"'
 		else
-			sql "$DB" 'REPLACE INTO aid SET site=$SESSION_SITE,aid="$A",aidname="$D"'
+			sql "$DB" 'REPLACE INTO aid SET organisation=$SESSION_ORGANISATION,site=$SESSION_SITE,aid="$A",aidname="$D"'
 		endif
 	end
 	if($?USER_ADMIN) then
