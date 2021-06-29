@@ -252,7 +252,6 @@ void *fobcommand(void *arg)
          void doadopt(void) {
             if (mqttdump)
                warnx("Fob adopt");
-            // TODO checking key versions to work out if part adopted
             unsigned int n;
             {
                unsigned char aids[3 * 20];
