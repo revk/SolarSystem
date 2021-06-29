@@ -65,7 +65,7 @@ xmlsql -C -d "$DB" head.html - foot.html << END
 <td><output name=address></td>
 <td><output name=version><if upgrade> (upgrade scheduled)</if></td>
 <td><output name=pcbname></td>
-<td><output name=devicename blank="Unspecified" missing="Unnamed"></td>
+<td><output name=devicename blank="Unnamed" missing="Unnamed"></td>
 <td><if door=true>Door </if><if nfc=true>NFC reader </if><if nfcadmin=true> (admin)</if><if nfctrusted=true><b> (trusted)</b></if></td>
 </tr>
 </sql>

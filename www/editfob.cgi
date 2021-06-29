@@ -64,12 +64,12 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <if found><set found></if><if else><p>No devices set to auto adopt fobs.</p></if>
 </if>
 <table>
-<sql table="foborganisation LEFT JOIN fobaid USING (fob)" where="organisation=$SESSION_ORGANISATION" order="adopted DESC">
+<sql table="foborganisation LEFT JOIN fobaid USING (fob) LEFT JOIN aid USING (aid)" where="organisation=$SESSION_ORGANISATION" order="adopted DESC">
 <if not found><set found=1><tr><th>Fobs</th></tr></if>
 <tr>
 <td><output name=fob href="editfob.cgi/$fob"></td>
+<td><output name=aidname></td></td>
 <td><output name=devicename blank="Unnamed"></td>
-<td>TODO AID</td>
 <td><if not adopted>Waiting to be adopted</if></td>
 </tr>
 </sql>

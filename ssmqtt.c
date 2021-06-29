@@ -443,18 +443,6 @@ static rxq_t *rxq = NULL,
 void mqtt_qin(j_t * jp)
 {                               // Queue incoming
    j_t j = *jp;
-   if (mqttdump)
-   {
-      slot_t id = strtoll(j_get(j, "_meta.id") ? : "", NULL, 10);
-      if (id)
-         fprintf(stderr, "%lld", id);
-      fprintf(stderr, "<:");
-      const char *topic = j_get(j, "_meta.topic");
-      if (topic)
-         fprintf(stderr, "%s ", topic);
-      j_err(j_write(j, stderr));
-      fprintf(stderr, "\n");
-   }
    rxq_t *q = malloc(sizeof(*q));
    q->j = j;
    *jp = NULL;
@@ -485,6 +473,18 @@ j_t incoming(void)
       return NULL;              // Should not happen
    j_t j = q->j;
    free(q);
+   if (mqttdump)
+   {
+      slot_t id = strtoll(j_get(j, "_meta.id") ? : "", NULL, 10);
+      if (id)
+         fprintf(stderr, "%lld", id);
+      fprintf(stderr, "<:");
+      const char *topic = j_get(j, "_meta.topic");
+      if (topic)
+         fprintf(stderr, "%s ", topic);
+      j_err(j_write(j, stderr));
+      fprintf(stderr, "\n");
+   }
    return j;
 }
 

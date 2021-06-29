@@ -52,7 +52,7 @@ void sstypes(const char *fn)
 #define o(g,t) list(#g);
 #include "types.m"
    start("GPIOTYPEOUT");
-   out("-", "Unspecified");
+   out("-", "Unused");
 #define i(g,t) out(#g,#t);
 #define o(g,t) out(#g,#t);
 #include "types.m"
@@ -73,7 +73,7 @@ void sstypes(const char *fn)
 #define g(g) list(#g);
 #include "types.m"
    start("GPIONUMOUT");
-   out("-", "Unspecified");
+   out("-", "Unused");
 #define g(g) out(#g,#g);
 #include "types.m"
 #define g(g) out("-"#g,#g" (active low)");
@@ -88,7 +88,7 @@ void sstypes(const char *fn)
 #define n(g) list(#g);
 #include "types.m"
    start("GPIONFCOUT");
-   out("-", "Unspecified");
+   out("-", "Unused");
 #define n(g) pick(#g,#g);
 #include "types.m"
 #define n(g) pick("-"#g,#g" (active low)");
