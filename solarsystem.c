@@ -646,11 +646,9 @@ int main(int argc, const char *argv[])
                         sql_free_result(fa);
                         fa = NULL;
                      }
-                     if (block)
+                     if (block&&secure)
                      {          // Confirm blocked
-#if 0
                         sql_safe_query_free(&sql, sql_printf("UPDATE `foborganisation` SET `confirmed`=NOW() WHERE `organisation`=%d AND `fob`=%#s AND `confirmed` IS NULL", organisation, fobid));
-#endif
                      }
                      if (secure)
                      {
