@@ -138,7 +138,6 @@ num(mem);			// Free memory
 
 join(fob, aid);                 // Fob is in AID (adopted)
 time(adopted);			// When adopted
-text(crc,8);			// Afile CRC
 text(ver,2);			// Key version
 link(access);			// Access permissions
 
