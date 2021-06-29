@@ -28,7 +28,7 @@ endif
 if($?DELETE) then
 	if(! $?SURE) then
 		setenv MSG "Click to say you are sure"
-		goto done
+		goto edit
 	endif
 	sql "$DB" 'DELETE FROM userorganisation WHERE user=$user AND organisation=$SESSION_ORGANISATION'
 endif
@@ -69,7 +69,7 @@ exit 0
 endif
 # edit class
 setenv user "$PATH_INFO:t"
-done:
+edit:
 xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <h1>Edit user</h1>
 <sql table="userorganisation LEFT JOIN user USING (user)"  where="user=$user AND organisation=$SESSION_ORGANISATION">

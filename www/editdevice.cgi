@@ -44,7 +44,7 @@ if($?description) then # save
 	endif
 	if($?nfc && ! $?nfcadmin) setenv nfcadmin false
 	if($?nfc && ! $?nfctrusted) setenv nfctrusted false
-	setenv allow "description area nfc nfcadmin door aid site organisation"
+	setenv allow "description area nfc nfcadmin door aid site"
 	if($?USER_ADMIN) setenv allow "$allow nfctrusted"
 	sqlwrite -v -o -n "$DB" device $allow
 	setenv MSG Updated
@@ -58,7 +58,7 @@ xmlsql -C -d "$DB" head.html - foot.html << END
 <if not device>
 <table border=1>
 <tr><th>Device</th><th>Online</th><th>IP</th><th>Version</th><th>PCB</th><th>Name</th></tr>
-<sql select="*,pcb.description AS D" table="device LEFT JOIN pcb USING (pcb)" order=device.description WHERE="site=\$SESSION_SITE"><set found=1>
+<sql where="organisation=$SESSION_ORGANISATION" select="*,pcb.description AS D" table="device LEFT JOIN pcb USING (pcb)" order=device.description WHERE="site=\$SESSION_SITE"><set found=1>
 <tr>
 <td><output name=device href="/editdevice.cgi/\$device"></td>
 <td><if online><output name=online></if><if else>Last online <output name=lastonline missing="never"></if></td>
