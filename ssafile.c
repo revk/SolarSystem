@@ -54,5 +54,5 @@ unsigned int makeafile(SQL * sqlp, int access, unsigned char *afile)
       return 0;                 // Too big
    *a = p - 1;
    memcpy(afile, a, p);
-   return df_crc(p, a);
+   return df_crc(*a, a+1);
 }

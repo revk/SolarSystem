@@ -675,14 +675,16 @@ int main(int argc, const char *argv[])
                            if (ver && strcmp(ver, sql_colz(fa, "ver")))
                               sql_safe_query_free(&sql, sql_printf("UPDATE `fobaid` SET `ver`=%#s WHERE `fob`=%#s AND `aid`=%#s", ver, fobid, aid));
                            const char *crc = j_get(j, "crc");
-                           const char *crcnew = sql_col(fa, "crc");
-                           if (crcnew && strcmp(crc, crcnew))
-                           {    // Send afile
+                           if (crc)
+                           {    // Check afile
+                              unsigned long was = strtoull(crc, NULL, 16);
                               unsigned char afile[256] = { };
-                              makeafile(&sql, atoi(sql_colz(fa, "access")), afile);
-                              j_t a = j_create();
-                              j_string(a, j_base16a(*afile + 1, afile));
-                              slot_send(id, "command", "access", &a);
+                              if (was != makeafile(&sql, atoi(sql_colz(fa, "access")), afile))
+                              { // Send afile
+                                 j_t a = j_create();
+                                 j_string(a, j_base16a(*afile + 1, afile));
+                                 slot_send(id, "command", "access", &a);
+                              }
                            }
                         }
                      }
