@@ -26,7 +26,7 @@ if($?description) then
 		sql "$DB" 'INSERT INTO area SET site=$site,area="A",description="Main building"'
 		sql "$DB" 'UPDATE session SET organisation=$SESSION_ORGANISATION,site=$site WHERE session="$ENVCGI"'
 	endif
-	sqlwrite -o "$DB" site description
+	sqlwrite -o "$DB" site description wifissid wifipass
 	echo "Location: ${ENVCGI_SERVER}"
 	echo ""
 	exit 0
@@ -38,6 +38,8 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <sql table=site key=site>
 <table>
 <tr><td>Name</td><td><input name=description size=40 autofocus></td></tr>
+<tr><td>WiFi SSID</td><td><input name=wifissid size=40></td></tr>
+<tr><td>WIFi pass</td><td><input name=wifipass size=40></td></tr>
 </table>
 </sql>
 <input type=submit value="Update">

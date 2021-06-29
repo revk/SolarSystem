@@ -23,7 +23,7 @@ if($?description) then
   sql "$DB" 'INSERT INTO class SET description="Staff",organisation=$organisation'
   sql "$DB" 'INSERT INTO class SET description="Contractor",organisation=$organisation'
   sql "$DB" 'INSERT INTO class SET description="Visitor",organisation=$organisation'
-  setenv site `sql -i "$DB" 'INSERT INTO site SET description="Main building",organisation=$organisation'`
+  setenv site `sql -i "$DB" 'INSERT INTO site SET description="Main building",organisation=$organisation,wifissid="SolarSystem",wifipass="security"'`
   sql "$DB" 'INSERT INTO area SET site=$site,tag="A",description="Main building"'
   setenv aid `makeaid --organisation="$organisation"`
   sql "$DB" 'UPDATE session SET organisation=$organisation,site=$site WHERE session="$ENVCGI"'

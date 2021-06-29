@@ -25,6 +25,7 @@
 #include "ssmqtt.h"
 #include "sscert.h"
 #include "ssdatabase.h"
+#include "ssafile.h"
 #include "fobcommand.h"
 
 const char *cakey = "",
@@ -67,25 +68,8 @@ const char *security(SQL * sqlp, SQL * sqlkeyp, SQL_RES * res, slot_t id)
 {                               // Security settings
    j_t j = j_create();
    const char *aid = sql_colz(res, "aid");
-   int site = atoi(sql_colz(res, "site"));
-   int pcb = atoi(sql_colz(res, "pcb"));
-   int organisation = 0;
-   char nfc=0;
-   {
-      SQL_RES *r = sql_safe_query_store_free(sqlp, sql_printf("SELECT * FROM `site` WHERE `site`=%d", site));
-      if (r && sql_fetch_row(r))
-         organisation = atoi(sql_colz(r, "organisation"));
-      sql_free_result(r);
-   }
-   {
-      SQL_RES *r = sql_safe_query_store_free(sqlp, sql_printf("SELECT * FROM `pcb` WHERE `pcb`=%d", pcb));
-      if (r && sql_fetch_row(r))
-        nfc = (strcmp(sql_colz(r, "nfctx"),"-")?1:0);
-      sql_free_result(r);
-   }
-   const char *nfctx = sql_colz(res, "nfctx");
-   if (!strcmp(nfctx, "-"))
-      nfctx = "";
+   int organisation = atoi(sql_colz(res, "organisation"));
+   char nfc = (*sql_colz(res, "nfc") == 't');
    j_t aids = j_store_array(j, "aes");
    if (*aid && nfc)
    {                            // Security
@@ -124,11 +108,11 @@ const char *security(SQL * sqlp, SQL * sqlkeyp, SQL_RES * res, slot_t id)
 const char *settings(SQL * sqlp, SQL_RES * res, slot_t id)
 {                               // Send base settings
    j_t j = j_create();
-   int doorauto = (*sql_colz(res, "doorauto") == 't');
+   int door = (*sql_colz(res, "door") == 't');
    if (*CONFIG_OTA_HOSTNAME)
       j_store_string(j, "otahost", CONFIG_OTA_HOSTNAME);
    j_store_string(j, "name", sql_colz(res, "description"));
-   j_store_int(j, "doorauto", doorauto ? 5 : 0);
+   j_store_int(j, "doorauto", door ? 5 : 0);
    int pcb = atoi(sql_colz(res, "pcb"));
    if (pcb)
    {                            // Main PCB settings
@@ -150,8 +134,8 @@ const char *settings(SQL * sqlp, SQL_RES * res, slot_t id)
 #undef set
       }
       sql_free_result(p);
-      int i = (doorauto ? 4 : 0),
-          o = (doorauto ? 4 : 0);
+      int i = (door ? 4 : 0),
+          o = (door ? 4 : 0);
       j_t input = j_store_array(j, "input");
       j_t output = j_store_array(j, "output");
       j_t power = j_store_array(j, "power");
@@ -419,7 +403,7 @@ int main(int argc, const char *argv[])
                if (!id)
                   return "Device not on line";
             }
-            if ((v = j_get(meta, "provision")))
+            if (device && (v = j_get(meta, "provision")))
             {                   // JSON is rest of settings to send
                char *key = makekey();
                char *cert = makecert(key, cakey, cacert, v);
@@ -432,11 +416,24 @@ int main(int argc, const char *argv[])
                if (fail)
                   return fail;
                fail = slot_send(id, "setting", NULL, &j);
+               if (!fail)
+               {
+                  int site = atoi(sql_colz(res, "site"));
+                  SQL_RES *s = sql_safe_query_store_free(&sql, sql_printf("SELECT * FROM `site` WHERE `site`=%d", site));
+                  if (sql_fetch_row(s))
+                  {
+                     j = j_create();
+                     j_store_string(j, "wifissid", sql_col(s, "wifissid"));
+                     j_store_string(j, "wifipass", sql_col(s, "wifipass"));
+                     fail = slot_send(id, "setting", NULL, &j);
+                  }
+                  sql_free_result(s);
+               }
                // Set online later to remove from pending lists in UI
                if (!fail)
                   sql_safe_query_free(&sql, sql_printf("UPDATE `pending` SET `online`=%#T WHERE `pending`=%#s", time(0) + 60, v));
                return fail;
-            } else if ((v = j_get(meta, "deport")))
+            } else if (device && (v = j_get(meta, "deport")))
             {
                j_store_null(j, "clientcert");
                j_store_null(j, "clientkey");
@@ -478,12 +475,13 @@ int main(int argc, const char *argv[])
             if (j_find(meta, "provision"))
             {
                sql_safe_query_free(&sqlkey, sql_printf("REPLACE INTO `AES` SET `fob`=%#s,`ver`='01',`key`=%#s", j_get(j, "fob"), j_get(j, "key")));
-               sql_safe_query_free(&sql, sql_printf("REPLACE INTO `fob` SET `fob`=%#s,`provisioned`=NOW()", j_get(j, "fob")));
+               sql_safe_query_free(&sql, sql_printf("REPLACE INTO `fob` SET `fob`=%#s,`provisioned`=NOW(),`mem`=%s", j_get(j, "fob"), j_get(j, "mem")));
             }
             if (j_find(meta, "adopt"))
             {
                sql_safe_query_free(&sql, sql_printf("REPLACE INTO `fobaid` SET `fob`=%#s,`aid`=%#s,`adopted`=NOW()", j_get(j, "fob"), j_get(j, "aid")));
                sql_safe_query_free(&sql, sql_printf("UPDATE `device` SET `adoptnext`='false' WHERE `device`=%#s", j_get(j, "deviceid")));
+               sql_safe_query_free(&sql, sql_printf("UPDATE `fob` SET `mem`=%s WHERE `fob`=%#s", j_get(j, "mem"), j_get(j, "fob")));
             }
 
             return NULL;
@@ -635,8 +633,11 @@ int main(int argc, const char *argv[])
                            SQL_RES *res = sql_safe_query_store_free(&sql, sql_printf("SELECT * FROM `fobaid` WHERE `fob`=%#s AND `aid`=%#s AND `adopted` IS NULL", fobid, aid));
                            if (sql_fetch_row(res))
                            {
+                              unsigned char afile[256] = { };
+                              makeafile(&sql, fobid, aid, afile);
                               j_t init = j_create();
                               j_store_true(init, "adopt");
+                              j_store_string(init, "afile", j_base16a(*afile + 1, afile));
                               j_store_string(init, "fob", fobid);
                               j_store_string(init, "aid", aid);
                               j_store_string(init, "deviceid", deviceid);

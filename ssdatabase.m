@@ -68,7 +68,7 @@
 #define area(n)                 // Area
 #endif
 
-table(user, 0);                 // Users of the system
+table(user, 0);                 // Users of the system (web)
 text(description, 0);           // Users name
 text(email, 0);                 // Users email - we expect unique
 key(email, 128);
@@ -85,30 +85,21 @@ text(useragent, 0);             // User agent
 link(organisation);             // Current selected organisation
 link(site);                     // Current selected site
 
-join(class, aid);
-areas(access);                  // Where user is allowed access
-areas(arm);                     // Where user is allowed to arm/disarm
-bool (dooroverride);            // Override all door controls
-bool (doorclock);               // Override time when clock not set on door
-
 join(site, aid);
 
-table(class, 0);                // Classification (organisation wide)
-link(organisation);
-text(description, 0);
+join(user, organisation);
+text(jobtitle, 0);              // Job Title
 bool (admin);                   // Customer level admin user - can do anything relating to this organisation
 bool (caneditorganisation);
-bool (caneditclass);
+bool (caneditaccess);
 bool (caneditsite);
 bool (canedituser);
 bool (caneditdevice);
+bool (canadoptfob);
 bool (caneditfob);
 bool (caneditarea);
+bool (caneditaccess);
 bool (canviewlog);
-
-join(user, organisation);
-link(class);                    // defines users permissions
-text(jobtitle, 0);              // Job Title
 
 table(organisation, 0);         // Customer (may be more than one site)
 text(description, 0);
@@ -116,6 +107,8 @@ text(description, 0);
 table(site, 0);                 // Site
 link(organisation);
 text(description, 0);
+text(wifissid,0);		// Site WiFi settings
+text(wifipass,0);		// Site WiFi settings
 text(meshid, 12);               // Hex Mesh ID
 // TODO key / crypto?
 
@@ -125,9 +118,17 @@ area(tag);
 unique(site, tag);
 text(description, 0);
 
+table(access,0);		// Fob access permissions
+link(site);
+
+join(access,aid);		// Access permissions per AID
+areas(open);			// Allow open
+areas(disarm);			// Allow disarm/arm
+
 table(fob, 14);
 time(provisioned);              // When provisioned
 bool(format);			// Admin only - reformat fob when seen
+num(mem);			// Free memory
 
 join(fob, aid);                 // Fob is in AID (adopted)
 time(adopted);			// When adopted
@@ -136,12 +137,15 @@ text(crc,8);			// Afile CRC
 join(fob, organisation);        // Yes, per org, for security reasons
 time(blocked);                  // When blocked
 time(confirmed);                // When confirmed blocked by fob read (no need to be in blacklist now)
-link(class);                    // The fobs class for access permissions
 
 table(device, 12);
 text(description, 0);
+link(organisation);		// Yes, can get from site, but useful to reference quickly
 link(site);                     // The site the device is on
 link(pcb);                      // What type of device this is
+bool(nfc);			// Yes, can get from pcb, but useful to reference quickly
+bool(nfcadmin);			// NFC reader for admin use, e.g. on a desk
+bool(door);			// This is a door
 text(version, 0);               // S/w version
 bool (encryptednvs);            // Built with encrypted NVS
 bool (secureboot);              // Built with secure boot
@@ -150,7 +154,6 @@ num(flash);                     // Flash size
 link(aid);                      // The AID for door access (defines what site it is)
 bool (trusted);                 // Trusted device for fob provisioning
 areas(area);   	                // Areas covered by this door
-bool(doorauto);                 // Door auto mode
 time(online);                   // When online, if online
 time(lastonline);               // When last went offline
 time(upgrade);                  // When to do upgrade
@@ -196,8 +199,8 @@ gpiopcb(io);
 gpiotype(init);
 text(pinname, 0);
 
-table(aid, 6);                  // AID (linked to organisation)
-link(organisation);
+table(aid, 6);                  // AID
+link(site);
 text(description, 0);
 
 #undef table

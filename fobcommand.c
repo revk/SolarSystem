@@ -102,14 +102,9 @@ static int dx(void *obj, unsigned int len, unsigned char *data, unsigned int max
             j_t jdata = j_find(j, "_data");
             if (j_isstring(jdata))
             {
-               unsigned char *buf = NULL;
-               ssize_t datalen = j_base16d(j_val(jdata), &buf);
+               ssize_t datalen = j_base16D(data, max, j_val(jdata));
                if (datalen > max)
                   *errstr = "Too long";
-               else
-                  memcpy(data, buf, len = datalen);
-               if (buf)
-                  free(buf);
             }
          }
       }
@@ -130,6 +125,7 @@ void *fobcommand(void *arg)
    unsigned char masterkey[17] = { };   // Keys with version on front
    unsigned char aid0key[17] = { };
    unsigned char aid1key[17] = { };
+   unsigned char afile[256];
    char *deviceid = NULL;
    char *fob = NULL;
    {                            // Get passed settings
@@ -148,19 +144,10 @@ void *fobcommand(void *arg)
       v = j_get(j, "fob");
       if (v)
          fob = strdupa(v);
-      void hex(unsigned char *d, size_t l, j_t j) {
-         if (!j || !j_isstring(j))
-            return;
-         unsigned char *bin;
-         size_t len = j_base16d(j_val(j), &bin);
-         if (len == l)
-            memcpy(d, bin, l);
-         free(bin);
-      }
-      hex(aid, sizeof(aid), j_find(j, "aid"));
-      hex(masterkey, sizeof(masterkey), j_find(j, "masterkey"));
-      hex(aid0key, sizeof(aid0key), j_find(j, "aid0key"));
-      hex(aid1key, sizeof(aid1key), j_find(j, "aid1key"));
+      j_base16D(masterkey, sizeof(masterkey), j_get(j, "masterkey"));
+      j_base16D(aid0key, sizeof(aid0key), j_get(j, "aid0key"));
+      j_base16D(aid1key, sizeof(aid1key), j_get(j, "aid1key"));
+      j_base16D(afile, sizeof(afile), j_get(j, "afile"));
       if (!sock)
          errx(1, "socket not set");
       j_delete(&j);
@@ -247,6 +234,14 @@ void *fobcommand(void *arg)
                if ((e = df_authenticate(&d, 0, aid0key + 1)))
                   return;
             }
+            if ((e = df_write_data(&d, 0x0A, 'B', 1, 0, *afile + 1, afile)))
+               return;
+            if ((e = df_commit(&d)))
+               return;
+
+            unsigned int mem;
+            if ((e = df_free_memory(&d, &mem)))
+               return;
             {                   // Tell system adopted
                j_t j = j_create();
                j_int(j_path(j, "_meta.loopback"), f.id);
@@ -254,6 +249,7 @@ void *fobcommand(void *arg)
                j_store_string(j, "fob", j_base16(sizeof(uid), uid));
                j_store_string(j, "aid", j_base16(sizeof(aid), aid));
                j_store_string(j, "deviceid", deviceid);
+               j_store_int(j, "mem", mem);
                mqtt_qin(&j);
             }
          }
@@ -294,12 +290,16 @@ void *fobcommand(void *arg)
                   err(1, "Cannot read random");
                close(f);
             }
+            unsigned int mem;
+            if ((e = df_free_memory(&d, &mem)))
+               return;          // setting key does not change this
             {                   // Tell system new key
                j_t j = j_create();
                j_int(j_path(j, "_meta.loopback"), f.id);
                j_true(j_path(j, "_meta.provision"));
                j_store_string(j, "fob", j_base16(sizeof(uid), uid));
                j_store_string(j, "key", j_base16(sizeof(key), key));
+               j_store_int(j, "mem", mem);
                mqtt_qin(&j);
             }
             if ((e = df_change_key(&d, 0x80, 0x01, NULL, key)))
