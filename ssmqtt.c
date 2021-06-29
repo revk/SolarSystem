@@ -76,8 +76,10 @@ static void *server(void *arg)
          ERR_error_string_n(e, temp, sizeof(temp));
          warnx("%s", temp);
       }
+      SSL_shutdown(ssl);
       SSL_free(ssl);
       warnx("Failed SSL from %s", address);
+      slot_destroy(us);
       return NULL;
    }
    X509 *cert = SSL_get_peer_certificate(ssl);
@@ -576,6 +578,7 @@ void slot_destroy(slot_t id)
       close(s->rxsock);
       s->txsock = -1;
       s->rxsock = -1;
+      slot_count--;
    }
    pthread_mutex_unlock(&slot_mutex);
    if (mqttdump)

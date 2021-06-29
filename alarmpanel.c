@@ -3830,24 +3830,9 @@ void doevent(event_t * e)
    }
 }
 
-static void profile_check(void)
-{                               // Update profiles.
-   int changed = 0;
-   xml_t p = NULL;
-   while ((p = xml_element_next_by_name(config, p, "profile")))
-   {                            // Scan profiles
-      // TODO check dates, times, days of weeks, etc
-   }
-   if (changed)
-   {                            // Apply profiles where needed
-      // TODO allow inputs to have profiles, and other things like auto setting alarms, or reporting alarm is not set when it should be
-   }
-}
-
 #ifdef	LIBWS
 static char *do_wscallback(websocket_t * w, xml_t head, xml_t data)
 {
-   // TODO a better way than Basic http auth would be good some time
    xml_t http = xml_find(head, "http");
    char apath[SHA_DIGEST_LENGTH * 2 + 1];
    char *authpath(char *user, char *pass) {     // return an authorisation path - this is used once logged in, and allows websocket to use the same path to then authenticate as no Authorization gets to wwebsocket it seems
@@ -4286,9 +4271,6 @@ int main(int argc, const char *argv[])
                printf("Starting bus %d\n", n + 1);
             mybus[n].watchdog = now.tv_sec + 120;
          }
-   } else
-   {
-      // TODO alternative watchdog
    }
    door_start();
    if (debug)
@@ -4613,7 +4595,6 @@ int main(int argc, const char *argv[])
 #undef d
                                   sende(EVENT_DOOR, state, statename);
                            }
-                           //syslog (LOG_INFO, "Door %d state %s [%.*s]", app->door, door_name[state], (int) msg->payloadlen, (char *) msg->payload);        // TODO
                         }
                         return;
                      }
@@ -4817,7 +4798,6 @@ int main(int argc, const char *argv[])
             commfailreported = 0;
             rem_warning(groups, "COMMS", NULL, NULL);
          }
-         profile_check();
       }
       if (state[STATE_ARM])
       {                         // Top level timed settings

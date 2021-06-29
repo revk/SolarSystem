@@ -10,7 +10,7 @@ if($?PROVISION) then
 		setenv MSG "Pick AID"
 	endif
 	setenv authenticated `sql "$DB" 'SELECT authenticated FROM pending WHERE pending="$PROVISION"'`
-	set nfc `SQL "$DB" 'SELECT IF(nfctx="-","false","true") FROM pcb WHERE pcb=$pcb'`
+	setenv nfc `sql "$DB" 'SELECT IF(nfctx="-","false","true") FROM pcb WHERE pcb=$pcb'`
 	sql "$DB" 'DELETE FROM devicegpio WHERE device="$PROVISION"'
 	sql "$DB" 'DELETE FROM device WHERE device="$PROVISION"'
 	sql "$DB" 'INSERT INTO device SET device="$PROVISION",pcb="$pcb",organisation="$SESSION_ORGANISATION",site="$SESSION_SITE",aid="$aid",nfc="$nfc"'
@@ -43,7 +43,7 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <h1>Provision device</h1>
 <form style="display:inline;" method=post>
 PCB:<select name=pcb><option value=0>-- Pick PCB --</option><sql table=pcb order=description><option value=$pcb><output name=description></option></sql></select><br>
-AID:<select name=aid><sql table=aid WHERE="organisation=$SESSION_ORGANISATION"><option value=$aid><output name=description></option></sql></select><br>
+AID:<select name=aid><sql table=aid WHERE="site=$SESSION_SITE"><option value=$aid><output name=description></option></sql></select><br>
 Deport:<input name=deport size=20 placeholder='MQTT server' autofocus><br>
 <table border=1>
 <sql select="pending.*,device.device AS D,device.online AS O" table="pending LEFT JOIN device ON (pending=device)" order="pending.online" WHERE="pending.online<NOW()"><set found=1>

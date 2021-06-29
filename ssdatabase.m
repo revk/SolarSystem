@@ -98,7 +98,6 @@ bool (caneditdevice);
 bool (canadoptfob);
 bool (caneditfob);
 bool (caneditarea);
-bool (caneditaccess);
 bool (canviewlog);
 
 table(organisation, 0);         // Customer (may be more than one site)
@@ -133,6 +132,7 @@ num(mem);			// Free memory
 join(fob, aid);                 // Fob is in AID (adopted)
 time(adopted);			// When adopted
 text(crc,8);			// Afile CRC
+text(ver,2);			// Key version
 
 join(fob, organisation);        // Yes, per org, for security reasons
 time(blocked);                  // When blocked

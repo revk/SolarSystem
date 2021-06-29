@@ -113,6 +113,17 @@ const char *settings(SQL * sqlp, SQL_RES * res, slot_t id)
       j_store_string(j, "otahost", CONFIG_OTA_HOSTNAME);
    j_store_string(j, "name", sql_colz(res, "description"));
    j_store_int(j, "doorauto", door ? 5 : 0);
+   int site = atoi(sql_colz(res, "site"));
+   {                            // site
+      SQL_RES *s = sql_safe_query_store_free(sqlp, sql_printf("SELECT * FROM `site` WHERE `site`=%d", site));
+      if (sql_fetch_row(s))
+      {
+         j = j_create();
+         j_store_string(j, "wifissid", sql_col(s, "wifissid"));
+         j_store_string(j, "wifipass", sql_col(s, "wifipass"));
+      }
+      sql_free_result(s);
+   }
    int pcb = atoi(sql_colz(res, "pcb"));
    if (pcb)
    {                            // Main PCB settings
@@ -403,7 +414,7 @@ int main(int argc, const char *argv[])
                if (!id)
                   return "Device not on line";
             }
-            if (device && (v = j_get(meta, "provision")))
+            if (res && (v = j_get(meta, "provision")))
             {                   // JSON is rest of settings to send
                char *key = makekey();
                char *cert = makecert(key, cakey, cacert, v);
@@ -433,7 +444,7 @@ int main(int argc, const char *argv[])
                if (!fail)
                   sql_safe_query_free(&sql, sql_printf("UPDATE `pending` SET `online`=%#T WHERE `pending`=%#s", time(0) + 60, v));
                return fail;
-            } else if (device && (v = j_get(meta, "deport")))
+            } else if (res && (v = j_get(meta, "deport")))
             {
                j_store_null(j, "clientcert");
                j_store_null(j, "clientkey");
@@ -604,6 +615,7 @@ int main(int argc, const char *argv[])
                {
                   if (!strcmp(suffix, "fob"))
                   {             // Fob usage - loads of options
+                     // TODO recording key ver...
                      const char *aid = sql_colz(device, "aid");
                      const char *fobid = j_get(j, "id");
                      char held = j_test(j, "held", 0);

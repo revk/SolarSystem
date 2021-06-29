@@ -48,6 +48,7 @@ if($?description) then # save
 endif
 done:
 source ../types
+setenv XMLSQLDEBUG
 xmlsql -C -d "$DB" head.html - foot.html << END
 <h1>Device</h1>
 <if not device>

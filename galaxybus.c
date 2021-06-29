@@ -618,42 +618,31 @@ void *poller(void *d)
                   mydev[id].tamper &= ~(1 << MAX_INPUT);        // no tamper
                if (res[1] == 0xF7)
                {                // Status including voltage?
-                  // TODO
                }
                if (res[1] == 0xFE)
                {                // Status
-                  // TODO
                }
                if (res[1] == 0xFD && reslen > 12)
                {                // RF signal
                   // find device by serial, or create new device object
-                  // TODO
                   switch (res[10])
                   {             // Device types we know
                   case 0x03:   // PIR V2GY or Flood V2GY
-                     // TODO
                      break;
                   case 0x05:   // Fob V2GY (simple)
-                     // TODO
                      break;
                   case 0x06:   // Smoke detector, V2GY or Alpha
-                     // TODO
                      break;
                   case 0x08:   // Fob Alpha
                      {
-                        // TODO
                      }
                      break;
                   case 0x12:   // Flood Alpha
-                     // TODO
                      break;
                   case 0x18:   // PIR Alpha
-                     // TODO
                      break;
                   }
                   // Set up response message to device
-                  // TODO
-                  // TODO temp for now
                   event_t *e = newevent(EVENT_RF, 0, 0);
                   e->rfserial = ((res[2] << 24) | (res[3] << 16) | (res[4] << 8) | res[5]);
                   e->rfstatus = ((res[6] << 24) | (res[7] << 16) | (res[8] << 8) | res[9]);
@@ -1071,7 +1060,6 @@ void *poller(void *d)
             }
          case TYPE_RFR:        // Output to RF RIO
             {
-               // TODO - is anything sent?
                break;
             }
          }

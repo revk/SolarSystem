@@ -192,6 +192,7 @@ void *fobcommand(void *arg)
             led("A-");
 
          void doadopt(void) {
+		 // TODO checking key versions to work out if part adopted
             if ((e = df_select_application(&d, NULL)))
                return;
             if ((e = df_authenticate(&d, 0, masterkey + 1)))
