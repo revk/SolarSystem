@@ -1,12 +1,12 @@
 <html><head><title>Access.me.uk</title><link rel=stylesheet href=/access.css /></head><body>
 <div style='float:right'>Access.me.uk</div>
 <if USER_ID>
-<form style='display:inline;' name=organisation method=post action=setorganisation.cgi>
+<form style='display:inline;' name=organisation method=post action=/setorganisation.cgi>
 <if SESSION_ORGANISATION><set SET_ORGANISATION=$SESSION_ORGANISATION></if>
 <select name=SET_ORGANISATION onchange='organisation.submit()'>
 	<if USER_ADMIN>
 		<IF NOT SESSION_ORGANISATION><option value=0>-- Select organisation --</option></if>
-		<sql table="organisation" ORDER="organsationname">
+		<sql table="organisation" ORDER="organisationname">
 		<option value=$organisation><output name=organisationname></option>
 		</sql>
 	</if><if else>
@@ -19,12 +19,12 @@
 </form>
 </if>
 <IF SESSION_ORGANISATION>
-<form style='display:inline;' name=site method=post action=setsite.cgi>
+<form style='display:inline;' name=site method=post action=/setsite.cgi>
 <if SESSION_SITE><set SET_SITE=$SESSION_SITE></if>
 <select name=SET_SITE onchange='site.submit()'>
 <IF NOT SESSION_SITE><option value=0>-- Select site --</option></if>
-<sql table="site LEFT JOIN organisation USING (organisation)" WHERE="organisation=$SESSION_ORGANISATION" ORDER="sitname">
-<option value=$site><output name=sitname></option>
+<sql table="site LEFT JOIN organisation USING (organisation)" WHERE="organisation=$SESSION_ORGANISATION" ORDER="sitename">
+<option value=$site><output name=sitename></option>
 </sql>
 </select>
 </form>
