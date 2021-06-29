@@ -636,7 +636,8 @@ int main(int argc, const char *argv[])
                      char gone = j_test(j, "gone", 0);
                      char secure = j_test(j, "secure", 0);
                      char block = j_test(j, "block", 0);
-                     if (!held && !gone)
+                     char remote = j_test(j, "remote", 0);
+                     if (!held && !gone && !remote)
                      {          // Initial fob use
                         SQL_RES *fa = sql_safe_query_store_free(&sql, sql_printf("SELECT * FROM `fobaid` WHERE `fob`=%#s AND `aid`=%#s", fobid, aid));
                         if (!sql_fetch_row(fa))
@@ -708,6 +709,7 @@ int main(int argc, const char *argv[])
                               j_store_true(init, "format");
                               j_store_string(init, "masterkey", getaes(&sqlkey, alloca(AES_STRING_LEN), NULL, fobid));
                               j_store_int(init, "device", id);
+                              j_store_string(init, "deviceid", deviceid);
                               j_store_string(init, "fob", fobid);
                               forkcommand(&init, id, 0);
                            }

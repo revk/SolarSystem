@@ -145,6 +145,7 @@ link(site);                     // The site the device is on
 link(pcb);                      // What type of device this is
 bool(nfc);			// Yes, can get from pcb, but useful to reference quickly
 bool(nfcadmin);			// NFC reader for admin use, e.g. on a desk
+bool (nfctrusted);              // Trusted device for fob provisioning
 bool(door);			// This is a door
 text(version, 0);               // S/w version
 bool (encryptednvs);            // Built with encrypted NVS
@@ -153,7 +154,6 @@ bool (adoptnext);		// Adopt next unknown fob seen, if possible
 bool (formatnext);		// Format next unknown fob seen, if possible
 num(flash);                     // Flash size
 link(aid);                      // The AID for door access (defines what site it is)
-bool (trusted);                 // Trusted device for fob provisioning
 areas(area);   	                // Areas covered by this door
 time(online);                   // When online, if online
 time(lastonline);               // When last went offline

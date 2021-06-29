@@ -43,7 +43,10 @@ if($?description) then # save
 		setenv nfc `sql "$DB" 'SELECT IF(nfctx="-","false","true") FROM pcb WHERE pcb=$pcb'`
 	endif
 	if($?nfc && ! $?nfcadmin) setenv nfcadmin false
-	sqlwrite -v -o -n "$DB" device description area nfc nfcadmin door aid site organisation
+	if($?nfc && ! $?nfctrusted) setenv nfctrusted false
+	setenv allow "description area nfc nfcadmin door aid site organisation"
+	if($?USER_ADMIN) setenv allow "$allow nfctrusted"
+	sqlwrite -v -o -n "$DB" device $allow
 	setenv MSG Updated
 	unsetenv device
 	goto done
@@ -63,7 +66,7 @@ xmlsql -C -d "$DB" head.html - foot.html << END
 <td><output name=version><if upgrade> (upgrade scheduled)</if></td>
 <td><output name=D></td>
 <td><output name=description blank="Unspecified" missing="Unnamed"></td>
-<td><if door=true>Door </if><if nfc=true>NFC reader </if><if nfcadmin=true> (admin)</if></td>
+<td><if door=true>Door </if><if nfc=true>NFC reader </if><if nfcadmin=true> (admin)</if><if nfctrusted=true><b> (trusted)</b></if></td>
 </tr>
 </sql>
 </table>
@@ -81,6 +84,7 @@ xmlsql -C -d "$DB" head.html - foot.html << END
 <if nfc=true><tr><td>Area</td><td><sql select="tag" table=area where="site=\$site"><label for=\$tag><output name=tag>:</label><input id=\$tag name=area type=checkbox value=\$tag></sql></td></tr></if>
 <if nfc=true><tr><td><label for=door>Door control</label></td><td><input type=checkbox id=door name=door value=true></td></tr></if>
 <if nfc=true><tr><td><label for=nfcadmin>Admin NFC reader</label></td><td><input type=checkbox id=nfcadmin name=nfcadmin value=true></td></tr></if>
+<if USER_ADMIN nfc=true><tr><td><label for=nfctrusted>Trusted NFC reader</label></td><td><input type=checkbox id=nfctrusted name=nfctrusted value=true></td></tr></if>
 </sql>
 <sql table="device JOIN gpio USING (pcb) LEFT JOIN devicegpio ON (devicegpio.device=device.device AND devicegpio.gpio=gpio.gpio)" WHERE="device.device='\$device'">
 <tr><td><output name=pinname href="/editgpio.cgi/\$device/\$gpio"></td>

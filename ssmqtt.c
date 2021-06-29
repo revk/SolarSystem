@@ -534,6 +534,8 @@ slot_t slot_create(int *sockp, const char *address)
 
 slot_t slot_linked(slot_t id)
 {                               // Return the linked slot (cleared if linked slot has been destroyed)
+   if (!id)
+      return 0;
    slot_t linked = 0;
    slots_t *s = &slots[id % SLOT_MAX];
    pthread_mutex_lock(&slot_mutex);
@@ -545,6 +547,8 @@ slot_t slot_linked(slot_t id)
 
 void slot_link(slot_t id, slot_t linked)
 {                               // Link two slots, both show slot_linked as the other
+   if (!id)
+      return;
    slots_t *s = &slots[id % SLOT_MAX];
    pthread_mutex_lock(&slot_mutex);
    if (s->linked && slots[s->linked % SLOT_MAX].id && slots[s->linked % SLOT_MAX].linked == id)
@@ -556,15 +560,21 @@ void slot_link(slot_t id, slot_t linked)
 
 void slot_close(slot_t id)
 {                               // Sends the server a zero length message to the server asking it to close and destroy
+   if (!id)
+      return;
    slots_t *s = &slots[id % SLOT_MAX];
    pthread_mutex_lock(&slot_mutex);
    if (s->id == id)
       send(s->txsock, NULL, 0, 0);      // Could, in theory, hang...
    pthread_mutex_unlock(&slot_mutex);
+   if (mqttdump)
+      warnx("Close request %lld", id);
 }
 
 void slot_destroy(slot_t id)
 {                               // Destroy a slot, called by server when closing, handles socket closing, unlinks
+   if (!id)
+      return;
    slots_t *s = &slots[id % SLOT_MAX];
    pthread_mutex_lock(&slot_mutex);
    if (s->id == id)
