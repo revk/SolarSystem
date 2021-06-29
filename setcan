@@ -1,7 +1,7 @@
 # Used in a couple of places to get a set of can for current selected organisation
 unsetenv ADMINORGANISATION
 unsetenv CANEDITORGANISATION
-unsetenv CANEDITCLASS
+unsetenv CANEDITACCESS
 unsetenv CANEDITAREA
 unsetenv CANEDITSITE
 unsetenv CANEDITDEVICE
@@ -12,8 +12,6 @@ can --organisation='$SESSION_ORGANISATION' admin
 if(! $status)setenv ADMINORGANISATION
 can --organisation='$SESSION_ORGANISATION' editoriganisation
 if(! $status)setenv CANEDITORGANISATION
-can --organisation='$SESSION_ORGANISATION' editclass
-if(! $status)setenv CANEDITCLASS
 can --organisation='$SESSION_ORGANISATION' editfob
 if(! $status)setenv CANEDITFOB
 can --organisation='$SESSION_ORGANISATION' edituser
@@ -22,6 +20,8 @@ can --organisation='$SESSION_ORGANISATION' viewlog
 if(! $status)setenv CANVIEWLOG
 endif
 if($?SESSION_SITE) then
+can --organisation='$SESSION_ORGANISATION' --site='$SESSION_SITE' editaccess
+if(! $status)setenv CANEDITACCESS
 can --organisation='$SESSION_ORGANISATION' --site='$SESSION_SITE' editsite
 if(! $status)setenv CANEDITSITE
 can --organisation='$SESSION_ORGANISATION' --site='$SESSION_SITE' editdevice

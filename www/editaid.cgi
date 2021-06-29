@@ -1,4 +1,4 @@
-#!../login/loggedin /bin/csh -fx
+#!../login/loggedin /bin/csh -f
 can --redirect --organisation='$SESSION_ORGANISATION' admin
 if($status) exit 0
 

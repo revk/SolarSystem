@@ -1,4 +1,4 @@
-#!../login/loggedin /bin/csh -fx
+#!../login/loggedin /bin/csh -f
 if($?PATH_INFO) then
 	setenv device "$PATH_INFO:t"
 endif
@@ -38,9 +38,11 @@ if($?DELETE || $?FACTORY) then
 endif
 if($?description) then # save
 	if(! $?door) setenv door false
+	setenv pcb `sql "$DB" 'SELECT pcb FROM device WHERE device="$device"'`
 	if($?pcb) then
-		set nfc `SQL "$DB" 'SELECT IF(nfctx="-","false","true") FROM pcb WHERE pcb=$pcb'`
+		setenv nfc `sql "$DB" 'SELECT IF(nfctx="-","false","true") FROM pcb WHERE pcb=$pcb'`
 	endif
+	if($?nfc && ! $?nfcadmin) setenv nfcadmin false
 	sqlwrite -v -o -n "$DB" device description area nfc nfcadmin door aid site organisation
 	setenv MSG Updated
 	unsetenv device
@@ -48,7 +50,6 @@ if($?description) then # save
 endif
 done:
 source ../types
-setenv XMLSQLDEBUG
 xmlsql -C -d "$DB" head.html - foot.html << END
 <h1>Device</h1>
 <if not device>
@@ -71,15 +72,15 @@ xmlsql -C -d "$DB" head.html - foot.html << END
 <form method=post action=/editdevice.cgi><input type=hidden name=device>
 <sql table=device KEY=device>
 <table>
+<tr><td>PCB</td><td><output name=description></td></tr>
 <tr><td>Name</td><td><input name=description ize=40 autofocus></td></tr>
-<tr><td>Site</td><td><select name=site><sql select="site AS S,description AS D" table=site><option value='\$S'><output name="\$D"></option></sql></td></tr>
+<tr><td>Site</td><td><select name=site><sql select="site AS S,description AS D" table=site where="organisation=$SESSION_ORGANISATION"><option value='\$S'><output name=D></option></sql></select></td></tr>
+<if nfc=true><tr><td>AID</td><td><select name=aid><sql table=aid where="site=\$site"><option value="\$aid"><output name=description></option></sql></select></td></tr></if>
 <tr><td>Online</td><td><if online><output name=online></if><if else>Last online <output name=lastonline missing="never"></if><if upgrade> (upgrade scheduled)</if></td></tr>
 <sql table=pcb where="pcb=\$pcb">
-<tr><td>PCB</td><td><output name=description></td></tr>
 <if nfc=true><tr><td>Area</td><td><sql select="tag" table=area where="site=\$site"><label for=\$tag><output name=tag>:</label><input id=\$tag name=area type=checkbox value=\$tag></sql></td></tr></if>
-<if nfc=true><tr><td>AID</td><td><select name=aid><sql table=aid where="organisation=$SESSION_ORGANISATION"><option value="\$aid"><output name=description></option></sql></select></td></tr></if>
-<if nfc=true><tr><td><label for door>Door control</label></td><td><input type=checkbox id=door name=door value=true></td></tr></if>
-<if nfc=true><tr><td><label for nfcadmin>Admin NFC reader</label></td><td><input type=checkbox id=nfcadmin name=nfcadmin value=true></td></tr></if>
+<if nfc=true><tr><td><label for=door>Door control</label></td><td><input type=checkbox id=door name=door value=true></td></tr></if>
+<if nfc=true><tr><td><label for=nfcadmin>Admin NFC reader</label></td><td><input type=checkbox id=nfcadmin name=nfcadmin value=true></td></tr></if>
 </sql>
 <sql table="device JOIN gpio USING (pcb) LEFT JOIN devicegpio ON (devicegpio.device=device.device AND devicegpio.gpio=gpio.gpio)" WHERE="device.device='\$device'">
 <tr><td><output name=pinname href="/editgpio.cgi/\$device/\$gpio"></td>

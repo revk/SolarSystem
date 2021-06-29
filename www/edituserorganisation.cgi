@@ -1,0 +1,86 @@
+#!../login/loggedin /bin/csh -fx
+unset user £ clash
+can --redirect --organisation='$SESSION_ORGANISATION' edituser
+if($status) exit 0
+source ../setcan
+# save
+if($?description) then
+	if($status) exit 0
+	setenv allow "jobtitle"
+	if(! $?admin) setenv admin false
+	if(! $?caneditorganisation) setenv caneditorganisation false
+	if(! $?caneditclass) setenv caneditclass false
+	if(! $?caneditsite) setenv caneditsite false
+	if(! $?caneditdevice) setenv caneditdevice false
+	if(! $?caneditfob) setenv caneditfob false
+	if(! $?canedituser) setenv canedituser false
+	if(! $?caneditarea) setenv caneditarea false
+	if($?ADMINORGANISATION) setenv allow "$allow admin"
+	if($?CANEDITORGANISATION) setenv allow "$allow caneditorganisation"
+	if($?CANEDITACCESS) setenv allow "$allow caneditaccess"
+	if($?CANEDITSITE) setenv allow "$allow caneditsite"
+	if($?CANEDITDEVICE) setenv allow "$allow caneditdevice"
+	if($?CANEDITFOB) setenv allow "$allow caneditfob"
+	if($?CANEDITUSER) setenv allow "$allow canedituser"
+	if($?CANEDITAREA) setenv allow "$allow caneditarea"
+	sqlwrite -o "$DB" userorganisation $allow
+endif
+if($?NEW) then
+	setenv user `sql "$DB" 'SELECT user FROM user WHERE email="$NEW"'`
+	if("$user" == "" || "$user" == NULL) then
+		setenv MSG "User not found, have them register first"
+		goto done
+	endif
+	sql "$DB" 'INSERT INTO userorganisation SET organisation=$SESSION_ORGANISATION,user=$user'
+	echo "Location: ${ENVCGI_SERVER}edituserorganisation.cgi/$user"
+	echo ""
+	exit 0
+endif
+done:
+setenv XMLSQLDEBUG
+if(! $?PATH_INFO) then
+# list classes
+xmlsql -C -d "$DB" head.html - foot.html << 'END'
+<h1>Users</h1>
+<form method=post style='inline'>
+<table>
+<sql table="userorganisation LEFT JOIN user USING (user)" WHERE="organisation=$SESSION_ORGANISATION"><set found=1>
+<tr>
+<td><if admin=true>Admin</if></td>
+<td><output name=email href="/edituserorganisation.cgi/$user"></td>
+<td><output name=description></td>
+</tr>
+</sql>
+<tr>
+<td><input type=submit value="Add user"></td>
+<td><input name=NEW type=email size=40 placeholder="Email address of user" autofocus></td>
+</tr>
+</table>
+</form>
+<if not found><p>No users found</p></if>
+'END'
+exit 0
+endif
+# edit class
+setenv user "$PATH_INFO:t"
+xmlsql -C -d "$DB" head.html - foot.html << 'END'
+<h1>Edit user</h1>
+<sql table="userorganisation LEFT JOIN user USING (user)"  where="user=$user AND organisation=$SESSION_ORGANISATION">
+<form method=post action="/edituserorganisation.cgi"><input type=hidden name=user><input type=hidden name=organisation>
+<table>
+<tr><td>Name</td><td><output name=description></td></tr>
+<tr><td>Email</td><td><output name=email></td></tr>
+<tr><td>Job title</td><td><input name=jobtitle size=40 autofocus></td></tr>
+<if ADMINORGANISATION><tr><td><input type=checkbox id=admin name=admin value=true></td><td><label for=admin>Admin for organisation</lable></td></tr></if>
+<if CANEDITORGANISATION><tr><td><input type=checkbox id=caneditorganisation name=caneditorganisation value=true></td><td><label for=caneditorganisation>Can edit organisation</lable></td></tr></if>
+<if CANEDITACCESS><tr><td><input type=checkbox id=caneditaccess name=caneditaccess value=true></td><td><label for=caneditaccess>Can edit access</lable></td></tr></if>
+<if CANEDITSITE><tr><td><input type=checkbox id=caneditsite name=caneditsite value=true></td><td><label for=caneditsite>Can edit site</lable></td></tr></if>
+<if CANEDITDEVICE><tr><td><input type=checkbox id=caneditdevice name=caneditdevice value=true></td><td><label for=caneditdevice>Can edit device</lable></td></tr></if>
+<if CANEDITFOB><tr><td><input type=checkbox id=caneditfob name=caneditfob value=true></td><td><label for=caneditfob>Can edit fob</lable></td></tr></if>
+<if CANEDITUSER><tr><td><input type=checkbox id=canedituser name=canedituser value=true></td><td><label for=canedituser>Can edit user</lable></td></tr></if>
+<if CANEDITAREA><tr><td><input type=checkbox id=caneditarea name=caneditarea value=true></td><td><label for=caneditarea>Can edit area</lable></td></tr></if>
+</table>
+<input type=submit value="Update">
+</form>
+</sql>
+'END'

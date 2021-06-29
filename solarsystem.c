@@ -624,13 +624,37 @@ int main(int argc, const char *argv[])
                      char block = j_test(j, "block", 0);
                      if (!held && !gone)
                      {          // Initial fob use
+                        SQL_RES *fa = sql_safe_query_store_free(&sql, sql_printf("SELECT * FROM `fobaid` WHERE `fob`=%#s AND `aid`=%#s", fobid, aid));
+                        if (!sql_fetch_row(fa))
+                        {
+                           sql_free_result(fa);
+                           fa = NULL;
+                        }
                         if (block)
                         {       // Confirm blocked
 #if 0
                            sql_safe_query_free(&sql, sql_printf("UPDATE `foborganisation` SET `confirmed`=NOW() WHERE `organisation`=%d AND `fob`=%#s AND `confirmed` IS NULL", organisation, fobid));
 #endif
                         }
-                        if (!secure)
+                        if (secure)
+                        {
+                           if (fa)
+                           {
+                              const char *ver = j_get(j, "ver");
+                              if (ver && strcmp(ver, sql_colz(fa, "ver")))
+                                 sql_safe_query_free(&sql, sql_printf("UPDATE `fobaid` SET `ver`=%#s WHERE `fob`=%#s AND `aid`=%#s", ver, fobid, aid));
+                              const char *crc = j_get(j, "crc");
+                              const char *crcnew = sql_col(fa, "crc");
+                              if (crcnew && strcmp(crc, crcnew))
+                              { // Send afile
+                                 unsigned char afile[256] = { };
+                                 makeafile(&sql, fobid, aid, afile);
+                                 j_t a = j_create();
+                                 j_string(a, j_base16a(*afile + 1, afile));
+                                 slot_send(id, "command", "access", &a);
+                              }
+                           }
+                        } else if (!secure)
                         {       // Consider adopting
                            if (*sql_colz(device, "adoptnext") == 't')
                            {    // Create fob record if necessary, if we have a key
@@ -638,12 +662,17 @@ int main(int argc, const char *argv[])
                               if (sql_fetch_row(res))
                               {
                                  sql_safe_query_free(&sql, sql_printf("INSERT IGNORE INTO `fob` SET `fob`=%#s,`provisioned`=NOW()", fobid));    // Should not be needed if we have key
-                                 sql_safe_query_free(&sql, sql_printf("INSERT INTO `fobaid` SET `fob`=%#s,`aid`=%#s ON DUPLICATE KEY UPDATE `adopted`=NULL", fobid, aid));
+                                 if (!fa)
+                                 {
+                                    sql_safe_query_free(&sql, sql_printf("INSERT INTO `fobaid` SET `fob`=%#s,`aid`=%#s", fobid, aid));
+                                    fa = sql_safe_query_store_free(&sql, sql_printf("SELECT * FROM `fobaid` WHERE `fob`=%#s AND `aid`=%#s", fobid, aid));
+                                    sql_fetch_row(fa);
+                                 } else if (sql_col(fa, "adopted"))
+                                    sql_safe_query_free(&sql, sql_printf("UPDATE `fobaid` SET `adopted`=NULL WHERE `fob`=%#s AND `aid`=%#s", fobid, aid));
                               }
                               sql_free_result(res);
                            }
-                           SQL_RES *res = sql_safe_query_store_free(&sql, sql_printf("SELECT * FROM `fobaid` WHERE `fob`=%#s AND `aid`=%#s AND `adopted` IS NULL", fobid, aid));
-                           if (sql_fetch_row(res))
+                           if (fa)
                            {
                               unsigned char afile[256] = { };
                               makeafile(&sql, fobid, aid, afile);
@@ -673,8 +702,9 @@ int main(int argc, const char *argv[])
                               j_store_int(init, "device", id);
                               forkcommand(&init, id, 0);
                            }
-                           sql_free_result(res);
                         }
+                        if (fa)
+                           sql_free_result(fa);
                      }
                   }
                }
