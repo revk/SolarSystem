@@ -165,14 +165,15 @@ void ssdatabase(SQL * sqlp)
       tabledef = NULL;
    }
 
-   int db=0;
+   int db = 0;
    const char **dbs = NULL;
    int dbn = 0;
    const char ***tbs = NULL;
    int *tbn = NULL;
    void addtable(const char *name) {
-	   for(db=0;db<dbn&&strcmp(dbs[db],name);db++);
-	   if(db<dbn)return;
+      for (db = 0; db < dbn && strcmp(dbs[db], name); db++);
+      if (db < dbn)
+         return;
       dbn++;
       dbs = realloc(dbs, sizeof(*dbs) * dbn);
       dbs[db] = name;
@@ -245,7 +246,7 @@ void ssdatabase(SQL * sqlp)
    }
 
    void foreign(const char *name) {
-	   addfield(name);
+      addfield(name);
       char *constraint;
       if (asprintf(&constraint, "CONSTRAINT `%s_%s` FOREIGN KEY", tablename, name) < 0)
          errx(1, "malloc");
@@ -377,7 +378,7 @@ void ssdatabase(SQL * sqlp)
          int q;
          for (q = 0; q < tbn[t] && strcasecmp(tbs[t][q], res->fields[f].name); q++);
          if (q == tbn[t])
-		 sql_safe_query_free(sqlp,sql_printf("ALTER TABLE `%#S` DROP `%#S`", dbs[t], res->fields[f].name));
+            sql_safe_query_free(sqlp, sql_printf("ALTER TABLE `%#S` DROP `%#S`", dbs[t], res->fields[f].name));
       }
       sql_free_result(res);
    }

@@ -44,7 +44,7 @@ unsigned int makeafile(SQL * sqlp, int access, unsigned char *afile)
          add(0xF1);
       if (*sql_colz(res, "override") == 't')
          add(0xFA);
-      if (*sql_colz(res, "block") == 't')
+      if (sql_col(res, "block"))
          add(0xFB);
       if (*sql_colz(res, "clock") == 't')
          add(0xFC);

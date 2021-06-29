@@ -122,7 +122,8 @@ areas(open);			// Allow open
 areas(disarm);			// Allow disarm/arm
 num(expiry);			// Auto expiry (days)
 time(expires);			// Fixed (UTC) expiry
-bool(block);			// Block card
+time(block);			// Block card (when blocked)
+time(blockconfirmed);		// When confirmed blocked
 bool(clock);			// Ignore time if clock not set
 bool(override);			// Open regardless
 bool(log);			// Log access

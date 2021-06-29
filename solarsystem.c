@@ -85,7 +85,6 @@ const char *security(SQL * sqlp, SQL * sqlkeyp, SQL_RES * res, slot_t id)
 {                               // Security settings
    j_t j = j_create();
    const char *aid = sql_colz(res, "aid");
-   int organisation = atoi(sql_colz(res, "organisation"));
    char nfc = (*sql_colz(res, "nfc") == 't');
    j_t aids = j_store_array(j, "aes");
    if (*aid && nfc)
@@ -104,7 +103,7 @@ const char *security(SQL * sqlp, SQL * sqlkeyp, SQL_RES * res, slot_t id)
    j_t blacklist = j_store_array(j, "blacklist");
    if (*aid)
    {
-      SQL_RES *b = sql_safe_query_store_free(sqlp, sql_printf("SELECT * FROM `foborganisation` LEFT JOIN `fobaid` USING (`fob`) WHERE `organisation`=%d AND `aid`=%#s AND `blocked` IS NOT NULL AND `confirmed` IS NULL ORDER BY `blocked` DESC LIMIT 10", organisation, aid));
+      SQL_RES *b = sql_safe_query_store_free(sqlp, sql_printf("SELECT * FROM `fobaid` LEFT JOIN `access` USING (`access`) WHERE `fob`=%#s AND `aid`=%#s AND `block` IS NOT NULL AND `blockconfirmed` IS NULL ORDER BY `block` DESC LIMIT 10"));
       while (sql_fetch_row(b))
          j_append_string(blacklist, sql_colz(b, "fob"));
       sql_free_result(b);

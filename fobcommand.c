@@ -174,15 +174,24 @@ void *fobcommand(void *arg)
       slot_send(f.device, "command", "led", &j);
    }
    const char *e = NULL;
+   const char *dfcheck(const char *res, const char *func, int line) {
+      if (res)
+      {
+         e = res;
+         if (mqttdump)
+            warnx("DF fail (%s): %s line %d", *res ? res : "Gone", func, line);
+      }
+      return res;
+   }
+#define df(x) if(dfcheck(df_##x,#x,__LINE__))return
    if (provision || adopt || format)
    {
       slot_send(f.device, "command", "nfcremote", NULL);
       if (fob)
          f.connected = 1;       // Already connected
       df_t d;
-      if ((e = df_init(&d, &f, &dx)))
-         status(e);
-      else
+      e = df_init(&d, &f, &dx);
+      if (!e)
       {
          if (!f.connected)
          {
@@ -203,12 +212,10 @@ void *fobcommand(void *arg)
          void doconnect(void) {
             if (mqttdump)
                warnx("Fob connect");
-            if ((e = df_select_application(&d, NULL)))
-               return;
-            if ((e = df_format(&d, masterkey + 1)) && (e = df_format(&d, NULL)))
-               return;
-            if ((e = df_get_uid(&d, uid)))
-               return;
+            df(select_application(&d, NULL));
+            if (df_format(&d, masterkey + 1))
+               df(format(&d, NULL));
+            df(get_uid(&d, uid));
             if (!fob)
                return;
             if (strcmp(fob, j_base16(sizeof(uid), uid)))
@@ -218,11 +225,10 @@ void *fobcommand(void *arg)
          void doformat(void) {
             if (mqttdump)
                warnx("Fob format");
-            if ((e = df_format(&d, masterkey + 1)) && (e = df_format(&d, NULL)))
-               return;
+            if (df_format(&d, masterkey + 1))
+               df(format(&d, NULL));
             unsigned int mem;
-            if ((e = df_free_memory(&d, &mem)))
-               return;
+            df(free_memory(&d, &mem));
             {                   // Tell system formatted
                j_t j = j_create();
                j_int(j_path(j, "_meta.loopback"), f.id);
@@ -242,46 +248,31 @@ void *fobcommand(void *arg)
             unsigned int n;
             {
                unsigned char aids[3 * 20];
-               if ((e = df_get_application_ids(&d, &n, sizeof(aids), aids)))
-                  errx(1, "Application list: %s", e);
+               df(get_application_ids(&d, &n, sizeof(aids), aids));
                while (n && memcmp(aids + n * 3 - 3, aid, 3))
                   n--;
             }
             if (!n)
             {                   // Create
-               if ((e = df_create_application(&d, aid, DF_SET_DEFAULT, 2)))
-                  return;
-               if ((e = df_select_application(&d, aid)))
-                  return;
-               if ((e = df_authenticate(&d, 0, NULL)))
-                  return;
-               if ((e = df_change_key(&d, 0, *aid0key, NULL, aid0key + 1)))
-                  return;
-               if ((e = df_authenticate(&d, 0, aid0key + 1)))
-                  return;
-               if ((e = df_change_key(&d, 1, *aid1key, NULL, aid1key + 1)))
-                  return;
-               if ((e = df_change_key_settings(&d, 0xEB)))
-                  return;
-               if ((e = df_create_file(&d, 0x0A, 'B', 1, 0x0010, 256, 0, 0, 0, 0, 0)))
-                  return;
+               df(create_application(&d, aid, DF_SET_DEFAULT, 2));
+               df(select_application(&d, aid));
+               df(authenticate(&d, 0, NULL));
+               df(change_key(&d, 0, *aid0key, NULL, aid0key + 1));
+               df(authenticate(&d, 0, aid0key + 1));
+               df(change_key(&d, 1, *aid1key, NULL, aid1key + 1));
+               df(change_key_settings(&d, 0xEB));
+               df(create_file(&d, 0x0A, 'B', 1, 0x0010, 256, 0, 0, 0, 0, 0));
             } else
             {                   // Check auth is right
-               if ((e = df_select_application(&d, aid)))
-                  return;
-               if ((e = df_authenticate(&d, 1, aid1key + 1)))
-                  return;
-               if ((e = df_authenticate(&d, 0, aid0key + 1)))
-                  return;
+               df(select_application(&d, aid));
+               df(authenticate(&d, 1, aid1key + 1));
+               df(authenticate(&d, 0, aid0key + 1));
             }
-            if ((e = df_write_data(&d, 0x0A, 'B', 1, 0, *afile + 1, afile)))
-               return;
-            if ((e = df_commit(&d)))
-               return;
+            df(write_data(&d, 0x0A, 'B', 1, 0, *afile + 1, afile));
+            df(commit(&d));
 
             unsigned int mem;
-            if ((e = df_free_memory(&d, &mem)))
-               return;
+            df(free_memory(&d, &mem));
             {                   // Tell system adopted
                j_t j = j_create();
                j_int(j_path(j, "_meta.loopback"), f.id);
@@ -301,25 +292,19 @@ void *fobcommand(void *arg)
                warnx("Fob provision");
             status("Provisioning fob");
             unsigned char version;
-            if ((e = df_get_key_version(&d, 0, &version)))
-               return;
+            df(get_key_version(&d, 0, &version));
             if (!version)
             {                   // Formatting
                status("Formatting card");
-               if ((e = df_format(&d, masterkey + 1)))
-                  return;
+               df(format(&d, masterkey + 1));
                memset(masterkey, 0, sizeof(masterkey)); // Format does that
-               if ((e = df_authenticate(&d, 0, NULL)))
-                  return;
-               if ((e = df_change_key_settings(&d, 0x09)))
-                  return;
-               if ((e = df_set_configuration(&d, 0)))
-                  return;       // Not random or lock...
-            } else if ((e = df_authenticate(&d, 0, masterkey + 1)))
-               return;
+               df(authenticate(&d, 0, NULL));
+               df(change_key_settings(&d, 0x09));
+               df(set_configuration(&d, 0));
+            } else
+               df(authenticate(&d, 0, masterkey + 1));
             unsigned char uid[7];
-            if ((e = df_get_uid(&d, uid)))
-               return;
+            df(get_uid(&d, uid));
             status("Setting key");
             unsigned char key[16];
             {                   // Key key
@@ -331,8 +316,7 @@ void *fobcommand(void *arg)
                close(f);
             }
             unsigned int mem;
-            if ((e = df_free_memory(&d, &mem)))
-               return;          // setting key does not change this
+            df(free_memory(&d, &mem));
             {                   // Tell system new key
                j_t j = j_create();
                j_int(j_path(j, "_meta.loopback"), f.id);
@@ -342,10 +326,8 @@ void *fobcommand(void *arg)
                j_store_int(j, "mem", mem);
                mqtt_qin(&j);
             }
-            if ((e = df_change_key(&d, 0x80, 0x01, NULL, key)))
-               return;
-            if ((e = df_authenticate(&d, 0, key)))
-               return;
+            df(change_key(&d, 0x80, 0x01, NULL, key));
+            df(authenticate(&d, 0, key));
             status("Done, remove card");
          }
          if (f.connected && !f.done)
