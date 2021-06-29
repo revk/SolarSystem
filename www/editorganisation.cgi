@@ -29,20 +29,6 @@ if($?description) then
   sql "$DB" 'UPDATE session SET organisation=$organisation,site=$site WHERE session="$ENVCGI"'
  endif
  sqlwrite -o "$DB" organisation description
- if($?adduser && $NOTADMIN == 0) then
-  if("$adduser" != "") then
-   setenv user `sql "$DB" 'SELECT user FROM user WHERE email="$adduser"'`
-   if("$user" == NULL || "$user" == "") then
-    setenv MSG "Unknown user";
-    goto done
-   endif
-   if("$class" == "0") then
-    setenv MSG "Pick a class"
-    goto done
-   endif
-   sql "$DB" 'INSERT INTO userorganisation SET user=$user,organisation=$organisation,class=$class'
-  endif
- endif
  echo "Location: ${ENVCGI_SERVER}"
  echo ""
  exit 0
@@ -54,14 +40,6 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <sql table=organisation key=organisation>
 <table>
 <tr><td>Name</td><td><input name=description size=40 autofocus></td></tr>
-<IF NOTADMIN=0 NOT organisation=0>
-<tr><td>Add user</td><td><input name=adduser type=email size=40></td></tr>
-<tr><td>Class</td><td><select name=class><option value='0'>-- Pick class --</option>
-<sql table=class WHERE="organisation=$organisation">
-<option value="$class"><output name=description blank="Unspecified"><if admin=true> (ADMIN)</if></option>
-</sql>
-</select></td></tr>
-</IF>
 </table>
 </sql>
 <input type=submit value="Update">

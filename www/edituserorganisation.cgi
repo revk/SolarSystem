@@ -1,15 +1,15 @@
-#!../login/loggedin /bin/csh -fx
+#!../login/loggedin /bin/csh -f
 unset user £ clash
 can --redirect --organisation='$SESSION_ORGANISATION' edituser
 if($status) exit 0
 source ../setcan
 # save
-if($?description) then
+if($?jobtitle) then
 	if($status) exit 0
 	setenv allow "jobtitle"
 	if(! $?admin) setenv admin false
 	if(! $?caneditorganisation) setenv caneditorganisation false
-	if(! $?caneditclass) setenv caneditclass false
+	if(! $?caneditaccess) setenv caneditaccess false
 	if(! $?caneditsite) setenv caneditsite false
 	if(! $?caneditdevice) setenv caneditdevice false
 	if(! $?caneditfob) setenv caneditfob false
@@ -25,30 +25,36 @@ if($?description) then
 	if($?CANEDITAREA) setenv allow "$allow caneditarea"
 	sqlwrite -o "$DB" userorganisation $allow
 endif
+if($?DELETE) then
+	if(! $?SURE) then
+		setenv MSG "Click to say you are sure"
+		goto done
+	endif
+	sql "$DB" 'DELETE FROM userorganisation WHERE user=$user AND organisation=$SESSION_ORGANISATION'
+endif
 if($?NEW) then
 	setenv user `sql "$DB" 'SELECT user FROM user WHERE email="$NEW"'`
 	if("$user" == "" || "$user" == NULL) then
 		setenv MSG "User not found, have them register first"
-		goto done
+		goto list
 	endif
 	sql "$DB" 'INSERT INTO userorganisation SET organisation=$SESSION_ORGANISATION,user=$user'
 	echo "Location: ${ENVCGI_SERVER}edituserorganisation.cgi/$user"
 	echo ""
 	exit 0
 endif
-done:
-setenv XMLSQLDEBUG
+list:
 if(! $?PATH_INFO) then
-# list classes
 xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <h1>Users</h1>
 <form method=post style='inline'>
 <table>
-<sql table="userorganisation LEFT JOIN user USING (user)" WHERE="organisation=$SESSION_ORGANISATION"><set found=1>
+<sql select="userorganisation.*,user.description,user,email,user.admin AS A" table="userorganisation LEFT JOIN user USING (user)" WHERE="organisation=$SESSION_ORGANISATION"><set found=1>
 <tr>
-<td><if admin=true>Admin</if></td>
+<td><if A=true><b>System admin</b></if><if else admin=true>Admin</if></td>
 <td><output name=email href="/edituserorganisation.cgi/$user"></td>
 <td><output name=description></td>
+<td><output name=jobtitle></td>
 </tr>
 </sql>
 <tr>
@@ -63,6 +69,7 @@ exit 0
 endif
 # edit class
 setenv user "$PATH_INFO:t"
+done:
 xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <h1>Edit user</h1>
 <sql table="userorganisation LEFT JOIN user USING (user)"  where="user=$user AND organisation=$SESSION_ORGANISATION">
@@ -81,6 +88,7 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <if CANEDITAREA><tr><td><input type=checkbox id=caneditarea name=caneditarea value=true></td><td><label for=caneditarea>Can edit area</lable></td></tr></if>
 </table>
 <input type=submit value="Update">
+<input type=submit name=DELETE value="Delete"><input type=checkbox name=SURE>
 </form>
 </sql>
 'END'

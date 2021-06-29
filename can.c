@@ -37,15 +37,13 @@ int main(int argc, const char *argv[])
        user = 0,
        organisation = 0,
        site = 0,
-       aid = 0,
-       class = 0;
+       aid = 0;
    const char *sus = NULL,
        *suser = NULL,
        *sorganisation = NULL,
        *ssite = NULL,
        *said = NULL,
-       *sdevice = NULL,
-       *sclass = NULL;
+       *sdevice = NULL;
    int redirect = 0;
    int reason = 0;
    poptContext optCon;          // context for parsing command-line options
@@ -55,7 +53,6 @@ int main(int argc, const char *argv[])
       { "organisation", 'o', POPT_ARG_STRING, &sorganisation, 0, "Check access to organisation", "N" },
       { "site", 's', POPT_ARG_STRING, &ssite, 0, "Check access to site", "N" },
       { "aid", 'a', POPT_ARG_STRING, &said, 0, "Check access to aid", "N" },
-      { "class", 'c', POPT_ARG_STRING, &sclass, 0, "Check access to class", "N" },
       { "device", 'd', POPT_ARG_STRING, &sdevice, 0, "Check access to device", "N" },
       { "redirect", 'r', POPT_ARG_NONE, &redirect, 0, "Redirect", NULL },
       { "reason", 0, POPT_ARG_NONE, &reason, 0, "Output reason allowed", NULL },
@@ -84,7 +81,6 @@ int main(int argc, const char *argv[])
    organisation = getval(sorganisation);
    site = getval(ssite);
    aid = getval(said);
-   class = getval(sclass);
    if (sdevice && *sdevice == '$')
       sdevice = (getenv(sdevice + 1) ? : "");
 
@@ -136,8 +132,6 @@ int main(int argc, const char *argv[])
       const char *e = NULL;
       if (!e && sdevice)
          e = getorg(sql_printf("SELECT * FROM `device` LEFT JOIN `site` USING (`site`) WHERE `device`=%d", sdevice));
-      if (!e && class)
-         e = getorg(sql_printf("SELECT * FROM `class` WHERE `class`=%d", class));
       if (!e && site)
          e = getorg(sql_printf("SELECT * FROM `site` WHERE `site`=%d", site));
       if (!e && aid)
@@ -150,7 +144,7 @@ int main(int argc, const char *argv[])
       }
       if (organisation)
       {
-         SQL_RES *res = sql_safe_query_store_free(&sql, sql_printf("SELECT * FROM `userorganisation` LEFT JOIN `class` USING (`class`,`organisation`) WHERE `user`=%d AND `organisation`=%d", us, organisation));
+         SQL_RES *res = sql_safe_query_store_free(&sql, sql_printf("SELECT * FROM `userorganisation` WHERE `user`=%d AND `organisation`=%d", us, organisation));
          if (!sql_fetch_row(res))
          {
             sql_free_result(res);
