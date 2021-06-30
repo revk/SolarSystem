@@ -27,6 +27,8 @@ if($?sitename) then
 		sql "$DB" 'UPDATE session SET organisation=$SESSION_ORGANISATION,site=$site WHERE session="$ENVCGI"'
 	endif
 	sqlwrite -o "$DB" site sitename wifissid wifipass
+	sql "$DB" 'UPDATE device SET poke=NOW() WHERE site=$site'
+	message --poke
 	../login/redirect /
 	exit 0
 endif

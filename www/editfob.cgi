@@ -37,9 +37,11 @@ if($?fobname) then
 		if($status) exit 0
 		setenv access `printenv "access$A"`
 		if("$access" == "") then
-			sql "$DB" 'DELETE FROM fobaid WHERE  fob="$fob" AND aid="$A"'
+			setenv C `sql -c "$DB" 'DELETE FROM fobaid WHERE  fob="$fob" AND aid="$A"'`
+			if("$C" == 1) sql "$DB" 'UPDATE device SET device.poke=NOW() WHERE aid="$A"'
 		else
-			sql "$DB" 'INSERT IGNORE INTO fobaid SET fob="$fob",aid="$A"'
+			setenv C `sql -c "$DB" 'INSERT IGNORE INTO fobaid SET fob="$fob",aid="$A"'`
+			if("$C" == 1) sql "$DB" 'UPDATE device SET device.poke=NOW() WHERE aid="$A"'
 			sql "$DB" 'UPDATE fobaid SET access=$access WHERE fob="$fob" AND aid="$A"'
 		endif
 	end
@@ -47,10 +49,14 @@ if($?fobname) then
 	setenv allow "fobname expires"
 	if($?BLOCK) setenv blocked "`date +'%F %T'`"
 	if($?BLOCK) setenv allow "$allow confirmed"
-	if($?UNBLOCK||$?BLOCK) setenv allow "$allow blocked"
+	if($?UNBLOCK||$?BLOCK) then
+		setenv allow "$allow blocked"
+		sql "$DB" 'UPDATE device SET device.poke=NOW() WHERE organisation="$SESSION_ORGANISATION"'
+	endif
 	setenv expires "${expires}Z"
 	if("$expires" == "Z") unsetenv expires
 	sqlwrite -v -o -n "$DB" foborganisation fob organisation $allow
+	message --poke
 	setenv MSG "Updated"
 	goto list
 endif

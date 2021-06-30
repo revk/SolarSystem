@@ -188,12 +188,14 @@ bool (formatnext);		// Format next unknown fob seen, if possible
 num(flash);                     // Flash size
 link(aid);                      // The AID for door access (defines what site it is)
 areas(area);   	                // Areas covered by this door
-datetime(online);                   // When online, if online
-datetime(lastonline);               // When last went offline
-datetime(upgrade);                  // When to do upgrade
+datetime(online);               // When online, if online
+datetime(lastonline);           // When last went offline
+datetime(upgrade);              // When to do upgrade
 ip(address);                    // IP address when last online
-num(id);                  // Instance for communications when on line
+num(id);	               	// Instance for communications when on line
+datetime(poke);			// Poke settings
 // TODO hold times, lock times, etc...
+// TODO status, like door states, tamper, fault, etc
 
 join(device,gpio)
 gpiotype(type);			// Pin Usage (in/out/power/exit/etc)

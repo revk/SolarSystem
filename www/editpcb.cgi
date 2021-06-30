@@ -54,7 +54,9 @@ if($?pcbname) then # save
 	setenv set "$set,$n"
 	end
 	@ changed = $changed + `sql -c "$DB" 'DELETE FROM gpio WHERE pcb=$pcb AND gpio NOT IN ($,set)'`
-	if($changed)goto done
+	sql "$DB" 'UPDATE device SET poke=NOW() WHERE pcb=$pcb'
+       	message --poke
+	if($changed) goto done
 	../login/redirect editpcb.cgi
 	exit 0
 endif

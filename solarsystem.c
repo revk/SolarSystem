@@ -37,6 +37,9 @@ extern int sqldebug;
 int dump = 0;                   // dump level debug
 int mqttdump = 0;               // mqtt logging
 
+const char *settings(SQL * sqlp, SQL_RES * res, slot_t id);
+const char *security(SQL * sqlp, SQL * sqlkeyp, SQL_RES * res, slot_t id);
+
 #define AES_STRING_LEN	35
 char *getaes(SQL * sqlkeyp, char *target, const char *aid, const char *fob)
 {                               // Get AES key (HEX ver and AES, so AES_STRING_LEN byte buffer)
@@ -211,8 +214,20 @@ void bogus(slot_t id)
 }
 
 void daily(SQL * sqlp)
-{
-   sql_safe_query(sqlp, "DELETE FROM `session` WHERE `expires`<NOW()");
+{                               // Daily tasks and clean up
+   sql_safe_query(sqlp, "DELETE FROM `session` WHERE `expires`<NOW()"); // Old sessions
+}
+
+void dopoke(SQL *sqlp,SQL * sqlkeyp)
+{                               // Poking that may need doing
+   SQL_RES *res = sql_safe_query_store_free(sqlp, sql_printf("SELECT * FROM `device` WHERE `poke` IS NOT NULL AND `id` IS NOT NULL"));
+   while (sql_fetch_row(res))
+   {
+      sql_safe_query_free(sqlp, sql_printf("UPDATE `device` SET `poke`=NULL WHERE `device`=%#s", sql_col(res, "device")));
+      slot_t id = strtoull(sql_colz(res, "id"), NULL, 10);
+      settings(sqlp, res, id);
+      security(sqlp,sqlkeyp, res, id);
+   }
 }
 
 const char *forkcommand(j_t * jp, slot_t device, slot_t local)
@@ -369,6 +384,7 @@ int main(int argc, const char *argv[])
    sql_safe_query(&sql, "UPDATE `device` SET `id`=NULL,`online`=NULL WHERE `id` IS NOT NULL");
    mqtt_start();
    // Main loop getting messages (from MQTT or websocket)
+   int poke = 1;
    while (1)
    {
       {                         // Daily jobs
@@ -379,6 +395,11 @@ int main(int argc, const char *argv[])
             today = now / 86400;
             daily(&sql);
          }
+      }
+      if (poke)
+      {
+         poke = 0;
+         dopoke(&sql,&sqlkey);
       }
       j_t j = incoming();
       if (!j)
@@ -425,7 +446,9 @@ int main(int argc, const char *argv[])
                      return "Device not on line";
                }
             }
-            if (j_find(meta, "provision") && deviceid)
+            if (j_find(meta, "poke"))
+               poke = 1;
+            else if (j_find(meta, "provision") && deviceid)
             {                   // JSON is rest of settings to send
                char *key = makekey();
                char *cert = makecert(key, cakey, cacert, v);
@@ -587,7 +610,7 @@ int main(int argc, const char *argv[])
                if (checkdevice())
                {
                   sql_sprintf(&s, "UPDATE `device` SET ");      // known, update
-                  sql_sprintf(&s, "`lastonline`=NOW(),");
+                  sql_sprintf(&s, "`lastonline`=NOW(),`poke`=NULL,");
                   if (!upgrade(device, id) && !settings(&sql, device, id))
                      security(&sql, &sqlkey, device, id);
                } else           // pending - update pending
@@ -677,10 +700,11 @@ int main(int argc, const char *argv[])
                         {       // Check afile
                            unsigned was = strtoull(crc, NULL, 16);
                            unsigned char afile[256] = { };
-			   unsigned new=makeafile(fa, afile);
+                           unsigned new = makeafile(fa, afile);
                            if (was != new)
                            {    // Send afile
-				   if(sqldebug)warnx("CRC mismatch %08X %08X",was,new);
+                              if (sqldebug)
+                                 warnx("CRC mismatch %08X %08X", was, new);
                               j_t a = j_create();
                               j_string(a, j_base16a(*afile + 1, afile));
                               slot_send(id, "command", "access", &a);

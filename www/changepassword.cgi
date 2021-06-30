@@ -18,8 +18,8 @@ xmlsql -C -d "$DB" head.html - foot.html << END
 <p>We suggest a new password for you, but you can enter one of your choice if you prefer.</p>
 <form method=post action=changepassword.cgi>
 	<table>
-		<IF Z=0><tr><td>Old password</td><td><input size=40 type=password name=OLDPASSWORD autofocus></td></tr></if>
-		<tr><td>New password</td><td><input size=40 name=NEWPASSWORD></td></td>
+		<IF Z=0><tr><td>Old password</td><td><input autocomplete="current-password" size=40 type=password name=OLDPASSWORD autofocus></td></tr></if>
+		<tr><td>New password</td><td><input autocomplete="new-password" size=40 name=NEWPASSWORD></td></td>
 	</table>
 	<input type=submit value="Change" name=CHANGE>
 </form>

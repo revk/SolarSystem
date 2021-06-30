@@ -48,6 +48,8 @@ if($?devicename) then # save
 	setenv allow "devicename area nfc nfcadmin door aid site"
 	if($?USER_ADMIN) setenv allow "$allow nfctrusted"
 	sqlwrite -o -n "$DB" device $allow
+	sql "$DB" 'UPDATE device SET poke=NOW() WHERE device="$device"'
+        message --poke
 	setenv MSG Updated
 	unsetenv device
 	goto done
@@ -74,7 +76,7 @@ xmlsql -C -d "$DB" head.html - foot.html << END
 <if not found><p>No devices found.</p></if>
 </if><if else>
 <form method=post action=/editdevice.cgi><input type=hidden name=device>
-<sql table=device KEY=device>
+<sql table="device LEFT JOIN pcb USING (pcb)" KEY=device>
 <table>
 <tr><td>PCB</td><td><output name=pcbname></td></tr>
 <tr><td>Name</td><td><input name=devicename ize=40 autofocus></td></tr>

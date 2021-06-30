@@ -33,8 +33,8 @@ done:
 xmlsql -C -d "$DB" head.html - foot.html << END
 <form method=post action=login.cgi>
 	<table>
-		<tr><td>Email</td><td><input size=40 type=email name=USERNAME autofocus></td></tr>
-		<tr><td>Password</td><td><input size=40 type=password name=PASSWORD></td></td>
+		<tr><td>Email</td><td><input autocomplete="username" size=40 type=email name=USERNAME autofocus></td></tr>
+		<tr><td>Password</td><td><input autocomplete="current-password" size=40 type=password name=PASSWORD></td></td>
 	</table>
 	<input type=submit value="Login" name=LOGIN>
 	<input type=submit value="Forgotten password" name=FORGOT>
