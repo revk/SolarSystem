@@ -10,8 +10,7 @@ source ../types
 if($?type) then
 	if(! $?invert) setenv invert false
 	sqlwrite -q -o -n "$DB" devicegpio device gpio type invert $STATELIST
-	echo "Location: ${ENVCGI_SERVER}editdevice.cgi/$device"
-	echo ""
+	../login/redirect "editdevice.cgi/$device"
 	exit 0
 endif
 

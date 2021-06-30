@@ -9,19 +9,17 @@ if($?UPGRADE) then
 	sql "$DB" 'UPDATE device SET upgrade=NOW() WHERE device="$device"'
 	setenv MSG `message --device="$device" --command=restart`
 	if(! $status) setenv MSG "Upgrading"
-	../login/redirect "editdevice.cgi/$device" "$MSG"
-	exit 0
+	goto done
 endif
 if($?RESTART) then
 	setenv MSG `message --device="$device" --command=restart`
 	if(! $status) setenv MSG "Restarting"
-	../login/redirect "editdevice.cgi/$device" "$MSG"
-	exit 0
+	goto done
 endif
 if($?DELETE || $?FACTORY) then
 	if(! $?SURE) then
-		../login/redirect "editdevice.cgi/$device" "Are you sure? (tick)"
-		exit 0
+		setenv MSG "Are you sure?"
+		goto done
 	endif
 	if($?FACTORY)	then
 		setenv MSG `message --device="$device" --command=factory '"'"$device"'SS"'`

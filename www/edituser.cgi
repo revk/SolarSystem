@@ -22,8 +22,7 @@ You have asked to changed your email addess to $email.
 You have been sent a link to confirm the change.
 Check your email for that account and click the link.
 END
-		echo "Location: $ENVCGI_SERVER?MSG=An+email+has+been+sent,+check+it+and+click+link."
-		echo ""
+		../login/redirect / "An email address has been sent to $email, please check and follow link."
 		exit 0
 	endif
 	echo "Location: $ENVCGI_SERVER?MSG=Updated"
@@ -36,7 +35,7 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <form method=post><input type=hidden name=user>
 <table>
 <tr><td>Email</td><td><input name=email type=email size=40></td></tr>
-<tr><td>Name</td><td><input name=username size=40></td></tr>
+<tr><td>Name</td><td><input name=username size=40 autofocus></td></tr>
 </table>
 <input type=submit value="Update">
 </form>

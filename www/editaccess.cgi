@@ -4,6 +4,22 @@ if($status) exit 0
 
 source ../setcan
 setenv days "sun mon tue wed thu fri sat"
+
+if($?DELETE) then
+	if(! $?SURE) then
+		setenv MSG "Are you sure?"
+		goto done
+	endif
+	can --redirect --access="$access" admin
+	if($status) exit 0
+	setenv C `sql -c "$DB" 'DELETE FROM access WHERE access=$access"'`
+	if("$C" == "" || "$C" == "0") then
+                setenv MSG "Cannot delete as in use"
+                goto done
+        endif
+        ../login/redirect / Deleted
+        exit 0
+endif
 if($?access) then
 	if("$access" == 0) then
 		setenv access `sql -i "$DB" 'INSERT INTO access SET organisation=$SESSION_ORGANISATION,site=$SESSION_SITE'`
@@ -21,8 +37,7 @@ if($?access) then
 	if(! $?commit) setenv commit false
 	if($?ADMINORGANISATION) setenv allow "$allow override"
 	sqlwrite -o -n "$DB" access $allow
-	setenv MSG "Updated"
-	../login/redirect editaccess.cgi Updated
+	../login/redirect editaccess.cgi
 	exit 0
 endif
 
@@ -72,7 +87,7 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <tr><td><output name=day sun=Sunday mon=Monday tue=Tuesday web=Wednesday thu=Thursday fri=Friday sat=Saturday></td><td><input name="${day}from" type=time>-<input name="${day}to" type=time></td></tr>
 </for>
 </table>
-<input type=submit value="Update">
+<input type=submit value="Update"><if ADMINORGANISATION><input type=submit name=DELETE Value="Delete"><input name=SURE type=checkbox></if>
 </sql>
 </form>
 'END'

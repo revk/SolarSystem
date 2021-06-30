@@ -6,29 +6,34 @@ if($status) exit 0
 can --organisation=$organisation admin
 setenv NOTADMIN $status
 if($?DELETE) then
- sql "$DB" 'UPDATE session set organisation=NULL,site=NULL WHERE organisation=$organisation'
- setenv C `sql -c "$DB" 'DELETE FROM organisation WHERE organisation=$organisation'`
- if("$C" == "" || "$C" == "0") then
-  setenv MSG "Cannot delete as in use"
-  goto done
- endif
- echo "Location: ${ENVCGI_SERVER}?MSG=Deleted"
- echo ""
- exit 0
+	if(! $?SURE) then
+		setenv MSG "Are you sure?"
+		goto done
+	endif
+	sql "$DB" 'UPDATE session set organisation=NULL,site=NULL WHERE organisation=$organisation'
+	setenv C `sql -c "$DB" 'DELETE FROM organisation WHERE organisation=$organisation'`
+	if("$C" == "" || "$C" == "0") then
+		setenv MSG "Cannot delete as in use - you need to delete stuff in organiastion first"
+		goto done
+	endif
+	../login/redirect / Deleted
+	exit 0
 endif
 if($?organisationname) then
- if($organisation == 0) then
-  setenv organisation `sql -i "$DB" 'INSERT INTO organisation SET organisation=0'`
-  setenv site `sql -i "$DB" 'INSERT INTO site SET description="Main building",organisation=$organisation,wifissid="SolarSystem",wifipass="security"'`
-  sql "$DB" 'INSERT INTO access SET organisation=$organisation,site="$site",accessname="Default access"'
-  sql "$DB" 'INSERT INTO area SET organisation=$organisation,site=$site,tag="A",description="Main building"'
-  setenv aid `makeaid --organisation="$organisation"`
-  sql "$DB" 'UPDATE session SET organisation=$organisation,site=$site WHERE session="$ENVCGI"'
- endif
- sqlwrite -o "$DB" organisation organisationname
- echo "Location: ${ENVCGI_SERVER}"
- echo ""
- exit 0
+	if($organisation == 0) then
+		setenv organisation `sql -i "$DB" 'INSERT INTO organisation SET organisation=0'`
+		setenv site `sql -i "$DB" 'INSERT INTO site SET sitename="Main building",organisation=$organisation,wifissid="SolarSystem",wifipass="security"'`
+		sql "$DB" 'INSERT INTO access SET organisation=$organisation,site="$site",accessname="Default access"'
+		sql "$DB" 'INSERT INTO area SET organisation=$organisation,site=$site,tag="A",areaname="Main building"'
+		setenv aid `makeaid --site="$site"`
+		sql "$DB" 'UPDATE session SET organisation=$organisation,site=$site WHERE session="$ENVCGI"'
+		sqlwrite -o "$DB" organisation organisationname
+		../login/redirect "editorganisation.cgi/$organisation"
+		exit 0
+	endif
+	sqlwrite -o "$DB" organisation organisationname
+	../login/redirect /
+	exit 0
 endif
 done:
 xmlsql -C -d "$DB" head.html - foot.html << 'END'
@@ -40,7 +45,7 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 </table>
 </sql>
 <input type=submit value="Update">
-<IF NOT organisation=0 USER_ADMIN><input type=submit value="Delete" name=DELETE></IF>
+<IF NOT organisation=0 USER_ADMIN><input type=submit value="Delete" name=DELETE><input type=checkbox name=SURE></IF>
 </form>
 </sql>
 'END'

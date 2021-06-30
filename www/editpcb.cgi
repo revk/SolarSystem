@@ -55,8 +55,7 @@ if($?pcbname) then # save
 	end
 	@ changed = $changed + `sql -c "$DB" 'DELETE FROM gpio WHERE pcb=$pcb AND gpio NOT IN ($,set)'`
 	if($changed)goto done
-	echo "Location: ${ENVCGI_SERVER}/editpcb.cgi"
-	echo ""
+	../login/redirect editpcb.cgi
 	exit 0
 endif
 done:

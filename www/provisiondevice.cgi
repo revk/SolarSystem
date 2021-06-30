@@ -21,8 +21,7 @@ if($?PROVISION) then
 		setenv MSG `message --pending="$PROVISION" --provision --pending="$PROVISION" --aid="$aid"`
 	endif
 	if(! $status) then
-		echo "Location: ${ENVCGI_SERVER}?MSG=Provisioned"
-		echo ""
+		../login/redirect / Provisioned
 		exit 0
 	endif
 endif
@@ -33,8 +32,7 @@ if($?DEPORT) then
 	endif
 	setenv MG `message --pending="$DEPORT" --deport="$deport"`
 	if(! $status) then
-		echo "Location: ${ENVCGI_SERVER}?MSG=Deported"
-		echo ""
+		../login/redirect / Deported
 		exit 0
 	endif
 endif

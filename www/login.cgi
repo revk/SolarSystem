@@ -1,8 +1,8 @@
 #!../login/logincheck --query /bin/csh -f
 if($?FORGOT || $?NEW) then
 	if("$USERNAME" == "") then
-		setenv MSG "Specify email address"
-		goto done
+		../login/redirect login.cgi "Specify email address"
+		exit 0
 	endif
 	setenv LINK `weblink --make='$USERNAME'`
 	if($?NEW) then
@@ -22,8 +22,7 @@ END
 	endif
 	setenv MSG "We have emailed $USERNAME, check your email and follow the link"
 	if("$PASSWORD" != "") setenv MSG "$MSG. You will be asked a password when you follow the link."
-	unsetenv PASSWORD
-	goto done
+	../login/redirect login.cgi "$MSG"
 	exit 0
 endif
 if($?PASSWORD) then

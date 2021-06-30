@@ -16,8 +16,7 @@ if($?DELETE) then
 		setenv MSG "Cannot delete as in use"
 		goto done
 	endif
-	echo "Location: ${ENVCGI_SERVER}?MSG=Deleted"
-	echo ""
+	../login/redirect / Deleted
 	exit 0
 endif
 if($?sitename) then
@@ -28,8 +27,7 @@ if($?sitename) then
 		sql "$DB" 'UPDATE session SET organisation=$SESSION_ORGANISATION,site=$site WHERE session="$ENVCGI"'
 	endif
 	sqlwrite -o "$DB" site sitename wifissid wifipass
-	echo "Location: ${ENVCGI_SERVER}"
-	echo ""
+	../login/redirect /
 	exit 0
 endif
 done:
