@@ -46,19 +46,23 @@ list:
 xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <h1>Access classes</h1>
 <table>
+<tr><th>Access</th><th>Notes</th><th>Expiry</th><th>Sunday</th><th>Monday</th><th>Tuesday</th><th>Wednesday</th><th>Thursday</th><th>Friday</th><th>Saturday</th><th>Open</th><th>Arm</th></tr>
 <sql table=access where="site=$SESSION_SITE">
 <tr>
 <td><output name=accessname missing="Unnamed" blank="Unnanmed" href="editaccess.cgi/$access"></td>
 <td>
-<if clock=true>Time override</if>
 <if override=true><b>OVERRIDE</b></if>
+<if clock=true>Time override if no clock</if>
 <if log=true>Fob log</if>
 <if count=true>Fob count</if>
 <if commit=true>Fob commit</if>
 </td>
+<td><if expiry=0>No auto expiry</if><if else><output name=expiry> day<if not expiry=1>s</if> auto expiry</if></td>
 <for space day="$days">
 <td><output type="%H:%M" name=${day}from>-<output name=${day}to type=%H:%M></td>
 </for>
+<td><output name=open></td>
+<td><output name=arm></td>
 </tr>
 </sql>
 </table>
