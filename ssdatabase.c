@@ -57,16 +57,16 @@ void sstypes(const char *fn)
 #define o(g,t) out(#g,#t);
 #include "types.m"
    start("GPIOTYPEPICK");
-   pick("-", "-- Type --");
+   pick("-", "-- Unused --");
 #define i(g,t) pick(#g,#t);
 #define o(g,t) pick(#g,#t);
 #include "types.m"
    start("GPIOTYPEPICKI");
-   pick("-", "-- Type --");
+   pick("-", "-- Unused --");
 #define i(g,t) pick(#g,#t);
 #include "types.m"
    start("GPIOTYPEPICKO");
-   pick("-", "-- Type --");
+   pick("-", "-- Unused --");
 #define o(g,t) pick(#g,#t);
 #include "types.m"
    start("GPIONUMLIST");

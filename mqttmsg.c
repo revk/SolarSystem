@@ -14,7 +14,7 @@ void mqtt_topic(j_t j, const char *topic, int tlen)
    {
       if (tlen < 0)
          j_store_string(meta, "topic", topic);
-      else if(tlen)
+      else if (tlen)
          j_store_stringn(meta, "topic", topic, tlen);
    }
    topic = j_get(meta, "topic");

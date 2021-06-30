@@ -1,0 +1,2 @@
+#!/bin/csh -f
+date +%FT%T > ESP32/version.txt

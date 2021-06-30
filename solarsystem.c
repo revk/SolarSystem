@@ -40,7 +40,7 @@ int mqttdump = 0;               // mqtt logging
 #define AES_STRING_LEN	35
 char *getaes(SQL * sqlkeyp, char *target, const char *aid, const char *fob)
 {                               // Get AES key (HEX ver and AES, so AES_STRING_LEN byte buffer)
-   SQL_RES *res = sql_safe_query_store_free(sqlkeyp, sql_printf("SELECT * FROM `AES` WHERE `aid`=%#s AND `aid`=%#s ORDER BY `created` DESC LIMIT 1", aid ? : "", fob ? : ""));
+   SQL_RES *res = sql_safe_query_store_free(sqlkeyp, sql_printf("SELECT * FROM `AES` WHERE `aid`=%#s AND `fob`=%#s ORDER BY `created` DESC LIMIT 1", aid ? : "", fob ? : ""));
    if (sql_fetch_row(res))
    {
       snprintf(target, AES_STRING_LEN, "%s%s", sql_col(res, "ver"), sql_col(res, "key"));
@@ -122,13 +122,13 @@ const char *settings(SQL * sqlp, SQL_RES * res, slot_t id)
       SQL_RES *p = sql_safe_query_store_free(sqlp, sql_printf("SELECT * FROM `pcb` WHERE `pcb`=%d", pcb));
       if (sql_fetch_row(p))
       {
-#define set(n) {const char *v=sql_colz(p,#n);if(!strcmp(v,"-"))j_store_string(j,#n,""); else j_store_literal(j,#n,v);}
+#define set(n) {const char *v=sql_colz(p,#n);if(!*v||!strcmp(v,"-"))j_store_string(j,#n,""); else j_store_literal(j,#n,v);}
          set(tamper);
          set(blink);
-         set(nkeypadtx);
-         set(nkeypadrx);
-         set(nkeypadre);
-         set(nkeypadde);
+         set(keypadtx);
+         set(keypadrx);
+         set(keypadre);
+         set(keypadde);
          set(nfctx);
          set(nfcrx);
          set(nfcpower);
@@ -485,6 +485,8 @@ int main(int argc, const char *argv[])
                j_t init = j_create();
                if (j_find(meta, "format"))
                   j_store_true(init, "format"); // Format as well
+               if (j_find(meta, "hardformat"))
+                  j_store_true(init, "hardformat");     // Format as well
                j_store_true(init, "provision");
                const char *aid = j_get(meta, "aid");
                if (aid)
@@ -682,13 +684,15 @@ int main(int argc, const char *argv[])
                            }
                         }
                      }
-                     if (!secure && ((*sql_colz(device, "adoptnext") == 't') || (fa && !sql_col(fa, "adopted"))))
+                     if ((!secure && ((*sql_colz(device, "adoptnext") == 't') || (fa && !sql_col(fa, "adopted")))) || (*sql_colz(device, "formatnext") == 't'))
                      {          // Create fob record if necessary, if we have a key
+                        char masterkey[AES_STRING_LEN] = "";
                         if (!fa)
                         {       // Do we know the key, if so, we can add to this aid now
                            SQL_RES *res = sql_safe_query_store_free(&sqlkey, sql_printf("SELECT * FROM `AES` WHERE `fob`=%#s AND `ver`='01' AND `aid`=''", fobid));
                            if (sql_fetch_row(res))
                            {    // We know this fob...
+                              snprintf(masterkey, sizeof(masterkey), "%s%s", sql_colz(res, "ver"), sql_colz(res, "key"));
                               sql_safe_query_free(&sql, sql_printf("INSERT IGNORE INTO `fob` SET `fob`=%#s", fobid));
                               sql_safe_query_free(&sql, sql_printf("INSERT INTO `fobaid` SET `fob`=%#s,`aid`=%#s", fobid, aid));
                               fa = sql_safe_query_store_free(&sql, sql_printf("SELECT * FROM `fobaid` WHERE `fob`=%#s AND `aid`=%#s", fobid, aid));
@@ -696,8 +700,10 @@ int main(int argc, const char *argv[])
                            }
                            sql_free_result(res);
                         }
-                        if (fa)
-                        {
+                        if (!*masterkey)
+                           getaes(&sqlkey, masterkey, NULL, fobid);
+                        if (fa && !secure && ((*sql_colz(device, "adoptnext") == 't') || (fa && !sql_col(fa, "adopted"))))
+                        {       // Adopt
                            if (sql_col(fa, "adopted"))
                               sql_safe_query_free(&sql, sql_printf("UPDATE `fobaid` SET `adopted`=NULL WHERE `fob`=%#s AND `aid`=%#s", fobid, aid));
                            unsigned char afile[256] = { };
@@ -710,20 +716,21 @@ int main(int argc, const char *argv[])
                            j_store_string(init, "aid", aid);
                            j_store_string(init, "deviceid", deviceid);
                            char temp[AES_STRING_LEN];
-                           j_store_string(init, "masterkey", getaes(&sqlkey, temp, NULL, fobid));
+                           j_store_string(init, "masterkey", masterkey);
                            j_store_string(init, "aid1key", getaes(&sqlkey, temp, aid, NULL));
                            j_store_int(init, "device", id);
                            forkcommand(&init, id, 0);
                         }
-                     } else if (*sql_colz(device, "formatnext") == 't')
-                     {          // Format a fob (even if secure)
-                        j_t init = j_create();
-                        j_store_true(init, "format");
-                        j_store_string(init, "masterkey", getaes(&sqlkey, alloca(AES_STRING_LEN), NULL, fobid));
-                        j_store_int(init, "device", id);
-                        j_store_string(init, "deviceid", deviceid);
-                        j_store_string(init, "fob", fobid);
-                        forkcommand(&init, id, 0);
+                        if (*sql_colz(device, "formatnext") == 't')
+                        {       // Format a fob (even if secure)
+                           j_t init = j_create();
+                           j_store_true(init, sqldebug ? "hardformat" : "format");
+                           j_store_string(init, "masterkey", masterkey);
+                           j_store_int(init, "device", id);
+                           j_store_string(init, "deviceid", deviceid);
+                           j_store_string(init, "fob", fobid);
+                           forkcommand(&init, id, 0);
+                        }
                      }
                      if (fa)
                         sql_free_result(fa);
