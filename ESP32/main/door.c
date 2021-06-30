@@ -198,7 +198,7 @@ const char *door_fob(fob_t * fob)
       fob->checked = 1;
       const char *e = df_read_data(&df, 0x0A, DF_MODE_CMAC, 0, MINAFILE, afile);        // Initial
       if (!e && *afile + 1 > MINAFILE)
-         e = df_read_data(&df, 0x0A, DF_MODE_CMAC, 0, *afile + 1 - MINAFILE, afile + MINAFILE); // More data
+         e = df_read_data(&df, 0x0A, DF_MODE_CMAC, MINAFILE, *afile + 1 - MINAFILE, afile + MINAFILE); // More data
       if (e)
       {
          if (!strstr(e, "TIMEOUT"))
@@ -207,6 +207,7 @@ const char *door_fob(fob_t * fob)
       }
       fob->afile = 1;
       fob->crc = df_crc(*afile, afile + 1);
+      ESP_LOG_BUFFER_HEX_LEVEL("Afile", afile, *afile+1, ESP_LOG_INFO); // TODO
       // Check access file (expected to exist)
       if (*afile)
       {                         // Check access
