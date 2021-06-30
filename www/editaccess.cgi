@@ -1,9 +1,9 @@
-#!../login/loggedin /bin/csh -fx
-setenv XMLSQLDEBUG
+#!../login/loggedin /bin/csh -f
 can --redirect --site="$SESSION_SITE" editaccess
 if($status) exit 0
 
 source ../setcan
+setenv days "sun mon tue wed thu fri sat"
 if($?access) then
 	if("$access" == 0) then
 		setenv access `sql -i "$DB" 'INSERT INTO access SET organisation=$SESSION_ORGANISATION,site=$SESSION_SITE'`
@@ -11,13 +11,16 @@ if($?access) then
 	can --redirect --access="$access" editaccess
 	if($status) exit 0
 	setenv allow "accessname clock log count commit open arm"
+	foreach day ($days)
+		setenv allow "$allow ${day}from ${day}to"
+	end
 	if(! $?clock) setenv clock false
 	if(! $?override) setenv override false
 	if(! $?log) setenv log false
 	if(! $?count) setenv count false
 	if(! $?commit) setenv commit false
 	if($?ADMINORGANISATION) setenv allow "$allow override"
-	sqlwrite -v -o -n "$DB" access $allow
+	sqlwrite -o -n "$DB" access $allow
 	setenv MSG "Updated"
 	goto list
 endif
@@ -37,6 +40,9 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <if count=true>Fob count</if>
 <if commit=true>Fob commit</if>
 </td>
+<for space day="$days">
+<td><output type="%H:%M" name=${day}from>-<output name=${day}to type=%H:%M></td>
+</for>
 </tr>
 </sql>
 </table>
@@ -60,10 +66,11 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <tr><td><input type=checkbox id=count name=count value=true></td><td><label for=count>Try to count access on fob.</label></td></tr>
 <tr><td><input type=checkbox id=commit name=commit value=true></td><td><label for=commit>Commit changes (log/count) before allowing access (slower).</label></td></tr>
 <IF ADMINORGANISATION><tr><td><input type=checkbox id=override name=override value=true></td><td><label for=override>Open door in all cases.</label></td></tr></if>
+<for space day="$days">
+<tr><td><output name=day sun=Sunday mon=Monday tue=Tuesday web=Wednesday thu=Thursday fri=Friday sat=Saturday></td><td><input name="${day}from" type=time>-<input name="${day}to" type=time></td></tr>
+</for>
 </table>
 <input type=submit value="Update">
 </sql>
 </form>
-<p>TODO expiry logic</p>
-<p>TODO time of day logic</p>
 'END'

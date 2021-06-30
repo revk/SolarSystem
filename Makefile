@@ -25,7 +25,10 @@ ifndef KCONFIG_CONFIG
 KCONFIG_CONFIG=solarsystem.conf
 endif
 
-all: alarmpanel cardissue solarsystem can message makeaid login.conf SQLlib/sql xmlsql/xmlsql
+all: alarmpanel cardissue solarsystem can message makeaid login.conf SQLlib/sql xmlsql/xmlsql .git/hooks/pre-commit
+
+.git/hooks/pre-commit: pre-commit
+	cp $< $@
 
 update:
 	git submodule update --init --remote --recursive

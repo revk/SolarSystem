@@ -18,7 +18,7 @@ if($?PROVISION) then
 	if("$authenticated" == "true")then
 		setenv MSG `message --pending="$PROVISION" --command="restart"`
 	else
-		setenv MSG `message --pending="$PROVISION" --provision="$PROVISION"`
+		setenv MSG `message --pending="$PROVISION" --provision --pending="$PROVISION" --aid="$aid"`
 	endif
 	if(! $status) then
 		echo "Location: ${ENVCGI_SERVER}?MSG=Provisioned"
@@ -40,9 +40,10 @@ if($?DEPORT) then
 endif
 done:
 xmlsql -C -d "$DB" head.html - foot.html << 'END'
-<h1>Provision device</h1>
+<h1>Provision device for this site</h1>
+<p>Note that the device will have WiFi set for the selected site.</p>
 <form style="display:inline;" method=post>
-PCB:<select name=pcb><option value=0>-- Pick PCB --</option><sql table=pcb order=pcbname><option value=$pcb><output name=pcbname></option></sql></select><br>
+PCB:<select name=pcb><option value=0>-- Pick PCB --</option><sql table=pcb order=pcbname ><option value=$pcb><output name=pcbname blank="Unnamed"></option></sql></select><br>
 AID:<select name=aid><sql table=aid WHERE="site=$SESSION_SITE"><option value=$aid><output name=aidname></option></sql></select><br>
 Deport:<input name=deport size=20 placeholder='MQTT server' autofocus><br>
 <table border=1>

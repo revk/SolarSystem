@@ -57,16 +57,16 @@ void sstypes(const char *fn)
 #define o(g,t) out(#g,#t);
 #include "types.m"
    start("GPIOTYPEPICK");
-   pick("-", "-- Type --");
+   pick("-", "-- Unused --");
 #define i(g,t) pick(#g,#t);
 #define o(g,t) pick(#g,#t);
 #include "types.m"
    start("GPIOTYPEPICKI");
-   pick("-", "-- Type --");
+   pick("-", "-- Unused --");
 #define i(g,t) pick(#g,#t);
 #include "types.m"
    start("GPIOTYPEPICKO");
-   pick("-", "-- Type --");
+   pick("-", "-- Unused --");
 #define o(g,t) pick(#g,#t);
 #include "types.m"
    start("GPIONUMLIST");
@@ -139,7 +139,7 @@ void sskeydatabase(SQL * sqlp)
       sql_free_result(res);
    else
    {
-      sql_safe_query(sqlp, "CREATE TABLE `AES` (" "`created` datetime DEFAULT CURRENT_TIMESTAMP," "`aid` char(6) DEFAULT NULL," "`fob` char(14) DEFAULT NULL," "`ver` char(2) DEFAULT NULL," "`key` char(32) DEFAULT NULL," "UNIQUE KEY `key` (`aid`,`fob`,`ver`)" ")");
+      sql_safe_query(sqlp, "CREATE TABLE `AES` (" "`created` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,`aid` char(6) NOT NULL DEFAULT '',`fob` char(14) NOT NULL DEFAULT '',`ver` char(2) NOT NULL DEFAULT '',`key` char(32) NOT NULL,UNIQUE KEY `key` (`aid`,`fob`,`ver`)" ")");
    }
 }
 
@@ -352,7 +352,9 @@ void ssdatabase(SQL * sqlp)
 #define	text(n,l)	text(#n,l);
 #define	num(n)		field(#n,"int(10)","NULL");
 #define	ip(n)		field(#n,"varchar(39)","NULL");
-#define	time(n)		field(#n,"datetime","NULL");
+#define	datetime(n)	field(#n,"datetime","NULL");
+#define	date(n)		field(#n,"date","NULL");
+#define	time(n)		field(#n,"time","NULL");
 #define	gpio(n)		field(#n,"enum('-','2','4','5','12','13','14','15','16','17','18','19','21','22','23','25','26','27','32','33','34','35','36','39','-2','-4','-5','-12','-13','-14','-15','-16','-17','-18','-19','-21','-22','-23','-25','-26','-27','-32','-33','-34','-35','-36','-39')","'-'");
 #define	gpionfc(n)	field(#n,"enum('-','30','31','32','33','34','35','71','72','-30','-31','-32','-33','-34','-35','-71','-72')","'-'");
 #define	gpiotype(n)	field(#n,"enum('-','I','O','P','I1','I2','I3','I4','I8','O1','O2','O3','O4')","'-'");

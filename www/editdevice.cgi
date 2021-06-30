@@ -46,7 +46,7 @@ if($?devicename) then # save
 	if($?nfc && ! $?nfctrusted) setenv nfctrusted false
 	setenv allow "devicename area nfc nfcadmin door aid site"
 	if($?USER_ADMIN) setenv allow "$allow nfctrusted"
-	sqlwrite -v -o -n "$DB" device $allow
+	sqlwrite -o -n "$DB" device $allow
 	setenv MSG Updated
 	unsetenv device
 	goto done
@@ -80,6 +80,7 @@ xmlsql -C -d "$DB" head.html - foot.html << END
 <tr><td>Site</td><td><select name=site><sql table=site where="organisation=$SESSION_ORGANISATION"><option value='\$site'><output name=sitename></option></sql></select></td></tr>
 <if nfc=true><tr><td>AID</td><td><select name=aid><sql table=aid where="site=\$site"><option value="\$aid"><output name=aidname></option></sql></select></td></tr></if>
 <tr><td>Online</td><td><if online><output name=online></if><if else>Last online <output name=lastonline missing="never"></if><if upgrade> (upgrade scheduled)</if></td></tr>
+<tr><td>Version</td><td><output name=version></td></tr>
 <sql table=pcb where="pcb=\$pcb">
 <if nfc=true><tr><td>Area</td><td><sql select="tag" table=area where="site=\$site"><label for=\$tag><output name=tag>:</label><input id=\$tag name=area type=checkbox value=\$tag></sql></td></tr></if>
 <if nfc=true><tr><td><label for=door>Door control</label></td><td><input type=checkbox id=door name=door value=true></td></tr></if>

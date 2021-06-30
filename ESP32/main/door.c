@@ -143,7 +143,10 @@ const char *door_access(const uint8_t * a)
       e = df_commit(&df);
    xSemaphoreGive(nfc_mutex);
    if (!e)
+   {
+      nfc_retry();
       return "";
+   }
    return e;
 }
 
@@ -357,29 +360,30 @@ const char *door_fob(fob_t * fob)
          break;
       }
    // Check blacklist
-   for (int i = 0; i < sizeof(blacklist) / sizeof(*blacklist); i++)
-      if (!strcmp(blacklist[i], fob->id))
-      {
-         fob->blacklist = 1;
-         fob->unlockok = 0;
-         fob->disarmok = 0;
-         fob->armok = 0;
-         if (!fob->deny)
-            fob->deny = "Blacklist";
-         if (fob->secure && df.keylen)
+   if (*fob->id)
+      for (int i = 0; i < sizeof(blacklist) / sizeof(*blacklist); i++)
+         if (!strcmp(blacklist[i], fob->id))
          {
-            if (*afile != 1 || afile[1] != 0xFB)
+            fob->blacklist = 1;
+            fob->unlockok = 0;
+            fob->disarmok = 0;
+            fob->armok = 0;
+            if (!fob->deny)
+               fob->deny = "Blacklist";
+            if (fob->secure && df.keylen)
             {
-               *afile = 1;
-               afile[1] = 0xFB; // Blocked
-               fob->crc = df_crc(*afile, afile + 1);
-               const char *e = df_write_data(&df, 0x0A, 'B', DF_MODE_CMAC, 0, *afile + 1, afile);
-               if (!e)
-                  fob->updated = 1;
+               if (*afile != 1 || afile[1] != 0xFB)
+               {
+                  *afile = 1;
+                  afile[1] = 0xFB;      // Blocked
+                  fob->crc = df_crc(*afile, afile + 1);
+                  const char *e = df_write_data(&df, 0x0A, 'B', DF_MODE_CMAC, 0, *afile + 1, afile);
+                  if (!e)
+                     fob->updated = 1;
+               }
             }
+            break;
          }
-         break;
-      }
    if (doorauto >= 4)
    {                            // Actually do the doors (the open is done by the caller)
       fob->unlocked = fob->unlockok;

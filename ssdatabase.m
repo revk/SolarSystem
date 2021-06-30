@@ -32,6 +32,14 @@
 #define num(n)                  // Numeric field (integer)
 #endif
 
+#ifndef datetime
+#define datetime(n)                 // Time field
+#endif
+
+#ifndef date
+#define date(n)                 // Time field
+#endif
+
 #ifndef time
 #define time(n)                 // Time field
 #endif
@@ -77,8 +85,8 @@ bool (admin);                   // Top level admin user - can do anything
 
 table(session, 36);             // Login session
 link(user);                     // Which user
-time(logintime);                // Login time
-time(expires);                  // Session expiry
+datetime(logintime);                // Login time
+datetime(expires);                  // Session expiry
 index(expires);                 // Easier to delete
 ip(loginip);                    // Login ip
 text(useragent, 0);             // User agent
@@ -123,7 +131,20 @@ text(accessname,0)
 areas(open);			// Allow open
 areas(arm);			// Allow disarm/arm
 num(expiry);			// Auto expiry (days)
-time(expires);			// Fixed (UTC) expiry
+time(sunfrom);
+time(sunto);
+time(monfrom);
+time(monto);
+time(tuefrom);
+time(tueto);
+time(wedfrom);
+time(wedto);
+time(thufrom);
+time(thuto);
+time(frifrom);
+time(frito);
+time(satfrom);
+time(satto);
 bool(clock);			// Ignore time if clock not set
 bool(override);			// Open regardless
 bool(log);			// Log access
@@ -132,19 +153,20 @@ bool(commit);			// Commit log/count
 // TODO times
 
 table(fob, 14);
-time(provisioned);              // When provisioned
+datetime(provisioned);              // When provisioned
 bool(format);			// Admin only - reformat fob when seen
 num(mem);			// Free memory
 
 join(fob, aid);                 // Fob is in AID (adopted)
-time(adopted);			// When adopted
+datetime(adopted);			// When adopted
 text(ver,2);			// Key version
 link(access);			// Access permissions
 
 join(fob, organisation);        // Yes, per org, for security reasons
-time(blocked);			// Block card (when blocked)
-time(confirmed);		// When confirmed blocked
+datetime(blocked);			// Block card (when blocked)
+datetime(confirmed);		// When confirmed blocked
 text(fobname,0);		// Name of fob user
+datetime(expires);			// Fixed expiry (local time on server)
 
 table(device, 12);
 text(devicename, 0);
@@ -163,9 +185,9 @@ bool (formatnext);		// Format next unknown fob seen, if possible
 num(flash);                     // Flash size
 link(aid);                      // The AID for door access (defines what site it is)
 areas(area);   	                // Areas covered by this door
-time(online);                   // When online, if online
-time(lastonline);               // When last went offline
-time(upgrade);                  // When to do upgrade
+datetime(online);                   // When online, if online
+datetime(lastonline);               // When last went offline
+datetime(upgrade);                  // When to do upgrade
 ip(address);                    // IP address when last online
 num(id);                  // Instance for communications when on line
 // TODO hold times, lock times, etc...
@@ -178,7 +200,7 @@ bool (invert);                  // Invert normal polarity for pin
 #include "ESP32/main/states.m"	// Related areas
 
 table(pending, 12);
-time(online);
+datetime(online);
 ip(address);
 num(id);
 text(version, 0);               // S/w version
@@ -191,6 +213,10 @@ table(pcb, 0);                  // PCB type
 text(pcbname, 0);
 gpio(tamper);                   // Fixed GPIOs
 gpio(blink);
+gpio(keypadtx);
+gpio(keypadrx);
+gpio(keypadde);
+gpio(keypadre);
 gpio(nfctx);
 gpio(nfcrx);
 gpio(nfcpower);
@@ -222,6 +248,8 @@ text(aidname, 0);
 #undef index
 #undef text
 #undef num
+#undef datetime
+#undef date
 #undef time
 #undef ip
 #undef gpio

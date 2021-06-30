@@ -29,21 +29,25 @@ int main(int argc, const char *argv[])
    const char *topic = "";
    const char *command = NULL;
    int fobprovision = 0;
-   const char *provision = NULL;
    const char *deport = NULL;
+   const char *aid = NULL;
+   const char *status = NULL;
    int debug = 0;
    int setting = 0;
    int silent = 0;
+   int provision = 0;
    {                            // POPT
       poptContext optCon;       // context for parsing command-line options
       const struct poptOption optionsTable[] = {
          { "fob-provision", 0, POPT_ARG_NONE, &fobprovision, 0, "Fob provision", NULL },
          { "command", 0, POPT_ARG_STRING, &command, 0, "Command", "tag" },
          { "settings", 0, POPT_ARG_NONE, &setting, 0, "Setting", NULL },
-         { "provision", 0, POPT_ARG_STRING, &provision, 0, "Provision", "deviceid" },
+         { "aid", 0, POPT_ARG_STRING, &aid, 0, "AID", "XXXXXX" },
          { "deport", 0, POPT_ARG_STRING, &deport, 0, "Deport", "mqtthost" },
          { "device", 'd', POPT_ARG_STRING, &device, 0, "Device", "XXXXXXXXXXXX" },
          { "pending", 'p', POPT_ARG_STRING, &pending, 0, "Pending device", "XXXXXXXXXXXX" },
+         { "status", 's', POPT_ARG_STRING, &status, 0, "Status", "div ID" },
+         { "provision", 0, POPT_ARG_NONE, &provision, 0, "Provision", NULL },
          { "silent", 'q', POPT_ARG_NONE, &silent, 0, "Silent", NULL },
          { "debug", 'v', POPT_ARG_NONE, &debug, 0, "Debug", NULL },
          POPT_AUTOHELP { }
@@ -72,14 +76,14 @@ int main(int argc, const char *argv[])
    }
    j_t meta = j_store_object(j, "_meta");
    if (provision)
-      j_store_string(meta, "provision", provision);
+      j_store_true(meta, "provision");
    if (deport)
       j_store_string(meta, "deport", deport);
    if (fobprovision)
    {
       if (!device)
          errx(1, "Specify device to use for fob provisioning");
-      j_store_string(meta, "fobprovision", device);
+      j_store_true(meta, "fobprovision");
    }
    if (command)
    {
@@ -89,9 +93,11 @@ int main(int argc, const char *argv[])
    }
    if (setting)
       j_store_string(meta, "prefix", "setting");
-   if (device)
+   if (device && *device)
       j_store_string(meta, "device", device);
-   if (pending)
+   if (aid && *aid)
+      j_store_string(meta, "aid", aid);
+   if (pending && *pending)
       j_store_string(meta, "pending", pending);
    if (debug)
       j_err(j_write_pretty(j, stderr));
@@ -211,7 +217,12 @@ int main(int argc, const char *argv[])
       mqtt_dataonly(j);
       if (j && !j_isnull(j))
       {
-         // TODO js-status
+         if (status)
+         {
+            const char *s = j_get(j, "status");
+            if (s)
+               printf("<script>p=document.createElement('p'),p.textContent='%s';document.getElementById('%s').append(p);</script>\n", s, status);
+         }
          ret = 1;
          if (!silent)
          {
@@ -219,8 +230,8 @@ int main(int argc, const char *argv[])
                printf("%s", j_val(j));
             else
                j_err(j_write_pretty(j, stdout));
-            fflush(stdout);
          }
+         fflush(stdout);
       } else
          done = 1;
       j_delete(&j);
