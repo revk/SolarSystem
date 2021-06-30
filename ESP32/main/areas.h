@@ -1,3 +1,2 @@
-typedef	uint32_t area_t;
+typedef uint32_t area_t;
 #define AREAS "ABCDEFGHIJKLMNOPQRSTUVWXYZ------"
-

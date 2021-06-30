@@ -46,7 +46,7 @@ if($?devicename) then # save
 	if($?nfc && ! $?nfctrusted) setenv nfctrusted false
 	setenv allow "devicename area nfc nfcadmin door aid site"
 	if($?USER_ADMIN) setenv allow "$allow nfctrusted"
-	sqlwrite -v -o -n "$DB" device $allow
+	sqlwrite -o -n "$DB" device $allow
 	setenv MSG Updated
 	unsetenv device
 	goto done

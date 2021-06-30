@@ -653,7 +653,7 @@ int main(int argc, const char *argv[])
                   char remote = j_test(j, "remote", 0);
                   if (!held && !gone && !remote)
                   {             // Initial fob use
-                     SQL_RES *fa = sql_safe_query_store_free(&sql, sql_printf("SELECT * FROM `fobaid` WHERE `fob`=%#s AND `aid`=%#s", fobid, aid));
+                     SQL_RES *fa = sql_safe_query_store_free(&sql, sql_printf("SELECT * FROM `fobaid` LEFT JOIN `foborganisation` USING (`fob`) LEFT JOIN `access` USING (`access`) WHERE `fob`=%#s AND `aid`=%#s", fobid, aid));
                      if (!sql_fetch_row(fa))
                      {
                         sql_free_result(fa);
@@ -670,17 +670,18 @@ int main(int argc, const char *argv[])
                            const char *ver = j_get(j, "ver");
                            if (ver && strcmp(ver, sql_colz(fa, "ver")))
                               sql_safe_query_free(&sql, sql_printf("UPDATE `fobaid` SET `ver`=%#s WHERE `fob`=%#s AND `aid`=%#s", ver, fobid, aid));
-                           const char *crc = j_get(j, "crc");
-                           if (crc)
-                           {    // Check afile
-                              unsigned long was = strtoull(crc, NULL, 16);
-                              unsigned char afile[256] = { };
-                              if (was != makeafile(&sql, atoi(sql_colz(fa, "access")), afile))
-                              { // Send afile
-                                 j_t a = j_create();
-                                 j_string(a, j_base16a(*afile + 1, afile));
-                                 slot_send(id, "command", "access", &a);
-                              }
+                        }
+                        // Check afile
+                        const char *crc = j_get(j, "crc");
+                        if (crc)
+                        {       // Check afile
+                           unsigned long was = strtoull(crc, NULL, 16);
+                           unsigned char afile[256] = { };
+                           if (was != makeafile(fa, afile))
+                           {    // Send afile
+                              j_t a = j_create();
+                              j_string(a, j_base16a(*afile + 1, afile));
+                              slot_send(id, "command", "access", &a);
                            }
                         }
                      }
@@ -695,14 +696,14 @@ int main(int argc, const char *argv[])
                               snprintf(masterkey, sizeof(masterkey), "%s%s", sql_colz(res, "ver"), sql_colz(res, "key"));
                               sql_safe_query_free(&sql, sql_printf("INSERT IGNORE INTO `fob` SET `fob`=%#s", fobid));
                               sql_safe_query_free(&sql, sql_printf("INSERT INTO `fobaid` SET `fob`=%#s,`aid`=%#s", fobid, aid));
-                              fa = sql_safe_query_store_free(&sql, sql_printf("SELECT * FROM `fobaid` WHERE `fob`=%#s AND `aid`=%#s", fobid, aid));
+                              fa = sql_safe_query_store_free(&sql, sql_printf("SELECT * FROM `fobaid` LEFT JOIN `foborganisation` USING (`fob`) LEFT JOIN `access` USING (`access`) WHERE `fob`=%#s AND `aid`=%#s", fobid, aid));
                               sql_fetch_row(fa);
                            }
                            sql_free_result(res);
                         }
                         if (!*masterkey)
                            getaes(&sqlkey, masterkey, NULL, fobid);
-                         if (*sql_colz(device, "formatnext") == 't')
+                        if (*sql_colz(device, "formatnext") == 't')
                         {       // Format a fob (even if secure)
                            j_t init = j_create();
                            j_store_true(init, sqldebug ? "hardformat" : "format");
@@ -711,14 +712,12 @@ int main(int argc, const char *argv[])
                            j_store_string(init, "deviceid", deviceid);
                            j_store_string(init, "fob", fobid);
                            forkcommand(&init, id, 0);
-                        }
-			 else
-                        if (fa && !secure && ((*sql_colz(device, "adoptnext") == 't') || (fa && !sql_col(fa, "adopted"))))
+                        } else if (fa && !secure && ((*sql_colz(device, "adoptnext") == 't') || (fa && !sql_col(fa, "adopted"))))
                         {       // Adopt
                            if (sql_col(fa, "adopted"))
                               sql_safe_query_free(&sql, sql_printf("UPDATE `fobaid` SET `adopted`=NULL WHERE `fob`=%#s AND `aid`=%#s", fobid, aid));
                            unsigned char afile[256] = { };
-                           makeafile(&sql, atoi(sql_colz(fa, "access")), afile);
+                           makeafile(fa, afile);
                            j_t init = j_create();
                            j_store_true(init, "adopt");
                            j_store_string(init, "afile", j_base16a(*afile + 1, afile));
@@ -731,7 +730,7 @@ int main(int argc, const char *argv[])
                            j_store_string(init, "aid1key", getaes(&sqlkey, temp, aid, NULL));
                            j_store_int(init, "device", id);
                            forkcommand(&init, id, 0);
-			}
+                        }
                      }
                      if (fa)
                         sql_free_result(fa);

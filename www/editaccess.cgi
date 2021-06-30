@@ -16,7 +16,7 @@ if($?access) then
 	if(! $?count) setenv count false
 	if(! $?commit) setenv commit false
 	if($?ADMINORGANISATION) setenv allow "$allow override"
-	sqlwrite -v -o -n "$DB" access $allow
+	sqlwrite -o -n "$DB" access $allow
 	setenv MSG "Updated"
 	goto list
 endif

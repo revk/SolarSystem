@@ -19,7 +19,7 @@
 #include <openssl/evp.h>
 #include "DESFireAES/include/desfireaes.h"
 
-unsigned int makeafile(SQL * sqlp, int access, unsigned char *afile)
+unsigned int makeafile(SQL_RES * res, unsigned char *afile)
 {                               // Make afile (max 256 characters) and return crc
    if (afile)
    {                            // Default if error
@@ -33,23 +33,31 @@ unsigned int makeafile(SQL * sqlp, int access, unsigned char *afile)
          a[p] = v;
       p++;
    }
-   SQL_RES *res = sql_safe_query_store_free(sqlp, sql_printf("SELECT * FROM `access` WHERE `access`=%d", access));
-   if (!sql_fetch_row(res))
-      add(0xFB);                // Block
+   if (!res || !sql_col(res, "access") || sql_col(res, "blocked"))
+      add(0xFB);
    else
    {
-      if (*sql_colz(res, "commit") == 't')
+      if (res && *sql_colz(res, "commit") == 't')
          add(0xF0);
-      if (*sql_colz(res, "count") == 't')
+      if (res && *sql_colz(res, "count") == 't')
          add(0xF1);
-      if (*sql_colz(res, "override") == 't')
+      if (res && *sql_colz(res, "override") == 't')
          add(0xFA);
-      if (sql_col(res, "block"))
+      if (res && sql_col(res, "block"))
          add(0xFB);
-      if (*sql_colz(res, "clock") == 't')
+      if (res && *sql_colz(res, "clock") == 't')
          add(0xFC);
+      time_t expires = 0;
+      int expiry = atoi(sql_colz(res, "expiry"));
+      if (res)
+         expires = sql_time(sql_colz(res, "expires"));
+      if (!expires && expiry)
+         expires = time(0) + 86400 * expiry;
+      if (expires)
+      {
+         // TODO
+      }
    }
-   sql_free_result(res);
    if (p >= 256)
       return 0;                 // Too big
    *a = p - 1;

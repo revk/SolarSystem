@@ -7,6 +7,7 @@ extern df_t df;
 extern SemaphoreHandle_t nfc_mutex;
 
 extern const char *nfc_led(int len, const void *value);
+extern void nfc_retry(void);
 
 typedef struct {
    char id[22];                 // Initial card ID (insecure), hex null terminated
@@ -46,5 +47,5 @@ typedef struct {
    uint8_t armok:1;             // Afile checks say door can be armed (when card held done)
    uint8_t armed:1;             // Door system has armed the door (deadlock)
    uint8_t remote:1;            // Normal working overridden for remote NFC
-   uint8_t release:1;            // Request we release
+   uint8_t retry:1;             // Afile change
 } fob_t;

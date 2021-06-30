@@ -149,6 +149,12 @@ static void fobevent(void)
    revk_eventj("fob", &j);
 }
 
+void nfc_retry(void)
+{
+   fob.retry = 1;
+   ESP_LOGI(TAG, "NFC retry");
+}
+
 static void task(void *pvParameters)
 {
    if (!nfciopoll)
@@ -306,11 +312,6 @@ static void task(void *pvParameters)
       if (nextpoll < now)
       {                         // Check for card
          nextpoll = now + (uint64_t) nfcpoll *1000LL;
-         if (fob.release)
-         {                      // Remote complete
-            fob.release = 0;
-            door_fob(&fob);
-         }
          if (found && !pn532_Present(pn532))
          {                      // Card gone
             ESP_LOGI(TAG, "gone %s", fob.id);
@@ -320,7 +321,7 @@ static void task(void *pvParameters)
             memset(&fob, 0, sizeof(fob));
             found = 0;
          }
-         if (found)
+         if (found && !fob.retry)
          {
             nextpoll = now + (int64_t) nfcholdpoll *1000LL;
             if (!fob.remote && !fob.held && nfchold && found < now)
@@ -333,7 +334,9 @@ static void task(void *pvParameters)
          }
          // Check for new card
          df.keylen = 0;         // New card
-         int cards = pn532_Cards(pn532);
+         int cards = 1;
+         if (!fob.retry)
+            cards = pn532_Cards(pn532);
          if (cards > 1)
          {
             ESP_LOGI(TAG, "Release 2nd card");
@@ -341,6 +344,8 @@ static void task(void *pvParameters)
             nextpoll = 0;
          } else if (cards > 0)
          {                      // Check for new card
+            if (fob.retry)
+               memset(&fob, 0, sizeof(fob));    // Fresh start
             xSemaphoreTake(nfc_mutex, portMAX_DELAY);
             nextpoll = now + (int64_t) nfcholdpoll *1000LL;     // Set periodic check for card held
             const char *e = NULL;
@@ -478,7 +483,9 @@ static void task(void *pvParameters)
                   blink(nfcred);
                else
                   blink(nfcamber);
-               if (fob.unlocked)
+               if (fob.block)
+                  door_lock(NULL);
+               else if (fob.unlocked)
                   door_unlock(NULL, "fob");     // Door system was happy with fob, let 'em in
                else if (fob.override)
                   door_unlock(NULL, "override");        // Fob override
@@ -566,7 +573,7 @@ const char *nfc_command(const char *tag, jo_t j)
 
       ESP_LOGI(TAG, "NFC access remote ended");
       fob.remote = 0;
-      fob.release = 1;
+      fob.retry = 1;
       return "";
    }
    return NULL;
