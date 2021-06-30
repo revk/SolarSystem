@@ -76,9 +76,8 @@ unsigned int makeafile(SQL_RES * res, unsigned char *afile)
          gmtime_r(&expires, &tm);
          if (expiry || (!tm.tm_hour && !tm.tm_min && !tm.tm_sec) || (tm.tm_hour == 23 && tm.tm_min == 59 && tm.tm_sec == 59))
          {                      // date only
-            if (expiry)
-               tm.tm_hour = tm.tm_min = tm.tm_sec = 0;
-            tm.tm_sec--;
+            if (!expiry)
+               tm.tm_sec--;
             expires = timegm(&tm);
             gmtime_r(&expires, &tm);
             add(0xE4);
