@@ -170,39 +170,38 @@ unsigned int makeafile(SQL_RES * res, unsigned char *afile)
          {
             const char *p = strchr(AREAS, *v);
             if (p)
-               a |= (0x80000000 >> (p - AREAS - 1));
+               a |= (0x80000000 >> (p - AREAS));
             v++;
          }
          if (!p)
             add(tag);
-         else if (!(p & 0xFFFFFF))
+         else if (!(a & 0xFFFFFF))
          {
             add(tag + 1);
-            add(p >> 24);
-         } else if (!(p & 0xFFFF))
+            add(a >> 24);
+         } else if (!(a & 0xFFFF))
          {
             add(tag + 2);
-            add(p >> 24);
-            add(p >> 16);
-         } else if (!(p & 0xFF))
+            add(a >> 24);
+            add(a >> 16);
+         } else if (!(a & 0xFF))
          {
             add(tag + 3);
-            add(p >> 24);
-            add(p >> 16);
-            add(p >> 8);
+            add(a >> 24);
+            add(a >> 16);
+            add(a >> 8);
          } else
          {
             add(tag + 4);
-            add(p >> 24);
-            add(p >> 16);
-            add(p >> 8);
-            add(p);
+            add(a >> 24);
+            add(a >> 16);
+            add(a >> 8);
+            add(a);
          }
       }
    }
    addarea(0xA0, "arm");
    addarea(0xD0, "disarm");
-   // TODO arm and open
    if (p >= 256)
       return 0;                 // Too big
    *a = p - 1;

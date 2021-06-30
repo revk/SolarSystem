@@ -176,7 +176,6 @@ struct device_s {               // Device on the bus...
       };
       struct                    // RF
       {
-         // TODO
       };
    };
 };

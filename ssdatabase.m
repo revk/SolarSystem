@@ -154,7 +154,6 @@ bool(override);			// Open regardless
 bool(log);			// Log access
 bool(count);			// Count access
 bool(commit);			// Commit log/count
-// TODO times
 
 table(fob, 14);
 datetime(provisioned);              // When provisioned
