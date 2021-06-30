@@ -24,6 +24,7 @@
 #include "DESFireAES/include/desfireaes.h"
 #include "mqttmsg.h"
 #include "ssmqtt.h"
+#include "fobcommand.h"
 
 extern int mqttdump;
 
@@ -252,6 +253,11 @@ void *fobcommand(void *arg)
          void doadopt(void) {
             if (mqttdump)
                warnx("Fob adopt");
+	    if(!*aid0key)
+	    {
+		    *aid0key=1;
+		    randkey(aid0key+1);
+	    }
             unsigned int n;
             {
                unsigned char aids[3 * 20];
@@ -305,6 +311,7 @@ void *fobcommand(void *arg)
                j_true(j_path(j, "_meta.adopted"));
                j_store_string(j, "fob", j_base16(sizeof(uid), uid));
                j_store_string(j, "aid", j_base16(sizeof(aid), aid));
+               j_store_string(j, "aid0key", j_base16(sizeof(aid0key), aid0key));
                j_store_string(j, "deviceid", deviceid);
                if (organisation)
                   j_store_int(j, "organisation", organisation);
@@ -332,15 +339,11 @@ void *fobcommand(void *arg)
             unsigned char uid[7];
             df(get_uid(&d, uid));
             status("Setting key");
-            unsigned char key[16];
-            {                   // Key key
-               int f = open("/dev/urandom", O_RDONLY);
-               if (f < 0)
-                  err(1, "Cannot open random");
-               if (read(f, key, sizeof(key)) != sizeof(key))
-                  err(1, "Cannot read random");
-               close(f);
-            }
+	    if(!*masterkey)
+	    {
+	    randkey(masterkey+1);
+	    *masterkey=1;
+	    }
             unsigned int mem;
             df(free_memory(&d, &mem));
             {                   // Tell system new key
@@ -348,12 +351,12 @@ void *fobcommand(void *arg)
                j_int(j_path(j, "_meta.loopback"), f.id);
                j_true(j_path(j, "_meta.provisioned"));
                j_store_string(j, "fob", j_base16(sizeof(uid), uid));
-               j_store_string(j, "key", j_base16(sizeof(key), key));
+               j_store_string(j, "masterkey", j_base16(sizeof(masterkey), masterkey));
                j_store_int(j, "mem", mem);
                mqtt_qin(&j);
             }
-            df(change_key(&d, 0x80, 0x01, NULL, key));
-            df(authenticate(&d, 0, key));
+            df(change_key(&d, 0x80, *masterkey, NULL, masterkey+1));
+            df(authenticate(&d, 0, masterkey+1));
             status("Done, remove card");
          }
          if (f.connected && !f.done)
@@ -384,3 +387,14 @@ void *fobcommand(void *arg)
    warnx("Ended fobcommand");
    return NULL;
 }
+
+void randkey(unsigned char key[16])
+{
+               int f = open("/dev/urandom", O_RDONLY);
+               if (f < 0)
+                  err(1, "Cannot open random");
+               if (read(f, key, 16)!=16)
+                  err(1, "Cannot read random");
+               close(f);
+}
+

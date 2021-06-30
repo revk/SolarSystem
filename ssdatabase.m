@@ -191,6 +191,10 @@ table(pcb, 0);                  // PCB type
 text(pcbname, 0);
 gpio(tamper);                   // Fixed GPIOs
 gpio(blink);
+gpio(keypadtx);
+gpio(keypadrx);
+gpio(keypadde);
+gpio(keypadre);
 gpio(nfctx);
 gpio(nfcrx);
 gpio(nfcpower);

@@ -40,19 +40,7 @@ int mqttdump = 0;               // mqtt logging
 #define AES_STRING_LEN	35
 char *getaes(SQL * sqlkeyp, char *target, const char *aid, const char *fob)
 {                               // Get AES key (HEX ver and AES, so AES_STRING_LEN byte buffer)
-   sql_string_t s = { };
-   sql_sprintf(&s, "SELECT * FROM `AES` WHERE `aid`");
-   if (aid)
-      sql_sprintf(&s, "=%#s", aid);
-   else
-      sql_sprintf(&s, " IS NULL");
-   sql_sprintf(&s, " AND `fob`");
-   if (fob)
-      sql_sprintf(&s, "=%#s", fob);
-   else
-      sql_sprintf(&s, " IS NULL");
-   sql_sprintf(&s, " ORDER BY `created` DESC LIMIT 1");
-   SQL_RES *res = sql_safe_query_store_s(sqlkeyp, &s);
+   SQL_RES *res = sql_safe_query_store_free(sqlkeyp,sql_printf("SELECT * FROM `AES` WHERE `aid`=%#s AND `aid`=%#s ORDER BY `created` DESC LIMIT 1",aid?:"",fob?:""));
    if (sql_fetch_row(res))
    {
       snprintf(target, AES_STRING_LEN, "%s%s", sql_col(res, "ver"), sql_col(res, "key"));
@@ -60,14 +48,9 @@ char *getaes(SQL * sqlkeyp, char *target, const char *aid, const char *fob)
    }
    unsigned char bin[17];
    bin[0] = 1;                  // Key version. What of roll over... TODO
-   int f = open("/dev/urandom", O_RDONLY);
-   if (f < 0)
-      err(1, "Cannot open /dev/urandom");
-   if (read(f, bin + 1, sizeof(bin) - 1) != sizeof(bin) - 1)
-      errx(1, "Failed to read random");
-   close(f);
+   randkey(bin+1);
    j_base16N(17, bin, AES_STRING_LEN, target);
-   if (sql_query_free(sqlkeyp, sql_printf("INSERT INTO `AES` SET `aid`=%#s,`fob`=%#s,`ver`=%#.2s,`key`=%#s", aid, fob, target, target + 2)))
+   if (sql_query_free(sqlkeyp, sql_printf("INSERT INTO `AES` SET `aid`=%#s,`fob`=%#s,`ver`=%#.2s,`key`=%#s", aid?:"", fob?:"", target, target + 2)))
       *target = 0;
    return target;
 }
@@ -90,7 +73,7 @@ const char *security(SQL * sqlp, SQL * sqlkeyp, SQL_RES * res, slot_t id)
    if (*aid && nfc)
    {                            // Security
       // Keys
-      SQL_RES *r = sql_safe_query_store_free(sqlkeyp, sql_printf("SELECT * FROM `AES` WHERE `aid`=%#s AND `fob` IS NULL order BY `created` DESC LIMIT 3", aid));
+      SQL_RES *r = sql_safe_query_store_free(sqlkeyp, sql_printf("SELECT * FROM `AES` WHERE `aid`=%#s AND `fob`='' order BY `created` DESC LIMIT 3", aid));
       while (sql_fetch_row(r))
          j_append_stringf(aids, "%s%s", sql_colz(r, "ver"), sql_colz(r, "key"));
       sql_free_result(r);
@@ -103,8 +86,8 @@ const char *security(SQL * sqlp, SQL * sqlkeyp, SQL_RES * res, slot_t id)
    j_t blacklist = j_store_array(j, "blacklist");
    if (*aid)
    {
-	   int organisation=atoi(sql_colz(res,"organisation"));
-      SQL_RES *b = sql_safe_query_store_free(sqlp, sql_printf("SELECT * FROM `foborganisation` WHERE `organisation`=%d AND `blocked` IS NOT NULL AND `confirmed` IS NULL ORDER BY `blocked` DESC LIMIT 10",organisation));
+      int organisation = atoi(sql_colz(res, "organisation"));
+      SQL_RES *b = sql_safe_query_store_free(sqlp, sql_printf("SELECT * FROM `foborganisation` WHERE `organisation`=%d AND `blocked` IS NOT NULL AND `confirmed` IS NULL ORDER BY `blocked` DESC LIMIT 10", organisation));
       while (sql_fetch_row(b))
          j_append_string(blacklist, sql_colz(b, "fob"));
       sql_free_result(b);
@@ -142,6 +125,10 @@ const char *settings(SQL * sqlp, SQL_RES * res, slot_t id)
 #define set(n) {const char *v=sql_colz(p,#n);if(!strcmp(v,"-"))j_store_string(j,#n,""); else j_store_literal(j,#n,v);}
          set(tamper);
          set(blink);
+         set(nkeypadtx);
+         set(nkeypadrx);
+         set(nkeypadre);
+         set(nkeypadde);
          set(nfctx);
          set(nfcrx);
          set(nfcpower);
@@ -494,8 +481,7 @@ int main(int argc, const char *argv[])
             {
                j_t init = j_create();
                j_store_true(init, "provision");
-               if (j_test(j, "format", 0))
-                  j_store_true(init, "format");
+
                j_store_int(init, "device", j_get(j, "fobprovision"));
                forked = 1;
                return forkcommand(&init, id, local);
@@ -504,23 +490,31 @@ int main(int argc, const char *argv[])
             return NULL;
          }
          const char *loopback(void) {   // From linked
-            if (j_find(meta, "provisioned"))
+            const char *v;
+            const char *fob = j_get(j, "fob");
+            const char *aid = j_get(j, "aid");
+            if (fob)
+               sql_safe_query_free(&sql, sql_printf("INSERT IGNORE INTO `fob` SET `fob`=%#s,`provisioned`=NOW()", fob));
+            if ((v = j_get(j, "mem")) && fob)
+               sql_safe_query_free(&sql, sql_printf("UPDATE `fob` SET `mem`=%#s WHERE `fob`=%#s AND `mem`!=%#s", fob, v, v));
+            if (j_find(meta, "provisioned") && fob && (v = j_get(j, "masterkey")))
+               sql_safe_query_free(&sqlkey, sql_printf("REPLACE INTO `AES` SET `fob`=%#s,`aid`='',`ver`=%#.2s,`key`=%#s", fob, v,v+2));
+            if (j_find(meta, "adopted") && fob && aid)
             {
-               sql_safe_query_free(&sqlkey, sql_printf("REPLACE INTO `AES` SET `fob`=%#s,`ver`='01',`key`=%#s", j_get(j, "fob"), j_get(j, "key")));
-               sql_safe_query_free(&sql, sql_printf("INSERT INTO `fob` SET `fob`=%#s,`provisioned`=NOW(),`mem`=%s ON DUPLICATE KEY UPDATE `provisioned`=NOW(),`mem`=%s", j_get(j, "fob"), j_get(j, "mem"), j_get(j, "mem")));
+               if ((v = j_get(j, "aid0key")))
+                  sql_safe_query_free(&sqlkey, sql_printf("REPLACE INTO `AES` SET `fob`=%#s,`aid`=%#s,`ver`=%#.2s,`key`=%#s", fob, aid, v,v+2));
+               if ((v = j_get(j, "organisation")))
+                  sql_safe_query_free(&sql, sql_printf("INSERT IGNORE INTO `foborganisation` SET `fob`=%#s,`organisation`=%s", fob, v));
+               sql_safe_query_free(&sql, sql_printf("INSERT IGNORE INTO `fobaid` SET `fob`=%#s,`aid`=%#s,`adopted`=NOW()", fob, aid));
+               sql_safe_query_free(&sql, sql_printf("UPDATE `fobaid` SET `adopted`=NOW() WHERE `fob`=%#s AND `aid`=%#s", fob, aid));
+               if ((v = j_get(j, "deviceid")))
+                  sql_safe_query_free(&sql, sql_printf("UPDATE `device` SET `adoptnext`='false' WHERE `device`=%#s", v));
             }
-            if (j_find(meta, "adopted"))
+            if (j_find(meta, "formatted")&&fob)
             {
-               sql_safe_query_free(&sql, sql_printf("INSERT IGNORE INTO `foborganisation` SET `fob`=%#s,`organisation`=%s", j_get(j, "fob"), j_get(j, "organisation")));
-               sql_safe_query_free(&sql, sql_printf("REPLACE INTO `fobaid` SET `fob`=%#s,`aid`=%#s,`adopted`=NOW()", j_get(j, "fob"), j_get(j, "aid")));
-               sql_safe_query_free(&sql, sql_printf("UPDATE `device` SET `adoptnext`='false' WHERE `device`=%#s", j_get(j, "deviceid")));
-               sql_safe_query_free(&sql, sql_printf("UPDATE `fob` SET `mem`=%s WHERE `fob`=%#s", j_get(j, "mem"), j_get(j, "fob")));
-            }
-            if (j_find(meta, "formatted"))
-            {
-               sql_safe_query_free(&sql, sql_printf("UPDATE `fobaid` SET `adopted`=NULL WHERE `fob`=%#s", j_get(j, "fob")));
-               sql_safe_query_free(&sql, sql_printf("UPDATE `fob` SET `provisioned`=NOW() WHERE `fob`=%#s", j_get(j, "fob")));
-               sql_safe_query_free(&sql, sql_printf("UPDATE `device` SET `formatnext`='false' WHERE `device`=%#s", j_get(j, "deviceid")));
+               sql_safe_query_free(&sql, sql_printf("UPDATE `fobaid` SET `adopted`=NULL WHERE `fob`=%#s", fob));
+               if ((v = j_get(j, "deviceid")))
+                  sql_safe_query_free(&sql, sql_printf("UPDATE `device` SET `formatnext`='false' WHERE `device`=%#s", v));
             }
             return NULL;
          }
@@ -646,7 +640,7 @@ int main(int argc, const char *argv[])
                         sql_free_result(fa);
                         fa = NULL;
                      }
-                     if (block&&secure)
+                     if (block && secure)
                      {          // Confirm blocked
                         sql_safe_query_free(&sql, sql_printf("UPDATE `foborganisation` SET `confirmed`=NOW() WHERE `organisation`=%d AND `fob`=%#s AND `confirmed` IS NULL", organisation, fobid));
                      }
@@ -675,7 +669,7 @@ int main(int argc, const char *argv[])
                      {          // Create fob record if necessary, if we have a key
                         if (!fa)
                         {       // Do we know the key, if so, we can add to this aid now
-                           SQL_RES *res = sql_safe_query_store_free(&sqlkey, sql_printf("SELECT * FROM `AES` WHERE `fob`=%#s AND `ver`='01' AND `aid` IS NULL", fobid));
+                           SQL_RES *res = sql_safe_query_store_free(&sqlkey, sql_printf("SELECT * FROM `AES` WHERE `fob`=%#s AND `ver`='01' AND `aid`=''", fobid));
                            if (sql_fetch_row(res))
                            {    // We know this fob...
                               sql_safe_query_free(&sql, sql_printf("INSERT IGNORE INTO `fob` SET `fob`=%#s", fobid));
@@ -700,7 +694,6 @@ int main(int argc, const char *argv[])
                            j_store_string(init, "deviceid", deviceid);
                            char temp[AES_STRING_LEN];
                            j_store_string(init, "masterkey", getaes(&sqlkey, temp, NULL, fobid));
-                           j_store_string(init, "aid0key", getaes(&sqlkey, temp, aid, fobid));
                            j_store_string(init, "aid1key", getaes(&sqlkey, temp, aid, NULL));
                            j_store_int(init, "device", id);
                            forkcommand(&init, id, 0);
@@ -744,6 +737,7 @@ int main(int argc, const char *argv[])
          j_delete(&meta);
       }
    }
+
    sql_close(&sql);
    sql_close(&sqlkey);
    return 0;

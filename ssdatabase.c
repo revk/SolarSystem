@@ -139,7 +139,7 @@ void sskeydatabase(SQL * sqlp)
       sql_free_result(res);
    else
    {
-      sql_safe_query(sqlp, "CREATE TABLE `AES` (" "`created` datetime DEFAULT CURRENT_TIMESTAMP," "`aid` char(6) DEFAULT NULL," "`fob` char(14) DEFAULT NULL," "`ver` char(2) DEFAULT NULL," "`key` char(32) DEFAULT NULL," "UNIQUE KEY `key` (`aid`,`fob`,`ver`)" ")");
+      sql_safe_query(sqlp, "CREATE TABLE `AES` (" "`created` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,`aid` char(6) NOT NULL DEFAULT '',`fob` char(14) NOT NULL DEFAULT '',`ver` char(2) NOT NULL DEFAULT '',`key` char(32) NOT NULL,UNIQUE KEY `key` (`aid`,`fob`,`ver`)" ")");
    }
 }
 

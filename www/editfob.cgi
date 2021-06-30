@@ -33,6 +33,8 @@ if($?fobname) then
 	set aids=(`printenv aids|sed 's/[^0-9A-F        ]//g'`)
 	foreach a ($aids)
 		setenv A "$a"
+		can --redirect --aid="$A" editfob
+		if($status) exit 0
 		setenv access `printenv "access$A"`
 		sql "$DB" 'UPDATE fobaid SET access=$access WHERE fob="$fob" AND aid="$A"'
 	end
