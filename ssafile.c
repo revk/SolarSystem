@@ -76,9 +76,10 @@ unsigned int makeafile(SQL_RES * res, unsigned char *afile)
          if (expiry || (!tm.tm_hour && !tm.tm_min && !tm.tm_sec) || (tm.tm_hour == 23 && tm.tm_min == 59 && tm.tm_sec == 59))
          {                      // date only
             if (expiry)
-               tm.tm_hour = tm.tm_min = tm.tm_sec;
+               tm.tm_hour = tm.tm_min = tm.tm_sec=0;
             tm.tm_sec--;
-            timegm(&tm);
+            expires = timegm(&tm);
+            gmtime_r(&expires, &tm);
             add(0xE4);
             addbcd2(tm.tm_year + 1900);
             addbcd(tm.tm_mon + 1);
