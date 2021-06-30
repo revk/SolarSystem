@@ -18,6 +18,7 @@
 #include "SQLlib/sqllib.h"
 #include <openssl/evp.h>
 #include "DESFireAES/include/desfireaes.h"
+#include "ESP32/main/areas.h"
 
 unsigned int makeafile(SQL_RES * res, unsigned char *afile)
 {                               // Make afile (max 256 characters) and return crc
@@ -76,7 +77,7 @@ unsigned int makeafile(SQL_RES * res, unsigned char *afile)
          if (expiry || (!tm.tm_hour && !tm.tm_min && !tm.tm_sec) || (tm.tm_hour == 23 && tm.tm_min == 59 && tm.tm_sec == 59))
          {                      // date only
             if (expiry)
-               tm.tm_hour = tm.tm_min = tm.tm_sec=0;
+               tm.tm_hour = tm.tm_min = tm.tm_sec = 0;
             tm.tm_sec--;
             expires = timegm(&tm);
             gmtime_r(&expires, &tm);
@@ -160,8 +161,47 @@ unsigned int makeafile(SQL_RES * res, unsigned char *afile)
          }
       }
    }
-   const char *arm = sql_colz(res, "arm");
-   const char *open = sql_colz(res, "open");
+   void addarea(unsigned char tag, const char *name) {
+      const char *v = sql_col(res, name);
+      if (v)
+      {
+         unsigned int a = 0;
+         while (*v)
+         {
+            const char *p = strchr(AREAS, *v);
+            if (p)
+               a |= (0x80000000 >> (p - AREAS - 1));
+            v++;
+         }
+         if (!p)
+            add(tag);
+         else if (!(p & 0xFFFFFF))
+         {
+            add(tag + 1);
+            add(p >> 24);
+         } else if (!(p & 0xFFFF))
+         {
+            add(tag + 2);
+            add(p >> 24);
+            add(p >> 16);
+         } else if (!(p & 0xFF))
+         {
+            add(tag + 3);
+            add(p >> 24);
+            add(p >> 16);
+            add(p >> 8);
+         } else
+         {
+            add(tag + 4);
+            add(p >> 24);
+            add(p >> 16);
+            add(p >> 8);
+            add(p);
+         }
+      }
+   }
+   addarea(0xA0, "arm");
+   addarea(0xD0, "disarm");
    // TODO arm and open
    if (p >= 256)
       return 0;                 // Too big

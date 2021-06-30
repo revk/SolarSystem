@@ -137,7 +137,6 @@ void *fobcommand(void *arg)
    char *fob = NULL;
    {                            // Get passed settings
       j_t j = arg;
-      j_err(j_write_pretty(j, stderr)); // TODO
       f.sock = atoi(j_get(j, "socket") ? : "");
       f.id = strtoll(j_get(j, "id") ? : "", NULL, 10);
       f.device = strtoll(j_get(j, "device") ? : "", NULL, 10);
