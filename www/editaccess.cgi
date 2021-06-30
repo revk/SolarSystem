@@ -1,5 +1,4 @@
-#!../login/loggedin /bin/csh -fx
-setenv XMLSQLDEBUG
+#!../login/loggedin /bin/csh -f
 can --redirect --site="$SESSION_SITE" editaccess
 if($status) exit 0
 

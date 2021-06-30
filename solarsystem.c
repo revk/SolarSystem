@@ -40,7 +40,7 @@ int mqttdump = 0;               // mqtt logging
 #define AES_STRING_LEN	35
 char *getaes(SQL * sqlkeyp, char *target, const char *aid, const char *fob)
 {                               // Get AES key (HEX ver and AES, so AES_STRING_LEN byte buffer)
-   SQL_RES *res = sql_safe_query_store_free(sqlkeyp,sql_printf("SELECT * FROM `AES` WHERE `aid`=%#s AND `aid`=%#s ORDER BY `created` DESC LIMIT 1",aid?:"",fob?:""));
+   SQL_RES *res = sql_safe_query_store_free(sqlkeyp, sql_printf("SELECT * FROM `AES` WHERE `aid`=%#s AND `aid`=%#s ORDER BY `created` DESC LIMIT 1", aid ? : "", fob ? : ""));
    if (sql_fetch_row(res))
    {
       snprintf(target, AES_STRING_LEN, "%s%s", sql_col(res, "ver"), sql_col(res, "key"));
@@ -48,9 +48,9 @@ char *getaes(SQL * sqlkeyp, char *target, const char *aid, const char *fob)
    }
    unsigned char bin[17];
    bin[0] = 1;                  // Key version. What of roll over... TODO
-   randkey(bin+1);
+   randkey(bin + 1);
    j_base16N(17, bin, AES_STRING_LEN, target);
-   if (sql_query_free(sqlkeyp, sql_printf("INSERT INTO `AES` SET `aid`=%#s,`fob`=%#s,`ver`=%#.2s,`key`=%#s", aid?:"", fob?:"", target, target + 2)))
+   if (sql_query_free(sqlkeyp, sql_printf("INSERT INTO `AES` SET `aid`=%#s,`fob`=%#s,`ver`=%#.2s,`key`=%#s", aid ? : "", fob ? : "", target, target + 2)))
       *target = 0;
    return target;
 }
@@ -480,9 +480,22 @@ int main(int argc, const char *argv[])
             } else if (j_find(meta, "fobprovision"))
             {
                j_t init = j_create();
+	       if(j_find(meta,"format"))
+                     j_store_true(init, "format"); // Format as well
                j_store_true(init, "provision");
-
-               j_store_int(init, "device", j_get(j, "fobprovision"));
+               const char *aid=j_get(meta,"aid");
+               if (aid)
+               {                // Adopt as well
+                  SQL_RES *res = sql_safe_query_store_free(&sqlkey, sql_printf("SELECT * FROM `AES` WHERE `fob`='' AND `aid`=%#s", aid));
+                  if (sql_fetch_row(res))
+                  {
+                     j_store_true(init, "adopt");
+                     j_store_string(init, "aid", aid);
+                     j_store_string(init, "aid1key", sql_col(res, "key"));
+                  }
+                  sql_free_result(res);
+               }
+               j_store_int(init, "device", j_get(meta, "device"));
                forked = 1;
                return forkcommand(&init, id, local);
             } else
@@ -498,11 +511,11 @@ int main(int argc, const char *argv[])
             if ((v = j_get(j, "mem")) && fob)
                sql_safe_query_free(&sql, sql_printf("UPDATE `fob` SET `mem`=%#s WHERE `fob`=%#s AND `mem`!=%#s", fob, v, v));
             if (j_find(meta, "provisioned") && fob && (v = j_get(j, "masterkey")))
-               sql_safe_query_free(&sqlkey, sql_printf("REPLACE INTO `AES` SET `fob`=%#s,`aid`='',`ver`=%#.2s,`key`=%#s", fob, v,v+2));
+               sql_safe_query_free(&sqlkey, sql_printf("REPLACE INTO `AES` SET `fob`=%#s,`aid`='',`ver`=%#.2s,`key`=%#s", fob, v, v + 2));
             if (j_find(meta, "adopted") && fob && aid)
             {
                if ((v = j_get(j, "aid0key")))
-                  sql_safe_query_free(&sqlkey, sql_printf("REPLACE INTO `AES` SET `fob`=%#s,`aid`=%#s,`ver`=%#.2s,`key`=%#s", fob, aid, v,v+2));
+                  sql_safe_query_free(&sqlkey, sql_printf("REPLACE INTO `AES` SET `fob`=%#s,`aid`=%#s,`ver`=%#.2s,`key`=%#s", fob, aid, v, v + 2));
                if ((v = j_get(j, "organisation")))
                   sql_safe_query_free(&sql, sql_printf("INSERT IGNORE INTO `foborganisation` SET `fob`=%#s,`organisation`=%s", fob, v));
                sql_safe_query_free(&sql, sql_printf("INSERT IGNORE INTO `fobaid` SET `fob`=%#s,`aid`=%#s,`adopted`=NOW()", fob, aid));
@@ -510,7 +523,7 @@ int main(int argc, const char *argv[])
                if ((v = j_get(j, "deviceid")))
                   sql_safe_query_free(&sql, sql_printf("UPDATE `device` SET `adoptnext`='false' WHERE `device`=%#s", v));
             }
-            if (j_find(meta, "formatted")&&fob)
+            if (j_find(meta, "formatted") && fob)
             {
                sql_safe_query_free(&sql, sql_printf("UPDATE `fobaid` SET `adopted`=NULL WHERE `fob`=%#s", fob));
                if ((v = j_get(j, "deviceid")))

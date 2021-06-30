@@ -363,13 +363,13 @@ void *fobcommand(void *arg)
          {
             doconnect();
             if (!e)
-            {
+            { // Can be more than one :-)
+               if (format)
+                  doformat();
+               if (provision)
+                  doprovision();
                if (adopt)
                   doadopt();
-               else if (provision)
-                  doprovision();
-               else if (format)
-                  doformat();
             }
          }
 
