@@ -41,7 +41,7 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <if commit=true>Fob commit</if>
 </td>
 <for space day="$days">
-<td><output type="%H:%M" name=${day}from>-<output name=${day}to></td>
+<td><output type="%H:%M" name=${day}from>-<output name=${day}to type=%H:%M></td>
 </for>
 </tr>
 </sql>
