@@ -8,16 +8,16 @@ setenv days "sun mon tue wed thu fri sat"
 if($?DELETE) then
 	if(! $?SURE) then
 		setenv MSG "Are you sure?"
-		goto done
+		goto edit
 	endif
 	can --redirect --access="$access" admin
 	if($status) exit 0
-	setenv C `sql -c "$DB" 'DELETE FROM access WHERE access=$access"'`
+	setenv C `sql -c "$DB" 'DELETE FROM access WHERE access=$access'`
 	if("$C" == "" || "$C" == "0") then
                 setenv MSG "Cannot delete as in use"
                 goto done
         endif
-        ../login/redirect / Deleted
+        ../login/redirect editaccess.cgi
         exit 0
 endif
 if($?access) then
@@ -67,8 +67,8 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 exit 0
 endif
 
-edit:
 setenv access "$PATH_INFO:t"
+edit:
 xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <h1>Access</h1>
 <form method=post action=/editaccess.cgi>
