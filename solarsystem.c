@@ -218,7 +218,7 @@ void daily(SQL * sqlp)
    sql_safe_query(sqlp, "DELETE FROM `session` WHERE `expires`<NOW()"); // Old sessions
 }
 
-void dopoke(SQL *sqlp,SQL * sqlkeyp)
+void dopoke(SQL * sqlp, SQL * sqlkeyp)
 {                               // Poking that may need doing
    SQL_RES *res = sql_safe_query_store_free(sqlp, sql_printf("SELECT * FROM `device` WHERE `poke` IS NOT NULL AND `id` IS NOT NULL"));
    while (sql_fetch_row(res))
@@ -226,7 +226,7 @@ void dopoke(SQL *sqlp,SQL * sqlkeyp)
       sql_safe_query_free(sqlp, sql_printf("UPDATE `device` SET `poke`=NULL WHERE `device`=%#s", sql_col(res, "device")));
       slot_t id = strtoull(sql_colz(res, "id"), NULL, 10);
       settings(sqlp, res, id);
-      security(sqlp,sqlkeyp, res, id);
+      security(sqlp, sqlkeyp, res, id);
    }
 }
 
@@ -399,7 +399,7 @@ int main(int argc, const char *argv[])
       if (poke)
       {
          poke = 0;
-         dopoke(&sql,&sqlkey);
+         dopoke(&sql, &sqlkey);
       }
       j_t j = incoming();
       if (!j)
@@ -674,6 +674,8 @@ int main(int argc, const char *argv[])
                   char secure = j_test(j, "secure", 0);
                   char block = j_test(j, "block", 0);
                   char remote = j_test(j, "remote", 0);
+                  char updated = j_test(j, "updated", 0);
+                  char blacklist = j_test(j, "blacklist", 0);
                   if (!held && !gone && !remote)
                   {             // Initial fob use
                      SQL_RES *fa = sql_safe_query_store_free(&sql, sql_printf("SELECT * FROM `fobaid` LEFT JOIN `foborganisation` USING (`fob`) LEFT JOIN `access` USING (`access`) WHERE `fob`=%#s AND `aid`=%#s", fobid, aid));
@@ -682,9 +684,14 @@ int main(int argc, const char *argv[])
                         sql_free_result(fa);
                         fa = NULL;
                      }
-                     if (block && secure)
+                     if ((block || (updated && blacklist)) && secure)
                      {          // Confirm blocked
                         sql_safe_query_free(&sql, sql_printf("UPDATE `foborganisation` SET `confirmed`=NOW() WHERE `organisation`=%d AND `fob`=%#s AND `confirmed` IS NULL", organisation, fobid));
+                        if (sql_affected_rows(&sql))
+                        {
+                           sql_safe_query_free(&sql, sql_printf("UPDATE `device` SET `poke`=NOW() WHERE `organisation`=%d", organisation));
+                           poke = 1;
+                        }
                      }
                      if (secure)
                      {
