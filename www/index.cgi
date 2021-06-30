@@ -2,6 +2,7 @@
 source ../setses
 source ../setcan
 xmlsql -C -d "$DB" head.html - foot.html << 'END'
+<p>Solar System access control cloud service.</p>
 <ul>
 <if USER_ADMIN><li><a href="editorganisation.cgi/0">New organisation</a></li></if>
 <if SESSION_ORGANISATION AND CANEDITORGANISATION><li><a href="editorganisation.cgi/$SESSION_ORGANISATION">Edit organisation</a></li></if>
