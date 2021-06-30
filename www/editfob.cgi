@@ -44,11 +44,12 @@ if($?fobname) then
 		endif
 	end
 	setenv organisation "$SESSION_ORGANISATION"
-	setenv allow "fobname"
+	setenv allow "fobname expires"
 	if($?BLOCK) setenv blocked "`date +'%F %T'`"
 	if($?BLOCK) setenv allow "$allow confirmed"
 	if($?UNBLOCK||$?BLOCK) setenv allow "$allow blocked"
-	if("$expires" == "") unsetenv expires
+	setenv expires "${expires}Z"
+	if("$expires" == "Z") unsetenv expires
 	sqlwrite -v -o -n "$DB" foborganisation fob organisation $allow
 	setenv MSG "Updated"
 	goto list

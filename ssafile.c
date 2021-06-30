@@ -33,6 +33,16 @@ unsigned int makeafile(SQL_RES * res, unsigned char *afile)
          a[p] = v;
       p++;
    }
+   void addbcd(unsigned char v)
+   {
+	   add((('0'+(v/10))<<4)+(v%10));
+   }
+   void addbcd2(unsigned short v)
+   {
+	   addbcd(v/100);
+	   addbcd(v%100);
+   }
+
    if (!res || !sql_col(res, "access") || sql_col(res, "blocked"))
       add(0xFB);
    else
@@ -55,9 +65,11 @@ unsigned int makeafile(SQL_RES * res, unsigned char *afile)
          expires = time(0) + 86400 * expiry;
       if (expires)
       {
-         // TODO
+	      struct tm t;
+
       }
    }
+   // TODO arm and open
    if (p >= 256)
       return 0;                 // Too big
    *a = p - 1;
