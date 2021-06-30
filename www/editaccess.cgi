@@ -48,7 +48,7 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <table>
 <sql table=access where="site=$SESSION_SITE">
 <tr>
-<td><output name=accessname blank="Unnanmed" href="editaccess.cgi/$access"></td>
+<td><output name=accessname missing="Unnamed" blank="Unnanmed" href="editaccess.cgi/$access"></td>
 <td>
 <if clock=true>Time override</if>
 <if override=true><b>OVERRIDE</b></if>
