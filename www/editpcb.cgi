@@ -87,7 +87,10 @@ xmlsql -C -d "$DB" head.html - foot.html << END
 <table>
 <tr><td>Name</td><td><input name=pcbname ize=40 autofocus></td></tr>
 <tr><td><select name=tamper>$GPIONUMPICK</select></td><td>GPIO Controller Tamper</td></tr>
-<tr><td><select name=blink>$GPIONUMPICK</select></td><td>GPIO Controller LED</td></tr>
+<if ledr=='-' ledg=='-' ledb=='-'><tr><td><select name=leda>$GPIONUMPICK</select></td><td>GPIO Controller LED (amber)</td></tr></if>
+<if leda=='-'><tr><td><select name=ledr>$GPIONUMPICK</select></td><td>GPIO Controller LED (red)</td></tr></if>
+<if leda=='-'><tr><td><select name=ledg>$GPIONUMPICK</select></td><td>GPIO Controller LED (green)</td></tr></if>
+<if leda=='-'><tr><td><select name=ledb>$GPIONUMPICK</select></td><td>GPIO Controller LED (blue)</td></tr></if>
 <tr><td><select name=keypadtx>$GPIONUMPICK</select></td><td>GPIO Keypad Tx</td></tr>
 <tr><td><select name=keypadrx>$GPIONUMPICK</select></td><td>GPIO Keypad Rx</td></tr>
 <tr><td><select name=keypadde>$GPIONUMPICK</select></td><td>GPIO Keypad DE</td></tr>

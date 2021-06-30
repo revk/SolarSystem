@@ -1,4 +1,4 @@
 #!/bin/csh -f
 # Save some fields
-mysqldump --insert-ignore -t --compact -c SS user organisation site pcb gpio device devicegpio aid area
+mysqldump --insert-ignore -t --compact -c SS
 

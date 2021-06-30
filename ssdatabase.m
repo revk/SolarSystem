@@ -217,7 +217,10 @@ num(flash);                     // Flash size
 table(pcb, 0);                  // PCB type
 text(pcbname, 0);
 gpio(tamper);                   // Fixed GPIOs
-gpio(blink);
+gpio(leda);
+gpio(ledr);
+gpio(ledg);
+gpio(ledb);
 gpio(keypadtx);
 gpio(keypadrx);
 gpio(keypadde);
