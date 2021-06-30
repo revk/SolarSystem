@@ -31,6 +31,7 @@ int main(int argc, const char *argv[])
    int fobprovision = 0;
    const char *deport = NULL;
    const char *aid = NULL;
+   const char *status = NULL;
    int debug = 0;
    int setting = 0;
    int silent = 0;
@@ -45,6 +46,7 @@ int main(int argc, const char *argv[])
          { "deport", 0, POPT_ARG_STRING, &deport, 0, "Deport", "mqtthost" },
          { "device", 'd', POPT_ARG_STRING, &device, 0, "Device", "XXXXXXXXXXXX" },
          { "pending", 'p', POPT_ARG_STRING, &pending, 0, "Pending device", "XXXXXXXXXXXX" },
+         { "status", 's', POPT_ARG_STRING, &status, 0, "Status", "div ID" },
          { "provision", 0, POPT_ARG_NONE, &provision, 0, "Provision", NULL },
          { "silent", 'q', POPT_ARG_NONE, &silent, 0, "Silent", NULL },
          { "debug", 'v', POPT_ARG_NONE, &debug, 0, "Debug", NULL },
@@ -215,7 +217,12 @@ int main(int argc, const char *argv[])
       mqtt_dataonly(j);
       if (j && !j_isnull(j))
       {
-         // TODO js-status
+         if (status)
+         {
+            const char *s = j_get(j, "status");
+            if (s)
+               printf("<script>p=document.createElement('p'),p.textContent='%s';document.getElementById('%s').append(p);</script>\n", s, status);
+         }
          ret = 1;
          if (!silent)
          {
@@ -223,8 +230,8 @@ int main(int argc, const char *argv[])
                printf("%s", j_val(j));
             else
                j_err(j_write_pretty(j, stdout));
-            fflush(stdout);
          }
+         fflush(stdout);
       } else
          done = 1;
       j_delete(&j);

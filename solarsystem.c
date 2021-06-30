@@ -702,6 +702,17 @@ int main(int argc, const char *argv[])
                         }
                         if (!*masterkey)
                            getaes(&sqlkey, masterkey, NULL, fobid);
+                         if (*sql_colz(device, "formatnext") == 't')
+                        {       // Format a fob (even if secure)
+                           j_t init = j_create();
+                           j_store_true(init, sqldebug ? "hardformat" : "format");
+                           j_store_string(init, "masterkey", masterkey);
+                           j_store_int(init, "device", id);
+                           j_store_string(init, "deviceid", deviceid);
+                           j_store_string(init, "fob", fobid);
+                           forkcommand(&init, id, 0);
+                        }
+			 else
                         if (fa && !secure && ((*sql_colz(device, "adoptnext") == 't') || (fa && !sql_col(fa, "adopted"))))
                         {       // Adopt
                            if (sql_col(fa, "adopted"))
@@ -720,17 +731,7 @@ int main(int argc, const char *argv[])
                            j_store_string(init, "aid1key", getaes(&sqlkey, temp, aid, NULL));
                            j_store_int(init, "device", id);
                            forkcommand(&init, id, 0);
-                        }
-                        if (*sql_colz(device, "formatnext") == 't')
-                        {       // Format a fob (even if secure)
-                           j_t init = j_create();
-                           j_store_true(init, sqldebug ? "hardformat" : "format");
-                           j_store_string(init, "masterkey", masterkey);
-                           j_store_int(init, "device", id);
-                           j_store_string(init, "deviceid", deviceid);
-                           j_store_string(init, "fob", fobid);
-                           forkcommand(&init, id, 0);
-                        }
+			}
                      }
                      if (fa)
                         sql_free_result(fa);

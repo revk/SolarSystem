@@ -3,7 +3,7 @@ can --redirect --organisation='$SESSION_ORGANISATION' admin
 if($status) exit 0
 
 done:
-xmlsql -C -d "$DB" head.html - << 'END'
+xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <h1>Provision fob</h1>
 <form method=post>
 <select name=aid><option value=''>-- Just provision --</option>
@@ -13,10 +13,9 @@ Device:<select name=device><sql table=device where="nfctrusted='true' AND online
 <if found><set found><input type=submit value="Provision fob"></if>
 <if else><p>No devices on line for provisioning</p></if>
 </form>
-<if device>Provisioning<pre></if>
+<if device><div id=status><p>Provisioning...</p></div></if>
 'END'
 if($?device) then
-	message --device="$device" --aid="$aid" --fob-provision
+	message --device="$device" --aid="$aid" --fob-provision --status=status --silent
 endif
-xmlsql foot.html
 

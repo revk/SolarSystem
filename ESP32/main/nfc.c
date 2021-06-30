@@ -307,9 +307,9 @@ static void task(void *pvParameters)
       {                         // Check for card
          nextpoll = now + (uint64_t) nfcpoll *1000LL;
          if (fob.release)
-         {                      // An attempt to make it re-see the fob...
-            pn532_release(pn532, 1);
+         {                      // Remote complete
             fob.release = 0;
+            door_fob(&fob);
          }
          if (found && !pn532_Present(pn532))
          {                      // Card gone

@@ -115,12 +115,16 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <form method=post action=/editfob.cgi><input name=fob type=hidden>
 <sql table=foborganisation where="fob='$fob'">
 <table>
-<tr><td>Name</td><td><input name=fobname size=30 autofocus></td></tr>
+<tr><td>Name</td><td colspan=2><input name=fobname size=30 autofocus></td></tr>
 <if blocked><tr><td>Block</td><td>Access blocked <output name=blocked> <if blocked and confirmed>(confirmed <output name=confirmed)</if></td></tr></if>
 </if>
 </sql>
 <sql table="aid" where="site='$SESSION_SITE'" order=aidname><set access$aid><sql table=fobaid where="fob='$fob' AND aid='$aid'"><set access$aid=$access></sql>
-<tr><td><input type=hidden name=aids value="$aid"><output name=aidname></td><td><select name="access$aid"><option value=''>No access</option><sql table=access where="site=$site"><option value="$access"><output name=accessname></option></sql></select></td></tr>
+<tr>
+<td><input type=hidden name=aids value="$aid"><output name=aidname></td>
+<td><select name="access$aid"><option value=''>No access</option><sql table=access where="site=$site"><option value="$access"><output name=accessname></option></sql></select></td>
+<td><if access$aid AND not adopted>Waiting to be adopted</if></td>
+</tr>
 </sql>
 </table>
 <input type=submit value="Update"><if blocked><input type=SUBMIT name=UNBLOCK Value="Unblock"></if><if else><input type=SUBMIT name=BLOCK Value="Block"></if>
