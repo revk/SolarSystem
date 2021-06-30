@@ -75,7 +75,7 @@ xmlsql -C -d "$DB" head.html - foot.html << END
 <table>
 <sql table=pcb order=pcbname>
 <tr>
-<td><output name=pcbname blank="Unspecified" missing="?"  href="/editpcb.cgi/\$pcb"></td>
+<td><output name=pcbname blank="Unspecified" missing="Unnamed"  href="/editpcb.cgi/\$pcb"></td>
 </tr>
 </sql>
 </table>

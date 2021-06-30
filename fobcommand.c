@@ -233,7 +233,7 @@ void *fobcommand(void *arg)
                df(authenticate(&d, 0, NULL));
                df(change_key_settings(&d, 0x09));
                df(set_configuration(&d, 0));
-               df(change_key(&d, 0x80, *masterkey, NULL, masterkey+1));
+               df(change_key(&d, 0x80, *masterkey, NULL, masterkey + 1));
                df(authenticate(&d, 0, masterkey + 1));
             }
             unsigned int mem;
@@ -253,11 +253,11 @@ void *fobcommand(void *arg)
          void doadopt(void) {
             if (mqttdump)
                warnx("Fob adopt");
-	    if(!*aid0key)
-	    {
-		    *aid0key=1;
-		    randkey(aid0key+1);
-	    }
+            if (!*aid0key)
+            {
+               *aid0key = 1;
+               randkey(aid0key + 1);
+            }
             unsigned int n;
             {
                unsigned char aids[3 * 20];
@@ -339,11 +339,11 @@ void *fobcommand(void *arg)
             unsigned char uid[7];
             df(get_uid(&d, uid));
             status("Setting key");
-	    if(!*masterkey)
-	    {
-	    randkey(masterkey+1);
-	    *masterkey=1;
-	    }
+            if (!*masterkey)
+            {
+               randkey(masterkey + 1);
+               *masterkey = 1;
+            }
             unsigned int mem;
             df(free_memory(&d, &mem));
             {                   // Tell system new key
@@ -355,15 +355,15 @@ void *fobcommand(void *arg)
                j_store_int(j, "mem", mem);
                mqtt_qin(&j);
             }
-            df(change_key(&d, 0x80, *masterkey, NULL, masterkey+1));
-            df(authenticate(&d, 0, masterkey+1));
+            df(change_key(&d, 0x80, *masterkey, NULL, masterkey + 1));
+            df(authenticate(&d, 0, masterkey + 1));
             status("Done, remove card");
          }
          if (f.connected && !f.done)
          {
             doconnect();
             if (!e)
-            { // Can be more than one :-)
+            {                   // Can be more than one :-)
                if (format)
                   doformat();
                if (provision)
@@ -390,11 +390,10 @@ void *fobcommand(void *arg)
 
 void randkey(unsigned char key[16])
 {
-               int f = open("/dev/urandom", O_RDONLY);
-               if (f < 0)
-                  err(1, "Cannot open random");
-               if (read(f, key, 16)!=16)
-                  err(1, "Cannot read random");
-               close(f);
+   int f = open("/dev/urandom", O_RDONLY);
+   if (f < 0)
+      err(1, "Cannot open random");
+   if (read(f, key, 16) != 16)
+      err(1, "Cannot read random");
+   close(f);
 }
-

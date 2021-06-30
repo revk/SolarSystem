@@ -37,15 +37,17 @@ int main(int argc, const char *argv[])
        user = 0,
        organisation = 0,
        site = 0,
-       area=0,
-       aid = 0,access=0;
+       area = 0,
+       aid = 0,
+       access = 0;
    const char *sus = NULL,
        *suser = NULL,
        *sorganisation = NULL,
        *ssite = NULL,
        *said = NULL,
-       *sarea=NULL,
-       *sdevice = NULL,*saccess=NULL;
+       *sarea = NULL,
+       *sdevice = NULL,
+       *saccess = NULL;
    int redirect = 0;
    int reason = 0;
    poptContext optCon;          // context for parsing command-line options

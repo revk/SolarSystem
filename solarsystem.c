@@ -408,21 +408,24 @@ int main(int argc, const char *argv[])
          const char *local(slot_t local) {      // Commands sent to us from local system
             slot_t id = 0;      // Device id
             const char *v;
-            // Identify the device we want to talk to...
-            SQL_RES *res = NULL;
-            if ((v = j_get(meta, "device")))
-               res = sql_safe_query_store_free(&sql, sql_printf("SELECT `id` FROM `device` WHERE `device`=%#s", v));
-            else if ((v = j_get(meta, "pending")))
-               res = sql_safe_query_store_free(&sql, sql_printf("SELECT `id` FROM `pending` WHERE `pending`=%#s", v));
-            if (res)
-            {                   // Check device on line, find id
-               if (sql_fetch_row(res))
-                  id = strtoll(sql_colz(res, "id") ? : "", NULL, 10);
-               sql_free_result(res);
-               if (!id)
-                  return "Device not on line";
+            {                   // Identify the device we want to talk to...
+               SQL_RES *res = NULL;
+               if ((v = j_get(meta, "device")))
+                  res = sql_safe_query_store_free(&sql, sql_printf("SELECT `id` FROM `device` WHERE `device`=%#s", v));
+               else if ((v = j_get(meta, "pending")))
+                  res = sql_safe_query_store_free(&sql, sql_printf("SELECT `id` FROM `pending` WHERE `pending`=%#s", v));
+               if (res)
+               {                // Check device on line, find id
+                  deviceid = v;
+                  if (sql_fetch_row(res))
+                     id = strtoll(sql_colz(res, "id") ? : "", NULL, 10);
+                  else
+                     sql_free_result(res);
+                  if (!id)
+                     return "Device not on line";
+               }
             }
-            if (res && (v = j_get(meta, "provision")))
+            if (j_find(meta, "provision") && deviceid)
             {                   // JSON is rest of settings to send
                char *key = makekey();
                char *cert = makecert(key, cakey, cacert, v);
@@ -435,10 +438,10 @@ int main(int argc, const char *argv[])
                if (fail)
                   return fail;
                fail = slot_send(id, "setting", NULL, &j);
-               if (!fail)
+               const char *aid = j_get(meta, "aid");
+               if (aid && !fail)
                {
-                  int site = atoi(sql_colz(res, "site"));
-                  SQL_RES *s = sql_safe_query_store_free(&sql, sql_printf("SELECT * FROM `site` WHERE `site`=%d", site));
+                  SQL_RES *s = sql_safe_query_store_free(&sql, sql_printf("SELECT * FROM `aid` LEFT JOIN `site` USING (`site`) WHERE `aid`=%#s", aid));
                   if (sql_fetch_row(s))
                   {
                      j = j_create();
@@ -450,9 +453,9 @@ int main(int argc, const char *argv[])
                }
                // Set online later to remove from pending lists in UI
                if (!fail)
-                  sql_safe_query_free(&sql, sql_printf("UPDATE `pending` SET `online`=%#T WHERE `pending`=%#s", time(0) + 60, v));
+                  sql_safe_query_free(&sql, sql_printf("UPDATE `pending` SET `online`=%#T WHERE `pending`=%#s", time(0) + 60, deviceid));
                return fail;
-            } else if (res && (v = j_get(meta, "deport")))
+            } else if ((v = j_get(meta, "deport")))
             {
                j_store_null(j, "clientcert");
                j_store_null(j, "clientkey");
@@ -462,7 +465,7 @@ int main(int argc, const char *argv[])
                const char *fail = slot_send(id, "setting", NULL, &j);
                // Set online later to remove from pending lists in UI
                if (!fail)
-                  sql_safe_query_free(&sql, sql_printf("UPDATE `pending` SET `online`=%#T WHERE `pending`=%#s", time(0) + 60, v));
+                  sql_safe_query_free(&sql, sql_printf("UPDATE `pending` SET `online`=%#T WHERE `pending`=%#s", time(0) + 60, deviceid));
                return fail;
             } else if ((v = j_get(meta, "prefix")))
             {                   // Send to device
@@ -480,10 +483,10 @@ int main(int argc, const char *argv[])
             } else if (j_find(meta, "fobprovision"))
             {
                j_t init = j_create();
-	       if(j_find(meta,"format"))
-                     j_store_true(init, "format"); // Format as well
+               if (j_find(meta, "format"))
+                  j_store_true(init, "format"); // Format as well
                j_store_true(init, "provision");
-               const char *aid=j_get(meta,"aid");
+               const char *aid = j_get(meta, "aid");
                if (aid)
                {                // Adopt as well
                   SQL_RES *res = sql_safe_query_store_free(&sqlkey, sql_printf("SELECT * FROM `AES` WHERE `fob`='' AND `aid`=%#s", aid));
@@ -572,6 +575,7 @@ int main(int argc, const char *argv[])
                   return "No id";
                if (!prefix || strcmp(prefix, "state") || suffix || !j_find(j, "up"))
                   return "Bad initial message";
+               if (deviceid)
                {
                   const char *claimedid = j_get(j, "id");
                   if (claimedid && strcmp(claimedid, deviceid))
