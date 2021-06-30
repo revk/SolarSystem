@@ -354,7 +354,8 @@ void ssdatabase(SQL * sqlp)
 #define	ip(n)		field(#n,"varchar(39)","NULL");
 #define	datetime(n)	field(#n,"datetime","NULL");
 #define	date(n)		field(#n,"date","NULL");
-#define	time(n)		field(#n,"time","NULL");
+#define	time0000(n)	field(#n,"time","'00:00:00'");
+#define	time2359(n)	field(#n,"time","'23:59:59'");
 #define	gpio(n)		field(#n,"enum('-','2','4','5','12','13','14','15','16','17','18','19','21','22','23','25','26','27','32','33','34','35','36','39','-2','-4','-5','-12','-13','-14','-15','-16','-17','-18','-19','-21','-22','-23','-25','-26','-27','-32','-33','-34','-35','-36','-39')","'-'");
 #define	gpionfc(n)	field(#n,"enum('-','30','31','32','33','34','35','71','72','-30','-31','-32','-33','-34','-35','-71','-72')","'-'");
 #define	gpiotype(n)	field(#n,"enum('-','I','O','P','I1','I2','I3','I4','I8','O1','O2','O3','O4')","'-'");

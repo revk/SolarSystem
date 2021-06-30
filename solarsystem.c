@@ -675,10 +675,12 @@ int main(int argc, const char *argv[])
                         const char *crc = j_get(j, "crc");
                         if (crc)
                         {       // Check afile
-                           unsigned long was = strtoull(crc, NULL, 16);
+                           unsigned was = strtoull(crc, NULL, 16);
                            unsigned char afile[256] = { };
-                           if (was != makeafile(fa, afile))
+			   unsigned new=makeafile(fa, afile);
+                           if (was != new)
                            {    // Send afile
+				   if(sqldebug)warnx("CRC mismatch %08X %08X",was,new);
                               j_t a = j_create();
                               j_string(a, j_base16a(*afile + 1, afile));
                               slot_send(id, "command", "access", &a);

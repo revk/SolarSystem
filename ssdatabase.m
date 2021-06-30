@@ -40,8 +40,12 @@
 #define date(n)                 // Time field
 #endif
 
-#ifndef time
-#define time(n)                 // Time field
+#ifndef time0000
+#define time0000(n)                 // Time field (default 00:00:00)
+#endif
+
+#ifndef time2359
+#define time2359(n)                 // Time field (default 23:59:59)
 #endif
 
 #ifndef ip
@@ -131,20 +135,20 @@ text(accessname,0)
 areas(open);			// Allow open
 areas(arm);			// Allow disarm/arm
 num(expiry);			// Auto expiry (days)
-time(sunfrom);
-time(sunto);
-time(monfrom);
-time(monto);
-time(tuefrom);
-time(tueto);
-time(wedfrom);
-time(wedto);
-time(thufrom);
-time(thuto);
-time(frifrom);
-time(frito);
-time(satfrom);
-time(satto);
+time0000(sunfrom);
+time2359(sunto);
+time0000(monfrom);
+time2359(monto);
+time0000(tuefrom);
+time2359(tueto);
+time0000(wedfrom);
+time2359(wedto);
+time0000(thufrom);
+time2359(thuto);
+time0000(frifrom);
+time2359(frito);
+time0000(satfrom);
+time2359(satto);
 bool(clock);			// Ignore time if clock not set
 bool(override);			// Open regardless
 bool(log);			// Log access
@@ -250,7 +254,8 @@ text(aidname, 0);
 #undef num
 #undef datetime
 #undef date
-#undef time
+#undef time0000
+#undef time2359
 #undef ip
 #undef gpio
 #undef gpionfc

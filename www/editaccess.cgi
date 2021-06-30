@@ -10,7 +10,7 @@ if($?access) then
 	endif
 	can --redirect --access="$access" editaccess
 	if($status) exit 0
-	setenv allow "accessname clock log count commit open arm"
+	setenv allow "accessname clock log count commit open arm expiry"
 	foreach day ($days)
 		setenv allow "$allow ${day}from ${day}to"
 	end
@@ -66,6 +66,7 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <tr><td><input type=checkbox id=count name=count value=true></td><td><label for=count>Try to count access on fob.</label></td></tr>
 <tr><td><input type=checkbox id=commit name=commit value=true></td><td><label for=commit>Commit changes (log/count) before allowing access (slower).</label></td></tr>
 <IF ADMINORGANISATION><tr><td><input type=checkbox id=override name=override value=true></td><td><label for=override>Open door in all cases.</label></td></tr></if>
+<tr><td>Auto expire</td><td><input name=expiry size=3>Days</td></tr>
 <for space day="$days">
 <tr><td><output name=day sun=Sunday mon=Monday tue=Tuesday web=Wednesday thu=Thursday fri=Friday sat=Saturday></td><td><input name="${day}from" type=time>-<input name="${day}to" type=time></td></tr>
 </for>
