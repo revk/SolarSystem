@@ -103,7 +103,7 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <td><output name=fob href="editfob.cgi/$fob"></td>
 <td><output name=expires></td>
 <td><output name=fobname></td>
-<td><if not N=1><output name=N 0=No> AIDs</if><if else><output name=aidname> (<output name=accessname>)</if><if not W=0>, <output name=W 1=""> waiting to be adopted. </if><if blocked><b>BLOCKED<if confirmed>(confirmed) </if></b></if><if NOT O=0><b><ouput name=O 1=""> has override.</b></if></td>
+<td><if not N=1><output name=N 0=No> AIDs</if><if else><output name=aidname> (<output name=accessname>) </if><if not W=0><output name=W 1=""> waiting to be adopted. </if><if blocked><b>BLOCKED<if confirmed>(confirmed) </if></b></if><if NOT O=0><b><ouput name=O 1=""> has override.</b></if></td>
 </tr>
 </sql>
 </table>
