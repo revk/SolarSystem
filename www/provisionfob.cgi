@@ -7,10 +7,10 @@ xmlsql -C -d "$DB" head.html - << 'END'
 <h1>Provision fob</h1>
 <form method=post>
 <select name=aid><option value=''>-- Just provision --</option>
-<if SESSION_SITE><sql table=aid where="site=$SESSION_SITE"><option value="$aid"><output name=aidname></option></sql></if>
+<if SESSION_SITE><sql table=aid where="site=$SESSION_SITE"><option value="$aid">Adopt to:<output name=aidname></option></sql></if>
 </select>
-<select name=device><sql table=device where="nfctrusted='true' AND online IS NOT NULL"><set found=1><option value="$device"><output name=devicename blank="Unnamed"> <output name=address></option></sql></select>
-<if found><set found><input type=submit value="Provision"></if>
+Device:<select name=device><sql table=device where="nfctrusted='true' AND online IS NOT NULL"><set found=1><option value="$device"><output name=devicename blank="Unnamed"> <output name=address></option></sql></select>
+<if found><set found><input type=submit value="Provision fob"></if>
 <if else><p>No devices on line for provisioning</p></if>
 </form>
 <if device>Provisioning<pre></if>

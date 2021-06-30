@@ -1,4 +1,5 @@
-#!../login/loggedin /bin/csh -f
+#!../login/loggedin /bin/csh -fx
+setenv XMLSQLDEBUG
 can --redirect --organisation='$SESSION_ORGANISATION' --site='$SESSION_SITE' editfob
 if($status) exit 0
 unsetenv CANADOPTFOB
@@ -30,17 +31,22 @@ if($?ADOPT) then
 	goto list
 endif
 if($?fobname) then
-	set aids=(`printenv aids|sed 's/[^0-9A-F        ]//g'`)
+	set aids=(`printenv aids|sed 's/[^0-9A-F	]//g'`)
 	foreach a ($aids)
 		setenv A "$a"
 		can --redirect --aid="$A" editfob
 		if($status) exit 0
 		setenv access `printenv "access$A"`
-		sql "$DB" 'UPDATE fobaid SET access=$access WHERE fob="$fob" AND aid="$A"'
+		if("$access" == "") then
+			sql "$DB" 'DELETE FROM fobaid WHERE  fob="$fob" AND aid="$A"'
+		else
+			sql "$DB" 'INSERT IGNORE INTO fobaid SET fob="$fob",aid="$A"'
+			sql "$DB" 'UPDATE fobaid SET access=$access WHERE fob="$fob" AND aid="$A"'
+		endif
 	end
 	setenv organisation "$SESSION_ORGANISATION"
 	setenv allow "fobname"
-	if($BLOCK) setenv blocked "`date +%F %T`"
+	if($?BLOCK) setenv blocked "`date +%F %T`"
 	if($?UNBLOCK||$?BLOCK) setenv allow "$allow blocked"
 	sqlwrite -o -n "$DB" foborganisation fob organisation fobname
 	setenv MSG "Updated"
@@ -81,14 +87,14 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <if found><set found></if><if else><p>No devices set to auto adopt fobs.</p></if>
 </if>
 <table>
-<sql table="foborganisation LEFT JOIN fobaid USING (fob) LEFT JOIN aid USING (aid) LEFT JOIN access USING (access)" where="foborganisation.organisation=$SESSION_ORGANISATION" group="fob" order="max(adopted) DESC" select="*,count(*) as N, sum(if(adopted IS NULL,1,0)) AS W">
+<sql table="foborganisation LEFT JOIN fobaid USING (fob) LEFT JOIN aid USING (aid) LEFT JOIN access USING (access)" where="foborganisation.organisation=$SESSION_ORGANISATION" group="fob" order="max(adopted) DESC" select="*,count(aid) as N, count(adopted) AS W">
 <if not found><set found=1><tr><th>Fobs</th></tr></if>
 <tr>
 <td><output name=fob href="editfob.cgi/$fob"></td>
 <td><output name=aidname></td></td>
 <td><output name=accessname missing="Access not set"></td></td>
 <td><output name=fobname></td>
-<td><if not N=1><output name=N> AIDs</if><if not W=0><if not N=1>, <output name=W> </if>waiting to be adopted.</if></td>
+<td><if not N=1><output name=N 0=No> AIDs</if><if else><output name=aidname></if><if not W=0>, <output name=W 1=""> waiting to be adopted.</if></td>
 </tr>
 </sql>
 </table>
@@ -113,8 +119,9 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <if blocked><tr><td>Block</td><td>Access blocked <output name=blocked> <if blocked and confirmed>(confirmed <output name=confirmed)</if></td></tr></if>
 </if>
 </sql>
-<sql table="fobaid LEFT JOIN aid USING (aid)" where="fob='$fob'">
-<tr><td><input type=hidden name=aids value="$aid"><output name=aidname></td><td><select name="access$aid"><sql table=access where="site=$site"><option value="$access"><output name=accessname></option></sql></select></td></tr>
+<sql table="aid" where="site='$SESSION_SITE'" order=aidname><set access$aid><sql table=fobaid where="fob='$fob' AND aid='$aid'"><set access$aid=$access></sql>
+<tr><td><input type=hidden name=aids value="$aid"><output name=aidname></td><td><select name="access$aid"><option value=''>No access</option><sql table=access where="site=$site"><option value="$access"><output name=accessname></option></sql></select></td></tr>
+</sql>
 </table>
 <input type=submit value="Update"><if blocked><input type=SUBMIT name=UNBLOCK Value="Unblock"></if><if else><input type=SUBMIT name=BLOCK Value="Block"></if>
 </sql>
