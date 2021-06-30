@@ -9,7 +9,7 @@ if($?access) then
 	endif
 	can --redirect --access="$access" editaccess
 	if($status) exit 0
-	setenv allow "accessname clock log count commit open arm"
+	setenv allow "accessname clock log count commit open arm sunfrom sunto monfrom monto tuefrom tueto wedfrom wedto thufrom thuto frifrom frito satfrom satto"
 	if(! $?clock) setenv clock false
 	if(! $?override) setenv override false
 	if(! $?log) setenv log false
@@ -59,10 +59,11 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <tr><td><input type=checkbox id=count name=count value=true></td><td><label for=count>Try to count access on fob.</label></td></tr>
 <tr><td><input type=checkbox id=commit name=commit value=true></td><td><label for=commit>Commit changes (log/count) before allowing access (slower).</label></td></tr>
 <IF ADMINORGANISATION><tr><td><input type=checkbox id=override name=override value=true></td><td><label for=override>Open door in all cases.</label></td></tr></if>
+<for space day="sun mon tue wed thu fri sat">
+<tr><td><output name=day sun=Sunday mon=Monday tue=Tuesday web=Wednesday thu=Thursday fri=Friday sat=Saturday></td><td><input name="${day}from" type=time>-<input name="${day}to" type=time></td></tr>
+</for>
 </table>
 <input type=submit value="Update">
 </sql>
 </form>
-<p>TODO expiry logic</p>
-<p>TODO time of day logic</p>
 'END'

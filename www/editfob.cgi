@@ -1,5 +1,4 @@
-#!../login/loggedin /bin/csh -fx
-setenv XMLSQLDEBUG
+#!../login/loggedin /bin/csh -f
 can --redirect --organisation='$SESSION_ORGANISATION' --site='$SESSION_SITE' editfob
 if($status) exit 0
 unsetenv CANADOPTFOB
