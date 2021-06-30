@@ -89,7 +89,7 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <if found><set found></if><if else><p>No devices set to auto adopt fobs.</p></if>
 </if>
 <table>
-<sql table="foborganisation LEFT JOIN fobaid USING (fob) LEFT JOIN aid USING (aid) LEFT JOIN access USING (access)" where="foborganisation.organisation=$SESSION_ORGANISATION" group="fob" order="max(adopted) DESC" select="*,count(aid) as N, count(adopted) AS W">
+<sql table="foborganisation LEFT JOIN fobaid USING (fob) LEFT JOIN aid USING (aid) LEFT JOIN access USING (access)" where="foborganisation.organisation=$SESSION_ORGANISATION" group="fob" order="max(adopted) DESC" select="*,count(aid) as N, count(adopted) AS W,sum(if(override='true',1,0)) AS O">
 <if not found><set found=1><tr>
 <th>Fob</th><th>Expiry</th><th>Name</th><th>Notes</th>
 </tr></if>
@@ -97,7 +97,7 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <td><output name=fob href="editfob.cgi/$fob"></td>
 <td><output name=expires></td>
 <td><output name=fobname></td>
-<td><if not N=1><output name=N 0=No> AIDs</if><if else><output name=aidname> (<output name=accessname>)</if><if not W=0>, <output name=W 1=""> waiting to be adopted.</if><if blocked> <b>BLOCKED<if confirmed>(confirmed)</if></b></if></td>
+<td><if not N=1><output name=N 0=No> AIDs</if><if else><output name=aidname> (<output name=accessname>)</if><if not W=0>, <output name=W 1=""> waiting to be adopted. </if><if blocked><b>BLOCKED<if confirmed>(confirmed) </if></b></if><if NOT O=0><b><ouput name=O 1=""> has override.</b></if></td>
 </tr>
 </sql>
 </table>
