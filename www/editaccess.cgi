@@ -22,7 +22,8 @@ if($?access) then
 	if($?ADMINORGANISATION) setenv allow "$allow override"
 	sqlwrite -o -n "$DB" access $allow
 	setenv MSG "Updated"
-	goto list
+	../login/redirect editaccess.cgi Updated
+	exit 0
 endif
 
 if(! $?PATH_INFO) then

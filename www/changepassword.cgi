@@ -7,8 +7,7 @@ if($?NEWPASSWORD) then
 		setenv MSG `changepassword`
 	endif
 	if(! $status) then
-		echo "Location: ${ENVCGI_SERVER}edituser.cgi?MSG=Updated"
-		echo ""
+		login/redirect edituser.cgi Updated
 		exit 0
 	endif
 	unsetenv OLDPASSWORD

@@ -10,14 +10,12 @@ setenv user "$LINK:e"
 setenv USERNAME "$LINK:r"
 setenv C `sql -c "$DB" 'UPDATE user SET email="$USERNAME" WHERE user=$user'`
 if($status || "$C" == 0) then
-	echo "Location: ${ENVCGI_SERVER}login.cgi?MSG=Cannot+update+email"
-	echo ""
+	login/redirect login.cgi "Cannot update email"
 	exit 0
 endif
 dologin --force --silent
 if($status) then
-	echo "Location: ${ENVCGI_SERVER}login.cgi"
+	login/redirect login.cgi
 else
-	echo "Location: $ENVCGI_SERVER?MSG=Updated"
+	login/redirect / Updated
 endif
-echo ""

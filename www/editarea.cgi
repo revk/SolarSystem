@@ -13,8 +13,7 @@ if($?AREAA) then #save
 			sql "$DB" 'REPLACE INTO area SET organisation=$SESSION_ORGANISATION,site=$SESSION_SITE,tag="$A",areaname="$D"'
 		endif
 	end
-	echo "Location: $ENVCGI_SERVER?MSG=Updated"
-	echo ""
+	../login/redirect / Updated
 	exit 0
 endif
 

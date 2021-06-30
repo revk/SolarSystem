@@ -6,19 +6,22 @@ can --redirect --device='$device' editdevice
 if($status) exit 0
 
 if($?UPGRADE) then
-	setenv RESTART
 	sql "$DB" 'UPDATE device SET upgrade=NOW() WHERE device="$device"'
+	setenv MSG `message --device="$device" --command=restart`
+	if(! $status) setenv MSG "Upgrading"
+	../login/redirect "editdevice.cgi/$device" "$MSG"
+	exit 0
 endif
 if($?RESTART) then
 	setenv MSG `message --device="$device" --command=restart`
 	if(! $status) setenv MSG "Restarting"
-	unsetenv device
-	goto done
+	../login/redirect "editdevice.cgi/$device" "$MSG"
+	exit 0
 endif
 if($?DELETE || $?FACTORY) then
 	if(! $?SURE) then
-		setenv MSG "Tick to say you are sure"
-		goto done
+		../login/redirect "editdevice.cgi/$device" "Are you sure? (tick)"
+		exit 0
 	endif
 	if($?FACTORY)	then
 		setenv MSG `message --device="$device" --command=factory '"'"$device"'SS"'`

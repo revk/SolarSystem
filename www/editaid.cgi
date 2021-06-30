@@ -18,12 +18,10 @@ if($?aids) then #save
 			setenv A `makeaid --site=$SESSION_SITE --name="$NEW"`
 		endif
 	endif
-	echo "Location: $ENVCGI_SERVER?MSG=Updated"
-	echo ""
+	../login/redirect / Updated
 	exit 0
 endif
 
-done:
 xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <h1>AIDs in use</h1>
 <form method=post>
