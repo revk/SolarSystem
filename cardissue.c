@@ -535,7 +535,7 @@ int main(int argc, const char *argv[])
    if (doformat)
    {
       printf("Formatting card\n");
-      if ((e = df_format(&d, NULL)))
+      if ((e = df_format(&d, 1, NULL)))
          errx(1, "Format: %s", e);
       if ((e = df_authenticate(&d, 0, NULL)))
          errx(1, "Master auth: %s", e);
