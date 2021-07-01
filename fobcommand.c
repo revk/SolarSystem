@@ -185,7 +185,7 @@ void *fobcommand(void *arg)
          e = res;
          if (mqttdump)
             warnx("DF fail (%s): %s line %d", *res ? res : "Gone", func, line);
-      }
+      } else if(mqttdump)warnx("Done %s",func);
       return res;
    }
 #define df(x) if(dfcheck(df_##x,#x,__LINE__))return
@@ -231,7 +231,10 @@ void *fobcommand(void *arg)
             status("Formatting fob");
             df(format(&d, *masterkey, masterkey + 1));
             if (hardformat)
+	    {
                df(change_key(&d, 0x80, 0, masterkey + 1, NULL));        // Hard reset to zero AES
+	       df(authenticate(&d,0,NULL));
+	    }
             df(change_key_settings(&d, 0x09));
             df(set_configuration(&d, 0));
             unsigned int mem;
@@ -276,7 +279,6 @@ void *fobcommand(void *arg)
             {                   // Check key 0
                status("Setting application key");
                df(authenticate(&d, 0, NULL));
-               df(change_key_settings(&d, 0xEB));
                df(change_key(&d, 0, *aid0key, NULL, aid0key + 1));
             }
             df(authenticate(&d, 0, aid0key + 1));
@@ -284,8 +286,12 @@ void *fobcommand(void *arg)
             if (version != *aid1key)
             {                   // Check key 1
                status("Setting AID key");
+               df(authenticate(&d, 0, aid0key + 1));
                df(change_key(&d, 1, *aid1key, NULL, aid1key + 1));
             }
+            df(authenticate(&d, 0, aid0key + 1));
+            df(change_key_settings(&d, 0xEB));
+            df(authenticate(&d, 0, aid0key + 1));
             // Check files
             unsigned long long fids;
             df(get_file_ids(&d, &fids));
