@@ -231,7 +231,7 @@ void *fobcommand(void *arg)
             status("Formatting fob");
             df(format(&d, *masterkey, masterkey + 1));
             if (hardformat)
-               df(change_key(&d, 0x80, 0, masterkey + 1, NULL)); // Hard reset to zero AES
+               df(change_key(&d, 0x80, 0, masterkey + 1, NULL));        // Hard reset to zero AES
             df(change_key_settings(&d, 0x09));
             df(set_configuration(&d, 0));
             unsigned int mem;
@@ -272,23 +272,20 @@ void *fobcommand(void *arg)
             // Check keys
             unsigned char version;
             df(get_key_version(&d, 0, &version));
-            if (!version)
+            if (version != *aid0key)
             {                   // Check key 0
                status("Setting application key");
                df(authenticate(&d, 0, NULL));
                df(change_key_settings(&d, 0xEB));
                df(change_key(&d, 0, *aid0key, NULL, aid0key + 1));
-               df(authenticate(&d, 0, aid0key + 1));
             }
             df(authenticate(&d, 0, aid0key + 1));
             df(get_key_version(&d, 1, &version));
-            if (!version)
+            if (version != *aid1key)
             {                   // Check key 1
                status("Setting AID key");
                df(change_key(&d, 1, *aid1key, NULL, aid1key + 1));
             }
-            df(authenticate(&d, 1, aid1key + 1));
-            df(authenticate(&d, 0, aid0key + 1));
             // Check files
             unsigned long long fids;
             df(get_file_ids(&d, &fids));
