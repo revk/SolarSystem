@@ -78,7 +78,7 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <option value="$device"><output name=aidname>:<output name=devicename blank=Unnamed> <output name=address></option>
 </sql>
 </select>
-<if found><set found><input type=submit value="Adopt next fob" name=ADOPTNEXT><if USER_ADMIN><input type=submit value="Format next fob" name=FORMATNEXT></if></if>
+<if found><set found><input type=submit value="Adopt next fob" name=ADOPTNEXT><if USER_ADMIN=true><input type=submit value="Format next fob" name=FORMATNEXT></if></if>
 <if else><p>No admin NFC devices on line.</p></if>
 </form>
 <table>

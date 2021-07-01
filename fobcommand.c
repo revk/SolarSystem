@@ -284,6 +284,7 @@ void *fobcommand(void *arg)
             {                   // Check key 0
                status("Setting application key");
                df(authenticate(&d, 0, NULL));
+               df(change_key_settings(&d, 0xEB));
                df(change_key(&d, 0, *aid0key, NULL, aid0key + 1));
                df(authenticate(&d, 0, aid0key + 1));
             }
@@ -293,7 +294,6 @@ void *fobcommand(void *arg)
             {                   // Check key 1
                status("Setting AID key");
                df(change_key(&d, 1, *aid1key, NULL, aid1key + 1));
-               df(change_key_settings(&d, 0xEB));
             }
             df(authenticate(&d, 1, aid1key + 1));
             df(authenticate(&d, 0, aid0key + 1));
@@ -344,7 +344,6 @@ void *fobcommand(void *arg)
             {                   // Formatting
                status("Formatting card");
                df(format(&d, masterkey + 1));
-               memset(masterkey, 0, sizeof(masterkey)); // Format does that
                df(authenticate(&d, 0, NULL));
                df(change_key_settings(&d, 0x09));
                df(set_configuration(&d, 0));

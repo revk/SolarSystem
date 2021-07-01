@@ -44,7 +44,7 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 </table>
 </sql>
 <input type=submit value="Update">
-<IF NOT site=0 USER_ADMIN><input type=submit value="Delete" name=DELETE><input type=checkbox name=SURE title='Tick this to say you are sure'></IF>
+<IF NOT site=0 USER_ADMIN=true><input type=submit value="Delete" name=DELETE><input type=checkbox name=SURE title='Tick this to say you are sure'></IF>
 </form>
 </sql>
 'END'

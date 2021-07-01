@@ -4,7 +4,7 @@
 <form style='display:inline;' name=organisation method=post action=/setorganisation.cgi>
 <if SESSION_ORGANISATION><set SET_ORGANISATION=$SESSION_ORGANISATION></if>
 <select name=SET_ORGANISATION onchange='organisation.submit()'>
-	<if USER_ADMIN>
+	<if USER_ADMIN=true>
 		<IF NOT SESSION_ORGANISATION><option value=0>-- Select organisation --</option></if>
 		<sql table="organisation" ORDER="organisationname">
 		<option value=$organisation><output name=organisationname></option>

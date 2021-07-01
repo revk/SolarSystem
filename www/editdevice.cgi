@@ -2,21 +2,24 @@
 if($?PATH_INFO) then
 	setenv device "$PATH_INFO:t"
 endif
-can --redirect --device='$device' editdevice
+can --redirect --organisation='$SESSION_ORGANISATION' editdevice
 if($status) exit 0
 
 if($?UPGRADE) then
+	can --redirect --device='$device' editdevice
 	sql "$DB" 'UPDATE device SET upgrade=NOW() WHERE device="$device"'
 	setenv MSG `message --device="$device" --command=restart`
 	if(! $status) setenv MSG "Upgrading"
 	goto done
 endif
 if($?RESTART) then
+	can --redirect --device='$device' editdevice
 	setenv MSG `message --device="$device" --command=restart`
 	if(! $status) setenv MSG "Restarting"
 	goto done
 endif
 if($?DELETE || $?FACTORY) then
+	can --redirect --device='$device' editdevice
 	if(! $?SURE) then
 		setenv MSG "Are you sure?"
 		goto done
@@ -38,6 +41,7 @@ if($?DELETE || $?FACTORY) then
 	goto done
 endif
 if($?devicename) then # save
+	can --redirect --device='$device' editdevice
 	if(! $?door) setenv door false
 	setenv pcb `sql "$DB" 'SELECT pcb FROM device WHERE device="$device"'`
 	if($?pcb) then
@@ -46,7 +50,7 @@ if($?devicename) then # save
 	if($?nfc && ! $?nfcadmin) setenv nfcadmin false
 	if($?nfc && ! $?nfctrusted) setenv nfctrusted false
 	setenv allow "devicename iothost area nfc nfcadmin door aid site"
-	if($?USER_ADMIN) setenv allow "$allow nfctrusted"
+	if("$USER_ADMIN" == "true") setenv allow "$allow nfctrusted"
 	sqlwrite -o -n "$DB" device $allow
 	sql "$DB" 'UPDATE device SET poke=NOW() WHERE device="$device"'
         message --poke
@@ -89,7 +93,7 @@ xmlsql -C -d "$DB" head.html - foot.html << END
 <if nfc=true><tr><td>Area</td><td><sql select="tag" table=area where="site=\$site"><label for=\$tag><output name=tag>:</label><input id=\$tag name=area type=checkbox value=\$tag></sql></td></tr></if>
 <if nfc=true><tr><td><label for=door>Door control</label></td><td><input type=checkbox id=door name=door value=true></td></tr></if>
 <if nfc=true><tr><td><label for=nfcadmin>Admin NFC reader</label></td><td><input type=checkbox id=nfcadmin name=nfcadmin value=true></td></tr></if>
-<if USER_ADMIN nfc=true><tr><td><label for=nfctrusted>Trusted NFC reader</label></td><td><input type=checkbox id=nfctrusted name=nfctrusted value=true></td></tr></if>
+<if USER_ADMIN=true nfc=true><tr><td><label for=nfctrusted>Trusted NFC reader</label></td><td><input type=checkbox id=nfctrusted name=nfctrusted value=true></td></tr></if>
 </sql>
 <sql table="device JOIN gpio USING (pcb) LEFT JOIN devicegpio ON (devicegpio.device=device.device AND devicegpio.gpio=gpio.gpio)" WHERE="device.device='\$device'">
 <tr><td><output name=pinname href="/editgpio.cgi/\$device/\$gpio"></td>
