@@ -224,13 +224,13 @@ void app_main()
       char topic[100];
       snprintf(topic, sizeof(topic), "state/%s/%s", revk_appname(), revk_id);
       lwmqtt_config_t config = {
-       client:revk_id,
-       host:iothost,
-       callback:&iot_rx,
-       topic:topic,
-       plen:-1,
-       retain:1,
-       payload:(void *) "{\"up\":false}",
+       .client=revk_id,
+       .host=iothost,
+       .callback=&iot_rx,
+       .topic=topic,
+       .plen=-1,
+       .retain=1,
+       .payload=(void *) "{\"up\":false}",
       };
       if (iotcert->len)
       {
