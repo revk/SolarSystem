@@ -229,8 +229,9 @@ void *fobcommand(void *arg)
          }
          void doformat(void) {
             status("Formatting fob");
-            df(format(&d, *masterkey,masterkey + 1));
-            df(authenticate(&d, 0, masterkey + 1));
+            df(format(&d, *masterkey, masterkey + 1));
+            if (hardformat)
+               df(change_key(&d, 0x80, 0, masterkey + 1, NULL)); // Hard reset to zero AES
             df(change_key_settings(&d, 0x09));
             df(set_configuration(&d, 0));
             unsigned int mem;
@@ -334,7 +335,7 @@ void *fobcommand(void *arg)
             if (!version)
             {                   // Formatting
                status("Formatting card");
-               df(format(&d, *masterkey,masterkey + 1));
+               df(format(&d, *masterkey, masterkey + 1));
                df(authenticate(&d, 0, masterkey + 1));
                df(change_key_settings(&d, 0x09));
                df(set_configuration(&d, 0));

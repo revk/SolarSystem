@@ -537,8 +537,6 @@ int main(int argc, const char *argv[])
       printf("Formatting card\n");
       if ((e = df_format(&d, 1, NULL)))
          errx(1, "Format: %s", e);
-      if ((e = df_authenticate(&d, 0, NULL)))
-         errx(1, "Master auth: %s", e);
       if ((e = df_change_key_settings(&d, 0x09)))
          errx(1, "Change key settings: %s", e);
       if ((e = df_set_configuration(&d, (random ? 2 : 0) | (lock ? 1 : 0))))
