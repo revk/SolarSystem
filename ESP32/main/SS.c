@@ -8,9 +8,6 @@ static const char __attribute__((unused)) TAG[] = "SS";
 #ifdef	CONFIG_REVK_APCONFIG
 #warning	You do not want door controller running CONFIG_REVK_APCONFIG
 #endif
-#ifndef	CONFIG_REVK_LWMQTT
-#error		You need CONFIG_REVK_LWMQTT
-#endif
 
 // Common
 static const char *port_inuse[MAX_PORT];
