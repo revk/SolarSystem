@@ -254,7 +254,6 @@ void *fobcommand(void *arg)
          }
 
          void doadopt(void) {
-		 // TODO ordering is an issue!!!
             status("Adopting fob");
             if (!*aid0key)
             {
@@ -271,16 +270,16 @@ void *fobcommand(void *arg)
             if (!n)
             {
                status("Creating application");
-               df(create_application(&d, aid, DF_SET_DEFAULT, 2));
+               df(create_application(&d, aid, 0xEB, 2));
             }
             df(select_application(&d, aid));
-            if (df_authenticate(&d, 1, aid1key + 1))
-            {                   // Set key 1
-               status("Setting AID key");
-               df(authenticate(&d, 0, NULL));
-               df(change_key(&d, 1, *aid1key, NULL, aid1key + 1));
+            if (df_authenticate(&d, 0, aid0key + 1))
+            {                   // Set key 0
+               status("Setting application key");
+               df(authenticate(&d, 0, NULL));   // own key to change it
+               df(change_key(&d, 0, *aid0key, NULL, aid0key + 1));
             }
-            df(authenticate(&d, 0, NULL));
+            df(authenticate(&d, 0, aid0key + 1));
             // Check files
             unsigned long long fids;
             df(get_file_ids(&d, &fids));
@@ -297,16 +296,15 @@ void *fobcommand(void *arg)
             if (*afile)
             {
                status("Storing access file");
-               df(authenticate(&d, 1, aid1key + 1));
                df(write_data(&d, 0x0A, 'B', 1, 0, *afile + 1, afile));
                df(commit(&d));
             }
-            df(change_key_settings(&d, 0xEB));
-            if (df_authenticate(&d, 0, aid0key + 1))
-            {
-               status("Setting application key");
-               df(authenticate(&d, 0, NULL));
-               df(change_key(&d, 0, *aid0key, NULL, aid0key + 1));
+	    // This is last as it is what marks a fob as finally adpoted
+            if (df_authenticate(&d, 1, aid1key + 1))
+            {                   // Set key 1
+               status("Setting AID key");
+               df(authenticate(&d, 1, NULL));   // own key to change it
+               df(change_key(&d, 1, *aid1key, NULL, aid1key + 1));
             }
             unsigned int mem;
             df(free_memory(&d, &mem));

@@ -145,10 +145,9 @@ const char *settings(SQL * sqlp, SQL_RES * res, slot_t id)
          j_t blink = j_store_array(j, "blink");
 #define led(n) {const char *v=sql_colz(p,#n);if(!*v||!strcmp(v,"-"))j_append_string(blink,""); else j_append_literal(blink,v);}
          if (strcmp(sql_colz(p, "leda"), "-"))
-	 {
+         {
             led(leda);
-	 }
-         else
+         } else
          {
             led(ledr);
             led(ledg);
@@ -527,14 +526,11 @@ int main(int argc, const char *argv[])
                const char *aid = j_get(meta, "aid");
                if (aid)
                {                // Adopt as well
-                  SQL_RES *res = sql_safe_query_store_free(&sqlkey, sql_printf("SELECT * FROM `AES` WHERE `fob`='' AND `aid`=%#s", aid));
-                  if (sql_fetch_row(res))
-                  {
-                     j_store_true(init, "adopt");
-                     j_store_string(init, "aid", aid);
-                     j_store_string(init, "aid1key", sql_col(res, "key"));
-                  }
-                  sql_free_result(res);
+                  j_store_true(init, "adopt");
+                  j_store_string(init, "aid", aid);
+                  char temp[AES_STRING_LEN];
+                  // Not sending aid0key means has to finish else not going to adopt later
+                  j_store_string(init, "aid1key", getaes(&sqlkey, temp, aid, NULL));
                }
                j_store_int(init, "device", j_get(meta, "device"));
                forked = 1;
@@ -773,6 +769,7 @@ int main(int argc, const char *argv[])
                            j_store_string(init, "deviceid", deviceid);
                            char temp[AES_STRING_LEN];
                            j_store_string(init, "masterkey", masterkey);
+                           j_store_string(init, "aid0key", getaes(&sqlkey, temp, aid, fobid));
                            j_store_string(init, "aid1key", getaes(&sqlkey, temp, aid, NULL));
                            j_store_int(init, "device", id);
                            forkcommand(&init, id, 0);
