@@ -272,6 +272,13 @@ void *fobcommand(void *arg)
                df(create_application(&d, aid, DF_SET_DEFAULT, 2));
             }
             df(select_application(&d, aid));
+	    unsigned char setting=0; // This is last thing we do, so if not done, we need to start again
+	    unsigned char keynos=0;
+	    df(get_key_settings(&d,0,&setting,&keynos));
+	    warnx("Key settings 0: %02X %d",setting,keynos);
+	    df(get_key_settings(&d,1,&setting,&keynos));
+	    warnx("Key settings 1: %02X %d",setting,keynos);
+
             // Check keys
             unsigned char version;
             df(get_key_version(&d, 0, &version));
