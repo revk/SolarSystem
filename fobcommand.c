@@ -185,7 +185,8 @@ void *fobcommand(void *arg)
          e = res;
          if (mqttdump)
             warnx("DF fail (%s): %s line %d", *res ? res : "Gone", func, line);
-      } else if(mqttdump)warnx("Done %s",func);
+      } else if (mqttdump)
+         warnx("Done %s", func);
       return res;
    }
 #define df(x) if(dfcheck(df_##x,#x,__LINE__))return
@@ -231,10 +232,10 @@ void *fobcommand(void *arg)
             status("Formatting fob");
             df(format(&d, *masterkey, masterkey + 1));
             if (hardformat)
-	    {
+            {
                df(change_key(&d, 0x80, 0, masterkey + 1, NULL));        // Hard reset to zero AES
-	       df(authenticate(&d,0,NULL));
-	    }
+               df(authenticate(&d, 0, NULL));
+            }
             df(change_key_settings(&d, 0x09));
             df(set_configuration(&d, 0));
             unsigned int mem;
@@ -272,54 +273,43 @@ void *fobcommand(void *arg)
                df(create_application(&d, aid, DF_SET_DEFAULT, 2));
             }
             df(select_application(&d, aid));
-	    unsigned char setting=0; // This is last thing we do, so if not done, we need to start again
-	    unsigned char keynos=0;
-	    df(get_key_settings(&d,0,&setting,&keynos));
-	    warnx("Key settings 0: %02X %d",setting,keynos);
-	    df(get_key_settings(&d,1,&setting,&keynos));
-	    warnx("Key settings 1: %02X %d",setting,keynos);
-
-            // Check keys
-            unsigned char version;
-            df(get_key_version(&d, 0, &version));
-            if (version != *aid0key)
-            {                   // Check key 0
+            unsigned char setting = 0;  // This is last thing we do, so if not done, we need to start again
+            unsigned char keynos = 0;
+            df(get_key_settings(&d, &setting, &keynos));
+            if (setting != 0xEB || keynos != 1)
+            {                   // try again
+               df(delete_application(&d, aid));
+               df(create_application(&d, aid, DF_SET_DEFAULT, 2));
                status("Setting application key");
                df(authenticate(&d, 0, NULL));
                df(change_key(&d, 0, *aid0key, NULL, aid0key + 1));
-            }
-            df(authenticate(&d, 0, aid0key + 1));
-            df(get_key_version(&d, 1, &version));
-            if (version != *aid1key)
-            {                   // Check key 1
+               df(authenticate(&d, 0, aid0key + 1));
                status("Setting AID key");
                df(authenticate(&d, 0, aid0key + 1));
                df(change_key(&d, 1, *aid1key, NULL, aid1key + 1));
+               df(authenticate(&d, 0, aid0key + 1));
+               // Check files
+               unsigned long long fids;
+               df(get_file_ids(&d, &fids));
+               if (!(fids & (1 << 0x0A)))
+               {
+                  status("Making access file");
+                  df(create_file(&d, 0x0A, 'B', 1, 0x0010, 256, 0, 0, 0, 0, 0));
+               }
+               // Not doing name file
+               if (!(fids & (1 << 0x01)))
+                  df(create_file(&d, 1, 'C', 1, 0x0100, 13, 0, 0, 10, 0, 0));
+               if (!(fids & (1 << 0x02)))
+                  df(create_file(&d, 0x02, 'V', 1, 0x0010, 0, 0, 0x7FFFFFFF, 0, 0, 0));
+               if (*afile)
+               {
+                  status("Storing access file");
+                  df(authenticate(&d, 1, aid1key + 1));
+                  df(write_data(&d, 0x0A, 'B', 1, 0, *afile + 1, afile));
+                  df(commit(&d));
+               }
+               df(change_key_settings(&d, 0xEB));
             }
-            df(authenticate(&d, 0, aid0key + 1));
-            df(change_key_settings(&d, 0xEB));
-            df(authenticate(&d, 0, aid0key + 1));
-            // Check files
-            unsigned long long fids;
-            df(get_file_ids(&d, &fids));
-            if (!(fids & (1 << 0x0A)))
-            {
-               status("Making access file");
-               df(create_file(&d, 0x0A, 'B', 1, 0x0010, 256, 0, 0, 0, 0, 0));
-            }
-            // Not doing name file
-            if (!(fids & (1 << 0x01)))
-               df(create_file(&d, 1, 'C', 1, 0x0100, 13, 0, 0, 10, 0, 0));
-            if (!(fids & (1 << 0x02)))
-               df(create_file(&d, 0x02, 'V', 1, 0x0010, 0, 0, 0x7FFFFFFF, 0, 0, 0));
-            if (*afile)
-            {
-               status("Storing access file");
-               df(authenticate(&d, 1, aid1key + 1));
-               df(write_data(&d, 0x0A, 'B', 1, 0, *afile + 1, afile));
-               df(commit(&d));
-            }
-
             unsigned int mem;
             df(free_memory(&d, &mem));
             {                   // Tell system adopted
