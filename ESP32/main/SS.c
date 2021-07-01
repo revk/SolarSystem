@@ -26,6 +26,8 @@ static const char *port_inuse[MAX_PORT];
 	s(name)		\
 	area(area)	\
 	s(iothost)	\
+	s(iotuser)	\
+	s(iotpass)	\
 	bd(iotcert,NULL);\
 
 #define io(n) static uint8_t n;
@@ -226,6 +228,8 @@ void app_main()
       lwmqtt_config_t config = {
        .client=revk_id,
        .host=iothost,
+       .username=iotuser,
+       .password=iotpass,
        .callback=&iot_rx,
        .topic=topic,
        .plen=-1,
