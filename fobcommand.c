@@ -185,8 +185,7 @@ void *fobcommand(void *arg)
          e = res;
          if (mqttdump)
             warnx("DF fail (%s): %s line %d", *res ? res : "Gone", func, line);
-      } else if (mqttdump)
-         warnx("Done %s", func);
+      }
       return res;
    }
 #define df(x) if(dfcheck(df_##x,#x,__LINE__))return
