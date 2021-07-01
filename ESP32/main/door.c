@@ -46,6 +46,10 @@ uint8_t afile[256];             // Access file saved
   u1(doorsilent); \
   ta(fallback,10); \
   ta(blacklist,10); \
+  s(iotopen)	\
+  s(iotclose)	\
+  s(iotarm)	\
+  s(iotdisarm)	\
 
 #define u32(n,d) uint32_t n;
 #define u16(n,d) uint16_t n;
@@ -53,6 +57,7 @@ uint8_t afile[256];             // Access file saved
 #define u1(n) uint8_t n;
 #define ta(n,c) const char*n[c]={};
 #define area(n) area_t n;
+#define s(n) char *n;
 settings
 #undef ta
 #undef u32
@@ -60,6 +65,7 @@ settings
 #undef u8
 #undef u1
 #undef area
+#undef s
 #define lock_states \
   l(LOCKING) \
   l(LOCKED) \
@@ -572,7 +578,15 @@ static void task(void *pvParameters)
                doorstate = ((doorstate == DOOR_OPEN || doorstate == DOOR_NOTCLOSED || doorstate == DOOR_PROPPED || doorstate == DOOR_CLOSED) ? DOOR_CLOSED : DOOR_UNLOCKED);
          }
          if (doorstate != lastdoorstate)
-         {                      // State change - set timeout
+         {                      // State change - iot and set timeout
+            if (doorstate == DOOR_OPEN && *iotopen)
+               lwmqtt_send_str(iot, iotopen);
+            if (lastdoorstate == DOOR_OPEN && *iotclose)
+               lwmqtt_send_str(iot, iotclose);
+            if (doorstate == DOOR_DEADLOCKED && *iotarm)
+               lwmqtt_send_str(iot, iotarm);
+            if (lastdoorstate == DOOR_DEADLOCKED && *iotdisarm)
+               lwmqtt_send_str(iot, iotdisarm);
             if (doorstate == DOOR_OPEN)
                doortimeout = now + (int64_t) doorprop *1000LL;
             else if (doorstate == DOOR_CLOSED)
@@ -701,6 +715,7 @@ void door_init(void)
 #define ta(n,c) revk_register(#n,c,0,&n,NULL,SETTING_LIVE);
 #define d(n,l) revk_register("led"#n,0,0,&doorled[DOOR_##n],#l,0);
 #define area(n) revk_register(#n,0,sizeof(n),&n,AREAS,SETTING_BITFIELD);
+#define s(n) revk_register(#n,0,0,&n,NULL,0);
    settings door_states
 #undef ta
 #undef u32
@@ -709,6 +724,7 @@ void door_init(void)
 #undef u1
 #undef d
 #undef area
+#undef s
    if (!doorauto)
        return;                  // No door control in operation
    revk_task(TAG, task, NULL);

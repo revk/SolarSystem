@@ -176,6 +176,7 @@ text(devicename, 0);
 link(organisation);		// Yes, can get from site, but useful to reference quickly
 link(site);                     // The site the device is on
 link(pcb);                      // What type of device this is
+text(iothost,0);		// IoT host for local MQTT
 bool(nfc);			// Yes, can get from pcb, but useful to reference quickly
 bool(nfcadmin);			// NFC reader for admin use, e.g. on a desk
 bool (nfctrusted);              // Trusted device for fob provisioning

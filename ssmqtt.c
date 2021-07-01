@@ -382,6 +382,7 @@ static void *listener(void *arg)
       }
       break;
    }
+   freeaddrinfo(a);
    if (slisten < 0)
       err(1, "Cannot bind local address %s:%s", CONFIG_MQTT_HOSTNAME, CONFIG_MQTT_PORT);
    if (sqldebug)

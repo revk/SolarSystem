@@ -105,9 +105,10 @@ const char *settings(SQL * sqlp, SQL_RES * res, slot_t id)
 {                               // Send base settings
    j_t j = j_create();
    int door = (*sql_colz(res, "door") == 't');
+   j_store_string(j, "name", sql_colz(res, "devicename"));
    if (*CONFIG_OTA_HOSTNAME)
       j_store_string(j, "otahost", CONFIG_OTA_HOSTNAME);
-   j_store_string(j, "name", sql_colz(res, "devicename"));
+   j_store_string(j, "iothost", sql_colz(res, "iothost"));
    j_store_int(j, "doorauto", door ? 5 : 0);
    int site = atoi(sql_colz(res, "site"));
    {                            // site

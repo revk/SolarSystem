@@ -149,9 +149,3 @@ size_t mqtt_encode(unsigned char *tx, size_t max, const char *topic, j_t j)
    tx[2] = ((txp - 3) >> 7);
    return txp;
 }
-
-size_t mqtt_login(unsigned char *buf, size_t max)
-{
-   // TODO
-   return 0;
-}

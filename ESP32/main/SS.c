@@ -8,6 +8,9 @@ static const char __attribute__((unused)) TAG[] = "SS";
 #ifdef	CONFIG_REVK_APCONFIG
 #warning	You do not want door controller running CONFIG_REVK_APCONFIG
 #endif
+#ifndef	CONFIG_REVK_LWMQTT
+#error		You need CONFIG_REVK_LWMQTT
+#endif
 
 // Common
 static const char *port_inuse[MAX_PORT];
@@ -25,6 +28,7 @@ static const char *port_inuse[MAX_PORT];
   	io(tamper) 	\
 	s(name)		\
 	area(area)	\
+	s(iothost)	\
 
 #define io(n) static uint8_t n;
 #define area(n) area_t n;
@@ -47,6 +51,8 @@ states
 #endif
 const char *controller_fault = NULL;
 const char *controller_tamper = NULL;
+
+lwmqtt_handle_t iot = NULL;
 
 static void status_report(int force)
 {                               // Report status change
@@ -154,12 +160,36 @@ const char *app_command(const char *tag, jo_t j)
 #define m(x) extern const char * x##_command(const char *,jo_t); jo_rewind(j);if(!e)e=x##_command(tag,j);
    modules;
 #undef m
+   if (!strcmp(tag, "restart"))
+      lwmqtt_end(&iot);
    if (!strcmp(tag, "connect"))
    {
       status_report(1);
       status_report(0);
    }
    return e;
+}
+
+void iot_rx(void *arg, const char *topic, unsigned short len, const unsigned char *payload)
+{
+   arg = arg;
+   if (topic)
+   { // Message - we have limited support for IoT based messages, when configured to accept them
+
+   }
+   else if (!payload)
+      ESP_LOGI(TAG, "IoT closed");
+   else
+   {
+      ESP_LOGI(TAG, "IoT open %s", payload);
+      char topic[100];
+      snprintf(topic, sizeof(topic), "+/%s/%s/#", revk_appname(), revk_id);
+      lwmqtt_subscribe(iot, topic);
+      snprintf(topic, sizeof(topic), "+/%s/*/#", revk_appname());
+      lwmqtt_subscribe(iot, topic);
+      snprintf(topic, sizeof(topic), "state/%s/%s", revk_appname(), revk_id);
+      lwmqtt_send_full(iot, -1, topic, -1, (void *) "{\"up\":true}", 1, 0);
+   }
 }
 
 void app_main()
@@ -179,9 +209,23 @@ void app_main()
 #define m(x) extern void x##_init(void); x##_init();
    modules
 #undef m
-       // Main loop, if needed
-       if (!tamper)
-      return;                   // Not blinking or tamper checking
+       if (*iothost)
+   {
+      char topic[100];
+      snprintf(topic, sizeof(topic), "state/%s/%s", revk_appname(), revk_id);
+      lwmqtt_config_t config = {
+       host:iothost,
+       callback:&iot_rx,
+       topic:topic,
+       plen:-1,
+       retain:1,
+       payload:(void *) "{\"up\":false}",
+      };
+      iot = lwmqtt_init(&config);
+   }
+   // Main loop, if needed
+   if (!tamper)
+      return;                   // Not tamper checking, nothing to do.
    if (tamper)
    {
       port_check(port_mask(tamper), "Tamper", 1);

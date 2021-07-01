@@ -140,6 +140,7 @@ int main(int argc, const char *argv[])
       }
       break;
    }
+   freeaddrinfo(a);
    if (sock < 0)
       err(1, "Cannot connect target address %s:%s", CONFIG_MQTT_HOSTNAME ? : "localhost", CONFIG_MQTT_PORT);
    SSL_CTX *ctx = NULL;
