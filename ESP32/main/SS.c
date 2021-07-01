@@ -26,14 +26,17 @@ static const char *port_inuse[MAX_PORT];
 	s(name)		\
 	area(area)	\
 	s(iothost)	\
+	bd(iotcert,NULL);\
 
 #define io(n) static uint8_t n;
 #define area(n) area_t n;
 #define	s(n) char *n;
+#define bd(n,d)         static revk_bindata_t *n;
 settings
 #undef io
 #undef area
 #undef s
+#undef bd
 #define port_mask(p) ((p)&63)
 #define BITFIELDS "-"
 #define PORT_INV 0x40
@@ -171,18 +174,26 @@ void iot_rx(void *arg, const char *topic, unsigned short len, const unsigned cha
 {
    arg = arg;
    if (topic)
-   { // Message - we have limited support for IoT based messages, when configured to accept them
+   {                            // Message - we have limited support for IoT based messages, when configured to accept them
+      if (!strncmp(topic, "command/", 8))
+      {
+         char *c = strrchr(topic, '/');
+         if (c && *c)
+         {
+            c++;
+            // Commands we handle
+            // TODO
+         }
 
-   }
-   else if (!payload)
-      ESP_LOGI(TAG, "IoT closed");
+      }
+
+   } else if (!payload)
+      ESP_LOGI(TAG, "IoT closed (mem:%d)", esp_get_free_heap_size());
    else
    {
       ESP_LOGI(TAG, "IoT open %s", payload);
       char topic[100];
-      snprintf(topic, sizeof(topic), "+/%s/%s/#", revk_appname(), revk_id);
-      lwmqtt_subscribe(iot, topic);
-      snprintf(topic, sizeof(topic), "+/%s/*/#", revk_appname());
+      snprintf(topic, sizeof(topic), "command/%s/%s/#", revk_appname(), revk_id);
       lwmqtt_subscribe(iot, topic);
       snprintf(topic, sizeof(topic), "state/%s/%s", revk_appname(), revk_id);
       lwmqtt_send_full(iot, -1, topic, -1, (void *) "{\"up\":true}", 1, 0);
@@ -196,10 +207,12 @@ void app_main()
 #define io(n) revk_register(#n,0,sizeof(n),&n,BITFIELDS,SETTING_SET|SETTING_BITFIELD);
 #define s(n) revk_register(#n,0,0,&n,NULL,0);
 #define area(n) revk_register(#n,0,sizeof(n),&n,AREAS,SETTING_BITFIELD);
+#define bd(n,d)         revk_register(#n,0,0,&n,d,SETTING_BINDATA)
    settings
 #undef io
 #undef area
 #undef s
+#undef bd
    int p;
    for (p = 6; p <= 11; p++)
       port_check(p, "Flash", 0);        // Flash chip uses 6-11
@@ -211,6 +224,7 @@ void app_main()
       char topic[100];
       snprintf(topic, sizeof(topic), "state/%s/%s", revk_appname(), revk_id);
       lwmqtt_config_t config = {
+       client:revk_id,
        host:iothost,
        callback:&iot_rx,
        topic:topic,
@@ -218,6 +232,20 @@ void app_main()
        retain:1,
        payload:(void *) "{\"up\":false}",
       };
+      if (iotcert->len)
+      {
+         config.cert_pem = (void *) iotcert->data;
+         config.cert_len = iotcert->len;
+      }
+      extern revk_bindata_t *clientcert,
+      *clientkey;
+      if (clientkey->len && clientcert->len)
+      {
+         config.client_cert_pem = (void *) clientcert->data;
+         config.client_cert_len = clientcert->len;
+         config.client_key_pem = (void *) clientkey->data;
+         config.client_key_len = clientkey->len;
+      }
       iot = lwmqtt_init(&config);
    }
    // Main loop, if needed
