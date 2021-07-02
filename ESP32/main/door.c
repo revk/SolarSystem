@@ -249,6 +249,9 @@ const char *door_fob(fob_t * fob)
                case 0xC:
                   fob->clock = 1;
                   break;
+               case 0xD:
+                  fob->armlate = 1;
+                  break;
                default:
                   return "Unknown flag";
                }
@@ -319,7 +322,11 @@ const char *door_fob(fob_t * fob)
                if (!fob->clock)
                   return "Date not set";
             } else if (memcmp(datetime, afile + xoff, xlen) > 0)
+            {
+               if (fob->armlate && fob->held && fob->deadlockset && !(area & ~fob->deadlock))
+                  fob->armok = 1;
                return "Expired";        // expired
+            }
          }
          if (fok || tok)
          {                      // Time check
