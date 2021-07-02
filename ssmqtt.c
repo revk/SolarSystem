@@ -335,19 +335,22 @@ static void *listener(void *arg)
    if (*mqttkey)
    {
       EVP_PKEY *key = der2pkey(mqttkey);
-      if(SSL_CTX_use_PrivateKey(ctx, key)!=1)errx(1,"Failed to set private key");
+      if (SSL_CTX_use_PrivateKey(ctx, key) != 1)
+         errx(1, "Failed to set private key");
       EVP_PKEY_free(key);
    }
    if (*mqttcert)
    {
       X509 *cert = der2x509(mqttcert);
-      if(SSL_CTX_use_certificate(ctx, cert)!=1)errx(1,"Failed to set certificate");
+      if (SSL_CTX_use_certificate(ctx, cert) != 1)
+         errx(1, "Failed to set certificate");
       X509_free(cert);
    }
    if (*cacert)
    {
       X509 *cert = der2x509(cacert);
-      if(SSL_CTX_add_client_CA(ctx, cert)!=1)errx(1,"Failed to set client CA");
+      if (SSL_CTX_add_client_CA(ctx, cert) != 1)
+         errx(1, "Failed to set client CA");
       X509_STORE *ca = X509_STORE_new();
       X509_STORE_add_cert(ca, cert);
       SSL_CTX_set_cert_store(ctx, ca);
@@ -421,6 +424,7 @@ static pthread_mutex_t slot_mutex;
 
 void mqtt_start(void)
 {                               // Start MQTT server (not a real MQTT server, just talks MQTT)
+   SSL_library_init();
    pthread_mutex_init(&slot_mutex, NULL);
    pthread_mutex_init(&rxq_mutex, NULL);
    sem_init(&rxq_sem, 0, 0);
