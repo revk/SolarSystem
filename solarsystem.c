@@ -371,8 +371,7 @@ int main(int argc, const char *argv[])
       int f = open(CONFIG_KEYS_FILE, O_CREAT | O_WRONLY, 0400);
       if (f < 0)
          err(1, "Cannot make %s", CONFIG_KEYS_FILE);
-      if (mqttdump)
-         j_err(j_write_fd(j, f));
+      j_err(j_write_fd(j, f));
       close(f);
       j_delete(&j);
       unlink(CONFIG_MSG_KEY_FILE);

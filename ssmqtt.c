@@ -66,8 +66,6 @@ static void *server(void *arg)
       close(sock);
       errx(1, "Cannot make SSL");
    }
-   if (sqldebug)
-      warnx("Ciphers: %s", SSL_get_cipher_list(ssl, 0));
    if (!SSL_set_fd(ssl, sock) || SSL_accept(ssl) != 1)
    {
       close(sock);
