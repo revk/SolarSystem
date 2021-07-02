@@ -424,7 +424,7 @@ static pthread_mutex_t slot_mutex;
 
 void mqtt_start(void)
 {                               // Start MQTT server (not a real MQTT server, just talks MQTT)
-   SSL_library_init();
+	OPENSSL_init_ssl(0,NULL);
    pthread_mutex_init(&slot_mutex, NULL);
    pthread_mutex_init(&rxq_mutex, NULL);
    sem_init(&rxq_sem, 0, 0);
