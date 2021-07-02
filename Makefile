@@ -31,10 +31,8 @@ all: alarmpanel cardissue solarsystem can message makeaid login.conf SQLlib/sql 
 	cp $< $@
 
 apt:
-	apt install libpopt-dev
-	apt install libssl-dev
-	apt install libcurl4-openssl-dev
-	apt install libmosquitto-dev
+	apt install libpopt-dev  libssl-dev  libcurl4-openssl-dev  libmosquitto-dev  libmariadbd-dev  kconfig-frontends libargon2-dev
+
 
 update:
 	git submodule update --init --remote --recursive
