@@ -25,7 +25,7 @@ ifndef KCONFIG_CONFIG
 KCONFIG_CONFIG=solarsystem.conf
 endif
 
-all: alarmpanel cardissue solarsystem can message makeaid login.conf SQLlib/sql xmlsql/xmlsql .git/hooks/pre-commit
+all: alarmpanel cardissue solarsystem can message makeaid sscert login.conf SQLlib/sql xmlsql/xmlsql .git/hooks/pre-commit
 
 .git/hooks/pre-commit: pre-commit
 	cp $< $@
@@ -98,22 +98,22 @@ port.o: port.c port.h galaxybus.h Makefile
 	gcc -g -Wall -Wextra -O -c -o $@ $< -I. -DLIB -pthread
 
 ssdatabase.o: ssdatabase.c ssdatabase.m ssdatabase.h config.h types.m Makefile ESP32/main/states.m
-	gcc -g -Wall -Wextra -O -c -o $@ $< ${SQLINC}
+	gcc -g -Wall -Wextra -O -c -o $@ $< ${SQLINC} -DLIB
 
 ssmqtt.o: ssmqtt.c ssmqtt.h Makefile config.h
-	gcc -g -Wall -Wextra -O -c -o $@ $< ${SQLINC}
+	gcc -g -Wall -Wextra -O -c -o $@ $< ${SQLINC} -DLIB
 
 sscert.o: sscert.c sscert.h Makefile config.h
-	gcc -g -Wall -Wextra -O -c -o $@ $< ${SQLINC}
+	gcc -g -Wall -Wextra -O -c -o $@ $< ${SQLINC} -DLIB
 
 fobcommand.o: fobcommand.c fobcommand.h Makefile config.h
-	gcc -g -Wall -Wextra -O -c -o $@ $< ${SQLINC}
+	gcc -g -Wall -Wextra -O -c -o $@ $< ${SQLINC} -DLIB
 
 mqttmsg.o: mqttmsg.c mqttmsg.h Makefile config.h
-	gcc -g -Wall -Wextra -O -c -o $@ $< ${SQLINC}
+	gcc -g -Wall -Wextra -O -c -o $@ $< ${SQLINC} -DLIB
 
 ssafile.o: ssafile.c ssafile.h Makefile config.h
-	gcc -g -Wall -Wextra -O -c -o $@ $< ${SQLINC}
+	gcc -g -Wall -Wextra -O -c -o $@ $< ${SQLINC} -DLIB
 
 solarsystem: solarsystem.c config.h AXL/axl.o AJL/ajl.o Dataformat/dataformat.o websocket/websocketxml.o DESFireAES/desfireaes.o SQLlib/sqllib.o Makefile ssdatabase.o ssmqtt.o sscert.o fobcommand.o mqttmsg.o ssafile.o
 	gcc -g -Wall -Wextra -O -o $@ $< ssdatabase.o ssmqtt.o sscert.o AJL/ajl.o AXL/axl.o Dataformat/dataformat.o websocket/websocketxml.o DESFireAES/desfireaes.o SQLlib/sqllib.o ${SQLINC} ${SQLLIB} -lpopt -lcrypto -pthread -lcurl -lssl fobcommand.o mqttmsg.o ssafile.o
@@ -121,11 +121,14 @@ solarsystem: solarsystem.c config.h AXL/axl.o AJL/ajl.o Dataformat/dataformat.o 
 can: can.c config.h Makefile login/redirect.o
 	gcc -g -Wall -Wextra -O -o $@ $< SQLlib/sqllib.o ${SQLINC} ${SQLLIB} -lpopt -lcurl AJL/ajl.o login/redirect.o
 
+sscert: sscert.c sscert.o SQLlib/sqllib.o AJL/ajl.o
+	gcc -g -Wall -Wextra -O -o $@ $< AJL/ajl.o SQLlib/sqllib.o -lssl -lcrypto ${SQLINC} ${SQLLIB}
+
 message: message.c config.h Makefile sscert.o mqttmsg.o
 	gcc -g -Wall -Wextra -O -o $@ $< -lpopt AJL/ajl.o sscert.o -lcrypto -lssl mqttmsg.o
 
 makeaid: makeaid.c config.h Makefile
-	gcc -g -Wall -Wextra -O -o $@ $< -lpopt  SQLlib/sqllib.o ${SQLINC} ${SQLLIB}
+	gcc -g -Wall -Wextra -O -o $@ $< -lpopt SQLlib/sqllib.o ${SQLINC} ${SQLLIB}
 
 clean:
 	rm -f *.o alarmpanel

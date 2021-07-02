@@ -161,3 +161,12 @@ char *makecert(const char *keyder, const char *cakeyder, const char *cacertder, 
 #undef nz
    return der_cert;
 }
+
+#ifndef	LIB
+		int main(int argc, const char *argv[])
+{
+	argc=argc;
+	argv=argv;
+	warnx("Testing certificate stuff");
+}
+#endif

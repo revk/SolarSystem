@@ -388,6 +388,10 @@ int main(int argc, const char *argv[])
       close(f);
       j_delete(&j);
    }
+   warnx("CAKey:\n%s",keypem(cakey));
+   warnx("CACert:\n%s",certpem(cacert));
+   warnx("MQTTKey:\n%s",keypem(mqttkey));
+   warnx("MQTTCert:\n%s",certpem(mqttcert));
    // Connect
    sstypes("types");
    SQL sqlkey;
