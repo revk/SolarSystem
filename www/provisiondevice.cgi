@@ -30,7 +30,7 @@ if($?DEPORT) then
 		setenv MSG "Set deport MQTT server"
 		goto done
 	endif
-	setenv MG `message --pending="$DEPORT" --deport="$deport"`
+	setenv MSG `message --pending="$DEPORT" --deport="$deport"`
 	if(! $status) then
 		../login/redirect / Deported
 		exit 0

@@ -473,6 +473,7 @@ int main(int argc, const char *argv[])
             {                   // JSON is rest of settings to send
                char *key = makekey();
                char *cert = makecert(key, cakey, cacert, v);
+               j_t j = j_create();
                j_store_string(j, "clientcert", cert);
                free(cert);
                const char *fail = slot_send(id, "setting", NULL, &j);
