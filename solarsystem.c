@@ -109,6 +109,10 @@ const char *settings(SQL * sqlp, SQL_RES * res, slot_t id)
    if (*CONFIG_OTA_HOSTNAME)
       j_store_string(j, "otahost", CONFIG_OTA_HOSTNAME);
    j_store_string(j, "iothost", sql_colz(res, "iothost"));
+   j_store_boolean(j, "iotstatedoor", *sql_colz(res, "iotstatedoor") == 't');
+   j_store_boolean(j, "iotstateinput", *sql_colz(res, "iotstateinput") == 't');
+   j_store_boolean(j, "iotstateoutput", *sql_colz(res, "iotstateoutput") == 't');
+   j_store_boolean(j, "ioteventfob", *sql_colz(res, "ioteventfob") == 't');
    j_store_int(j, "doorauto", door ? 5 : 0);
    int site = atoi(sql_colz(res, "site"));
    {                            // site
