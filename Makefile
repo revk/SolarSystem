@@ -100,19 +100,19 @@ port.o: port.c port.h galaxybus.h Makefile
 ssdatabase.o: ssdatabase.c ssdatabase.m ssdatabase.h config.h types.m Makefile ESP32/main/states.m
 	gcc -g -Wall -Wextra -O -c -o $@ $< ${SQLINC}
 
-ssmqtt.o: ssmqtt.c ssmqtt.h Makefile
+ssmqtt.o: ssmqtt.c ssmqtt.h Makefile config.h
 	gcc -g -Wall -Wextra -O -c -o $@ $< ${SQLINC}
 
-sscert.o: sscert.c sscert.h Makefile
+sscert.o: sscert.c sscert.h Makefile config.h
 	gcc -g -Wall -Wextra -O -c -o $@ $< ${SQLINC}
 
-fobcommand.o: fobcommand.c fobcommand.h Makefile
+fobcommand.o: fobcommand.c fobcommand.h Makefile config.h
 	gcc -g -Wall -Wextra -O -c -o $@ $< ${SQLINC}
 
-mqttmsg.o: mqttmsg.c mqttmsg.h Makefile
+mqttmsg.o: mqttmsg.c mqttmsg.h Makefile config.h
 	gcc -g -Wall -Wextra -O -c -o $@ $< ${SQLINC}
 
-ssafile.o: ssafile.c ssafile.h Makefile
+ssafile.o: ssafile.c ssafile.h Makefile config.h
 	gcc -g -Wall -Wextra -O -c -o $@ $< ${SQLINC}
 
 solarsystem: solarsystem.c config.h AXL/axl.o AJL/ajl.o Dataformat/dataformat.o websocket/websocketxml.o DESFireAES/desfireaes.o SQLlib/sqllib.o Makefile ssdatabase.o ssmqtt.o sscert.o fobcommand.o mqttmsg.o ssafile.o
