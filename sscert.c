@@ -13,6 +13,7 @@
 #include <openssl/rand.h>
 #include <openssl/rsa.h>
 #include <openssl/x509v3.h>
+        #include <openssl/pem.h>
 #include "AJL/ajl.h"
 
 #define KEYLEN  2048            // Default key length (we want to fit in an MQTT message)
@@ -47,8 +48,20 @@ X509 *der2x509(const char *der)
    return x509;
 }
 
+char *certpem(const char *der)
+{                               // Make a PEM
+   X509 *cert = der2x509(der);
+   char *buf;
+   size_t len;
+   FILE *fp = open_memstream(&buf, &len);
+   PEM_write_X509(fp, cert);
+   fclose(fp);
+   X509_free(cert);
+   return buf;
+}
+
 char *makekey(void)
-{                               // Make a key and return (malloc'd) PEM private key
+{                               // Make a key and return (malloc'd) DER private key
    EVP_PKEY *pkey;
    pkey = EVP_PKEY_new();
    BIGNUM *bn;
@@ -70,7 +83,7 @@ char *makekey(void)
 }
 
 char *makecert(const char *keyder, const char *cakeyder, const char *cacertder, const char *name)
-{                               // Make a cert and return (malloc'd) PEM - self signed if certder is NULL
+{                               // Make a cert and return (malloc'd) DER - self signed if certder is NULL
    EVP_PKEY *key = NULL,
        *cakey = NULL;
    X509 *cacert = NULL;
