@@ -298,7 +298,7 @@ void *fobcommand(void *arg)
                df(write_data(&d, 0x0A, 'B', 1, 0, *afile + 1, afile));
                df(commit(&d));
             }
-	    // This is last as it is what marks a fob as finally adpoted
+            // This is last as it is what marks a fob as finally adpoted
             if (df_authenticate(&d, 1, aid1key + 1))
             {                   // Set key 1
                status("Setting AID key");
@@ -344,6 +344,11 @@ void *fobcommand(void *arg)
                randkey(masterkey + 1);
                *masterkey = 1;
             }
+            if (adopt && !*aid0key)
+            {                   // Need to fix the key here too
+               *aid0key = 1;
+               randkey(aid0key + 1);
+            }
             unsigned int mem;
             df(free_memory(&d, &mem));
             {                   // Tell system new key
@@ -352,6 +357,12 @@ void *fobcommand(void *arg)
                j_true(j_path(j, "_meta.provisioned"));
                j_store_string(j, "fob", j_base16(sizeof(uid), uid));
                j_store_string(j, "masterkey", j_base16(sizeof(masterkey), masterkey));
+               if (adopt)
+               {
+                  if (aid[0] || aid[1] || aid[2])
+                     j_store_string(j, "aid", j_base16(sizeof(aid), aid));
+                  j_store_string(j, "aid0key", j_base16(sizeof(aid0key), aid0key));
+               }
                j_store_int(j, "mem", mem);
                mqtt_qin(&j);
             }

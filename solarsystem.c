@@ -563,7 +563,11 @@ int main(int argc, const char *argv[])
             if ((v = j_get(j, "mem")) && fob)
                sql_safe_query_free(&sql, sql_printf("UPDATE `fob` SET `mem`=%#s WHERE `fob`=%#s AND `mem`!=%#s", fob, v, v));
             if (j_find(meta, "provisioned") && fob && (v = j_get(j, "masterkey")))
+            {
                sql_safe_query_free(&sqlkey, sql_printf("REPLACE INTO `AES` SET `fob`=%#s,`aid`='',`ver`=%#.2s,`key`=%#s", fob, v, v + 2));
+               if (aid && (v = j_get(j, "aid0key")))
+                  sql_safe_query_free(&sqlkey, sql_printf("REPLACE INTO `AES` SET `fob`=%#s,`aid`=%#s,`ver`=%#.2s,`key`=%#s", fob, aid, v, v + 2));
+            }
             if (j_find(meta, "adopted") && fob && aid)
             {
                if ((v = j_get(j, "aid0key")))
