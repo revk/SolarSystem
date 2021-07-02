@@ -153,7 +153,7 @@ server (void *arg)
 		break;		// Closed connection
 	    }
 	}
-      if (!txn && FD_ISSET (sock, &r))
+      if (!txp && FD_ISSET (sock, &r))
 	{
 	  {			// Next block
 	    int len = SSL_read (ssl, rx + pos, sizeof (rx) - pos);
