@@ -354,8 +354,8 @@ int main(int argc, const char *argv[])
       if (!*cakey)
       {
          cakey = makekey();
-	 cacert=NULL; // Certs no longer valid if key changes
-	 mqttcert=NULL;
+         cacert = "";           // Certs no longer valid if key changes
+         mqttcert = "";
       }
       if (!*mqttkey)
          mqttkey = makekey();
