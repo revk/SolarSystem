@@ -388,10 +388,6 @@ int main(int argc, const char *argv[])
       close(f);
       j_delete(&j);
    }
-   warnx("CAKey:\n%s",keypem(cakey));
-   warnx("CACert:\n%s",certpem(cacert));
-   warnx("MQTTKey:\n%s",keypem(mqttkey));
-   warnx("MQTTCert:\n%s",certpem(mqttcert));
    // Connect
    sstypes("types");
    SQL sqlkey;
@@ -400,14 +396,6 @@ int main(int argc, const char *argv[])
    SQL sql;
    sql_cnf_connect(&sql, CONFIG_SQL_CONFIG_FILE);
    ssdatabase(&sql);
-   if (sqldebug)
-   {
-      char *key = makekey();
-      char *cert = makecert(key, cakey, cacert, "112233445566");
-      printf("CA cert:\n%s\nTest key:\n%s\nTest cert:\n%s\n", cacert, key, cert);
-      free(key);
-      free(cert);
-   }
    syslog(LOG_INFO, "Starting");
    sql_safe_query(&sql, "DELETE FROM `pending` WHERE `id` IS NOT NULL");
    sql_safe_query(&sql, "UPDATE `device` SET `id`=NULL,`online`=NULL WHERE `id` IS NOT NULL");
