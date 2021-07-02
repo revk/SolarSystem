@@ -27,7 +27,7 @@ EVP_PKEY *der2pkey(const char *der)
    BIO *mem = BIO_new_mem_buf(buf, len);
    EVP_PKEY *key = d2i_PrivateKey_bio(mem, NULL);
    if (!key)
-      errx(1, "Failed to make key from DER: %s",der);
+      errx(1, "Failed to make key from DER: %s", der);
    BIO_free(mem);
    free(buf);
    return key;
@@ -42,7 +42,7 @@ X509 *der2x509(const char *der)
    BIO *mem = BIO_new_mem_buf(buf, len);
    X509 *x509 = d2i_X509_bio(mem, NULL);
    if (!x509)
-      errx(1, "Failed to make cert from DER: %s",der);
+      errx(1, "Failed to make cert from DER: %s", der);
    BIO_free(mem);
    free(buf);
    return x509;
@@ -129,21 +129,17 @@ char *makecert(const char *keyder, const char *cakeyder, const char *cacertder, 
    nz(X509_set_pubkey(cert, key));
    nz(X509_gmtime_adj(X509_get_notBefore(cert), 0));
    nz(X509_gmtime_adj(X509_get_notAfter(cert), 50 * 365 * 86400));      // Long long time in the future
-
    X509V3_CTX ctx;
    X509V3_set_ctx_nodb(&ctx);
    X509V3_set_ctx(&ctx, cacert, cert, NULL, NULL, 0);
-   if (!cacertder || !*cacertder)
+   if (!cacert)
       nz(X509_add_ext(cert, X509V3_EXT_conf_nid(NULL, &ctx, NID_basic_constraints, "critical, CA:TRUE"), -1));
    else
       nz(X509_add_ext(cert, X509V3_EXT_conf_nid(NULL, &ctx, NID_issuer_alt_name, "issuer:copy"), -1));
    nz(X509_add_ext(cert, X509V3_EXT_conf_nid(NULL, &ctx, NID_ext_key_usage, "critical, clientAuth, serverAuth"), -1));
    nz(X509_add_ext(cert, X509V3_EXT_conf_nid(NULL, &ctx, NID_subject_key_identifier, "hash"), -1));
-#if 0
-   X509v3 extensions:X509v3 Subject Key Identifier:32:94:4 A:8E: BA:F8:2 A:2E: EA:7E:6 A:BE:8 A:E0:CC:FD:B4:AE:A0:38 X509v3 Authority Key Identifier:keyid:32:94:4 A:8E: BA:F8:2 A:2E: EA:7E:6 A:BE:8 A:E0:CC:FD:B4:AE:A0:38 X509v3 Basic Constraints:critical CA:TRUE
-#endif
-       // Sign
-    nz(X509_sign(cert, cakey ? : key, EVP_sha256()));
+   // Sign
+   nz(X509_sign(cert, cakey ? : key, EVP_sha256()));
    // Write cert
    uint8_t *buf = NULL;
    int len = i2d_X509(cert, &buf);
@@ -163,33 +159,33 @@ char *makecert(const char *keyder, const char *cakeyder, const char *cacertder, 
 }
 
 #ifndef	LIB
-		int main(int argc, const char *argv[])
+int main(int argc, const char *argv[])
 {
-	FILE *f;
+   FILE *f;
 
-	argc=argc;
-	argv=argv;
-	warnx("Testing certificate stuff");
-	char *cakey=makekey();
-	char *cacert=makecert(cakey, NULL, NULL, "SolarSystem");
-	char *sitekey=makekey();
-	char *sitecert=makecert(sitekey, cakey, cacert, "localhost");
+   argc = argc;
+   argv = argv;
+   warnx("Testing certificate stuff");
+   char *cakey = makekey();
+   char *cacert = makecert(cakey, NULL, NULL, "SolarSystem");
+   char *sitekey = makekey();
+   char *sitecert = makecert(sitekey, cakey, cacert, "localhost");
 
-	f=fopen("/tmp/cakey.pem","w");
-	fprintf(f,"%s",keypem(cakey));
-	fclose(f);
-	f=fopen("/tmp/cacert.pem","w");
-	fprintf(f,"%s",certpem(cacert));
-	fclose(f);
-	f=fopen("/tmp/sitekey.pem","w");
-	fprintf(f,"%s",keypem(sitekey));
-	fclose(f);
-	f=fopen("/tmp/sitecert.pem","w");
-	fprintf(f,"%s",certpem(sitecert));
-	fclose(f);
+   f = fopen("/tmp/cakey.pem", "w");
+   fprintf(f, "%s", keypem(cakey));
+   fclose(f);
+   f = fopen("/tmp/cacert.pem", "w");
+   fprintf(f, "%s", certpem(cacert));
+   fclose(f);
+   f = fopen("/tmp/sitekey.pem", "w");
+   fprintf(f, "%s", keypem(sitekey));
+   fclose(f);
+   f = fopen("/tmp/sitecert.pem", "w");
+   fprintf(f, "%s", certpem(sitecert));
+   fclose(f);
 
-	//system("openssl s_server -key /tmp/cakey.pem -cert /tmp/cacert.pem -accept localhost:4443");
-	system("openssl s_server -key /tmp/sitekey.pem -cert /tmp/sitecert.pem -accept localhost:4443");
+   //system("openssl s_server -key /tmp/cakey.pem -cert /tmp/cacert.pem -accept localhost:4443");
+   system("openssl s_server -key /tmp/sitekey.pem -cert /tmp/sitecert.pem -accept localhost:4443");
 
 }
 #endif
