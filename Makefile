@@ -30,6 +30,11 @@ all: alarmpanel cardissue solarsystem can message makeaid login.conf SQLlib/sql 
 .git/hooks/pre-commit: pre-commit
 	cp $< $@
 
+apt:
+	apt install libpopt-dev
+	apt install libssl-dev
+	apt install libcurl4-openssl-dev
+
 update:
 	git submodule update --init --remote --recursive
 	git commit -a -m "Library update"
