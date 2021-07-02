@@ -381,7 +381,10 @@ void ssdatabase(SQL * sqlp)
          int q;
          for (q = 0; q < tbn[t] && strcasecmp(tbs[t][q], res->fields[f].name); q++);
          if (q == tbn[t])
+         {
+            warnx("Dropping field %s/%s", dbs[t], res->fields[f].name);
             sql_safe_query_free(sqlp, sql_printf("ALTER TABLE `%#S` DROP `%#S`", dbs[t], res->fields[f].name));
+         }
       }
       sql_free_result(res);
    }

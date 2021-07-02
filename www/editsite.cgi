@@ -26,7 +26,7 @@ if($?sitename) then
 		sql "$DB" 'INSERT INTO area SET organisation=$SESSION_ORGANISATION,site=$site,area="A",areaname="Main building"'
 		sql "$DB" 'UPDATE session SET organisation=$SESSION_ORGANISATION,site=$site WHERE session="$ENVCGI"'
 	endif
-	sqlwrite -o "$DB" site sitename wifissid wifipass
+	sqlwrite -o "$DB" site sitename wifissid wifipass iothost
 	sql "$DB" 'UPDATE device SET poke=NOW() WHERE site=$site'
 	message --poke
 	../login/redirect /
@@ -41,6 +41,7 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <tr><td>Name</td><td><input name=sitename size=40 autofocus></td></tr>
 <tr><td>WiFi SSID</td><td><input name=wifissid size=40 value="SolarSystem"></td></tr>
 <tr><td>WIFi pass</td><td><input name=wifipass size=40 value="security"></td></tr>
+<tr><td>IoT MQTT</td><td><input name=iothost size=40></td></tr>
 </table>
 </sql>
 <input type=submit value="Update">

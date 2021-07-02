@@ -108,19 +108,29 @@ const char *settings(SQL * sqlp, SQL_RES * res, slot_t id)
    j_store_string(j, "name", sql_colz(res, "devicename"));
    if (*CONFIG_OTA_HOSTNAME)
       j_store_string(j, "otahost", CONFIG_OTA_HOSTNAME);
-   j_store_string(j, "iothost", sql_colz(res, "iothost"));
-   j_store_boolean(j, "iotstatedoor", *sql_colz(res, "iotstatedoor") == 't');
-   j_store_boolean(j, "iotstateinput", *sql_colz(res, "iotstateinput") == 't');
-   j_store_boolean(j, "iotstateoutput", *sql_colz(res, "iotstateoutput") == 't');
-   j_store_boolean(j, "ioteventfob", *sql_colz(res, "ioteventfob") == 't');
    j_store_int(j, "doorauto", door ? 5 : 0);
    int site = atoi(sql_colz(res, "site"));
    {                            // site
       SQL_RES *s = sql_safe_query_store_free(sqlp, sql_printf("SELECT * FROM `site` WHERE `site`=%d", site));
       if (sql_fetch_row(s))
       {
-         j_store_string(j, "wifissid", sql_col(s, "wifissid"));
-         j_store_string(j, "wifipass", sql_col(s, "wifipass"));
+         j_t wifi = j_store_object(j, "wifi");
+         j_store_string(wifi, "ssid", sql_col(s, "wifissid"));
+         j_store_string(wifi, "pass", sql_col(s, "wifipass"));
+         const char *host = sql_colz(s, "iothost");
+         j_t iot = j_store_object(j, "iot");
+         if (*host)
+         {
+            j_store_string(iot, "host", host);
+            if (*sql_colz(res, "iotstatedoor") == 't')
+               j_store_true(iot, "statedoor");
+            if (*sql_colz(res, "iotstateinput") == 't')
+               j_store_true(iot, "stateinput");
+            if (*sql_colz(res, "iotstateoutput") == 't')
+               j_store_true(iot, "stateoutput");
+            if (*sql_colz(res, "iotfobevent") == 't')
+               j_store_true(iot, "fobevent");
+         }
       }
       sql_free_result(s);
    }
@@ -484,8 +494,9 @@ int main(int argc, const char *argv[])
                   if (sql_fetch_row(s))
                   {
                      j = j_create();
-                     j_store_string(j, "wifissid", sql_col(s, "wifissid"));
-                     j_store_string(j, "wifipass", sql_col(s, "wifipass"));
+                     j_t wifi = j_store_object(j, "wifi");
+                     j_store_string(wifi, "ssid", sql_col(s, "wifissid"));
+                     j_store_string(wifi, "pass", sql_col(s, "wifipass"));
                      fail = slot_send(id, "setting", NULL, &j);
                   }
                   sql_free_result(s);

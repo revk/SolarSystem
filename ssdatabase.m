@@ -118,6 +118,7 @@ link(organisation);
 text(sitename, 0);
 text(wifissid,0);		// Site WiFi settings
 text(wifipass,0);		// Site WiFi settings
+text(iothost,0);		// IoT host for local MQTT
 text(meshid, 12);               // Hex Mesh ID
 // TODO key / crypto?
 
@@ -176,7 +177,6 @@ text(devicename, 0);
 link(organisation);		// Yes, can get from site, but useful to reference quickly
 link(site);                     // The site the device is on
 link(pcb);                      // What type of device this is
-text(iothost,0);		// IoT host for local MQTT
 bool(iotstatedoor);		// Copy stuff to IoT
 bool(iotstateinput);		// Copy stuff to IoT
 bool(iotstateoutput);		// Copy stuff to IoT

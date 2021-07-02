@@ -49,7 +49,11 @@ if($?devicename) then # save
 	endif
 	if($?nfc && ! $?nfcadmin) setenv nfcadmin false
 	if($?nfc && ! $?nfctrusted) setenv nfctrusted false
-	setenv allow "devicename iothost area nfc nfcadmin door aid site"
+	if(! $?iotstatedoor) setenv iotstatedoor false
+	if(! $?iotstateinput) setenv iotstateinput false
+	if(! $?iotstateoutput) setenv iotstateoutput false
+	if(! $?iotfobevent) setenv iotfobevent false
+	setenv allow "devicename area nfc nfcadmin door aid site iotstatedoor iotstateinput iotstateoutput iotfobevent"
 	if("$USER_ADMIN" == "true") setenv allow "$allow nfctrusted"
 	sqlwrite -o -n "$DB" device $allow
 	sql "$DB" 'UPDATE device SET poke=NOW() WHERE device="$device"'
@@ -84,8 +88,17 @@ xmlsql -C -d "$DB" head.html - foot.html << END
 <table>
 <tr><td>PCB</td><td><output name=pcbname></td></tr>
 <tr><td>Name</td><td><input name=devicename ize=40 autofocus></td></tr>
-<tr><td>IoT host</td><td><input name=iothost ize=40 autofocus> (local MQTT server)</td></tr>
 <tr><td>Site</td><td><select name=site><sql table=site where="organisation=$SESSION_ORGANISATION"><option value='\$site'><output name=sitename></option></sql></select></td></tr>
+<sql table=site where="site=\$site">
+<if not iothost="">
+<tr><td>IoT (<output name=iothost>)</td><td>
+<input id=iotstatedoor name=iotstatedoor value=true type=checkbox><label for=iotstatedoor>Door</label>
+<input id=iotstateinput name=iotstateinput value=true type=checkbox><label for=iotstateinput>Input</label>
+<input id=iotstateoutput name=iotstateoutput value=true type=checkbox><label for=iotstateoutput>Output</label>
+<input id=iotfobevent name=iotfobevent value=true type=checkbox><label for=iotfobevent>Fob events</label>
+</td>
+</if>
+</sql>
 <if nfc=true><tr><td>AID</td><td><select name=aid><sql table=aid where="site=\$site"><option value="\$aid"><output name=aidname></option></sql></select></td></tr></if>
 <tr><td>Online</td><td><if online><output name=online></if><if else>Last online <output name=lastonline missing="never"></if><if upgrade> (upgrade scheduled)</if></td></tr>
 <tr><td>Version</td><td><output name=version></td></tr>

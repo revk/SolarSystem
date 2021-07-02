@@ -213,7 +213,7 @@ void app_main()
 {
    reason = esp_reset_reason();
    revk_init(&app_command);
-   revk_register("iot", 0, 0, &iothost, NULL, 0);       // iot group
+   revk_register("iot", 0, 0, &iothost, NULL, SETTING_SECRET);       // iot group
 #define io(n) revk_register(#n,0,sizeof(n),&n,BITFIELDS,SETTING_SET|SETTING_BITFIELD);
 #define s(n) revk_register(#n,0,0,&n,NULL,0);
 #define area(n) revk_register(#n,0,sizeof(n),&n,AREAS,SETTING_BITFIELD);
