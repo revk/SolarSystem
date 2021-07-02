@@ -31,7 +31,7 @@ enum {
    DOOR DOOR_COUNT
 };
 #undef d
-const char *door_name[DOOR_COUNT];
+extern const char *door_name[DOOR_COUNT];
 
 typedef volatile struct door_s door_t;
 

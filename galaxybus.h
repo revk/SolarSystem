@@ -1,6 +1,5 @@
 // RS485 polling library for Honeywell Galaxy stuff
 //
-
     /*
        A complete alarm panel using devices compatible with Honeywell/Galaxy RS485 buses
        Copyright (C) 2017  RevK
@@ -57,7 +56,7 @@ enum {                          // Type of device, in events and commands...
    TYPE MAX_TYPE                // How many device types we handle
 };
 #undef t
-const char *type_name[MAX_TYPE];        // Device type name
+extern const char *type_name[MAX_TYPE];        // Device type name
 
 #define	EVENT	\
 	e(KEEPALIVE)	\
@@ -89,7 +88,7 @@ enum {                          // Events
 };
 #undef e
 
-const char *event_name[EVENT_COUNT];    // Event name
+extern const char *event_name[EVENT_COUNT];    // Event name
 
 enum {                          // Max input mappings
    INPUT_MAX_OPEN,              // Door open sense
@@ -120,7 +119,7 @@ struct rio_threshold_s {
    unsigned char highres;
    unsigned char open;
 };
-const rio_threshold_t rio_thresholds[3];
+extern const rio_threshold_t rio_thresholds[3];
 
 // Structures
 
