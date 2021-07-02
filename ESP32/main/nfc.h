@@ -32,6 +32,7 @@ typedef struct {
    uint8_t afile:1;             // Afile present (crc is set) and access permissions checked (deny is set)
    uint8_t allowset:1;          // Afile has allow setting
    uint8_t deadlockset:1;       // Afile has deadlock setting
+   uint8_t armlate:1;		// Afile says late arming allowed
    uint8_t override:1;          // Afile says block card
    uint8_t block:1;             // Afile says block card
    uint8_t commit:1;            // Afile says commit before opening
