@@ -165,8 +165,31 @@ char *makecert(const char *keyder, const char *cakeyder, const char *cacertder, 
 #ifndef	LIB
 		int main(int argc, const char *argv[])
 {
+	FILE *f;
+
 	argc=argc;
 	argv=argv;
 	warnx("Testing certificate stuff");
+	char *cakey=makekey();
+	char *cacert=makecert(cakey, NULL, NULL, "SolarSystem");
+	char *sitekey=makekey();
+	char *sitecert=makecert(sitekey, cakey, cacert, "localhost");
+
+	f=fopen("/tmp/cakey.pem","w");
+	fprintf(f,"%s",keypem(cakey));
+	fclose(f);
+	f=fopen("/tmp/cacert.pem","w");
+	fprintf(f,"%s",certpem(cacert));
+	fclose(f);
+	f=fopen("/tmp/sitekey.pem","w");
+	fprintf(f,"%s",keypem(sitekey));
+	fclose(f);
+	f=fopen("/tmp/sitecert.pem","w");
+	fprintf(f,"%s",certpem(sitecert));
+	fclose(f);
+
+	//system("openssl s_server -key /tmp/cakey.pem -cert /tmp/cacert.pem -accept localhost:4443");
+	system("openssl s_server -key /tmp/sitekey.pem -cert /tmp/sitecert.pem -accept localhost:4443");
+
 }
 #endif
