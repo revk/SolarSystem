@@ -322,28 +322,31 @@ const char *door_fob(fob_t * fob)
                if (!fob->clock)
                   return "Date not set";
             } else if (memcmp(datetime, afile + xoff, xlen) > 0)
-            {
-               if (fob->armlate && fob->held && fob->deadlockset && !(area & ~fob->deadlock))
-                  fob->armok = 1;
                return "Expired";        // expired
-            }
          }
          if (fok || tok)
          {                      // Time check
+            const char *e = NULL;
             if (*datetime < 0x20)
             {                   // Clock not set
                if (!fob->clock)
-                  return "Time not set";
+                  e = "Time not set";
             } else if (fok && tok && memcmp(fok, tok, 2) > 0)
             {                   // reverse
                if (memcmp(datetime + 4, fok, 2) < 0 && memcmp(datetime + 4, tok, 2) >= 0)
-                  return "Outside time";
+                  e = "Outside time";
             } else
             {
                if (fok && memcmp(datetime + 4, fok, 2) < 0)
-                  return "Too soon";
+                  e = "Too soon";
                if (tok && memcmp(datetime + 4, tok, 2) >= 0)
-                  return "Too late";
+                  e = "Too late";
+            }
+            if (e)
+            {
+               if (fob->armlate && fob->held && fob->deadlockset && !(area & ~fob->deadlock))
+                  fob->armok = 1;
+               return e;
             }
          }
       }

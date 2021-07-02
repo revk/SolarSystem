@@ -152,6 +152,7 @@ time0000(satfrom);
 time2359(satto);
 bool(clock);			// Ignore time if clock not set
 bool(override);			// Open regardless
+bool(armlate);			// Out of hours arming
 bool(log);			// Log access
 bool(count);			// Count access
 bool(commit);			// Commit log/count

@@ -26,7 +26,7 @@ if($?access) then
 	endif
 	can --redirect --access="$access" editaccess
 	if($status) exit 0
-	setenv allow "accessname clock log count commit open arm expiry"
+	setenv allow "accessname clock log count armlate commit open arm expiry"
 	foreach day ($days)
 		setenv allow "$allow ${day}from ${day}to"
 	end
@@ -35,6 +35,7 @@ if($?access) then
 	if(! $?log) setenv log false
 	if(! $?count) setenv count false
 	if(! $?commit) setenv commit false
+	if(! $?armlate) setenv armlate false
 	if($?ADMINORGANISATION) setenv allow "$allow override"
 	sqlwrite -o -n "$DB" access $allow
 	../login/redirect editaccess.cgi
@@ -52,6 +53,7 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <td><output name=accessname missing="Unnamed" blank="Unnanmed" href="editaccess.cgi/$access"></td>
 <td>
 <if override=true><b>OVERRIDE</b></if>
+<if armlate=true>Late arm allowed</if>
 <if clock=true>Time override if no clock</if>
 <if log=true>Fob log</if>
 <if count=true>Fob count</if>
@@ -85,6 +87,7 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <tr><td><input type=checkbox id=log name=log value=true></td><td><label for=log>Try to log access to fob.</label></td></tr>
 <tr><td><input type=checkbox id=count name=count value=true></td><td><label for=count>Try to count access on fob.</label></td></tr>
 <tr><td><input type=checkbox id=commit name=commit value=true></td><td><label for=commit>Commit changes (log/count) before allowing access (slower).</label></td></tr>
+<tr><td><input type=checkbox id=armlate name=armlate value=true></td><td><label for=armlate>Allow arming out of hours.</label></td></tr>
 <IF ADMINORGANISATION><tr><td><input type=checkbox id=override name=override value=true></td><td><label for=override>Open door in all cases.</label></td></tr></if>
 <tr><td>Auto expire</td><td><input name=expiry size=3>Days</td></tr>
 <for space day="$days">
