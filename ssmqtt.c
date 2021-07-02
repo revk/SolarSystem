@@ -153,7 +153,7 @@ server (void *arg)
 		break;		// Closed connection
 	    }
 	}
-      if (!txn && FD_ISSET (sock, &r))
+      if (!txp && FD_ISSET (sock, &r))
 	{
 	  {			// Next block
 	    int len = SSL_read (ssl, rx + pos, sizeof (rx) - pos);
@@ -635,7 +635,7 @@ slot_send (slot_t id, const char *prefix, const char *suffix, j_t * jp)
 	warnx ("Slot Send %lld but slot is %lld", id, slots[id % SLOT_MAX].id);
 	return slots[id % SLOT_MAX].id ? "Recycled id" : "Closed id";
       }
-    if (send (slots[id % SLOT_MAX].txsock, tx, txp, MSG_DONTWAIT) < 0)
+    if (send (slots[id % SLOT_MAX].txsock, tx, txp, 0) < 0)
       {
 	pthread_mutex_unlock (&slot_mutex);
 	return "Failed to send";
