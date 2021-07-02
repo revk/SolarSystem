@@ -335,13 +335,13 @@ static void *listener(void *arg)
    if (*mqttkey)
    {
       EVP_PKEY *key = der2pkey(mqttkey);
-      SSL_CTX_use_PrivateKey(ctx, key);
+      if(SSL_CTX_use_PrivateKey(ctx, key)!=1)errx(1,"Failed to set private key");
       EVP_PKEY_free(key);
    }
    if (*mqttcert)
    {
       X509 *cert = der2x509(mqttcert);
-      SSL_CTX_use_certificate(ctx, cert);
+      if(SSL_CTX_use_certificate(ctx, cert)!=1)errx(1,"Failed to set certificate");
       X509_free(cert);
    }
    if (*cacert)
