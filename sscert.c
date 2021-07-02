@@ -25,7 +25,8 @@ EVP_PKEY *der2pkey(const char *der)
       errx(1, "Bad DER %s", der);
    BIO *mem = BIO_new_mem_buf(buf, len);
    EVP_PKEY *key = d2i_PrivateKey_bio(mem, NULL);
-   if(!key)errx(1,"Failed to make key from DER");
+   if (!key)
+      errx(1, "Failed to make key from DER");
    BIO_free(mem);
    free(buf);
    return key;
@@ -39,7 +40,8 @@ X509 *der2x509(const char *der)
       errx(1, "Bad DER %s", der);
    BIO *mem = BIO_new_mem_buf(buf, len);
    X509 *x509 = d2i_X509_bio(mem, NULL);
-   if(!x509)errx(1,"Failed to make cert from DER");
+   if (!x509)
+      errx(1, "Failed to make cert from DER");
    BIO_free(mem);
    free(buf);
    return x509;

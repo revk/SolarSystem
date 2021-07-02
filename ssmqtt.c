@@ -66,6 +66,8 @@ static void *server(void *arg)
       close(sock);
       errx(1, "Cannot make SSL");
    }
+   if (sqldebug)
+      warnx("Ciphers: %s", SSL_get_cipher_list(ssl, 0));
    if (!SSL_set_fd(ssl, sock) || SSL_accept(ssl) != 1)
    {
       close(sock);
@@ -424,7 +426,7 @@ static pthread_mutex_t slot_mutex;
 
 void mqtt_start(void)
 {                               // Start MQTT server (not a real MQTT server, just talks MQTT)
-	OPENSSL_init_ssl(0,NULL);
+   OPENSSL_init_ssl(0, NULL);
    pthread_mutex_init(&slot_mutex, NULL);
    pthread_mutex_init(&rxq_mutex, NULL);
    sem_init(&rxq_sem, 0, 0);

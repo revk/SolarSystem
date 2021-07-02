@@ -36,7 +36,7 @@ int main(int argc, const char *argv[])
    int setting = 0;
    int silent = 0;
    int provision = 0;
-   int poke=0;
+   int poke = 0;
    {                            // POPT
       poptContext optCon;       // context for parsing command-line options
       const struct poptOption optionsTable[] = {
@@ -79,7 +79,7 @@ int main(int argc, const char *argv[])
    j_t meta = j_store_object(j, "_meta");
    if (provision)
       j_store_true(meta, "provision");
-   if(poke)
+   if (poke)
       j_store_true(meta, "poke");
    if (deport)
       j_store_string(meta, "deport", deport);
