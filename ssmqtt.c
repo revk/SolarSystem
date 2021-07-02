@@ -347,7 +347,7 @@ static void *listener(void *arg)
    if (*cacert)
    {
       X509 *cert = der2x509(cacert);
-      SSL_CTX_add_client_CA(ctx, cert);
+      if(SSL_CTX_add_client_CA(ctx, cert)!=1)errx(1,"Failed to set client CA");
       X509_STORE *ca = X509_STORE_new();
       X509_STORE_add_cert(ca, cert);
       SSL_CTX_set_cert_store(ctx, ca);
