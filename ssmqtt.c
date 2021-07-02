@@ -359,7 +359,7 @@ static void *listener(void *arg)
 #ifdef	CONFIG_MQTT_IPV4
       AF_INET
 #else
-      AF_ANY
+      AF_UNSPEC
 #endif
     , ai_socktype:SOCK_STREAM
    };
