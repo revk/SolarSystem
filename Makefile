@@ -34,6 +34,7 @@ apt:
 	apt install libpopt-dev
 	apt install libssl-dev
 	apt install libcurl4-openssl-dev
+	apt install libmosquitto-dev
 
 update:
 	git submodule update --init --remote --recursive
