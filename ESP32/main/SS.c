@@ -28,17 +28,24 @@ static const char *port_inuse[MAX_PORT];
 	s(iothost)	\
 	s(iotuser)	\
 	s(iotpass)	\
-	bd(iotcert,NULL);\
+	bd(iotcert,NULL)\
+	b(iotstatedoor)	\
+	b(iotstateinput)\
+	b(iotstateoutput)\
+	b(ioteventfob)	\
+
 
 #define io(n) static uint8_t n;
 #define area(n) area_t n;
 #define	s(n) char *n;
+#define b(n) uint8_t n;
 #define bd(n,d)         static revk_bindata_t *n;
 settings
 #undef io
 #undef area
 #undef s
 #undef bd
+#undef b
 #define port_mask(p) ((p)&63)
 #define BITFIELDS "-"
 #define PORT_INV 0x40
@@ -54,7 +61,7 @@ states
 const char *controller_fault = NULL;
 const char *controller_tamper = NULL;
 
-lwmqtt_handle_t iot = NULL;
+lwmqtt_t iot = NULL;
 
 static void status_report(int force)
 {                               // Report status change
@@ -206,15 +213,18 @@ void app_main()
 {
    reason = esp_reset_reason();
    revk_init(&app_command);
+   revk_register("iot", 0, 0, &iothost, NULL, 0);       // iot group
 #define io(n) revk_register(#n,0,sizeof(n),&n,BITFIELDS,SETTING_SET|SETTING_BITFIELD);
 #define s(n) revk_register(#n,0,0,&n,NULL,0);
 #define area(n) revk_register(#n,0,sizeof(n),&n,AREAS,SETTING_BITFIELD);
-#define bd(n,d)         revk_register(#n,0,0,&n,d,SETTING_BINDATA)
+#define bd(n,d)         revk_register(#n,0,0,&n,d,SETTING_BINDATA);
+#define b(n)          revk_register(#n,0,1,&n,NULL,SETTING_BOOLEAN);
    settings
 #undef io
 #undef area
 #undef s
 #undef bd
+#undef b
    int p;
    for (p = 6; p <= 11; p++)
       port_check(p, "Flash", 0);        // Flash chip uses 6-11
@@ -226,15 +236,15 @@ void app_main()
       char topic[100];
       snprintf(topic, sizeof(topic), "state/%s/%s", revk_appname(), revk_id);
       lwmqtt_config_t config = {
-       .client=revk_id,
-       .host=iothost,
-       .username=iotuser,
-       .password=iotpass,
-       .callback=&iot_rx,
-       .topic=topic,
-       .plen=-1,
-       .retain=1,
-       .payload=(void *) "{\"up\":false}",
+         .client = revk_id,
+         .host = iothost,
+         .username = iotuser,
+         .password = iotpass,
+         .callback = &iot_rx,
+         .topic = topic,
+         .plen = -1,
+         .retain = 1,
+         .payload = (void *) "{\"up\":false}",
       };
       if (iotcert->len)
       {

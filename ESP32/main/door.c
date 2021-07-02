@@ -539,7 +539,7 @@ static void task(void *pvParameters)
                   jo_string(j, "state", lockstates[lock[l].state]);
                   if (lock[l].timeout > now)
                      jo_int(j, "timeout", (lock[l].timeout - now) / 1000);
-                  revk_statej(l ? "deadlock" : "lock", &j);
+                  revk_statej(l ? "deadlock" : "lock", &j, NULL);
                }
             }
          }
@@ -554,7 +554,7 @@ static void task(void *pvParameters)
                   doorwhy = ((lock[0].state == LOCK_LOCKED) ? "forced" : "manual");
                if (doorwhy)
                   jo_string(j, "trigger", doorwhy);
-               revk_eventj("open", &j);
+               revk_eventj("open", &j, NULL);
                doorwhy = NULL;
                doorstate = DOOR_OPEN;
                if (lock[0].state == LOCK_LOCKING || lock[0].state == LOCK_LOCKFAIL)
@@ -610,7 +610,7 @@ static void task(void *pvParameters)
                   jo_t j = jo_object_alloc();
                   if (doorwhy)
                      jo_string(j, "trigger", doorwhy);
-                  revk_eventj("notopen", &j);
+                  revk_eventj("notopen", &j, NULL);
                }
                if (doordeadlock)
                   door_deadlock(NULL);
@@ -633,7 +633,7 @@ static void task(void *pvParameters)
                   {             // Not opening door
                      jo_t j = jo_object_alloc();
                      jo_string(j, "trigger", "exit");
-                     revk_eventj("notopen", &j);
+                     revk_eventj("notopen", &j, NULL);
                   }
                }
             }
@@ -653,7 +653,7 @@ static void task(void *pvParameters)
                   {             // Not opening door
                      jo_t j = jo_object_alloc();
                      jo_string(j, "trigger", "ranger");
-                     revk_eventj("notopen", &j);
+                     revk_eventj("notopen", &j, NULL);
                   }
                }
             }
@@ -695,7 +695,7 @@ static void task(void *pvParameters)
                jo_string(j, "trigger", doorwhy);
             if (doortimeout > now)
                jo_int(j, "timeout", (doortimeout - now) / 1000);
-            revk_statej("door", &j);
+            revk_statej("door", &j, iotstatedoor ? iot : NULL);
             lastdoorstate = doorstate;
          }
          output_set(OERROR, door_tamper || door_fault);

@@ -7,7 +7,11 @@
 
 void status(const char *);      // Report change in tamper/fault (arg is ignored, but used xxx_fault="whatever");
 
-extern lwmqtt_handle_t iot;
+extern lwmqtt_t iot;            // IoT stuff
+extern uint8_t iotstatedoor;
+extern uint8_t iotstateinput;
+extern uint8_t iotstateoutput;
+extern uint8_t ioteventfob;
 
 #define	MAX_PORT	40
 const char *port_check(int p, const char *module, int i);       // Check port is OK, NULL if OK, else error
