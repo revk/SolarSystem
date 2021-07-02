@@ -43,6 +43,8 @@ uint8_t *makeafile(j_t j)
          fputc(0xFB, afilef);
       if (j_test(j, "clock", 0))
          fputc(0xFC, afilef);
+      if (j_test(j, "armlate", 0))
+         fputc(0xFD, afilef);
       // Times
       const char *t = j_get(j, "from");
       if (t && *t)

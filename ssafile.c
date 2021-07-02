@@ -55,6 +55,8 @@ unsigned int makeafile(SQL_RES * res, unsigned char *afile)
          add(0xFB);
       if (res && *sql_colz(res, "clock") == 't')
          add(0xFC);
+      if (res && *sql_colz(res, "armlate") == 't')
+         add(0xFD);
       time_t expires = 0;
       int expiry = atoi(sql_colz(res, "expiry"));
       if (expiry > 255)
