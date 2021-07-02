@@ -128,8 +128,8 @@ const char *settings(SQL * sqlp, SQL_RES * res, slot_t id)
                j_store_true(iot, "stateinput");
             if (*sql_colz(res, "iotstateoutput") == 't')
                j_store_true(iot, "stateoutput");
-            if (*sql_colz(res, "iotfobevent") == 't')
-               j_store_true(iot, "fobevent");
+            if (*sql_colz(res, "ioteventfob") == 't')
+               j_store_true(iot, "eventfob");
          }
       }
       sql_free_result(s);

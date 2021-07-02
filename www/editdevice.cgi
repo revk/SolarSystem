@@ -52,8 +52,8 @@ if($?devicename) then # save
 	if(! $?iotstatedoor) setenv iotstatedoor false
 	if(! $?iotstateinput) setenv iotstateinput false
 	if(! $?iotstateoutput) setenv iotstateoutput false
-	if(! $?iotfobevent) setenv iotfobevent false
-	setenv allow "devicename area nfc nfcadmin door aid site iotstatedoor iotstateinput iotstateoutput iotfobevent"
+	if(! $?ioteventfob) setenv ioteventfob false
+	setenv allow "devicename area nfc nfcadmin door aid site iotstatedoor iotstateinput iotstateoutput ioteventfob"
 	if("$USER_ADMIN" == "true") setenv allow "$allow nfctrusted"
 	sqlwrite -o -n "$DB" device $allow
 	sql "$DB" 'UPDATE device SET poke=NOW() WHERE device="$device"'
@@ -95,7 +95,7 @@ xmlsql -C -d "$DB" head.html - foot.html << END
 <input id=iotstatedoor name=iotstatedoor value=true type=checkbox><label for=iotstatedoor>Door</label>
 <input id=iotstateinput name=iotstateinput value=true type=checkbox><label for=iotstateinput>Input</label>
 <input id=iotstateoutput name=iotstateoutput value=true type=checkbox><label for=iotstateoutput>Output</label>
-<input id=iotfobevent name=iotfobevent value=true type=checkbox><label for=iotfobevent>Fob events</label>
+<input id=ioteventfob name=ioteventfob value=true type=checkbox><label for=ioteventfob>Fob events</label>
 </td>
 </if>
 </sql>
