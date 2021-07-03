@@ -1600,10 +1600,10 @@ load_config (const char *configfile)
       u->group_reset[1] = mask & (u->group_reset[0] | group_parse (xml_get (x, "@reset")));
       u->group_prop[1] = mask & (u->group_prop[0] | group_parse (xml_get (x, "@prop")));
       v = grouparea (u->group_open[1]);
-      e = xml_attribute_by_name (x, "allow");
+      e = xml_attribute_by_name (x, "enter");
       if (!e || strcmp (xml_element_content (e), v))
 	{
-	  xml_attribute_set (x, "allow", v);
+	  xml_attribute_set (x, "enter", v);
 	  configchanged = 1;
 	}
 #if 0				// Done by controller

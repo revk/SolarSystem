@@ -38,14 +38,14 @@ makeafile (j_t j)
 	fputc (0xF1, afilef);
       if (j_test (j, "count", 0))
 	fputc (0xF2, afilef);
-      if (j_test (j, "override", 0))
+      if (j_test (j, "armlate", 0))
 	fputc (0xFA, afilef);
       if (j_test (j, "block", 0))
 	fputc (0xFB, afilef);
       if (j_test (j, "clock", 0))
 	fputc (0xFC, afilef);
-      if (j_test (j, "armlate", 0))
-	fputc (0xFD, afilef);
+      if (j_test (j, "override", 0))
+	fputc (0xFF, afilef);
       // Times
       const char *t = j_get (j, "from");
       if (t && *t)
@@ -82,9 +82,9 @@ makeafile (j_t j)
 	  time_t now = time (0) + 86400 * (xdays - debug);	// Note debug sets yesterday
 	  localtime_r (&now, &t);
 	  char e[7];
-	  e[0] = 0xE1;
+	  e[0] = 0x31;
 	  e[1] = xdays;
-	  e[2] = 0xE4;		// Date only, so end of day
+	  e[2] = 0x34;		// Date only, so end of day
 	  int v = t.tm_year + 1900;
 	  e[3] = (v / 1000) * 16 + (v / 100 % 10);
 	  e[4] = (v / 10 % 10) * 16 + (v % 10);
@@ -111,7 +111,7 @@ makeafile (j_t j)
 	    }
 	  if (n > 1 && !*t)
 	    {
-	      e[0] = 0xE1 + n;
+	      e[0] = 0x31 + n;
 	      fwrite (e, n, 1, afilef);
 	    }
 	  else if (debug)
@@ -142,8 +142,9 @@ makeafile (j_t j)
 	e[0] = f + n - 1;
 	fwrite (e, n, 1, afilef);
       }
-      area (0xA0, "allow");
-      area (0xD0, "deadlock");
+      area (0xA0, "arm");
+      area (0xD0, "disarm");
+      area (0xE0, "enter");
     }
   fclose (afilef);
   *afile = afilelen - 1;	// Store length in first byte

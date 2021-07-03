@@ -133,8 +133,9 @@ table(access,0);		// Fob access permissions - available site wide, set on an aid
 link(organisation)		// Quicker access
 link(site);
 text(accessname,0)
-areas(open);			// Allow open
-areas(arm);			// Allow disarm/arm
+areas(enter);			// Allow entre
+areas(arm);			// Allow /arm
+areas(disarm);			// Allow disarm
 num(expiry);			// Auto expiry (days)
 time0000(sunfrom);
 time2359(sunto);

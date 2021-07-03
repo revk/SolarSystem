@@ -53,14 +53,14 @@ makeafile (SQL_RES * res, unsigned char *afile)
 	add (0xF0);
       if (res && *sql_colz (res, "count") == 't')
 	add (0xF1);
-      if (res && *sql_colz (res, "override") == 't')
+      if (res && *sql_colz (res, "armlate") == 't')
 	add (0xFA);
       if (res && sql_col (res, "block"))
 	add (0xFB);
       if (res && *sql_colz (res, "clock") == 't')
 	add (0xFC);
-      if (res && *sql_colz (res, "armlate") == 't')
-	add (0xFD);
+      if (res && *sql_colz (res, "override") == 't')
+	add (0xFF);
       time_t expires = 0;
       int expiry = atoi (sql_colz (res, "expiry"));
       if (expiry > 255)
@@ -75,7 +75,7 @@ makeafile (SQL_RES * res, unsigned char *afile)
 	{
 	  if (expiry)
 	    {
-	      add (0xE1);
+	      add (0x31);
 	      add (expiry);
 	    }
 	  struct tm tm;
@@ -86,14 +86,14 @@ makeafile (SQL_RES * res, unsigned char *afile)
 		tm.tm_sec--;
 	      expires = timegm (&tm);
 	      gmtime_r (&expires, &tm);
-	      add (0xE4);
+	      add (0x34);
 	      addbcd2 (tm.tm_year + 1900);
 	      addbcd (tm.tm_mon + 1);
 	      addbcd (tm.tm_mday);
 	    }
 	  else
 	    {
-	      add (0xE7);
+	      add (0x37);
 	      addbcd2 (tm.tm_year + 1900);
 	      addbcd (tm.tm_mon + 1);
 	      addbcd (tm.tm_mday);
@@ -215,6 +215,7 @@ makeafile (SQL_RES * res, unsigned char *afile)
   }
   addarea (0xA0, "arm");
   addarea (0xD0, "disarm");
+  addarea (0xE0, "enter");
   if (p >= 256)
     return 0;			// Too big
   *a = p - 1;
