@@ -247,7 +247,7 @@ door_fob (fob_t * fob)
 		    fob->count = 1;
 		    break;
 		  case 0xA:
-		    fob->override = 1;
+		    fob->armlate = 1;
 		    break;
 		  case 0xB:
 		    fob->block = 1;
@@ -255,8 +255,8 @@ door_fob (fob_t * fob)
 		  case 0xC:
 		    fob->clock = 1;
 		    break;
-		  case 0xD:
-		    fob->armlate = 1;
+		  case 0xF:
+		    fob->override = 1;
 		    break;
 		  default:
 		    return "Unknown flag";
@@ -269,18 +269,25 @@ door_fob (fob_t * fob)
 		  break;	// end of file
 	      }
 	    else if (c == 0xA)
-	      {			// Allow
-		fob->allow = 0;
+	      {			// Arm
+		fob->arm = 0;
 		for (int q = 0; q < l; q++)
-		  fob->allow |= (p[q] << (24 - q * 8));
-		fob->allowset = 1;
+		  fob->arm |= (p[q] << (24 - q * 8));
+		fob->armset = 1;
 	      }
 	    else if (c == 0xD)
-	      {			// Deadlock arm/disarm allow
-		fob->deadlock = 0;
+	      {			// Disarm
+		fob->disarm = 0;
 		for (int q = 0; q < l; q++)
-		  fob->deadlock |= (p[q] << (24 - q * 8));
-		fob->deadlockset = 1;
+		  fob->disarm |= (p[q] << (24 - q * 8));
+		fob->disarmset = 1;
+	      }
+	    else if (c == 0xE)
+	      {			// Enter
+		fob->enter = 0;
+		for (int q = 0; q < l; q++)
+		  fob->enter |= (p[q] << (24 - q * 8));
+		fob->enterset = 1;
 	      }
 	    else if (c == 0x1)
 	      {			// From
@@ -312,7 +319,7 @@ door_fob (fob_t * fob)
 		else
 		  return "Bad to time";
 	      }
-	    else if (c == 0xE)
+	    else if (c == 0x3)
 	      {			// Expiry
 		if (l == 1)
 		  xdays = *p;
@@ -360,7 +367,7 @@ door_fob (fob_t * fob)
 	      }
 	    if (e)
 	      {
-		if (fob->armlate && fob->held && fob->deadlockset && !(area & ~fob->deadlock))
+		if (fob->armlate && fob->held && (!fob->armset || !(area & ~fob->arm)))
 		  {
 		    fob->armok = 1;
 		    return e;
@@ -371,16 +378,13 @@ door_fob (fob_t * fob)
       }
     if (fob->block)
       return "Card blocked";
-    if (fob->deadlockset && !(area & ~fob->deadlock))
-      {
-	if (fob->held)
-	  fob->armok = 1;
-	else
-	  fob->disarmok = 1;
-      }
+    if (fob->held && fob->disarmset && !(area & ~fob->disarm))
+      fob->disarmok = 1;
+    else if (!fob->held && (!fob->armset || !(area & ~fob->arm)))
+      fob->armok = 1;
     if (doordeadlock && (doorauto < 5 || !fob->disarmok))
       return "Deadlocked";
-    if (!(area & ~fob->allow))
+    if (!fob->enterset || !(area & ~fob->enter))
       fob->unlockok = 1;
     return NULL;
   }
