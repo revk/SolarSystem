@@ -507,7 +507,7 @@ task (void *pvParameters)
 		  else if (fob.override)
 		    door_unlock (NULL, "override");	// Fob override
 		  else if (fob.deny)
-		    door_lock (NULL);
+		    door_lock (NULL); // TODO not if deadlocked
 		  else
 		    nextled = now + 200000LL;
 		  fobevent ();	// Report

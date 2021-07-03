@@ -165,6 +165,7 @@ door_unlock (const uint8_t * a, const char *why)
 {				// Unlock the door - i.e. exit button, entry allowed, etc.
   if (why && !doorwhy)
     doorwhy = why;
+  ESP_LOGI (TAG, "Unlock %s", why ? : "?");
   doordeadlock = false;
   output_set (OUNLOCK + 0, 1);
   output_set (OUNLOCK + 1, 1);
