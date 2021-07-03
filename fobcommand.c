@@ -138,6 +138,12 @@ fobcommand (void *arg)
   char *fob = NULL;
   {				// Get passed settings
     j_t j = arg;
+    if (mqttdump)
+      {
+	fprintf (stderr, "FC:");
+	j_err (j_write (j, stderr));
+	fprintf (stderr, "\n");
+      }
     f.sock = atoi (j_get (j, "socket") ? : "");
     f.id = strtoll (j_get (j, "id") ? : "", NULL, 10);
     f.device = strtoll (j_get (j, "device") ? : "", NULL, 10);
@@ -236,6 +242,7 @@ fobcommand (void *arg)
 	  {
 	    status ("Formatting fob");
 	    df (format (&d, *masterkey, masterkey + 1));
+	    df (get_uid (&d, uid));
 	    if (hardformat)
 	      {
 		df (change_key (&d, 0x80, 0, masterkey + 1, NULL));	// Hard reset to zero AES
@@ -328,22 +335,7 @@ fobcommand (void *arg)
 	  }
 
 	  void doprovision (void)
-	  {
-	    status ("Provisioning fob");
-	    unsigned char version;
-	    df (get_key_version (&d, 0, &version));
-	    if (!version)
-	      {			// Formatting
-		status ("Formatting card");
-		df (format (&d, *masterkey, masterkey + 1));
-		df (authenticate (&d, 0, masterkey + 1));
-		df (change_key_settings (&d, 0x09));
-		df (set_configuration (&d, 0));
-	      }
-	    else
-	      df (authenticate (&d, 0, masterkey + 1));
-	    unsigned char uid[7];
-	    df (get_uid (&d, uid));
+	  {			// Expects to have formatted and connected
 	    status ("Setting key");
 	    if (!*masterkey)
 	      randkey (masterkey);
@@ -371,16 +363,13 @@ fobcommand (void *arg)
 	  }
 	  if (f.connected && !f.done)
 	    {
-	      doconnect ();
-	      if (!e)
-		{		// Can be more than one :-)
-		  if (format)
-		    doformat ();
-		  if (provision)
-		    doprovision ();
-		  if (adopt)
-		    doadopt ();
-		}
+	      if (!e && (format || provision))
+		doformat ();
+	      if(!e)doconnect ();
+	      if (!e && provision)
+		doprovision ();
+	      if (!e && adopt)
+		doadopt ();
 	    }
 	  if (!e && !f.gone)
 	    status ("Done, remove card");

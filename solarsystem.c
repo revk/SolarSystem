@@ -571,7 +571,7 @@ main (int argc, const char *argv[])
 	    if (fob)
 	      sql_safe_query_free (&sql, sql_printf ("INSERT IGNORE INTO `fob` SET `fob`=%#s,`provisioned`=NOW()", fob));
 	    if ((v = j_get (j, "mem")) && fob)
-	      sql_safe_query_free (&sql, sql_printf ("UPDATE `fob` SET `mem`=%#s WHERE `fob`=%#s AND `mem`!=%#s", fob, v, v));
+	      sql_safe_query_free (&sql, sql_printf ("UPDATE `fob` SET `mem`=%#s WHERE `fob`=%#s AND `mem`!=%#s",v, fob, v));
 	    if (j_find (meta, "provisioned") && fob && (v = j_get (j, "masterkey")))
 	      {
 		sql_safe_query_free (&sqlkey, sql_printf ("REPLACE INTO `AES` SET `fob`=%#s,`aid`='',`ver`=%#.2s,`key`=%#s", fob, v, v + 2));
@@ -591,7 +591,7 @@ main (int argc, const char *argv[])
 	      }
 	    if (j_find (meta, "formatted") && fob)
 	      {
-		sql_safe_query_free (&sql, sql_printf ("UPDATE `fobaid` SET `adopted`=NULL WHERE `fob`=%#s", fob));
+		sql_safe_query_free (&sql, sql_printf ("DELETE FROM `fobaid` WHERE `fob`=%#s", fob));
 		if ((v = j_get (j, "deviceid")))
 		  sql_safe_query_free (&sql, sql_printf ("UPDATE `device` SET `formatnext`='false' WHERE `device`=%#s", v));
 	      }
@@ -743,6 +743,8 @@ main (int argc, const char *argv[])
 				const char *ver = j_get (j, "ver");
 				if (ver && strcmp (ver, sql_colz (fa, "ver")))
 				  sql_safe_query_free (&sql, sql_printf ("UPDATE `fobaid` SET `ver`=%#s WHERE `fob`=%#s AND `aid`=%#s", ver, fobid, aid));
+				if(!sql_col(fa,"adopted"))
+				  sql_safe_query_free (&sql, sql_printf ("UPDATE `fobaid` SET `adopted`=NOW() WHERE `fob`=%#s AND `aid`=%#s", fobid, aid));
 			      }
 			    // Check afile
 			    const char *crc = j_get (j, "crc");
