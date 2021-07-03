@@ -158,6 +158,18 @@ makeafile (SQL_RES * res, unsigned char *afile)
 		  addbcd2 (to[1]);
 		  addbcd2 (to[6]);
 		}
+	    } else if(d==5&&from[0] == from[6] && to[0] == to[6])
+	    { // Sun,Mon-Thu,Fri,Say
+		  add (0x18);
+		  addbcd2 (from[0]);
+		  addbcd2 (from[1]);
+		  addbcd2 (from[5]);
+		  addbcd2 (from[6]);
+		  add (0x28);
+		  addbcd2 (to[0]);
+		  addbcd2 (to[1]);
+		  addbcd2 (to[5]);
+		  addbcd2 (to[6]);
 	    }
 	  else
 	    {			// different days

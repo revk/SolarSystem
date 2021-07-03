@@ -299,6 +299,8 @@ door_fob (fob_t * fob)
 		  fok = p + ((dow && dow < 6) ? 2 : 0);
 		else if (l == 6)
 		  fok = p + (!dow ? 0 : dow < 6 ? 2 : 4);
+		else if (l == 8)
+		  fok = p + (!dow ? 0 : dow < 5 ? 2 : dow < 6 ? 4 : 6);
 		else if (l == 14)
 		  fok = p + dow * 2;
 		else
@@ -314,6 +316,8 @@ door_fob (fob_t * fob)
 		  tok = p + ((dow && dow < 6) ? 2 : 0);
 		else if (l == 6)
 		  tok = p + (!dow ? 0 : dow < 6 ? 2 : 4);
+		else if (l == 8)
+		  tok = p + (!dow ? 0 : dow < 5 ? 2 : dow < 6 ? 4 : 6);
 		else if (l == 14)
 		  tok = p + dow * 2;
 		else
