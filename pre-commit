@@ -1,2 +1,3 @@
 #!/bin/csh -f
 date +%FT%T > ESP32/version.txt
+git add ESP32/version.txt
