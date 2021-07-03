@@ -93,7 +93,7 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <IF ADMINORGANISATION><tr><td><input type=checkbox id=override name=override value=true></td><td><label for=override>Open door in all cases.</label></td></tr></if>
 <tr><td>Auto expire</td><td><input name=expiry size=3>Days</td></tr>
 <for space day="$days">
-<tr><td><output name=day sun=Sunday mon=Monday tue=Tuesday web=Wednesday thu=Thursday fri=Friday sat=Saturday></td><td><input name="${day}from" type=time>-<input name="${day}to" type=time></td></tr>
+<tr><td><output name=day sun=Sunday mon=Monday tue=Tuesday wed=Wednesday thu=Thursday fri=Friday sat=Saturday></td><td><input name="${day}from" type=time>-<input name="${day}to" type=time></td></tr>
 </for>
 </table>
 <input type=submit value="Update"><if ADMINORGANISATION><input type=submit name=DELETE Value="Delete"><input name=SURE type=checkbox></if>
