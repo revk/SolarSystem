@@ -344,25 +344,28 @@ door_fob (fob_t * fob)
 	    if (*datetime < 0x20)
 	      {			// Clock not set
 		if (!fob->clock)
-		  e = "Time not set";
+		  e = "*Time not set";
 	      }
 	    else if (fok && tok && memcmp (fok, tok, 2) > 0)
 	      {			// reverse
 		if (memcmp (datetime + 4, fok, 2) < 0 && memcmp (datetime + 4, tok, 2) >= 0)
-		  e = "Outside time";
+		  e = "*Outside time";
 	      }
 	    else
 	      {
 		if (fok && memcmp (datetime + 4, fok, 2) < 0)
-		  e = "Too soon";
+		  e = "*Too soon";
 		if (tok && memcmp (datetime + 4, tok, 2) >= 0)
-		  e = "Too late";
+		  e = "*Too late";
 	      }
 	    if (e)
 	      {
 		if (fob->armlate && fob->held && fob->deadlockset && !(area & ~fob->deadlock))
-		  fob->armok = 1;
-		return e;
+		  {
+		    fob->armok = 1;
+		    return e;
+		  }
+		return e + 1;	// Without the *
 	      }
 	  }
       }

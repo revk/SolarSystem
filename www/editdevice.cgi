@@ -9,7 +9,7 @@ if($status) exit 0
 if($?UPGRADE) then
 	can --redirect --device='$device' editdevice
 	sql "$DB" 'UPDATE device SET upgrade=NOW() WHERE device="$device"'
-	setenv MSG `message --device="$device" --command=restart`
+	setenv MSG `message --device="$device" --command=upgrade`
 	if(! $status) setenv MSG "Upgrading"
 	goto done
 endif
