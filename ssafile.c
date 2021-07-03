@@ -122,64 +122,54 @@ makeafile (SQL_RES * res, unsigned char *afile)
 		to[d] += 40;
 	    }
 	}
-      for (d = 1; d < 7 && from[d] == from[0] && to[d] == to[0]; d++);
-      if (d == 7)
-	{			// All same
-	  if (from[0] || to[0] < 2400)
-	    {			// Has a range
-	      add (0x12);
-	      addbcd2 (from[0]);
-	      add (0x22);
-	      addbcd2 (to[0]);
-	    }
-	}
-      else
+      void addtimes (unsigned short day[7], unsigned char tag)
+      {
+	for (d = 1; d < 7 && day[d] == day[0]; d++);
+	if (d == 7)
+	  {			// All same so one entry
+	    add (tag + 2);
+	    addbcd2 (day[0]);
+	  }
+	else
+	  {
+	    for (d = 2; d < 6 && day[d] == day[1]; d++);
+	    if (d == 6)
+	      {			// weekdays same
+		if (day[0] == day[6])
+		  {		// weekend same
+		    add (tag + 4);
+		    addbcd2 (day[0]);
+		    addbcd2 (day[1]);
+		  }
+		else
+		  {		// different weekend days
+		    add (tag + 6);
+		    addbcd2 (day[0]);
+		    addbcd2 (day[1]);
+		    addbcd2 (day[6]);
+		  }
+	      }
+	    else if (d == 5)
+	      {			// Sun,Mon-Thu,Fri,Say
+		add (tag + 8);
+		addbcd2 (day[0]);
+		addbcd2 (day[1]);
+		addbcd2 (day[5]);
+		addbcd2 (day[6]);
+	      }
+	    else
+	      {			// different days
+		add (tag + 14);
+		for (d = 0; d < 7; d++)
+		  addbcd2 (day[d]);
+	      }
+	  }
+      }
+      for (d = 0; d < 7 && !from[d] && to[d] == 0x2400; d++);
+      if (d < 7)
 	{
-	  for (d = 2; d < 6 && from[d] == from[1] && to[d] == to[1]; d++);
-	  if (d == 6)
-	    {			// weekdays same
-	      if (from[0] == from[6] && to[0] == to[6])
-		{		// weekend same
-		  add (0x14);
-		  addbcd2 (from[0]);
-		  addbcd2 (from[1]);
-		  add (0x24);
-		  addbcd2 (to[0]);
-		  addbcd2 (to[1]);
-		}
-	      else
-		{		// different weekend days
-		  add (0x16);
-		  addbcd2 (from[0]);
-		  addbcd2 (from[1]);
-		  addbcd2 (from[6]);
-		  add (0x26);
-		  addbcd2 (to[0]);
-		  addbcd2 (to[1]);
-		  addbcd2 (to[6]);
-		}
-	    } else if(d==5&&from[0] == from[6] && to[0] == to[6])
-	    { // Sun,Mon-Thu,Fri,Say
-		  add (0x18);
-		  addbcd2 (from[0]);
-		  addbcd2 (from[1]);
-		  addbcd2 (from[5]);
-		  addbcd2 (from[6]);
-		  add (0x28);
-		  addbcd2 (to[0]);
-		  addbcd2 (to[1]);
-		  addbcd2 (to[5]);
-		  addbcd2 (to[6]);
-	    }
-	  else
-	    {			// different days
-	      add (0x1E);
-	      for (d = 0; d < 7; d++)
-		addbcd2 (from[d]);
-	      add (0x2E);
-	      for (d = 0; d < 7; d++)
-		addbcd2 (to[d]);
-	    }
+	  addtimes (from, 0x10);
+	  addtimes (to, 0x20);
 	}
     }
   void addarea (unsigned char tag, const char *name)
