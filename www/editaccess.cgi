@@ -26,7 +26,7 @@ if($?access) then
 	endif
 	can --redirect --access="$access" editaccess
 	if($status) exit 0
-	setenv allow "accessname clock log count armlate commit open arm expiry"
+	setenv allow "accessname clock log count armlate commit enter arm disarm expiry"
 	foreach day ($days)
 		setenv allow "$allow ${day}from ${day}to"
 	end
@@ -47,7 +47,7 @@ list:
 xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <h1>Access classes</h1>
 <table>
-<tr><th>Access</th><th>Notes</th><th>Expiry</th><th>Sunday</th><th>Monday</th><th>Tuesday</th><th>Wednesday</th><th>Thursday</th><th>Friday</th><th>Saturday</th><th>Open</th><th>Arm</th></tr>
+<tr><th>Access</th><th>Notes</th><th>Expiry</th><th>Sunday</th><th>Monday</th><th>Tuesday</th><th>Wednesday</th><th>Thursday</th><th>Friday</th><th>Saturday</th><th>Enter</th><th>Arm</th><th>Disarm</th></tr>
 <sql table=access where="site=$SESSION_SITE">
 <tr>
 <td><output name=accessname missing="Unnamed" blank="Unnanmed" href="editaccess.cgi/$access"></td>
@@ -63,8 +63,9 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <for space day="$days">
 <td><output type="%H:%M" name=${day}from>-<output name=${day}to type=%H:%M></td>
 </for>
-<td><output name=open></td>
+<td><output name=enter></td>
 <td><output name=arm></td>
+<td><output name=disarm></td>
 </tr>
 </sql>
 </table>
@@ -81,8 +82,9 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <sql table=access key=access><input name=access type=hidden>
 <table>
 <tr><td>Name</td><td><input name=accessname size=40 autofocus></td></tr>
-<tr><td>Open</td><td><sql select="tag" table=area where="site=$site"><label for=open$tag><output name=tag>:</label><input id=open$tag name=open type=checkbox value=$tag></sql></td></tr>
-<tr><td>Arm/disarm</td><td><sql select="tag" table=area where="site=$site"><label for=arm$tag><output name=tag>:</label><input id=arm$tag name=arm type=checkbox value=$tag></sql></td></tr>
+<tr><td>Enter</td><td><sql select="tag" table=area where="site=$site"><label for=enter$tag><output name=tag>:</label><input id=enter$tag name=enter type=checkbox value=$tag></sql></td></tr>
+<tr><td>Arm</td><td><sql select="tag" table=area where="site=$site"><label for=arm$tag><output name=tag>:</label><input id=arm$tag name=arm type=checkbox value=$tag></sql></td></tr>
+<tr><td>Disarm</td><td><sql select="tag" table=area where="site=$site"><label for=disarm$tag><output name=tag>:</label><input id=disarm$tag name=disarm type=checkbox value=$tag></sql></td></tr>
 <tr><td><input type=checkbox id=clock name=clock value=true></td><td><label for=clock>Ignore time restrictions if clock not set.</label></td></tr>
 <tr><td><input type=checkbox id=log name=log value=true></td><td><label for=log>Try to log access to fob.</label></td></tr>
 <tr><td><input type=checkbox id=count name=count value=true></td><td><label for=count>Try to count access on fob.</label></td></tr>
