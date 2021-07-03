@@ -213,8 +213,8 @@ makeafile (SQL_RES * res, unsigned char *afile)
 	  }
       }
   }
-  addarea (0xA0, "arm");
-  addarea (0xD0, "disarm");
+  addarea (0xA0, "open");
+  addarea (0xD0, "arm");
   if (p >= 256)
     return 0;			// Too big
   *a = p - 1;
