@@ -382,10 +382,16 @@ fobcommand (void *arg)
 	  if (!e && !f.gone)
 	    status ("Done, remove card");
 	}
-      slot_send (f.device, "command", "nfcdone", NULL);
     }
 
   led (e ? "R" : "G");
+  if (f.connected)
+    while (!f.gone)
+      {
+	j_t j = getmsg (&f);
+	j_delete (&j);
+      }
+  slot_send (f.device, "command", "nfcdone", NULL);
   if (e)
     status (*e ? e : "Card gone");
   if (e && *e && mqttdump)
