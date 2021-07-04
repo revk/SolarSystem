@@ -35,7 +35,7 @@ main (int argc, const char *argv[])
 #ifdef CONFIG_SQL_DEBUG
   sqldebug = 1;
 #endif
-  int us = 0, user = 0, organisation = 0, site = 0, area = 0, aid = 0, access = 0;
+  int us = 0, user = 0, organisation = 0, site = 0, area = 0,  access = 0;
   const char *sus = NULL, *suser = NULL, *sorganisation = NULL, *ssite = NULL, *said = NULL, *sarea = NULL, *sdevice = NULL, *saccess = NULL;
   int redirect = 0;
   int reason = 0;
@@ -76,7 +76,6 @@ main (int argc, const char *argv[])
   user = getval (suser);
   organisation = getval (sorganisation);
   site = getval (ssite);
-  aid = getval (said);
   area = getval (sarea);
   access = getval (saccess);
   if (sdevice && *sdevice == '$')
@@ -134,8 +133,8 @@ main (int argc, const char *argv[])
       e = getorg (sql_printf ("SELECT * FROM `device` WHERE `device`=%d", sdevice));
     if (!e && site)
       e = getorg (sql_printf ("SELECT * FROM `site` WHERE `site`=%d", site));
-    if (!e && aid)
-      e = getorg (sql_printf ("SELECT * FROM `aid` WHERE `aid`=%d", aid));
+    if (!e && said)
+      e = getorg (sql_printf ("SELECT * FROM `aid` WHERE `aid`=%#s", said));
     if (!e && area)
       e = getorg (sql_printf ("SELECT * FROM `area` WHERE `area`=%d", area));
     if (!e && access)
