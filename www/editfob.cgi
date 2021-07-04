@@ -69,7 +69,7 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <h2>Adopting a provisioned fob</h1>
 <p>Fobs used on the system must have been provisioned.</p>
 <form method=post style="display:inline;">
-<select name=aid><sql table=aid where="site=$SESSION_SITE"><option value="$aid"><output name=aidname></option></sql><input name=fob size=14 autofocus placeholder="FOB ID">
+<select name=aid><sql table=aid where="site=$SESSION_SITE"><option value="$aid"><output name=aidname></option></sql></select><input name=fob size=14 autofocus placeholder="FOB ID">
 <input type=submit value="Adopt" name=ADOPT> Adopt a specific FOB.
 </form><br>
 <form method=post style="display:inline;">
