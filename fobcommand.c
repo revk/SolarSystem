@@ -214,7 +214,7 @@ fobcommand (void *arg)
 	{
 	  if (!f.connected)
 	    {
-	      led ("A-");
+	      led ("R+A-");
 	      status ("Waiting for fob");
 	      // Wait fob connect...
 	      while (!f.done && !f.connected)
