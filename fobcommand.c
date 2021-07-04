@@ -233,7 +233,7 @@ fobcommand (void *arg)
 	    status ("Formatting fob");
 	    df (format (&d, *masterkey, masterkey + 1));
 	    df (get_uid (&d, uid));
-	    status (j_base16 (sizeof (aid), aid));
+	    status (j_base16 (sizeof (uid), uid));
 	    if (hardformat)
 	      {
 		df (change_key (&d, 0x80, 0, masterkey + 1, NULL));	// Hard reset to zero AES
@@ -263,7 +263,7 @@ fobcommand (void *arg)
 	    if (df_authenticate (&d, 0, masterkey + 1))
 	      df (authenticate (&d, 0, NULL));
 	    df (get_uid (&d, uid));
-	    status (j_base16 (sizeof (aid), aid));
+	    status (j_base16 (sizeof (uid), uid));
 	    if (!fob)
 	      return;
 	    if (strcmp (fob, j_base16 (sizeof (uid), uid)))
