@@ -3,6 +3,7 @@ can --redirect --organisation='$SESSION_ORGANISATION' admin
 if($status) exit 0
 
 done:
+echo "Content-encoding: none" # so no deflating and hence no caching for interactive status
 xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <h1>Provision fob</h1>
 <form method=post>
@@ -13,7 +14,7 @@ Device:<select name=device><sql table=device where="nfctrusted='true' AND online
 <if found><set found><input type=submit value="Provision fob"></if>
 <if else><p>No devices on line for provisioning</p></if>
 </form>
-<if device><div id=status><p>Provisioning...</p></div></if>
+<if device><ul id=status></ul></if>
 'END'
 if($?device) then
 	message --device="$device" --aid="$aid" --fob-provision --status=status --silent

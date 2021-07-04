@@ -224,7 +224,7 @@ struct addrinfo base = { ai_family: AF_UNSPEC, ai_socktype:SOCK_STREAM };
 	    {
 	      const char *s = j_get (j, "status");
 	      if (s)
-		printf ("<script>p=document.createElement('p'),p.textContent='%s';document.getElementById('%s').append(p);</script>\n", s, status);
+		printf ("<script>e=document.createElement('li'),e.textContent='%s';document.getElementById('%s').append(e);</script>\n", s, status);
 	    }
 	  ret = 1;
 	  if (!silent)

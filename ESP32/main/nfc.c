@@ -138,11 +138,11 @@ fobevent (void)
       else if (fob.checked)
 	jo_bool (j, "disarmok", fob.disarmok);
       if (fob.armed)
-      {
-	jo_bool (j, "armed", fob.armed);
-      if (fob.armlate)
-	jo_bool (j, "armlate", fob.armlate);
-      }
+	{
+	  jo_bool (j, "armed", fob.armed);
+	  if (fob.armlate)
+	    jo_bool (j, "armlate", fob.armlate);
+	}
       else if (fob.checked)
 	jo_bool (j, "armok", fob.armok);
       if (fob.afile)
@@ -507,7 +507,7 @@ task (void *pvParameters)
 		  else if (fob.override)
 		    door_unlock (NULL, "override");	// Fob override
 		  else if (fob.deny)
-		    door_lock (NULL); // TODO not if deadlocked
+		    door_lock (NULL);	// TODO not if deadlocked
 		  else
 		    nextled = now + 200000LL;
 		  fobevent ();	// Report
@@ -583,11 +583,12 @@ nfc_command (const char *tag, jo_t j)
       xSemaphoreTake (nfc_mutex, portMAX_DELAY);
       len = pn532_dx (pn532, len, buf, sizeof (buf), &err);
       xSemaphoreGive (nfc_mutex);
-      if (len < 0)
-	return err ? : "?";
       jo_t i = jo_create_alloc ();
-      jo_base16 (i, NULL, buf, len);
-      revk_infoj (TAG, &i, NULL);
+      if (len < 0)
+	jo_string (i, NULL, err);
+      else
+	jo_base16 (i, NULL, buf, len);
+      revk_infoj (len < 0 ? "nfcerrpr" : "nfc", &i, NULL);
       return "";
     }
   if (!strcmp (tag, "nfcdone"))

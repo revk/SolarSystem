@@ -103,17 +103,22 @@ dx (void *obj, unsigned int len, unsigned char *data, unsigned int max, const ch
 	{
 	  const char *prefix = j_get (j, "_meta.prefix");
 	  const char *suffix = j_get (j, "_meta.suffix");
-	  if (prefix && suffix && !strcmp (prefix, "info") && !strcmp (suffix, "nfc"))
+	  if (prefix && suffix && !strcmp (prefix, "info"))
 	    {
-	      j_t jdata = j_find (j, "_data");
-	      if (j_isstring (jdata))
+	      if (!strcmp (suffix, "nfc"))
 		{
-		  ssize_t datalen = j_base16D (data, max, j_val (jdata));
-		  if (datalen > max)
-		    *errstr = "Too long";
-		  else
-		    len = datalen;
+		  j_t jdata = j_find (j, "_data");
+		  if (j_isstring (jdata))
+		    {
+		      ssize_t datalen = j_base16D (data, max, j_val (jdata));
+		      if (datalen > max)
+			*errstr = "Too long";
+		      else
+			len = datalen;
+		    }
 		}
+	      else if (!strcmp (suffix, "nfcerror"))
+		len = -1;
 	    }
 	}
       j_delete (&j);
@@ -125,7 +130,6 @@ void *
 fobcommand (void *arg)
 {
   nfc_t f = { };
-  warnx ("Started fobcommand");
   int sock = -1;
   char provision = 0, adopt = 0, format = 0, hardformat = 0;
   unsigned char aid[3] = { };
@@ -224,25 +228,12 @@ fobcommand (void *arg)
 
 	  unsigned char uid[7];
 
-	  void doconnect (void)
-	  {
-	    status ("Connecting to fob");
-	    df (select_application (&d, NULL));
-	    if (df_authenticate (&d, 0, masterkey + 1))
-	      df (authenticate (&d, 0, NULL));
-	    df (get_uid (&d, uid));
-	    if (!fob)
-	      return;
-	    if (strcmp (fob, j_base16 (sizeof (uid), uid)))
-	      e = "Fob mismatch";
-	    status (j_base16 (sizeof (uid), uid));
-	    warnx ("Connect done");
-	  }
 	  void doformat (void)
 	  {
 	    status ("Formatting fob");
 	    df (format (&d, *masterkey, masterkey + 1));
 	    df (get_uid (&d, uid));
+	    status (j_base16 (sizeof (aid), aid));
 	    if (hardformat)
 	      {
 		df (change_key (&d, 0x80, 0, masterkey + 1, NULL));	// Hard reset to zero AES
@@ -263,6 +254,22 @@ fobcommand (void *arg)
 	      j_store_int (j, "mem", mem);
 	      mqtt_qin (&j);
 	    }
+	  }
+
+	  void doconnect (void)
+	  {
+	    status ("Connecting to fob");
+	    df (select_application (&d, NULL));
+	    if (df_authenticate (&d, 0, masterkey + 1))
+	      df (authenticate (&d, 0, NULL));
+	    df (get_uid (&d, uid));
+	    status (j_base16 (sizeof (aid), aid));
+	    if (!fob)
+	      return;
+	    if (strcmp (fob, j_base16 (sizeof (uid), uid)))
+	      e = "Fob mismatch";
+	    status (j_base16 (sizeof (uid), uid));
+	    warnx ("Connect done");
 	  }
 
 	  void doadopt (void)
@@ -365,7 +372,8 @@ fobcommand (void *arg)
 	    {
 	      if (!e && (format || provision))
 		doformat ();
-	      if(!e)doconnect ();
+	      if (!e)
+		doconnect ();
 	      if (!e && provision)
 		doprovision ();
 	      if (!e && adopt)
@@ -385,7 +393,6 @@ fobcommand (void *arg)
   // Finish
   slot_close (f.local);
   slot_destroy (f.id);
-  warnx ("Ended fobcommand");
   return NULL;
 }
 
