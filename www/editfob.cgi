@@ -94,6 +94,7 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 </table>
 <if found><set found></if><if else><p>No devices set to auto adopt fobs.</p></if>
 </if>
+
 <table>
 <sql table="foborganisation LEFT JOIN fobaid USING (fob) LEFT JOIN aid USING (aid) LEFT JOIN access USING (access)" where="foborganisation.organisation=$SESSION_ORGANISATION" group="fob" order="max(adopted) DESC" select="*,count(aid) as N, sum(if(adopted IS NULL AND aid.aid IS NOT NULL,1,0)) AS W,sum(if(override='true',1,0)) AS O">
 <if not found><set found=1><tr>
@@ -127,7 +128,6 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <tr><td>Name</td><td colspan=2><input name=fobname size=30 autofocus></td></tr>
 <tr><td>Expiry</td><td colspan=2><input name=expires id=expires type=datetime-local><input type=button onclick='document.getElementById("expires").value="";' value="No expiry"></td></tr>
 <if blocked><tr><td>Block</td><td>Access blocked <output name=blocked> <if blocked and confirmed>(confirmed <output name=confirmed>)</if></td></tr></if>
-</if>
 <sql table="aid" where="site='$SESSION_SITE'" order=aidname><set access$aid><sql table=fobaid where="fob='$fob' AND aid='$aid'"><set access$aid=$access></sql>
 <tr>
 <td><input type=hidden name=aids value="$aid"><output name=aidname></td>
