@@ -593,10 +593,10 @@ nfc_command (const char *tag, jo_t j)
     }
   if (!strcmp (tag, "nfcdone"))
     {
-
       ESP_LOGI (TAG, "NFC access remote ended");
       fob.remote = 0;
       fob.recheck = 1;
+      nfc_led (0, NULL);
       return "";
     }
   return NULL;
