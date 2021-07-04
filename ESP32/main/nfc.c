@@ -588,7 +588,7 @@ nfc_command (const char *tag, jo_t j)
 	jo_string (i, NULL, err);
       else
 	jo_base16 (i, NULL, buf, len);
-      revk_infoj (len < 0 ? "nfcerrpr" : "nfc", &i, NULL);
+      revk_infoj (len < 0 ? "nfcerror" : "nfc", &i, NULL);
       return "";
     }
   if (!strcmp (tag, "nfcdone"))
