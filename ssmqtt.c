@@ -124,7 +124,7 @@ static void *server(void *arg)
    uint8_t rx[10000];
    uint8_t tx[10000];
    int pos = 0,
-       txp;
+       txp = 0;
    const char *fail = NULL;
    uint16_t keepalive = 0;
    time_t katimeout = time(0) + 10;
