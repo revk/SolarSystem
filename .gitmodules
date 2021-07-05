@@ -49,6 +49,3 @@
 	path = xmlsql
 	url = https://github.com/revk/xmlsql
 	branch = main
-[submodule "email"]
-	path = email
-	url = https://github.com/revk/email
