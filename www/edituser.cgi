@@ -1,4 +1,4 @@
-#!../login/loggedin --query /bin/csh -f
+#!../login/loggedin --query /bin/csh -fx
 unset user # clash with csh variable, duh
 if(! $?user) setenv user "$USER_ID"	# Edit self
 can --redirect --user="$user" edituser

@@ -106,11 +106,11 @@ main (int argc, const char *argv[])
     if (user)
       {				// User editing self
 	const char *a;
+	if (us == user)
+	  return "Editing self";
 	while ((a = poptPeekArg (optCon)))
 	  if (!can (resus, a))
 	    return NULL;
-	if (us == user)
-	  return "Editing self";
 	return NULL;		// Only admin can edit users directly
       }
     const char *getorg (char *query)

@@ -55,7 +55,7 @@ if($?fobname) then
 	endif
 	setenv expires "${expires}Z"
 	if("$expires" == "Z") unsetenv expires
-	sqlwrite -v -o -n "$DB" foborganisation fob organisation $allow
+	sqlwrite  -o -n "$DB" foborganisation fob organisation $allow
 	message --poke
 	setenv MSG "Updated"
 	goto list
