@@ -348,8 +348,8 @@ void ssdatabase(SQL * sqlp)
 #include "ssdatabase.m"
 #define table(n,l)	getrows(#n);getdefs(#n);        // Get table info
 #define	join(a,b)	getrows(#a#b);getdefs(#a#b);
-#define link(n)		linked(#n,#n);    // Foreign key
-#define link2(a,b)	linked(#a,#b);    // Foreign key under different name
+#define link(n)		linked(#n,#n);  // Foreign key
+#define link2(a,b)	linked(#a,#b);  // Foreign key under different name
 #define	text(n,l)	text(#n,l);
 #define	num(n)		field(#n,"int(10)","NULL");
 #define	ip(n)		field(#n,"varchar(39)","NULL");
