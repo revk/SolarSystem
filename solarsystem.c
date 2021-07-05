@@ -107,7 +107,7 @@ static void addwifi(j_t j, SQL_RES * s, const char *deviceid)
    {
       j_t ap = j_store_object(j, "ap");
       if (*v)
-      { // we are root node as AP
+      {                         // we are root node as AP
          if ((v = sql_colz(s, "apssid")) && *v)
             j_store_string(ap, "ssid", v);
          if ((v = sql_colz(s, "appass")) && *v)
@@ -128,6 +128,7 @@ static void addwifi(j_t j, SQL_RES * s, const char *deviceid)
          j_store_string(wifi, "ssid", v);
       if ((v = sql_colz(s, "appass")) && *v)
          j_store_string(wifi, "pass", v);
+      j_store_string(wifi,"mqtt",deviceid);
       if ((v = sql_colz(s, "aplr")) && *v && *v == 't')
          j_store_string(ap, "lr", v);
    }
@@ -535,11 +536,10 @@ int main(int argc, const char *argv[])
                return fail;
             } else if ((v = j_get(meta, "deport")))
             {
-               j_store_null(j, "clientcert");
-               j_store_null(j, "clientkey");
-               j_store_string(j, "mqtthost", v);
-               j_store_string(j, "mqttcert", "");
-               j_store_null(j, "mqttport");
+               j_store_object(j, "client");     // Clear client
+               j_t mqtt = j_store_object(j, "mqtt");
+               j_store_string(mqtt, "host", v);
+               j_store_string(mqtt, "cert", "");        // Cleared as typically in factory default
                const char *fail = slot_send(id, "setting", NULL, &j);
                // Set online later to remove from pending lists in UI
                if (!fail)
