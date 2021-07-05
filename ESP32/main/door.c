@@ -372,7 +372,7 @@ door_fob (fob_t * fob)
 	      }
 	    if (e)
 	      {
-		if (fob->armlate && fob->held && (!fob->armset || !(area & ~fob->arm)))
+		if (fob->armlate && fob->held && !(area & ~fob->arm))
 		  {
 		    fob->armok = 1;
 		    return e;
@@ -383,13 +383,13 @@ door_fob (fob_t * fob)
       }
     if (fob->block)
       return "Card blocked";
-    if (fob->held && fob->disarmset && !(area & ~fob->disarm))
+    if (fob->held && !(area & ~fob->disarm))
       fob->disarmok = 1;
-    else if (!fob->held && (!fob->armset || !(area & ~fob->arm)))
+    else if (!fob->held && !(area & ~fob->arm))
       fob->armok = 1;
     if (doordeadlock && (doorauto < 5 || !fob->disarmok))
       return "Deadlocked";
-    if (!fob->enterset || !(area & ~fob->enter))
+    if (!(area & ~fob->enter))
       fob->unlockok = 1;
     return NULL;
   }
