@@ -143,19 +143,23 @@ settings (SQL * sqlp, SQL_RES * res, slot_t id)
 	{
 #define set(n) {const char *v=sql_colz(p,#n);if(!*v||!strcmp(v,"-"))j_store_string(j,#n,""); else j_store_literal(j,#n,v);}
 	  set (tamper);
-	  set (keypadtx);
-	  set (keypadrx);
-	  set (keypadre);
-	  set (keypadde);
-	  set (nfctx);
-	  set (nfcrx);
-	  set (nfcpower);
-	  set (nfcred);
-	  set (nfcamber);
-	  set (nfcgreen);
-	  set (nfctamper);
-	  set (nfcbell);
-	  set (nfccard);
+#undef set
+	  j_t o=j_store_object(j,"keypad");
+#define set(h,c) {const char *v=sql_colz(p,#h#c);if(v&&strcmp(v,"-"))j_store_literal(o,#c,v);}
+	  set (keypad,tx);
+	  set (keypad,rx);
+	  set (keypad,re);
+	  set (keypad,de);
+	  o=j_store_object(j,"nfc");
+	  set (nfc,tx);
+	  set (nfc,rx);
+	  set (nfc,power);
+	  set (nfc,red);
+	  set (nfc,amber);
+	  set (nfc,green);
+	  set (nfc,tamper);
+	  set (nfc,bell);
+	  set (nfc,card);
 #undef set
 	  j_t blink = j_store_array (j, "blink");
 #define led(n) {const char *v=sql_colz(p,#n);if(!*v||!strcmp(v,"-"))j_append_string(blink,""); else j_append_literal(blink,v);}
