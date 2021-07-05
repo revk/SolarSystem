@@ -100,6 +100,39 @@ const char *security(SQL * sqlp, SQL * sqlkeyp, SQL_RES * res, slot_t id)
    return NULL;
 }
 
+static void addwifi(j_t j, SQL_RES * s, const char *deviceid)
+{
+   const char *v = sql_colz(s, "device");
+   if (!*v || strcmp(v, deviceid))
+   {
+      j_t ap = j_store_object(j, "ap");
+      if (*v)
+      { // we are root node as AP
+         if ((v = sql_colz(s, "apssid")) && *v)
+            j_store_string(ap, "ssid", v);
+         if ((v = sql_colz(s, "appass")) && *v)
+            j_store_string(ap, "pass", v);
+         if ((v = sql_colz(s, "aplr")) && *v && *v == 't')
+            j_store_string(ap, "lr", v);
+      }
+      j_t wifi = j_store_object(j, "wifi");
+      if ((v = sql_colz(s, "wifissid")) && *v)
+         j_store_string(wifi, "ssid", v);
+      if ((v = sql_colz(s, "wifipass")) && *v)
+         j_store_string(wifi, "pass", v);
+   } else
+   {                            // We are client or root node
+      j_t ap = j_store_object(j, "ap");
+      j_t wifi = j_store_object(j, "wifi");
+      if ((v = sql_colz(s, "apssid")) && *v)
+         j_store_string(wifi, "ssid", v);
+      if ((v = sql_colz(s, "appass")) && *v)
+         j_store_string(wifi, "pass", v);
+      if ((v = sql_colz(s, "aplr")) && *v && *v == 't')
+         j_store_string(ap, "lr", v);
+   }
+}
+
 const char *settings(SQL * sqlp, SQL_RES * res, slot_t id)
 {                               // Send base settings
    j_t j = j_create();
@@ -113,9 +146,7 @@ const char *settings(SQL * sqlp, SQL_RES * res, slot_t id)
       SQL_RES *s = sql_safe_query_store_free(sqlp, sql_printf("SELECT * FROM `site` WHERE `site`=%d", site));
       if (sql_fetch_row(s))
       {
-         j_t wifi = j_store_object(j, "wifi");
-         j_store_string(wifi, "ssid", sql_col(s, "wifissid"));
-         j_store_string(wifi, "pass", sql_col(s, "wifipass"));
+         addwifi(j, s, sql_colz(res, "device"));
          const char *host = sql_colz(s, "iothost");
          j_t iot = j_store_object(j, "iot");
          if (*host)
@@ -493,10 +524,7 @@ int main(int argc, const char *argv[])
                   SQL_RES *s = sql_safe_query_store_free(&sql, sql_printf("SELECT * FROM `aid` LEFT JOIN `site` USING (`site`) WHERE `aid`=%#s", aid));
                   if (sql_fetch_row(s))
                   {
-                     j = j_create();
-                     j_t wifi = j_store_object(j, "wifi");
-                     j_store_string(wifi, "ssid", sql_col(s, "wifissid"));
-                     j_store_string(wifi, "pass", sql_col(s, "wifipass"));
+                     addwifi(j, s, deviceid);
                      fail = slot_send(id, "setting", NULL, &j);
                   }
                   sql_free_result(s);

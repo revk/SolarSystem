@@ -119,8 +119,10 @@ text(sitename, 0);
 text(wifissid,0);		// Site WiFi settings
 text(wifipass,0);		// Site WiFi settings
 text(iothost,0);		// IoT host for local MQTT
-text(meshid, 12);               // Hex Mesh ID
-// TODO key / crypto?
+text(apssid,0);			// AP settings
+text(appass,0);			//
+bool(aplr);			//
+link(device);			// Primary device (AP)
 
 table(area, 0);
 link(organisation);		// Quicker
