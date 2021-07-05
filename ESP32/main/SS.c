@@ -237,7 +237,7 @@ void app_main()
       snprintf(topic, sizeof(topic), "state/%s/%s", revk_appname(), revk_id);
       lwmqtt_config_t config = {
          .client = revk_id,
-         .host = iothost,
+         .hostname = iothost,
          .username = iotuser,
          .password = iotpass,
          .callback = &iot_rx,
