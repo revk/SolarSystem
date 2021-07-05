@@ -260,8 +260,7 @@ void app_main()
          config.client_key_pem = (void *) clientkey->data;
          config.client_key_len = clientkey->len;
       }
-      iot = lwmqtt_init(&config);
-      // TODO this could feed enough state for live MQTT / websocket status
+      iot = lwmqtt_client(&config);
    }
    // Main loop, if needed
    if (!tamper)
