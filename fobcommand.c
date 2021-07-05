@@ -33,6 +33,7 @@ typedef struct nfc_s {
    slot_t id;                   // Us
    slot_t local;                // Local command
    slot_t device;               // Remote device
+   const char *deviceid;
    unsigned char remote:1;
    unsigned char connected:1;
    unsigned char held:1;
@@ -90,7 +91,7 @@ static int dx(void *obj, unsigned int len, unsigned char *data, unsigned int max
    {                            // Send
       j_t j = j_create();
       j_string(j, j_base16(len, data));
-      slot_send(f->device, "command", "nfc", &j);
+      slot_send(f->device, "command", f->deviceid, "nfc", &j);
    }
    len = 0;
    while (!f->done && !len)
@@ -136,7 +137,6 @@ void *fobcommand(void *arg)
    unsigned char aid1key[17] = { };
    unsigned char afile[256];
    int organisation = 0;
-   char *deviceid = NULL;
    char *fob = NULL;
    {                            // Get passed settings
       j_t j = arg;
@@ -158,7 +158,7 @@ void *fobcommand(void *arg)
          format = 1;
       const char *v = j_get(j, "deviceid");
       if (v)
-         deviceid = strdupa(v);
+         f.deviceid = strdupa(v);
       v = j_get(j, "fob");
       if (v)
          fob = strdupa(v);
@@ -178,14 +178,14 @@ void *fobcommand(void *arg)
          return;
       j_t j = j_create();
       j_store_string(j, "status", msg);
-      slot_send(f.local, NULL, NULL, &j);
+      slot_send(f.local, NULL, f.deviceid, NULL, &j);
    }
    void led(const char *led) {
       if (!f.device)
          return;
       j_t j = j_create();
       j_string(j, led);
-      slot_send(f.device, "command", "led", &j);
+      slot_send(f.device, "command", f.deviceid, "led", &j);
    }
    const char *e = NULL;
    const char *dfcheck(const char *res, const char *func, int line) {
@@ -200,7 +200,7 @@ void *fobcommand(void *arg)
 #define df(x) if(dfcheck(df_##x,#x,__LINE__))return
    if (provision || adopt || format)
    {
-      slot_send(f.device, "command", "nfcremote", NULL);
+      slot_send(f.device, "command", f.deviceid, "nfcremote", NULL);
       if (fob)
          f.connected = 1;       // Already connected
       df_t d;
@@ -244,7 +244,7 @@ void *fobcommand(void *arg)
                j_store_string(j, "fob", j_base16(sizeof(uid), uid));
                if (aid[0] || aid[1] || aid[2])
                   j_store_string(j, "aid", j_base16(sizeof(aid), aid));
-               j_store_string(j, "deviceid", deviceid);
+               j_store_string(j, "deviceid", f.deviceid);
                j_store_int(j, "mem", mem);
                mqtt_qin(&j);
             }
@@ -325,7 +325,7 @@ void *fobcommand(void *arg)
                if (aid[0] || aid[1] || aid[2])
                   j_store_string(j, "aid", j_base16(sizeof(aid), aid));
                j_store_string(j, "aid0key", j_base16(sizeof(aid0key), aid0key));
-               j_store_string(j, "deviceid", deviceid);
+               j_store_string(j, "deviceid", f.deviceid);
                if (organisation)
                   j_store_int(j, "organisation", organisation);
                j_store_int(j, "mem", mem);
@@ -382,7 +382,7 @@ void *fobcommand(void *arg)
          j_t j = getmsg(&f);
          j_delete(&j);
       }
-   slot_send(f.device, "command", "nfcdone", NULL);
+   slot_send(f.device, "command", f.deviceid, "nfcdone", NULL);
    if (e)
       status(*e ? e : "Card gone");
    if (e && *e && mqttdump)

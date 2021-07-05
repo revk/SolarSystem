@@ -16,5 +16,5 @@ slot_t slot_linked(slot_t);     // Return the linked slot (cleared if linked slo
 void slot_link(slot_t, slot_t); // Link two slots, both show slot_linked as the other
 void slot_close(slot_t);        // Sends the server a zero length message to the server asking it to close and destroy
 void slot_destroy(slot_t);      // Destroy a slot, called by server when closing, handles socket closing, unlinks
-const char *slot_send(slot_t, const char *prefix, const char *suffix, j_t *);   // Set MQTT formatted message to a slot
+const char *slot_send(slot_t, const char *prefix, const char *deviceid, const char *suffix, j_t *);     // Set MQTT formatted message to a slot
 void slot_setdeviceid(slot_t id, device_t deviceid);

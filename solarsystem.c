@@ -62,7 +62,7 @@ const char *upgrade(SQL_RES * res, slot_t id)
    const char *upgrade = sql_col(res, "upgrade");
    if (!upgrade || j_time(upgrade) > time(0))
       return NULL;
-   slot_send(id, "command", "upgrade", NULL);
+   slot_send(id, "command", sql_colz(res, "device"), "upgrade", NULL);
    return upgrade;
 }
 
@@ -95,7 +95,7 @@ const char *security(SQL * sqlp, SQL * sqlkeyp, SQL_RES * res, slot_t id)
       sql_free_result(b);
    }
    if (!j_isnull(j))
-      slot_send(id, "setting", NULL, &j);
+      slot_send(id, "setting", sql_colz(res, "device"), NULL, &j);
    j_delete(&j);
    return NULL;
 }
@@ -262,7 +262,7 @@ const char *settings(SQL * sqlp, SQL_RES * res, slot_t id)
       sql_free_result(g);
    }
    if (!j_isnull(j))
-      slot_send(id, "setting", NULL, &j);
+      slot_send(id, "setting", sql_colz(res, "device"), NULL, &j);
    j_delete(&j);
    return NULL;
 }
@@ -272,7 +272,7 @@ void bogus(slot_t id)
    j_t m = j_create();
    j_store_string(m, "clientkey", "");
    j_store_string(m, "clientcert", "");
-   slot_send(id, "setting", NULL, &m);
+   slot_send(id, "setting", NULL, NULL, &m);
 }
 
 void daily(SQL * sqlp)
@@ -513,13 +513,13 @@ int main(int argc, const char *argv[])
                j_t j = j_create();
                j_store_string(j, "clientcert", cert);
                free(cert);
-               const char *fail = slot_send(id, "setting", NULL, &j);
+               const char *fail = slot_send(id, "setting", deviceid, NULL, &j);
                j = j_create();
                j_store_string(j, "clientkey", key);
                free(key);
                if (fail)
                   return fail;
-               fail = slot_send(id, "setting", NULL, &j);
+               fail = slot_send(id, "setting", deviceid, NULL, &j);
                const char *aid = j_get(meta, "aid");
                if (aid && !fail)
                {
@@ -527,7 +527,7 @@ int main(int argc, const char *argv[])
                   if (sql_fetch_row(s))
                   {
                      addwifi(j, s, deviceid, NULL);
-                     fail = slot_send(id, "setting", NULL, &j);
+                     fail = slot_send(id, "setting", deviceid, NULL, &j);
                   }
                   sql_free_result(s);
                }
@@ -541,7 +541,7 @@ int main(int argc, const char *argv[])
                j_t mqtt = j_store_object(j, "mqtt");
                j_store_string(mqtt, "host", v);
                j_store_string(mqtt, "cert", "");        // Cleared as typically in factory default
-               const char *fail = slot_send(id, "setting", NULL, &j);
+               const char *fail = slot_send(id, "setting", deviceid, NULL, &j);
                // Set online later to remove from pending lists in UI
                if (!fail)
                   sql_safe_query_free(&sql, sql_printf("UPDATE `pending` SET `online`=%#T WHERE `pending`=%#s", time(0) + 60, deviceid));
@@ -555,9 +555,9 @@ int main(int argc, const char *argv[])
                const char *fail = NULL;
                j_t data = j_find(j, "_data");
                if (data)
-                  slot_send(id, v, suffix, &data);
+                  slot_send(id, v, suffix, deviceid, &data);
                else
-                  slot_send(id, v, suffix, &j);
+                  slot_send(id, v, suffix, deviceid, &j);
                return fail;
             } else if (j_find(meta, "fobprovision"))
             {
@@ -631,12 +631,12 @@ int main(int argc, const char *argv[])
                   {             // Send reply
                      j_t j = j_create();
                      j_string(j, reply);
-                     slot_send(id, NULL, NULL, &j);     // reply
+                     slot_send(id, NULL, deviceid, NULL, &j);   // reply
                   }
                   if (!forked)
                   {             // Tell command we are closed
                      j_t j = j_create();
-                     slot_send(id, NULL, NULL, &j);
+                     slot_send(id, NULL, deviceid, NULL, &j);
                   }
                }
                return reply;
@@ -782,7 +782,7 @@ int main(int argc, const char *argv[])
                                  warnx("CRC mismatch %08X %08X", was, new);
                               j_t a = j_create();
                               j_string(a, j_base16a(*afile + 1, afile));
-                              slot_send(id, "command", "access", &a);
+                              slot_send(id, "command", deviceid, "access", &a);
                            }
                         }
                      }
@@ -850,7 +850,7 @@ int main(int argc, const char *argv[])
             {
                slot_t l = slot_linked(id);
                if (l)
-                  slot_send(l, prefix, suffix, &j);     // Send to linked session
+                  slot_send(l, prefix, deviceid, suffix, &j);   // Send to linked session
             }
             return NULL;
          }

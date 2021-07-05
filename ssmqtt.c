@@ -90,10 +90,7 @@ static void *server(void *arg)
       {
          device_t id;
          if (X509_NAME_get_text_by_NID(subject, NID_commonName, id, sizeof(id)) == sizeof(id) - 1)
-         {
             strcpy(device, id);
-            slot_setdeviceid(us, id);
-         }
       }
       X509_free(cert);
    }
@@ -503,7 +500,6 @@ static int slot_count = 0;
 struct slots_s {
    slot_t id;                   // Slot ID
    slot_t linked;               // Linked ID
-   device_t deviceid;           // Device id
    int txsock;                  // Socket for sending data
    int rxsock;                  // Socket for receiving data
 };
@@ -532,7 +528,6 @@ slot_t slot_create(int *sockp, const char *address)
       if (sockp)
          *sockp = sp[1];
    }
-   strcpy(slot->deviceid, "*");
    slot->id = slot_id;
    slot->linked = 0;
    slot_count++;
@@ -605,7 +600,7 @@ void slot_destroy(slot_t id)
       warnx("Destroy %lld, slot count %d", id, slot_count);
 }
 
-const char *slot_send(slot_t id, const char *prefix, const char *suffix, j_t * jp)
+const char *slot_send(slot_t id, const char *prefix, const char *deviceid, const char *suffix, j_t * jp)
 {
    char *buf = NULL;
    char *topic = NULL;
@@ -616,7 +611,7 @@ const char *slot_send(slot_t id, const char *prefix, const char *suffix, j_t * j
       *jp = NULL;
    }
    const char *process(void) {
-      if ((!prefix && !(topic = strdup(""))) || (prefix && asprintf(&topic, "%s/SS/%s%s%s", prefix, slots[id % SLOT_MAX].deviceid, suffix ? "/" : "", suffix ? : "") < 0))
+      if ((!prefix && !(topic = strdup(""))) || (prefix && asprintf(&topic, "%s/SS/%s%s%s", prefix, (deviceid && *deviceid) ? deviceid : "*", suffix ? "/" : "", suffix ? : "") < 0))
          return "malloc";
 
       uint8_t tx[2048];         // Sane limit
@@ -653,14 +648,4 @@ const char *slot_send(slot_t id, const char *prefix, const char *suffix, j_t * j
       warnx("tx MQTT fail: %s", fail);
    j_delete(&j);
    return fail;
-}
-
-void slot_setdeviceid(slot_t id, device_t deviceid)
-{
-   pthread_mutex_lock(&slot_mutex);
-   if (slots[id % SLOT_MAX].id != id)
-   {
-      strcpy(slots[id % SLOT_MAX].deviceid, deviceid);
-   }
-   pthread_mutex_unlock(&slot_mutex);
 }
