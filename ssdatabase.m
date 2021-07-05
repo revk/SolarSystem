@@ -201,8 +201,9 @@ datetime(upgrade);              // When to do upgrade
 ip(address);                    // IP address when last online
 num(id);	               	// Instance for communications when on line
 datetime(poke);			// Poke settings
+text(tamper,0);			// Latest tamper state
+text(fault,0);			// Latest fault state
 // TODO hold times, lock times, etc...
-// TODO status, like door states, tamper, fault, etc
 
 join(device,gpio)
 gpiotype(type);			// Pin Usage (in/out/power/exit/etc)

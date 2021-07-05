@@ -69,7 +69,7 @@ xmlsql -C -d "$DB" head.html - foot.html << END
 <h1>Device</h1>
 <if not device>
 <table border=1>
-<tr><th>Device</th><th>Online</th><th>IP</th><th>Version</th><th>PCB</th><th>Name</th></tr>
+<tr><th>Device</th><th>Online</th><th>IP</th><th>Version</th><th>PCB</th><th>Name</th><th>Notes</th></tr>
 <sql where="organisation=$SESSION_ORGANISATION" table="device LEFT JOIN pcb USING (pcb)" order=device.devicename WHERE="site=\$SESSION_SITE"><set found=1>
 <tr>
 <td><output name=device href="/editdevice.cgi/\$device"></td>
@@ -78,7 +78,11 @@ xmlsql -C -d "$DB" head.html - foot.html << END
 <td><output name=version><if upgrade> (upgrade scheduled)</if></td>
 <td><output name=pcbname></td>
 <td><output name=devicename blank="Unnamed" missing="Unnamed"></td>
-<td><if door=true>Door </if><if nfc=true>NFC reader </if><if nfcadmin=true> (admin)</if><if nfctrusted=true><b> (trusted)</b></if></td>
+<set s><if not fault="{}"><set s="background:yellow;"></if><if not tamper="{}"><set s="background:red;"></if>
+<td style="\$s"><if door=true>Door </if><if nfc=true>NFC reader </if><if nfcadmin=true> (admin)</if><if nfctrusted=true><b> (trusted)</b></if><br>
+<if not tamper="{}">Tamper:<b><output name=tamper></b><br></if>
+<if not fault="{}">Fault:<b><output name=fault></b><br></if>
+</td>
 </tr>
 </sql>
 </table>
