@@ -130,7 +130,7 @@ main (int argc, const char *argv[])
     }
     const char *e = NULL;
     if (!e && sdevice)
-      e = getorg (sql_printf ("SELECT * FROM `device` WHERE `device`=%d", sdevice));
+      e = getorg (sql_printf ("SELECT * FROM `device` WHERE `device`=%#s", sdevice));
     if (!e && site)
       e = getorg (sql_printf ("SELECT * FROM `site` WHERE `site`=%d", site));
     if (!e && said)
