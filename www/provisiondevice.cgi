@@ -39,9 +39,9 @@ endif
 done:
 xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <h1>Provision device for this site</h1>
-<p>Note that the device will have WiFi set for the selected site.</p>
 <form style="display:inline;" method=post>
-PCB:<select name=pcb><option value=0>-- Pick PCB --</option><sql table=pcb order=pcbname ><option value=$pcb><output name=pcbname blank="Unnamed"></option></sql></select><br>
+PCB:<select name=pcb><option value=0>-- Pick PCB --</option><sql table=pcb order=pcbname ><option value=$pcb><output name=pcbname blank="Unnamed"></option></sql></select>
+Note that the device will have WiFi set for the selected site (<b><sql table=site where="site='$SESSION_SITE'"><output name=wifissid></sql></b>).<br>
 AID:<select name=aid><sql table=aid WHERE="site=$SESSION_SITE"><option value=$aid><output name=aidname></option></sql></select><br>
 Deport:<input name=deport size=20 placeholder='MQTT server' autofocus><br>
 <table border=1>

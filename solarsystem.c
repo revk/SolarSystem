@@ -398,6 +398,7 @@ main (int argc, const char *argv[])
       j_err (j_write_fd (j, f));
       close (f);
       j_delete (&j);
+      warnx("New "CONFIG_MSG_KEY_FILE" may need group change for www-data");
     }
   // Connect
   sstypes ("types");

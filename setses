@@ -1,4 +1,4 @@
-if(! $?SESSION_ORGANISATION && ! $?USER_ADMIN) then
+if(! $?SESSION_ORGANISATION && "$USER_ADMIN" == false) then
         setenv C `sql "$DB" 'SELECT COUNT(*) FROM userorganisation WHERE user=$USER_ID'`
         if("$C" == 1) then
                 setenv SESSION_ORGANISATION `sql "$DB" 'SELECT organisation FROM userorganisation WHERE user=$USER_ID'`
