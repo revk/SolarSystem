@@ -123,7 +123,6 @@ text(sitename, 0);
 text(wifissid,0);		// Site WiFi settings
 text(wifipass,0);		// Site WiFi settings
 text(iothost,0);		// IoT host for local MQTT
-bool(aplr);			//
 
 table(area, 0);
 link(organisation);		// Quicker

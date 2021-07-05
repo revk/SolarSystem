@@ -100,36 +100,34 @@ const char *security(SQL * sqlp, SQL * sqlkeyp, SQL_RES * res, slot_t id)
    return NULL;
 }
 
-static void addwifi(j_t j, SQL_RES * s, const char *deviceid)
+static void addwifi(j_t j, SQL_RES * s, const char *deviceid, const char *parentid)
 {
-   const char *v = sql_colz(s, "device");
-   if (!*v || strcmp(v, deviceid))
-   {
-      j_t ap = j_store_object(j, "ap");
-      if (*v)
-      {                         // we are root node as AP
-         if ((v = sql_colz(s, "apssid")) && *v)
-            j_store_string(ap, "ssid", v);
-         if ((v = sql_colz(s, "wifipass")) && *v)
-            j_store_string(ap, "pass", v);
-         if ((v = sql_colz(s, "aplr")) && *v && *v == 't')
-            j_store_string(ap, "lr", v);
-      }
+   const char *v;               // temp
+   if (!parentid || !*parentid || !strcmp(parentid, deviceid))
+      parentid = NULL;          // Not senible
+   if (parentid)
+   {                            // We are slave node so expect parent as wifi
+      j_t wifi = j_store_object(j, "wifi");
+      j_store_string(wifi, "ssid", deviceid);
+      if ((v = sql_colz(s, "wifipass")) && *v)
+         j_store_string(wifi, "pass", v);
+      j_store_string(wifi, "mqtt", deviceid);   // Sets MQTT to connect to gateway using this as TLS common name
+      j_store_true(wifi, "lr");
+   } else
+   {                            // We are parent node so expect base wifi
       j_t wifi = j_store_object(j, "wifi");
       if ((v = sql_colz(s, "wifissid")) && *v)
          j_store_string(wifi, "ssid", v);
       if ((v = sql_colz(s, "wifipass")) && *v)
          j_store_string(wifi, "pass", v);
-   } else
-   {                            // We are client or root node
-      j_t ap = j_store_object(j, "ap");
-      j_t wifi = j_store_object(j, "wifi");
-      j_store_string(wifi, "ssid", deviceid);
-      if ((v = sql_colz(s, "appass")) && *v)
-         j_store_string(wifi, "pass", v);
-      j_store_string(wifi, "mqtt", deviceid);
-      if ((v = sql_colz(s, "aplr")) && *v && *v == 't')
-         j_store_string(ap, "lr", v);
+   }
+   j_t ap = j_store_object(j, "ap");
+   if (deviceid && *deviceid)
+   {                            // We are to serve as AP for client devices
+      j_store_string(ap, "ssid", deviceid);
+      if ((v = sql_colz(s, "wifipass")) && *v)
+         j_store_string(ap, "pass", v);
+      j_store_true(ap, "lr");
    }
 }
 
@@ -146,7 +144,7 @@ const char *settings(SQL * sqlp, SQL_RES * res, slot_t id)
       SQL_RES *s = sql_safe_query_store_free(sqlp, sql_printf("SELECT * FROM `site` WHERE `site`=%d", site));
       if (sql_fetch_row(s))
       {
-         addwifi(j, s, sql_colz(res, "device"));
+         addwifi(j, s, sql_colz(res, "device"), sql_col(res, "parent"));
          const char *host = sql_colz(s, "iothost");
          j_t iot = j_store_object(j, "iot");
          if (*host)
@@ -528,7 +526,7 @@ int main(int argc, const char *argv[])
                   SQL_RES *s = sql_safe_query_store_free(&sql, sql_printf("SELECT * FROM `aid` LEFT JOIN `site` USING (`site`) WHERE `aid`=%#s", aid));
                   if (sql_fetch_row(s))
                   {
-                     addwifi(j, s, deviceid);
+                     addwifi(j, s, deviceid, NULL);
                      fail = slot_send(id, "setting", NULL, &j);
                   }
                   sql_free_result(s);
