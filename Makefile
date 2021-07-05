@@ -31,7 +31,7 @@ all: alarmpanel cardissue solarsystem can message makeaid sscert login.conf SQLl
 	cp $< $@
 
 apt:
-	sudo apt install libpopt-dev  libssl-dev  libcurl4-openssl-dev  libmosquitto-dev  libmariadbd-dev  kconfig-frontends libargon2-dev python3-certbot-apache
+	sudo apt install libpopt-dev  libssl-dev  libcurl4-openssl-dev  libmosquitto-dev  libmariadbd-dev  kconfig-frontends libargon2-dev python3-certbot-apache libgpgme-dev
 
 update:
 	git submodule update --init --remote --recursive
