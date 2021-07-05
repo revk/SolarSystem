@@ -32,6 +32,8 @@ static const char *port_inuse[MAX_PORT];
 	b(iotstatedoor)	\
 	b(iotstateinput)\
 	b(iotstateoutput)\
+	b(iotstatefault)\
+	b(iotstatetamper)\
 	b(ioteventfob)	\
 
 
@@ -74,7 +76,6 @@ static void status_report(int force)
 #define m(n) extern const char *n##_fault;if(n##_fault){jo_string(j,#n,n##_fault);faults++;}
       modules m(controller)
 #undef m
-      char *fault = jo_finisha(&j);
       if (!faults && force && reason >= 0)
       {
          const char *r = NULL;
@@ -103,33 +104,30 @@ static void status_report(int force)
          }
          reason = -1;           // Just once
       }
+      const char *fault = jo_rewind(j);
       if (strcmp(fault ? : "", lastfault ? : "") || force)
       {
          if (lastfault)
             free(lastfault);
-         lastfault = fault;
-         fault = NULL;
-         revk_state("fault", "%s", lastfault);
+         lastfault = strdup(fault);
+         revk_statej("fault", &j, iotstatefault ? iot : NULL);
       }
-      if (fault)
-         free(fault);
+      jo_free(&j); // safe to call even if freed by revk_statej
    }
    {                            // Tampers
       jo_t j = jo_object_alloc();
 #define m(n) extern const char *n##_tamper;if(n##_tamper){jo_string(j,#n,n##_tamper);tampers++;}
       modules m(controller)
 #undef m
-      char *tamper = jo_finisha(&j);
+      const char *tamper = jo_rewind(j);
       if (strcmp(tamper ? : "", lasttamper ? : "") || force)
       {
          if (lasttamper)
             free(lasttamper);
-         lasttamper = tamper;
-         tamper = NULL;
-         revk_state("tamper", "%s", lasttamper);
+         lasttamper = strdup(tamper);
+         revk_statej("tamper", &j, iotstatetamper ? iot : NULL);
       }
-      if (tamper)
-         free(tamper);
+      jo_free(&j); // safe to call even if freed by revk_statej
    }
    if (tampers)
       revk_blink(1, 1);
@@ -213,7 +211,7 @@ void app_main()
 {
    reason = esp_reset_reason();
    revk_init(&app_command);
-   revk_register("iot", 0, 0, &iothost, NULL, SETTING_SECRET);       // iot group
+   revk_register("iot", 0, 0, &iothost, NULL, SETTING_SECRET);  // iot group
 #define io(n) revk_register(#n,0,sizeof(n),&n,BITFIELDS,SETTING_SET|SETTING_BITFIELD);
 #define s(n) revk_register(#n,0,0,&n,NULL,0);
 #define area(n) revk_register(#n,0,sizeof(n),&n,AREAS,SETTING_BITFIELD);

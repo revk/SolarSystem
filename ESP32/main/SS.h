@@ -11,6 +11,8 @@ extern lwmqtt_t iot;            // IoT stuff
 extern uint8_t iotstatedoor;
 extern uint8_t iotstateinput;
 extern uint8_t iotstateoutput;
+extern uint8_t iotstatefault;
+extern uint8_t iotstatetamper;
 extern uint8_t ioteventfob;
 
 #define	MAX_PORT	40
