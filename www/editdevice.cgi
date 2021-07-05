@@ -117,7 +117,7 @@ xmlsql -C -d "$DB" head.html - foot.html << END
 <if nfc=true><tr><td><label for=nfcadmin>Admin NFC reader</label></td><td><input type=checkbox id=nfcadmin name=nfcadmin value=true></td></tr></if>
 <if USER_ADMIN=true nfc=true><tr><td><label for=nfctrusted>Trusted NFC reader</label></td><td><input type=checkbox id=nfctrusted name=nfctrusted value=true></td></tr></if>
 </sql>
-<sql table="device JOIN gpio USING (pcb) LEFT JOIN devicegpio ON (devicegpio.device=device.device AND devicegpio.gpio=gpio.gpio)" WHERE="device.device='\$device'">
+<sql select="gpio.*,devicegpio.*" table="device JOIN gpio USING (pcb) LEFT JOIN devicegpio ON (devicegpio.device=device.device AND devicegpio.gpio=gpio.gpio)" WHERE="device.device='\$device'">
 <tr><td><output name=pinname href="/editgpio.cgi/\$device/\$gpio"></td>
 <if type><td><b><output name=type $GPIOTYPEOUT><if invert=true> (inverted)</if></b><for space S="$STATELIST"><if not "\$S"=''> <output name=S></if></for></td></if>
 <if not type><td><b><output name=io $GPIOIOOUT></td></if>
