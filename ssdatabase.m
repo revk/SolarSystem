@@ -12,6 +12,10 @@
 #define	link(n)                 // Foreign key link to table n
 #endif
 
+#ifndef	link2
+#define	link2(a,b)                 // Foreign key link to table n under different name
+#endif
+
 #ifndef	unique
 #define unique(a,b)             // Unique key for a/b
 #endif
@@ -119,10 +123,7 @@ text(sitename, 0);
 text(wifissid,0);		// Site WiFi settings
 text(wifipass,0);		// Site WiFi settings
 text(iothost,0);		// IoT host for local MQTT
-text(apssid,0);			// AP settings
-text(appass,0);			//
 bool(aplr);			//
-link(device);			// Primary device (AP)
 
 table(area, 0);
 link(organisation);		// Quicker
@@ -177,6 +178,7 @@ text(fobname,0);		// Name of fob user
 datetime(expires);			// Fixed expiry (local time on server)
 
 table(device, 12);
+link2(device,parent);		// Parent in WiFi tree
 text(devicename, 0);
 link(organisation);		// Yes, can get from site, but useful to reference quickly
 link(site);                     // The site the device is on
@@ -263,6 +265,7 @@ text(aidname, 0);
 #undef table
 #undef join
 #undef link
+#undef link2
 #undef unique
 #undef key
 #undef index

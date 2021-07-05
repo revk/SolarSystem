@@ -110,7 +110,7 @@ static void addwifi(j_t j, SQL_RES * s, const char *deviceid)
       {                         // we are root node as AP
          if ((v = sql_colz(s, "apssid")) && *v)
             j_store_string(ap, "ssid", v);
-         if ((v = sql_colz(s, "appass")) && *v)
+         if ((v = sql_colz(s, "wifipass")) && *v)
             j_store_string(ap, "pass", v);
          if ((v = sql_colz(s, "aplr")) && *v && *v == 't')
             j_store_string(ap, "lr", v);
@@ -124,11 +124,10 @@ static void addwifi(j_t j, SQL_RES * s, const char *deviceid)
    {                            // We are client or root node
       j_t ap = j_store_object(j, "ap");
       j_t wifi = j_store_object(j, "wifi");
-      if ((v = sql_colz(s, "apssid")) && *v)
-         j_store_string(wifi, "ssid", v);
+      j_store_string(wifi, "ssid", deviceid);
       if ((v = sql_colz(s, "appass")) && *v)
          j_store_string(wifi, "pass", v);
-      j_store_string(wifi,"mqtt",deviceid);
+      j_store_string(wifi, "mqtt", deviceid);
       if ((v = sql_colz(s, "aplr")) && *v && *v == 't')
          j_store_string(ap, "lr", v);
    }
