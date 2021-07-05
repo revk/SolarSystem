@@ -33,7 +33,6 @@ all: alarmpanel cardissue solarsystem can message makeaid sscert login.conf SQLl
 apt:
 	sudo apt install libpopt-dev  libssl-dev  libcurl4-openssl-dev  libmosquitto-dev  libmariadbd-dev  kconfig-frontends libargon2-dev python3-certbot-apache
 
-
 update:
 	git submodule update --init --remote --recursive
 	git commit -a -m "Library update"
@@ -43,6 +42,7 @@ update:
 	make -C SQLlib
 	make -C AJL
 	make -C DESFireAES
+	make -C email
 
 PCBCase/case: PCBCase/case.c
 	make -C PCBCase
