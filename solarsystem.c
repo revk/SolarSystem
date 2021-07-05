@@ -555,9 +555,9 @@ int main(int argc, const char *argv[])
                const char *fail = NULL;
                j_t data = j_find(j, "_data");
                if (data)
-                  slot_send(id, v, suffix, deviceid, &data);
+                  slot_send(id, v, deviceid, suffix, &data);
                else
-                  slot_send(id, v, suffix, deviceid, &j);
+                  slot_send(id, v, deviceid, suffix, &j);
                return fail;
             } else if (j_find(meta, "fobprovision"))
             {
