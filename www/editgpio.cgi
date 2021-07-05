@@ -1,4 +1,4 @@
-#!../login/loggedin /bin/csh -fx
+#!../login/loggedin /bin/csh -f
 if($?PATH_INFO) then
 	setenv device "$PATH_INFO:h:t"
 	setenv gpio "$PATH_INFO:t"
