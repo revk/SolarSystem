@@ -138,7 +138,7 @@ main (int argc, const char *argv[])
     if (!e && area)
       e = getorg (sql_printf ("SELECT * FROM `area` WHERE `area`=%d", area));
     if (!e && access)
-      e = getorg (sql_printf ("SELECT * FROM `access` `access`=%d", access));
+      e = getorg (sql_printf ("SELECT * FROM `access` WHERE `access`=%d", access));
     if (e)
       {
 	if (sqldebug)
