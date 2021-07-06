@@ -105,22 +105,15 @@ static void addwifi(j_t j, SQL_RES * s, const char *deviceid, const char *parent
    const char *v;               // temp
    if (!parentid || !*parentid || !strcmp(parentid, deviceid))
       parentid = NULL;          // Not senible
+   // Standard wifi settings
+   j_t wifi = j_store_object(j, "wifi");
+   if ((v = sql_colz(s, "wifissid")) && *v)
+      j_store_string(wifi, "ssid", v);
+   if ((v = sql_colz(s, "wifipass")) && *v)
+      j_store_string(wifi, "pass", v);
+   // Parent logic is priority, falling back to the above defaults
    if (parentid)
-   {                            // We are slave node so expect parent as wifi
-      j_t wifi = j_store_object(j, "wifi");
-      j_store_string(wifi, "ssid", deviceid);
-      if ((v = sql_colz(s, "wifipass")) && *v)
-         j_store_string(wifi, "pass", v);
       j_store_string(wifi, "mqtt", deviceid);   // Sets MQTT to connect to gateway using this as TLS common name
-      j_store_true(wifi, "lr");
-   } else
-   {                            // We are parent node so expect base wifi
-      j_t wifi = j_store_object(j, "wifi");
-      if ((v = sql_colz(s, "wifissid")) && *v)
-         j_store_string(wifi, "ssid", v);
-      if ((v = sql_colz(s, "wifipass")) && *v)
-         j_store_string(wifi, "pass", v);
-   }
    j_t ap = j_store_object(j, "ap");
    if (deviceid && *deviceid)
    {                            // We are to serve as AP for client devices
@@ -128,6 +121,7 @@ static void addwifi(j_t j, SQL_RES * s, const char *deviceid, const char *parent
       if ((v = sql_colz(s, "wifipass")) && *v)
          j_store_string(ap, "pass", v);
       j_store_true(ap, "lr");
+      // Maybe consider hiding as well, but does not show in normal wifi scans as LR mode
    }
 }
 

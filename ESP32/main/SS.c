@@ -168,7 +168,9 @@ const char *app_command(const char *tag, jo_t j)
    modules;
 #undef m
    if (!strcmp(tag, "restart"))
+   {
       lwmqtt_end(&iot);
+   }
    if (!strcmp(tag, "connect"))
    {
       status_report(1);
