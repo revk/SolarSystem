@@ -246,8 +246,8 @@ void app_main()
       };
       if (iotcert->len)
       {
-         config.cert_pem = (void *) iotcert->data;
-         config.cert_len = iotcert->len;
+         config.ca_cert_pem = (void *) iotcert->data;
+         config.ca_cert_len = iotcert->len;
       }
       extern revk_bindata_t *clientcert,
       *clientkey;
