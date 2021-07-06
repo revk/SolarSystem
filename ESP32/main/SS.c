@@ -233,7 +233,7 @@ void app_main()
    {
       char topic[100];
       snprintf(topic, sizeof(topic), "state/%s/%s", revk_appname(), revk_id);
-      lwmqtt_config_t config = {
+      lwmqtt_client_config_t config = {
          .client = revk_id,
          .hostname = iothost,
          .username = iotuser,
