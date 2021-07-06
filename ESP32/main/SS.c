@@ -210,7 +210,7 @@ void iot_rx(void *arg, const char *topic, unsigned short len, const unsigned cha
    }
 }
 
-void iot_init(jo_j j)
+void iot_init(jo_t j)
 {
    if (!*iothost)
       return;
