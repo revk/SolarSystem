@@ -75,7 +75,8 @@ xmlsql -C -d "$DB" head.html - foot.html << END
 <sql where="organisation=$SESSION_ORGANISATION" table="device LEFT JOIN pcb USING (pcb)" order=device.devicename WHERE="site=\$SESSION_SITE"><set found=1>
 <tr>
 <td><output name=device href="/editdevice.cgi/\$device"></td>
-<td><if online><output name=online></if><if else>Last online <output name=lastonline missing="never"></if></td>
+<set s=""><if lastonline><set s="background:green;"><if not online><set s="background:yellow;"></if>
+<td style="\$s"><if online><output name=online></if><if else>Last online <output name=lastonline missing="never"></if></td>
 <td><output name=address></td>
 <td><output name=version><if upgrade> (upgrade scheduled)</if></td>
 <td><output name=pcbname></td>

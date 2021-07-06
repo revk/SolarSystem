@@ -64,6 +64,7 @@ const char *controller_fault = NULL;
 const char *controller_tamper = NULL;
 
 lwmqtt_t iot = NULL;
+void iot_init(jo_t j); // Called for wifi connect
 
 static void status_report(int force)
 {                               // Report status change
@@ -112,7 +113,7 @@ static void status_report(int force)
          lastfault = strdup(fault);
          revk_statej("fault", &j, iotstatefault ? iot : NULL);
       }
-      jo_free(&j); // safe to call even if freed by revk_statej
+      jo_free(&j);              // safe to call even if freed by revk_statej
    }
    {                            // Tampers
       jo_t j = jo_object_alloc();
@@ -127,7 +128,7 @@ static void status_report(int force)
          lasttamper = strdup(tamper);
          revk_statej("tamper", &j, iotstatetamper ? iot : NULL);
       }
-      jo_free(&j); // safe to call even if freed by revk_statej
+      jo_free(&j);              // safe to call even if freed by revk_statej
    }
    if (tampers)
       revk_blink(1, 1);
@@ -167,10 +168,10 @@ const char *app_command(const char *tag, jo_t j)
 #define m(x) extern const char * x##_command(const char *,jo_t); jo_rewind(j);if(!e)e=x##_command(tag,j);
    modules;
 #undef m
+   if (!strcmp(tag, "wifi"))
+      iot_init(j);
    if (!strcmp(tag, "restart"))
-   {
       lwmqtt_end(&iot);
-   }
    if (!strcmp(tag, "connect"))
    {
       status_report(1);
@@ -209,6 +210,43 @@ void iot_rx(void *arg, const char *topic, unsigned short len, const unsigned cha
    }
 }
 
+void iot_init(jo_j j)
+{
+   if (!*iothost)
+      return;
+   // TODO alt host if in slave mode
+   if (iot)
+      lwmqtt_end(&iot);
+   char topic[100];
+   snprintf(topic, sizeof(topic), "state/%s/%s", revk_appname(), revk_id);
+   lwmqtt_client_config_t config = {
+      .client = revk_id,
+      .hostname = iothost,
+      .username = iotuser,
+      .password = iotpass,
+      .callback = &iot_rx,
+      .topic = topic,
+      .plen = -1,
+      .retain = 1,
+      .payload = (void *) "{\"up\":false}",
+   };
+   if (iotcert->len)
+   {
+      config.ca_cert_pem = (void *) iotcert->data;
+      config.ca_cert_len = iotcert->len;
+   }
+   extern revk_bindata_t *clientcert,
+   *clientkey;
+   if (clientkey->len && clientcert->len)
+   {
+      config.client_cert_pem = (void *) clientcert->data;
+      config.client_cert_len = clientcert->len;
+      config.client_key_pem = (void *) clientkey->data;
+      config.client_key_len = clientkey->len;
+   }
+   iot = lwmqtt_client(&config);
+}
+
 void app_main()
 {
    reason = esp_reset_reason();
@@ -231,39 +269,8 @@ void app_main()
 #define m(x) extern void x##_init(void); x##_init();
    modules
 #undef m
-       if (*iothost)
-   {
-      char topic[100];
-      snprintf(topic, sizeof(topic), "state/%s/%s", revk_appname(), revk_id);
-      lwmqtt_client_config_t config = {
-         .client = revk_id,
-         .hostname = iothost,
-         .username = iotuser,
-         .password = iotpass,
-         .callback = &iot_rx,
-         .topic = topic,
-         .plen = -1,
-         .retain = 1,
-         .payload = (void *) "{\"up\":false}",
-      };
-      if (iotcert->len)
-      {
-         config.ca_cert_pem = (void *) iotcert->data;
-         config.ca_cert_len = iotcert->len;
-      }
-      extern revk_bindata_t *clientcert,
-      *clientkey;
-      if (clientkey->len && clientcert->len)
-      {
-         config.client_cert_pem = (void *) clientcert->data;
-         config.client_cert_len = clientcert->len;
-         config.client_key_pem = (void *) clientkey->data;
-         config.client_key_len = clientkey->len;
-      }
-      iot = lwmqtt_client(&config);
-   }
-   // Main loop, if needed
-   if (!tamper)
+       // Main loop, if needed
+       if (!tamper)
       return;                   // Not tamper checking, nothing to do.
    if (tamper)
    {
