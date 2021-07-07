@@ -100,6 +100,27 @@ const char *security(SQL * sqlp, SQL * sqlkeyp, SQL_RES * res, slot_t id)
    return NULL;
 }
 
+static int find_slaves(SQL * sqlp, j_t slave, const char *deviceid)
+{
+   int n = 0;
+   SQL_RES *res = sql_safe_query_store_free(sqlp, sql_printf("SELECT * FROM `device` WHERE `parent`=%#s", deviceid));
+   while (sql_fetch_row(res))
+   {
+      n++;
+      const char *child = sql_colz(res, "device");
+      j_t j = j_first(slave);
+      while (j && strcmp(j_val(j), child))
+         j = j_next(j);
+      if (!j)
+      {
+         j_append_string(slave, child);
+         find_slaves(sqlp, slave, child);
+      }
+   }
+   sql_free_result(res);
+   return n;
+}
+
 static void addwifi(SQL * sqlp, j_t j, SQL_RES * site, const char *deviceid, const char *parentid)
 {
    const char *v;               // temp
@@ -115,18 +136,20 @@ static void addwifi(SQL * sqlp, j_t j, SQL_RES * site, const char *deviceid, con
    if (parentid)
       j_store_string(wifi, "mqtt", parentid);   // Sets MQTT to connect to gateway using this as TLS common name
    j_t ap = j_store_object(j, "ap");
+   j_t slave = j_store_array(j, "slave");
    if (deviceid && *deviceid)
    {
-      SQL_RES *res = sql_safe_query_store_free(sqlp, sql_printf("SELECT * FROM `device` WHERE `parent`=%#s LIMIT 1", deviceid));
-      if (sql_fetch_row(res))
-      {                         // We are to serve as AP for client devices
+      int max = find_slaves(sqlp, slave, deviceid);
+      if (max)
+      {                         // We are to serve as AP for client devicee
+         j_store_int(ap, "max", max);
          j_store_string(ap, "ssid", deviceid);
          if ((v = sql_colz(site, "wifipass")) && *v)
             j_store_string(ap, "pass", v);
          j_store_true(ap, "lr");
          //j_store_true(ap, "hide");
+
       }
-      sql_free_result(res);
    }
 }
 

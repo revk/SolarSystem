@@ -4,6 +4,7 @@ static const char __attribute__((unused)) TAG[] = "SS";
 
 #include "SS.h"
 #include <driver/gpio.h>
+#include "slaves.h"
 
 #ifdef	CONFIG_REVK_APCONFIG
 #warning	You do not want door controller running CONFIG_REVK_APCONFIG
@@ -35,17 +36,20 @@ static const char *port_inuse[MAX_PORT];
 	b(iotstatefault)\
 	b(iotstatetamper)\
 	b(ioteventfob)	\
+	sa(slave,MAX_SLAVE) \
 
 
 #define io(n) static uint8_t n;
 #define area(n) area_t n;
 #define	s(n) char *n;
+#define	sa(n,a) char *n[a];
 #define b(n) uint8_t n;
 #define bd(n,d)         static revk_bindata_t *n;
 settings
 #undef io
 #undef area
 #undef s
+#undef sa
 #undef bd
 #undef b
 #define port_mask(p) ((p)&63)
@@ -176,9 +180,7 @@ const char *app_callback(const char *prefix, const char *target, const char *suf
       }
       if (!target)
       {                         // System commands
-         if (!strcmp(suffix, "ap"))
-            relay_init();
-         else if (!strcmp(suffix, "wifi"))
+         if (!strcmp(suffix, "wifi"))
             iot_init(j);
          else if (strcmp(suffix, "restart"))
             lwmqtt_end(&iot);
@@ -279,7 +281,6 @@ void sntp_dummy_task(void *pvParameters)
       *(uint32_t *) (buf + 24) = htonl(now);
       *(uint32_t *) (buf + 32) = htonl(now);
       *(uint32_t *) (buf + 40) = htonl(now);
-      ESP_LOG_BUFFER_HEX_LEVEL("SNTP", buf, len, ESP_LOG_INFO);
       sendto(sock, buf, len, 0, (void *) &addr, addrlen);
    }
 }
@@ -389,6 +390,7 @@ void app_main()
    revk_register("iot", 0, 0, &iothost, NULL, SETTING_SECRET);  // iot group
 #define io(n) revk_register(#n,0,sizeof(n),&n,BITFIELDS,SETTING_SET|SETTING_BITFIELD);
 #define s(n) revk_register(#n,0,0,&n,NULL,0);
+#define sa(n,a) revk_register(#n,a,0,&n,NULL,0);
 #define area(n) revk_register(#n,0,sizeof(n),&n,AREAS,SETTING_BITFIELD);
 #define bd(n,d)         revk_register(#n,0,0,&n,d,SETTING_BINDATA);
 #define b(n)          revk_register(#n,0,1,&n,NULL,SETTING_BOOLEAN);
@@ -396,16 +398,19 @@ void app_main()
 #undef io
 #undef area
 #undef s
+#undef sa
 #undef bd
 #undef b
    int p;
    for (p = 6; p <= 11; p++)
       port_check(p, "Flash", 0);        // Flash chip uses 6-11
 #define m(x) extern void x##_init(void); x##_init();
-   modules
+   modules;
 #undef m
-       // Main loop, if needed
-       if (!tamper)
+   if (*slave[0])
+      relay_init();
+   // Main loop, if needed
+   if (!tamper)
       return;                   // Not tamper checking, nothing to do.
    if (tamper)
    {
