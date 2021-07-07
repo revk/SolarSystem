@@ -223,6 +223,7 @@ void iot_init(jo_t j)
 {
    if (!*iothost)
       return;
+   if(j)ESP_LOGI(TAG,"IoT init: %s",jo_rewind(j)); // TODO
    char gw[16] = "",
        slave = 0;
    const char *host = iothost;
@@ -232,11 +233,11 @@ void iot_init(jo_t j)
       while ((t = jo_next(j)))
          if (t == JO_TAG)
          {
-            if (jo_strcmp(j, "slave"))
+            if (!jo_strcmp(j, "slave"))
             {
                if (jo_next(j) == JO_TRUE)
                   slave = 1;
-            } else if (jo_strcmp(j, "gw"))
+            } else if (!jo_strcmp(j, "gw"))
             {
                if (jo_next(j) == JO_STRING)
                   jo_strncpy(j, gw, sizeof(gw));
