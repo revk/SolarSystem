@@ -225,9 +225,12 @@ void iot_rx(void *arg, char *topic, unsigned short len, unsigned char *payload)
 }
 
 static lwmqtt_t mqtt_relay = NULL;
-static lwmqtt_t iot_relay = NULL;
+static lwmqtt_t mqtt_slaves[MAX_SLAVE] = { };
 
-void relay_rx(lwmqtt_t parent, void *arg, char *topic, unsigned short len, unsigned char *payload)
+static lwmqtt_t iot_relay = NULL;
+static lwmqtt_t iot_slaves[MAX_SLAVE] = { };
+
+void relay_rx(lwmqtt_t parent, lwmqtt_t * slaves, void *arg, char *topic, unsigned short len, unsigned char *payload)
 {
    lwmqtt_t child = arg;
    // TODO client list maintenance
@@ -239,12 +242,12 @@ void relay_rx(lwmqtt_t parent, void *arg, char *topic, unsigned short len, unsig
 
 void mqtt_relay_rx(void *arg, char *topic, unsigned short len, unsigned char *payload)
 {
-   relay_rx(iot, arg, topic, len, payload);
+   relay_rx(revk_mqtt(), mqtt_slaves, arg, topic, len, payload);
 }
 
 void iot_relay_rx(void *arg, char *topic, unsigned short len, unsigned char *payload)
 {
-   relay_rx(revk_mqtt(), arg, topic, len, payload);
+   relay_rx(iot, iot_slaves, arg, topic, len, payload);
 }
 
 void sntp_dummy_task(void *pvParameters)
