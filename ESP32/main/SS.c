@@ -244,7 +244,7 @@ void iot_init(jo_t j)
          }
    }
    if (slave && *gw)
-      iothost = gw;
+      host = gw;
    if (iot)
       lwmqtt_end(&iot);
    char topic[100];
