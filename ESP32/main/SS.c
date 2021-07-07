@@ -64,7 +64,7 @@ const char *controller_fault = NULL;
 const char *controller_tamper = NULL;
 
 lwmqtt_t iot = NULL;
-void iot_init(jo_t j); // Called for wifi connect
+void iot_init(jo_t j);          // Called for wifi connect
 
 static void status_report(int force)
 {                               // Report status change
@@ -162,25 +162,34 @@ const char *port_check(int p, const char *module, int in)
    return NULL;                 // OK
 }
 
-const char *app_command(const char *tag, jo_t j)
+const char *app_callback(const char *prefix, const char *target, const char *suffix, jo_t j)
 {
    const char *e = NULL;
-#define m(x) extern const char * x##_command(const char *,jo_t); jo_rewind(j);if(!e)e=x##_command(tag,j);
-   modules;
+   if (prefix && !strcmp(prefix, prefixcommand))
+   {                            // Commands
+      if (target && (!strcmp(target, revk_id) || !strcmp(target, "*")))
+      {                         // To us
+#define m(x) extern const char * x##_command(const char *,jo_t); jo_rewind(j);if(!e)e=x##_command(suffix,j);
+         modules;
 #undef m
-   if (!strcmp(tag, "wifi"))
-      iot_init(j);
-   if (!strcmp(tag, "restart"))
-      lwmqtt_end(&iot);
-   if (!strcmp(tag, "connect"))
-   {
-      status_report(1);
-      status_report(0);
+      }
+      if (!target)
+      {                         // System commands
+         if (!strcmp(suffix, "wifi"))
+            iot_init(j);
+         else if (strcmp(suffix, "restart"))
+            lwmqtt_end(&iot);
+         else if (!strcmp(suffix, "connect"))
+         {
+            status_report(1);
+            status_report(0);
+         }
+      }
    }
    return e;
 }
 
-void iot_rx(void *arg, const char *topic, unsigned short len, const unsigned char *payload)
+void iot_rx(void *arg, char *topic, unsigned short len, unsigned char *payload)
 {
    arg = arg;
    if (topic)
@@ -250,7 +259,7 @@ void iot_init(jo_t j)
 void app_main()
 {
    reason = esp_reset_reason();
-   revk_init(&app_command);
+   revk_init(&app_callback);
    revk_register("iot", 0, 0, &iothost, NULL, SETTING_SECRET);  // iot group
 #define io(n) revk_register(#n,0,sizeof(n),&n,BITFIELDS,SETTING_SET|SETTING_BITFIELD);
 #define s(n) revk_register(#n,0,0,&n,NULL,0);

@@ -230,7 +230,7 @@ static void task(void *pvParameters)
          uint8_t *dis = display;
          if (revk_offline())
          {                      // Off line
-            len = snprintf((char *) temp, sizeof(temp), "%-16.16s%-9.9s %6.6s", revk_mqtt(), revk_wifi(), revk_id);
+            len = snprintf((char *) temp, sizeof(temp), "%-16.16s%-16.16s", revk_wifi(), revk_id);
             dis = temp;
          }
          if (cursor_len)
