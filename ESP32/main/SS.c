@@ -228,6 +228,10 @@ static lwmqtt_t iot_relay = NULL;
 void relay_rx(lwmqtt_t parent, void *arg, char *topic, unsigned short len, unsigned char *payload)
 {
    lwmqtt_t child = arg;
+   // TODO client list maintenance
+   // TODO subscribe pass on
+   // TODO unsubscribe on disconnect - multiple if child is a relay
+   // TODO mutex to protect lists
    // TODO
 }
 
