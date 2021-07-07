@@ -65,6 +65,7 @@ const char *controller_tamper = NULL;
 
 lwmqtt_t iot = NULL;
 void iot_init(jo_t j);          // Called for wifi connect
+void relay_init(void);
 
 static void status_report(int force)
 {                               // Report status change
@@ -175,7 +176,9 @@ const char *app_callback(const char *prefix, const char *target, const char *suf
       }
       if (!target)
       {                         // System commands
-         if (!strcmp(suffix, "wifi"))
+         if (!strcmp(suffix, "ap"))
+            relay_init();
+         else if (!strcmp(suffix, "wifi"))
             iot_init(j);
          else if (strcmp(suffix, "restart"))
             lwmqtt_end(&iot);
@@ -217,6 +220,100 @@ void iot_rx(void *arg, char *topic, unsigned short len, unsigned char *payload)
       snprintf(topic, sizeof(topic), "state/%s/%s", revk_appname(), revk_id);
       lwmqtt_send_full(iot, -1, topic, -1, (void *) "{\"up\":true}", 1, 0);
    }
+}
+
+static lwmqtt_t mqtt_relay = NULL;
+static lwmqtt_t iot_relay = NULL;
+
+void relay_rx(lwmqtt_t parent, void *arg, char *topic, unsigned short len, unsigned char *payload)
+{
+   lwmqtt_t child = arg;
+   // TODO
+}
+
+void mqtt_relay_rx(void *arg, char *topic, unsigned short len, unsigned char *payload)
+{
+   relay_rx(iot, arg, topic, len, payload);
+}
+
+void iot_relay_rx(void *arg, char *topic, unsigned short len, unsigned char *payload)
+{
+   relay_rx(revk_mqtt(), arg, topic, len, payload);
+}
+
+void sntp_dummy_task(void *pvParameters)
+{                               // We know IPv4 local
+   pvParameters = pvParameters;
+   struct sockaddr_in dst = {
+      .sin_addr.s_addr = htonl(INADDR_ANY),
+      .sin_family = AF_INET,
+      .sin_port = htons(123),
+   };
+   int sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_IP);
+   if (bind(sock, (void *) &dst, sizeof(dst)) < 0)
+   {
+      ESP_LOGE(TAG, "SNTP bind failed");
+      return;
+   }
+   while (1)
+   {
+      unsigned char buf[48];
+      struct sockaddr_in addr;
+      socklen_t addrlen = sizeof(addr);
+      int len = recvfrom(sock, buf, sizeof(buf), 0, (void *) &addr, &addrlen);
+      if (len != 48 || *buf != 0x23)
+         continue;              // We expect the SNTP from ESP IDF which is really simple
+      uint32_t now = time(0);
+      if (now < 1000000000)
+         continue;              // We don't know time
+      buf[0] = 0x24;            // Server
+      buf[1] = 15;              // Not very accurate
+      buf[2] = 12;              // Poll
+      buf[3] = 0;               // Second
+      now += 2208988800UL;
+      *(uint32_t *) (buf + 16) = htonl(now);
+      *(uint32_t *) (buf + 24) = htonl(now);
+      *(uint32_t *) (buf + 32) = htonl(now);
+      *(uint32_t *) (buf + 40) = htonl(now);
+      ESP_LOG_BUFFER_HEX_LEVEL("SNTP", buf, len, ESP_LOG_INFO);
+      sendto(sock, buf, len, 0, (void *) &addr, addrlen);
+   }
+}
+
+void relay_init(void)
+{                               // relay mode tasks and so on...
+   if (mqtt_relay)
+      return;                   // Already running
+   // Make simple SNTP handler
+   revk_task("SNTP", sntp_dummy_task, NULL);
+   return;                      // TODO
+   if (*iothost)
+   {                            // Make IoT relay
+      lwmqtt_server_config_t config = {
+         .callback = iot_relay_rx,
+      };
+      iot_relay = lwmqtt_server(&config);
+   }
+   // Make MQTT relay
+   lwmqtt_server_config_t config = {
+      .callback = mqtt_relay_rx,
+   };
+   extern revk_bindata_t *mqttcert;
+   extern revk_bindata_t *clientkey;
+   extern revk_bindata_t *clientcert;
+   if (mqttcert->len)
+   {
+      config.ca_cert_pem = (void *) mqttcert->data;
+      config.ca_cert_len = mqttcert->len;
+   }
+   if (clientkey->len && clientcert->len)
+   {
+      config.server_cert_pem = (void *) clientcert->data;
+      config.server_cert_len = clientcert->len;
+      config.server_key_pem = (void *) clientkey->data;
+      config.server_key_len = clientkey->len;
+   }
+   mqtt_relay = lwmqtt_server(&config);
 }
 
 void iot_init(jo_t j)
