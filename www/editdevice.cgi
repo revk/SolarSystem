@@ -75,17 +75,17 @@ xmlsql -C -d "$DB" head.html - foot.html << END
 <h1>Device</h1>
 <if not device>
 <table border=1>
-<tr><th>Device</th><th>Parent</th><th>Online</th><th>IP</th><th>Version</th><th>PCB</th><th>Name</th><th>Notes</th></tr>
-<sql where="device.organisation=$SESSION_ORGANISATION" table="device LEFT JOIN pcb USING (pcb) LEFT JOIN device AS device2 ON (device.parent=device2.device)" order="device2.devicename,device.devicename" WHERE="site=\$SESSION_SITE" select="device.*,pcb.pcbname,device2.devicename AS D"><set found=1>
+<tr><th>Device</th><th>Name</th><th>Parent</th><th>Online</th><th>IP</th><th>Version</th><th>PCB</th><th>Notes</th></tr>
+<sql where="device.organisation=$SESSION_ORGANISATION" table="device LEFT JOIN pcb USING (pcb) LEFT JOIN device AS device2 ON (device.parent=device2.device)" order="device2.devicename,device.devicename" WHERE="site=\$SESSION_SITE" select="device.*,pcb.pcbname,device2.devicename AS P"><set found=1>
 <tr>
 <td><output name=device href="/editdevice.cgi/\$device"></td>
-<td><output name=D missing="-- Root --"></td>
+<td><output name=devicename blank="Unnamed" missing="Unnamed"></td>
+<td><output name=P missing="-- Root --"></td>
 <set s=""><if lastonline><set s="background:green;"></if><if not online><set s="background:yellow;"></if>
 <td style="\$s"><if online><output name=online></if><if else>Last online <output name=lastonline missing="never"></if></td>
 <td><output name=address></td>
 <td><output name=version><if upgrade> (upgrade scheduled)</if></td>
 <td><output name=pcbname></td>
-<td><output name=devicename blank="Unnamed" missing="Unnamed"></td>
 <set s><if not fault="{}"><set s="background:yellow;"></if><if not tamper="{}"><set s="background:red;"></if>
 <td style="\$s"><if door=true>Door </if><if nfc=true>NFC reader </if><if nfcadmin=true> (admin)</if><if nfctrusted=true><b> (trusted)</b></if><br>
 <if not tamper="{}">Tamper:<b><output name=tamper></b><br></if>
