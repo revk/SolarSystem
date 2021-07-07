@@ -100,28 +100,33 @@ const char *security(SQL * sqlp, SQL * sqlkeyp, SQL_RES * res, slot_t id)
    return NULL;
 }
 
-static void addwifi(j_t j, SQL_RES * s, const char *deviceid, const char *parentid)
+static void addwifi(SQL * sqlp, j_t j, SQL_RES * site, const char *deviceid, const char *parentid)
 {
    const char *v;               // temp
    if (!parentid || !*parentid || !strcmp(parentid, deviceid))
       parentid = NULL;          // Not senible
    // Standard wifi settings
    j_t wifi = j_store_object(j, "wifi");
-   if ((v = sql_colz(s, "wifissid")) && *v)
+   if ((v = sql_colz(site, "wifissid")) && *v)
       j_store_string(wifi, "ssid", v);
-   if ((v = sql_colz(s, "wifipass")) && *v)
+   if ((v = sql_colz(site, "wifipass")) && *v)
       j_store_string(wifi, "pass", v);
    // Parent logic is priority, falling back to the above defaults
    if (parentid)
-      j_store_string(wifi, "mqtt", deviceid);   // Sets MQTT to connect to gateway using this as TLS common name
+      j_store_string(wifi, "mqtt", parentid);   // Sets MQTT to connect to gateway using this as TLS common name
    j_t ap = j_store_object(j, "ap");
    if (deviceid && *deviceid)
-   {                            // We are to serve as AP for client devices
-      j_store_string(ap, "ssid", deviceid);
-      if ((v = sql_colz(s, "wifipass")) && *v)
-         j_store_string(ap, "pass", v);
-      j_store_true(ap, "lr");
-      // Maybe consider hiding as well, but does not show in normal wifi scans as LR mode
+   {
+      SQL_RES *res = sql_safe_query_store_free(sqlp, sql_printf("SELECT * FROM `device` WHERE `parent`=%#s LIMIT 1", deviceid));
+      if (sql_fetch_row(res))
+      {                         // We are to serve as AP for client devices
+         j_store_string(ap, "ssid", deviceid);
+         if ((v = sql_colz(site, "wifipass")) && *v)
+            j_store_string(ap, "pass", v);
+         j_store_true(ap, "lr");
+         //j_store_true(ap, "hide");
+      }
+      sql_free_result(res);
    }
 }
 
@@ -138,7 +143,7 @@ const char *settings(SQL * sqlp, SQL_RES * res, slot_t id)
       SQL_RES *s = sql_safe_query_store_free(sqlp, sql_printf("SELECT * FROM `site` WHERE `site`=%d", site));
       if (sql_fetch_row(s))
       {
-         addwifi(j, s, sql_colz(res, "device"), sql_col(res, "parent"));
+         addwifi(sqlp, j, s, sql_colz(res, "device"), sql_col(res, "parent"));
          const char *host = sql_colz(s, "iothost");
          j_t iot = j_store_object(j, "iot");
          if (*host)
@@ -520,7 +525,7 @@ int main(int argc, const char *argv[])
                   SQL_RES *s = sql_safe_query_store_free(&sql, sql_printf("SELECT * FROM `aid` LEFT JOIN `site` USING (`site`) WHERE `aid`=%#s", aid));
                   if (sql_fetch_row(s))
                   {
-                     addwifi(j, s, deviceid, NULL);
+                     addwifi(&sql, j, s, deviceid, NULL);
                      fail = slot_send(id, "setting", deviceid, NULL, &j);
                   }
                   sql_free_result(s);
