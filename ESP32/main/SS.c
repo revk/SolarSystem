@@ -223,7 +223,7 @@ void iot_init(jo_t j)
 {
    if (!*iothost)
       return;
-   ESP_LOGI(TAG,"IoT init: %s",jo_rewind(j)?:""); // TODO
+   ESP_LOGI(TAG, "IoT init: %s", jo_rewind(j) ? : jo_error(j, NULL) ? : "?");   // TODO
    char gw[16] = "",
        slave = 0;
    const char *host = iothost;
