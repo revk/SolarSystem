@@ -717,6 +717,11 @@ int main(int argc, const char *argv[])
                int flash = atoi(j_get(j, "flash") ? : "");
                if (flash && (!device || (flash != atoi(sql_colz(device, "flash")))))
                   sql_sprintf(&s, "`flash`=%d,", flash);
+#if 0
+               int mem = atoi(j_get(j, "mem") ? : "");
+               if (mem && (!device || (mem != atoi(sql_colz(device, "mem")))))
+                  sql_sprintf(&s, "`mem`=%d,", flash);
+#endif
                sql_sprintf(&s, "`online`=NOW(),");
                sql_sprintf(&s, "`id`=%lld,", id);
                if (sql_back_s(&s) == ',')
