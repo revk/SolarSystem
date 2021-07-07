@@ -293,23 +293,23 @@ void relay_init(void)
    if (mqtt_relay)
       return;                   // Already running
    extern revk_bindata_t *mqttcert;
+   extern uint16_t mqttport;
    extern revk_bindata_t *clientkey;
    extern revk_bindata_t *clientcert;
    // Make simple SNTP handler
    revk_task("SNTP", sntp_dummy_task, NULL);
-   return;                      // TODO
    if (*iothost)
    {                            // Make IoT relay
       lwmqtt_server_config_t config = {
          .callback = iot_relay_rx,
       };
-      // TODO what of secure IoT
-      // TODO what of port
       iot_relay = lwmqtt_server(&config);
    }
+   return;                      // TODO remove
    // Make MQTT relay
    lwmqtt_server_config_t config = {
       .callback = mqtt_relay_rx,
+      .port = mqttport,
       // TODO what of port
    };
    if (mqttcert->len)
