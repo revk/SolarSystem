@@ -245,6 +245,7 @@ void iot_init(jo_t j)
    }
    if (slave && *gw)
       host = gw;
+   ESP_LOGI(TAG, "IoT %s", host);
    if (iot)
       lwmqtt_end(&iot);
    char topic[100];
