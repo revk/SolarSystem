@@ -305,24 +305,22 @@ void relay_init(void)
       };
       iot_relay = lwmqtt_server(&config);
    }
-   return;                      // TODO remove
    // Make MQTT relay
    lwmqtt_server_config_t config = {
       .callback = mqtt_relay_rx,
       .port = mqttport,
-      // TODO what of port
    };
    if (mqttcert->len)
    {
-      config.ca_cert_pem = (void *) mqttcert->data;
-      config.ca_cert_len = mqttcert->len;
+      config.ca_cert_buf = (void *) mqttcert->data;
+      config.ca_cert_bytes = mqttcert->len;
    }
    if (clientkey->len && clientcert->len)
    {
-      config.server_cert_pem = (void *) clientcert->data;
-      config.server_cert_len = clientcert->len;
-      config.server_key_pem = (void *) clientkey->data;
-      config.server_key_len = clientkey->len;
+      config.server_cert_buf = (void *) clientcert->data;
+      config.server_cert_bytes = clientcert->len;
+      config.server_key_buf = (void *) clientkey->data;
+      config.server_key_bytes = clientkey->len;
    }
    mqtt_relay = lwmqtt_server(&config);
 }
@@ -371,17 +369,17 @@ void iot_init(jo_t j)
    };
    if (iotcert->len)
    {
-      config.ca_cert_pem = (void *) iotcert->data;
-      config.ca_cert_len = iotcert->len;
+      config.ca_cert_buf = (void *) iotcert->data;
+      config.ca_cert_bytes = iotcert->len;
    }
    extern revk_bindata_t *clientcert,
    *clientkey;
    if (clientkey->len && clientcert->len)
    {
-      config.client_cert_pem = (void *) clientcert->data;
-      config.client_cert_len = clientcert->len;
-      config.client_key_pem = (void *) clientkey->data;
-      config.client_key_len = clientkey->len;
+      config.client_cert_buf = (void *) clientcert->data;
+      config.client_cert_bytes = clientcert->len;
+      config.client_key_buf = (void *) clientkey->data;
+      config.client_key_bytes = clientkey->len;
    }
    iot = lwmqtt_client(&config);
 }
