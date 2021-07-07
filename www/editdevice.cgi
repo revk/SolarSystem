@@ -11,12 +11,14 @@ if($?UPGRADE) then
 	sql "$DB" 'UPDATE device SET upgrade=NOW() WHERE device="$device"'
 	setenv MSG `message --device="$device" --command=upgrade`
 	if(! $status) setenv MSG "Upgrading"
+	unsetenv device
 	goto done
 endif
 if($?RESTART) then
 	can --redirect --device='$device' editdevice
 	setenv MSG `message --device="$device" --command=restart`
 	if(! $status) setenv MSG "Restarting"
+	unsetenv device
 	goto done
 endif
 if($?DELETE || $?FACTORY) then

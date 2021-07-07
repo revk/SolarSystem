@@ -223,14 +223,35 @@ void iot_init(jo_t j)
 {
    if (!*iothost)
       return;
-   // TODO alt host if in slave mode
+   char gw[16] = "",
+       slave = 0;
+   const char *host = iothost;
+   if (j && jo_here(j) == JO_OBJECT)
+   {
+      jo_type_t t;
+      while ((t = jo_next(j)))
+         if (t == JO_TAG)
+         {
+            if (jo_strcmp(j, "slave"))
+            {
+               if (jo_next(j) == JO_TRUE)
+                  slave = 1;
+            } else if (jo_strcmp(j, "gw"))
+            {
+               if (jo_next(j) == JO_STRING)
+                  jo_strncpy(j, gw, sizeof(gw));
+            }
+         }
+   }
+   if (slave && *gw)
+      iothost = gw;
    if (iot)
       lwmqtt_end(&iot);
    char topic[100];
    snprintf(topic, sizeof(topic), "state/%s/%s", revk_appname(), revk_id);
    lwmqtt_client_config_t config = {
       .client = revk_id,
-      .hostname = iothost,
+      .hostname = host,
       .username = iotuser,
       .password = iotpass,
       .callback = &iot_rx,
