@@ -73,7 +73,6 @@ const char *controller_tamper = NULL;
 
 lwmqtt_t iot = NULL;
 void iot_init(jo_t j);          // Called for wifi connect
-void relay_init(void);
 
 static void status_report(int force)
 {                               // Report status change
@@ -235,6 +234,7 @@ void iot_rx(void *arg, char *topic, unsigned short len, unsigned char *payload)
    }
 }
 
+#ifdef	CONFIG_LWMQTT_SERVER
 static lwmqtt_t mqtt_relay = NULL;
 static lwmqtt_t mqtt_slaves[MAX_SLAVE] = { };
 
@@ -338,6 +338,7 @@ void relay_init(void)
    }
    mqtt_relay = lwmqtt_server(&config);
 }
+#endif
 
 void iot_init(jo_t j)
 {
@@ -425,8 +426,10 @@ void app_main()
 #define m(x) extern void x##_init(void); x##_init();
    modules;
 #undef m
+#ifdef CONFIG_LWMQTT_SERVER
    if (*slave[0])
       relay_init();
+#endif
    // Main loop, if needed
    if (!tamper)
       return;                   // Not tamper checking, nothing to do.
