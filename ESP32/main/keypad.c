@@ -97,8 +97,6 @@ static void task(void *pvParameters)
       {                         // Receiving
          rxwait = 0;
          int p = galaxybus_rx(g, sizeof(buf), buf);
-         if (keypaddebug && (!online || p < 2 || buf[1] != 0xFE))
-            revk_info("Rx", "%d: %02X %02X %02X %02X %s", p, buf[0], buf[1], buf[2], buf[3], p < 0 ? galaxybus_err_to_name(p) : "");
          static const char keymap[] = "0123456789BAEX*#";
          if (p < 2)
          {
@@ -132,7 +130,9 @@ static void task(void *pvParameters)
                   {
                      if (keyhold < now)
                      {
-                        revk_event("gone", "%.1s", keymap + (lastkey & 0x0F));
+                        jo_t j = jo_object_alloc();
+                        jo_stringf(j, "key", "%.1s", keymap + (lastkey & 0x0F));
+                        revk_event("gone", &j);
                         lastkey = 0x7F;
                      }
                   } else
@@ -153,7 +153,9 @@ static void task(void *pvParameters)
                      {
                         if (keyhold < now)
                         {
-                           revk_event("gone", "%.1s", keymap + (lastkey & 0x0F));
+                           jo_t j = jo_object_alloc();
+                           jo_stringf(j, "key", "%.1s", keymap + (lastkey & 0x0F));
+                           revk_event("gone", &j);
                            lastkey = 0x7F;
                         }
                      } else
@@ -162,9 +164,17 @@ static void task(void *pvParameters)
                   {             // key
                      send0B = 1;
                      if ((lastkey & 0x80) && buf[2] != lastkey)
-                        revk_event("gone", "%.1s", keymap + (lastkey & 0x0F));
+                     {
+                        jo_t j = jo_object_alloc();
+                        jo_stringf(j, "key", "%.1s", keymap + (lastkey & 0x0F));
+                        revk_event("gone", &j);
+                     }
                      if (!(buf[2] & 0x80) || buf[2] != lastkey)
-                        revk_event((buf[2] & 0x80) ? "hold" : "key", "%.1s", keymap + (buf[2] & 0x0F));
+                     {
+                        jo_t j = jo_object_alloc();
+                        jo_stringf(j, "key", "%.1s", keymap + (lastkey & 0x0F));
+                        revk_event((buf[2] & 0x80) ? "hold" : "key", &j);
+                     }
                      if (buf[2] & 0x80)
                         keyhold = now + 2000000LL;
                      if (revk_offline())
@@ -320,8 +330,6 @@ static void task(void *pvParameters)
       p++;
       cmd = buf[1];
       int l = galaxybus_tx(g, p, buf);
-      if (keypaddebug && (buf[1] != 0x06 || l < 0))
-         revk_info("Tx", "%d: %02X %02X %02X %02X %s", p, buf[0], buf[1], buf[2], buf[3], l < 0 ? galaxybus_err_to_name(l) : "");
       if (l < 0)
       {
          sleep(1);

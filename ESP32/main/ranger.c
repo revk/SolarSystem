@@ -105,7 +105,10 @@ static void task(void *pvParameters)
             }
             if (change)
             {
-               revk_state(inputnear, "%d %dmm", buttonnear, range);
+               jo_t j = jo_object_alloc();
+               jo_bool(j, "near", buttonnear);
+               jo_int(j, "mm", range);
+               revk_state(inputnear, &j);
                input_set(rangerinputnear, buttonnear);
             }
          }
@@ -132,13 +135,20 @@ static void task(void *pvParameters)
             }
             if (change)
             {
-               revk_state(inputfar, "%d %dmm", buttonfar, range);
+               jo_t j = jo_object_alloc();
+               jo_bool(j, "far", buttonfar);
+               jo_int(j, "mm", range);
+               revk_state(inputfar, &j);
                input_set(9, buttonfar);
             }
             lastdelta = delta;
          }
          if (rangerdebug && (range < rangerfar || last < rangerfar))
-            revk_state("range", "%dmm", range);
+         {
+            jo_t j = jo_object_alloc();
+            jo_int(j, "mm", range);
+            revk_state("range", &j);
+         }
          last = range;
          if (vl53l0x_i2cFail(v))
             break;

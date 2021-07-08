@@ -10,6 +10,10 @@ static const char __attribute__((unused)) TAG[] = "SS";
 #warning	You do not want door controller running CONFIG_REVK_APCONFIG
 #endif
 
+#ifndef	CONFIG_ESP_TLS_SERVER
+#error	CONFIG_ESP_TLS_SERVER needed
+#endif
+
 // Common
 static const char *port_inuse[MAX_PORT];
 
@@ -101,12 +105,7 @@ static void status_report(int force)
          {
             jo_t j = jo_object_alloc();
             jo_string(j, "controller", r);
-            char *res = jo_finisha(&j);
-            if (res)
-            {
-               revk_event("warning", "%s", res);
-               free(res);
-            }
+            revk_event("warning", &j);
          }
          reason = -1;           // Just once
       }
@@ -116,9 +115,9 @@ static void status_report(int force)
          if (lastfault)
             free(lastfault);
          lastfault = strdup(fault);
-         revk_statej("fault", &j, iotstatefault ? iot : NULL);
+         revk_state_copy("fault", &j, iotstatefault ? iot : NULL);
       }
-      jo_free(&j);              // safe to call even if freed by revk_statej
+      jo_free(&j);              // safe to call even if freed by revk_state
    }
    {                            // Tampers
       jo_t j = jo_object_alloc();
@@ -131,9 +130,9 @@ static void status_report(int force)
          if (lasttamper)
             free(lasttamper);
          lasttamper = strdup(tamper);
-         revk_statej("tamper", &j, iotstatetamper ? iot : NULL);
+         revk_state_copy("tamper", &j, iotstatetamper ? iot : NULL);
       }
-      jo_free(&j);              // safe to call even if freed by revk_statej
+      jo_free(&j);              // safe to call even if freed by revk_state
    }
    if (tampers)
       revk_blink(1, 1);
@@ -148,19 +147,31 @@ const char *port_check(int p, const char *module, int in)
 {                               // Check port is OK
    if (p < 0 || p >= MAX_PORT || !GPIO_IS_VALID_GPIO(p))
    {
-      revk_error("port", "Port %d is not valid", p);
+      jo_t j = jo_object_alloc();
+      jo_string(j, "description", "Port not valid");
+      jo_string(j, "module", module);
+      jo_int(j, "port", p);
+      revk_error("port", &j);
       if (p < 0 || p >= MAX_PORT)
          return "Bad GPIO port number";
       return "Invalid GPIO port";
    }
    if (!in && !GPIO_IS_VALID_OUTPUT_GPIO(p))
    {
-      revk_error("port", "Port %d is not valid for output", p);
+      jo_t j = jo_object_alloc();
+      jo_string(j, "description", "Port not valid for output");
+      jo_string(j, "module", module);
+      jo_int(j, "port", p);
+      revk_error("port", &j);
       return "Bad GPIO for output";
    }
    if (port_inuse[p])
    {
-      revk_error("port", "Port %d is already in use by %s so cannot be used by %s", p, port_inuse[p], module);
+      jo_t j = jo_object_alloc();
+      jo_string(j, "description", "Port clash");
+      jo_string(j, "module", module);
+      jo_string(j, "clash", port_inuse[p]);
+      revk_error("port", &j);
       return "GPIO clash";
    }
    port_inuse[p] = module;
@@ -220,7 +231,7 @@ void iot_rx(void *arg, char *topic, unsigned short len, unsigned char *payload)
       snprintf(topic, sizeof(topic), "command/%s/%s/#", revk_appname(), revk_id);
       lwmqtt_subscribe(iot, topic);
       snprintf(topic, sizeof(topic), "state/%s/%s", revk_appname(), revk_id);
-      lwmqtt_send_full(iot, -1, topic, -1, (void *) "{\"up\":true}", 1, 0);
+      lwmqtt_send_full(iot, -1, topic, -1, (void *) "{\"up\":true}", 1);
    }
 }
 
