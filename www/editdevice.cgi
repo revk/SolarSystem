@@ -81,7 +81,7 @@ xmlsql -C -d "$DB" head.html - foot.html << END
 <tr>
 <td><output name=device href="/editdevice.cgi/\$device"></td>
 <td><output name=devicename blank="Unnamed" missing="Unnamed"></td>
-<td><output name=P missing="-- Root --"></td>
+<set s=""><if not P><set s="background:green;"></if><td style="\$s"><output name=P missing="-- Root --"></td>
 <set s=""><if lastonline><set s="background:green;"></if><if not online><set s="background:yellow;"></if>
 <td style="\$s"><if online><output name=online></if><if else>Last online <output name=lastonline missing="never"></if></td>
 <td><output name=address></td>

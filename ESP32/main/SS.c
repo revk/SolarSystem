@@ -323,13 +323,16 @@ void relay_init(void)
    };
    if (mqttcert->len)
    {
+      config.ca_cert_ref = 1;   // No need to copy
       config.ca_cert_buf = (void *) mqttcert->data;
       config.ca_cert_bytes = mqttcert->len;
    }
    if (clientkey->len && clientcert->len)
    {
+      config.server_cert_ref = 1;       // No need to copy
       config.server_cert_buf = (void *) clientcert->data;
       config.server_cert_bytes = clientcert->len;
+      config.server_key_ref = 1;        // No need to copy
       config.server_key_buf = (void *) clientkey->data;
       config.server_key_bytes = clientkey->len;
    }
@@ -380,6 +383,7 @@ void iot_init(jo_t j)
    };
    if (iotcert->len)
    {
+      config.ca_cert_ref = 1;   // No need to malloc
       config.ca_cert_buf = (void *) iotcert->data;
       config.ca_cert_bytes = iotcert->len;
    }
@@ -387,8 +391,10 @@ void iot_init(jo_t j)
    *clientkey;
    if (clientkey->len && clientcert->len)
    {
+      config.client_cert_ref = 1;       // No need to malloc
       config.client_cert_buf = (void *) clientcert->data;
       config.client_cert_bytes = clientcert->len;
+      config.client_key_ref = 1;        // No need to malloc
       config.client_key_buf = (void *) clientkey->data;
       config.client_key_bytes = clientkey->len;
    }

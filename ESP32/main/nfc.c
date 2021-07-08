@@ -16,7 +16,7 @@ const char *nfc_tamper = NULL;
 #define PORT_INV 0x40
 #define GPIO_INV 0x80           // No SETTING bit
 
-inline int16_t gpio_mask(uint8_t p)
+int16_t gpio_mask(uint8_t p)
 {
    if (!p)
       return -1;                // Invalid (bit set if port is set)
