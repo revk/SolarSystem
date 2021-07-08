@@ -480,15 +480,26 @@ j_t incoming(void)
    free(q);
    if (mqttdump)
    {
-      slot_t id = strtoll(j_get(j, "_meta.id") ? : "", NULL, 10);
-      if (id)
-         fprintf(stderr, "%lld", id);
+      j_t meta = j_find(j, "_meta");
+      if (meta)
+         j_detach(meta);
+      if (meta)
+      {
+         slot_t id = strtoll(j_get(meta, "id") ? : "", NULL, 10);
+         if (id)
+            fprintf(stderr, "%lld", id);
+      }
       fprintf(stderr, "<:");
-      const char *topic = j_get(j, "_meta.topic");
-      if (topic)
-         fprintf(stderr, "%s ", topic);
+      if (meta)
+      {
+         const char *topic = j_get(meta, "topic");
+         if (topic)
+            fprintf(stderr, "%s ", topic);
+      }
       j_err(j_write(j, stderr));
       fprintf(stderr, "\n");
+      if (meta)
+         j_store_json(j, "_meta", &meta);
    }
    return j;
 }
