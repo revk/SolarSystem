@@ -115,7 +115,7 @@ static void task(void *pvParameters)
                jo_null(j, NULL);
             else
                jo_bool(j, NULL, (input_stable >> i) & 1);
-         revk_state_copy(TAG, &j, iotstateinput ? iot : NULL);
+         revk_state_copy(TAG, &j, iotstateinput);
       }
       // Sleep
       usleep((inputpoll ? : 1) * 1000);

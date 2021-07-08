@@ -556,7 +556,7 @@ static void task(void *pvParameters)
                   jo_string(j, "state", lockstates[lock[l].state]);
                   if (lock[l].timeout > now)
                      jo_int(j, "timeout", (lock[l].timeout - now) / 1000);
-                  revk_state_copy(l ? "deadlock" : "lock", &j, NULL);
+                  revk_state(l ? "deadlock" : "lock", &j);
                }
             }
          }
@@ -597,13 +597,13 @@ static void task(void *pvParameters)
          if (doorstate != lastdoorstate)
          {                      // State change - iot and set timeout
             if (doorstate == DOOR_OPEN && *iotopen)
-               lwmqtt_send_str(iot, iotopen);
+               revk_mqtt_send_str_copy(iotopen, 0, -1);
             if (lastdoorstate == DOOR_OPEN && *iotclose)
-               lwmqtt_send_str(iot, iotclose);
+               revk_mqtt_send_str_copy(iotclose, 0, -1);
             if (doorstate == DOOR_DEADLOCKED && *iotarm)
-               lwmqtt_send_str(iot, iotarm);
+               revk_mqtt_send_str_copy(iotarm, 0, -1);
             if (lastdoorstate == DOOR_DEADLOCKED && *iotdisarm)
-               lwmqtt_send_str(iot, iotdisarm);
+               revk_mqtt_send_str_copy(iotdisarm, 0, -1);
             if (doorstate == DOOR_OPEN)
                doortimeout = now + (int64_t) doorprop *1000LL;
             else if (doorstate == DOOR_CLOSED)
@@ -712,7 +712,7 @@ static void task(void *pvParameters)
                jo_string(j, "trigger", doorwhy);
             if (doortimeout > now)
                jo_int(j, "timeout", (doortimeout - now) / 1000);
-            revk_state_copy("door", &j, iotstatedoor ? iot : NULL);
+            revk_state_copy("door", &j, iotstatedoor);
             lastdoorstate = doorstate;
          }
          output_set(OERROR, door_tamper || door_fault);

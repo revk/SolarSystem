@@ -30,10 +30,6 @@ static const char *port_inuse[MAX_PORT];
   	io(tamper) 	\
 	s(name)		\
 	area(area)	\
-	s(iothost)	\
-	s(iotuser)	\
-	s(iotpass)	\
-	bd(iotcert,NULL)\
 	b(iotstatedoor)	\
 	b(iotstateinput)\
 	b(iotstateoutput)\
@@ -70,9 +66,6 @@ states
 #endif
 const char *controller_fault = NULL;
 const char *controller_tamper = NULL;
-
-lwmqtt_t iot = NULL;
-void iot_init(jo_t j);          // Called for wifi connect
 
 static void status_report(int force)
 {                               // Report status change
@@ -114,7 +107,7 @@ static void status_report(int force)
          if (lastfault)
             free(lastfault);
          lastfault = strdup(fault);
-         revk_state_copy("fault", &j, iotstatefault ? iot : NULL);
+         revk_state_copy("fault", &j, iotstatefault);
       }
       jo_free(&j);              // safe to call even if freed by revk_state
    }
@@ -129,7 +122,7 @@ static void status_report(int force)
          if (lasttamper)
             free(lasttamper);
          lasttamper = strdup(tamper);
-         revk_state_copy("tamper", &j, iotstatetamper ? iot : NULL);
+         revk_state_copy("tamper", &j, iotstatetamper);
       }
       jo_free(&j);              // safe to call even if freed by revk_state
    }
@@ -177,11 +170,11 @@ const char *port_check(int p, const char *module, int in)
    return NULL;                 // OK
 }
 
-const char *app_callback(const char *prefix, const char *target, const char *suffix, jo_t j)
+const char *app_callback(int client, const char *prefix, const char *target, const char *suffix, jo_t j)
 {
    const char *e = NULL;
-   if (prefix && !strcmp(prefix, prefixcommand))
-   {                            // Commands
+   if (!client && prefix && !strcmp(prefix, prefixcommand))
+   {                            // Commands from main MQTT
       if (target && (!strcmp(target, revk_id) || !strcmp(target, "*")))
       {                         // To us
 #define m(x) extern const char * x##_command(const char *,jo_t); jo_rewind(j);if(!e)e=x##_command(suffix,j);
@@ -190,11 +183,7 @@ const char *app_callback(const char *prefix, const char *target, const char *suf
       }
       if (!target)
       {                         // System commands
-         if (!strcmp(suffix, "wifi"))
-            iot_init(j);
-         else if (strcmp(suffix, "restart"))
-            lwmqtt_end(&iot);
-         else if (!strcmp(suffix, "connect"))
+         if (!strcmp(suffix, "connect"))
          {
             status_report(1);
             status_report(0);
@@ -202,36 +191,6 @@ const char *app_callback(const char *prefix, const char *target, const char *suf
       }
    }
    return e;
-}
-
-void iot_rx(void *arg, char *topic, unsigned short len, unsigned char *payload)
-{
-   arg = arg;
-   if (topic)
-   {                            // Message - we have limited support for IoT based messages, when configured to accept them
-      if (!strncmp(topic, "command/", 8))
-      {
-         char *c = strrchr(topic, '/');
-         if (c && *c)
-         {
-            c++;
-            // Commands we handle
-            // TODO
-         }
-
-      }
-
-   } else if (!payload)
-      ESP_LOGI(TAG, "IoT closed (mem:%d)", esp_get_free_heap_size());
-   else
-   {
-      ESP_LOGI(TAG, "IoT open %s", payload);
-      char topic[100];
-      snprintf(topic, sizeof(topic), "command/%s/%s/#", revk_appname(), revk_id);
-      lwmqtt_subscribe(iot, topic);
-      snprintf(topic, sizeof(topic), "state/%s/%s", revk_appname(), revk_id);
-      lwmqtt_send_full(iot, -1, topic, -1, (void *) "{\"up\":true}", 1);
-   }
 }
 
 #ifdef	CONFIG_LWMQTT_SERVER
@@ -309,13 +268,11 @@ void relay_init(void)
    extern revk_bindata_t *clientcert;
    // Make simple SNTP handler
    revk_task("SNTP", sntp_dummy_task, NULL);
-   if (*iothost)
-   {                            // Make IoT relay
-      lwmqtt_server_config_t config = {
-         .callback = iot_relay_rx,
-      };
-      iot_relay = lwmqtt_server(&config);
-   }
+   // Make IoT relay
+   lwmqtt_server_config_t config = {
+      .callback = iot_relay_rx,
+   };
+   iot_relay = lwmqtt_server(&config);
    // Make MQTT relay
    lwmqtt_server_config_t config = {
       .callback = mqtt_relay_rx,
@@ -340,73 +297,12 @@ void relay_init(void)
 }
 #endif
 
-void iot_init(jo_t j)
-{
-   if (!*iothost)
-      return;
-   char gw[16] = "",
-       slave = 0;
-   const char *host = iothost;
-   if (j && jo_here(j) == JO_OBJECT)
-   {
-      jo_type_t t;
-      while ((t = jo_next(j)))
-         if (t == JO_TAG)
-         {
-            if (!jo_strcmp(j, "slave"))
-            {
-               if (jo_next(j) == JO_TRUE)
-                  slave = 1;
-            } else if (!jo_strcmp(j, "gw"))
-            {
-               if (jo_next(j) == JO_STRING)
-                  jo_strncpy(j, gw, sizeof(gw));
-            }
-         }
-   }
-   if (slave && *gw)
-      host = gw;
-   ESP_LOGI(TAG, "IoT %s", host);
-   if (iot)
-      lwmqtt_end(&iot);
-   char topic[100];
-   snprintf(topic, sizeof(topic), "state/%s/%s", revk_appname(), revk_id);
-   lwmqtt_client_config_t config = {
-      .client = revk_id,
-      .hostname = host,
-      .username = iotuser,
-      .password = iotpass,
-      .callback = &iot_rx,
-      .topic = topic,
-      .plen = -1,
-      .retain = 1,
-      .payload = (void *) "{\"up\":false}",
-   };
-   if (iotcert->len)
-   {
-      config.ca_cert_ref = 1;   // No need to malloc
-      config.ca_cert_buf = (void *) iotcert->data;
-      config.ca_cert_bytes = iotcert->len;
-   }
-   extern revk_bindata_t *clientcert,
-   *clientkey;
-   if (clientkey->len && clientcert->len)
-   {
-      config.client_cert_ref = 1;       // No need to malloc
-      config.client_cert_buf = (void *) clientcert->data;
-      config.client_cert_bytes = clientcert->len;
-      config.client_key_ref = 1;        // No need to malloc
-      config.client_key_buf = (void *) clientkey->data;
-      config.client_key_bytes = clientkey->len;
-   }
-   iot = lwmqtt_client(&config);
-}
-
+uint8_t iotcopy;                // group heading
 void app_main()
 {
    reason = esp_reset_reason();
    revk_init(&app_callback);
-   revk_register("iot", 0, 0, &iothost, NULL, SETTING_SECRET);  // iot group
+   revk_register("iot", 0, 0, &iotcopy, "true", SETTING_BOOLEAN | SETTING_SECRET);      // iot group
 #define io(n) revk_register(#n,0,sizeof(n),&n,BITFIELDS,SETTING_SET|SETTING_BITFIELD);
 #define s(n) revk_register(#n,0,0,&n,NULL,0);
 #define sa(n,a) revk_register(#n,a,0,&n,NULL,0);

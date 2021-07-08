@@ -621,6 +621,7 @@ const char *slot_send(slot_t id, const char *prefix, const char *deviceid, const
       j = *jp;
       *jp = NULL;
    }
+ // TODO for prefix of "setting" we should split if we can
    const char *process(void) {
       if ((!prefix && !(topic = strdup(""))) || (prefix && asprintf(&topic, "%s/SS/%s%s%s", prefix, (deviceid && *deviceid) ? deviceid : "*", suffix ? "/" : "", suffix ? : "") < 0))
          return "malloc";

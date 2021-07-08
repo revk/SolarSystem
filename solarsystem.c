@@ -127,6 +127,8 @@ static void addwifi(SQL * sqlp, j_t j, SQL_RES * site, const char *deviceid, con
    if (!parentid || !*parentid || !strcmp(parentid, deviceid))
       parentid = NULL;          // Not senible
    // Standard wifi settings
+   v = sql_colz(site, "iothost");
+   j_store_string(j, "mqtthost2", *v ? v : NULL);
    j_t wifi = j_store_object(j, "wifi");
    if ((v = sql_colz(site, "wifissid")) && *v)
       j_store_string(wifi, "ssid", v);
@@ -167,11 +169,9 @@ const char *settings(SQL * sqlp, SQL_RES * res, slot_t id)
       if (sql_fetch_row(s))
       {
          addwifi(sqlp, j, s, sql_colz(res, "device"), sql_col(res, "parent"));
-         const char *host = sql_colz(s, "iothost");
          j_t iot = j_store_object(j, "iot");
-         if (*host)
+         if (*sql_colz(s, "iothost"))
          {
-            j_store_string(iot, "host", host);
             if (*sql_colz(res, "iotstatedoor") == 't')
                j_store_true(iot, "statedoor");
             if (*sql_colz(res, "iotstateinput") == 't')
