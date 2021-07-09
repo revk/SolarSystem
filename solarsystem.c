@@ -548,6 +548,7 @@ int main(int argc, const char *argv[])
                   SQL_RES *s = sql_safe_query_store_free(&sql, sql_printf("SELECT * FROM `aid` LEFT JOIN `site` USING (`site`) WHERE `aid`=%#s", aid));
                   if (sql_fetch_row(s))
                   {
+                     j = j_create();
                      addwifi(&sql, j, s, deviceid, NULL);
                      fail = slot_send(id, "setting", deviceid, NULL, &j);
                   }
