@@ -17,6 +17,7 @@ if($?type) then
 endif
 
 done:
+sql "$DB" 'INSERT IGNORE INTO devicegpio SET device="$device",gpio="$gpio"'
 xmlsql -C -d "$DB" head.html - foot.html << END
 <form method=post action="/editgpio.cgi"><input name=devicegpio type=hidden>
 <sql table=area where="site=$SESSION_SITE"><IF AREAS><SET AREAS="\$AREAS "></IF><SET AREAS="\$AREAS\$area"></sql>
@@ -38,9 +39,9 @@ xmlsql -C -d "$DB" head.html - foot.html << END
 <td><output name=tag></td>
 <for space STATE="\$SL"><td><input type=checkbox name="\$STATE" value="\$tag"></td></for>
 <td><output name=areaname></td>
+</sql>
 </for>
 </tr>
-</sql>
 </table>
 </if>
 </sql>
