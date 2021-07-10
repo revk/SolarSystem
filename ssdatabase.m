@@ -181,7 +181,7 @@ text(fobname, 0);               // Name of fob user
 datetime(expires);              // Fixed expiry (local time on server)
 
 table(device, 12);
-link2(device, parent);          // Parent in WiFi tree using MQTT (not in use)
+link2(device, parent);          // Wifi parent
 text(devicename, 0);
 link(organisation);             // Yes, can get from site, but useful to reference quickly
 link(site);                     // The site the device is on

@@ -204,7 +204,7 @@ static void addwifi(SQL * sqlp, j_t j, SQL_RES * site, const char *deviceid, con
    sql_free_result(res);
    j_store_true(mesh, "lr");
 #endif
-#ifdef	CONFIG_REVK_WIFI        // Not mesh - this solution was deprecated in favour of mesh
+#ifdef	CONFIG_REVK_WIFI        // Not mesh - this solution was deprecated in favour of mesh - TODO remove
    // Parent logic is priority, falling back to the above defaults
    if (parentid)
       j_store_string(wifi, "mqtt", parentid);   // Sets MQTT to connect to gateway using this as TLS common name
@@ -753,9 +753,9 @@ int main(int argc, const char *argv[])
                                  if (sql_fetch_row(res))
                                     site = atoi(sql_colz(res, "site"));
                                  sql_free_result(res);
-                                 sql_safe_query_free(&sql, sql_printf("UPDATE `device` SET `id`=%lld WHERE `device`=%#.*s AND `site`=%d", id, p - dev, dev, site));
+                                 sql_safe_query_free(&sql, sql_printf("UPDATE `device` SET `id`=%lld,`parent`=%#s WHERE `device`=%#.*s AND `site`=%d", id, secureid, p - dev, dev, site));
                               } else
-                                 sql_safe_query_free(&sql, sql_printf("UPDATE `device` SET `id`=%lld WHERE `device`=%#.*s", id, p - dev, dev));
+                                 sql_safe_query_free(&sql, sql_printf("UPDATE `device` SET `id`=%lld,`parent`=NULL WHERE `device`=%#.*s", id, p - dev, dev));
                               device = sql_safe_query_store_free(&sql, sql_printf("SELECT * FROM `device` WHERE `device`=%#.*s", p - dev, dev));
                               if (sql_fetch_row(device) && !upgrade(device, id) && !settings(&sql, device, id))
                                  security(&sql, &sqlkey, device, id);
@@ -790,7 +790,7 @@ int main(int argc, const char *argv[])
                         if (p - dev == 12)
                         {
                            if (checkdevice())
-                              sql_safe_query_free(&sql, sql_printf("UPDATE `device` SET `online`=NULL,`id`=NULL WHERE `device`=%#.*s AND `id`=%lld", p - dev, dev, id));
+                              sql_safe_query_free(&sql, sql_printf("UPDATE `device` SET `parent`=NULL,`online`=NULL,`id`=NULL WHERE `device`=%#.*s AND `id`=%lld", p - dev, dev, id));
                            else
                               sql_safe_query_free(&sql, sql_printf("DELETE FROM `pending` WHERE `device`=%#.*s AND `id`=%lld", p - dev, dev, id));
                         }
