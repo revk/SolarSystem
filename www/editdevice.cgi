@@ -93,7 +93,7 @@ xmlsql -C -d "$DB" head.html - foot.html << END
 <td><output name=devicename blank="Unnamed" missing="Unnamed"></td>
 <!-- <set s=""><if not P><set s="background:green;"></if><td style="\$s"><output name=P missing="-- Root --"></td> -->
 <set s=""><if lastonline><set s="background:green;"></if><if not online><set s="background:yellow;"></if>
-<td style="\$s"><if online><tt><output name=online></tt></if><if else><tt><output name=lastonline missing="never"></tt> Offline</if></td>
+<td style="\$s"><if online><tt><output name=online></tt></if><if else><tt><output name=lastonline missing="never"></tt><br>Offline</if></td>
 <td><output name=address></td>
 <td><if upgrade>Upgrade scheduled<br></if><tt><output name=version></tt><br><tt><output name=build></tt></td>
 <td><output name=pcbname><br>Flash:<output name=flash type=mega></td>
