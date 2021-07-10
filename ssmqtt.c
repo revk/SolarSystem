@@ -532,8 +532,10 @@ j_t incoming(void)
          }
       }
       if (j_isobject(j) && !j_len(j) && meta)
+      {
+         fprintf(stderr, "*");
          j_err(j_write(meta, stderr));
-      else
+      } else
          j_err(j_write(j, stderr));
       fprintf(stderr, "\n");
       if (meta)

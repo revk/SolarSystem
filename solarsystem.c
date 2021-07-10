@@ -566,15 +566,16 @@ int main(int argc, const char *argv[])
          const char *deviceid = j_get(meta, "target");
          slot_t id = strtoull(j_get(meta, "id") ? : "", NULL, 10);
          SQL_RES *checkdevice(void) {   // Check device is secure and get device SQL
-            if (device || !secureid || !deviceid || *secureid == '-' || *secureid == '*')
+            if (device || !secureid || *secureid == '-' || *secureid == '*')
                return device;
-            if (*deviceid == '*')
+            if (deviceid && *deviceid == '*')
                return NULL;
-            device = sql_safe_query_store_free(&sql, sql_printf("SELECT * FROM `device` WHERE `device`=%#s AND `id`=%lld", deviceid, id));
+            device = sql_safe_query_store_free(&sql, sql_printf("SELECT * FROM `device` WHERE `device`=%#s AND `id`=%lld", deviceid ? : secureid, id));
             if (!sql_fetch_row(device))
             {
                sql_free_result(device);
                device = NULL;
+               secureid = NULL;
                deviceid = NULL;
             }
             return device;
