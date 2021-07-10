@@ -126,6 +126,8 @@ text(iothost, 0);               // IoT host for local MQTT
 text(meshid, 12);               // Mesh ID (MAC)
 key(meshid, 12);
 text(meshpass, 0);              // Mesh WiFi passphrase
+text(meshkey,32);		// AES key
+key(meshkey,32);
 
 table(area, 0);
 link(organisation);             // Quicker

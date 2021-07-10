@@ -160,6 +160,25 @@ static void addwifi(SQL * sqlp, j_t j, SQL_RES * site, const char *deviceid, con
    }
    if (*v)
       j_store_string(mesh, "id", v);
+   v = sql_colz(site, "meshkey");
+   if (!*v)
+   {                            // Make a mesh ID
+      int tries = 100;
+      while (tries--)
+      {
+         unsigned char key[16];
+         char skey[33];
+         randblock(key, sizeof(key));
+         j_base16N(sizeof(key), key, sizeof(skey), skey);
+         if (!sql_query_free(sqlp, sql_printf("UPDATE `site` SET `meshkey`=%#s WHERE `site`=%#s", skey, sql_col(site, "site"))))
+         {
+            v = strdupa(skey);
+            break;
+         }
+      }
+   }
+   if (*v)
+      j_store_string(mesh, "key", v);
    v = sql_colz(site, "meshpass");
    if (!*v)
    {                            // Make mesh passphrase
