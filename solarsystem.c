@@ -561,11 +561,16 @@ int main(int argc, const char *argv[])
          if (dump)
             j_err(j_write_pretty(j, stderr));
          SQL_RES *device = NULL;
-         const char *deviceid = NULL;
-         SQL_RES *checkdevice(void) {
-            if (device || !deviceid || *deviceid == '-')
+         j_t meta = j_find(j, "_meta");
+         const char *secureid = j_get(meta, "device");
+         const char *deviceid = j_get(meta, "target");
+         slot_t id = strtoull(j_get(meta, "id") ? : "", NULL, 10);
+         SQL_RES *checkdevice(void) {   // Check device is secure and get device SQL
+            if (device || !secureid || !deviceid || *secureid == '-' || *secureid == '*')
                return device;
-            device = sql_safe_query_store_free(&sql, sql_printf("SELECT * FROM `device` WHERE `device`=%#s", deviceid));
+            if (*deviceid == '*')
+               return NULL;
+            device = sql_safe_query_store_free(&sql, sql_printf("SELECT * FROM `device` WHERE `device`=%#s AND `id`=%lld", deviceid, id));
             if (!sql_fetch_row(device))
             {
                sql_free_result(device);
@@ -574,7 +579,6 @@ int main(int argc, const char *argv[])
             }
             return device;
          }
-         j_t meta = j_find(j, "_meta");
          if (meta)
             meta = j_detach(meta);
          char forked = 0;
@@ -583,7 +587,7 @@ int main(int argc, const char *argv[])
             const char *v;
             {                   // Identify the device we want to talk to...
                SQL_RES *res = NULL;
-               if ((v = j_get(meta, "target")))
+               if ((v = j_get(meta, "device")))
                   res = sql_safe_query_store_free(&sql, sql_printf("SELECT `id` FROM `device` WHERE `device`=%#s", v));
                else if ((v = j_get(meta, "pending")))
                   res = sql_safe_query_store_free(&sql, sql_printf("SELECT `id` FROM `pending` WHERE `pending`=%#s", v));
@@ -716,8 +720,6 @@ int main(int argc, const char *argv[])
                return "No meta data";
             if (j_find(meta, "loopback"))
                return loopback();
-            deviceid = j_get(meta, "device");
-            slot_t id = strtoull(j_get(meta, "id") ? : "", NULL, 10);
             if (!id)
                return "No id";
             j_t t;
@@ -726,6 +728,8 @@ int main(int argc, const char *argv[])
                for (j_t s = j_first(t); s; s = j_next(s))
                {
                   const char *p = j_val(s);
+                  if (strncmp(p, "command/", 8))
+                     continue;
                   while (*p && *p != '/')
                      p++;
                   if (*p)
@@ -736,15 +740,28 @@ int main(int argc, const char *argv[])
                      if (*p)
                      {
                         p++;
-                        const char *device = p;
+                        const char *dev = p;
                         while (*p && *p != '/')
                            p++;
-                        if (p - device == 12)
+                        if (p - dev == 12)
                         {
-                           if (checkdevice())
-                              sql_safe_query_free(&sql, sql_printf("UPDATE `device` SET `id`=%lld WHERE `device`=%#.*s", id, p - device, device));
-                           else
-                              sql_safe_query_free(&sql, sql_printf("INSERT INTO `pending` SET `pending`=%#.*s,`id`=%lld ON DUPLICATE KEY UPDATE `id`=%lld", p - device, device, id, id));
+                           if (secureid)
+                           {
+                              if (strncmp(secureid, dev, p - dev))
+                              { // Check same site
+                                 int site = -0;
+                                 SQL_RES *res = sql_safe_query_store_free(&sql, sql_printf("SELECT * FROM `device` WHERE `device`=%#s", secureid));
+                                 if (sql_fetch_row(res))
+                                    site = atoi(sql_colz(res, "site"));
+                                 sql_free_result(res);
+                                 sql_safe_query_free(&sql, sql_printf("UPDATE `device` SET `id`=%lld WHERE `device`=%#.*s AND `site`=%d", id, p - dev, dev, site));
+                              } else
+                                 sql_safe_query_free(&sql, sql_printf("UPDATE `device` SET `id`=%lld WHERE `device`=%#.*s", id, p - dev, dev));
+                              device = sql_safe_query_store_free(&sql, sql_printf("SELECT * FROM `device` WHERE `device`=%#.*s", p - dev, dev));
+                              if (sql_fetch_row(device) && !upgrade(device, id) && !settings(&sql, device, id))
+                                 security(&sql, &sqlkey, device, id);
+                           } else
+                              sql_safe_query_free(&sql, sql_printf("INSERT INTO `pending` SET `pending`=%#.*s,`id`=%lld ON DUPLICATE KEY UPDATE `id`=%lld", p - dev, dev, id, id));
                         }
                      }
                   }
@@ -756,6 +773,8 @@ int main(int argc, const char *argv[])
                for (j_t s = j_first(t); s; s = j_next(s))
                {
                   const char *p = j_val(s);
+                  if (strncmp(p, "command/", 8))
+                     continue;
                   while (*p && *p != '/')
                      p++;
                   if (*p)
@@ -772,7 +791,7 @@ int main(int argc, const char *argv[])
                         if (p - dev == 12)
                         {
                            if (checkdevice())
-                              sql_safe_query_free(&sql, sql_printf("UPDATE `device` SET `online`=NULL,`id`=NULL WHERE `device`=%#.*s AND `id`=%lld AND `site`=%d", p - dev, dev, id,atoi(sql_colz(device,"site"))));
+                              sql_safe_query_free(&sql, sql_printf("UPDATE `device` SET `online`=NULL,`id`=NULL WHERE `device`=%#.*s AND `id`=%lld", p - dev, dev, id));
                            else
                               sql_safe_query_free(&sql, sql_printf("DELETE FROM `pending` WHERE `device`=%#.*s AND `id`=%lld", p - dev, dev, id));
                         }
@@ -790,12 +809,12 @@ int main(int argc, const char *argv[])
                   {             // Send reply
                      j_t j = j_create();
                      j_string(j, reply);
-                     slot_send(id, NULL, deviceid, NULL, &j);   // reply
+                     slot_send(id, NULL, secureid, NULL, &j);   // reply
                   }
                   if (!forked)
                   {             // Tell command we are closed
                      j_t j = j_create();
-                     slot_send(id, NULL, deviceid, NULL, &j);
+                     slot_send(id, NULL, secureid, NULL, &j);
                   }
                }
                return reply;
@@ -805,29 +824,24 @@ int main(int argc, const char *argv[])
             const char *address = j_get(meta, "address");
             const char *prefix = j_get(meta, "prefix");
             const char *suffix = j_get(meta, "suffix");
-            if (prefix && !strcmp(prefix, "state") && suffix && j_find(j, "up"))
+            if (prefix && !strcmp(prefix, "state") && !suffix && j_find(j, "up") && deviceid)
             {                   // Up message
                sql_string_t s = { };
                if (checkdevice())
                {
                   sql_sprintf(&s, "UPDATE `device` SET ");      // known, update
-                  sql_sprintf(&s, "`lastonline`=NOW(),`poke`=NULL,");
-                  if (!upgrade(device, id) && !settings(&sql, device, id))
-                     security(&sql, &sqlkey, device, id);
+                  if (!sql_col(device, "online"))
+                     sql_sprintf(&s, "`lastonline`=NOW(),`poke`=NULL,");
                } else           // pending - update pending
                {
-                  const char *deviceid = j_get(j, "target");
-                  if (deviceid && *deviceid)
-                  {
-                     sql_sprintf(&s, "REPLACE INTO `pending` SET ");
-                     sql_sprintf(&s, "`pending`=%#s,", deviceid);
-                     if (deviceid)
-                        sql_sprintf(&s, "`authenticated`=%#s,", "true");
-                     SQL_RES *res = sql_safe_query_store_free(&sql, sql_printf("SELECT * FROM `device` WHERE `device`=%#s", deviceid));
-                     if (sql_fetch_row(res))
-                        upgrade(res, id);
-                     sql_free_result(res);
-                  }
+                  sql_sprintf(&s, "REPLACE INTO `pending` SET ");
+                  sql_sprintf(&s, "`pending`=%#s,", deviceid);
+                  if (deviceid)
+                     sql_sprintf(&s, "`authenticated`=%#s,", "true");
+                  SQL_RES *res = sql_safe_query_store_free(&sql, sql_printf("SELECT * FROM `device` WHERE `device`=%#s", deviceid));
+                  if (sql_fetch_row(res))
+                     upgrade(res, id);
+                  sql_free_result(res);
                }
                if (!device || (address && strcmp(sql_colz(device, "address"), address)))
                   sql_sprintf(&s, "`address`=%#s,", address);
@@ -840,13 +854,13 @@ int main(int argc, const char *argv[])
                const char *secureboot = (j_test(j, "secureboot", 0) ? "true" : "false");
                if (!device || (secureboot && strcmp(sql_colz(device, "secureboot"), secureboot)))
                   sql_sprintf(&s, "`secureboot`=%#s,", secureboot);
-               const char *encryptednvs = (j_test(j, "encryptednvs", 0) ? "true" : "falencryptednvs");
+               const char *encryptednvs = (j_test(j, "encryptednvs", 0) ? "true" : "false");
                if (!device || (encryptednvs && strcmp(sql_colz(device, "encryptednvs"), encryptednvs)))
                   sql_sprintf(&s, "`encryptednvs`=%#s,", secureboot);
                int flash = atoi(j_get(j, "flash") ? : "");
                if (flash && (!device || (flash != atoi(sql_colz(device, "flash")))))
                   sql_sprintf(&s, "`flash`=%d,", flash);
-#if 0
+#if 0                           // Changes a lot while running, we need total RAM from somewhere...
                int mem = atoi(j_get(j, "mem") ? : "");
                if (mem && (!device || (mem != atoi(sql_colz(device, "mem")))))
                   sql_sprintf(&s, "`mem`=%d,", flash);

@@ -34,7 +34,7 @@ void mqtt_topic(j_t j, const char *topic, int tlen)
          int id = n;
          while (topic[n] && topic[n] != '/')
             n++;                // ID
-         j_store_stringn(meta, "target", topic + id, n = id);
+         j_store_stringn(meta, "target", topic + id, n - id);
          if (topic[n])
          {
             n++;

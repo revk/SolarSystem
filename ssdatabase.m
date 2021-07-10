@@ -226,6 +226,7 @@ datetime(online);
 ip(address);
 num(id);
 text(version, 0);               // S/w version
+text(build, 0);                 // S/w build
 bool (encryptednvs);            // Built with encrypted NVS
 bool (secureboot);              // Built with secure boot
 bool (authenticated);           // New authenticated device
