@@ -87,6 +87,7 @@ xmlsql -C -d "$DB" head.html - foot.html << END
 <th>Version</th>
 <th>PCB</th>
 <th>Notes</th></tr>
+<sql table="device" where="organisation=$SESSION_ORGANISATION" select="max(version) AS V,max(build) AS B"><set V="\$V"><set B="\$B"></sql>
 <sql where="device.organisation=$SESSION_ORGANISATION" table="device LEFT JOIN pcb USING (pcb) LEFT JOIN device AS device2 ON (device.parent=device2.device)" order="device2.devicename,device.devicename" WHERE="site=\$SESSION_SITE" select="device.*,pcb.pcbname,device2.devicename AS P"><set found=1>
 <tr>
 <td><output name=device href="/editdevice.cgi/\$device"></td>
@@ -95,7 +96,7 @@ xmlsql -C -d "$DB" head.html - foot.html << END
 <set s=""><if lastonline><set s="background:green;"></if><if not online><set s="background:yellow;"></if>
 <td style="\$s"><if online><tt><output name=online></tt></if><if else><tt><output name=lastonline missing="never"></tt><br>Offline</if></td>
 <td><output name=address></td>
-<td><if upgrade>Upgrade scheduled<br></if><tt><output name=version></tt><br><tt><output name=build></tt></td>
+<td><if upgrade>Upgrade scheduled<br></if><set s="background:red;"><if version="\$V"><set s="background:green;"></if><tt style="\$s"><output name=version></tt><br><set s="background:yellow;"><if build="\$B"><set s="background:green;"></if><tt style="\$s"><output name=build></tt></td>
 <td><output name=pcbname><br>Flash:<output name=flash type=mega></td>
 <set s><if not fault="{}"><set s="background:yellow;"></if><if not tamper="{}"><set s="background:red;"></if>
 <td style="\$s"><if door=true>Door </if><if nfc=true>NFC reader </if><if nfcadmin=true> (admin)</if><if nfctrusted=true><b> (trusted)</b></if><br>
