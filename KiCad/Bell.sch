@@ -195,12 +195,12 @@ NoConn ~ 2700 2200
 $Comp
 L Device:R R16
 U 1 1 60819C12
-P 7550 3725
-F 0 "R16" V 7450 3725 50  0000 C CNN
-F 1 "732R" V 7550 3725 50  0000 C CNN
-F 2 "RevK:R_0603" V 7480 3725 50  0001 C CNN
-F 3 "~" H 7550 3725 50  0001 C CNN
-	1    7550 3725
+P 7550 4125
+F 0 "R16" V 7450 4125 50  0000 C CNN
+F 1 "324R" V 7550 4125 50  0000 C CNN
+F 2 "RevK:R_0603" V 7480 4125 50  0001 C CNN
+F 3 "~" H 7550 4125 50  0001 C CNN
+	1    7550 4125
 	0    1    1    0   
 $EndComp
 $Comp
@@ -818,7 +818,7 @@ F 3 "http://www.intersil.com/content/dam/Intersil/documents/el72/el7202-12-22.pd
 	1    0    0    -1  
 $EndComp
 $Comp
-L Device:LED_RGBA D2
+L Device:LED_ARGB D2
 U 1 1 60CE13C1
 P 7900 3925
 F 0 "D2" H 7900 4422 50  0000 C CNN
@@ -842,12 +842,12 @@ $EndComp
 $Comp
 L Device:R R3
 U 1 1 60CE4FE8
-P 7550 4125
-F 0 "R3" V 7450 4125 50  0000 C CNN
-F 1 "324R" V 7550 4125 50  0000 C CNN
-F 2 "RevK:R_0603" V 7480 4125 50  0001 C CNN
-F 3 "~" H 7550 4125 50  0001 C CNN
-	1    7550 4125
+P 7550 3725
+F 0 "R3" V 7450 3725 50  0000 C CNN
+F 1 "732R" V 7550 3725 50  0000 C CNN
+F 2 "RevK:R_0603" V 7480 3725 50  0001 C CNN
+F 3 "~" H 7550 3725 50  0001 C CNN
+	1    7550 3725
 	0    1    1    0   
 $EndComp
 Text GLabel 7400 3725 0    50   Input ~ 0
@@ -857,9 +857,9 @@ G
 Text GLabel 7400 4125 0    50   Input ~ 0
 B
 Text GLabel 2700 3000 2    50   Input ~ 0
-R
+B
 Text GLabel 2700 3200 2    50   Input ~ 0
 G
 Text GLabel 2700 3100 2    50   Input ~ 0
-B
+R
 $EndSCHEMATC
