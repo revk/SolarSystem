@@ -720,8 +720,6 @@ int main(int argc, const char *argv[])
                return "No meta data";
             if (j_find(meta, "loopback"))
                return loopback();
-            if (!id)
-               return "No id";
             j_t t;
             if ((t = j_find(meta, "subscribe")))
             {
@@ -802,6 +800,7 @@ int main(int argc, const char *argv[])
             }
             if ((t = j_find(meta, "local")))
             {
+               id = strtoll(j_val(t) ? : "", NULL, 10);
                const char *reply = local(id);
                if (id)
                {                // Send response
@@ -835,8 +834,9 @@ int main(int argc, const char *argv[])
                } else           // pending - update pending
                {
                   sql_sprintf(&s, "REPLACE INTO `pending` SET ");
+                  deviceid = j_get(j, "id");
                   sql_sprintf(&s, "`pending`=%#s,", deviceid);
-                  if (deviceid)
+                  if (secureid && deviceid && strcmp(secureid, deviceid))
                      sql_sprintf(&s, "`authenticated`=%#s,", "true");
                   SQL_RES *res = sql_safe_query_store_free(&sql, sql_printf("SELECT * FROM `device` WHERE `device`=%#s", deviceid));
                   if (sql_fetch_row(res))
@@ -867,7 +867,7 @@ int main(int argc, const char *argv[])
 #endif
                if (!device || !sql_col(device, "online"))
                   sql_sprintf(&s, "`online`=NOW(),");
-               if (sql_back_s(&s) == ',')
+               if (sql_back_s(&s) == ',' && deviceid)
                {
                   if (device)
                      sql_sprintf(&s, " WHERE `device`=%#s AND `id`=%lld", deviceid, id);

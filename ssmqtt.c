@@ -510,7 +510,7 @@ j_t incoming(void)
          j_detach(meta);
       if (meta)
       {
-         slot_t id = strtoll(j_get(meta, "id") ? : "", NULL, 10);
+         slot_t id = strtoll(j_get(meta, "id") ? : j_get(meta, "local") ? : "", NULL, 10);
          if (id)
             fprintf(stderr, "%lld", id);
       }
@@ -520,6 +520,16 @@ j_t incoming(void)
          const char *topic = j_get(meta, "topic");
          if (topic)
             fprintf(stderr, "%s ", topic);
+         else
+         {
+            if ((topic = j_get(meta, "prefix")))
+               fprintf(stderr, "%s/", topic);
+            if ((topic = j_get(meta, "target")))
+               fprintf(stderr, "%s/", topic);
+            if ((topic = j_get(meta, "suffix")))
+               fprintf(stderr, "%s", topic);
+            fprintf(stderr, " ");
+         }
       }
       if (j_isobject(j) && !j_len(j) && meta)
          j_err(j_write(meta, stderr));
