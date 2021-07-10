@@ -93,9 +93,9 @@ xmlsql -C -d "$DB" head.html - foot.html << END
 <td><output name=devicename blank="Unnamed" missing="Unnamed"></td>
 <!-- <set s=""><if not P><set s="background:green;"></if><td style="\$s"><output name=P missing="-- Root --"></td> -->
 <set s=""><if lastonline><set s="background:green;"></if><if not online><set s="background:yellow;"></if>
-<td style="\$s"><if online><output name=online></if><if else>Last online <output name=lastonline missing="never"></if></td>
+<td style="\$s"><if online><tt><output name=online></tt></if><if else><tt><output name=lastonline missing="never"></tt> Offline</if></td>
 <td><output name=address></td>
-<td><output name=version><if upgrade> (upgrade scheduled)</if></td>
+<td><tt><output name=version></tt><if upgrade> (upgrade scheduled)</if><br><tt><output name=build></tt></td>
 <td><output name=pcbname><br>Flash:<output name=flash type=mega></td>
 <set s><if not fault="{}"><set s="background:yellow;"></if><if not tamper="{}"><set s="background:red;"></if>
 <td style="\$s"><if door=true>Door </if><if nfc=true>NFC reader </if><if nfcadmin=true> (admin)</if><if nfctrusted=true><b> (trusted)</b></if><br>

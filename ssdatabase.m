@@ -13,7 +13,7 @@
 #endif
 
 #ifndef	link2
-#define	link2(a,b)                 // Foreign key link to table n under different name
+#define	link2(a,b)              // Foreign key link to table n under different name
 #endif
 
 #ifndef	unique
@@ -37,7 +37,7 @@
 #endif
 
 #ifndef datetime
-#define datetime(n)                 // Time field
+#define datetime(n)             // Time field
 #endif
 
 #ifndef date
@@ -45,11 +45,11 @@
 #endif
 
 #ifndef time0000
-#define time0000(n)                 // Time field (default 00:00:00)
+#define time0000(n)             // Time field (default 00:00:00)
 #endif
 
 #ifndef time2359
-#define time2359(n)                 // Time field (default 23:59:59)
+#define time2359(n)             // Time field (default 23:59:59)
 #endif
 
 #ifndef ip
@@ -85,7 +85,7 @@
 #endif
 
 table(user, 0);                 // Users of the system (web)
-text(username, 0);           // Users name
+text(username, 0);              // Users name
 text(email, 0);                 // Users email - we expect unique
 key(email, 128);
 text(hash, 0);                  // Password hash
@@ -93,8 +93,8 @@ bool (admin);                   // Top level admin user - can do anything
 
 table(session, 36);             // Login session
 link(user);                     // Which user
-datetime(logintime);                // Login time
-datetime(expires);                  // Session expiry
+datetime(logintime);            // Login time
+datetime(expires);              // Session expiry
 index(expires);                 // Easier to delete
 ip(loginip);                    // Login ip
 text(useragent, 0);             // User agent
@@ -102,7 +102,7 @@ link(organisation);             // Current selected organisation
 link(site);                     // Current selected site
 
 join(user, organisation);
-text(userorganisationname, 0);              // Job Title
+text(userorganisationname, 0);  // Job Title
 bool (admin);                   // Customer level admin user - can do anything relating to this organisation
 bool (caneditorganisation);
 bool (caneditaccess);
@@ -120,25 +120,27 @@ text(organisationname, 0);
 table(site, 0);                 // Site
 link(organisation);
 text(sitename, 0);
-text(wifissid,0);		// Site WiFi settings
-text(wifipass,0);		// Site WiFi settings
-text(iothost,0);		// IoT host for local MQTT
+text(wifissid, 0);              // Site WiFi settings
+text(wifipass, 0);              // Site WiFi settings
+text(iothost, 0);               // IoT host for local MQTT
+text(meshid, 12);               // Mesh ID (MAC)
+key(meshid, 12);
+text(meshpass, 0);              // Mesh WiFi passphrase
 
 table(area, 0);
-link(organisation);		// Quicker
+link(organisation);             // Quicker
 link(site);
 area(tag);
 unique(site, tag);
 text(areaname, 0);
 
-table(access,0);		// Fob access permissions - available site wide, set on an aid
-link(organisation)		// Quicker access
-link(site);
-text(accessname,0)
-areas(enter);			// Allow entre
-areas(arm);			// Allow /arm
-areas(disarm);			// Allow disarm
-num(expiry);			// Auto expiry (days)
+table(access, 0);               // Fob access permissions - available site wide, set on an aid
+link(organisation)              // Quicker access
+    link(site);
+text(accessname, 0) areas(enter);       // Allow entre
+areas(arm);                     // Allow /arm
+areas(disarm);                  // Allow disarm
+num(expiry);                    // Auto expiry (days)
 time0000(sunfrom);
 time2359(sunto);
 time0000(monfrom);
@@ -153,69 +155,69 @@ time0000(frifrom);
 time2359(frito);
 time0000(satfrom);
 time2359(satto);
-bool(clock);			// Ignore time if clock not set
-bool(override);			// Open regardless
-bool(armlate);			// Out of hours arming
-bool(log);			// Log access
-bool(count);			// Count access
-bool(commit);			// Commit log/count
+bool (clock);                   // Ignore time if clock not set
+bool (override);                // Open regardless
+bool (armlate);                 // Out of hours arming
+bool (log);                     // Log access
+bool (count);                   // Count access
+bool (commit);                  // Commit log/count
 
 table(fob, 14);
-datetime(provisioned);              // When provisioned
-bool(format);			// Admin only - reformat fob when seen
-num(mem);			// Free memory
+datetime(provisioned);          // When provisioned
+bool (format);                  // Admin only - reformat fob when seen
+num(mem);                       // Free memory
 
 join(fob, aid);                 // Fob is in AID (adopted)
-datetime(adopted);			// When adopted
-text(ver,2);			// Key version
-link(access);			// Access permissions
+datetime(adopted);              // When adopted
+text(ver, 2);                   // Key version
+link(access);                   // Access permissions
 
 join(fob, organisation);        // Yes, per org, for security reasons
-datetime(blocked);			// Block card (when blocked)
-datetime(confirmed);		// When confirmed blocked
-text(fobname,0);		// Name of fob user
-datetime(expires);			// Fixed expiry (local time on server)
+datetime(blocked);              // Block card (when blocked)
+datetime(confirmed);            // When confirmed blocked
+text(fobname, 0);               // Name of fob user
+datetime(expires);              // Fixed expiry (local time on server)
 
 table(device, 12);
-link2(device,parent);		// Parent in WiFi tree using MQTT (not in use)
+link2(device, parent);          // Parent in WiFi tree using MQTT (not in use)
 text(devicename, 0);
-link(organisation);		// Yes, can get from site, but useful to reference quickly
+link(organisation);             // Yes, can get from site, but useful to reference quickly
 link(site);                     // The site the device is on
 link(pcb);                      // What type of device this is
-bool(iotstatedoor);		// Copy stuff to IoT
-bool(iotstateinput);		// Copy stuff to IoT
-bool(iotstateoutput);		// Copy stuff to IoT
-bool(iotstatefault);		// Copy stuff to IoT
-bool(iotstatetamper);		// Copy stuff to IoT
-bool(ioteventfob);		// Copy stuff to IoT
-bool(nfc);			// Yes, can get from pcb, but useful to reference quickly
-bool(nfcadmin);			// NFC reader for admin use, e.g. on a desk
+bool (iotstatedoor);            // Copy stuff to IoT
+bool (iotstateinput);           // Copy stuff to IoT
+bool (iotstateoutput);          // Copy stuff to IoT
+bool (iotstatefault);           // Copy stuff to IoT
+bool (iotstatetamper);          // Copy stuff to IoT
+bool (ioteventfob);             // Copy stuff to IoT
+bool (nfc);                     // Yes, can get from pcb, but useful to reference quickly
+bool (nfcadmin);                // NFC reader for admin use, e.g. on a desk
 bool (nfctrusted);              // Trusted device for fob provisioning
-bool(door);			// This is a door
+bool (door);                    // This is a door
 text(version, 0);               // S/w version
+text(build, 0);                 // S/w build
 bool (encryptednvs);            // Built with encrypted NVS
 bool (secureboot);              // Built with secure boot
-bool (adoptnext);		// Adopt next unknown fob seen, if possible
-bool (formatnext);		// Format next unknown fob seen, if possible
+bool (adoptnext);               // Adopt next unknown fob seen, if possible
+bool (formatnext);              // Format next unknown fob seen, if possible
 num(flash);                     // Flash size
 link(aid);                      // The AID for door access (defines what site it is)
-areas(area);   	                // Areas covered by this door
+areas(area);                    // Areas covered by this door
 datetime(online);               // When online, if online
 datetime(lastonline);           // When last went offline
 datetime(upgrade);              // When to do upgrade
 ip(address);                    // IP address when last online
-num(id);	               	// Instance for communications when on line
-datetime(poke);			// Poke settings
-text(tamper,0);			// Latest tamper state
-text(fault,0);			// Latest fault state
+num(id);                        // Instance for communications when on line
+datetime(poke);                 // Poke settings
+text(tamper, 0);                // Latest tamper state
+text(fault, 0);                 // Latest fault state
 // TODO hold times, lock times, etc...
 
-join(device,gpio)
-gpiotype(type);			// Pin Usage (in/out/power/exit/etc)
+join(device, gpio) gpiotype(type);      // Pin Usage (in/out/power/exit/etc)
 bool (invert);                  // Invert normal polarity for pin
 #define i(state) areas(state)
 #define s(state) areas(state)
-#include "ESP32/main/states.m"	// Related areas
+#include "ESP32/main/states.m"  // Related areas
 
 table(pending, 12);
 datetime(online);

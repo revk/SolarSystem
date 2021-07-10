@@ -2,6 +2,7 @@
 
 #define _GNU_SOURCE             /* See feature_test_macros(7) */
 #include "config.h"
+#include "ESP32/build/include/sdkconfig.h"
 #include <stdio.h>
 #include <string.h>
 #include <popt.h>
@@ -100,6 +101,7 @@ const char *security(SQL * sqlp, SQL * sqlkeyp, SQL_RES * res, slot_t id)
    return NULL;
 }
 
+#ifdef	CONFIG_REVK_WIFI        // Not mesh - this solution was deprecated in favour of mesh
 static int find_slaves(SQL * sqlp, j_t slave, const char *deviceid)
 {
    int n = 0;
@@ -120,12 +122,13 @@ static int find_slaves(SQL * sqlp, j_t slave, const char *deviceid)
    sql_free_result(res);
    return n;
 }
+#endif
 
 static void addwifi(SQL * sqlp, j_t j, SQL_RES * site, const char *deviceid, const char *parentid)
 {
    const char *v;               // temp
    if (!parentid || !*parentid || !strcmp(parentid, deviceid))
-      parentid = NULL;          // Not senible
+      parentid = NULL;          // Not sensible
    // Standard wifi settings
    v = sql_colz(site, "iothost");
    j_store_string(j, "mqtthost2", *v ? v : NULL);
@@ -134,6 +137,48 @@ static void addwifi(SQL * sqlp, j_t j, SQL_RES * site, const char *deviceid, con
       j_store_string(wifi, "ssid", v);
    if ((v = sql_colz(site, "wifipass")) && *v)
       j_store_string(wifi, "pass", v);
+   j_t mesh = j_store_object(j, "mesh");
+   v = sql_colz(site, "meshid");
+   if (!*v)
+   {                            // Make a mesh ID
+      int tries = 100;
+      while (tries--)
+      {
+         unsigned char mac[6];
+         char smac[13];
+         randblock(mac, sizeof(mac));
+         mac[0] &= 0xFE;        // Non broadcast
+         mac[0] |= 0x02;        // Local
+         j_base16N(sizeof(mac), mac, sizeof(smac), smac);
+         if (!sql_query_free(sqlp, sql_printf("UPDATE `site` SET `meshid`=%#s WHERE `site`=%#s", smac, sql_col(site, "site"))))
+         {
+            v = strdupa(smac);
+            break;
+         }
+      }
+   }
+   if (*v)
+      j_store_string(mesh, "id", v);
+   v = sql_colz(site, "meshpass");
+   if (!*v)
+   {                            // Make mesh passphrase
+      int tries = 100;
+      while (tries--)
+      {
+         unsigned char pass[24];
+         char spass[33];
+         randblock(pass, sizeof(pass));
+         j_base64N(sizeof(pass), pass, sizeof(spass), spass);
+         if (!sql_query_free(sqlp, sql_printf("UPDATE `site` SET `meshpass`=%#s WHERE `site`=%#s", spass, sql_col(site, "site"))))
+         {
+            v = strdupa(spass);
+            break;
+         }
+      }
+   }
+   if (*v)
+      j_store_string(mesh, "pass", v);
+#ifdef	CONFIG_REVK_WIFI        // Not mesh - this solution was deprecated in favour of mesh
    // Parent logic is priority, falling back to the above defaults
    if (parentid)
       j_store_string(wifi, "mqtt", parentid);   // Sets MQTT to connect to gateway using this as TLS common name
@@ -153,6 +198,7 @@ static void addwifi(SQL * sqlp, j_t j, SQL_RES * site, const char *deviceid, con
 
       }
    }
+#endif
 }
 
 const char *settings(SQL * sqlp, SQL_RES * res, slot_t id)
@@ -709,6 +755,9 @@ int main(int argc, const char *argv[])
                const char *version = j_get(j, "version");
                if (!device || (version && strcmp(sql_colz(device, "version"), version)))
                   sql_sprintf(&s, "`version`=%#s,", version);
+               const char *build = j_get(j, "build");
+               if (!device || (build && strcmp(sql_colz(device, "build"), build)))
+                  sql_sprintf(&s, "`build`=%#s,", build);
                const char *secureboot = (j_test(j, "secureboot", 0) ? "true" : "false");
                if (!device || (secureboot && strcmp(sql_colz(device, "secureboot"), secureboot)))
                   sql_sprintf(&s, "`secureboot`=%#s,", secureboot);
