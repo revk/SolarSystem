@@ -183,6 +183,7 @@ static void addwifi(SQL * sqlp, j_t j, SQL_RES * site, const char *deviceid, con
    if (sql_fetch_row(res))
       j_store_int(mesh, "max", atoi(sql_colz(res, "N")));
    sql_free_result(res);
+   j_store_true(mesh, "lr");
 #endif
 #ifdef	CONFIG_REVK_WIFI        // Not mesh - this solution was deprecated in favour of mesh
    // Parent logic is priority, falling back to the above defaults
