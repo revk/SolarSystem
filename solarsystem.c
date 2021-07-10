@@ -137,6 +137,7 @@ static void addwifi(SQL * sqlp, j_t j, SQL_RES * site, const char *deviceid, con
       j_store_string(wifi, "ssid", v);
    if ((v = sql_colz(site, "wifipass")) && *v)
       j_store_string(wifi, "pass", v);
+#ifdef	CONFIG_REVK_MESH
    j_t mesh = j_store_object(j, "mesh");
    v = sql_colz(site, "meshid");
    if (!*v)
@@ -178,6 +179,11 @@ static void addwifi(SQL * sqlp, j_t j, SQL_RES * site, const char *deviceid, con
    }
    if (*v)
       j_store_string(mesh, "pass", v);
+   SQL_RES *res = sql_safe_query_store_free(sqlp, sql_printf("SELECT COUNT(*) AS `N` FROM `device` WHERE `site`=%#s", sql_col(site, "site")));
+   if (sql_fetch_row(res))
+      j_store_int(mesh, "max", atoi(sql_colz(res, "N")));
+   sql_free_result(res);
+#endif
 #ifdef	CONFIG_REVK_WIFI        // Not mesh - this solution was deprecated in favour of mesh
    // Parent logic is priority, falling back to the above defaults
    if (parentid)
