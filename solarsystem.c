@@ -583,7 +583,7 @@ int main(int argc, const char *argv[])
             const char *v;
             {                   // Identify the device we want to talk to...
                SQL_RES *res = NULL;
-               if ((v = j_get(meta, "device")))
+               if ((v = j_get(meta, "target")))
                   res = sql_safe_query_store_free(&sql, sql_printf("SELECT `id` FROM `device` WHERE `device`=%#s", v));
                else if ((v = j_get(meta, "pending")))
                   res = sql_safe_query_store_free(&sql, sql_printf("SELECT `id` FROM `pending` WHERE `pending`=%#s", v));
@@ -716,9 +716,72 @@ int main(int argc, const char *argv[])
                return "No meta data";
             if (j_find(meta, "loopback"))
                return loopback();
-            if (j_find(meta, "local"))
+            slot_t id = strtoull(j_get(meta, "id") ? : "", NULL, 10);
+            if (!id)
+               return "No id";
+            j_t t;
+            if ((t = j_find(meta, "subscribe")))
             {
-               slot_t id = strtoull(j_get(meta, "local") ? : "", NULL, 10);
+               for (j_t s = j_first(t); s; s = j_next(s))
+               {
+                  const char *p = j_val(s);
+                  while (*p && *p != '/')
+                     p++;
+                  if (*p)
+                  {
+                     p++;
+                     while (*p && *p != '/')
+                        p++;
+                     if (*p)
+                     {
+                        p++;
+                        const char *device = p;
+                        while (*p && *p != '/')
+                           p++;
+                        if (p - device == 12)
+                        {
+                           if (j_find(meta, "secure"))
+                              sql_safe_query_free(&sql, sql_printf("UPDATE `device` SET `id`=%lld WHERE `device=%#.*s", id, p - device, device));
+                           else
+                              sql_safe_query_free(&sql, sql_printf("INSERT INTO `pending` SET `pending`=%#.*s,`id`=%lld ON DUPLICATE KEY UPDATE `id`=%lld", p - device, device, id, id));
+                        }
+                     }
+                  }
+               }
+               return NULL;
+            }
+            if ((t = j_find(meta, "unsubscribe")))
+            {
+               for (j_t s = j_first(t); s; s = j_next(s))
+               {
+                  const char *p = j_val(s);
+                  while (*p && *p != '/')
+                     p++;
+                  if (*p)
+                  {
+                     p++;
+                     while (*p && *p != '/')
+                        p++;
+                     if (*p)
+                     {
+                        p++;
+                        const char *device = p;
+                        while (*p && *p != '/')
+                           p++;
+                        if (p - device == 12)
+                        {
+                           if (j_find(meta, "secure"))
+                              sql_safe_query_free(&sql, sql_printf("UPDATE `device` SET `online`=NULL,`id`=NULL WHERE `device=%#.*s AND `id`=%lld", p - device, device, id));
+                           else
+                              sql_safe_query_free(&sql, sql_printf("DELETE FROM `pending` WHERE `device`=%#.*s AND `id`=%lld", p - device, device, id));
+                        }
+                     }
+                  }
+               }
+               return NULL;
+            }
+            if ((t = j_find(meta, "local")))
+            {
                const char *reply = local(id);
                if (id)
                {                // Send response
@@ -736,28 +799,14 @@ int main(int argc, const char *argv[])
                }
                return reply;
             }
-
-            slot_t message = strtoull(j_get(meta, "message") ? : "", NULL, 10);
-            slot_t id = strtoull(j_get(meta, "id") ? : "", NULL, 10);
             if (!id)
                return "No id";
             deviceid = j_get(meta, "device");
             const char *address = j_get(meta, "address");
             const char *prefix = j_get(meta, "prefix");
             const char *suffix = j_get(meta, "suffix");
-            if (!message && (!deviceid || *deviceid != '-'))
-            {                   // Connect (first message ID 0) - *MUST* be a top level state message unless local
-               const char *claimedid = j_get(j, "id");
-               if (!claimedid)
-                  return "No id";
-               if (!prefix || strcmp(prefix, "state") || suffix || !j_find(j, "up"))
-                  return "Bad initial message";
-               if (deviceid)
-               {
-                  const char *claimedid = j_get(j, "id");
-                  if (claimedid && strcmp(claimedid, deviceid))
-                     bogus(id);
-               }
+            if (prefix && !strcmp(prefix, "state") && suffix && j_find(j, "up"))
+            {                   // Up message
                sql_string_t s = { };
                if (checkdevice())
                {
@@ -767,14 +816,18 @@ int main(int argc, const char *argv[])
                      security(&sql, &sqlkey, device, id);
                } else           // pending - update pending
                {
-                  sql_sprintf(&s, "REPLACE INTO `pending` SET ");
-                  sql_sprintf(&s, "`pending`=%#s,", claimedid);
-                  if (deviceid)
-                     sql_sprintf(&s, "`authenticated`=%#s,", "true");   // TODO zapping
-                  SQL_RES *res = sql_safe_query_store_free(&sql, sql_printf("SELECT * FROM `device` WHERE `device`=%#s", claimedid));
-                  if (sql_fetch_row(res))
-                     upgrade(res, id);
-                  sql_free_result(res);
+                  const char *deviceid = j_get(j, "target");
+                  if (deviceid && *deviceid)
+                  {
+                     sql_sprintf(&s, "REPLACE INTO `pending` SET ");
+                     sql_sprintf(&s, "`pending`=%#s,", deviceid);
+                     if (deviceid)
+                        sql_sprintf(&s, "`authenticated`=%#s,", "true");
+                     SQL_RES *res = sql_safe_query_store_free(&sql, sql_printf("SELECT * FROM `device` WHERE `device`=%#s", deviceid));
+                     if (sql_fetch_row(res))
+                        upgrade(res, id);
+                     sql_free_result(res);
+                  }
                }
                if (!device || (address && strcmp(sql_colz(device, "address"), address)))
                   sql_sprintf(&s, "`address`=%#s,", address);
@@ -798,12 +851,12 @@ int main(int argc, const char *argv[])
                if (mem && (!device || (mem != atoi(sql_colz(device, "mem")))))
                   sql_sprintf(&s, "`mem`=%d,", flash);
 #endif
-               sql_sprintf(&s, "`online`=NOW(),");
-               sql_sprintf(&s, "`id`=%lld,", id);
+               if (!device || !sql_col(device, "online"))
+                  sql_sprintf(&s, "`online`=NOW(),");
                if (sql_back_s(&s) == ',')
                {
                   if (device)
-                     sql_sprintf(&s, " WHERE `device`=%#s", deviceid);
+                     sql_sprintf(&s, " WHERE `device`=%#s AND `id`=%lld", deviceid, id);
                   sql_safe_query_s(&sql, &s);
                } else
                   sql_free_s(&s);
@@ -815,7 +868,7 @@ int main(int argc, const char *argv[])
                {                // known
                   slot_t i = strtoull(sql_colz(device, "id"), NULL, 10);
                   if (i == id)
-                     sql_safe_query_free(&sql, sql_printf("UPDATE `device` SET `online`=NULL,`id`=NULL,`lastonline`=NOW() WHERE `device`=%#s AND `id`=%lld", deviceid, id));
+                     sql_safe_query_free(&sql, sql_printf("UPDATE `device` SET `online`=NULL,`id`=NULL,`lastonline`=NOW() WHERE `id`=%lld", id));
                } else           // pending
                   sql_safe_query_free(&sql, sql_printf("DELETE FROM `pending` WHERE `id`=%lld", id));
                return NULL;

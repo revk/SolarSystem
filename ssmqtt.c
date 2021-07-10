@@ -94,7 +94,6 @@ static void *server(void *arg)
       }
       X509_free(cert);
    }
-   slot_t message = 0;
    void addq(j_t * jp) {
       j_t j = *jp;
       if (*device == '-')
@@ -103,19 +102,11 @@ static void *server(void *arg)
       {
          j_t meta = j_store_object(j, "_meta");
          j_store_int(meta, "id", us);
-         j_store_int(meta, "message", message);
          if (*device)
             j_store_string(meta, "device", device);
          j_store_string(meta, "address", address);
          mqtt_topic(j, NULL, 0);
-         if (!message && (strcmp(j_get(meta, "prefix") ? : "", "state") || j_find(meta, "suffix")))
-         {                      // First message has to be system state message, else ignore
-            warnx("Unexpected initial message from %s %s", address, device);
-            j_delete(&j);
-            return;             // Not sent
-         }
       }
-      message++;
       mqtt_qin(jp);
    }
    uint8_t rx[10000];
@@ -264,15 +255,49 @@ static void *server(void *arg)
                {
                   if (data + 2 > end)
                      return "Too short";
+                  unsigned short id = (data[0] << 8) + data[1];
+                  data += 2;
+                  j_t j = j_create();
+                  j_t s = j_array(j_path(j, "_meta.subscribe"));
+                  while (data + 2 <= end)
+                  {
+                     int l = (data[0] << 8) + data[1];
+                     data += 2;
+                     if (data + l <= end)
+                        j_append_stringn(s, (char *) data, l);
+                     data += l;
+                  }
+                  addq(&j);
+                  // Ack
                   tx[txp++] = 0x90;
                   tx[txp++] = 3;
-                  tx[txp++] = data[0];
-                  tx[txp++] = data[1];
-                  tx[txp++] = 0;        //QoS
+                  tx[txp++] = (id >> 8);
+                  tx[txp++] = id;
+                  tx[txp++] = 0;        // QoS 0
                }
                break;
             case 10:           // unsub
                {
+                  if (data + 2 > end)
+                     return "Too short";
+                  unsigned short id = (data[0] << 8) + data[1];
+                  data += 2;
+                  j_t j = j_create();
+                  j_t s = j_array(j_path(j, "_meta.subscribe"));
+                  while (data + 2 <= end)
+                  {
+                     int l = (data[0] << 8) + data[1];
+                     data += 2;
+                     if (data + l <= end)
+                        j_append_stringn(s, (char *) data, l);
+                     data += l;
+                  }
+                  addq(&j);
+                  // Ack
+                  tx[txp++] = 0xB0;
+                  tx[txp++] = 2;
+                  tx[txp++] = (id >> 8);
+                  tx[txp++] = id;
                }
                break;
             case 12:           // pingreq
@@ -307,7 +332,7 @@ static void *server(void *arg)
          txp = 0;
       }
    }
-   if (message && *device != '-')
+   if (*device != '-')
    {                            // Down message if it sent and up and not internal
       j_t j = j_create();
       addq(&j);
@@ -621,7 +646,7 @@ const char *slot_send(slot_t id, const char *prefix, const char *deviceid, const
       j = *jp;
       *jp = NULL;
    }
- // TODO for prefix of "setting" we should split if we can
+   // TODO for prefix of "setting" we should split if we can
    const char *process(void) {
       if ((!prefix && !(topic = strdup(""))) || (prefix && asprintf(&topic, "%s/SS/%s%s%s", prefix, (deviceid && *deviceid) ? deviceid : "*", suffix ? "/" : "", suffix ? : "") < 0))
          return "malloc";
