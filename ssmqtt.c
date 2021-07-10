@@ -521,7 +521,10 @@ j_t incoming(void)
          if (topic)
             fprintf(stderr, "%s ", topic);
       }
-      j_err(j_write(j, stderr));
+      if (j_isobject(j) && !j_len(j) && meta)
+         j_err(j_write(meta, stderr));
+      else
+         j_err(j_write(j, stderr));
       fprintf(stderr, "\n");
       if (meta)
          j_store_json(j, "_meta", &meta);
