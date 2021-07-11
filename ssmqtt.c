@@ -283,7 +283,7 @@ static void *server(void *arg)
                   unsigned short id = (data[0] << 8) + data[1];
                   data += 2;
                   j_t j = j_create();
-                  j_t s = j_array(j_path(j, "_meta.subscribe"));
+                  j_t s = j_array(j_path(j, "_meta.unsubscribe"));
                   while (data + 2 <= end)
                   {
                      int l = (data[0] << 8) + data[1];

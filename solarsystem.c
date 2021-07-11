@@ -103,7 +103,7 @@ const char *security(SQL * sqlp, SQL * sqlkeyp, SQL_RES * res, slot_t id)
    return NULL;
 }
 
-#ifdef	CONFIG_REVK_WIFI        // Not mesh - this solution was deprecated in favour of mesh
+#ifdef	CONFIG_REVK_MQTT_SERVER        // Not mesh - this solution was deprecated in favour of mesh
 static int find_slaves(SQL * sqlp, j_t slave, const char *deviceid)
 {
    int n = 0;
@@ -141,7 +141,9 @@ static void addwifi(SQL * sqlp, j_t j, SQL_RES * site, const char *deviceid, con
       j_store_string(wifi, "pass", v);
 #ifdef	CONFIG_REVK_MESH
    j_t mesh = j_store_object(j, "mesh");
-   if (*sql_colz(site, "mesh") == 't')
+   if (*sql_colz(site, "mesh") != 't')
+      j_store_string(mesh, "id", deviceid);     // Mesh of 1
+   else
    {
       v = sql_colz(site, "meshid");
       if (!*v)
@@ -210,7 +212,7 @@ static void addwifi(SQL * sqlp, j_t j, SQL_RES * site, const char *deviceid, con
          j_store_true(mesh, "lr");
    }
 #endif
-#ifdef	CONFIG_REVK_WIFI        // Not mesh - this solution was deprecated in favour of mesh - TODO remove
+#ifdef	CONFIG_REVK_MQTT_SERVER        // Not mesh - this solution was deprecated in favour of mesh - TODO remove
    // Parent logic is priority, falling back to the above defaults
    if (parentid)
       j_store_string(wifi, "mqtt", parentid);   // Sets MQTT to connect to gateway using this as TLS common name
