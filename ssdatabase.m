@@ -123,6 +123,8 @@ text(sitename, 0);
 text(wifissid, 0);              // Site WiFi settings
 text(wifipass, 0);              // Site WiFi settings
 text(iothost, 0);               // IoT host for local MQTT
+bool(mesh);			// Use mesh
+bool(meshlr);			// Use LR mode on mesh
 text(meshid, 12);               // Mesh ID (MAC)
 key(meshid, 12);
 text(meshpass, 0);              // Mesh WiFi passphrase
@@ -137,8 +139,8 @@ unique(site, tag);
 text(areaname, 0);
 
 table(access, 0);               // Fob access permissions - available site wide, set on an aid
-link(organisation)              // Quicker access
-    link(site);
+link(organisation);              // Quicker access
+link(site);
 text(accessname, 0) areas(enter);       // Allow entre
 areas(arm);                     // Allow /arm
 areas(disarm);                  // Allow disarm

@@ -141,70 +141,74 @@ static void addwifi(SQL * sqlp, j_t j, SQL_RES * site, const char *deviceid, con
       j_store_string(wifi, "pass", v);
 #ifdef	CONFIG_REVK_MESH
    j_t mesh = j_store_object(j, "mesh");
-   v = sql_colz(site, "meshid");
-   if (!*v)
-   {                            // Make a mesh ID
-      int tries = 100;
-      while (tries--)
-      {
-         unsigned char mac[6];
-         char smac[13];
-         randblock(mac, sizeof(mac));
-         mac[0] &= 0xFE;        // Non broadcast
-         mac[0] |= 0x02;        // Local
-         j_base16N(sizeof(mac), mac, sizeof(smac), smac);
-         if (!sql_query_free(sqlp, sql_printf("UPDATE `site` SET `meshid`=%#s WHERE `site`=%#s", smac, sql_col(site, "site"))))
+   if (*sql_colz(site, "mesh") == 't')
+   {
+      v = sql_colz(site, "meshid");
+      if (!*v)
+      {                         // Make a mesh ID
+         int tries = 100;
+         while (tries--)
          {
-            v = strdupa(smac);
-            break;
+            unsigned char mac[6];
+            char smac[13];
+            randblock(mac, sizeof(mac));
+            mac[0] &= 0xFE;     // Non broadcast
+            mac[0] |= 0x02;     // Local
+            j_base16N(sizeof(mac), mac, sizeof(smac), smac);
+            if (!sql_query_free(sqlp, sql_printf("UPDATE `site` SET `meshid`=%#s WHERE `site`=%#s", smac, sql_col(site, "site"))))
+            {
+               v = strdupa(smac);
+               break;
+            }
          }
       }
-   }
-   if (*v)
-      j_store_string(mesh, "id", v);
-   v = sql_colz(site, "meshkey");
-   if (!*v)
-   {                            // Make a mesh ID
-      int tries = 100;
-      while (tries--)
-      {
-         unsigned char key[16];
-         char skey[33];
-         randblock(key, sizeof(key));
-         j_base16N(sizeof(key), key, sizeof(skey), skey);
-         if (!sql_query_free(sqlp, sql_printf("UPDATE `site` SET `meshkey`=%#s WHERE `site`=%#s", skey, sql_col(site, "site"))))
+      if (*v)
+         j_store_string(mesh, "id", v);
+      v = sql_colz(site, "meshkey");
+      if (!*v)
+      {                         // Make a mesh ID
+         int tries = 100;
+         while (tries--)
          {
-            v = strdupa(skey);
-            break;
+            unsigned char key[16];
+            char skey[33];
+            randblock(key, sizeof(key));
+            j_base16N(sizeof(key), key, sizeof(skey), skey);
+            if (!sql_query_free(sqlp, sql_printf("UPDATE `site` SET `meshkey`=%#s WHERE `site`=%#s", skey, sql_col(site, "site"))))
+            {
+               v = strdupa(skey);
+               break;
+            }
          }
       }
-   }
-   if (*v)
-      j_store_string(mesh, "key", v);
-   v = sql_colz(site, "meshpass");
-   if (!*v)
-   {                            // Make mesh passphrase
-      int tries = 100;
-      while (tries--)
-      {
-         unsigned char pass[24];
-         char spass[33];
-         randblock(pass, sizeof(pass));
-         j_base64N(sizeof(pass), pass, sizeof(spass), spass);
-         if (!sql_query_free(sqlp, sql_printf("UPDATE `site` SET `meshpass`=%#s WHERE `site`=%#s", spass, sql_col(site, "site"))))
+      if (*v)
+         j_store_string(mesh, "key", v);
+      v = sql_colz(site, "meshpass");
+      if (!*v)
+      {                         // Make mesh passphrase
+         int tries = 100;
+         while (tries--)
          {
-            v = strdupa(spass);
-            break;
+            unsigned char pass[24];
+            char spass[33];
+            randblock(pass, sizeof(pass));
+            j_base64N(sizeof(pass), pass, sizeof(spass), spass);
+            if (!sql_query_free(sqlp, sql_printf("UPDATE `site` SET `meshpass`=%#s WHERE `site`=%#s", spass, sql_col(site, "site"))))
+            {
+               v = strdupa(spass);
+               break;
+            }
          }
       }
+      if (*v)
+         j_store_string(mesh, "pass", v);
+      SQL_RES *res = sql_safe_query_store_free(sqlp, sql_printf("SELECT COUNT(*) AS `N` FROM `device` WHERE `site`=%#s", sql_col(site, "site")));
+      if (sql_fetch_row(res))
+         j_store_int(mesh, "max", atoi(sql_colz(res, "N")));
+      sql_free_result(res);
+      if (*sql_colz(site, "meshlr") == 't')
+         j_store_true(mesh, "lr");
    }
-   if (*v)
-      j_store_string(mesh, "pass", v);
-   SQL_RES *res = sql_safe_query_store_free(sqlp, sql_printf("SELECT COUNT(*) AS `N` FROM `device` WHERE `site`=%#s", sql_col(site, "site")));
-   if (sql_fetch_row(res))
-      j_store_int(mesh, "max", atoi(sql_colz(res, "N")));
-   sql_free_result(res);
-   j_store_true(mesh, "lr");
 #endif
 #ifdef	CONFIG_REVK_WIFI        // Not mesh - this solution was deprecated in favour of mesh - TODO remove
    // Parent logic is priority, falling back to the above defaults
@@ -882,11 +886,8 @@ int main(int argc, const char *argv[])
             if (!prefix)
             {                   // Down (all other messages have a topic)
                if (checkdevice())
-               {                // known
-                  slot_t i = strtoull(sql_colz(device, "id"), NULL, 10);
-                  if (i == id)
-                     sql_safe_query_free(&sql, sql_printf("UPDATE `device` SET `parent`=NULL,`online`=NULL,`id`=NULL,`lastonline`=NOW() WHERE `id`=%lld", id));
-               } else           // pending
+                  sql_safe_query_free(&sql, sql_printf("UPDATE `device` SET `parent`=NULL,`online`=NULL,`id`=NULL,`lastonline`=NOW() WHERE `id`=%lld", id));
+               else             // pending
                   sql_safe_query_free(&sql, sql_printf("DELETE FROM `pending` WHERE `id`=%lld", id));
                return NULL;
             }
