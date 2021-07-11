@@ -60,6 +60,8 @@ char *getaes(SQL * sqlkeyp, char *target, const char *aid, const char *fob)
 
 const char *upgrade(SQL_RES * res, slot_t id)
 {                               // Send upgrade if needed
+   if (sql_col(res, "parent"))
+      return NULL;
    const char *upgrade = sql_col(res, "upgrade");
    if (!upgrade || j_time(upgrade) > time(0))
       return NULL;
@@ -533,7 +535,7 @@ int main(int argc, const char *argv[])
    ssdatabase(&sql);
    syslog(LOG_INFO, "Starting");
    sql_safe_query(&sql, "DELETE FROM `pending` WHERE `id` IS NOT NULL");
-   sql_safe_query(&sql, "UPDATE `device` SET `id`=NULL,`online`=NULL WHERE `id` IS NOT NULL");
+   sql_safe_query(&sql, "UPDATE `device` SET `id`=NULL,`parent`=NULL,`online`=NULL WHERE `id` IS NOT NULL");
    mqtt_start();
    // Main loop getting messages (from MQTT or websocket)
    int poke = 1;
@@ -883,7 +885,7 @@ int main(int argc, const char *argv[])
                {                // known
                   slot_t i = strtoull(sql_colz(device, "id"), NULL, 10);
                   if (i == id)
-                     sql_safe_query_free(&sql, sql_printf("UPDATE `device` SET `online`=NULL,`id`=NULL,`lastonline`=NOW() WHERE `id`=%lld", id));
+                     sql_safe_query_free(&sql, sql_printf("UPDATE `device` SET `parent`=NULL,`online`=NULL,`id`=NULL,`lastonline`=NOW() WHERE `id`=%lld", id));
                } else           // pending
                   sql_safe_query_free(&sql, sql_printf("DELETE FROM `pending` WHERE `id`=%lld", id));
                return NULL;
