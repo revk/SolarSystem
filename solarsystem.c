@@ -755,14 +755,14 @@ int main(int argc, const char *argv[])
                                  if (sql_fetch_row(res))
                                     site = atoi(sql_colz(res, "site"));
                                  sql_free_result(res);
-                                 sql_safe_query_free(&sql, sql_printf("UPDATE `device` SET `id`=%lld,`parent`=%#s WHERE `device`=%#.*s AND `site`=%d", id, secureid, p - dev, dev, site));
+                                 sql_safe_query_free(&sql, sql_printf("UPDATE `device` SET `online`=NOW(),`lastonline`=NOW(),`id`=%lld,`parent`=%#s WHERE `device`=%#.*s AND `site`=%d", id, secureid, p - dev, dev, site));
                               } else
-                                 sql_safe_query_free(&sql, sql_printf("UPDATE `device` SET `id`=%lld,`parent`=NULL WHERE `device`=%#.*s", id, p - dev, dev));
+                                 sql_safe_query_free(&sql, sql_printf("UPDATE `device` SET `online`=NOW(),`lastonline`=NOW(),`id`=%lld,`parent`=NULL WHERE `device`=%#.*s", id, p - dev, dev));
                               device = sql_safe_query_store_free(&sql, sql_printf("SELECT * FROM `device` WHERE `device`=%#.*s", p - dev, dev));
                               if (sql_fetch_row(device) && !upgrade(device, id) && !settings(&sql, device, id))
                                  security(&sql, &sqlkey, device, id);
                            } else
-                              sql_safe_query_free(&sql, sql_printf("INSERT INTO `pending` SET `pending`=%#.*s,`id`=%lld ON DUPLICATE KEY UPDATE `id`=%lld", p - dev, dev, id, id));
+                              sql_safe_query_free(&sql, sql_printf("INSERT INTO `pending` SET `pending`=%#.*s,`online`=NOW(),`lastonline`=NOW(),`id`=%lld ON DUPLICATE KEY UPDATE `id`=%lld", p - dev, dev, id, id));
                         }
                      }
                   }
