@@ -132,8 +132,12 @@ struct {
 };
 
 uint8_t doorstate = -1;
-uint8_t doordeadlock = true;
 const char *doorwhy = NULL;
+#ifdef	CONFIG_REVK_MESH
+extern area_t state_armed,control_arm, control_unarm;
+#else
+uint8_t doordeadlock = true;    // TODO change to based on state_armed and state_unarm
+#endif
 
 const char *door_access(const uint8_t * a)
 {                               // Confirm access
@@ -157,35 +161,64 @@ const char *door_access(const uint8_t * a)
    return e;
 }
 
+const char *door_arm(const char *why)
+{
+   ESP_LOGI(TAG, "Arm %s", why ? : "?");
+#ifdef	CONFIG_REVK_MESH
+ control_arm|=area;
+#else
+   doordeadlock = true;
+#endif
+   output_set(OUNLOCK + 1, 1);
+   return NULL;
+}
+
+const char *door_disarm(const char *why)
+{
+   ESP_LOGI(TAG, "Disarm %s", why ? : "?");
+#ifdef	CONFIG_REVK_MESH
+   control_unarm|=area;
+#else
+   doordeadlock = false;
+#endif
+   output_set(OUNLOCK + 1, 0);
+   return NULL;
+}
+
 const char *door_unlock(const uint8_t * a, const char *why)
 {                               // Unlock the door - i.e. exit button, entry allowed, etc.
    if (why && !doorwhy)
       doorwhy = why;
-   ESP_LOGI(TAG, "Unlock %s", why ? : "?");
+#ifdef	CONFIG_REVK_MESH
+   if (area & state_armed & ~control_unarm)
+      door_disarm(why);
+#else
    doordeadlock = false;
+#endif
+   ESP_LOGI(TAG, "Unlock %s", why ? : "?");
    output_set(OUNLOCK + 0, 1);
    output_set(OUNLOCK + 1, 1);
    return door_access(a);
 }
 
-const char *door_deadlock(const uint8_t * a)
-{                               // Deadlock the door - i.e. move to alarm armed, no exit/entry
-   doordeadlock = true;
-   output_set(OUNLOCK + 0, 0);
-   output_set(OUNLOCK + 1, 0);
-   return door_access(a);
-}
-
-const char *door_lock(const uint8_t * a)
+const char *door_lock(const uint8_t * a, const char *why)
 {                               // Lock the door - i.e. move to normal locked operation
-   doordeadlock = false;
+   why = why;
    output_set(OUNLOCK + 0, 0);
-   output_set(OUNLOCK + 1, 1);
+#ifdef	CONFIG_REVK_MESH
+   if (area & (state_armed | control_arm) & ~control_unarm)
+      output_set(OUNLOCK + 1, 1);
+   else
+      output_set(OUNLOCK + 1, 0);
+#else
+   output_set(OUNLOCK + 1, doordeadlock);
+#endif
    return door_access(a);
 }
 
-const char *door_prop(const uint8_t * a)
+const char *door_prop(const uint8_t * a, const char *why)
 {                               // Allow door propping
+   why = why;
    if (doorstate != DOOR_OPEN && doorstate != DOOR_NOTCLOSED && doorstate != DOOR_PROPPED)
       return false;
    doorstate = DOOR_PROPPED;
@@ -371,7 +404,13 @@ const char *door_fob(fob_t * fob)
          fob->disarmok = 1;
       else if (!fob->held && !(area & ~fob->arm))
          fob->armok = 1;
-      if (doordeadlock && (doorauto < 5 || !fob->disarmok))
+      if ( 
+#ifdef	CONFIG_REVK_MESH
+		   (area & (state_armed | control_arm) & ~control_unarm)
+#else
+		      doordeadlock
+#endif
+		      && (doorauto < 5 || !fob->disarmok))
          return "Deadlocked";
       if (!(area & ~fob->enter))
          fob->unlockok = 1;
@@ -465,14 +504,16 @@ const char *door_command(const char *tag, jo_t j)
       if (!e)
          e = jo_error(j, NULL);
    }
-   if (!strcasecmp(tag, "deadlock"))
-      return e ? : door_deadlock(afile);
+   if (!strcasecmp(tag, "arm"))
+      return e ? : door_arm("remote");
+   if (!strcasecmp(tag, "disarm"))
+      return e ? : door_disarm("remote");
    if (!strcasecmp(tag, "lock"))
-      return e ? : door_lock(afile);
+      return e ? : door_lock(afile, "remote");
    if (!strcasecmp(tag, "unlock"))
       return e ? : door_unlock(afile, "remote");
    if (!strcasecmp(tag, "prop"))
-      return e ? : door_prop(afile);
+      return e ? : door_prop(afile, "remote");
    if (!strcasecmp(tag, "access"))
       return e ? : door_access(afile);
    if (!strcasecmp(tag, "connect"))
@@ -629,10 +670,7 @@ static void task(void *pvParameters)
                      jo_string(j, "trigger", doorwhy);
                   revk_event("notopen", &j);
                }
-               if (doordeadlock)
-                  door_deadlock(NULL);
-               else
-                  door_lock(NULL);
+               door_lock(NULL, NULL);
                doorwhy = NULL;
             }
          }
@@ -644,7 +682,11 @@ static void task(void *pvParameters)
                exit1 = now + (int64_t) doorexit *1000LL;
                if (doorauto >= 2)
                {
+#ifdef	CONFIG_REVK_MESH
+			  if (!(area & (state_armed | control_arm) & ~control_unarm))
+#else
                   if (!doordeadlock)
+#endif
                      door_unlock(NULL, "button");
                   else
                   {             // Not opening door
@@ -664,7 +706,11 @@ static void task(void *pvParameters)
                exit2 = now + (int64_t) doorexit *1000LL;
                if (doorauto >= 2)
                {
+#ifdef	CONFIG_REVK_MESH
+			  if (!(area & (state_armed | control_arm) & ~control_unarm))
+#else
                   if (!doordeadlock)
+#endif
                      door_unlock(NULL, "ranger");
                   else
                   {             // Not opening door

@@ -185,8 +185,9 @@ const char *port_check(int p, const char *module, int in)
 
 #ifdef  CONFIG_REVK_MESH
 // Alarm state
-#define i(x)	area_t report_##x=0;area_t state_##x=0;
-#define s(x)	area_t state_##x=0;
+#define i(x)	area_t report_##x=0;area_t state_##x=0; // Input
+#define c(x)	area_t report_##x=0;area_t control_##x=0;       // Control
+#define s(x)	area_t state_##x=0;     // System
 #include "states.m"
 #endif
 
@@ -225,14 +226,16 @@ const char *system_makereport(jo_t j)
 {                               // Alarm state - make a report to the controller of our inputs
 #define i(x) area_t x=0;
 #include "states.m"
-   // System level
+	// Inputs
+#define i(x) extern area_t input_latch_##x,input_now_##x;x=input_latch_##x;input_latch_##x=input_now_##x;
+#include "states.m"
+	// Extras
    if (controller_fault && strcmp(controller_fault, "{}"))
       fault |= area;
    if (controller_tamper && strcmp(controller_tamper, "{}"))
       tamper |= area;
-   // Check inputs
-   // TODO
 #define i(x) store_area(j,#x,x);
+#define c(x) store_area(j,#x,control_##x);
 #include "states.m"
    return NULL;
 }
@@ -241,14 +244,25 @@ const char *system_makereport(jo_t j)
 #ifdef  CONFIG_REVK_MESH
 const char *system_makesummary(jo_t j)
 {                               // Alarm state - finish processing reports we have received, and make a summary of output state for all devices
-   // Collate collected states
-#define i(x) state_##x=report_##x;report_##x=0;
+#define i(x) state_##x=report_##x;      // Set aggregate states anyway (done by summary anyway)
 #include "states.m"
-   // Make output states
+
+   // Make system states  
+   // TODO timers?
+   state_alarm = (state_armed & state_presence);
+   state_tampered |= report_tamper;
+   state_faulted |= report_fault;
+   state_alarmed |= state_alarm;
+   state_prearm = report_arm;
+   state_armed |= (report_arm & ~state_presence);
+   state_armed &= ~report_unarm;
+   state_alarmed &= ~report_unalarm;
+   state_tampered &= ~report_untamper;
+   state_faulted &= ~report_unfault;
 
    // Send summary
+#define i(x) store_area(j,#x,state_##x);report_##x=0;
 #define s(x) store_area(j,#x,state_##x);
-#define i(x) store_area(j,#x,state_##x);
 #include "states.m"
    return NULL;
 }
@@ -264,6 +278,7 @@ const char *system_report(const char *device, jo_t j)
       if (t == JO_TAG)
       {
 #define i(x) if(!jo_strcmp(j,#x))report_##x=parse_area(j);
+#define c(x) i(x)
 #include "states.m"
       }
    }
@@ -290,11 +305,19 @@ const char *system_summary(jo_t j)
       if (t == JO_TAG)
       {
 #define i(x) if(!jo_strcmp(j,#x))state_##x=parse_area(j);
-#define s(x) if(!jo_strcmp(j,#x))state_##x=parse_area(j);
+#define s(x) i(x)
 #include "states.m"
       }
    }
+   // Clear request bits
+   control_arm &= ~state_armed;
+   control_unarm &= state_armed;
+   control_unfault &= state_faulted;
+   control_unalarm &= state_alarmed;
+   control_untamper &= state_tampered;
    // TODO Poke outputs maybe
+
+
    return NULL;
 }
 #endif

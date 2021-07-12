@@ -17,9 +17,15 @@ static char *outputname[MAXOUTPUT];
 static uint8_t power[MAXOUTPUT];        /* fixed outputs */
 static char *powername[MAXOUTPUT];
 
-#define i(x) s(x)
-#define s(x) static area_t output##x[MAXOUTPUT];
+#define i(x) static area_t output##x[MAXOUTPUT];
+#define s(x) i(x)
 #include "states.m"
+
+#ifdef	CONFIG_REVK_MESH
+#define i(x) extern area_t state_##x;
+#define s(x) i(x)
+#include "states.m"
+#endif
 
 static uint64_t output_state = 0;       // Port state
 static uint64_t output_state_set = 0;   // Output has been set
@@ -143,6 +149,9 @@ static void task(void *pvParameters)
    while (1)
    {
       esp_task_wdt_reset();
+#ifdef	CONFIG_REVK_MESH
+      // TODO pick up system state controls that impact output
+#endif
       if (output_changed)
       {                         // JSON
          output_changed = 0;
@@ -170,8 +179,8 @@ void output_init(void)
    revk_register("power", MAXOUTPUT, sizeof(*power), &power, BITFIELDS, SETTING_BITFIELD | SETTING_SET | SETTING_SECRET);
    revk_register("powergpio", MAXOUTPUT, sizeof(*power), &power, BITFIELDS, SETTING_BITFIELD | SETTING_SET);
    revk_register("powername", MAXOUTPUT, 0, &powername, NULL, 0);
-#define i(x) s(x)
-#define s(x) revk_register("output"#x, MAXOUTPUT, sizeof(*output##x), &output##x, AREAS, SETTING_BITFIELD);
+#define i(x) revk_register("output"#x, MAXOUTPUT, sizeof(*output##x), &output##x, AREAS, SETTING_BITFIELD);
+#define s(x) i(x)
 #include "states.m"
    {                            // GPIO
     gpio_config_t c = { mode:GPIO_MODE_OUTPUT };

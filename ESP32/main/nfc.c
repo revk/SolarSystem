@@ -329,7 +329,7 @@ static void task(void *pvParameters)
                door_fob(&fob);
                fobevent();
                if (fob.armed)
-                  door_deadlock(NULL);  // Deadlock the door
+                  door_arm("fob");
             }
             continue;           // Waiting for card to go
          }
@@ -489,7 +489,7 @@ static void task(void *pvParameters)
                else if (fob.override)
                   door_unlock(NULL, "override");        // Fob override
                else if (fob.deny)
-                  door_lock(NULL);      // TODO not if deadlocked
+                  door_lock(NULL,"fob");
                else
                   nextled = now + 200000LL;
                fobevent();      // Report

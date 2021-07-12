@@ -15,7 +15,7 @@ const char *input_tamper = NULL;
 static uint8_t input[MAXINPUT];
 static char *inputname[MAXINPUT];
 
-#define i(x) static area_t input##x[MAXINPUT];
+#define i(x) static area_t input##x[MAXINPUT];area_t input_latch_##x=0;area_t input_now_##x=0;
 #include "states.m"
 
 // Other settings
@@ -116,6 +116,7 @@ static void task(void *pvParameters)
             else
                jo_bool(j, NULL, (input_stable >> i) & 1);
          revk_state_copy(TAG, &j, iotstateinput);
+         // TODO set latching state inputs
       }
       // Sleep
       usleep((inputpoll ? : 1) * 1000);
