@@ -5,6 +5,9 @@ static const char __attribute__((unused)) TAG[] = "SS";
 #include "SS.h"
 #include <driver/gpio.h>
 #include "slaves.h"
+#ifdef  CONFIG_REVK_MESH
+#include <esp_mesh.h>
+#endif
 
 #ifdef	CONFIG_REVK_APCONFIG
 #warning	You do not want door controller running CONFIG_REVK_APCONFIG
@@ -130,6 +133,10 @@ static void status_report(int force)
       revk_blink(1, 1, "R-");
    else if (faults)
       revk_blink(1, 5, "M-");
+#ifdef	CONFIG_REVK_MESH
+   else if(esp_mesh_is_root())
+      revk_blink(1, 5, "G-");
+#endif
    else if(revk_offline())
       revk_blink(1, 5, "C-");
    else
