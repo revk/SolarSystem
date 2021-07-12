@@ -134,7 +134,9 @@ struct {
 uint8_t doorstate = -1;
 const char *doorwhy = NULL;
 #ifdef	CONFIG_REVK_MESH
-extern area_t state_armed,control_arm, control_unarm;
+extern area_t state_armed,
+ control_arm,
+ control_unarm;
 #else
 uint8_t doordeadlock = true;    // TODO change to based on state_armed and state_unarm
 #endif
@@ -165,11 +167,11 @@ const char *door_arm(const char *why)
 {
    ESP_LOGI(TAG, "Arm %s", why ? : "?");
 #ifdef	CONFIG_REVK_MESH
- control_arm|=area;
+   control_arm |= area;
 #else
    doordeadlock = true;
 #endif
-   output_set(OUNLOCK + 1, 1);
+   output_set(OUNLOCK + 1, 0);
    return NULL;
 }
 
@@ -177,11 +179,11 @@ const char *door_disarm(const char *why)
 {
    ESP_LOGI(TAG, "Disarm %s", why ? : "?");
 #ifdef	CONFIG_REVK_MESH
-   control_unarm|=area;
+   control_unarm |= area;
 #else
    doordeadlock = false;
 #endif
-   output_set(OUNLOCK + 1, 0);
+   output_set(OUNLOCK + 1, 1);
    return NULL;
 }
 
@@ -207,11 +209,11 @@ const char *door_lock(const uint8_t * a, const char *why)
    output_set(OUNLOCK + 0, 0);
 #ifdef	CONFIG_REVK_MESH
    if (area & (state_armed | control_arm) & ~control_unarm)
-      output_set(OUNLOCK + 1, 1);
-   else
       output_set(OUNLOCK + 1, 0);
+   else
+      output_set(OUNLOCK + 1, 1);
 #else
-   output_set(OUNLOCK + 1, doordeadlock);
+   output_set(OUNLOCK + 1, 1 - doordeadlock);
 #endif
    return door_access(a);
 }
@@ -404,13 +406,13 @@ const char *door_fob(fob_t * fob)
          fob->disarmok = 1;
       else if (!fob->held && !(area & ~fob->arm))
          fob->armok = 1;
-      if ( 
+      if (
 #ifdef	CONFIG_REVK_MESH
-		   (area & (state_armed | control_arm) & ~control_unarm)
+            (area & (state_armed | control_arm) & ~control_unarm)
 #else
-		      doordeadlock
+            doordeadlock
 #endif
-		      && (doorauto < 5 || !fob->disarmok))
+            && (doorauto < 5 || !fob->disarmok))
          return "Deadlocked";
       if (!(area & ~fob->enter))
          fob->unlockok = 1;
@@ -683,7 +685,7 @@ static void task(void *pvParameters)
                if (doorauto >= 2)
                {
 #ifdef	CONFIG_REVK_MESH
-			  if (!(area & (state_armed | control_arm) & ~control_unarm))
+                  if (!(area & (state_armed | control_arm) & ~control_unarm))
 #else
                   if (!doordeadlock)
 #endif
@@ -707,7 +709,7 @@ static void task(void *pvParameters)
                if (doorauto >= 2)
                {
 #ifdef	CONFIG_REVK_MESH
-			  if (!(area & (state_armed | control_arm) & ~control_unarm))
+                  if (!(area & (state_armed | control_arm) & ~control_unarm))
 #else
                   if (!doordeadlock)
 #endif
