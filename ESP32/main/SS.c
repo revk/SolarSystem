@@ -275,7 +275,14 @@ const char *system_report(const char *device, jo_t j)
 const char *system_summary(jo_t j)
 {                               // Alarm state - process summary of output states
    if (esp_mesh_is_root())
+   {
+      if (iotstatesystem)
+      {
+         jo_t c = jo_copy(j);
+         revk_state_copy("system", &c, -1);
+      }
       return NULL;
+   }
    jo_rewind(j);
    jo_type_t t;
    while ((t = jo_next(j)))
@@ -288,11 +295,6 @@ const char *system_summary(jo_t j)
       }
    }
    // TODO Poke outputs maybe
-   if (iotstatesystem)
-   {
-      jo_t c = jo_copy(j);
-      revk_state_copy("system", &c, -iotstatesystem);
-   }
    return NULL;
 }
 #endif
