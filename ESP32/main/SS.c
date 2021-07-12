@@ -38,6 +38,7 @@ static const char *port_inuse[MAX_PORT];
 	b(iotstateoutput)\
 	b(iotstatefault)\
 	b(iotstatetamper)\
+	b(iotstatesystem)\
 	b(ioteventfob)	\
 	sa(slave,MAX_SLAVE) \
 
@@ -287,6 +288,11 @@ const char *system_summary(jo_t j)
       }
    }
    // TODO Poke outputs maybe
+   if (iotstatesystem)
+   {
+      jo_t c = jo_copy(j);
+      revk_state_copy("system", &c, -iotstatesystem);
+   }
    return NULL;
 }
 #endif
