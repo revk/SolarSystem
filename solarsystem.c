@@ -838,6 +838,15 @@ int main(int argc, const char *argv[])
                int flash = atoi(j_get(j, "flash") ? : "");
                if (flash && (!device || (flash != atoi(sql_colz(device, "flash")))))
                   sql_sprintf(&s, "`flash`=%d,", flash);
+               int chan = atoi(j_get(j, "chan") ? : "");
+               if (chan && (!device || (chan != atoi(sql_colz(device, "chan")))))
+                  sql_sprintf(&s, "`chan`=%d,", chan);
+               const char *ssid = j_get(j, "ssid");
+               if (!device || (ssid && strcmp(sql_colz(device, "ssid"), ssid)))
+                  sql_sprintf(&s, "`ssid`=%#s,", ssid);
+               const char *bssid = j_get(j, "bssid");
+               if (!device || (bssid && strcmp(sql_colz(device, "bssid"), bssid)))
+                  sql_sprintf(&s, "`bssid`=%#s,", bssid);
 #if 0                           // Changes a lot while running, we need total RAM from somewhere...
                int mem = atoi(j_get(j, "mem") ? : "");
                if (mem && (!device || (mem != atoi(sql_colz(device, "mem")))))
