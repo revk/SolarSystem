@@ -10,16 +10,16 @@ if($?UPGRADE) then
 	can --redirect --device='$device' editdevice
 	sql "$DB" 'UPDATE device SET upgrade=NOW() WHERE device="$device"'
 	setenv MSG `message --device="$device" --command=upgrade`
-	if(! $status) setenv MSG "Upgrading"
-	unsetenv device
-	goto done
+	if("$MSG" != "") goto done
+	redirect editdevice.cgi
+	exit 0
 endif
 if($?RESTART) then
 	can --redirect --device='$device' editdevice
 	setenv MSG `message --device="$device" --command=restart`
-	if(! $status) setenv MSG "Restarting"
-	unsetenv device
-	goto done
+	if("$MSG" != "") goto done
+	redirect editdevice.cgi
+	exit 0
 endif
 if($?DELETE || $?FACTORY) then
 	can --redirect --device='$device' editdevice
@@ -39,9 +39,8 @@ if($?DELETE || $?FACTORY) then
 		setenv MSG "Cannot delete as in use"
 		goto done
 	endif
-	setenv MSG Deleted
-	unsetenv device
-	goto done
+	redirect editdevice.cgi
+	exit 0
 endif
 if($?devicename) then # save
 	can --redirect --device='$device' editdevice
@@ -63,9 +62,8 @@ if($?devicename) then # save
 	sqlwrite -o -n "$DB" device $allow
 	sql "$DB" 'UPDATE device SET poke=NOW() WHERE device="$device"'
         message --poke
-	setenv MSG Updated
-	unsetenv device
-	goto done
+	redirect editdevice.cgi
+	exit 0
 endif
 done:
 source ../types

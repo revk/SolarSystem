@@ -817,6 +817,8 @@ int main(int argc, const char *argv[])
                }
                if (!device || !sql_col(device, "online"))
                {
+                  if (secureid && strcmp(secureid, deviceid))
+                     sql_sprintf(&s, "`via`=%#s,", secureid);
                   sql_sprintf(&s, "`online`=NOW(),");   // Can happen if reconnect without unsub/sub (i.e. fast enough)
                   if (device && !upgrade(device, id) && secureid && !settings(&sql, device, id))
                      security(&sql, &sqlkey, device, id);
@@ -855,7 +857,7 @@ int main(int argc, const char *argv[])
                if (sql_back_s(&s) == ',' && deviceid)
                {
                   if (device)
-                     sql_sprintf(&s, ",`id`=%lld WHERE `device`=%#s AND (`id` IS NULL OR `id`=%lld)", id,deviceid, id);
+                     sql_sprintf(&s, ",`id`=%lld WHERE `device`=%#s AND (`id` IS NULL OR `id`=%lld)", id, deviceid, id);
                   sql_safe_query_s(&sql, &s);
                } else
                   sql_free_s(&s);
