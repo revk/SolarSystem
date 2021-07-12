@@ -199,6 +199,7 @@ const char *settings(SQL * sqlp, SQL_RES * res, slot_t id)
    if (*CONFIG_OTA_HOSTNAME)
       j_store_string(j, "otahost", CONFIG_OTA_HOSTNAME);
    j_store_int(j, "doorauto", door ? 5 : 0);
+   j_store_string(j, "area", sql_colz(res, "area"));
    int site = atoi(sql_colz(res, "site"));
    {                            // site
       SQL_RES *s = sql_safe_query_store_free(sqlp, sql_printf("SELECT * FROM `site` WHERE `site`=%d", site));

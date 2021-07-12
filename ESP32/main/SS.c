@@ -60,15 +60,12 @@ settings
 #define PORT_INV 0x40
 static esp_reset_reason_t reason = -1;  // Restart reason
 
-#if 0
-#define i(x) s(x)
-#define s(x) static area_t local##x=0; static area_t global##x=0;
-states
-#define i
-#define s
-#endif
 const char *controller_fault = NULL;
 const char *controller_tamper = NULL;
+#ifdef	CONFIG_REVK_MESH
+const char *mesh_fault = NULL;
+const char *mesh_tamper = NULL;
+#endif
 
 static void status_report(int force)
 {                               // Report status change
@@ -80,6 +77,9 @@ static void status_report(int force)
       jo_t j = jo_object_alloc();
 #define m(n) extern const char *n##_fault;if(n##_fault){jo_string(j,#n,n##_fault);faults++;}
       modules m(controller)
+#ifdef	CONFIG_REVK_MESH
+       m(mesh)
+#endif
 #undef m
       if (!faults && force && reason >= 0)
       {
@@ -118,6 +118,9 @@ static void status_report(int force)
       jo_t j = jo_object_alloc();
 #define m(n) extern const char *n##_tamper;if(n##_tamper){jo_string(j,#n,n##_tamper);tampers++;}
       modules m(controller)
+#ifdef	CONFIG_REVK_MESH
+       m(mesh)
+#endif
 #undef m
       const char *tamper = jo_rewind(j);
       if (strcmp(tamper ? : "", lasttamper ? : "") || force)
@@ -134,10 +137,10 @@ static void status_report(int force)
    else if (faults)
       revk_blink(1, 5, "M-");
 #ifdef	CONFIG_REVK_MESH
-   else if(esp_mesh_is_root())
+   else if (esp_mesh_is_root())
       revk_blink(1, 5, "G-");
 #endif
-   else if(revk_offline())
+   else if (revk_offline())
       revk_blink(1, 5, "C-");
    else
       revk_blink(0, 0, "RYGCBM");
@@ -179,9 +182,76 @@ const char *port_check(int p, const char *module, int in)
    return NULL;                 // OK
 }
 
+#ifdef  CONFIG_REVK_MESH
+const char *system_makereport(jo_t j)
+{                               // Alarm state - make a report to the controller of our inputs
+#define i(x) area_t x=0;
+#include "states.m"
+   // System level
+   if (controller_fault && strcmp(controller_fault, "{}"))
+      fault |= area;
+   if (controller_tamper && strcmp(controller_tamper, "{}"))
+      tamper |= area;
+   // Check inputs
+   // TODO
+   void add(const char *name, area_t val) {
+      char set[sizeof(area_t) * 8 + 1] = "",
+          *p = set;
+      for (int b = 0; AREAS[b]; b++)
+         if (val & (1ULL << (sizeof(area_t) * 8 - b - 1)))
+            *p++ = AREAS[b];
+      *p = 0;
+      if (p > set)
+         jo_string(j, name, set);
+   }
+#define i(x) add(#x,x);
+#include "states.m"
+   return NULL;
+}
+#endif
+
+#ifdef  CONFIG_REVK_MESH
+const char *system_makesummary(jo_t j)
+{                               // Alarm state - finish processing reports we have received, and make a summary of output state for all devices
+
+   return NULL;
+}
+#endif
+
+#ifdef  CONFIG_REVK_MESH
+const char *system_report(const char *device, jo_t j)
+{                               // Alarm state - process a report from a device
+
+   return NULL;
+}
+#endif
+
+#ifdef  CONFIG_REVK_MESH
+const char *system_summary(jo_t j)
+{                               // Alarm state - process summary of output states
+
+   return NULL;
+}
+#endif
+
 const char *app_callback(int client, const char *prefix, const char *target, const char *suffix, jo_t j)
 {
    const char *e = NULL;
+#ifdef  CONFIG_REVK_MESH
+   if (!client && prefix && !strcmp(prefix, "mesh") && suffix)
+   {                            // Note, some of these fill in j and used by library
+      if (!strcmp(suffix, "makereport"))
+         return system_makereport(j);
+      else if (!strcmp(suffix, "makesummary"))
+         return system_makesummary(j);
+      else if (!strcmp(suffix, "report"))
+         return system_report(target, j);
+      else if (!strcmp(suffix, "summary"))
+         return system_summary(j);
+      // Note there are several more we could use
+      return NULL;
+   }
+#endif
    if (client || !prefix || target || strcmp(prefix, prefixcommand))
       return NULL;              // Not for us or not a command from main MQTT
 #define m(x) extern const char * x##_command(const char *,jo_t); jo_rewind(j);if(!e)e=x##_command(suffix,j);
