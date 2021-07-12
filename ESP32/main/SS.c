@@ -226,10 +226,10 @@ const char *system_makereport(jo_t j)
 {                               // Alarm state - make a report to the controller of our inputs
 #define i(x) area_t x=0;
 #include "states.m"
-	// Inputs
+   // Inputs
 #define i(x) extern area_t input_latch_##x,input_now_##x;x=input_latch_##x;input_latch_##x=input_now_##x;
 #include "states.m"
-	// Extras
+   // Extras
    if (controller_fault && strcmp(controller_fault, "{}"))
       fault |= area;
    if (controller_tamper && strcmp(controller_tamper, "{}"))
@@ -297,16 +297,18 @@ const char *system_summary(jo_t j)
          revk_state_copy("system", &c, -1);
       }
       return NULL;
-   }
-   jo_rewind(j);
-   jo_type_t t;
-   while ((t = jo_next(j)))
+   } else
    {
-      if (t == JO_TAG)
+      jo_rewind(j);
+      jo_type_t t;
+      while ((t = jo_next(j)))
       {
+         if (t == JO_TAG)
+         {
 #define i(x) if(!jo_strcmp(j,#x))state_##x=parse_area(j);
 #define s(x) i(x)
 #include "states.m"
+         }
       }
    }
    // Clear request bits
