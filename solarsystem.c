@@ -797,11 +797,16 @@ int main(int argc, const char *argv[])
                   return NULL;
                }
                sql_string_t s = { };
-               if (checkdevice())
+               if (!device && (device = sql_safe_query_store_free(&sql, sql_printf("SELECT * FROM `device` WHERE `device`=%#s", deviceid))) && !sql_fetch_row(device))
+               {
+                  sql_free_result(device);
+                  device = NULL;
+               }
+               if (secureid)
                {
                   sql_sprintf(&s, "UPDATE `device` SET ");      // known, update
                   if (!sql_col(device, "online"))
-                     sql_sprintf(&s, "`online`=NOW(),`offlinereason`=NULL,`lastonline`=NOW(),`poke`=NULL,");
+                     sql_sprintf(&s, "`offlinereason`=NULL,`poke`=NULL,");
                } else           // pending - update pending
                {
                   sql_sprintf(&s, "REPLACE INTO `pending` SET ");
@@ -809,12 +814,12 @@ int main(int argc, const char *argv[])
                   sql_sprintf(&s, "`pending`=%#s,", deviceid);
                   if (secureid && deviceid && strcmp(secureid, deviceid))
                      sql_sprintf(&s, "`authenticated`=%#s,", "true");
-                  if (!device || !sql_col(device, "online"))
-                     sql_sprintf(&s, "`online`=NOW(),");        // Should not happen as subscribe should have set
-                  SQL_RES *res = sql_safe_query_store_free(&sql, sql_printf("SELECT * FROM `device` WHERE `device`=%#s", deviceid));
-                  if (sql_fetch_row(res))
-                     upgrade(res, id);
-                  sql_free_result(res);
+               }
+               if (!device || !sql_col(device, "online"))
+               {
+                  sql_sprintf(&s, "`online`=NOW(),");   // Can happen if reconnect without unsub/sub (i.e. fast enough)
+                  if (device && !upgrade(device, id) && secureid && !settings(&sql, device, id))
+                     security(&sql, &sqlkey, device, id);
                }
                if (!device || (address && strcmp(sql_colz(device, "address"), address)))
                   sql_sprintf(&s, "`address`=%#s,", address);
@@ -841,7 +846,7 @@ int main(int argc, const char *argv[])
                if (sql_back_s(&s) == ',' && deviceid)
                {
                   if (device)
-                     sql_sprintf(&s, " WHERE `device`=%#s AND `id`=%lld", deviceid, id);
+                     sql_sprintf(&s, ",`id`=%lld WHERE `device`=%#s AND (`id` IS NULL OR `id`=%lld)", id,deviceid, id);
                   sql_safe_query_s(&sql, &s);
                } else
                   sql_free_s(&s);
