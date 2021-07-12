@@ -757,7 +757,7 @@ int main(int argc, const char *argv[])
                            if (checkdevice())
                               sql_safe_query_free(&sql, sql_printf("UPDATE `device` SET `via`=NULL,`online`=NULL,`id`=NULL,`offlinereason`='Timeout' WHERE `device`=%#.*s AND `id`=%lld", p - dev, dev, id));
                            else
-                              sql_safe_query_free(&sql, sql_printf("DELETE FROM `pending` WHERE `device`=%#.*s AND `id`=%lld", p - dev, dev, id));
+                              sql_safe_query_free(&sql, sql_printf("DELETE FROM `pending` WHERE `pending`=%#.*s AND `id`=%lld", p - dev, dev, id));
                         }
                      }
                   }

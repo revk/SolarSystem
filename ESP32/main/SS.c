@@ -183,6 +183,43 @@ const char *port_check(int p, const char *module, int in)
 }
 
 #ifdef  CONFIG_REVK_MESH
+// Alarm state
+#define i(x)	area_t report_##x=0;area_t state_##x=0;
+#define s(x)	area_t state_##x=0;
+#include "states.m"
+#endif
+
+#ifdef  CONFIG_REVK_MESH
+static void store_area(jo_t j, const char *name, area_t val)
+{
+   char set[sizeof(area_t) * 8 + 1] = "",
+       *p = set;
+   for (int b = 0; AREAS[b]; b++)
+      if (val & (1ULL << (sizeof(area_t) * 8 - b - 1)))
+         *p++ = AREAS[b];
+   *p = 0;
+   if (p > set)
+      jo_string(j, name, set);
+}
+
+static area_t parse_area(jo_t j)
+{                               // At the tag
+   if (jo_next(j) != JO_STRING)
+      return 0;
+   area_t a = 0;
+   char val[sizeof(area_t) * 8 + 1];
+   jo_strncpy(j, val, sizeof(val));
+   for (char *p = val; *p; p++)
+   {
+      char *d = strchr(AREAS, *p);
+      if (d)
+         a |= (1ULL << (sizeof(area_t) * 8 - 1 - (d - AREAS)));
+   }
+   return a;
+}
+#endif
+
+#ifdef  CONFIG_REVK_MESH
 const char *system_makereport(jo_t j)
 {                               // Alarm state - make a report to the controller of our inputs
 #define i(x) area_t x=0;
@@ -194,17 +231,7 @@ const char *system_makereport(jo_t j)
       tamper |= area;
    // Check inputs
    // TODO
-   void add(const char *name, area_t val) {
-      char set[sizeof(area_t) * 8 + 1] = "",
-          *p = set;
-      for (int b = 0; AREAS[b]; b++)
-         if (val & (1ULL << (sizeof(area_t) * 8 - b - 1)))
-            *p++ = AREAS[b];
-      *p = 0;
-      if (p > set)
-         jo_string(j, name, set);
-   }
-#define i(x) add(#x,x);
+#define i(x) store_area(j,#x,x);
 #include "states.m"
    return NULL;
 }
@@ -213,7 +240,15 @@ const char *system_makereport(jo_t j)
 #ifdef  CONFIG_REVK_MESH
 const char *system_makesummary(jo_t j)
 {                               // Alarm state - finish processing reports we have received, and make a summary of output state for all devices
+   // Collate collected states
+#define i(x) state_##x=report_##x;report_##x=0;
+#include "states.m"
+   // Make output states
 
+   // Send summary
+#define s(x) store_area(j,#x,state_##x);
+#define i(x) store_area(j,#x,state_##x);
+#include "states.m"
    return NULL;
 }
 #endif
@@ -221,7 +256,16 @@ const char *system_makesummary(jo_t j)
 #ifdef  CONFIG_REVK_MESH
 const char *system_report(const char *device, jo_t j)
 {                               // Alarm state - process a report from a device
-
+   jo_rewind(j);
+   jo_type_t t;
+   while ((t = jo_next(j)))
+   {
+      if (t == JO_TAG)
+      {
+#define i(x) if(!jo_strcmp(j,#x))report_##x=parse_area(j);
+#include "states.m"
+      }
+   }
    return NULL;
 }
 #endif
@@ -229,7 +273,20 @@ const char *system_report(const char *device, jo_t j)
 #ifdef  CONFIG_REVK_MESH
 const char *system_summary(jo_t j)
 {                               // Alarm state - process summary of output states
-
+   if (esp_mesh_is_root())
+      return NULL;
+   jo_rewind(j);
+   jo_type_t t;
+   while ((t = jo_next(j)))
+   {
+      if (t == JO_TAG)
+      {
+#define i(x) if(!jo_strcmp(j,#x))state_##x=parse_area(j);
+#define s(x) if(!jo_strcmp(j,#x))state_##x=parse_area(j);
+#include "states.m"
+      }
+   }
+   // TODO Poke outputs maybe
    return NULL;
 }
 #endif
