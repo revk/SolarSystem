@@ -540,7 +540,7 @@ int main(int argc, const char *argv[])
    ssdatabase(&sql);
    syslog(LOG_INFO, "Starting");
    sql_safe_query(&sql, "DELETE FROM `pending` WHERE `id` IS NOT NULL");
-   sql_safe_query(&sql, "UPDATE `device` SET `id`=NULL,`parent`=NULL,`online`=NULL WHERE `id` IS NOT NULL");
+   sql_safe_query(&sql, "UPDATE `device` SET `id`=NULL,`parent`=NULL,`offlinereason`='System restart',`online`=NULL WHERE `id` IS NOT NULL");
    mqtt_start();
    // Main loop getting messages (from MQTT or websocket)
    int poke = 1;
@@ -760,9 +760,9 @@ int main(int argc, const char *argv[])
                                  if (sql_fetch_row(res))
                                     site = atoi(sql_colz(res, "site"));
                                  sql_free_result(res);
-                                 sql_safe_query_free(&sql, sql_printf("UPDATE `device` SET `online`=NOW(),`lastonline`=NOW(),`id`=%lld,`parent`=%#s WHERE `device`=%#.*s AND `site`=%d", id, secureid, p - dev, dev, site));
+                                 sql_safe_query_free(&sql, sql_printf("UPDATE `device` SET `online`=NOW(),`offlinereason`=NULL,`lastonline`=NOW(),`id`=%lld,`parent`=%#s WHERE `device`=%#.*s AND `site`=%d", id, secureid, p - dev, dev, site));
                               } else
-                                 sql_safe_query_free(&sql, sql_printf("UPDATE `device` SET `online`=NOW(),`lastonline`=NOW(),`id`=%lld,`parent`=NULL WHERE `device`=%#.*s", id, p - dev, dev));
+                                 sql_safe_query_free(&sql, sql_printf("UPDATE `device` SET `online`=NOW(),`offlinereason`=NULL,`lastonline`=NOW(),`id`=%lld,`parent`=NULL WHERE `device`=%#.*s", id, p - dev, dev));
                               device = sql_safe_query_store_free(&sql, sql_printf("SELECT * FROM `device` WHERE `device`=%#.*s", p - dev, dev));
                               if (sql_fetch_row(device) && !upgrade(device, id) && !settings(&sql, device, id))
                                  security(&sql, &sqlkey, device, id);
@@ -797,7 +797,7 @@ int main(int argc, const char *argv[])
                         if (p - dev == 12)
                         {
                            if (checkdevice())
-                              sql_safe_query_free(&sql, sql_printf("UPDATE `device` SET `parent`=NULL,`online`=NULL,`id`=NULL WHERE `device`=%#.*s AND `id`=%lld", p - dev, dev, id));
+                              sql_safe_query_free(&sql, sql_printf("UPDATE `device` SET `parent`=NULL,`online`=NULL,`id`=NULL,`offlinereason`='Timeout' WHERE `device`=%#.*s AND `id`=%lld", p - dev, dev, id));
                            else
                               sql_safe_query_free(&sql, sql_printf("DELETE FROM `pending` WHERE `device`=%#.*s AND `id`=%lld", p - dev, dev, id));
                         }
@@ -831,8 +831,14 @@ int main(int argc, const char *argv[])
             const char *address = j_get(meta, "address");
             const char *prefix = j_get(meta, "prefix");
             const char *suffix = j_get(meta, "suffix");
-            if (prefix && !strcmp(prefix, "state") && !suffix && j_find(j, "up") && deviceid)
+            j_t up = j_find(j, "up");
+            if (up && prefix && !strcmp(prefix, "state") && !suffix && deviceid)
             {                   // Up message
+               if (j_isbool(up) && !j_istrue(up))
+               {                // Down
+                  sql_safe_query_free(&sql, sql_printf("UPDATE `device` SET `parent`=NULL,`offlinereason`=%#s,`online`=NULL,`id`=NULL WHERE `device`=%#s AND `id`=%lld", j_get(j,"reason"),deviceid, id));
+                  return NULL;
+               }
                sql_string_t s = { };
                if (checkdevice())
                {
@@ -874,7 +880,7 @@ int main(int argc, const char *argv[])
                   sql_sprintf(&s, "`mem`=%d,", flash);
 #endif
                if (!device || !sql_col(device, "online"))
-                  sql_sprintf(&s, "`online`=NOW(),");
+                  sql_sprintf(&s, "`offlinereason`=NULL,`online`=NOW(),"); // Should not happen as subscribe should have set
                if (sql_back_s(&s) == ',' && deviceid)
                {
                   if (device)
@@ -882,7 +888,7 @@ int main(int argc, const char *argv[])
                   sql_safe_query_s(&sql, &s);
                } else
                   sql_free_s(&s);
-               // Continue as the message could be anything
+               return NULL;
             }
             if (!prefix)
             {                   // Down (all other messages have a topic)

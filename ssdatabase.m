@@ -209,6 +209,7 @@ link(aid);                      // The AID for door access (defines what site it
 areas(area);                    // Areas covered by this door
 datetime(online);               // When online, if online
 datetime(lastonline);           // When last went offline
+text(offlinereason,0);		// If sent offline reason, what was it
 datetime(upgrade);              // When to do upgrade
 ip(address);                    // IP address when last online
 num(id);                        // Instance for communications when on line
