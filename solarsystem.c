@@ -118,11 +118,10 @@ static void addwifi(SQL * sqlp, j_t j, SQL_RES * site, const char *deviceid, con
 #ifdef	CONFIG_REVK_MESH
    j_t mesh = j_store_object(j, "mesh");
    if (*sql_colz(site, "nomesh") == 't')
-   { // Not making a mesh, so set a mesh of 1
-      j_store_string(mesh, "id", deviceid);    
-      j_store_int(mesh,"max",1);
-   }
-   else
+   {                            // Not making a mesh, so set a mesh of 1
+      j_store_string(mesh, "id", deviceid);
+      j_store_int(mesh, "max", 1);
+   } else
    {
       v = sql_colz(site, "meshid");
       if (!*v)
@@ -187,7 +186,7 @@ static void addwifi(SQL * sqlp, j_t j, SQL_RES * site, const char *deviceid, con
       if (sql_fetch_row(res))
          j_store_int(mesh, "max", atoi(sql_colz(res, "N")));
       sql_free_result(res);
-         j_store_true(mesh, "lr"); // May was well always be LR
+      j_store_true(mesh, "lr"); // May was well always be LR
    }
 #endif
 }
@@ -794,7 +793,7 @@ int main(int argc, const char *argv[])
             {                   // Up message
                if (j_isbool(up) && !j_istrue(up))
                {                // Down
-                  sql_safe_query_free(&sql, sql_printf("UPDATE `device` SET `via`=NULL,`offlinereason`=%#s,`online`=NULL,`id`=NULL WHERE `device`=%#s AND `id`=%lld", j_get(j,"reason"),deviceid, id));
+                  sql_safe_query_free(&sql, sql_printf("UPDATE `device` SET `via`=NULL,`offlinereason`=%#s,`online`=NULL,`id`=NULL WHERE `device`=%#s AND `id`=%lld", j_get(j, "reason"), deviceid, id));
                   return NULL;
                }
                sql_string_t s = { };
@@ -802,7 +801,7 @@ int main(int argc, const char *argv[])
                {
                   sql_sprintf(&s, "UPDATE `device` SET ");      // known, update
                   if (!sql_col(device, "online"))
-                     sql_sprintf(&s, "`lastonline`=NOW(),`poke`=NULL,");
+                     sql_sprintf(&s, "`online`=NOW(),`offlinereason`=NULL,`lastonline`=NOW(),`poke`=NULL,");
                } else           // pending - update pending
                {
                   sql_sprintf(&s, "REPLACE INTO `pending` SET ");
@@ -810,6 +809,8 @@ int main(int argc, const char *argv[])
                   sql_sprintf(&s, "`pending`=%#s,", deviceid);
                   if (secureid && deviceid && strcmp(secureid, deviceid))
                      sql_sprintf(&s, "`authenticated`=%#s,", "true");
+                  if (!device || !sql_col(device, "online"))
+                     sql_sprintf(&s, "`online`=NOW(),");        // Should not happen as subscribe should have set
                   SQL_RES *res = sql_safe_query_store_free(&sql, sql_printf("SELECT * FROM `device` WHERE `device`=%#s", deviceid));
                   if (sql_fetch_row(res))
                      upgrade(res, id);
@@ -837,8 +838,6 @@ int main(int argc, const char *argv[])
                if (mem && (!device || (mem != atoi(sql_colz(device, "mem")))))
                   sql_sprintf(&s, "`mem`=%d,", flash);
 #endif
-               if (!device || !sql_col(device, "online"))
-                  sql_sprintf(&s, "`offlinereason`=NULL,`online`=NOW(),"); // Should not happen as subscribe should have set
                if (sql_back_s(&s) == ',' && deviceid)
                {
                   if (device)
