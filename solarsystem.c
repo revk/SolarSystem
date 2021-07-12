@@ -865,8 +865,8 @@ int main(int argc, const char *argv[])
             }
             if (!prefix)
             {                   // Down (all other messages have a topic)
-               if (checkdevice())
-                  sql_safe_query_free(&sql, sql_printf("UPDATE `device` SET `via`=NULL,`online`=NULL,`id`=NULL,`lastonline`=NOW() WHERE `id`=%lld", id));
+               if (secureid)
+                  sql_safe_query_free(&sql, sql_printf("UPDATE `device` SET `via`=NULL,`offlinereason`='Closed',`online`=NULL,`id`=NULL,`lastonline`=NOW() WHERE `id`=%lld", id));
                else             // pending
                   sql_safe_query_free(&sql, sql_printf("DELETE FROM `pending` WHERE `id`=%lld", id));
                return NULL;
