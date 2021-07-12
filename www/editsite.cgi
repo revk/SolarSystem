@@ -26,9 +26,8 @@ if($?sitename) then
 		sql "$DB" 'INSERT INTO area SET organisation=$SESSION_ORGANISATION,site=$site,area="A",areaname="Main building"'
 		sql "$DB" 'UPDATE session SET organisation=$SESSION_ORGANISATION,site=$site WHERE session="$ENVCGI"'
 	endif
-	if(! $?mesh) setenv mesh false
-	if(! $?meshlr) setenv meshlr false
-	sqlwrite -o "$DB" site sitename wifissid wifipass iothost mesh meshlr
+	if(! $?nomesh) setenv nomesh false
+	sqlwrite -o "$DB" site sitename wifissid wifipass iothost nomesh
 	sql "$DB" 'UPDATE device SET poke=NOW() WHERE site=$site'
 	message --poke
 	../login/redirect /
@@ -44,8 +43,7 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <tr><td>WiFi SSID</td><td><input name=wifissid size=40 value="SolarSystem"></td></tr>
 <tr><td>WIFi pass</td><td><input name=wifipass size=40 value="security"></td></tr>
 <tr><td>IoT MQTT</td><td><input name=iothost size=40></td></tr>
-<tr><td><input type=checkbox id=mesh name=mesh value=true></td><td><label for=mesh>Use mesh WiFi on site.</label></td></tr>
-<tr><td><input type=checkbox id=meshlr name=meshlr value=true></td><td><label for=meshlr>Use LR mode for mesh.</label></td></tr>
+<tr><td><input type=checkbox id=nomesh name=nomesh value=true></td><td><label for=nomesh>Don't use mesh wifi on site.</label></td></tr>
 </table>
 </sql>
 <input type=submit value="Update">

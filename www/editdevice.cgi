@@ -58,12 +58,7 @@ if($?devicename) then # save
 	if(! $?iotstatefault) setenv iotstatefault false
 	if(! $?iotstatetamper) setenv iotstatetamper false
 	if(! $?ioteventfob) setenv ioteventfob false
-	if($?parent) then
-		setenv parentwas `sql "$DB" 'SELECT parent FROM device WHERE device="$device"'`
-		if("$parent" != "$parentwas") sql "$DB" 'UPDATE device SET poke=NOW() WHERE device="$parent" OR device="$parentwas"'
-		if("$parent" == "NULL") unsetenv parent
-	endif
-	setenv allow "devicename area nfc nfcadmin door aid site iotstatedoor iotstateinput iotstateoutput iotstatefault iotstatetamper ioteventfob parent"
+	setenv allow "devicename area nfc nfcadmin door aid site iotstatedoor iotstateinput iotstateoutput iotstatefault iotstatetamper ioteventfob"
 	if("$USER_ADMIN" == "true") setenv allow "$allow nfctrusted"
 	sqlwrite -o -n "$DB" device $allow
 	sql "$DB" 'UPDATE device SET poke=NOW() WHERE device="$device"'
@@ -81,20 +76,18 @@ xmlsql -C -d "$DB" head.html - foot.html << END
 <tr>
 <th>Device</th>
 <th>Name</th>
-<!-- <th>Parent</th> -->
 <th>Online</th>
 <th>IP</th>
 <th>Version</th>
 <th>PCB</th>
 <th>Notes</th></tr>
 <sql table="device" where="organisation=$SESSION_ORGANISATION" select="max(version) AS V,max(build) AS B"><set V="\$V"><set B="\$B"></sql>
-<sql where="device.organisation=$SESSION_ORGANISATION" table="device LEFT JOIN pcb USING (pcb) LEFT JOIN device AS device2 ON (device.parent=device2.device)" order="device2.devicename,device.devicename" WHERE="site=\$SESSION_SITE" select="device.*,pcb.pcbname,device2.devicename AS P"><set found=1>
+<sql where="device.organisation=$SESSION_ORGANISATION" table="device LEFT JOIN pcb USING (pcb) LEFT JOIN device AS device2 ON (device.via=device2.device)" order="device2.devicename,device.devicename" WHERE="site=\$SESSION_SITE" select="device.*,pcb.pcbname,device2.devicename AS P"><set found=1>
 <tr>
 <td><tt><output name=device href="/editdevice.cgi/\$device"></tt></td>
 <td><output name=devicename blank="Unnamed" missing="Unnamed"></td>
-<!-- <set s=""><if not P><set s="background:green;"></if><td style="\$s"><output name=P missing="-- Root --"></td> -->
 <set s=""><if lastonline><set s="background:green;"></if><if not online><set s="background:yellow;"></if>
-<td style="\$s"><if online><tt><output name=online></tt><if parent><br><i>via</i> <tt><output name=parent></tt></if></if><if else><tt><output name=lastonline missing="never"></tt><br><i><output name=offlinereason missing=Offline></i></if></td>
+<td style="\$s"><if online><tt><output name=online></tt><if via><br><i>via</i> <tt><output name=via></tt></if></if><if else><tt><output name=lastonline missing="never"></tt><br><i><output name=offlinereason missing=Offline></i></if></td>
 <td><output name=address></td>
 <td><if upgrade>Upgrade scheduled<br></if><set s="background:red;"><if version="\$V"><set s="background:green;"></if><tt style="\$s"><output name=version></tt><br><set s="background:yellow;"><if build="\$B"><set s="background:green;"></if><tt style="\$s"><output name=build></tt></td>
 <td><output name=pcbname><br>Flash:<output name=flash type=mega></td>
@@ -114,7 +107,6 @@ xmlsql -C -d "$DB" head.html - foot.html << END
 <tr><td>PCB</td><td><output name=pcbname></td></tr>
 <tr><td>Name</td><td><input name=devicename ize=40 autofocus></td></tr>
 <tr><td>Site</td><td><select name=site><sql table=site where="organisation=$SESSION_ORGANISATION"><option value='\$site'><output name=sitename></option></sql></select></td></tr>
-<!-- <tr><td>Parent</td><td><select name=parent><option value='NULL'>-- Root --</option><sql table=device where="device<>'\$device' AND parent IS NULL" order=devicename><option value="\$device"><output name=devicename blank="\$device"></option></sql></select></td></tr> -->
 <sql table=site where="site=\$site">
 <if not iothost="">
 <tr><td>IoT (<output name=iothost>)</td><td>

@@ -123,8 +123,7 @@ text(sitename, 0);
 text(wifissid, 0);              // Site WiFi settings
 text(wifipass, 0);              // Site WiFi settings
 text(iothost, 0);               // IoT host for local MQTT
-bool(mesh);			// Use mesh
-bool(meshlr);			// Use LR mode on mesh
+bool(nomesh);			// Don't mesh - i.e. where separate devices on-line
 text(meshid, 12);               // Mesh ID (MAC)
 key(meshid, 12);
 text(meshpass, 0);              // Mesh WiFi passphrase
@@ -183,7 +182,7 @@ text(fobname, 0);               // Name of fob user
 datetime(expires);              // Fixed expiry (local time on server)
 
 table(device, 12);
-link2(device, parent);          // Wifi parent
+link2(device, via);          // Via another device using mesh
 text(devicename, 0);
 link(organisation);             // Yes, can get from site, but useful to reference quickly
 link(site);                     // The site the device is on

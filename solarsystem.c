@@ -102,29 +102,6 @@ const char *security(SQL * sqlp, SQL * sqlkeyp, SQL_RES * res, slot_t id)
    return NULL;
 }
 
-#ifdef	CONFIG_REVK_MQTT_SERVER // Not mesh - this solution was deprecated in favour of mesh
-static int find_slaves(SQL * sqlp, j_t slave, const char *deviceid)
-{
-   int n = 0;
-   SQL_RES *res = sql_safe_query_store_free(sqlp, sql_printf("SELECT * FROM `device` WHERE `parent`=%#s", deviceid));
-   while (sql_fetch_row(res))
-   {
-      n++;
-      const char *child = sql_colz(res, "device");
-      j_t j = j_first(slave);
-      while (j && strcmp(j_val(j), child))
-         j = j_next(j);
-      if (!j)
-      {
-         j_append_string(slave, child);
-         find_slaves(sqlp, slave, child);
-      }
-   }
-   sql_free_result(res);
-   return n;
-}
-#endif
-
 static void addwifi(SQL * sqlp, j_t j, SQL_RES * site, const char *deviceid, const char *parentid)
 {
    const char *v;               // temp
@@ -140,8 +117,11 @@ static void addwifi(SQL * sqlp, j_t j, SQL_RES * site, const char *deviceid, con
       j_store_string(wifi, "pass", v);
 #ifdef	CONFIG_REVK_MESH
    j_t mesh = j_store_object(j, "mesh");
-   if (*sql_colz(site, "mesh") != 't')
-      j_store_string(mesh, "id", deviceid);     // Mesh of 1
+   if (*sql_colz(site, "nomesh") == 't')
+   { // Not making a mesh, so set a mesh of 1
+      j_store_string(mesh, "id", deviceid);    
+      j_store_int(mesh,"max",1);
+   }
    else
    {
       v = sql_colz(site, "meshid");
@@ -207,29 +187,7 @@ static void addwifi(SQL * sqlp, j_t j, SQL_RES * site, const char *deviceid, con
       if (sql_fetch_row(res))
          j_store_int(mesh, "max", atoi(sql_colz(res, "N")));
       sql_free_result(res);
-      if (*sql_colz(site, "meshlr") == 't')
-         j_store_true(mesh, "lr");
-   }
-#endif
-#ifdef	CONFIG_REVK_MQTT_SERVER // Not mesh - this solution was deprecated in favour of mesh - TODO remove
-   // Parent logic is priority, falling back to the above defaults
-   if (parentid)
-      j_store_string(wifi, "mqtt", parentid);   // Sets MQTT to connect to gateway using this as TLS common name
-   j_t ap = j_store_object(j, "ap");
-   j_t slave = j_store_array(j, "slave");
-   if (deviceid && *deviceid)
-   {
-      int max = find_slaves(sqlp, slave, deviceid);
-      if (max)
-      {                         // We are to serve as AP for client devicee
-         j_store_int(ap, "max", max);
-         j_store_string(ap, "ssid", deviceid);
-         if ((v = sql_colz(site, "wifipass")) && *v)
-            j_store_string(ap, "pass", v);
-         j_store_true(ap, "lr");
-         //j_store_true(ap, "hide");
-
-      }
+         j_store_true(mesh, "lr"); // May was well always be LR
    }
 #endif
 }
@@ -247,7 +205,7 @@ const char *settings(SQL * sqlp, SQL_RES * res, slot_t id)
       SQL_RES *s = sql_safe_query_store_free(sqlp, sql_printf("SELECT * FROM `site` WHERE `site`=%d", site));
       if (sql_fetch_row(s))
       {
-         addwifi(sqlp, j, s, sql_colz(res, "device"), sql_col(res, "parent"));
+         addwifi(sqlp, j, s, sql_colz(res, "device"), sql_col(res, "via"));
          j_t iot = j_store_object(j, "iot");
          if (*sql_colz(s, "iothost"))
          {
@@ -540,7 +498,7 @@ int main(int argc, const char *argv[])
    ssdatabase(&sql);
    syslog(LOG_INFO, "Starting");
    sql_safe_query(&sql, "DELETE FROM `pending` WHERE `id` IS NOT NULL");
-   sql_safe_query(&sql, "UPDATE `device` SET `id`=NULL,`parent`=NULL,`offlinereason`='System restart',`online`=NULL WHERE `id` IS NOT NULL");
+   sql_safe_query(&sql, "UPDATE `device` SET `id`=NULL,`via`=NULL,`offlinereason`='System restart',`online`=NULL WHERE `id` IS NOT NULL");
    mqtt_start();
    // Main loop getting messages (from MQTT or websocket)
    int poke = 1;
@@ -760,9 +718,9 @@ int main(int argc, const char *argv[])
                                  if (sql_fetch_row(res))
                                     site = atoi(sql_colz(res, "site"));
                                  sql_free_result(res);
-                                 sql_safe_query_free(&sql, sql_printf("UPDATE `device` SET `online`=NOW(),`offlinereason`=NULL,`lastonline`=NOW(),`id`=%lld,`parent`=%#s WHERE `device`=%#.*s AND `site`=%d", id, secureid, p - dev, dev, site));
+                                 sql_safe_query_free(&sql, sql_printf("UPDATE `device` SET `online`=NOW(),`offlinereason`=NULL,`lastonline`=NOW(),`id`=%lld,`via`=%#s WHERE `device`=%#.*s AND `site`=%d", id, secureid, p - dev, dev, site));
                               } else
-                                 sql_safe_query_free(&sql, sql_printf("UPDATE `device` SET `online`=NOW(),`offlinereason`=NULL,`lastonline`=NOW(),`id`=%lld,`parent`=NULL WHERE `device`=%#.*s", id, p - dev, dev));
+                                 sql_safe_query_free(&sql, sql_printf("UPDATE `device` SET `online`=NOW(),`offlinereason`=NULL,`lastonline`=NOW(),`id`=%lld,`via`=NULL WHERE `device`=%#.*s", id, p - dev, dev));
                               device = sql_safe_query_store_free(&sql, sql_printf("SELECT * FROM `device` WHERE `device`=%#.*s", p - dev, dev));
                               if (sql_fetch_row(device) && !upgrade(device, id) && !settings(&sql, device, id))
                                  security(&sql, &sqlkey, device, id);
@@ -797,7 +755,7 @@ int main(int argc, const char *argv[])
                         if (p - dev == 12)
                         {
                            if (checkdevice())
-                              sql_safe_query_free(&sql, sql_printf("UPDATE `device` SET `parent`=NULL,`online`=NULL,`id`=NULL,`offlinereason`='Timeout' WHERE `device`=%#.*s AND `id`=%lld", p - dev, dev, id));
+                              sql_safe_query_free(&sql, sql_printf("UPDATE `device` SET `via`=NULL,`online`=NULL,`id`=NULL,`offlinereason`='Timeout' WHERE `device`=%#.*s AND `id`=%lld", p - dev, dev, id));
                            else
                               sql_safe_query_free(&sql, sql_printf("DELETE FROM `pending` WHERE `device`=%#.*s AND `id`=%lld", p - dev, dev, id));
                         }
@@ -836,7 +794,7 @@ int main(int argc, const char *argv[])
             {                   // Up message
                if (j_isbool(up) && !j_istrue(up))
                {                // Down
-                  sql_safe_query_free(&sql, sql_printf("UPDATE `device` SET `parent`=NULL,`offlinereason`=%#s,`online`=NULL,`id`=NULL WHERE `device`=%#s AND `id`=%lld", j_get(j,"reason"),deviceid, id));
+                  sql_safe_query_free(&sql, sql_printf("UPDATE `device` SET `via`=NULL,`offlinereason`=%#s,`online`=NULL,`id`=NULL WHERE `device`=%#s AND `id`=%lld", j_get(j,"reason"),deviceid, id));
                   return NULL;
                }
                sql_string_t s = { };
@@ -893,7 +851,7 @@ int main(int argc, const char *argv[])
             if (!prefix)
             {                   // Down (all other messages have a topic)
                if (checkdevice())
-                  sql_safe_query_free(&sql, sql_printf("UPDATE `device` SET `parent`=NULL,`online`=NULL,`id`=NULL,`lastonline`=NOW() WHERE `id`=%lld", id));
+                  sql_safe_query_free(&sql, sql_printf("UPDATE `device` SET `via`=NULL,`online`=NULL,`id`=NULL,`lastonline`=NOW() WHERE `id`=%lld", id));
                else             // pending
                   sql_safe_query_free(&sql, sql_printf("DELETE FROM `pending` WHERE `id`=%lld", id));
                return NULL;
