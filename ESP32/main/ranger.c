@@ -1,5 +1,5 @@
 // Ranger ranger as exit button and motion detect
-// Copyright © 2019 Adrian Kennard, Andrews & Arnold Ltd. See LICENCE file for details. GPL 3.0
+// Copyright © 2019-21 Adrian Kennard, Andrews & Arnold Ltd. See LICENCE file for details. GPL 3.0
 static const char TAG[] = "ranger";
 #include "SS.h"
 const char *ranger_fault = NULL;

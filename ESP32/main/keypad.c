@@ -1,5 +1,5 @@
 // Controller for Honeywell Galaxy keypad over RS485
-// Copyright © 2019 Adrian Kennard, Andrews & Arnold Ltd. See LICENCE file for details. GPL 3.0
+// Copyright © 2019-21 Adrian Kennard, Andrews & Arnold Ltd. See LICENCE file for details. GPL 3.0
 static const char TAG[] = "keypad";
 #include "SS.h"
 const char *keypad_fault = NULL;

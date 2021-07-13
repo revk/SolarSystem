@@ -1,5 +1,5 @@
 // Solar System
-// Copyright © 2019 Adrian Kennard, Andrews & Arnold Ltd. See LICENCE file for details. GPL 3.0
+// Copyright © 2019-21 Adrian Kennard, Andrews & Arnold Ltd. See LICENCE file for details. GPL 3.0
 static const char TAG[] = "door";
 #include "SS.h"
 const char *door_fault = NULL;
@@ -402,7 +402,7 @@ const char *door_fob(fob_t * fob)
       }
       if (fob->block)
          return "Card blocked";
-      if (fob->held && !(area & ~fob->disarm))
+      if (!fob->held && !(area & ~fob->disarm))
          fob->disarmok = 1;
       else if (!fob->held && !(area & ~fob->arm))
          fob->armok = 1;
@@ -455,10 +455,13 @@ const char *door_fob(fob_t * fob)
          }
    if (doorauto >= 4)
    {                            // Actually do the doors (the open is done by the caller)
+      // TODO Check we can dsiarm enough to unlock
       fob->unlocked = fob->unlockok;
       if (doorauto >= 5)
       {
+         // TODO Check there is anything to disarm
          fob->disarmed = fob->disarmok;
+         // TODO Check there is anything to arm
          fob->armed = fob->armok;
       }
    }

@@ -1,5 +1,5 @@
 // NFC reader interface - working with door control
-// Copyright © 2019 Adrian Kennard, Andrews & Arnold Ltd. See LICENCE file for details. GPL 3.0
+// Copyright © 2019-21 Adrian Kennard, Andrews & Arnold Ltd. See LICENCE file for details. GPL 3.0
 static const char TAG[] = "nfc";
 #include "SS.h"
 const char *nfc_fault = NULL;
@@ -484,12 +484,14 @@ static void task(void *pvParameters)
                   blink(nfcred);
                else
                   blink(nfcamber);
+               if (fob.disarmed)
+                  door_disarm("fob");
                if (fob.unlocked)
                   door_unlock(NULL, "fob");     // Door system was happy with fob, let 'em in
                else if (fob.override)
                   door_unlock(NULL, "override");        // Fob override
                else if (fob.deny)
-                  door_lock(NULL,"fob");
+                  door_lock(NULL, "fob");
                else
                   nextled = now + 200000LL;
                fobevent();      // Report

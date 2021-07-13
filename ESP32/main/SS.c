@@ -1,5 +1,5 @@
 // Solar System ESP32 app
-// Copyright © 2019 Adrian Kennard, Andrews & Arnold Ltd. See LICENCE file for details. GPL 3.0
+// Copyright © 2019-21 Adrian Kennard, Andrews & Arnold Ltd. See LICENCE file for details. GPL 3.0
 static const char __attribute__((unused)) TAG[] = "SS";
 
 #include "SS.h"
@@ -27,6 +27,7 @@ static const char *port_inuse[MAX_PORT];
 	m(keypad)	\
 	m(door)		\
 	m(nfc)		\
+	m(alarm)	\
 
 // Other settings
 #define settings  	\

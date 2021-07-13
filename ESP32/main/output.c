@@ -1,5 +1,5 @@
 // Logical outputs
-// Copyright © 2019 Adrian Kennard, Andrews & Arnold Ltd. See LICENCE file for details. GPL 3.0
+// Copyright © 2019-21 Adrian Kennard, Andrews & Arnold Ltd. See LICENCE file for details. GPL 3.0
 static const char TAG[] = "output";
 #include "SS.h"
 const char *output_fault = NULL;
