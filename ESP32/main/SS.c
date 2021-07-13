@@ -19,6 +19,14 @@ static const char __attribute__((unused)) TAG[] = "SS";
 #warning CONFIG_ESP32_WIFI_AMPDU_RX_ENABLED may not be a good idea
 #endif
 
+#ifndef CONFIG_ESP32_WIFI_STATIC_TX_BUFFER
+#warning CONFIG_ESP32_WIFI_STATIC_TX_BUFFER may be better
+#else
+#if CONFIG_ESP32_WIFI_STATIC_RX_BUFFER_NUM+CONFIG_ESP32_WIFI_DYNAMIC_RX_BUFFER_NUM+CONFIG_ESP32_WIFI_STATIC_TX_BUFFER_NUM > 20
+#warning Maybe fewer wifi buffers
+#endif
+#endif
+
 #ifndef	CONFIG_REVK_MESH
 #error	CONFIG_REVK_MESH requried
 #endif

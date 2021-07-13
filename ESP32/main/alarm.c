@@ -17,8 +17,6 @@ const char *alarm_tamper = NULL;
 #define c(x) area_t control_##x;        // local control flags
 #include "states.m"
 
-area_t lastarmed = 0;
-
 // TODO keypad UI
 // TODO commands to clean latched states
 
@@ -46,7 +44,7 @@ void alarm_arm(area_t a, const char *why)
    a &= areaarm;
    if (((state_armed | control_arm) & a & ~control_disarm) == a)
       return;                   // All armed
-   ESP_LOGI(TAG, "Arm %X %s", a, why);
+   ESP_LOGD(TAG, "Arm %X %s", a, why);
    control_arm |= a;
    control_disarm &= ~a;
    door_check();
@@ -58,7 +56,7 @@ void alarm_disarm(area_t a, const char *why)
    a &= areadisarm;
    if (!((state_armed | control_arm) & a & ~control_disarm))
       return;                   // Not armed
-   ESP_LOGI(TAG, "Disarm %X %s", a, why);
+   ESP_LOGD(TAG, "Disarm %X %s", a, why);
    control_arm &= ~a;
    control_disarm |= a;
    door_check();
@@ -138,12 +136,13 @@ const char *system_makesummary(jo_t j)
    state_tampered |= report_tamper;
    state_faulted |= report_fault;
    state_alarmed |= state_alarm;
-   state_prearm = report_arm;
    // arming normally holds off for presence (obviously) but also tamper and access - forcing armed is possible
    // TODO how force? another control for that? long hold on fob?
    state_armed |= (report_arm & ~state_presence & ~(state_tamper & ~engineering) & ~state_access);
    // disarm
    state_armed &= ~report_disarm;
+   // prearm if not armed yet
+   state_prearm = (report_arm & ~state_armed);
    // Alarm based only on presence, but change of tamper or access trips presence anyway. Basically you can force arm with tamper and access
    state_prealarm = (state_armed & state_presence);
    // TODO delay for alarm from prealarm
@@ -215,6 +214,7 @@ const char *system_summary(jo_t j)
    // TODO Poke outputs maybe
 
    // Store armed state
+   static area_t lastarmed = 0;
    if (lastarmed != state_armed)
    {
       jo_t j = jo_object_alloc();
