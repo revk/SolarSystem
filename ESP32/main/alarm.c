@@ -211,5 +211,9 @@ const char *system_mesh(const char *suffix, jo_t j)
       status(alarm_fault = "Missing devices");
    else if (!strcmp(suffix, "fullhouse"))
       status(alarm_fault = NULL);
+   else if (!strcmp(suffix, "other"))
+   {
+      // TODO messages to clear latched states
+   }
    return NULL;
 }
