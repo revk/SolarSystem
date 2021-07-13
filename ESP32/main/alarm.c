@@ -7,6 +7,7 @@ static const char __attribute__((unused)) TAG[] = "alarm";
 #include "nfc.h"
 #include "door.h"
 #include "input.h"
+#include "output.h"
 #include <esp_mesh.h>
 const char *alarm_fault = NULL;
 const char *alarm_tamper = NULL;
@@ -154,7 +155,6 @@ const char *system_makesummary(jo_t j)
    state_faulted |= report_fault;
    state_alarmed |= state_alarm;
    // arming normally holds off for presence (obviously) but also tamper and access - forcing armed is possible
-   // TODO how force? another control for that? long hold on fob?
    state_armed |= (report_arm & ~state_presence & ~(state_tamper & ~engineering) & ~state_access);
    // disarm
    state_armed &= ~report_disarm;
@@ -164,6 +164,15 @@ const char *system_makesummary(jo_t j)
    state_prealarm = (state_armed & state_presence);
    // TODO delay for alarm from prealarm
    state_alarm |= state_prealarm;
+
+   uint64_t forced = 0;
+   for (int i = 0; i < MAXOUTPUT; i++)
+   {
+#define i(x) if(output##x[i]&state_##x)forced|=(1ULL<<i);
+#define s(x) i(x)
+#include "states.m"
+   }
+   output_forced = forced;
 
    // Send summary
 #define i(x) jo_area(j,#x,state_##x);report_##x=0;

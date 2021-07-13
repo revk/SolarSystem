@@ -2,33 +2,29 @@
 // Copyright © 2019-21 Adrian Kennard, Andrews & Arnold Ltd. See LICENCE file for details. GPL 3.0
 static const char TAG[] = "output";
 #include "SS.h"
+#include "output.h"
 const char *output_fault = NULL;
 const char *output_tamper = NULL;
 
 #include <driver/gpio.h>
 
 // Output ports
-#define MAXOUTPUT 10
 #define BITFIELDS "-"
 #define PORT_INV 0x40
 #define port_mask(p) ((p)&63)
 static uint8_t output[MAXOUTPUT];
 static uint8_t power[MAXOUTPUT];        /* fixed outputs */
 
-#define i(x) static area_t output##x[MAXOUTPUT];
-#define s(x) i(x)
-#include "states.m"
-
-#define i(x) extern area_t state_##x;
+#define i(x) area_t output##x[MAXOUTPUT];
 #define s(x) i(x)
 #include "states.m"
 
 static uint64_t output_state = 0;       // Port state
 static uint64_t output_state_set = 0;   // Output has been set
-uint64_t output_force=0;		// Output forced externally
-static uint8_t output_changed = 0;
-
-// TODO forced output state
+static uint64_t output_raw = 0; // Actual output
+static uint64_t output_last = 0;        // Last reported
+static int64_t output_report = 0;       // When to report output
+uint64_t output_forced = 0;     // Output forced externally
 
 int output_active(int p)
 {
@@ -38,6 +34,15 @@ int output_active(int p)
    if (output[p])
       return 1;
    return 0;
+}
+
+static void output_write(int p)
+{                               // Write current (combined) state
+   uint64_t v = ((output_state | output_forced) >> p) & 1;
+   output_raw = (output_raw & ~(1ULL << p)) | (v << p);
+   gpio_hold_dis(port_mask(output[p]));
+   gpio_set_level(port_mask(output[p]), (output[p] & PORT_INV) ? 1 - v : v);
+   gpio_hold_en(port_mask(output[p]));
 }
 
 void output_set(int p, int v)
@@ -51,22 +56,14 @@ void output_set(int p, int v)
       if ((output_state & (1ULL << p)) && (output_state_set & (1ULL << p)))
          return;                // No change
       output_state |= (1ULL << p);
-      if (output[p])
-         output_changed = 1;
    } else
    {
       if (!(output_state & (1ULL << p)) && (output_state_set & (1ULL << p)))
          return;                // No change
       output_state &= ~(1ULL << p);
-      if (output[p])
-         output_changed = 1;
    }
    if (output[p])
-   {
-      gpio_hold_dis(port_mask(output[p]));
-      gpio_set_level(port_mask(output[p]), (output[p] & PORT_INV) ? 1 - v : v);
-      gpio_hold_en(port_mask(output[p]));
-   }
+      output_write(p);
    output_state_set |= (1ULL << p);
 }
 
@@ -85,7 +82,7 @@ int output_get(int p)
 const char *output_command(const char *tag, jo_t j)
 {
    if (!strcmp(tag, "connect"))
-      output_changed = 1;       // Report
+      output_report = 0;        // Report
    const char *e = NULL;
    if (!strncmp(tag, TAG, strlen(TAG)))
    {                            // Set output
@@ -148,9 +145,16 @@ static void task(void *pvParameters)
    while (1)
    {
       esp_task_wdt_reset();
-      if (output_changed)
-      {                         // JSON
-         output_changed = 0;
+      int64_t now = esp_timer_get_time();
+      uint64_t output_set = output_state | output_forced;
+      if (output_set != output_raw)
+         for (int i = 0; i < MAXOUTPUT; i++)
+            if ((output_set ^ output_raw) & (1ULL << i))
+               output_write(i); // Update output state
+      if (output_report < now || output_set != output_last)
+      {
+         output_last = output_set;
+         output_report = now + 3600 * 1000000ULL;
          jo_t j = jo_create_alloc();
          jo_array(j, NULL);
          int t = MAXOUTPUT;
@@ -158,7 +162,7 @@ static void task(void *pvParameters)
             t--;
          for (int i = 0; i < t; i++)
             if (output[i] && ((output_state_set >> i) & 1))
-               jo_bool(j, NULL, (output_state >> i) & 1);
+               jo_bool(j, NULL, (output_set >> i) & 1);
             else
                jo_null(j, NULL);
          revk_state_copy(TAG, &j, iotstateoutput);
