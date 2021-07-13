@@ -385,8 +385,8 @@ const char *door_fob(fob_t * fob)
          fob->disarmok = 1;     // TODO should this be only if we can also enter
       else if (fob->held && !(areaarm & ~fob->arm))
          fob->armok = 1;
-      if (areaenter & state_armed & ~control_disarm)
-         return "Deadlocked";   //  TODO Need to allow for what we can disarm
+      if (areaenter & state_armed & ~control_disarm&~(fob->disarmok?fob->disarm:0))
+         return "Deadlocked"; 
       if (!(areaenter & ~fob->enter))
          fob->unlockok = 1;
       return NULL;

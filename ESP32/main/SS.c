@@ -12,6 +12,13 @@ static const char __attribute__((unused)) TAG[] = "SS";
 #warning	You do not want door controller running CONFIG_REVK_APCONFIG
 #endif
 
+#ifdef	CONFIG_ESP32_WIFI_AMPDU_TX_ENABLED
+#warning CONFIG_ESP32_WIFI_AMPDU_TX_ENABLED may not be a good idea
+#endif
+#ifdef	CONFIG_ESP32_WIFI_AMPDU_RX_ENABLED
+#warning CONFIG_ESP32_WIFI_AMPDU_RX_ENABLED may not be a good idea
+#endif
+
 #ifndef	CONFIG_REVK_MESH
 #error	CONFIG_REVK_MESH requried
 #endif

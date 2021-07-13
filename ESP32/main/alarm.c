@@ -185,7 +185,6 @@ const char *system_summary(jo_t j)
          revk_state_copy("system", &c, -1);
       }
       // TODO reporting to cloud, if changed...
-      return NULL;
    } else
    {                            // We are leaf, get the data
 #define i(x) area_t x=0; // Zero if not specified
