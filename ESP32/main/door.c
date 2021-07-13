@@ -134,9 +134,6 @@ struct {
 
 uint8_t doorstate = -1;
 const char *doorwhy = NULL;
-extern area_t state_armed,
- control_arm,
- control_unarm;
 
 const char *door_access(const uint8_t * a)
 {                               // Confirm access
@@ -160,28 +157,16 @@ const char *door_access(const uint8_t * a)
    return e;
 }
 
-const char *door_arm(const char *why)
+void door_check(void)
 {
-   ESP_LOGI(TAG, "Arm %s", why ? : "?");
-   control_arm |= areaarm;
-   output_set(OUNLOCK + 1, 0);
-   return NULL;
-}
-
-const char *door_disarm(const char *why)
-{
-   ESP_LOGI(TAG, "Disarm %s", why ? : "?");
-   control_unarm |= areadisarm;
-   output_set(OUNLOCK + 1, 1);
-   return NULL;
+   output_set(OUNLOCK + 1, (areaenter & state_armed & ~control_disarm) ? 0 : 1);
 }
 
 const char *door_unlock(const uint8_t * a, const char *why)
 {                               // Unlock the door - i.e. exit button, entry allowed, etc.
    if (why && !doorwhy)
       doorwhy = why;
-   if (areadisarm & state_armed & ~control_unarm)
-      door_disarm(why);
+   // TODO disarm first?
    ESP_LOGI(TAG, "Unlock %s", why ? : "?");
    output_set(OUNLOCK + 0, 1);
    output_set(OUNLOCK + 1, 1);
@@ -192,10 +177,6 @@ const char *door_lock(const uint8_t * a, const char *why)
 {                               // Lock the door - i.e. move to normal locked operation
    why = why;
    output_set(OUNLOCK + 0, 0);
-   if (areaarm & (state_armed | control_arm) & ~control_unarm)
-      output_set(OUNLOCK + 1, 0);
-   else
-      output_set(OUNLOCK + 1, 1);
    return door_access(a);
 }
 
@@ -387,7 +368,7 @@ const char *door_fob(fob_t * fob)
          fob->disarmok = 1;
       else if (!fob->held && !(areaarm & ~fob->arm))
          fob->armok = 1;
-      if ((areadisarm & (state_armed | control_arm) & ~control_unarm) && (doorauto < 5 || !fob->disarmok))
+      if (areaenter & state_armed & ~control_disarm)
          return "Deadlocked";
       if (!(areadisarm & ~fob->enter))
          fob->unlockok = 1;
@@ -484,10 +465,6 @@ const char *door_command(const char *tag, jo_t j)
       if (!e)
          e = jo_error(j, NULL);
    }
-   if (!strcasecmp(tag, "arm"))
-      return e ? : door_arm("remote");
-   if (!strcasecmp(tag, "disarm"))
-      return e ? : door_disarm("remote");
    if (!strcasecmp(tag, "lock"))
       return e ? : door_lock(afile, "remote");
    if (!strcasecmp(tag, "unlock"))
@@ -662,7 +639,7 @@ static void task(void *pvParameters)
                exit1 = now + (int64_t) doorexit *1000LL;
                if (doorauto >= 2)
                {
-                  if (!(areadisarm & (state_armed | control_arm) & ~control_unarm))
+                  if (!(areaenter & state_armed & ~control_disarm))
                      door_unlock(NULL, "button");
                   else
                   {             // Not opening door
@@ -682,7 +659,7 @@ static void task(void *pvParameters)
                exit2 = now + (int64_t) doorexit *1000LL;
                if (doorauto >= 2)
                {
-                  if (!(areadisarm & (state_armed | control_arm) & ~control_unarm))
+                  if (!(areaenter & state_armed & ~control_disarm))
                      door_unlock(NULL, "ranger");
                   else
                   {             // Not opening door

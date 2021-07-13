@@ -6,6 +6,7 @@ const char *nfc_fault = NULL;
 const char *nfc_tamper = NULL;
 
 #include "desfireaes.h"
+#include "alarm.h"
 #include "nfc.h"
 #include "door.h"
 #include "pn532.h"
@@ -329,7 +330,7 @@ static void task(void *pvParameters)
                door_fob(&fob);
                fobevent();
                if (fob.armed)
-                  door_arm("fob");
+                  alarm_arm(areaarm & fob.arm, "fob");
             }
             continue;           // Waiting for card to go
          }
@@ -485,7 +486,7 @@ static void task(void *pvParameters)
                else
                   blink(nfcamber);
                if (fob.disarmed)
-                  door_disarm("fob");
+                  alarm_disarm(areadisarm & fob.disarm, "fob");
                if (fob.unlocked)
                   door_unlock(NULL, "fob");     // Door system was happy with fob, let 'em in
                else if (fob.override)

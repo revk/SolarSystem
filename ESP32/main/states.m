@@ -22,10 +22,7 @@ i(fire)
 i(panic)
 
 c(arm)
-c(unarm)
-c(unalarm)
-c(untamper)
-c(unfault)
+c(disarm)
 
 s(prearm)
 s(armed)

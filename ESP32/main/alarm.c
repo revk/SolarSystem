@@ -33,13 +33,25 @@ settings
 #undef area
 const char *alarm_command(const char *tag, jo_t j)
 {
+   // TODO ARM and DISARM commands
    return NULL;
+}
+
+void alarm_arm(area_t a, const char *why)
+{                               // Arm
+   // TODO
+}
+
+void alarm_disarm(area_t a, const char *why)
+{                               // Disarm
+   // TODO
 }
 
 void alarm_init(void)
 {
 #include "states.m"
-#define area(n) revk_register(#n,0,sizeof(n),&n,AREAS,SETTING_BITFIELD);
+   revk_register("area", 0, sizeof(areafault), &areafault, AREAS, SETTING_BITFIELD | SETTING_LIVE | SETTING_SECRET);    // TODO something has to be set here to work?
+#define area(n) revk_register(#n,0,sizeof(n),&n,AREAS,SETTING_BITFIELD|SETTING_LIVE);
    settings
 #undef area
 }
@@ -111,10 +123,7 @@ const char *system_makesummary(jo_t j)
    state_alarmed |= state_alarm;
    state_prearm = report_arm;
    state_armed |= (report_arm & ~state_presence);
-   state_armed &= ~report_unarm;
-   state_alarmed &= ~report_unalarm;
-   state_tampered &= ~report_untamper;
-   state_faulted &= ~report_unfault;
+   state_armed &= ~report_disarm;
 
    // Send summary
 #define i(x) jo_area(j,#x,state_##x);report_##x=0;
@@ -171,12 +180,18 @@ const char *system_summary(jo_t j)
    // Clear control bits when actioned
    // TODO timer cancel arm
    control_arm &= ~state_armed;
-   control_unarm &= state_armed;
-   control_unfault &= state_faulted;
-   control_unalarm &= state_alarmed;
-   control_untamper &= state_tampered;
+   control_disarm &= state_armed;
    // TODO Poke outputs maybe
 
+   // Store armed state
+   if (lastarmed != state_armed)
+   {
+      jo_t j = jo_object_alloc();
+      jo_area(j, "armed", state_armed);
+      revk_setting(j);
+      jo_free(&j);
+      lastarmed = state_armed;
+   }
    return NULL;
 }
 
