@@ -154,6 +154,7 @@ const char *system_makesummary(jo_t j)
 #define c(x) report_##x=0;
 #define s(x) jo_area(j,#x,state_##x);
 #include "states.m"
+   jo_area(j, "engineering", engineering);
    return NULL;
 }
 
@@ -187,7 +188,7 @@ const char *system_summary(jo_t j)
       // TODO reporting to cloud, if changed...
    } else
    {                            // We are leaf, get the data
-#define i(x) area_t x=0; // Zero if not specified
+#define i(x) area_t x=0;        // Zero if not specified
 #define s(x) i(x)
 #include "states.m"
       jo_rewind(j);
