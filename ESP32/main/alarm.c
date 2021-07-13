@@ -6,6 +6,7 @@ static const char __attribute__((unused)) TAG[] = "alarm";
 #include "alarm.h"
 #include "nfc.h"
 #include "door.h"
+#include "input.h"
 #include <esp_mesh.h>
 const char *alarm_fault = NULL;
 const char *alarm_tamper = NULL;
@@ -106,9 +107,25 @@ const char *system_makereport(jo_t j)
 {                               // Make the report from leaf to root for out states...
 #define i(x) area_t x=0;        // what we are going to send
 #include "states.m"
-   // Inputs
-#define i(x) extern area_t input_latch_##x,input_now_##x;x=input_latch_##x;input_latch_##x=input_now_##x;
+   {                            // Inputs
+      uint64_t latch = input_latch;
+      input_latch = 0;
+      uint64_t flip = input_flip;
+      input_flip = 0;
+      for (int i = 0; i < MAXINPUT; i++)
+      {
+         if (latch & (1ULL << i))
+         {                      // State is active (or has been, even if briefly)
+#define i(x) x|=input##x[i];
 #include "states.m"
+         }
+         if (flip & (1ULL << i))
+         {                      // State has changed, so causes presense
+            presence |= inputtamper[i];
+            presence |= inputaccess[i];
+         }
+      }
+   }
    // Extras
    extern const char *last_fault;
    if (last_fault && strcmp(last_fault, "{}"))

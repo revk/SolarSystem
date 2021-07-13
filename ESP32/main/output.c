@@ -13,9 +13,7 @@ const char *output_tamper = NULL;
 #define PORT_INV 0x40
 #define port_mask(p) ((p)&63)
 static uint8_t output[MAXOUTPUT];
-static char *outputname[MAXOUTPUT];
 static uint8_t power[MAXOUTPUT];        /* fixed outputs */
-static char *powername[MAXOUTPUT];
 
 #define i(x) static area_t output##x[MAXOUTPUT];
 #define s(x) i(x)
@@ -27,7 +25,10 @@ static char *powername[MAXOUTPUT];
 
 static uint64_t output_state = 0;       // Port state
 static uint64_t output_state_set = 0;   // Output has been set
+uint64_t output_force=0;		// Output forced externally
 static uint8_t output_changed = 0;
+
+// TODO forced output state
 
 int output_active(int p)
 {
@@ -147,7 +148,6 @@ static void task(void *pvParameters)
    while (1)
    {
       esp_task_wdt_reset();
-      // TODO pick up system state controls that impact output
       if (output_changed)
       {                         // JSON
          output_changed = 0;
@@ -171,10 +171,8 @@ void output_init(void)
 {
    revk_register("output", MAXOUTPUT, sizeof(*output), &output, BITFIELDS, SETTING_BITFIELD | SETTING_SET | SETTING_SECRET);
    revk_register("outputgpio", MAXOUTPUT, sizeof(*output), &output, BITFIELDS, SETTING_BITFIELD | SETTING_SET);
-   revk_register("outputname", MAXOUTPUT, 0, &outputname, NULL, 0);
    revk_register("power", MAXOUTPUT, sizeof(*power), &power, BITFIELDS, SETTING_BITFIELD | SETTING_SET | SETTING_SECRET);
    revk_register("powergpio", MAXOUTPUT, sizeof(*power), &power, BITFIELDS, SETTING_BITFIELD | SETTING_SET);
-   revk_register("powername", MAXOUTPUT, 0, &powername, NULL, 0);
 #define i(x) revk_register("output"#x, MAXOUTPUT, sizeof(*output##x), &output##x, AREAS, SETTING_BITFIELD);
 #define s(x) i(x)
 #include "states.m"

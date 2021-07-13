@@ -2,20 +2,18 @@
 // Copyright © 2019-21 Adrian Kennard, Andrews & Arnold Ltd. See LICENCE file for details. GPL 3.0
 static const char TAG[] = "input";
 #include "SS.h"
+#include "input.h"
 const char *input_fault = NULL;
 const char *input_tamper = NULL;
 
 #include <driver/gpio.h>
 
 // Input ports
-#define MAXINPUT 20
 #define	BITFIELDS "-"
 #define	PORT_INV 0x40
 #define	port_mask(p) ((p)&63)
 static uint8_t input[MAXINPUT];
-static char *inputname[MAXINPUT];
-
-#define i(x) static area_t input##x[MAXINPUT];area_t input_latch_##x=0;area_t input_now_##x=0;
+#define i(x) area_t input##x[MAXINPUT];
 #include "states.m"
 
 // Other settings
@@ -29,6 +27,8 @@ settings
 static uint64_t input_raw = 0;
 static uint64_t input_stable = 0;
 static uint64_t input_invert = 0;
+uint64_t input_latch = 0;       // holds resettable state of input
+uint64_t input_flip = 0;        // holds flipped flag for each input, i.e. state has changed
 static uint64_t input_hold[MAXINPUT] = { };
 
 static volatile char reportall = 0;
@@ -84,8 +84,8 @@ static void task(void *pvParameters)
       int64_t now = esp_timer_get_time();
       char report = reportall;
       reportall = 0;
-      char changed = 0;
       int i;
+      uint64_t was = input_stable;
       for (i = 0; i < MAXINPUT; i++)
          if (input[i])
          {
@@ -93,18 +93,17 @@ static void task(void *pvParameters)
             if ((1ULL << i) & input_invert)
                v = 1 - v;
             if ((input_hold[i] < now) && (report || v != ((input_stable >> i) & 1)))
-            {                   // Change of stable state
                input_stable = ((input_stable & ~(1ULL << i)) | ((uint64_t) v << i));
-               changed = 1;
-            }
             if (v != ((input_raw >> i) & 1))
             {                   // Change of raw state
                input_raw = ((input_raw & ~(1ULL << i)) | ((uint64_t) v << i));
                input_hold[i] = now + (int64_t) inputhold *1000LL;
             }
          }
-      if (changed)
+      if (was != input_stable)
       {                         // JSON
+         input_latch |= input_stable;
+         input_flip |= (input_stable ^ was);
          jo_t j = jo_create_alloc();
          jo_array(j, NULL);
          int t = MAXINPUT;
@@ -116,7 +115,6 @@ static void task(void *pvParameters)
             else
                jo_bool(j, NULL, (input_stable >> i) & 1);
          revk_state_copy(TAG, &j, iotstateinput);
-         // TODO set latching state inputs
       }
       // Sleep
       usleep((inputpoll ? : 1) * 1000);
@@ -127,7 +125,6 @@ void input_init(void)
 {
    revk_register("input", MAXINPUT, sizeof(*input), &input, BITFIELDS, SETTING_BITFIELD | SETTING_SET | SETTING_SECRET);
    revk_register("inputgpio", MAXINPUT, sizeof(*input), &input, BITFIELDS, SETTING_BITFIELD | SETTING_SET);
-   revk_register("inputname", MAXINPUT, 0, &inputname, NULL, 0);
 #define i(x) revk_register("input"#x, MAXINPUT, sizeof(*input##x), &input##x, AREAS, SETTING_BITFIELD);
 #include "states.m"
 #define u16(n,v) revk_register(#n,0,sizeof(n),&n,#v,0);
