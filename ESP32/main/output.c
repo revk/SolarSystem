@@ -150,7 +150,10 @@ static void task(void *pvParameters)
       if (output_set != output_raw)
          for (int i = 0; i < MAXOUTPUT; i++)
             if ((output_set ^ output_raw) & (1ULL << i))
+	    {
                output_write(i); // Update output state
+               output_state_set |= (1ULL << i);
+            }
       if (output_report < now || output_set != output_last)
       {
          output_last = output_set;
