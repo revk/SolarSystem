@@ -102,7 +102,7 @@ const char *security(SQL * sqlp, SQL * sqlkeyp, SQL_RES * res, slot_t id)
    return NULL;
 }
 
-static void addwifi(SQL * sqlp, j_t j, SQL_RES * site, const char *deviceid, const char *parentid)
+static void addsitedata(SQL * sqlp, j_t j, SQL_RES * site, const char *deviceid, const char *parentid)
 {
    const char *v;               // temp
    if (!parentid || !*parentid || !strcmp(parentid, deviceid))
@@ -110,6 +110,8 @@ static void addwifi(SQL * sqlp, j_t j, SQL_RES * site, const char *deviceid, con
    // Standard wifi settings
    v = sql_colz(site, "iothost");
    j_store_string(j, "mqtthost2", *v ? v : NULL);
+   v = sql_colz(site, "engineering");
+   j_store_string(j, "engineering", *v ? v : NULL);
    j_t wifi = j_store_object(j, "wifi");
    if ((v = sql_colz(site, "wifissid")) && *v)
       j_store_string(wifi, "ssid", v);
@@ -193,19 +195,25 @@ static void addwifi(SQL * sqlp, j_t j, SQL_RES * site, const char *deviceid, con
 
 const char *settings(SQL * sqlp, SQL_RES * res, slot_t id)
 {                               // Send base settings
+   const char *v;
    j_t j = j_create();
    int door = (*sql_colz(res, "door") == 't');
    j_store_string(j, "name", sql_colz(res, "devicename"));
    if (*CONFIG_OTA_HOSTNAME)
       j_store_string(j, "otahost", CONFIG_OTA_HOSTNAME);
    j_store_int(j, "doorauto", door ? 5 : 0);
-   j_store_string(j, "area", sql_colz(res, "area"));
+   j_t area=j_store_object(j,"area");
+   if((v=sql_colz(res,"areafault"))&&*v) j_store_string(area, "fault", v); // TODO commas?
+   if((v=sql_colz(res,"areatamper"))&&*v) j_store_string(area, "tamper", v);
+   if((v=sql_colz(res,"areaenter"))&&*v) j_store_string(area, "enter", v);
+   if((v=sql_colz(res,"areaarm"))&&*v) j_store_string(area, "arm", v);
+   if((v=sql_colz(res,"areadisarm"))&&*v) j_store_string(area, "disarm", v);
    int site = atoi(sql_colz(res, "site"));
    {                            // site
       SQL_RES *s = sql_safe_query_store_free(sqlp, sql_printf("SELECT * FROM `site` WHERE `site`=%d", site));
       if (sql_fetch_row(s))
       {
-         addwifi(sqlp, j, s, sql_colz(res, "device"), sql_col(res, "via"));
+         addsitedata(sqlp, j, s, sql_colz(res, "device"), sql_col(res, "via"));
          j_t iot = j_store_object(j, "iot");
          if (*sql_colz(s, "iothost"))
          {
@@ -600,7 +608,7 @@ int main(int argc, const char *argv[])
                   if (sql_fetch_row(s))
                   {
                      j = j_create();
-                     addwifi(&sql, j, s, deviceid, NULL);
+                     addsitedata(&sql, j, s, deviceid, NULL);
                      fail = slot_send(id, "setting", deviceid, NULL, &j);
                   }
                   sql_free_result(s);

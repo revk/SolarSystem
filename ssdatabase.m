@@ -123,12 +123,13 @@ text(sitename, 0);
 text(wifissid, 0);              // Site WiFi settings
 text(wifipass, 0);              // Site WiFi settings
 text(iothost, 0);               // IoT host for local MQTT
-bool(nomesh);			// Don't mesh - i.e. where separate devices on-line
+bool (nomesh);                  // Don't mesh - i.e. where separate devices on-line
 text(meshid, 12);               // Mesh ID (MAC)
 key(meshid, 12);
 text(meshpass, 0);              // Mesh WiFi passphrase
-text(meshkey,32);		// AES key
-key(meshkey,32);
+text(meshkey, 32);              // AES key
+key(meshkey, 32);
+areas(engineering);             // Site wide engineering state
 
 table(area, 0);
 link(organisation);             // Quicker
@@ -138,9 +139,10 @@ unique(site, tag);
 text(areaname, 0);
 
 table(access, 0);               // Fob access permissions - available site wide, set on an aid
-link(organisation);              // Quicker access
+link(organisation);             // Quicker access
 link(site);
-text(accessname, 0) areas(enter);       // Allow entre
+text(accessname, 0);
+areas(enter);                   // Allow enter
 areas(arm);                     // Allow /arm
 areas(disarm);                  // Allow disarm
 num(expiry);                    // Auto expiry (days)
@@ -182,7 +184,7 @@ text(fobname, 0);               // Name of fob user
 datetime(expires);              // Fixed expiry (local time on server)
 
 table(device, 12);
-link2(device, via);          // Via another device using mesh
+link2(device, via);             // Via another device using mesh
 text(devicename, 0);
 link(organisation);             // Yes, can get from site, but useful to reference quickly
 link(site);                     // The site the device is on
@@ -200,19 +202,23 @@ bool (nfctrusted);              // Trusted device for fob provisioning
 bool (door);                    // This is a door
 text(version, 0);               // S/w version
 text(build, 0);                 // S/w build
-num(chan);			// WiFi channel
-text(bssid,0);			// WiFi SSID
-text(ssid,0);			// WiFi SSID
+num(chan);                      // WiFi channel
+text(bssid, 0);                 // WiFi SSID
+text(ssid, 0);                  // WiFi SSID
 bool (encryptednvs);            // Built with encrypted NVS
 bool (secureboot);              // Built with secure boot
 bool (adoptnext);               // Adopt next unknown fob seen, if possible
 bool (formatnext);              // Format next unknown fob seen, if possible
 num(flash);                     // Flash size
 link(aid);                      // The AID for door access (defines what site it is)
-areas(area);                    // Areas covered by this door
+areas(areaenter);               // Areas allowed enter by fob
+areas(areaarm);                 // Areas allowed arm by fob
+areas(areadisarm);              // Areas allowed disarm by fob
+areas(areafault);               // Areas set by fault
+areas(areatamper);              // Areas set by tamper
 datetime(online);               // When online, if online
 datetime(lastonline);           // When last went offline
-text(offlinereason,0);		// If sent offline reason, what was it
+text(offlinereason, 0);         // If sent offline reason, what was it
 datetime(upgrade);              // When to do upgrade
 ip(address);                    // IP address when last online
 num(id);                        // Instance for communications when on line

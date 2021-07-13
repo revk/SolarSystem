@@ -12,6 +12,7 @@ extern uint8_t iotstateinput;
 extern uint8_t iotstateoutput;
 extern uint8_t iotstatefault;
 extern uint8_t iotstatetamper;
+extern uint8_t iotstatesystem;
 extern uint8_t ioteventfob;
 
 #define	MAX_PORT	40
@@ -20,4 +21,3 @@ uint8_t bcdutctime(time_t now, uint8_t datetime[7]);
 uint8_t bcdlocaltime(time_t now, uint8_t datetime[7]);
 
 typedef uint32_t area_t;
-extern area_t area;             // The areas we are in

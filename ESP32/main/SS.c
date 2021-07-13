@@ -3,18 +3,17 @@
 static const char __attribute__((unused)) TAG[] = "SS";
 
 #include "SS.h"
+#include "alarm.h"
 #include <driver/gpio.h>
 #include "slaves.h"
-#ifdef  CONFIG_REVK_MESH
 #include <esp_mesh.h>
-#endif
 
 #ifdef	CONFIG_REVK_APCONFIG
 #warning	You do not want door controller running CONFIG_REVK_APCONFIG
 #endif
 
-#ifndef	CONFIG_ESP_TLS_SERVER
-#error	CONFIG_ESP_TLS_SERVER needed
+#ifndef	CONFIG_REVK_MESH
+#error	CONFIG_REVK_MESH requried
 #endif
 
 // Common
@@ -64,10 +63,6 @@ static esp_reset_reason_t reason = -1;  // Restart reason
 
 const char *controller_fault = NULL;
 const char *controller_tamper = NULL;
-#ifdef	CONFIG_REVK_MESH
-const char *mesh_fault = NULL;
-const char *mesh_tamper = NULL;
-#endif
 
 static void status_report(int force)
 {                               // Report status change
@@ -79,9 +74,6 @@ static void status_report(int force)
       jo_t j = jo_object_alloc();
 #define m(n) extern const char *n##_fault;if(n##_fault){jo_string(j,#n,n##_fault);faults++;}
       modules m(controller)
-#ifdef	CONFIG_REVK_MESH
-       m(mesh)
-#endif
 #undef m
       if (!faults && force && reason >= 0)
       {
@@ -120,9 +112,6 @@ static void status_report(int force)
       jo_t j = jo_object_alloc();
 #define m(n) extern const char *n##_tamper;if(n##_tamper){jo_string(j,#n,n##_tamper);tampers++;}
       modules m(controller)
-#ifdef	CONFIG_REVK_MESH
-       m(mesh)
-#endif
 #undef m
       const char *tamper = jo_rewind(j);
       if (strcmp(tamper ? : "", lasttamper ? : "") || force)
@@ -134,14 +123,13 @@ static void status_report(int force)
       }
       jo_free(&j);              // safe to call even if freed by revk_state
    }
+   // TODO moved to alarm module...
    if (tampers)
       revk_blink(1, 1, "R-");
    else if (faults)
       revk_blink(1, 5, "M-");
-#ifdef	CONFIG_REVK_MESH
    else if (esp_mesh_is_root())
-      revk_blink(1, 5, "G-");
-#endif
+      revk_blink(1, 5, revk_offline()? "GR-" : "G-");
    else if (revk_offline())
       revk_blink(1, 5, "C-");
    else
@@ -184,151 +172,9 @@ const char *port_check(int p, const char *module, int in)
    return NULL;                 // OK
 }
 
-#ifdef  CONFIG_REVK_MESH
-// Alarm state
-#define i(x)	area_t report_##x=0;area_t state_##x=0; // Input
-#define c(x)	area_t report_##x=0;area_t control_##x=0;       // Control
-#define s(x)	area_t state_##x=0;     // System
-#include "states.m"
-#endif
-
-#ifdef  CONFIG_REVK_MESH
-static void store_area(jo_t j, const char *name, area_t val)
-{
-   char set[sizeof(area_t) * 8 + 1] = "",
-       *p = set;
-   for (int b = 0; AREAS[b]; b++)
-      if (val & (1ULL << (sizeof(area_t) * 8 - b - 1)))
-         *p++ = AREAS[b];
-   *p = 0;
-   if (p > set)
-      jo_string(j, name, set);
-}
-
-static area_t parse_area(jo_t j)
-{                               // At the tag
-   if (jo_next(j) != JO_STRING)
-      return 0;
-   area_t a = 0;
-   char val[sizeof(area_t) * 8 + 1];
-   jo_strncpy(j, val, sizeof(val));
-   for (char *p = val; *p; p++)
-   {
-      char *d = strchr(AREAS, *p);
-      if (d)
-         a |= (1ULL << (sizeof(area_t) * 8 - 1 - (d - AREAS)));
-   }
-   return a;
-}
-#endif
-
-#ifdef  CONFIG_REVK_MESH
-const char *system_makereport(jo_t j)
-{                               // Alarm state - make a report to the controller of our inputs
-#define i(x) area_t x=0;
-#include "states.m"
-   // Inputs
-#define i(x) extern area_t input_latch_##x,input_now_##x;x=input_latch_##x;input_latch_##x=input_now_##x;
-#include "states.m"
-   // Extras
-   if (controller_fault && strcmp(controller_fault, "{}"))
-      fault |= area;
-   if (controller_tamper && strcmp(controller_tamper, "{}"))
-      tamper |= area;
-#define i(x) store_area(j,#x,x);
-#define c(x) store_area(j,#x,control_##x);
-#include "states.m"
-   return NULL;
-}
-#endif
-
-#ifdef  CONFIG_REVK_MESH
-const char *system_makesummary(jo_t j)
-{                               // Alarm state - finish processing reports we have received, and make a summary of output state for all devices
-#define i(x) state_##x=report_##x;      // Set aggregate states anyway (done by summary anyway)
-#include "states.m"
-
-   // Make system states  
-   // TODO timers?
-   state_alarm = (state_armed & state_presence);
-   state_tampered |= report_tamper;
-   state_faulted |= report_fault;
-   state_alarmed |= state_alarm;
-   state_prearm = report_arm;
-   state_armed |= (report_arm & ~state_presence);
-   state_armed &= ~report_unarm;
-   state_alarmed &= ~report_unalarm;
-   state_tampered &= ~report_untamper;
-   state_faulted &= ~report_unfault;
-
-   // Send summary
-#define i(x) store_area(j,#x,state_##x);report_##x=0;
-#define s(x) store_area(j,#x,state_##x);
-#include "states.m"
-   return NULL;
-}
-#endif
-
-#ifdef  CONFIG_REVK_MESH
-const char *system_report(const char *device, jo_t j)
-{                               // Alarm state - process a report from a device
-   jo_rewind(j);
-   jo_type_t t;
-   while ((t = jo_next(j)))
-   {
-      if (t == JO_TAG)
-      {
-#define i(x) if(!jo_strcmp(j,#x))report_##x=parse_area(j);
-#define c(x) i(x)
-#include "states.m"
-      }
-   }
-   return NULL;
-}
-#endif
-
-#ifdef  CONFIG_REVK_MESH
-const char *system_summary(jo_t j)
-{                               // Alarm state - process summary of output states
-   if (esp_mesh_is_root())
-   {
-      if (iotstatesystem)
-      {
-         jo_t c = jo_copy(j);
-         revk_state_copy("system", &c, -1);
-      }
-      return NULL;
-   } else
-   {
-      jo_rewind(j);
-      jo_type_t t;
-      while ((t = jo_next(j)))
-      {
-         if (t == JO_TAG)
-         {
-#define i(x) if(!jo_strcmp(j,#x))state_##x=parse_area(j);
-#define s(x) i(x)
-#include "states.m"
-         }
-      }
-   }
-   // Clear request bits
-   control_arm &= ~state_armed;
-   control_unarm &= state_armed;
-   control_unfault &= state_faulted;
-   control_unalarm &= state_alarmed;
-   control_untamper &= state_tampered;
-   // TODO Poke outputs maybe
-
-
-   return NULL;
-}
-#endif
-
 const char *app_callback(int client, const char *prefix, const char *target, const char *suffix, jo_t j)
 {
    const char *e = NULL;
-#ifdef  CONFIG_REVK_MESH
    if (!client && prefix && !strcmp(prefix, "mesh") && suffix)
    {                            // Note, some of these fill in j and used by library
       if (!strcmp(suffix, "makereport"))
@@ -342,7 +188,6 @@ const char *app_callback(int client, const char *prefix, const char *target, con
       // Note there are several more we could use
       return NULL;
    }
-#endif
    if (client || !prefix || target || strcmp(prefix, prefixcommand))
       return NULL;              // Not for us or not a command from main MQTT
 #define m(x) extern const char * x##_command(const char *,jo_t); jo_rewind(j);if(!e)e=x##_command(suffix,j);

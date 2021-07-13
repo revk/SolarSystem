@@ -21,11 +21,9 @@ static char *powername[MAXOUTPUT];
 #define s(x) i(x)
 #include "states.m"
 
-#ifdef	CONFIG_REVK_MESH
 #define i(x) extern area_t state_##x;
 #define s(x) i(x)
 #include "states.m"
-#endif
 
 static uint64_t output_state = 0;       // Port state
 static uint64_t output_state_set = 0;   // Output has been set
@@ -149,9 +147,7 @@ static void task(void *pvParameters)
    while (1)
    {
       esp_task_wdt_reset();
-#ifdef	CONFIG_REVK_MESH
       // TODO pick up system state controls that impact output
-#endif
       if (output_changed)
       {                         // JSON
          output_changed = 0;
