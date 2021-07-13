@@ -130,6 +130,9 @@ text(meshpass, 0);              // Mesh WiFi passphrase
 text(meshkey, 32);              // AES key
 key(meshkey, 32);
 areas(engineering);             // Site wide engineering state
+areas(alarmed);			// Site wide state from mesh
+areas(tampered);		// Site wide state from mesh
+areas(faulted);			// Site wide state from mesh
 
 table(area, 0);
 link(organisation);             // Quicker

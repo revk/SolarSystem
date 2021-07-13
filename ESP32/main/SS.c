@@ -63,11 +63,12 @@ static esp_reset_reason_t reason = -1;  // Restart reason
 const char *controller_fault = NULL;
 const char *controller_tamper = NULL;
 
+const char *last_fault = NULL;
+const char *last_tamper = NULL;
+
 static void status_report(int force)
 {                               // Report status change
-   static char *lastfault = NULL;
    int faults = 0;
-   static char *lasttamper = NULL;
    int tampers = 0;
    {                            // Faults
       jo_t j = jo_object_alloc();
@@ -98,11 +99,11 @@ static void status_report(int force)
          reason = -1;           // Just once
       }
       const char *fault = jo_rewind(j);
-      if (strcmp(fault ? : "", lastfault ? : "") || force)
+      if (strcmp(fault ? : "", last_fault ? : "") || force)
       {
-         if (lastfault)
-            free(lastfault);
-         lastfault = strdup(fault);
+         if (last_fault)
+            free((void *) last_fault);
+         last_fault = strdup(fault);
          revk_state_copy("fault", &j, iotstatefault);
       }
       jo_free(&j);              // safe to call even if freed by revk_state
@@ -113,11 +114,11 @@ static void status_report(int force)
       modules m(controller)
 #undef m
       const char *tamper = jo_rewind(j);
-      if (strcmp(tamper ? : "", lasttamper ? : "") || force)
+      if (strcmp(tamper ? : "", last_tamper ? : "") || force)
       {
-         if (lasttamper)
-            free(lasttamper);
-         lasttamper = strdup(tamper);
+         if (last_tamper)
+            free((void *) last_tamper);
+         last_tamper = strdup(tamper);
          revk_state_copy("tamper", &j, iotstatetamper);
       }
       jo_free(&j);              // safe to call even if freed by revk_state

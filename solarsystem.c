@@ -3,6 +3,7 @@
 #define _GNU_SOURCE             /* See feature_test_macros(7) */
 #include "config.h"
 #include "ESP32/build/include/sdkconfig.h"
+#include "ESP32/main/areas.h"
 #include <stdio.h>
 #include <string.h>
 #include <popt.h>
@@ -102,16 +103,34 @@ const char *security(SQL * sqlp, SQL * sqlkeyp, SQL_RES * res, slot_t id)
    return NULL;
 }
 
+static void addarea(j_t j, const char *tag, const char *val, char always)
+{
+   if (!always && (!val || !*val))
+      return;
+   if (!val)
+      val = "";
+   char v[sizeof(area_t) * 8 + 1],
+   *p = v,
+       *e = v + sizeof(v) - 1;
+   while (*val && p < e)
+   {
+      if (*val != ',')
+         *p++ = *val;
+      val++;
+   }
+   *p = 0;
+   j_store_string(j, tag, v);
+}
+
 static void addsitedata(SQL * sqlp, j_t j, SQL_RES * site, const char *deviceid, const char *parentid)
 {
-   const char *v;               // temp
+   const char *v;
    if (!parentid || !*parentid || !strcmp(parentid, deviceid))
       parentid = NULL;          // Not sensible
    // Standard wifi settings
    v = sql_colz(site, "iothost");
    j_store_string(j, "mqtthost2", *v ? v : NULL);
-   v = sql_colz(site, "engineering");
-   j_store_string(j, "engineering", *v ? v : NULL);
+   addarea(j, "engineering", sql_colz(site, "engineering"), 1);
    j_t wifi = j_store_object(j, "wifi");
    if ((v = sql_colz(site, "wifissid")) && *v)
       j_store_string(wifi, "ssid", v);
@@ -195,7 +214,6 @@ static void addsitedata(SQL * sqlp, j_t j, SQL_RES * site, const char *deviceid,
 
 const char *settings(SQL * sqlp, SQL_RES * res, slot_t id)
 {                               // Send base settings
-   const char *v;
    j_t j = j_create();
    int door = (*sql_colz(res, "door") == 't');
    j_store_string(j, "name", sql_colz(res, "devicename"));
@@ -203,16 +221,11 @@ const char *settings(SQL * sqlp, SQL_RES * res, slot_t id)
       j_store_string(j, "otahost", CONFIG_OTA_HOSTNAME);
    j_store_int(j, "doorauto", door ? 5 : 0);
    j_t area = j_store_object(j, "area");
-   if ((v = sql_colz(res, "areafault")) && *v)
-      j_store_string(area, "fault", v); // TODO commas?
-   if ((v = sql_colz(res, "areatamper")) && *v)
-      j_store_string(area, "tamper", v);
-   if ((v = sql_colz(res, "areaenter")) && *v)
-      j_store_string(area, "enter", v);
-   if ((v = sql_colz(res, "areaarm")) && *v)
-      j_store_string(area, "arm", v);
-   if ((v = sql_colz(res, "areadisarm")) && *v)
-      j_store_string(area, "disarm", v);
+   addarea(area, "fault", sql_colz(res, "areafault"), 0);
+   addarea(area, "tamper", sql_colz(res, "areatamper"), 0);
+   addarea(area, "enter", sql_colz(res, "areaenter"), 0);
+   addarea(area, "arm", sql_colz(res, "areaarm"), 0);
+   addarea(area, "disarm", sql_colz(res, "areadisarm"), 0);
    int site = atoi(sql_colz(res, "site"));
    {                            // site
       SQL_RES *s = sql_safe_query_store_free(sqlp, sql_printf("SELECT * FROM `site` WHERE `site`=%d", site));

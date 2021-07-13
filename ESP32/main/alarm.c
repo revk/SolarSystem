@@ -2,7 +2,10 @@
 // Copyright © 2019-21 Adrian Kennard, Andrews & Arnold Ltd. See LICENCE file for details. GPL 3.0
 static const char __attribute__((unused)) TAG[] = "alarm";
 #include "SS.h"
+#include "desfireaes.h"
 #include "alarm.h"
+#include "nfc.h"
+#include "door.h"
 #include <esp_mesh.h>
 const char *alarm_fault = NULL;
 const char *alarm_tamper = NULL;
@@ -39,12 +42,26 @@ const char *alarm_command(const char *tag, jo_t j)
 
 void alarm_arm(area_t a, const char *why)
 {                               // Arm
-   // TODO
+   why = why;
+   ESP_LOGI(TAG,"Arm a=%X areaarm=%X state_armed=%X control_arm=%X control_disarm=%X",a,areaarm,state_armed,control_arm,control_disarm);
+   a &= ~areaarm;
+   if (((state_armed | control_arm) & a & ~control_disarm) == a)
+      return;                   // All armed
+   control_arm |= a;
+   control_disarm &= ~a;
+   door_check();
 }
 
 void alarm_disarm(area_t a, const char *why)
 {                               // Disarm
-   // TODO
+   why = why;
+   ESP_LOGI(TAG,"Disarm a=%X areaarm=%X state_armed=%X control_arm=%X control_disarm=%X",a,areaarm,state_armed,control_arm,control_disarm);
+   a &= ~areadisarm;
+   if (!((state_armed | control_arm) & a & ~control_disarm))
+      return;                   // Not armed
+   control_arm &= ~a;
+   control_disarm |= a;
+   door_check();
 }
 
 void alarm_init(void)
@@ -95,11 +112,11 @@ const char *system_makereport(jo_t j)
 #define i(x) extern area_t input_latch_##x,input_now_##x;x=input_latch_##x;input_latch_##x=input_now_##x;
 #include "states.m"
    // Extras
-   extern const char *controller_fault;
-   if (controller_fault && strcmp(controller_fault, "{}"))
+   extern const char *last_fault;
+   if (last_fault && strcmp(last_fault, "{}"))
       fault |= areafault;
-   extern const char *controller_tamper;
-   if (controller_tamper && strcmp(controller_tamper, "{}"))
+   extern const char *last_tamper;
+   if (last_tamper && strcmp(last_tamper, "{}"))
       tamper |= areatamper;
 #define i(x) jo_area(j,#x,x);
 #define c(x) jo_area(j,#x,control_##x);
@@ -117,14 +134,20 @@ const char *system_makesummary(jo_t j)
 #include "states.m"
 
    // Make system states
-   // TODO timers?
-   state_alarm = (state_armed & state_presence);
+   // simple latched states
    state_tampered |= report_tamper;
    state_faulted |= report_fault;
    state_alarmed |= state_alarm;
    state_prearm = report_arm;
-   state_armed |= (report_arm & ~state_presence);
+   // arming normally holds off for presence (obviously) but also tamper and access - forcing armed is possible
+   // TODO how force? another control for that? long hold on fob?
+   state_armed |= (report_arm & ~state_presence & ~(state_tamper & ~engineering) & ~state_access);
+   // disarm
    state_armed &= ~report_disarm;
+   // Alarm based only on presence, but change of tamper or access trips presence anyway. Basically you can force arm with tamper and access
+   state_prealarm = (state_armed & state_presence);
+   // TODO delay for alarm from prealarm
+   state_alarm |= state_prealarm;
 
    // Send summary
 #define i(x) jo_area(j,#x,state_##x);report_##x=0;
@@ -161,6 +184,7 @@ const char *system_summary(jo_t j)
          jo_t c = jo_copy(j);
          revk_state_copy("system", &c, -1);
       }
+      // TODO reporting to cloud, if changed...
       return NULL;
    } else
    {                            // We are leaf, get the data
@@ -192,6 +216,7 @@ const char *system_summary(jo_t j)
       revk_setting(j);
       jo_free(&j);
       lastarmed = state_armed;
+      door_check();
    }
    return NULL;
 }

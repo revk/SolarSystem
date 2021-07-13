@@ -14,9 +14,9 @@ typedef struct {
    const char *fail;            // NFC fail message
    const char *deny;            // Door system entry deny message
    uint32_t crc;                // Afile CRC
-   area_t enter;                // Allow area
-   area_t arm;                  // Deadlock allow areas
-   area_t disarm;               // Deadlock allow areas
+   area_t enter;                // Enter allow areas
+   area_t arm;                  // Arm allow areas
+   area_t disarm;               // Disarm allow areas
    uint8_t aesid;               // The AES key index used
    uint8_t ver;                 // AES key version on fob
    uint8_t verset:1;            // Ver is set
@@ -45,11 +45,8 @@ typedef struct {
    uint8_t log:1;               // Afile says update log
    uint8_t logged:1;            // Card was successfully logged
    uint8_t unlockok:1;          // Afile checks say door can be unlocked
-   uint8_t unlocked:1;          // Door system has unlocked the door
-   uint8_t disarmok:1;          // Afile checks say door can be disarmed
-   uint8_t disarmed:1;          // Door system has disarmed the door (deadlock)
-   uint8_t armok:1;             // Afile checks say door can be armed (when card held done)
-   uint8_t armed:1;             // Door system has armed the door (deadlock)
+   uint8_t disarmok:1;          // Afile checks say system can be disarmed
+   uint8_t armok:1;             // Afile checks say system can be armed
    uint8_t remote:1;            // Normal working overridden for remote NFC
    uint8_t recheck:1;           // Afile change
 } fob_t;

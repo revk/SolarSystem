@@ -190,6 +190,23 @@ const char *door_prop(const uint8_t * a, const char *why)
    return door_access(a);
 }
 
+void door_act(fob_t * fob)
+{                               // Act on fob (unlock/lock/arm/disarm)
+   ESP_LOGI(TAG, "Act on fob");
+   if (fob->armok)
+   {
+      alarm_arm(fob->arm & areaarm, "fob");
+      door_lock(NULL, "fob");
+   } else if (fob->disarmok)
+      alarm_disarm(fob->disarm & areadisarm, "fob");
+   if (fob->held)
+      return;
+   if (fob->unlockok || fob->override)
+      door_unlock(NULL, "fob");
+   else if (fob->deny)
+      door_lock(NULL, "fob");
+}
+
 const char *door_fob(fob_t * fob)
 {                               // Consider fob - sets details of action in the fob object
    if (!fob || doorauto < 3 || fob->fail || fob->deny)
@@ -366,12 +383,12 @@ const char *door_fob(fob_t * fob)
       if (fob->block)
          return "Card blocked";
       if (!fob->held && !(areadisarm & ~fob->disarm))
-         fob->disarmok = 1;
-      else if (!fob->held && !(areaarm & ~fob->arm))
+         fob->disarmok = 1;     // TODO should this be only if we can also enter
+      else if (fob->held && !(areaarm & ~fob->arm))
          fob->armok = 1;
       if (areaenter & state_armed & ~control_disarm)
-         return "Deadlocked";
-      if (!(areadisarm & ~fob->enter))
+         return "Deadlocked";   //  TODO Need to allow for what we can disarm
+      if (!(areaenter & ~fob->enter))
          fob->unlockok = 1;
       return NULL;
    }
@@ -410,18 +427,6 @@ const char *door_fob(fob_t * fob)
             }
             break;
          }
-   if (doorauto >= 4)
-   {                            // Actually do the doors (the open is done by the caller)
-      // TODO Check we can dsiarm enough to unlock
-      fob->unlocked = fob->unlockok;
-      if (doorauto >= 5)
-      {
-         // TODO Check there is anything to disarm
-         fob->disarmed = fob->disarmok;
-         // TODO Check there is anything to arm
-         fob->armed = fob->armok;
-      }
-   }
    if (fob->held)
       return NULL;
    if (!fob->deny && fob->secure && df.keylen && *datetime >= 0x20 && xdays && xoff && xlen <= 7)

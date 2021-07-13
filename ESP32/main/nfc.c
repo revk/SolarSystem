@@ -128,21 +128,16 @@ static void fobevent(void)
          jo_bool(j, "blacklist", fob.blacklist);
       if (fob.fallback)
          jo_bool(j, "fallback", fob.fallback);
-      if (fob.unlocked)
-         jo_bool(j, "unlocked", fob.unlocked);
-      else if (fob.checked)
+      if (fob.checked)
          jo_bool(j, "unlockok", fob.unlockok);
-      if (fob.disarmed)
-         jo_bool(j, "disarmed", fob.disarmed);
-      else if (fob.checked)
+      if (fob.checked)
          jo_bool(j, "disarmok", fob.disarmok);
-      if (fob.armed)
+      if (fob.checked && fob.held)
       {
-         jo_bool(j, "armed", fob.armed);
-         if (fob.armlate)
-            jo_bool(j, "armlate", fob.armlate);
-      } else if (fob.checked)
          jo_bool(j, "armok", fob.armok);
+         if (fob.armok && fob.armlate)
+            jo_bool(j, "armlate", fob.armlate);
+      }
       if (fob.afile)
          jo_stringf(j, "crc", "%08X", fob.crc);
       if (fob.override)
@@ -328,9 +323,8 @@ static void task(void *pvParameters)
                fob.held = 1;
                fob.deny = NULL;
                door_fob(&fob);
+               door_act(&fob);  // Action from held
                fobevent();
-               if (fob.armed)
-                  alarm_arm(areaarm & fob.arm, "fob");
             }
             continue;           // Waiting for card to go
          }
@@ -474,27 +468,16 @@ static void task(void *pvParameters)
                else
                   ESP_LOGI(TAG, "Read %s", fob.id);
                if (!e && df.keylen && fob.commit)
-               {
                   log();        // Log before reporting or opening door
-                  if (e)
-                     fob.unlocked = 0;
-               }
                if (fob.unlockok)
                   blink(nfcgreen);
                else if (fob.deny)
                   blink(nfcred);
                else
                   blink(nfcamber);
-               if (fob.disarmed)
-                  alarm_disarm(areadisarm & fob.disarm, "fob");
-               if (fob.unlocked)
-                  door_unlock(NULL, "fob");     // Door system was happy with fob, let 'em in
-               else if (fob.override)
-                  door_unlock(NULL, "override");        // Fob override
-               else if (fob.deny)
-                  door_lock(NULL, "fob");
-               else
-                  nextled = now + 200000LL;
+               nextled = now + 200000LL;
+               if (!e)
+                  door_act(&fob);
                fobevent();      // Report
                if (!e && df.keylen && !fob.commit)
                {
