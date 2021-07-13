@@ -124,9 +124,11 @@ const char *system_makesummary(jo_t j)
    state_prearm = report_arm;
    state_armed |= (report_arm & ~state_presence);
    state_armed &= ~report_disarm;
+   ESP_LOGI(TAG,"report tamper %X state tampered %X",report_tamper,state_tampered);
 
    // Send summary
 #define i(x) jo_area(j,#x,state_##x);report_##x=0;
+#define c(x) report_##x=0;
 #define s(x) jo_area(j,#x,state_##x);
 #include "states.m"
    return NULL;

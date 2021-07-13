@@ -121,9 +121,9 @@ xmlsql -C -d "$DB" head.html - foot.html << END
 </sql>
 <tr><td>Fault</td><td><sql select="tag" table=area where="site=\$site"><label for=fault\$tag><output name=tag>:</label><input id=fault\$tag name=areafault type=checkbox value=\$tag></sql></td></tr>
 <tr><td>Tamper</td><td><sql select="tag" table=area where="site=\$site"><label for=tamper\$tag><output name=tag>:</label><input id=tamper\$tag name=areatamper type=checkbox value=\$tag></sql></td></tr>
-<tr><td>Enter</td><td><sql select="tag" table=area where="site=\$site"><label for=enter\$tag><output name=tag>:</label><input id=enter\$tag name=areaenter type=checkbox value=\$tag></sql></td></tr>
-<tr><td>Arm</td><td><sql select="tag" table=area where="site=\$site"><label for=arm\$tag><output name=tag>:</label><input id=arm\$tag name=areaarm type=checkbox value=\$tag></sql></td></tr>
-<tr><td>Disarm</td><td><sql select="tag" table=area where="site=\$site"><label for=disarm\$tag><output name=tag>:</label><input id=disarm\$tag name=areadisarm type=checkbox value=\$tag></sql></td></tr>
+<if nfc=true><tr><td>Enter</td><td><sql select="tag" table=area where="site=\$site"><label for=enter\$tag><output name=tag>:</label><input id=enter\$tag name=areaenter type=checkbox value=\$tag></sql></td></tr></if>
+<if nfc=true><tr><td>Arm</td><td><sql select="tag" table=area where="site=\$site"><label for=arm\$tag><output name=tag>:</label><input id=arm\$tag name=areaarm type=checkbox value=\$tag></sql></td></tr></if>
+<if nfc=true><tr><td>Disarm</td><td><sql select="tag" table=area where="site=\$site"><label for=disarm\$tag><output name=tag>:</label><input id=disarm\$tag name=areadisarm type=checkbox value=\$tag></sql></td></tr></if>
 <if nfc=true><tr><td>AID</td><td><select name=aid><sql table=aid where="site=\$site"><option value="\$aid"><output name=aidname></option></sql></select></td></tr></if>
 <tr><td>Online</td><td><if online><output name=online></if><if else>Last online <output name=lastonline missing="never"></if><if upgrade> (upgrade scheduled)</if></td></tr>
 <tr><td>Version</td><td><output name=version></td></tr>
