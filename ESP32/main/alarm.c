@@ -26,7 +26,7 @@ area_t lastarmed = 0;
 	area(areatamper)	\
 	area(areaenter)		\
 	area(areaarm)		\
-	area(areadiarm)		\
+	area(areadisarm)	\
 
 #define area(n) area_t n;
 settings
