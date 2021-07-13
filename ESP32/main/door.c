@@ -385,8 +385,8 @@ const char *door_fob(fob_t * fob)
          fob->disarmok = 1;     // TODO should this be only if we can also enter
       else if (fob->held && !(areaarm & ~fob->arm))
          fob->armok = 1;
-      if (areaenter & state_armed & ~control_disarm&~(fob->disarmok?fob->disarm:0))
-         return "Deadlocked"; 
+      if (areaenter & state_armed & ~control_disarm & ~(fob->disarmok ? fob->disarm : 0))
+         return "Deadlocked";
       if (!(areaenter & ~fob->enter))
          fob->unlockok = 1;
       return NULL;
@@ -644,7 +644,7 @@ static void task(void *pvParameters)
                exit1 = now + (int64_t) doorexit *1000LL;
                if (doorauto >= 2)
                {
-                  if (!(areaenter & state_armed & ~control_disarm))
+                  if (!(areaenter & (state_armed | control_arm) & ~control_disarm))
                      door_unlock(NULL, "button");
                   else
                   {             // Not opening door
@@ -664,7 +664,7 @@ static void task(void *pvParameters)
                exit2 = now + (int64_t) doorexit *1000LL;
                if (doorauto >= 2)
                {
-                  if (!(areaenter & state_armed & ~control_disarm))
+                  if (!(areaenter & (state_armed | control_arm) & ~control_disarm))
                      door_unlock(NULL, "ranger");
                   else
                   {             // Not opening door

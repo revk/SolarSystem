@@ -214,7 +214,7 @@ const char *system_summary(jo_t j)
    // TODO Poke outputs maybe
 
    // Store armed state
-   static area_t lastarmed = 0;
+   static area_t lastarmed = -1;
    if (lastarmed != state_armed)
    {
       jo_t j = jo_object_alloc();
