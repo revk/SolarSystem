@@ -123,7 +123,7 @@ const char *system_makesummary(jo_t j)
    return NULL;
 }
 
-const char *system_report(const char *device, jo_t j)
+const char *system_report(jo_t j)
 {                               // Alarm state - process a report from a device - aggregate them
    jo_rewind(j);
    jo_type_t t;
@@ -177,5 +177,24 @@ const char *system_summary(jo_t j)
    control_untamper &= state_tampered;
    // TODO Poke outputs maybe
 
+   return NULL;
+}
+
+const char *system_mesh(const char *suffix, jo_t j)
+{                               // Note, some of these fill in j and used by library
+   if (!strcmp(suffix, "makereport"))
+      return system_makereport(j);
+   else if (!strcmp(suffix, "makesummary"))
+      return system_makesummary(j);
+   else if (!strcmp(suffix, "report"))
+      return system_report(j);
+   else if (!strcmp(suffix, "summary"))
+      return system_summary(j);
+   else if (!strcmp(suffix, "noquorum"))
+      status(alarm_fault = "No quorum");
+   else if (!strcmp(suffix, "quorum"))
+      status(alarm_fault = "Missing devices");
+   else if (!strcmp(suffix, "fullhouse"))
+      status(alarm_fault = NULL);
    return NULL;
 }

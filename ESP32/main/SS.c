@@ -176,18 +176,7 @@ const char *app_callback(int client, const char *prefix, const char *target, con
 {
    const char *e = NULL;
    if (!client && prefix && !strcmp(prefix, "mesh") && suffix)
-   {                            // Note, some of these fill in j and used by library
-      if (!strcmp(suffix, "makereport"))
-         return system_makereport(j);
-      else if (!strcmp(suffix, "makesummary"))
-         return system_makesummary(j);
-      else if (!strcmp(suffix, "report"))
-         return system_report(target, j);
-      else if (!strcmp(suffix, "summary"))
-         return system_summary(j);
-      // Note there are several more we could use
-      return NULL;
-   }
+      return system_mesh(suffix, j);
    if (client || !prefix || target || strcmp(prefix, prefixcommand))
       return NULL;              // Not for us or not a command from main MQTT
 #define m(x) extern const char * x##_command(const char *,jo_t); jo_rewind(j);if(!e)e=x##_command(suffix,j);

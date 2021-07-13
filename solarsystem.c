@@ -513,7 +513,7 @@ int main(int argc, const char *argv[])
    sql_cnf_connect(&sql, CONFIG_SQL_CONFIG_FILE);
    ssdatabase(&sql);
    syslog(LOG_INFO, "Starting");
-   sql_safe_query(&sql, "DELETE FROM `pending` WHERE `id` IS NOT NULL");
+   sql_safe_query(&sql, "DELETE FROM `pending`");
    sql_safe_query(&sql, "UPDATE `device` SET `id`=NULL,`via`=NULL,`offlinereason`='System restart',`online`=NULL WHERE `id` IS NOT NULL");
    mqtt_start();
    // Main loop getting messages (from MQTT or websocket)
