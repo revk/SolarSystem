@@ -32,7 +32,6 @@ static const char *port_inuse[MAX_PORT];
 #define settings  	\
   	io(tamper) 	\
 	s(name)		\
-	area(area)	\
 	b(iotstatedoor)	\
 	b(iotstateinput)\
 	b(iotstateoutput)\

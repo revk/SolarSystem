@@ -202,12 +202,17 @@ const char *settings(SQL * sqlp, SQL_RES * res, slot_t id)
    if (*CONFIG_OTA_HOSTNAME)
       j_store_string(j, "otahost", CONFIG_OTA_HOSTNAME);
    j_store_int(j, "doorauto", door ? 5 : 0);
-   j_t area=j_store_object(j,"area");
-   if((v=sql_colz(res,"areafault"))&&*v) j_store_string(area, "fault", v); // TODO commas?
-   if((v=sql_colz(res,"areatamper"))&&*v) j_store_string(area, "tamper", v);
-   if((v=sql_colz(res,"areaenter"))&&*v) j_store_string(area, "enter", v);
-   if((v=sql_colz(res,"areaarm"))&&*v) j_store_string(area, "arm", v);
-   if((v=sql_colz(res,"areadisarm"))&&*v) j_store_string(area, "disarm", v);
+   j_t area = j_store_object(j, "area");
+   if ((v = sql_colz(res, "areafault")) && *v)
+      j_store_string(area, "fault", v); // TODO commas?
+   if ((v = sql_colz(res, "areatamper")) && *v)
+      j_store_string(area, "tamper", v);
+   if ((v = sql_colz(res, "areaenter")) && *v)
+      j_store_string(area, "enter", v);
+   if ((v = sql_colz(res, "areaarm")) && *v)
+      j_store_string(area, "arm", v);
+   if ((v = sql_colz(res, "areadisarm")) && *v)
+      j_store_string(area, "disarm", v);
    int site = atoi(sql_colz(res, "site"));
    {                            // site
       SQL_RES *s = sql_safe_query_store_free(sqlp, sql_printf("SELECT * FROM `site` WHERE `site`=%d", site));

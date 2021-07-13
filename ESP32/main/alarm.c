@@ -54,6 +54,7 @@ void alarm_init(void)
 #define area(n) revk_register(#n,0,sizeof(n),&n,AREAS,SETTING_BITFIELD|SETTING_LIVE);
    settings
 #undef area
+       control_arm = armed;     // Arm from flash state
 }
 
 // JSON functions
@@ -124,7 +125,6 @@ const char *system_makesummary(jo_t j)
    state_prearm = report_arm;
    state_armed |= (report_arm & ~state_presence);
    state_armed &= ~report_disarm;
-   ESP_LOGI(TAG,"report tamper %X state tampered %X",report_tamper,state_tampered);
 
    // Send summary
 #define i(x) jo_area(j,#x,state_##x);report_##x=0;
@@ -142,7 +142,6 @@ const char *system_report(jo_t j)
    {
       if (t == JO_TAG)
       {
-         jo_next(j);
 #define i(x) if(!jo_strcmp(j,#x)){jo_next(j);report_##x|=jo_read_area(j);} else
 #define c(x) i(x)
 #include "states.m"
