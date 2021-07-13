@@ -343,14 +343,20 @@ void daily(SQL * sqlp)
 
 void dopoke(SQL * sqlp, SQL * sqlkeyp)
 {                               // Poking that may need doing
-   SQL_RES *res = sql_safe_query_store_free(sqlp, sql_printf("SELECT * FROM `device` WHERE `poke` IS NOT NULL AND `id` IS NOT NULL"));
+   SQL_RES *res = sql_safe_query_store_free(sqlp, sql_printf("SELECT * FROM `device` WHERE (`poke`<NOW() OR `upgrade`<NOW()) AND `id` IS NOT NULL"));
    while (sql_fetch_row(res))
    {
-      sql_safe_query_free(sqlp, sql_printf("UPDATE `device` SET `poke`=NULL WHERE `device`=%#s", sql_col(res, "device")));
       slot_t id = strtoull(sql_colz(res, "id"), NULL, 10);
-      settings(sqlp, res, id);
-      security(sqlp, sqlkeyp, res, id);
+      if (sql_col(res, "upgrade"))
+         upgrade(res, id);
+      else if (sql_col(res, "poke"))
+      {
+         sql_safe_query_free(sqlp, sql_printf("UPDATE `device` SET `poke`=NULL WHERE `device`=%#s", sql_col(res, "device")));
+         settings(sqlp, res, id);
+         security(sqlp, sqlkeyp, res, id);
+      }
    }
+   sql_free_result(res);
 }
 
 const char *forkcommand(j_t * jp, slot_t device, slot_t local)
@@ -513,6 +519,7 @@ int main(int argc, const char *argv[])
          {
             today = now / 86400;
             daily(&sql);
+            poke = 1;
          }
       }
       if (poke)

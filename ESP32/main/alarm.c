@@ -5,6 +5,9 @@ static const char __attribute__((unused)) TAG[] = "alarm";
 const char *alarm_fault = NULL;
 const char *alarm_tamper = NULL;
 
+// TODO keypad UI
+// TODO commands to clean latched states
+
 #define settings	\
 
 #define u16(n,v) uint16_t n
