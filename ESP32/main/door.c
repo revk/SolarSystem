@@ -192,7 +192,6 @@ const char *door_prop(const uint8_t * a, const char *why)
 
 void door_act(fob_t * fob)
 {                               // Act on fob (unlock/lock/arm/disarm)
-   ESP_LOGI(TAG, "Act on fob");
    if (fob->armok)
    {
       alarm_arm(fob->arm & areaarm, "fob");

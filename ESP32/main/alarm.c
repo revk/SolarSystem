@@ -23,13 +23,13 @@ area_t lastarmed = 0;
 // TODO commands to clean latched states
 
 #define settings		\
-	area(engineering)	\
-	area(armed)		\
 	area(areafault)		\
 	area(areatamper)	\
 	area(areaenter)		\
 	area(areaarm)		\
 	area(areadisarm)	\
+	area(engineering)	\
+	area(armed)		\
 
 #define area(n) area_t n;
 settings

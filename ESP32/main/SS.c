@@ -20,13 +20,13 @@ static const char __attribute__((unused)) TAG[] = "SS";
 static const char *port_inuse[MAX_PORT];
 
 #define modules		\
+	m(alarm)	\
 	m(input)	\
 	m(output)	\
 	m(ranger)	\
 	m(keypad)	\
 	m(door)		\
 	m(nfc)		\
-	m(alarm)	\
 
 // Other settings
 #define settings  	\
@@ -190,110 +190,6 @@ const char *app_callback(int client, const char *prefix, const char *target, con
    return e;
 }
 
-#ifdef	CONFIG_LWMQTT_SERVER
-static lwmqtt_t mqtt_relay = NULL;
-static lwmqtt_t mqtt_slaves[MAX_SLAVE] = { };
-
-static lwmqtt_t iot_relay = NULL;
-static lwmqtt_t iot_slaves[MAX_SLAVE] = { };
-
-void relay_rx(lwmqtt_t parent, lwmqtt_t * slaves, void *arg, char *topic, unsigned short len, unsigned char *payload)
-{
-   lwmqtt_t child = arg;
-   // TODO client list maintenance
-   // TODO subscribe pass on
-   // TODO unsubscribe on disconnect - multiple if child is a relay
-   // TODO mutex to protect lists
-   // TODO
-}
-
-void mqtt_relay_rx(void *arg, char *topic, unsigned short len, unsigned char *payload)
-{
-   relay_rx(revk_mqtt(), mqtt_slaves, arg, topic, len, payload);
-}
-
-void iot_relay_rx(void *arg, char *topic, unsigned short len, unsigned char *payload)
-{
-   relay_rx(iot, iot_slaves, arg, topic, len, payload);
-}
-
-void sntp_dummy_task(void *pvParameters)
-{                               // We know IPv4 local
-   pvParameters = pvParameters;
-   struct sockaddr_in dst = {
-      .sin_addr.s_addr = htonl(INADDR_ANY),
-      .sin_family = AF_INET,
-      .sin_port = htons(123),
-   };
-   int sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_IP);
-   if (bind(sock, (void *) &dst, sizeof(dst)) < 0)
-   {
-      ESP_LOGE(TAG, "SNTP bind failed");
-      return;
-   }
-   while (1)
-   {
-      unsigned char buf[48];
-      struct sockaddr_in addr;
-      socklen_t addrlen = sizeof(addr);
-      int len = recvfrom(sock, buf, sizeof(buf), 0, (void *) &addr, &addrlen);
-      if (len != 48 || *buf != 0x23)
-         continue;              // We expect the SNTP from ESP IDF which is really simple
-      uint32_t now = time(0);
-      if (now < 1000000000)
-         continue;              // We don't know time
-      buf[0] = 0x24;            // Server
-      buf[1] = 15;              // Not very accurate
-      buf[2] = 12;              // Poll
-      buf[3] = 0;               // Second
-      now += 2208988800UL;
-      *(uint32_t *) (buf + 16) = htonl(now);
-      *(uint32_t *) (buf + 24) = htonl(now);
-      *(uint32_t *) (buf + 32) = htonl(now);
-      *(uint32_t *) (buf + 40) = htonl(now);
-      sendto(sock, buf, len, 0, (void *) &addr, addrlen);
-   }
-}
-
-void relay_init(void)
-{                               // relay mode tasks and so on...
-   if (mqtt_relay)
-      return;                   // Already running
-   extern revk_bindata_t *mqttcert;
-   extern uint16_t mqttport;
-   extern revk_bindata_t *clientkey;
-   extern revk_bindata_t *clientcert;
-   // Make simple SNTP handler
-   revk_task("SNTP", sntp_dummy_task, NULL);
-   // Make IoT relay
-   lwmqtt_server_config_t config = {
-      .callback = iot_relay_rx,
-   };
-   iot_relay = lwmqtt_server(&config);
-   // Make MQTT relay
-   lwmqtt_server_config_t config = {
-      .callback = mqtt_relay_rx,
-      .port = mqttport,
-   };
-   if (mqttcert->len)
-   {
-      config.ca_cert_ref = 1;   // No need to copy
-      config.ca_cert_buf = (void *) mqttcert->data;
-      config.ca_cert_bytes = mqttcert->len;
-   }
-   if (clientkey->len && clientcert->len)
-   {
-      config.server_cert_ref = 1;       // No need to copy
-      config.server_cert_buf = (void *) clientcert->data;
-      config.server_cert_bytes = clientcert->len;
-      config.server_key_ref = 1;        // No need to copy
-      config.server_key_buf = (void *) clientkey->data;
-      config.server_key_bytes = clientkey->len;
-   }
-   mqtt_relay = lwmqtt_server(&config);
-}
-#endif
-
 uint8_t iotcopy;                // group heading
 void app_main()
 {
@@ -319,10 +215,6 @@ void app_main()
 #define m(x) extern void x##_init(void); x##_init();
    modules;
 #undef m
-#ifdef CONFIG_LWMQTT_SERVER
-   if (*slave[0])
-      relay_init();
-#endif
    // Main loop, if needed
    if (!tamper)
       return;                   // Not tamper checking, nothing to do.
