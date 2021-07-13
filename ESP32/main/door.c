@@ -3,10 +3,11 @@
 static const char TAG[] = "door";
 #include "SS.h"
 #include "alarm.h"
+#include "desfireaes.h"
 const char *door_fault = NULL;
 const char *door_tamper = NULL;
 
-#include "desfireaes.h"
+// TODO softdoor - deadlock manually changed causing disarm or arm
 
 // Autonomous door control
 // Door mode set by door setting
