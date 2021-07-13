@@ -196,13 +196,13 @@ void door_act(fob_t * fob)
    {
       alarm_arm(fob->arm & areaarm, "fob");
       door_lock(NULL, "fob");
-   } else if (fob->disarmok)
-      alarm_disarm(fob->disarm & areadisarm, "fob");
-   if (fob->held)
       return;
+   }
+   if (fob->disarmok)
+      alarm_disarm(fob->disarm & areadisarm, "fob");
    if (fob->unlockok || fob->override)
       door_unlock(NULL, "fob");
-   else if (fob->deny)
+   if (fob->deny)
       door_lock(NULL, "fob");
 }
 

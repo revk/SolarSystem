@@ -43,10 +43,10 @@ const char *alarm_command(const char *tag, jo_t j)
 void alarm_arm(area_t a, const char *why)
 {                               // Arm
    why = why;
-   ESP_LOGI(TAG,"Arm a=%X areaarm=%X state_armed=%X control_arm=%X control_disarm=%X",a,areaarm,state_armed,control_arm,control_disarm);
-   a &= ~areaarm;
+   a &= areaarm;
    if (((state_armed | control_arm) & a & ~control_disarm) == a)
       return;                   // All armed
+   ESP_LOGI(TAG, "Arm %X %s", a, why);
    control_arm |= a;
    control_disarm &= ~a;
    door_check();
@@ -55,10 +55,10 @@ void alarm_arm(area_t a, const char *why)
 void alarm_disarm(area_t a, const char *why)
 {                               // Disarm
    why = why;
-   ESP_LOGI(TAG,"Disarm a=%X areaarm=%X state_armed=%X control_arm=%X control_disarm=%X",a,areaarm,state_armed,control_arm,control_disarm);
-   a &= ~areadisarm;
+   a &= areadisarm;
    if (!((state_armed | control_arm) & a & ~control_disarm))
       return;                   // Not armed
+   ESP_LOGI(TAG, "Disarm %X %s", a, why);
    control_arm &= ~a;
    control_disarm |= a;
    door_check();
@@ -188,19 +188,25 @@ const char *system_summary(jo_t j)
       return NULL;
    } else
    {                            // We are leaf, get the data
+#define i(x) area_t x=0; // Zero if not specified
+#define s(x) i(x)
+#include "states.m"
       jo_rewind(j);
       jo_type_t t;
       while ((t = jo_next(j)))
       {
          if (t == JO_TAG)
          {
-#define i(x) if(!jo_strcmp(j,#x)){jo_next(j);state_##x=jo_read_area(j);} else
+#define i(x) if(!jo_strcmp(j,#x)){jo_next(j);x=jo_read_area(j);} else
 #define s(x) i(x)
 #include "states.m"
             {
             }
          }
       }
+#define i(x) state_##x=x;
+#define s(x) i(x)
+#include "states.m"
    }
    // Clear control bits when actioned
    // TODO timer cancel arm
