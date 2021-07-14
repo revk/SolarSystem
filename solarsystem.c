@@ -218,14 +218,7 @@ static const char *settings(SQL * sqlp, SQL * sqlkeyp, SQL_RES * res, slot_t id)
             if (*pin)
             {
                j_store_literalf(gpio, "gpio", "%s%s", (invert ? "-" : ""), pin);
-               void addstate(const char *state) {
-                  const char *areas = sql_colz(g, state);
-                  if (*areas)
-                  {             // TODO do we allow commas?
-                     j_store_string(gpio, state, areas);
-                  }
-               }
-#define i(n) addstate(#n);
+#define i(n) addarea(gpio,#n,sql_col(g,#n),0);
 #define s(n) i(n)
 #include "ESP32/main/states.m"
             }
@@ -912,7 +905,7 @@ int main(int argc, const char *argv[])
                   }
                }
                sql_free_result(res);
-	       return NULL;
+               return NULL;
             }
             if (!prefix)
             {                   // Down (all other messages have a topic)
