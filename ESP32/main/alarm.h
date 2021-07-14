@@ -8,6 +8,11 @@
 extern area_t areaenter;
 extern area_t areaarm;
 extern area_t areadisarm;
+extern area_t areatamper;
+extern area_t areafault;
+extern area_t latch_tamper;
+extern area_t latch_fault;
+extern area_t latch_presence;
 
 void jo_area(jo_t j, const char *tag, area_t area);     // Store area
 area_t jo_read_area(jo_t);      // Read area

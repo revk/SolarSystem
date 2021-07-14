@@ -23,6 +23,10 @@ const char *alarm_tamper = NULL;
 #define c(x) area_t control_##x;        // local control flags
 #include "states.m"
 
+area_t latch_fault=0; // From board fault
+area_t latch_tamper=0; // From board tamper
+area_t latch_presence=0; // From board tamper
+
 // TODO keypad UI
 // TODO commands to clean latched states
 
@@ -114,7 +118,6 @@ area_t jo_read_area(jo_t j)
          a |= (1ULL << (sizeof(area_t) * 8 - 1 - (d - AREAS)));
    }
    return a;
-
 }
 
 const char *system_makereport(jo_t j)
@@ -145,12 +148,16 @@ const char *system_makereport(jo_t j)
    bell_latch = 0;
    if (bell)
       doorbell |= areabell;
-   extern const char *last_fault;
-   if (last_fault && strcmp(last_fault, "{}"))
-      fault |= areafault;
-   extern const char *last_tamper;
-   if (last_tamper && strcmp(last_tamper, "{}"))
-      tamper |= areatamper;
+   // Latched from local fault or tamper
+   area_t latch = latch_fault;
+   latch_fault = 0;
+   fault |= latch;
+   latch = latch_tamper;
+   latch_tamper = 0;
+   tamper |= latch;
+   latch = latch_presence;
+   latch_presence = 0;
+   presence |= latch;
 #define i(x) jo_area(j,#x,x);
 #define c(x) jo_area(j,#x,control_##x);
 #include "states.m"
@@ -175,14 +182,15 @@ const char *system_makesummary(jo_t j)
    state_armed |= (report_arm & ~state_presence & ~(state_tamper & ~engineer) & ~state_access);
    // disarm
    state_armed &= ~report_disarm;
-   // prearm if not armed yet
+   // prearm if any not armed yet
    state_prearm = (report_arm & ~state_armed);
    // Alarm based only on presence, but change of tamper or access trips presence anyway. Basically you can force arm with tamper and access
-   state_prealarm = (state_armed & state_presence);
+   state_prealarm = ((state_prealarm|state_presence)&~state_armed);
    // TODO delay for alarm from prealarm
-   state_alarm |= state_prealarm;
+   state_alarm = state_prealarm;
+   state_prealarm &= ~state_alarm;
    // Fixed
-   state_engineer = engineer;     // From flash - could be changed live though, so set here
+   state_engineer = engineer;   // From flash - could be changed live though, so set here
 
    // Send summary
 #define i(x) jo_area(j,#x,state_##x);report_##x=0;
