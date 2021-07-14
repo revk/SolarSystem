@@ -5,7 +5,6 @@ static const char __attribute__((unused)) TAG[] = "SS";
 #include "SS.h"
 #include "alarm.h"
 #include <driver/gpio.h>
-#include "slaves.h"
 #include <esp_mesh.h>
 
 #ifdef	CONFIG_REVK_APCONFIG
@@ -53,7 +52,6 @@ static const char *port_inuse[MAX_PORT];
 	b(iotstatetamper)\
 	b(iotstatesystem)\
 	b(ioteventfob)	\
-	sa(slave,MAX_SLAVE) \
 
 
 #define io(n) static uint8_t n;

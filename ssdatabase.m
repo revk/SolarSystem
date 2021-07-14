@@ -131,7 +131,7 @@ text(meshkey, 32);              // AES key
 key(meshkey, 32);
 text(smsuser,0);
 text(smspass,0);
-areas(engineering);             // Site wide engineering state
+areas(engineer);             // Site wide engineering state
 areas(alarmed);			// Site wide state from mesh
 areas(tampered);		// Site wide state from mesh
 areas(faulted);			// Site wide state from mesh

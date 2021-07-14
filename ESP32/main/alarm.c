@@ -255,7 +255,6 @@ const char *system_summary(jo_t j)
 #include "states.m"
    }
    output_forced = forced;
-   ESP_LOGI(TAG, "Output forced %llX output2eng=%X eng=%X", output_forced,outputengineer[2],state_engineer);  //TODO
 
    // Store armed state
    static area_t lastarmed = -1;

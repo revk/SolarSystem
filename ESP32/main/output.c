@@ -22,7 +22,6 @@ static char *outputname[MAXOUTPUT];
 
 static uint64_t output_state = 0;       // Port state
 static uint64_t output_raw = 0; // Actual output
-static uint64_t output_last = 0;        // Last reported
 static int64_t output_report = 0;       // When to report output
 uint64_t output_forced = 0;     // Output forced externally
 
@@ -51,17 +50,9 @@ void output_set(int p, int v)
       return;
    p--;
    if (v)
-   {
-      v = 1;
-      if (output_state & (1ULL << p))
-         return;                // No change
       output_state |= (1ULL << p);
-   } else
-   {
-      if (!(output_state & (1ULL << p)))
-         return;                // No change
+   else
       output_state &= ~(1ULL << p);
-   }
    if (output[p])
       output_write(p);
 }
@@ -143,19 +134,20 @@ static void task(void *pvParameters)
 {                               // Main RevK task
    esp_task_wdt_add(NULL);
    pvParameters = pvParameters;
+   static uint64_t output_last = 0;     // Last reported
    // Scan inputs
    while (1)
    {
       esp_task_wdt_reset();
       int64_t now = esp_timer_get_time();
-      uint64_t output_set = output_state | output_forced;
-      if (output_set != output_raw)
+      uint64_t output_mix = output_state | output_forced;
+      if (output_mix != output_raw)
          for (int i = 0; i < MAXOUTPUT; i++)
-            if ((output_set ^ output_raw) & (1ULL << i))
+            if ((output_mix ^ output_raw) & (1ULL << i))
                output_write(i); // Update output state
-      if (output_report < now || output_set != output_last)
+      if (output_report < now || output_mix != output_last)
       {
-         output_last = output_set;
+         output_last = output_mix;
          output_report = now + 3600 * 1000000ULL;
          jo_t j = jo_object_alloc();
          int t = MAXOUTPUT;
@@ -163,7 +155,7 @@ static void task(void *pvParameters)
             t--;
          for (int i = 0; i < t; i++)
             if (output[i])
-               jo_bool(j, outputname[i], (output_set >> i) & 1);
+               jo_bool(j, outputname[i], (output_mix >> i) & 1);
          revk_state_copy(TAG, &j, iotstateoutput);
       }
       usleep(100000);
@@ -177,7 +169,7 @@ void output_init(void)
    revk_register("outputname", MAXOUTPUT, 0, &outputname, NULL, 0);
    revk_register("power", MAXOUTPUT, sizeof(*power), &power, BITFIELDS, SETTING_BITFIELD | SETTING_SET | SETTING_SECRET);
    revk_register("powergpio", MAXOUTPUT, sizeof(*power), &power, BITFIELDS, SETTING_BITFIELD | SETTING_SET);
-#define i(x) revk_register("output"#x, MAXOUTPUT, sizeof(*output##x), &output##x, AREAS, SETTING_BITFIELD); ESP_LOGI(TAG,"output"#x"[2]=%X",output##x[2]); // TODO
+#define i(x) revk_register("output"#x, MAXOUTPUT, sizeof(*output##x), &output##x, AREAS, SETTING_BITFIELD);
 #define s(x) i(x)
 #include "states.m"
    {                            // GPIO
