@@ -185,7 +185,7 @@ const char *system_makesummary(jo_t j)
    // prearm if any not armed yet
    state_prearm = (report_arm & ~state_armed);
    // Alarm based only on presence, but change of tamper or access trips presence anyway. Basically you can force arm with tamper and access
-   state_prealarm = ((state_prealarm|state_presence)&~state_armed);
+   state_prealarm = ((state_prealarm|state_presence)&state_armed);
    // TODO delay for alarm from prealarm
    state_alarm = state_prealarm;
    state_prealarm &= ~state_alarm;
