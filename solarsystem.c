@@ -752,7 +752,7 @@ int main(int argc, const char *argv[])
                               if (sql_fetch_row(device) && !upgrade(device, id))
                                  settings(&sql, &sqlkey, device, id);
                            } else
-                              sql_safe_query_free(&sql, sql_printf("INSERT INTO `pending` SET `pending`=%#.*s,`online`=NOW(),`lastonline`=NOW(),`id`=%lld ON DUPLICATE KEY UPDATE `id`=%lld", p - dev, dev, id, id));
+                              sql_safe_query_free(&sql, sql_printf("INSERT INTO `pending` SET `pending`=%#.*s,`online`=NOW(),`id`=%lld ON DUPLICATE KEY UPDATE `id`=%lld", p - dev, dev, id, id));
                         }
                      }
                   }
