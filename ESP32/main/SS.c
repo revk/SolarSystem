@@ -116,8 +116,7 @@ static void status_report(int force)
       const char *fault = jo_rewind(j);
       if (strcmp(fault ? : "", last_fault ? : "") || force)
       {
-         if (last_fault)
-            free((void *) last_fault);
+         free((void *) last_fault);
          last_fault = strdup(fault);
          revk_state_copy("fault", &j, iotstatefault);
       }
@@ -131,8 +130,7 @@ static void status_report(int force)
       const char *tamper = jo_rewind(j);
       if (strcmp(tamper ? : "", last_tamper ? : "") || force)
       {
-         if (last_tamper)
-            free((void *) last_tamper);
+         free((void *) last_tamper);
          last_tamper = strdup(tamper);
          revk_state_copy("tamper", &j, iotstatetamper);
       }
