@@ -226,6 +226,7 @@ const char *settings(SQL * sqlp, SQL_RES * res, slot_t id)
    addarea(area, "enter", sql_colz(res, "areaenter"), 0);
    addarea(area, "arm", sql_colz(res, "areaarm"), 0);
    addarea(area, "disarm", sql_colz(res, "areadisarm"), 0);
+   addarea(area, "bell", sql_colz(res, "areabell"), 0);
    int site = atoi(sql_colz(res, "site"));
    {                            // site
       SQL_RES *s = sql_safe_query_store_free(sqlp, sql_printf("SELECT * FROM `site` WHERE `site`=%d", site));
