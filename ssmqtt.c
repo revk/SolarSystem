@@ -25,6 +25,8 @@
 #include "mqttmsg.h"
 #include "ssmqtt.h"
 
+#define	MAX_SETTING	1400    // Limit side of settings
+
 extern const char *cakey;
 extern const char *cacert;
 extern const char *mqttkey;
@@ -661,7 +663,7 @@ const char *slot_send(slot_t id, const char *prefix, const char *deviceid, const
       *jp = NULL;
    }
    const char *process(j_t j) {
-      if (!topic&&((!prefix && !(topic = strdup(""))) || (prefix && asprintf(&topic, "%s/SS/%s%s%s", prefix, (deviceid && *deviceid) ? deviceid : "*", suffix ? "/" : "", suffix ? : "") < 0)))
+      if (!topic && ((!prefix && !(topic = strdup(""))) || (prefix && asprintf(&topic, "%s/SS/%s%s%s", prefix, (deviceid && *deviceid) ? deviceid : "*", suffix ? "/" : "", suffix ? : "") < 0)))
          return "malloc";
 
       uint8_t tx[2048];         // Sane limit
@@ -689,10 +691,53 @@ const char *slot_send(slot_t id, const char *prefix, const char *deviceid, const
       }
       return NULL;
    }
+   const char *fail = NULL;
+#ifdef	MAX_SETTING
    if (prefix && !strcmp(prefix, "setting"))
    {
-   }
-   const char *fail = process(j);
+      int len(j_t j) {
+         char *t = j_write_str(j);
+         if (!t)
+         {
+            fail = "JSON failed";
+            return -1;
+         }
+         int len = strlen(t);
+         free(t);
+         return len;
+      }
+      while (!fail && len(j) > MAX_SETTING)
+      {
+         j_t n = j_create(),
+             c;
+	 j_object(n);
+         int l = 3;
+         while ((c = j_first(j)))
+         {
+            int lc = len(c);
+            if (l + lc > MAX_SETTING)
+               break;
+	    j_store_json(n,j_name(c),&c);
+            l += lc + 1;
+         }
+         if (j_len(n))
+         {
+            process(n);
+            j_delete(&n);
+         } else
+         {                      // Did not fit, so have to send anyway
+            warnx("Setting too long");
+            j_delete(&n);
+            break;
+         }
+      }
+      if (j_len(j))
+         process(j);
+   } else
+      fail = process(j);        // Not a setting
+#else
+   fail = process(j);           // Just process it
+#endif
    if (fail)
       warnx("tx MQTT fail: %s", fail);
    free(topic);
