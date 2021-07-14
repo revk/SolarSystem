@@ -23,9 +23,9 @@ const char *alarm_tamper = NULL;
 #define c(x) area_t control_##x;        // local control flags
 #include "states.m"
 
-area_t latch_fault=0; // From board fault
-area_t latch_tamper=0; // From board tamper
-area_t latch_presence=0; // From board tamper
+area_t latch_fault = 0;         // From board fault
+area_t latch_tamper = 0;        // From board tamper
+area_t latch_presence = 0;      // From board tamper
 
 // TODO keypad UI
 // TODO commands to clean latched states
@@ -185,12 +185,18 @@ const char *system_makesummary(jo_t j)
    // prearm if any not armed yet
    state_prearm = (report_arm & ~state_armed);
    // Alarm based only on presence, but change of tamper or access trips presence anyway. Basically you can force arm with tamper and access
-   state_prealarm = ((state_prealarm|state_presence)&state_armed);
+   state_prealarm = ((state_prealarm | state_presence) & state_armed);
    // TODO delay for alarm from prealarm
-   state_alarm = state_prealarm;
+   state_alarm = ((state_alarm | state_prealarm) & state_armed);
    state_prealarm &= ~state_alarm;
    // Fixed
    state_engineer = engineer;   // From flash - could be changed live though, so set here
+
+   // TODO for now, a way to clear alarmed, faulted, tampered - when arming
+   state_alarmed &= ~report_arm;
+   state_faulted &= ~report_arm;
+   state_tampered &= ~report_arm;
+
 
    // Send summary
 #define i(x) jo_area(j,#x,state_##x);report_##x=0;
