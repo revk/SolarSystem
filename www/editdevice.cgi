@@ -58,7 +58,7 @@ if($?devicename) then # save
 	if(! $?iotstatetamper) setenv iotstatetamper false
 	if(! $?iotstatesystem) setenv iotstatesystem false
 	if(! $?ioteventfob) setenv ioteventfob false
-	setenv allow "devicename areatamper areafault areaenter areaarm areadisarm nfc nfcadmin door aid site iotstatedoor iotstateinput iotstateoutput iotstatefault iotstatetamper iotstatesystem ioteventfob"
+	setenv allow "devicename areatamper areafault areaenter areaarm areadisarm areabell nfc nfcadmin door aid site iotstatedoor iotstateinput iotstateoutput iotstatefault iotstatetamper iotstatesystem ioteventfob"
 	if("$USER_ADMIN" == "true") setenv allow "$allow nfctrusted"
 	sqlwrite -o -n "$DB" device $allow
 	sql "$DB" 'UPDATE device SET poke=NOW() WHERE device="$device"'
@@ -124,6 +124,7 @@ xmlsql -C -d "$DB" head.html - foot.html << END
 <if nfc=true><tr><td>Enter</td><td><sql select="tag" table=area where="site=\$site"><label for=enter\$tag><output name=tag>:</label><input id=enter\$tag name=areaenter type=checkbox value=\$tag></sql></td></tr></if>
 <if nfc=true><tr><td>Arm</td><td><sql select="tag" table=area where="site=\$site"><label for=arm\$tag><output name=tag>:</label><input id=arm\$tag name=areaarm type=checkbox value=\$tag></sql></td></tr></if>
 <if nfc=true><tr><td>Disarm</td><td><sql select="tag" table=area where="site=\$site"><label for=disarm\$tag><output name=tag>:</label><input id=disarm\$tag name=areadisarm type=checkbox value=\$tag></sql></td></tr></if>
+<if nfc=true><tr><td>Doorbell</td><td><sql select="tag" table=area where="site=\$site"><label for=bell\$tag><output name=tag>:</label><input id=bell\$tag name=areabell type=checkbox value=\$tag></sql></td></tr></if>
 <if nfc=true><tr><td>AID</td><td><select name=aid><sql table=aid where="site=\$site"><option value="\$aid"><output name=aidname></option></sql></select></td></tr></if>
 <tr><td>Online</td><td><if online><output name=online></if><if else>Last online <output name=lastonline missing="never"></if><if upgrade> (upgrade scheduled)</if></td></tr>
 <tr><td>Version</td><td><output name=version></td></tr>

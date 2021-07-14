@@ -5,6 +5,7 @@
 extern pn532_t *pn532;
 extern df_t df;
 extern SemaphoreHandle_t nfc_mutex;
+extern char bell_latch;
 
 extern const char *nfc_led(int len, const void *value);
 extern void nfc_retry(void);

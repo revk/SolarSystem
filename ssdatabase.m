@@ -219,6 +219,7 @@ areas(areaarm);                 // Areas allowed arm by fob
 areas(areadisarm);              // Areas allowed disarm by fob
 areas(areafault);               // Areas set by fault
 areas(areatamper);              // Areas set by tamper
+areas(areabell);		// Areas for door bell input
 datetime(online);               // When online, if online
 datetime(lastonline);           // When last went offline
 text(offlinereason, 0);         // If sent offline reason, what was it

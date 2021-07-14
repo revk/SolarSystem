@@ -27,6 +27,7 @@ const char *alarm_tamper = NULL;
 	area(areatamper)	\
 	area(areaenter)		\
 	area(areaarm)		\
+	area(areabell)		\
 	area(areadisarm)	\
 	area(engineering)	\
 	area(armed)		\
@@ -128,6 +129,10 @@ const char *system_makereport(jo_t j)
       }
    }
    // Extras
+   char bell = bell_latch;
+   bell_latch = 0;
+   if (bell)
+      doorbell |= areabell;
    extern const char *last_fault;
    if (last_fault && strcmp(last_fault, "{}"))
       fault |= areafault;
