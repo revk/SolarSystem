@@ -612,14 +612,12 @@ int main(int argc, const char *argv[])
                char *cert = makecert(key, cakey, cacert, v);
                j_t j = j_create();
                j_store_string(j, "clientcert", cert);
-               free(cert);
-               const char *fail = slot_send(id, "setting", deviceid, NULL, &j);
-               j = j_create();
                j_store_string(j, "clientkey", key);
+               free(cert);
                free(key);
+               const char *fail = slot_send(id, "setting", deviceid, NULL, &j);
                if (fail)
                   return fail;
-               fail = slot_send(id, "setting", deviceid, NULL, &j);
                const char *aid = j_get(meta, "aid");
                if (aid && !fail)
                {

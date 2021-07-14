@@ -653,7 +653,6 @@ void slot_destroy(slot_t id)
 
 const char *slot_send(slot_t id, const char *prefix, const char *deviceid, const char *suffix, j_t * jp)
 {
-   char *buf = NULL;
    char *topic = NULL;
    j_t j = NULL;
    if (jp)
@@ -661,9 +660,8 @@ const char *slot_send(slot_t id, const char *prefix, const char *deviceid, const
       j = *jp;
       *jp = NULL;
    }
-   // TODO for prefix of "setting" we should split if we can
-   const char *process(void) {
-      if ((!prefix && !(topic = strdup(""))) || (prefix && asprintf(&topic, "%s/SS/%s%s%s", prefix, (deviceid && *deviceid) ? deviceid : "*", suffix ? "/" : "", suffix ? : "") < 0))
+   const char *process(j_t j) {
+      if (!topic&&((!prefix && !(topic = strdup(""))) || (prefix && asprintf(&topic, "%s/SS/%s%s%s", prefix, (deviceid && *deviceid) ? deviceid : "*", suffix ? "/" : "", suffix ? : "") < 0)))
          return "malloc";
 
       uint8_t tx[2048];         // Sane limit
@@ -691,13 +689,13 @@ const char *slot_send(slot_t id, const char *prefix, const char *deviceid, const
       }
       return NULL;
    }
-   if (buf)
-      free(buf);
-   if (topic)
-      free(topic);
-   const char *fail = process();
+   if (prefix && !strcmp(prefix, "setting"))
+   {
+   }
+   const char *fail = process(j);
    if (fail)
       warnx("tx MQTT fail: %s", fail);
+   free(topic);
    j_delete(&j);
    return fail;
 }
