@@ -23,7 +23,7 @@
 #include <syslog.h>
 #include <openssl/evp.h>
 #include "SQLlib/sqllib.h"
-#include "AJL/ajl.h"
+#include "AJL/ajlcurl.h"
 #include "ssmqtt.h"
 #include "sscert.h"
 #include "ssdatabase.h"
@@ -268,15 +268,6 @@ static void addsitedata(SQL * sqlp, j_t j, SQL_RES * site, const char *deviceid,
    v = sql_colz(site, "iothost");
    j_store_string(j, "mqtthost2", *v ? v : NULL);
    addarea(j, "engineering", sql_colz(site, "engineering"), 1);
-   j_t sms = j_store_object(j, "sms");
-   if ((v = sql_colz(site, "smsurl")) && *v)
-   {
-      j_store_string(sms, "url", v);
-      if ((v = sql_colz(site, "smsuser")) && *v)
-         j_store_string(sms, "user", v);
-      if ((v = sql_colz(site, "smspass")) && *v)
-         j_store_string(sms, "pass", v);
-   }
    j_t wifi = j_store_object(j, "wifi");
    if ((v = sql_colz(site, "wifissid")) && *v)
       j_store_string(wifi, "ssid", v);
@@ -899,6 +890,28 @@ int main(int argc, const char *argv[])
                } else
                   sql_free_s(&s);
                return NULL;
+            }
+            if (prefix && !strcmp(prefix, "sms") && checkdevice())
+            {
+               SQL_RES *res = sql_safe_query_store_free(&sql, sql_printf("SELECT * FROM `site` WHERE `site`=%#s", sql_col(device, "site")));
+               if (sql_fetch_row(res))
+               {
+                  const char *u = sql_colz(res, "smsuser");
+                  const char *p = sql_colz(res, "smspass");
+                  if (*u && *p)
+                  {
+                     j_t s = j_create();
+                     j_store_string(s, "username", u);
+                     j_store_string(s, "password", p);
+                     j_store_string(s, "oa", deviceid);
+                     j_store_string(s, "da", j_get(j, "target"));
+                     j_store_string(s, "ud", j_get(j, "message"));
+                     j_curl_send(NULL, s, NULL, NULL, "https://sms.aa.net.uk");
+                     j_delete(&s);
+                  }
+               }
+               sql_free_result(res);
+	       return NULL;
             }
             if (!prefix)
             {                   // Down (all other messages have a topic)

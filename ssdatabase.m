@@ -129,7 +129,6 @@ key(meshid, 12);
 text(meshpass, 0);              // Mesh WiFi passphrase
 text(meshkey, 32);              // AES key
 key(meshkey, 32);
-text(smsurl,0);			// SMS details
 text(smsuser,0);
 text(smspass,0);
 areas(engineering);             // Site wide engineering state
