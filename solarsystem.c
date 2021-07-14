@@ -268,6 +268,15 @@ static void addsitedata(SQL * sqlp, j_t j, SQL_RES * site, const char *deviceid,
    v = sql_colz(site, "iothost");
    j_store_string(j, "mqtthost2", *v ? v : NULL);
    addarea(j, "engineering", sql_colz(site, "engineering"), 1);
+   j_t sms = j_store_object(j, "sms");
+   if ((v = sql_colz(site, "smsurl")) && *v)
+   {
+      j_store_string(sms, "url", v);
+      if ((v = sql_colz(site, "smsuser")) && *v)
+         j_store_string(sms, "user", v);
+      if ((v = sql_colz(site, "smspass")) && *v)
+         j_store_string(sms, "pass", v);
+   }
    j_t wifi = j_store_object(j, "wifi");
    if ((v = sql_colz(site, "wifissid")) && *v)
       j_store_string(wifi, "ssid", v);
@@ -364,7 +373,7 @@ void daily(SQL * sqlp)
 
 void dopoke(SQL * sqlp, SQL * sqlkeyp)
 {                               // Poking that may need doing
-   SQL_RES *res = sql_safe_query_store_free(sqlp, sql_printf("SELECT * FROM `device` WHERE (`poke`<NOW() OR `upgrade`<NOW()) AND `id` IS NOT NULL"));
+   SQL_RES *res = sql_safe_query_store(sqlp, "SELECT * FROM `device` WHERE (`poke`<=NOW() OR `upgrade`<=NOW()) AND `id` IS NOT NULL");
    while (sql_fetch_row(res))
    {
       slot_t id = strtoull(sql_colz(res, "id"), NULL, 10);

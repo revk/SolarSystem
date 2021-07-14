@@ -70,7 +70,7 @@ int main(int argc, const char *argv[])
    j_t j = j_create();
    if (json)
       j_err(j_read_mem(j, json, strlen(json)));
-   if (!j_isobject(j))
+   if (!j_isobject(j)&&!j_isnull(j))
    {
       j_t n = j_create();
       j_store_json(n, "_data", &j);

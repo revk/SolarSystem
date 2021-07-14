@@ -9,6 +9,10 @@ static const char __attribute__((unused)) TAG[] = "alarm";
 #include "input.h"
 #include "output.h"
 #include <esp_mesh.h>
+#include <esp_http_client.h>
+#ifdef  CONFIG_MBEDTLS_CERTIFICATE_BUNDLE
+#include "esp_crt_bundle.h"
+#endif
 const char *alarm_fault = NULL;
 const char *alarm_tamper = NULL;
 
@@ -31,10 +35,17 @@ const char *alarm_tamper = NULL;
 	area(areadisarm)	\
 	area(engineering)	\
 	area(armed)		\
+	s(smsurl)		\
+	s(smsuser)		\
+	ss(smspass)		\
 
 #define area(n) area_t n;
+#define s(n) char *n;
+#define ss(n) char *n;
 settings
 #undef area
+#undef s
+#undef ss
 const char *alarm_command(const char *tag, jo_t j)
 {
    // TODO ARM and DISARM commands
@@ -69,9 +80,14 @@ void alarm_init(void)
 {
 #include "states.m"
    revk_register("area", 0, sizeof(areafault), &areafault, AREAS, SETTING_BITFIELD | SETTING_LIVE | SETTING_SECRET);    // TODO something has to be set here to work?
+   revk_register("sms", 0, 0, &smsurl, NULL, SETTING_SECRET);   // group
 #define area(n) revk_register(#n,0,sizeof(n),&n,AREAS,SETTING_BITFIELD|SETTING_LIVE);
+#define s(n) revk_register(#n,0,0,&n,NULL,0);
+#define ss(n) revk_register(#n,0,0,&n,NULL,SETTING_SECRET);
    settings
 #undef area
+#undef s
+#undef ss
        control_arm = armed;     // Arm from flash state
 }
 
@@ -273,10 +289,50 @@ const char *system_mesh(const char *suffix, jo_t j)
    else if (!strcmp(suffix, "quorum"))
       status(alarm_fault = "Missing devices");
    else if (!strcmp(suffix, "fullhouse"))
+   {
       status(alarm_fault = NULL);
-   else if (!strcmp(suffix, "other"))
+      send_sms("+447457400401", "Yay, online"); // TODO
+   } else if (!strcmp(suffix, "other"))
    {
       // TODO messages to clear latched states
    }
    return NULL;
+}
+
+void send_sms(const char *to, const char *fmt, ...)
+{
+   esp_http_client_config_t config = {
+      .url = smsurl
+   };
+#ifdef  CONFIG_MBEDTLS_CERTIFICATE_BUNDLE
+   config.crt_bundle_attach = esp_crt_bundle_attach;
+#else
+   config.use_global_ca_store = true;   /* Global cert */
+#endif
+   esp_http_client_handle_t client = esp_http_client_init(&config);
+   if (client)
+   {
+      char *v = NULL;
+      va_list ap;
+      va_start(ap, fmt);
+      int len = vasprintf(&v, fmt, ap);
+      va_end(ap);
+      jo_t j = jo_object_alloc();
+      jo_string(j, "username", smsuser);
+      jo_string(j, "password", smspass);
+      jo_string(j, "message", v);
+      const char *data = jo_rewind(j);
+      len = strlen(data ? : "");
+      REVK_ERR_CHECK(esp_http_client_set_header(client, "Content-Type", "application/json"));
+      if (!REVK_ERR_CHECK(esp_http_client_open(client, len)))
+      {
+         REVK_ERR_CHECK(esp_http_client_write(client, data, len));
+         esp_http_client_fetch_headers(client);
+         esp_http_client_flush_response(client, &len);
+      } else
+         ESP_LOGE(TAG, "SMS via %s failed", smsurl);
+      REVK_ERR_CHECK(esp_http_client_cleanup(client));
+      jo_free(&j);
+      free(v);
+   }
 }
