@@ -16,9 +16,6 @@
 [submodule "ESP32/components/ESP32-PN532"]
 	path = ESP32/components/ESP32-PN532
 	url = https://github.com/revk/ESP32-PN532
-[submodule "ESP32/components/ESP32-VL53L0X"]
-	path = ESP32/components/ESP32-VL53L0X
-	url = https://github.com/revk/ESP32-VL53L0X
 [submodule "ESP32/components/ESP32-RevK"]
 	path = ESP32/components/ESP32-RevK
 	url = https://github.com/revk/ESP32-RevK

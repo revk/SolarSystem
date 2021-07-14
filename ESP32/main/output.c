@@ -74,7 +74,7 @@ int output_get(int p)
    p--;
    if (!(output_state_set & (1ULL << p)))
       return -1;
-   if (output_state & (1ULL << p))
+   if ((output_state | output_forced) & (1ULL << p))
       return 1;
    return 0;
 }
@@ -150,7 +150,7 @@ static void task(void *pvParameters)
       if (output_set != output_raw)
          for (int i = 0; i < MAXOUTPUT; i++)
             if ((output_set ^ output_raw) & (1ULL << i))
-	    {
+            {
                output_write(i); // Update output state
                output_state_set |= (1ULL << i);
             }

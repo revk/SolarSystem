@@ -38,7 +38,6 @@ static const char *port_inuse[MAX_PORT];
 	m(alarm)	\
 	m(input)	\
 	m(output)	\
-	m(ranger)	\
 	m(keypad)	\
 	m(door)		\
 	m(nfc)		\

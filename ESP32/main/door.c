@@ -18,7 +18,6 @@ const char *door_tamper = NULL;
 // 4 - stand alone control using secure card
 // This uses pre-set input and output numbers
 #define IEXIT1 1
-#define IEXIT2 8
 #define IOPEN 2
 #define IUNLOCK 3
 #define OUNLOCK 1
@@ -194,16 +193,28 @@ void door_act(fob_t * fob)
 {                               // Act on fob (unlock/lock/arm/disarm)
    if (fob->armok)
    {
-      alarm_arm(fob->arm & areaarm, "fob");
-      door_lock(NULL, "fob");
+      if (doorauto >= 5)
+      {
+         alarm_arm(fob->arm & areaarm, "fob");
+         door_lock(NULL, "fob");
+      }
       return;
    }
    if (fob->disarmok)
-      alarm_disarm(fob->disarm & areadisarm, "fob");
+   {
+      if (doorauto >= 5)
+         alarm_disarm(fob->disarm & areadisarm, "fob");
+   }
    if (fob->unlockok || fob->override)
-      door_unlock(NULL, "fob");
+   {
+      if (doorauto >= 4)
+         door_unlock(NULL, "fob");
+   }
    if (fob->deny)
-      door_lock(NULL, "fob");
+   {
+      if (doorauto >= 4)
+         door_lock(NULL, "fob");
+   }
 }
 
 const char *door_fob(fob_t * fob)
@@ -656,26 +667,6 @@ static void task(void *pvParameters)
             }
          } else
             exit1 = 0;
-         static int64_t exit2 = 0;      // Secondary exit button
-         if (input_get(IEXIT2))
-         {
-            if (!exit2)
-            {
-               exit2 = now + (int64_t) doorexit *1000LL;
-               if (doorauto >= 2)
-               {
-                  if (!(areaenter & (state_armed | control_arm) & ~control_disarm))
-                     door_unlock(NULL, "ranger");
-                  else
-                  {             // Not opening door
-                     jo_t j = jo_object_alloc();
-                     jo_string(j, "trigger", "ranger");
-                     revk_event("notopen", &j);
-                  }
-               }
-            }
-         } else
-            exit2 = 0;
          // Check faults
          if (lock[0].state == LOCK_UNLOCKFAIL)
             status(door_fault = "Lock stuck");
@@ -687,8 +678,6 @@ static void task(void *pvParameters)
             status(door_fault = "Deadlock fault");
          else if (exit1 && exit1 < now)
             status(door_fault = "Exit stuck");
-         else if (exit2 && exit2 < now)
-            status(door_fault = "Ranger stuck");
          else
             status(door_fault = NULL);
          // Check tampers
