@@ -181,6 +181,8 @@ const char *system_makesummary(jo_t j)
    state_prealarm = (state_armed & state_presence);
    // TODO delay for alarm from prealarm
    state_alarm |= state_prealarm;
+   // Fixed
+   state_engineering = engineering;     // From flash - could be changed live though, so set here
 
    uint64_t forced = 0;
    for (int i = 0; i < MAXOUTPUT; i++)
@@ -196,7 +198,6 @@ const char *system_makesummary(jo_t j)
 #define c(x) report_##x=0;
 #define s(x) jo_area(j,#x,state_##x);
 #include "states.m"
-   jo_area(j, "engineering", engineering);
    return NULL;
 }
 

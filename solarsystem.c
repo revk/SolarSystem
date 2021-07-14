@@ -839,6 +839,7 @@ int main(int argc, const char *argv[])
                {
                   sql_sprintf(&s, "REPLACE INTO `pending` SET ");
                   deviceid = j_get(j, "id");
+                  sql_sprintf(&s, "`id`=%lld,", id);
                   sql_sprintf(&s, "`pending`=%#s,", deviceid);
                   if (secureid && deviceid && strcmp(secureid, deviceid))
                      sql_sprintf(&s, "`authenticated`=%#s,", "true");
@@ -884,7 +885,7 @@ int main(int argc, const char *argv[])
 #endif
                if (sql_back_s(&s) == ',' && deviceid)
                {
-                  if (device)
+                  if (secureid)
                      sql_sprintf(&s, ",`id`=%lld WHERE `device`=%#s AND (`id` IS NULL OR `id`=%lld)", id, deviceid, id);
                   sql_safe_query_s(&sql, &s);
                } else
