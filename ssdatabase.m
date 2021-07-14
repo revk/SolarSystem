@@ -245,6 +245,9 @@ ip(address);
 num(id);
 text(version, 0);               // S/w version
 text(build, 0);                 // S/w build
+num(chan);                      // WiFi channel
+text(bssid, 0);                 // WiFi SSID
+text(ssid, 0);                  // WiFi SSID
 bool (encryptednvs);            // Built with encrypted NVS
 bool (secureboot);              // Built with secure boot
 bool (authenticated);           // New authenticated device
