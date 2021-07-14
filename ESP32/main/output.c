@@ -14,13 +14,13 @@ const char *output_tamper = NULL;
 #define port_mask(p) ((p)&63)
 static uint8_t output[MAXOUTPUT];
 static uint8_t power[MAXOUTPUT];        /* fixed outputs */
+static char *outputname[MAXOUTPUT];
 
 #define i(x) area_t output##x[MAXOUTPUT];
 #define s(x) i(x)
 #include "states.m"
 
 static uint64_t output_state = 0;       // Port state
-static uint64_t output_state_set = 0;   // Output has been set
 static uint64_t output_raw = 0; // Actual output
 static uint64_t output_last = 0;        // Last reported
 static int64_t output_report = 0;       // When to report output
@@ -53,18 +53,17 @@ void output_set(int p, int v)
    if (v)
    {
       v = 1;
-      if ((output_state & (1ULL << p)) && (output_state_set & (1ULL << p)))
+      if (output_state & (1ULL << p))
          return;                // No change
       output_state |= (1ULL << p);
    } else
    {
-      if (!(output_state & (1ULL << p)) && (output_state_set & (1ULL << p)))
+      if (!(output_state & (1ULL << p)))
          return;                // No change
       output_state &= ~(1ULL << p);
    }
    if (output[p])
       output_write(p);
-   output_state_set |= (1ULL << p);
 }
 
 int output_get(int p)
@@ -72,8 +71,6 @@ int output_get(int p)
    if (p < 1 || p > MAXOUTPUT)
       return -1;
    p--;
-   if (!(output_state_set & (1ULL << p)))
-      return -1;
    if ((output_state | output_forced) & (1ULL << p))
       return 1;
    return 0;
@@ -94,31 +91,36 @@ const char *output_command(const char *tag, jo_t j)
          return e;
       int i = atoi(tag + strlen(TAG));
       if (!i)
-      {                         // Array expected}
-         if (jo_here(j) != JO_ARRAY)
-            e = "Expecting JSON array";
-         jo_next(j);
-         int i = 0;
-         jo_type_t t = jo_here(j);
-         while (t && i < MAXOUTPUT)
+      {                         // Object expected}
+         if (jo_here(j) != JO_OBJECT)
+            e = "Expecting JSON object";
+         while (jo_here(j))
          {
-            i++;
-            if (t >= JO_TRUE)
+            jo_next(j);
+            if (jo_here(j) == JO_TAG)
             {
-               if (!output[i - 1])
-                  e = "Trying to set unconfigured output";
-               else if (t == JO_TRUE)
-                  output_set(i, 1);
-               else if (t == JO_FALSE)
-                  output_set(i, 0);
-            } else if (t != JO_NULL)
-               e = "Expecting boolean or null entries";
-            t = jo_next(j);
+               int i = 0;
+               for (i = 0; i < MAXOUTPUT && jo_strcmp(j, outputname[i]); i++);
+               if (i == MAXOUTPUT)
+                  e = "Unknown output";
+               else
+               {
+                  jo_type_t t = jo_next(j);
+                  if (t >= JO_TRUE)
+                  {
+                     if (!output[i - 1])
+                        e = "Trying to set unconfigured output";
+                     else if (t == JO_TRUE)
+                        output_set(i, 1);
+                     else if (t == JO_FALSE)
+                        output_set(i, 0);
+                  } else if (t != JO_NULL)
+                     e = "Expecting boolean or null entries";
+               }
+            }
          }
-         if (!e && t)
-            e = "Too many outputs";
       } else
-      {                         // Single entry
+      {                         // Single entry outputN
          jo_type_t t = jo_here(j);
          if (i > MAXOUTPUT)
             e = "Output too high";
@@ -150,24 +152,18 @@ static void task(void *pvParameters)
       if (output_set != output_raw)
          for (int i = 0; i < MAXOUTPUT; i++)
             if ((output_set ^ output_raw) & (1ULL << i))
-            {
                output_write(i); // Update output state
-               output_state_set |= (1ULL << i);
-            }
       if (output_report < now || output_set != output_last)
       {
          output_last = output_set;
          output_report = now + 3600 * 1000000ULL;
-         jo_t j = jo_create_alloc();
-         jo_array(j, NULL);
+         jo_t j = jo_object_alloc();
          int t = MAXOUTPUT;
-         while (t && (!output[t - 1] || !((output_state_set >> (t - 1)) & 1)))
+         while (t && !output[t - 1])
             t--;
          for (int i = 0; i < t; i++)
-            if (output[i] && ((output_state_set >> i) & 1))
-               jo_bool(j, NULL, (output_set >> i) & 1);
-            else
-               jo_null(j, NULL);
+            if (output[i])
+               jo_bool(j, outputname[i], (output_set >> i) & 1);
          revk_state_copy(TAG, &j, iotstateoutput);
       }
       usleep(100000);
@@ -178,9 +174,10 @@ void output_init(void)
 {
    revk_register("output", MAXOUTPUT, sizeof(*output), &output, BITFIELDS, SETTING_BITFIELD | SETTING_SET | SETTING_SECRET);
    revk_register("outputgpio", MAXOUTPUT, sizeof(*output), &output, BITFIELDS, SETTING_BITFIELD | SETTING_SET);
+   revk_register("outputname", MAXOUTPUT, 0, &outputname, NULL, 0);
    revk_register("power", MAXOUTPUT, sizeof(*power), &power, BITFIELDS, SETTING_BITFIELD | SETTING_SET | SETTING_SECRET);
    revk_register("powergpio", MAXOUTPUT, sizeof(*power), &power, BITFIELDS, SETTING_BITFIELD | SETTING_SET);
-#define i(x) revk_register("output"#x, MAXOUTPUT, sizeof(*output##x), &output##x, AREAS, SETTING_BITFIELD);
+#define i(x) revk_register("output"#x, MAXOUTPUT, sizeof(*output##x), &output##x, AREAS, SETTING_BITFIELD); ESP_LOGI(TAG,"output"#x"[2]=%X",output##x[2]); // TODO
 #define s(x) i(x)
 #include "states.m"
    {                            // GPIO

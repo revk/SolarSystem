@@ -159,24 +159,31 @@ const char *door_access(const uint8_t * a)
 
 void door_check(void)
 {
-   output_set(OUNLOCK + 1, (areaenter & state_armed & ~control_disarm) ? 0 : 1);
+   if (doorauto >= 2)
+      output_set(OUNLOCK + 1, (areaenter & state_armed & ~control_disarm) ? 0 : 1);
 }
 
 const char *door_unlock(const uint8_t * a, const char *why)
 {                               // Unlock the door - i.e. exit button, entry allowed, etc.
-   if (why && !doorwhy)
-      doorwhy = why;
-   // TODO disarm first?
-   ESP_LOGI(TAG, "Unlock %s", why ? : "?");
-   output_set(OUNLOCK + 0, 1);
-   output_set(OUNLOCK + 1, 1);
+   if (doorauto >= 2)
+   {
+      if (why && !doorwhy)
+         doorwhy = why;
+      // TODO disarm first?
+      ESP_LOGI(TAG, "Unlock %s", why ? : "?");
+      output_set(OUNLOCK + 0, 1);
+      output_set(OUNLOCK + 1, 1);
+   }
    return door_access(a);
 }
 
 const char *door_lock(const uint8_t * a, const char *why)
 {                               // Lock the door - i.e. move to normal locked operation
-   why = why;
-   output_set(OUNLOCK + 0, 0);
+   if (doorauto >= 2)
+   {
+      why = why;
+      output_set(OUNLOCK + 0, 0);
+   }
    return door_access(a);
 }
 
@@ -502,14 +509,20 @@ static void task(void *pvParameters)
    if (input_get(IOPEN))
    {
       doorstate = DOOR_OPEN;
-      output_set(OUNLOCK + 0, 1);       // Start with unlocked doors
-      output_set(OUNLOCK + 1, 1);
+      if (doorauto >= 2)
+      {
+         output_set(OUNLOCK + 0, 1);    // Start with unlocked doors
+         output_set(OUNLOCK + 1, 1);
+      }
    } else
    {
       int64_t now = esp_timer_get_time();
       doorstate = DOOR_LOCKING;
-      output_set(OUNLOCK + 0, 0);       // Start with locked doors
-      output_set(OUNLOCK + 1, 0);
+      if (doorauto >= 2)
+      {
+         output_set(OUNLOCK + 0, 0);    // Start with locked doors
+         output_set(OUNLOCK + 1, 0);
+      }
       lock[0].timeout = now + (int64_t) doorlock *1000LL;
       lock[1].timeout = now + (int64_t) doorlock *1000LL;
    }
@@ -588,10 +601,13 @@ static void task(void *pvParameters)
                revk_event("open", &j);
                doorwhy = NULL;
                doorstate = DOOR_OPEN;
-               if (lock[0].state == LOCK_LOCKING || lock[0].state == LOCK_LOCKFAIL)
-                  output_set(OUNLOCK + 0, 1);   // Cancel lock
-               if (lock[1].state == LOCK_LOCKING || lock[1].state == LOCK_LOCKFAIL)
-                  output_set(OUNLOCK + 1, 1);   // Cancel deadlock
+               if (doorauto >= 2)
+               {
+                  if (lock[0].state == LOCK_LOCKING || lock[0].state == LOCK_LOCKFAIL)
+                     output_set(OUNLOCK + 0, 1);        // Cancel lock
+                  if (lock[1].state == LOCK_LOCKING || lock[1].state == LOCK_LOCKFAIL)
+                     output_set(OUNLOCK + 1, 1);        // Cancel deadlock
+               }
             }
          } else
          {                      // Closed
@@ -626,10 +642,12 @@ static void task(void *pvParameters)
                doortimeout = now + (int64_t) dooropen *1000LL;
             else
                doortimeout = 0;
-            output_set(OBEEP, doorstate == DOOR_UNLOCKED && !doorsilent ? 1 : 0);
+            if (doorauto >= 2)
+               output_set(OBEEP, doorstate == DOOR_UNLOCKED && !doorsilent ? 1 : 0);
          } else if (doortimeout && doortimeout < now)
          {                      // timeout
-            output_set(OBEEP, 0);
+            if (doorauto >= 2)
+               output_set(OBEEP, 0);
             if (doorstate == DOOR_OPEN)
             {
                doorstate = DOOR_NOTCLOSED;
@@ -690,7 +708,7 @@ static void task(void *pvParameters)
          else
             status(door_tamper = NULL);
          // Beep
-         if (door_tamper || door_fault || doorstate == DOOR_AJAR || doorstate == DOOR_NOTCLOSED)
+         if (doorauto >= 2 && (door_tamper || door_fault || doorstate == DOOR_AJAR || doorstate == DOOR_NOTCLOSED))
             output_set(OBEEP, ((now - doortimeout) & (512 * 1024)) ? 1 : 0);
          if (force || doorstate != lastdoorstate)
          {
@@ -704,7 +722,8 @@ static void task(void *pvParameters)
             revk_state_copy("door", &j, iotstatedoor);
             lastdoorstate = doorstate;
          }
-         output_set(OERROR, door_tamper || door_fault);
+         if (doorauto >= 2)
+            output_set(OERROR, door_tamper || door_fault);
       }
    }
 }

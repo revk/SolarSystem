@@ -33,7 +33,7 @@ const char *alarm_tamper = NULL;
 	area(areaarm)		\
 	area(areabell)		\
 	area(areadisarm)	\
-	area(engineering)	\
+	area(engineer)		\
 	area(armed)		\
 
 #define area(n) area_t n;
@@ -172,7 +172,7 @@ const char *system_makesummary(jo_t j)
    state_faulted |= report_fault;
    state_alarmed |= state_alarm;
    // arming normally holds off for presence (obviously) but also tamper and access - forcing armed is possible
-   state_armed |= (report_arm & ~state_presence & ~(state_tamper & ~engineering) & ~state_access);
+   state_armed |= (report_arm & ~state_presence & ~(state_tamper & ~engineer) & ~state_access);
    // disarm
    state_armed &= ~report_disarm;
    // prearm if not armed yet
@@ -182,16 +182,7 @@ const char *system_makesummary(jo_t j)
    // TODO delay for alarm from prealarm
    state_alarm |= state_prealarm;
    // Fixed
-   state_engineering = engineering;     // From flash - could be changed live though, so set here
-
-   uint64_t forced = 0;
-   for (int i = 0; i < MAXOUTPUT; i++)
-   {
-#define i(x) if(output##x[i]&state_##x)forced|=(1ULL<<i);
-#define s(x) i(x)
-#include "states.m"
-   }
-   output_forced = forced;
+   state_engineer = engineer;     // From flash - could be changed live though, so set here
 
    // Send summary
 #define i(x) jo_area(j,#x,state_##x);report_##x=0;
@@ -212,7 +203,7 @@ const char *system_report(jo_t j)
 #define i(x) if(!jo_strcmp(j,#x)){jo_next(j);report_##x|=jo_read_area(j);} else
 #define c(x) i(x)
 #include "states.m"
-         {
+         {                      // Unknown?
          }
       }
    }
@@ -243,7 +234,7 @@ const char *system_summary(jo_t j)
 #define i(x) if(!jo_strcmp(j,#x)){jo_next(j);x=jo_read_area(j);} else
 #define s(x) i(x)
 #include "states.m"
-            {
+            {                   // Unknown?
             }
          }
       }
@@ -255,7 +246,16 @@ const char *system_summary(jo_t j)
    // TODO timer cancel arm
    control_arm &= ~state_armed;
    control_disarm &= state_armed;
-   // TODO Poke outputs maybe
+   // Outputs
+   uint64_t forced = 0;
+   for (int i = 0; i < MAXOUTPUT; i++)
+   {
+#define i(x) if(output##x[i]&state_##x)forced|=(1ULL<<i);
+#define s(x) i(x)
+#include "states.m"
+   }
+   output_forced = forced;
+   ESP_LOGI(TAG, "Output forced %llX output2eng=%X eng=%X", output_forced,outputengineer[2],state_engineer);  //TODO
 
    // Store armed state
    static area_t lastarmed = -1;

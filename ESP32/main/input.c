@@ -15,6 +15,7 @@ const char *input_tamper = NULL;
 static uint8_t input[MAXINPUT];
 #define i(x) area_t input##x[MAXINPUT];
 #include "states.m"
+static char *inputname[MAXINPUT];
 
 // Other settings
 #define settings	\
@@ -104,16 +105,12 @@ static void task(void *pvParameters)
       {                         // JSON
          input_latch |= input_stable;
          input_flip |= (input_stable ^ was);
-         jo_t j = jo_create_alloc();
-         jo_array(j, NULL);
+         jo_t j = jo_object_alloc();
          int t = MAXINPUT;
          while (t && !input[t - 1])
             t--;
          for (i = 0; i < t; i++)
-            if (!input[i])
-               jo_null(j, NULL);
-            else
-               jo_bool(j, NULL, (input_stable >> i) & 1);
+            jo_bool(j, inputname[i], (input_stable >> i) & 1);
          revk_state_copy(TAG, &j, iotstateinput);
       }
       // Sleep
@@ -125,6 +122,7 @@ void input_init(void)
 {
    revk_register("input", MAXINPUT, sizeof(*input), &input, BITFIELDS, SETTING_BITFIELD | SETTING_SET | SETTING_SECRET);
    revk_register("inputgpio", MAXINPUT, sizeof(*input), &input, BITFIELDS, SETTING_BITFIELD | SETTING_SET);
+   revk_register("inputname", MAXINPUT, 0, &inputname, NULL, 0);
 #define i(x) revk_register("input"#x, MAXINPUT, sizeof(*input##x), &input##x, AREAS, SETTING_BITFIELD);
 #include "states.m"
 #define u16(n,v) revk_register(#n,0,sizeof(n),&n,#v,0);

@@ -218,7 +218,7 @@ static const char *settings(SQL * sqlp, SQL * sqlkeyp, SQL_RES * res, slot_t id)
             if (*pin)
             {
                j_store_literalf(gpio, "gpio", "%s%s", (invert ? "-" : ""), pin);
-#define i(n) addarea(gpio,#n,sql_col(g,#n),0);
+#define i(n) addarea(gpio,#n,sql_col(g,#n),0);j_store_string(gpio,"name",sql_col(g,"pinname"));
 #define s(n) i(n)
 #include "ESP32/main/states.m"
             }
@@ -260,7 +260,7 @@ static void addsitedata(SQL * sqlp, j_t j, SQL_RES * site, const char *deviceid,
    // Standard wifi settings
    v = sql_colz(site, "iothost");
    j_store_string(j, "mqtthost2", *v ? v : NULL);
-   addarea(j, "engineering", sql_colz(site, "engineering"), 1);
+   addarea(j, "engineer", sql_colz(site, "engineer"), 1);
    j_t wifi = j_store_object(j, "wifi");
    if ((v = sql_colz(site, "wifissid")) && *v)
       j_store_string(wifi, "ssid", v);

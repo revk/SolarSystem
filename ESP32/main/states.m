@@ -31,7 +31,7 @@ s(alarm)
 s(alarmed)
 s(faulted)
 s(tampered)
-s(engineering)
+s(engineer)
 
 #undef i
 #undef s

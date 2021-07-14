@@ -27,7 +27,7 @@ if($?sitename) then
 		sql "$DB" 'UPDATE session SET organisation=$SESSION_ORGANISATION,site=$site WHERE session="$ENVCGI"'
 	endif
 	if(! $?nomesh) setenv nomesh false
-	sqlwrite -o "$DB" site sitename wifissid wifipass iothost nomesh engineering smsuser smspass
+	sqlwrite -o "$DB" site sitename wifissid wifipass iothost nomesh engineer smsuser smspass
 	sql "$DB" 'UPDATE device SET poke=NOW() WHERE site=$site'
 	message --poke
 	../login/redirect /
@@ -46,7 +46,7 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <tr><td>IoT MQTT</td><td><input name=iothost size=40></td></tr>
 <tr><td>SMS Username</td><td><input name=smsuser size=40></td></tr>
 <tr><td>SMS Password</td><td><input name=smspass size=40></td></tr>
-<tr><td>Engineering</td><td><sql select="tag" table=area where="site=$site"><label for=$tag><output name=tag>:</label><input id=$tag name=engineering type=checkbox value=$tag></sql></td></tr>
+<tr><td>Engineer</td><td><sql select="tag" table=area where="site=$site"><label for=$tag><output name=tag>:</label><input id=$tag name=engineer type=checkbox value=$tag></sql></td></tr>
 </table>
 </sql>
 <input type=submit value="Update">
