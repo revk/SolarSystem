@@ -329,7 +329,7 @@ static void addsitedata(SQL * sqlp, j_t j, SQL_RES * site, const char *deviceid,
       j_store_string(wifi, "pass", v);
 #ifdef	CONFIG_REVK_MESH
    j_t mesh = j_store_object(j, "mesh");
-   j_store_int(mesh,"cycle",2);
+   j_store_int(mesh, "cycle", 2);
    if (*sql_colz(site, "nomesh") == 't')
    {                            // Not making a mesh, so set a mesh of 1
       j_store_string(mesh, "id", deviceid);
@@ -419,9 +419,14 @@ void daily(SQL * sqlp)
 
 void doupgrade(SQL * sqlp)
 {                               // Poking upgrades that may need doing - pick one per site, as site is one at a time
-   SQL_RES *res = sql_safe_query_store(sqlp, "SELECT * FROM `device` WHERE `upgrade`<=NOW() AND `id` IS NOT NULL GROUP BY `site` ORDER BY IF(`via` IS NULL,0,1),`upgrade`");
+   int last = 0;
+   SQL_RES *res = sql_safe_query_store(sqlp, "SELECT * FROM `device` WHERE `upgrade`<=NOW() AND `id` IS NOT NULL ORDER BY IF(`via` IS NULL,0,1),`upgrade`");
    while (sql_fetch_row(res))
    {
+      int site = atoi(sql_colz(res, "site"));   // one per site
+      if (last == site)
+         continue;
+      last = site;
       slot_t id = strtoull(sql_colz(res, "id"), NULL, 10);
       upgrade(res, id);
    }
@@ -917,7 +922,7 @@ int main(int argc, const char *argv[])
                   if (secureid && strcmp(secureid, deviceid))
                      sql_sprintf(&s, "`via`=%#s,", secureid);
                   sql_sprintf(&s, "`online`=NOW(),");   // Can happen if reconnect without unsub/sub (i.e. fast enough)
-                  if (device && !upgrade(device, id) && secureid)
+                  if (device && secureid)
                      settings(&sql, &sqlkey, device, id);
                }
                if (!device || (address && strcmp(sql_colz(device, "address"), address)))
