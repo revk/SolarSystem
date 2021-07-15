@@ -30,4 +30,16 @@
 </form>
 </if>
 <if MSG><span class=error><output name=MSG></span></if>
+<if SESSION_SITE>
+<sql table=site WHERE="site=$SESSION_SITE">
+<table>
+<if not alarm=""><tr style='background:red;'><td>Alarm</td><td><output name=alarm></td></tr></if>
+<if else not alarmed=""><tr style='background:yellow;'><td>Alarmed</td><td><output name=alarm></td></tr></if>
+<if not armed=""><tr><td>Armed</td><td><output name=armed></td></tr></if>
+<if not faulted=""><tr style='background:yellow;'><td>Fault</td><td><output name=faulted></td></tr></if>
+<if not tampered=""><tr style='background:yellow;'><td>Tamper</td><td><output name=tampered></td></tr></if>
+<if not engineer=""><tr><td>Engineer</td><td><output name=engineer></td></tr></if>
+</table>
+</sql>
+</if>
 
