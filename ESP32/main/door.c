@@ -667,7 +667,7 @@ static void task(void *pvParameters)
                doorwhy = NULL;
             }
          }
-         static uint64_t exit = 0;       // Main exit button
+         static uint64_t exit = 0;      // Main exit button
          if (input_get(IEXIT1))
          {
             if (!exit)
@@ -690,7 +690,10 @@ static void task(void *pvParameters)
             {                   // timeout held
                exit = -1;       // Don't report stuck - this is max value as unsigned
                if (doorauto >= 2)
+               {
                   alarm_arm(areaarm, "button");
+                  door_lock(NULL, "button");
+               }
             }
          } else
             exit = 0;
