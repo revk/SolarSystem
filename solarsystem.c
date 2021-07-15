@@ -272,6 +272,16 @@ static const char *settings(SQL * sqlp, SQL * sqlkeyp, SQL_RES * res, slot_t id)
             }
          }
       }
+      // Se send {} not null as (a) smaller, and (b) ensures content is zapped
+      for (int i = 0; i < j_len(output); i++)
+         if (j_isnull(j_index(output, i)))
+            j_object(j_index(output, i));
+      for (int i = 0; i < j_len(input); i++)
+         if (j_isnull(j_index(input, i)))
+            j_object(j_index(input, i));
+      for (int i = 0; i < j_len(power); i++)
+         if (j_isnull(j_index(power, i)))
+            j_object(j_index(power, i));
       sql_free_result(g);
    }
    if (!j_isnull(j))
