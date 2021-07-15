@@ -371,7 +371,7 @@ void doupgrade(SQL * sqlp)
 
 void dopoke(SQL * sqlp, SQL * sqlkeyp)
 {                               // Poking that may need doing
-   SQL_RES *res = sql_safe_query_store(sqlp, "SELECT * FROM `device` WHERE `poke`<=NOW() AND `upgrade` IS NULL AND `id` IS NOT NULL ORDER BY `poke`");
+   SQL_RES *res = sql_safe_query_store(sqlp, "SELECT * FROM `device` WHERE `poke`<=NOW() AND `id` IS NOT NULL ORDER BY `poke`");
    while (sql_fetch_row(res))
    {
       slot_t id = strtoull(sql_colz(res, "id"), NULL, 10);
@@ -548,8 +548,11 @@ int main(int argc, const char *argv[])
          if (now / 600 != tick || poke)
          {
             tick = now / 600;
-            poke = 0;
-            dopoke(&sql, &sqlkey);
+            if (poke)
+            {
+               poke = 0;
+               dopoke(&sql, &sqlkey);
+            }
             doupgrade(&sql);
          }
       }
