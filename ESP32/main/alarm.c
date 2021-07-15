@@ -228,7 +228,6 @@ const char *system_makesummary(jo_t j)
       state_alarm = 0;
    // Fixed
    state_engineer = engineer;   // From flash - could be changed live though, so set here
-
    // Send summary
 #define i(x) jo_area(j,#x,state_##x);report_##x=0;
 #define c(x) report_##x=0;
