@@ -672,7 +672,7 @@ static void task(void *pvParameters)
          {
             if (!exit)
             {
-               exit = now + (int64_t) doorexit *1000LL;
+               exit = now + (int64_t) doorexit *1000LL; // Exit button timout
                if (doorauto >= 2)
                {
                   if (doorexitdisarm && !(areaenter & (state_armed | control_arm) & ~control_disarm & ~areadisarm))
@@ -686,6 +686,11 @@ static void task(void *pvParameters)
                      revk_event("notopen", &j);
                   }
                }
+            } else if (doorexitdisarm && exit && exit < now)
+            {                   // timeout held
+               exit = -1;       // Don't report stuck
+               if (doorauto >= 2)
+                  alarm_disarm(areadisarm, "button");
             }
          } else
             exit = 0;
@@ -699,13 +704,8 @@ static void task(void *pvParameters)
          else if (lock[1].state == LOCK_FAULT)
             status(door_fault = "Deadlock fault");
          else if (exit && exit < now)
-         {
-            exit = -1;
-            if (doorexitdisarm)
-               alarm_disarm(areadisarm, "button");
-            else
-               status(door_fault = "Exit stuck");
-         } else
+            status(door_fault = "Exit stuck");
+         else
             status(door_fault = NULL);
          // Check tampers
          if (lock[0].state == LOCK_FORCED)
