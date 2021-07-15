@@ -135,9 +135,11 @@ areas(engineer);                // Site wide engineering state
 areas(alarmed);                 // Site wide state from mesh
 areas(tampered);                // Site wide state from mesh
 areas(faulted);                 // Site wide state from mesh
-num(prearm);                    // Pre arm time
+num(armcancel);                    // Pre arm time
 num(prealarm);                  // Pre alarm time
 num(postalarm);                 // Hold alarm state time
+#define s(state) areas(state)
+#include "ESP32/main/states.m"  // Related areas
 
 table(area, 0);
 link(organisation);             // Quicker

@@ -27,7 +27,7 @@ if($?sitename) then
 		sql "$DB" 'UPDATE session SET organisation=$SESSION_ORGANISATION,site=$site WHERE session="$ENVCGI"'
 	endif
 	if(! $?nomesh) setenv nomesh false
-	sqlwrite -o "$DB" site sitename wifissid wifipass iothost nomesh engineer smsuser smspass prearm prealarm postalarm
+	sqlwrite -o "$DB" site sitename wifissid wifipass iothost nomesh engineer smsuser smspass armcancel prealarm postalarm
 	sql "$DB" 'UPDATE device SET poke=NOW() WHERE site=$site'
 	message --poke
 	../login/redirect /
@@ -47,7 +47,7 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <tr><td>SMS Username</td><td><input name=smsuser size=40></td></tr>
 <tr><td>SMS Password</td><td><input name=smspass size=40></td></tr>
 <tr><td>Engineer</td><td><sql select="tag" table=area where="site=$site"><label for=$tag><output name=tag>:</label><input id=$tag name=engineer type=checkbox value=$tag></sql></td></tr>
-<tr><td>Pre-arm</td><td><input name=prearm size=3> seconds (timeout before cancelling arming)</td></tr>
+<tr><td>Arm-Cancel</td><td><input name=armcancel size=3> seconds (timeout before cancelling arming)</td></tr>
 <tr><td>Pre-alarm</td><td><input name=prealarm size=3> seconds (timeout before alarm triggers)</td></tr>
 <tr><td>Post-alarm</td><td><input name=postalarm size=3> seconds (timeout before alarm cancels after last trigger)</td></tr>
 </table>

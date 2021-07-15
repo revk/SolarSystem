@@ -307,7 +307,7 @@ static void addsitedata(SQL * sqlp, j_t j, SQL_RES * site, const char *deviceid,
    v = sql_colz(site, "iothost");
    j_store_string(j, "mqtthost2", *v ? v : NULL);
    addarea(j, "engineer", sql_colz(site, "engineer"), 1);
-   j_store_int(j, "prearm", atoi(sql_colz(site, "prearm")));
+   j_store_int(j, "armcancel", atoi(sql_colz(site, "armcancel")));
    j_store_int(j, "prealarm", atoi(sql_colz(site, "prealarm")));
    j_store_int(j, "postalarm", atoi(sql_colz(site, "postalarm")));
    j_t wifi = j_store_object(j, "wifi");
@@ -947,6 +947,26 @@ int main(int argc, const char *argv[])
                   sql_free_s(&s);
                return NULL;
             }
+	    if(prefix&&!strcmp(prefix,"state")&&suffix&&!strcmp(suffix,"system")&&checkdevice())
+	    {
+               SQL_RES *res = sql_safe_query_store_free(&sql, sql_printf("SELECT * FROM `site` WHERE `site`=%#s", sql_col(device, "site")));
+               if (sql_fetch_row(res))
+	       {
+		    sql_string_t s={};
+		    sql_sprintf(&s,"UPDATE `site` SET ");
+#define s(n) {const char *v=j_get(j,#n)?:"";if(strcmp(sql_colz(res,#n),v))sql_sprintf(&s,"`%#S`=%#s,",#n,v);}
+#include "ESP32/main/states.m"
+               if (sql_back_s(&s) == ',' && deviceid)
+	       {
+		       sql_sprintf(&s, " WHERE `site`=%#s",sql_col(device, "site"));
+		        sql_safe_query_s(&sql, &s);
+	       }else
+                  sql_free_s(&s);
+
+	       }
+	       sql_free_result(res);
+               return NULL;
+	    }
             if (prefix && !strcmp(prefix, "sms") && checkdevice())
             {
                SQL_RES *res = sql_safe_query_store_free(&sql, sql_printf("SELECT * FROM `site` WHERE `site`=%#s", sql_col(device, "site")));

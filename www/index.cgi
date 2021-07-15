@@ -3,6 +3,14 @@ source ../setses
 source ../setcan
 xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <p>Solar System access control cloud service.</p>
+<sql table=site WHERE="site=$SESSION_SITE">
+<if not alarm=""><p><b>Alarm: <output name=alarm></b></p></if>
+<if else not alarmed=""><p>Alarmed: <output name=alarm></p></if>
+<if armed=""><p>Armed: <output name=armed></p></if>
+<if faulted=""><p>Fault: <output name=faulted></p></if>
+<if tampered=""><p>Tamper: <output name=tampered></p></if>
+<if engineer=""><p>Engineering mode set: <output name=engineer></p></if>
+</sql>
 <ul>
 <if USER_ADMIN=true><li><a href="editorganisation.cgi/0">New organisation</a></li></if>
 <if SESSION_ORGANISATION AND CANEDITORGANISATION><li><a href="editorganisation.cgi/$SESSION_ORGANISATION">Edit organisation</a></li></if>

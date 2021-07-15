@@ -42,7 +42,7 @@ static uint32_t summary_next = 0;       // When to report summary
 	area(areadisarm)	\
 	area(engineer)		\
 	area(armed)		\
-	u16(prearm)		\
+	u16(armcancel)		\
 	u16(prealarm)		\
 	u16(postalarm)		\
 
@@ -286,7 +286,7 @@ const char *system_summary(jo_t j)
    static uint16_t timer = 0;
    if (!control_arm)
       timer = 0;
-   else if (prearm && (timer += meshcycle) > prearm)
+   else if (armcancel && (timer += meshcycle) > armcancel)
    {                            // Cancel arming (ideally per area, but this is good enough)
       control_arm = 0;
       // TODO event on arming times out
