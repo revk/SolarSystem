@@ -4,12 +4,14 @@ source ../setcan
 xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <p>Solar System access control cloud service.</p>
 <sql table=site WHERE="site=$SESSION_SITE">
-<if not alarm=""><p><b>Alarm: <output name=alarm></b></p></if>
-<if else not alarmed=""><p>Alarmed: <output name=alarm></p></if>
-<if armed=""><p>Armed: <output name=armed></p></if>
-<if faulted=""><p>Fault: <output name=faulted></p></if>
-<if tampered=""><p>Tamper: <output name=tampered></p></if>
-<if engineer=""><p>Engineering mode set: <output name=engineer></p></if>
+<table>
+<if not alarm=""><tr style='background:red;'><td>Alarm</td><td><output name=alarm></td></tr></if>
+<if else not alarmed=""><tr style='background:yellow;'><td>Alarmed</td><td><output name=alarm></td></tr></if>
+<if armed=""><tr><td>Armed</td><td><output name=armed></td></tr></if>
+<if faulted=""><tr style='background:yellow;'><td>Fault</td><td><output name=faulted></td></tr></if>
+<if tampered=""><tr style='background:yellow;'><td>Tamper</td><td><output name=tampered></td></tr></if>
+<if engineer=""><tr><td>Engineering mode set: <output name=engineer></td></tr></if>
+</table>
 </sql>
 <ul>
 <if USER_ADMIN=true><li><a href="editorganisation.cgi/0">New organisation</a></li></if>
