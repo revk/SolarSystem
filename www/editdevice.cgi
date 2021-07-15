@@ -129,13 +129,6 @@ xmlsql -C -d "$DB" head.html - foot.html << END
 </td>
 </if>
 </sql>
-<tr><td>Warning</td><td><sql select="tag" table=area where="site=\$site"><label for=warning\$tag><output name=tag>:</label><input id=warning\$tag name=areawarning type=checkbox value=\$tag></sql></td></tr>
-<tr><td>Fault</td><td><sql select="tag" table=area where="site=\$site"><label for=fault\$tag><output name=tag>:</label><input id=fault\$tag name=areafault type=checkbox value=\$tag></sql></td></tr>
-<tr><td>Tamper</td><td><sql select="tag" table=area where="site=\$site"><label for=tamper\$tag><output name=tag>:</label><input id=tamper\$tag name=areatamper type=checkbox value=\$tag></sql></td></tr>
-<if nfc=true><tr><td>Enter</td><td><sql select="tag" table=area where="site=\$site"><label for=enter\$tag><output name=tag>:</label><input id=enter\$tag name=areaenter type=checkbox value=\$tag></sql></td></tr></if>
-<if nfc=true><tr><td>Arm</td><td><sql select="tag" table=area where="site=\$site"><label for=arm\$tag><output name=tag>:</label><input id=arm\$tag name=areaarm type=checkbox value=\$tag></sql></td></tr></if>
-<if nfc=true><tr><td>Disarm</td><td><sql select="tag" table=area where="site=\$site"><label for=disarm\$tag><output name=tag>:</label><input id=disarm\$tag name=areadisarm type=checkbox value=\$tag></sql></td></tr></if>
-<if nfc=true><tr><td>Doorbell</td><td><sql select="tag" table=area where="site=\$site"><label for=bell\$tag><output name=tag>:</label><input id=bell\$tag name=areabell type=checkbox value=\$tag></sql></td></tr></if>
 <if nfc=true><tr><td>AID</td><td><select name=aid><sql table=aid where="site=\$site"><option value="\$aid"><output name=aidname></option></sql></select></td></tr></if>
 <tr><td>Online</td><td><if online><output name=online></if><if else>Last online <output name=lastonline missing="never"></if><if upgrade> (upgrade scheduled)</if></td></tr>
 <tr><td>Version</td><td><output name=version></td></tr>
@@ -159,6 +152,22 @@ xmlsql -C -d "$DB" head.html - foot.html << END
 </tr>
 </sql>
 </table>
+<table border=1>
+<set tags="warning fault tamper">
+<if nfc=true><set tags="\$tags enter arm disarm doorbell"></if>
+<tr><th></th>
+<for SPACE T="\$tags"><th><output name=T></th></for>
+<th>Areas</th>
+</tr>
+<sql table=area where="site=$SESSION_SITE">
+<tr>
+<th><output name=tag></th>
+<for SPACE T="\$tags"><td><input name="area\$T" type=checkbox value="\$tag"></td></for>
+<td><output name=areaname></td>
+</tr>
+</sql>
+</table>
+
 <input type=submit value="Update">
 <if online><input type=submit value="Restart" name=RESTART></if>
 <if not upgrade><input type=submit value="Upgrade" name=UPGRADE></if>

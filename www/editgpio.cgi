@@ -35,11 +35,11 @@ xmlsql -C -d "$DB" head.html - foot.html << END
 </table>
 <if not type=*P>
 <if type=*O><set SL="$STATELIST"></if><if else><set SL="$STATELISTI"></if>
-<table>
-<tr><th></th><for space STATE="\$SL"><th><output name=STATE></th></for></tr>
+<table border=1>
+<tr><th></th><for space STATE="\$SL"><th><output name=STATE></th></for><th>Areas</th></tr>
 <sql table=area where="site=$SESSION_SITE" order=tag>
 <tr>
-<td><output name=tag></td>
+<th><output name=tag></th>
 <for space STATE="\$SL"><td><input type=checkbox name="\$STATE" value="\$tag"></td></for>
 <td><output name=areaname></td>
 </sql>
