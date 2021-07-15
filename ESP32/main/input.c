@@ -32,7 +32,7 @@ uint64_t input_latch = 0;       // holds resettable state of input
 uint64_t input_flip = 0;        // holds flipped flag for each input, i.e. state has changed
 static uint64_t input_hold[MAXINPUT] = { };
 
-static volatile char reportall = 0;
+static uint32_t report_next = 0;
 
 int input_active(int p)
 {
@@ -69,7 +69,7 @@ int input_get(int p)
 const char *input_command(const char *tag, jo_t j)
 {
    if (!strcmp(tag, "connect"))
-      reportall = 1;
+      report_next = 0;
    return NULL;
 }
 
@@ -83,8 +83,6 @@ static void task(void *pvParameters)
       esp_task_wdt_reset();
       // Check inputs
       int64_t now = esp_timer_get_time();
-      char report = reportall;
-      reportall = 0;
       int i;
       uint64_t was = input_stable;
       for (i = 0; i < MAXINPUT; i++)
@@ -93,7 +91,7 @@ static void task(void *pvParameters)
             int v = gpio_get_level(port_mask(input[i]));
             if ((1ULL << i) & input_invert)
                v = 1 - v;
-            if ((input_hold[i] < now) && (report || v != ((input_stable >> i) & 1)))
+            if ((input_hold[i] < now) && (v != ((input_stable >> i) & 1)))
                input_stable = ((input_stable & ~(1ULL << i)) | ((uint64_t) v << i));
             if (v != ((input_raw >> i) & 1))
             {                   // Change of raw state
@@ -101,8 +99,10 @@ static void task(void *pvParameters)
                input_hold[i] = now + (int64_t) inputhold *1000LL;
             }
          }
-      if (was != input_stable)
+      uint32_t tick = uptime();
+      if (was != input_stable || tick < report_next)
       {                         // JSON
+         report_next = tick;
          input_latch |= input_stable;
          input_flip |= (input_stable ^ was);
          jo_t j = jo_object_alloc();

@@ -26,6 +26,7 @@ const char *alarm_tamper = NULL;
 area_t latch_fault = 0;         // From board fault
 area_t latch_tamper = 0;        // From board tamper
 area_t latch_presence = 0;      // From board tamper
+static uint32_t summary_next = 0;       // When to report summary
 
 // TODO keypad UI
 // TODO commands to clean latched states
@@ -54,7 +55,8 @@ settings
 #undef u16
 const char *alarm_command(const char *tag, jo_t j)
 {
-   // TODO ARM and DISARM commands
+   if (!strcmp(tag, "connect"))
+      summary_next = 0;         // Report
    return NULL;
 }
 
@@ -179,7 +181,6 @@ const char *system_makesummary(jo_t j)
 {                               // Process reports received, and make summary
 #define i(x) state_##x=report_##x;      // Set aggregate states anyway (done by summary anyway)
 #include "states.m"
-
    // Make system states
    // simple latched states - cleared by re-arming
    state_tampered = ((state_tampered & ~report_arm) | report_tamper);
@@ -234,12 +235,17 @@ const char *system_summary(jo_t j)
 {                               // Alarm state - process summary of output states
    if (esp_mesh_is_root())
    {                            // We are root, so we have updated anyway, but let's report to IoT
-      if (iotstatesystem)
-      {
+      const char *json = jo_rewind(j);
+      static unsigned int last = 0;     // using a CRC is a lot less memory than a copy of this or of the states
+      unsigned int crc = df_crc(strlen(json), (void *) json);
+      uint32_t now = uptime();
+      if (last != crc || now > summary_next)
+      {                         // Changed
+         summary_next = now + 60000000LL;
+         last = crc;
          jo_t c = jo_copy(j);
-         revk_state_copy("system", &c, -1);
+         revk_state_copy("system", &c, iotstatesystem);
       }
-      // TODO reporting to cloud, if changed...
    } else
    {                            // We are leaf, get the data
 #define i(x) area_t x=0;        // Zero if not specified

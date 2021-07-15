@@ -22,7 +22,7 @@ static char *outputname[MAXOUTPUT];
 
 static uint64_t output_state = 0;       // Port state
 static uint64_t output_raw = 0; // Actual output
-static int64_t output_report = 0;       // When to report output
+static uint32_t report_next = 0;        // When to report output
 uint64_t output_forced = 0;     // Output forced externally
 
 int output_active(int p)
@@ -70,7 +70,7 @@ int output_get(int p)
 const char *output_command(const char *tag, jo_t j)
 {
    if (!strcmp(tag, "connect"))
-      output_report = 0;        // Report
+      report_next = 0;          // Report
    const char *e = NULL;
    if (!strncmp(tag, TAG, strlen(TAG)))
    {                            // Set output
@@ -139,16 +139,16 @@ static void task(void *pvParameters)
    while (1)
    {
       esp_task_wdt_reset();
-      int64_t now = esp_timer_get_time();
+      uint32_t now = uptime();
       uint64_t output_mix = output_state | output_forced;
       if (output_mix != output_raw)
          for (int i = 0; i < MAXOUTPUT; i++)
             if ((output_mix ^ output_raw) & (1ULL << i))
                output_write(i); // Update output state
-      if (output_report < now || output_mix != output_last)
+      if (report_next < now || output_mix != output_last)
       {
          output_last = output_mix;
-         output_report = now + 3600 * 1000000ULL;
+         report_next = now + 3600;
          jo_t j = jo_object_alloc();
          if (*name)
             jo_string(j, "name", name);
