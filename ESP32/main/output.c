@@ -146,8 +146,10 @@ static void task(void *pvParameters)
       output_t output_mix = (output_state | output_forced);
       for (int i = 0; i < MAXOUTPUT; i++)
          if (!(output_mix & (1ULL << i)))
+         {
             output_hold[i] = 0;
-         else if (output_hold[i] && !--output_hold[i])
+            output_pulsed &= ~(1ULL << i);
+         } else if (output_hold[i] && !--output_hold[i])
             output_pulsed |= (1ULL << i);
       output_mix &= ~output_pulsed;
       if (output_mix != output_raw)
