@@ -43,8 +43,8 @@ static uint32_t summary_next = 0;       // When to report summary
 	area(engineer)		\
 	area(armed)		\
 	u16(armcancel)		\
-	u16(prealarm)		\
-	u16(postalarm)		\
+	u16(alarmdelay)		\
+	u16(alarmhold)		\
 
 #define area(n) area_t n;
 #define s(n) char *n;
@@ -200,12 +200,12 @@ const char *system_makesummary(jo_t j)
    static uint16_t timer1 = 0;  // Pre alarm timer - ideally per area, but this will be fine
    if (!state_prealarm)
       timer1 = 0;
-   else if (prealarm && (timer1 += meshcycle) > prealarm)
+   else if (alarmdelay && (timer1 += meshcycle) > alarmdelay)
       state_alarm = ((state_alarm | state_prealarm) & state_armed);
    static uint16_t timer2 = 0;  // Post alarm timer - ideally per area, but this will be fine
    if (state_prealarm)
       timer2 = 0;
-   else if (postalarm && (timer2 += meshcycle) > postalarm)
+   else if (alarmhold && (timer2 += meshcycle) > alarmhold)
       state_alarm = 0;
    // Fixed
    state_engineer = engineer;   // From flash - could be changed live though, so set here
