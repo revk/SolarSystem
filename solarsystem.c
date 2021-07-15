@@ -160,7 +160,7 @@ static const char *settings(SQL * sqlp, SQL * sqlkeyp, SQL_RES * res, slot_t id)
                j_store_true(iot, "statesystem");
             if (*sql_colz(res, "ioteventfob") == 't')
                j_store_true(iot, "eventfob");
-            if (*sql_colz(res, "ioteventarm") == 't')
+            if (*sql_colz(s, "ioteventarm") == 't')
                j_store_true(iot, "eventarm");
          }
       }
@@ -310,8 +310,8 @@ static void addsitedata(SQL * sqlp, j_t j, SQL_RES * site, const char *deviceid,
    j_store_string(j, "mqtthost2", *v ? v : NULL);
    addarea(j, "engineer", sql_colz(site, "engineer"), 1);
    j_store_int(j, "armcancel", atoi(sql_colz(site, "armcancel")));
-   j_store_int(j, "prealarm", atoi(sql_colz(site, "prealarm")));
-   j_store_int(j, "postalarm", atoi(sql_colz(site, "postalarm")));
+   j_store_int(j, "armdelay", atoi(sql_colz(site, "armdelay")));
+   j_store_int(j, "alarmhold", atoi(sql_colz(site, "alarmhold")));
    j_t wifi = j_store_object(j, "wifi");
    if ((v = sql_colz(site, "wifissid")) && *v)
       j_store_string(wifi, "ssid", v);

@@ -44,6 +44,7 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <tr><td>WIFi pass</td><td><input name=wifipass size=40 value="security"></td></tr>
 <tr><td><input type=checkbox id=nomesh name=nomesh value=true></td><td><label for=nomesh>Don't use mesh wifi on site (i.e. only access control).</label></td></tr>
 <tr><td>IoT MQTT</td><td><input name=iothost size=40></td></tr>
+<tr><td><input type=checkbox id=ioteventarm name=ioteventarm value=true></td><td><label for=ioteventarm>Log arm/disarm events to IoT.</label></td></tr>
 <tr><td>SMS Username</td><td><input name=smsuser size=40></td></tr>
 <tr><td>SMS Password</td><td><input name=smspass size=40></td></tr>
 <tr><td>Engineer</td><td><sql select="tag" table=area where="site=$site"><label for=$tag><output name=tag>:</label><input id=$tag name=engineer type=checkbox value=$tag></sql></td></tr>
