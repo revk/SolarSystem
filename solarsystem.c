@@ -102,16 +102,33 @@ static const char *settings(SQL * sqlp, SQL * sqlkeyp, SQL_RES * res, slot_t id)
    // Other settings
    if (*CONFIG_OTA_HOSTNAME)
       j_store_string(j, "otahost", CONFIG_OTA_HOSTNAME);
-   char isdoor=0;
+   char isdoor = 0;
    j_t door = j_store_object(j, "door");
    if (*sql_colz(res, "door") == 't')
    {
-	   isdoor=1;
+      isdoor = 1;
       j_store_int(door, "auto", 5);
       if (*sql_colz(res, "doorexitarm") == 't')
          j_store_boolean(door, "exitarm", 1);
       if (*sql_colz(res, "doorexitdisarm") == 't')
          j_store_boolean(door, "exitdisarm", 1);
+      int v;
+      if ((v = atoi(sql_colz(res, "doorunlock"))))
+         j_store_int(door, "unlock", v);
+      if ((v = atoi(sql_colz(res, "doorlock"))))
+         j_store_int(door, "lock", v);
+      if ((v = atoi(sql_colz(res, "dooropen"))))
+         j_store_int(door, "open", v);
+      if ((v = atoi(sql_colz(res, "doorclose"))))
+         j_store_int(door, "close", v);
+      if ((v = atoi(sql_colz(res, "doorprop"))))
+         j_store_int(door, "prop", v);
+      if ((v = atoi(sql_colz(res, "doorexit"))))
+         j_store_int(door, "exit", v);
+      if ((v = atoi(sql_colz(res, "doorpoll"))))
+         j_store_int(door, "poll", v);
+      if ((v = atoi(sql_colz(res, "doordebounce"))))
+         j_store_int(door, "debounce", v);
    }
    j_t area = j_store_object(j, "area");
    addarea(area, "fault", sql_colz(res, "areafault"), 0);

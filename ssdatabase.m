@@ -237,7 +237,14 @@ num(id);                        // Instance for communications when on line
 datetime(poke);                 // Poke settings
 text(tamper, 0);                // Latest tamper state
 text(fault, 0);                 // Latest fault state
-// TODO hold times, lock times, etc...
+num(doorunlock);		// Door timer
+num(doorlock);		// Door timer
+num(dooropen);		// Door timer
+num(doorclose);		// Door timer
+num(doorprop);		// Door timer
+num(doorexit);		// Door timer
+num(doorpoll);		// Door timer
+num(doordebounce);		// Door timer
 
 join(device, gpio) gpiotype(type);      // Pin Usage (in/out/power/exit/etc)
 bool (invert);                  // Invert normal polarity for pin

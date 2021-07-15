@@ -68,7 +68,7 @@ if($?devicename) then # save
 	if(! $?iotstatetamper) setenv iotstatetamper false
 	if(! $?iotstatesystem) setenv iotstatesystem false
 	if(! $?ioteventfob) setenv ioteventfob false
-	setenv allow "devicename areawarning areafault areatamper areaenter areaarm areadisarm areabell nfc nfcadmin door doorexitarm doorexitdisarm aid site iotstatedoor iotstateinput iotstateoutput iotstatefault iotstatetamper iotstatesystem ioteventfob"
+	setenv allow "devicename areawarning areafault areatamper areaenter areaarm areadisarm areabell nfc nfcadmin door doorexitarm doorexitdisarm aid site iotstatedoor iotstateinput iotstateoutput iotstatefault iotstatetamper iotstatesystem ioteventfob doorunlock doorlock dooropen doorclose doorprop doorexit"
 	if("$USER_ADMIN" == "true") setenv allow "$allow nfctrusted"
 	sqlwrite -o -n "$DB" device $allow
 	sql "$DB" 'UPDATE device SET poke=NOW() WHERE device="$device"'
@@ -141,6 +141,12 @@ xmlsql -C -d "$DB" head.html - foot.html << END
 <tr><td>Version</td><td><output name=version></td></tr>
 <sql table=pcb where="pcb=\$pcb">
 <if nfc=true><tr><td><input type=checkbox id=door name=door value=true></td><td><label for=door>Door control</label></td></tr></if>
+<if nfc=true door=true><tr><td><input size=5 id=doorunlock name=doorunlock>ms</td><td><label for=doorunlock>Door unlock timer</label></td></tr></if>
+<if nfc=true door=true><tr><td><input size=5 id=doorlock name=doorlock>ms</td><td><label for=doorlock>Door lock timer</label></td></tr></if>
+<if nfc=true door=true><tr><td><input size=5 id=dooropen name=dooropen>ms</td><td><label for=dooropen>Door open timer</label></td></tr></if>
+<if nfc=true door=true><tr><td><input size=5 id=doorclose name=doorclose>ms</td><td><label for=doorclose>Door close timer</label></td></tr></if>
+<if nfc=true door=true><tr><td><input size=5 id=doorprop name=doorprop>ms</td><td><label for=doorprop>Door prop timer</label></td></tr></if>
+<if nfc=true door=true><tr><td><input size=5 id=doorexit name=doorexit>ms</td><td><label for=doorexit>Door exit button hold timer</label></td></tr></if>
 <if nfc=true door=true><tr><td><input type=checkbox id=doorexitdisarm name=doorexitdisarm value=true></td><td><label for=doorexitdisarm>Door exit button disarm</label></td></tr></if>
 <if nfc=true door=true><tr><td><input type=checkbox id=doorexitarm name=doorexitarm value=true></td><td><label for=doorexitarm>Door exit button arm on hold</label></td></tr></if>
 <if nfc=true><tr><td><input type=checkbox id=nfcadmin name=nfcadmin value=true></td><td><label for=nfcadmin>Admin NFC reader</label></td></tr></if>
