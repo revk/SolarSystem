@@ -727,6 +727,8 @@ static void task(void *pvParameters)
             nfc_led(strlen(doorled[doorstate]), doorled[doorstate]);
             jo_t j = jo_object_alloc();
             jo_string(j, "state", doorstates[doorstate]);
+            if (*name)
+               jo_string(j, "name", name);
             if (doorwhy && doorstate == DOOR_UNLOCKING)
                jo_string(j, "trigger", doorwhy);
             if (doortimeout > now)

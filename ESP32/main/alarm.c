@@ -72,7 +72,7 @@ void alarm_arm(area_t a, const char *why)
    a &= areaarm;
    if (((state_armed | control_arm) & a & ~control_disarm) == a)
       return;                   // All armed
-   ESP_LOGI(TAG, "Arm %X %s", a, why ? : "");
+   ESP_LOGD(TAG, "Arm %X %s", a, why ? : "");
    control_arm |= a;
    control_disarm &= ~a;
    door_check();
@@ -89,7 +89,7 @@ void alarm_disarm(area_t a, const char *why)
    a &= areadisarm;
    if (!((state_armed | control_arm) & a & ~control_disarm))
       return;                   // Not armed
-   ESP_LOGI(TAG, "Disarm %X %s", a, why ? : "");
+   ESP_LOGD(TAG, "Disarm %X %s", a, why ? : "");
    control_arm &= ~a;
    control_disarm |= a;
    door_check();
@@ -261,16 +261,19 @@ const char *system_summary(jo_t j)
          uint32_t now = uptime();
          static unsigned int last_crc = 0;      // using a CRC is a lot less memory than a copy of this or of the states
          unsigned int crc = 0;
-         json = strchr(json, ',');      // Skip time as that changes every time, duh
+         char *comma = strchr(json, ',');       // Skip time as that changes every time, duh
+         if (comma)
+            *comma = '{';       // Fudge it
          if (json)
-            crc = df_crc(strlen(json), (void *) json);
+            crc = df_crc(strlen(comma), (void *) comma);
          if (last_crc != crc || now > summary_next)
          {                      // Changed
             summary_next = now + 60;
             last_crc = crc;
-            jo_t c = jo_copy(j);
-            revk_state_copy("system", &c, iotstatesystem);
+            revk_mqtt_send_payload_copy("state", 1, "system", comma ? : "{}", iotstatesystem);
          }
+         if (comma)
+            *comma = ',';       // Put back
       }
    } else
    {                            // We are leaf, get the data

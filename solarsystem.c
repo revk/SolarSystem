@@ -329,6 +329,7 @@ static void addsitedata(SQL * sqlp, j_t j, SQL_RES * site, const char *deviceid,
       j_store_string(wifi, "pass", v);
 #ifdef	CONFIG_REVK_MESH
    j_t mesh = j_store_object(j, "mesh");
+   j_store_int(mesh,"cycle",2);
    if (*sql_colz(site, "nomesh") == 't')
    {                            // Not making a mesh, so set a mesh of 1
       j_store_string(mesh, "id", deviceid);
