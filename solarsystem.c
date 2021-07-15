@@ -99,11 +99,18 @@ static const char *settings(SQL * sqlp, SQL * sqlkeyp, SQL_RES * res, slot_t id)
       sql_free_result(b);
    }
    // Other settings
-   int door = (*sql_colz(res, "door") == 't');
    j_store_string(j, "name", sql_colz(res, "devicename"));
    if (*CONFIG_OTA_HOSTNAME)
       j_store_string(j, "otahost", CONFIG_OTA_HOSTNAME);
-   j_store_int(j, "doorauto", door ? 5 : 0);
+   j_t door = j_store_object(j, "door");
+   if (*sql_colz(res, "door") == 't')
+   {
+      j_store_int(door, "auto", 5);
+      if (*sql_colz(res, "doorexitarm") == 't')
+         j_store_boolean(door, "exitarm", 1);
+      if (*sql_colz(res, "doorexitdisarm") == 't')
+         j_store_boolean(door, "exitdisarm", 1);
+   }
    j_t area = j_store_object(j, "area");
    addarea(area, "fault", sql_colz(res, "areafault"), 0);
    addarea(area, "tamper", sql_colz(res, "areatamper"), 0);
