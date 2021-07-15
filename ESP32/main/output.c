@@ -214,7 +214,6 @@ void output_init(void)
             {                   // Set up output pin
                c.pin_bit_mask |= (1ULL << p);
                REVK_ERR_CHECK(gpio_set_level(p, (output[i] & PORT_INV) ? 1 : 0));
-               REVK_ERR_CHECK(gpio_hold_en(p));
             }
          }
          if (power[i])
@@ -233,6 +232,10 @@ void output_init(void)
       }
       if (c.pin_bit_mask)
          REVK_ERR_CHECK(gpio_config(&c));
+      for (i = 0; i < MAXOUTPUT; i++)
+         if (output[i])
+            REVK_ERR_CHECK(gpio_hold_en(port_mask(output[i])));
+
    }
    revk_task(TAG, task, NULL);
 }
