@@ -26,8 +26,8 @@ u8 (inputpoll, 10);	\
 settings
 #undef u8
 static input_t input_raw = 0;
-static input_t input_stable = 0;
 static input_t input_invert = 0;
+input_t input_stable = 0;
 input_t input_latch = 0;        // holds resettable state of input
 input_t input_flip = 0;         // holds flipped flag for each input, i.e. state has changed
 

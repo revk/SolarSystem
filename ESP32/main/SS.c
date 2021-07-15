@@ -108,17 +108,20 @@ static void status_report(int force)
             jo_string(j, "controller", r);
             revk_event("warning", &j);
             latch_warning |= areawarning;
+            // Transient so no live_warning
          }
          reason = -1;           // Just once
       }
       const char *fault = jo_rewind(j);
-      if (strcmp(fault ? : "", last_fault ? : "") || force)
+      if (fault && (strcmp(fault ? : "", last_fault ? : "") || force))
       {
          free((void *) last_fault);
          last_fault = strdup(fault);
          revk_state_copy("fault", &j, iotstatefault);
          if (faults)
-            latch_fault |= areafault;
+            latch_fault |= (live_fault = areafault);
+         else
+            live_fault = 0;;
       }
       jo_free(&j);              // safe to call even if freed by revk_state
    }
@@ -128,14 +131,16 @@ static void status_report(int force)
       modules m(controller)
 #undef m
       const char *tamper = jo_rewind(j);
-      if (strcmp(tamper ? : "", last_tamper ? : "") || force)
+      if (tamper && (strcmp(tamper ? : "", last_tamper ? : "") || force))
       {
          free((void *) last_tamper);
          last_tamper = strdup(tamper);
          revk_state_copy("tamper", &j, iotstatetamper);
          latch_presence |= areatamper;  // Change is presence
          if (tampers)
-            latch_tamper |= areatamper;
+            latch_tamper |= (live_tamper = areatamper);
+         else
+            live_tamper = 0;
       }
       jo_free(&j);              // safe to call even if freed by revk_state
    }

@@ -23,10 +23,14 @@ const char *alarm_tamper = NULL;
 #define c(x) area_t control_##x;        // local control flags
 #include "states.m"
 
-area_t latch_fault = 0;         // From board fault
-area_t latch_tamper = 0;        // From board tamper
-area_t latch_warning = 0;       // From board tamper
-area_t latch_presence = 0;      // From board tamper
+area_t latch_fault = 0;         // System settings from other modules
+area_t live_fault = 0;          // System settings from other modules
+area_t latch_tamper = 0;        // System settings from other modules
+area_t live_tamper = 0;         // System settings from other modules
+area_t latch_warning = 0;       // System settings from other modules
+area_t live_warning = 0;        // System settings from other modules
+area_t latch_presence = 0;      // System settings from other modules
+area_t live_presence = 0;       // System settings from other modules
 static uint32_t summary_next = 0;       // When to report summary
 
 // TODO keypad UI
@@ -152,13 +156,13 @@ const char *system_makereport(jo_t j)
       input_flip = 0;
       for (int i = 0; i < MAXINPUT; i++)
       {
-         if (latch & (1ULL << i))
+         if ((latch | input_stable) & (1ULL << i))
          {                      // State is active (or has been, even if briefly)
 #define i(x) x|=input##x[i];
 #include "states.m"
          }
          if (flip & (1ULL << i))
-         {                      // State has changed, so causes presense
+         {                      // State has changed, so causes presence
             presence |= inputtamper[i];
             presence |= inputaccess[i];
          }
@@ -172,16 +176,16 @@ const char *system_makereport(jo_t j)
    // Latched from local fault or tamper
    area_t latch = latch_fault;
    latch_fault = 0;
-   fault |= latch;
+   fault |= latch | live_fault;
    latch = latch_tamper;
    latch_tamper = 0;
-   tamper |= latch;
+   tamper |= latch | live_tamper;
    latch = latch_presence;
    latch_presence = 0;
-   presence |= latch;
+   presence |= latch | live_presence;;
    latch = latch_warning;
    latch_warning = 0;
-   warning |= latch;
+   warning |= latch | live_warning;
 #define i(x) jo_area(j,#x,x);
 #define c(x) jo_area(j,#x,control_##x);
 #include "states.m"

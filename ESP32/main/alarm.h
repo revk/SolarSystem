@@ -12,9 +12,13 @@ extern area_t areawarning;
 extern area_t areafault;
 extern area_t areatamper;
 extern area_t latch_tamper;
+extern area_t live_tamper;
 extern area_t latch_fault;
+extern area_t live_fault;
 extern area_t latch_warning;
+extern area_t live_warning;
 extern area_t latch_presence;
+extern area_t live_presence;
 
 void jo_area(jo_t j, const char *tag, area_t area);     // Store area
 area_t jo_read_area(jo_t);      // Read area
