@@ -6,6 +6,13 @@ endif
 can --redirect --organisation='$SESSION_ORGANISATION' editdevice
 if($status) exit 0
 
+if($?UPGRADEALL) then
+	can --redirect --device='$device' editdevice
+	sql "$DB" 'UPDATE device SET upgrade=NOW() WHERE upgrade is NULL AND organisation="$SESSION_ORGANISATION" AND site="$SESSION_SITE"'
+        message --poke
+	redirect editdevice.cgi
+	exit 0
+endif
 if($?UPGRADE) then
 	can --redirect --device='$device' editdevice
 	sql "$DB" 'UPDATE device SET upgrade=NOW() WHERE device="$device"'
@@ -98,7 +105,7 @@ xmlsql -C -d "$DB" head.html - foot.html << END
 </tr>
 </sql>
 </table>
-<if not found><p>No devices found.</p></if>
+<if found><form method=post><input name=UPGRADEALL value="Upgrade all" type=submit></form></if><if else><p>No devices found.</p></if>
 </if><if else>
 <form method=post action=/editdevice.cgi><input type=hidden name=device>
 <sql table="device LEFT JOIN pcb USING (pcb)" KEY=device>
