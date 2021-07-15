@@ -350,8 +350,10 @@ const char *system_mesh(const char *suffix, jo_t j)
    else if (!strcmp(suffix, "noquorum"))
       status(alarm_fault = "No quorum");
    else if (!strcmp(suffix, "quorum"))
-      status(alarm_fault = "Missing devices");
-   else if (!strcmp(suffix, "fullhouse"))
+   {
+      latch_warning |= areawarning;     // Ideally this stays active until working - we need to add alarm_warning thing maybe?
+      //status(alarm_fault = "Missing devices");
+   } else if (!strcmp(suffix, "fullhouse"))
       status(alarm_fault = NULL);
    else if (!strcmp(suffix, "other"))
    {
