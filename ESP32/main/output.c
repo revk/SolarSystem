@@ -158,7 +158,7 @@ static void task(void *pvParameters)
                   output_hold[i] = outputpulse[i];
                output_write(i); // Update output state
             }
-      if (report_next < now || output_mix != output_last)
+      if (output_mix != output_last || now > report_next)
       {
          output_last = output_mix;
          report_next = now + 3600;

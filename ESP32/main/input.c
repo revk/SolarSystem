@@ -107,7 +107,7 @@ static void task(void *pvParameters)
             }
          }
       uint32_t now = uptime();
-      if (was != input_stable || now < report_next)
+      if (was != input_stable || now > report_next)
       {                         // JSON
          report_next = now + 3600;
          input_latch |= input_stable;
