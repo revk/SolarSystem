@@ -72,7 +72,7 @@ int output_get(int p)
 const char *output_command(const char *tag, jo_t j)
 {
    if (!strcmp(tag, "connect"))
-      report_next = 0;          // Report
+      report_next = uptime() + 1;       // Report
    const char *e = NULL;
    if (!strncmp(tag, TAG, strlen(TAG)))
    {                            // Set output

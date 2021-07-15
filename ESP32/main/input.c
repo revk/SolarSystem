@@ -68,7 +68,7 @@ int input_get(int p)
 const char *input_command(const char *tag, jo_t j)
 {
    if (!strcmp(tag, "connect"))
-      report_next = 0;
+      report_next = uptime() + 1;
    return NULL;
 }
 

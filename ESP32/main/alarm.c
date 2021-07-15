@@ -56,7 +56,7 @@ settings
 const char *alarm_command(const char *tag, jo_t j)
 {
    if (!strcmp(tag, "connect"))
-      summary_next = 0;         // Report
+      summary_next = uptime() + 1;      // Report
    return NULL;
 }
 
