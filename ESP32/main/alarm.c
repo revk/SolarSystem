@@ -183,7 +183,7 @@ const char *system_makesummary(jo_t j)
    // Make system states
    // simple latched states - cleared by re-arming
    state_tampered = ((state_tampered & ~report_arm) | report_tamper);
-   state_faulted = ((state_faulted ^ ~report_arm) | report_fault);
+   state_faulted = ((state_faulted & ~report_arm) | report_fault);
    state_alarmed = ((state_alarmed & ~report_arm) | state_alarm);
    // arming normally holds off for presence (obviously) but also tamper and access - forcing armed is possible
    state_armed = ((state_armed | report_forcearm | (report_arm & ~state_presence & ~(state_tamper & ~engineer) & ~state_access)) & ~report_disarm);
