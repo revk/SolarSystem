@@ -25,11 +25,11 @@ u8 (inputpoll, 10);	\
 #define u8(n,v) uint8_t n
 settings
 #undef u8
-static uint64_t input_raw = 0;
-static uint64_t input_stable = 0;
-static uint64_t input_invert = 0;
-uint64_t input_latch = 0;       // holds resettable state of input
-uint64_t input_flip = 0;        // holds flipped flag for each input, i.e. state has changed
+static input_t input_raw = 0;
+static input_t input_stable = 0;
+static input_t input_invert = 0;
+input_t input_latch = 0;        // holds resettable state of input
+input_t input_flip = 0;         // holds flipped flag for each input, i.e. state has changed
 
 static uint32_t report_next = 0;
 
@@ -84,7 +84,7 @@ static void task(void *pvParameters)
       esp_task_wdt_reset();
       // Check inputs
       int i;
-      uint64_t was = input_stable;
+      input_t was = input_stable;
       for (i = 0; i < MAXINPUT; i++)
          if (input[i])
          {
@@ -93,7 +93,7 @@ static void task(void *pvParameters)
                v = 1 - v;
             if (v != ((input_raw >> i) & 1))
             {                   // Change of raw state
-               input_raw = ((input_raw & ~(1ULL << i)) | ((uint64_t) v << i));
+               input_raw = ((input_raw & ~(1ULL << i)) | ((input_t) v << i));
                input_hold[i] = (inputhold[i] ? : 100);  // Start countdown
             }
             if (input_hold[i])
@@ -103,7 +103,7 @@ static void task(void *pvParameters)
                else
                   input_hold[i] -= poll;
                if (!input_hold[i])      // hold done
-                  input_stable = ((input_stable & ~(1ULL << i)) | ((uint64_t) v << i));
+                  input_stable = ((input_stable & ~(1ULL << i)) | ((input_t) v << i));
             }
          }
       uint32_t now = uptime();

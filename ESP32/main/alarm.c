@@ -134,9 +134,9 @@ const char *system_makereport(jo_t j)
 #define i(x) area_t x=0;        // what we are going to send
 #include "states.m"
    {                            // Inputs
-      uint64_t latch = input_latch;
+      input_t latch = input_latch;
       input_latch = 0;
-      uint64_t flip = input_flip;
+      input_t flip = input_flip;
       input_flip = 0;
       for (int i = 0; i < MAXINPUT; i++)
       {
@@ -287,7 +287,7 @@ const char *system_summary(jo_t j)
       // TODO event on arming times out
    }
    // Outputs
-   uint64_t forced = 0;
+   output_t forced = 0;
    for (int i = 0; i < MAXOUTPUT; i++)
    {
 #define i(x) if(output##x[i]&state_##x)forced|=(1ULL<<i);

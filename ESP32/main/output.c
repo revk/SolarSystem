@@ -21,11 +21,11 @@ static uint16_t outputpulse[MAXOUTPUT]; // Timeout in s/10
 #define s(x) i(x)
 #include "states.m"
 
-static uint64_t output_state = 0;       // Port state
-static uint64_t output_raw = 0; // Actual output
+static output_t output_state = 0;       // Port state
+static output_t output_raw = 0; // Actual output
+output_t output_forced = 0;     // Output forced externally
+output_t output_pulsed = 0;     // Output pulse timed out
 static uint32_t report_next = 0;        // When to report output
-uint64_t output_forced = 0;     // Output forced externally
-uint64_t output_pulsed = 0;     // Output pulse timed out
 
 int output_active(int p)
 {
@@ -39,7 +39,7 @@ int output_active(int p)
 
 static void output_write(int p)
 {                               // Write current (combined) state
-   uint64_t v = (((output_state | output_forced) & ~output_pulsed) >> p) & 1;
+   output_t v = (((output_state | output_forced) & ~output_pulsed) >> p) & 1;
    output_raw = (output_raw & ~(1ULL << p)) | (v << p);
    gpio_hold_dis(port_mask(output[p]));
    gpio_set_level(port_mask(output[p]), (output[p] & PORT_INV) ? 1 - v : v);
@@ -136,14 +136,14 @@ static void task(void *pvParameters)
 {                               // Main RevK task
    esp_task_wdt_add(NULL);
    pvParameters = pvParameters;
-   static uint64_t output_last = 0;     // Last reported
+   static output_t output_last = 0;     // Last reported
    static uint16_t output_hold[MAXOUTPUT] = { };
    // Scan inputs
    while (1)
    {
       esp_task_wdt_reset();
       uint32_t now = uptime();
-      uint64_t output_mix = (output_state | output_forced);
+      output_t output_mix = (output_state | output_forced);
       for (int i = 0; i < MAXOUTPUT; i++)
          if (!(output_mix & (1ULL << i)))
             output_hold[i] = 0;
