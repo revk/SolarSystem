@@ -49,7 +49,7 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <tr><td>Engineer</td><td><sql select="tag" table=area where="site=$site"><label for=$tag><output name=tag>:</label><input id=$tag name=engineer type=checkbox value=$tag></sql></td></tr>
 <tr><td>Pre-arm</td><td><input name=prearm size=3> seconds (timeout before cancelling arming)</td></tr>
 <tr><td>Pre-alarm</td><td><input name=prealarm size=3> seconds (timeout before alarm triggers)</td></tr>
-<tr><td>Post-arm</td><td><input name=postalarm size=3> seconds (timeout before alarm cancels after last trigger)</td></tr>
+<tr><td>Post-alarm</td><td><input name=postalarm size=3> seconds (timeout before alarm cancels after last trigger)</td></tr>
 </table>
 </sql>
 <input type=submit value="Update">
