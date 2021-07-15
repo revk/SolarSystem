@@ -68,7 +68,7 @@ void alarm_arm(area_t a, const char *why)
    a &= areaarm;
    if (((state_armed | control_arm) & a & ~control_disarm) == a)
       return;                   // All armed
-   ESP_LOGD(TAG, "Arm %X %s", a, why ? : "");
+   ESP_LOGI(TAG, "Arm %X %s", a, why ? : "");
    control_arm |= a;
    control_disarm &= ~a;
    door_check();
@@ -85,15 +85,15 @@ void alarm_disarm(area_t a, const char *why)
    a &= areadisarm;
    if (!((state_armed | control_arm) & a & ~control_disarm))
       return;                   // Not armed
-   ESP_LOGD(TAG, "Disarm %X %s", a, why ? : "");
+   ESP_LOGI(TAG, "Disarm %X %s", a, why ? : "");
    control_arm &= ~a;
    control_disarm |= a;
    door_check();
    jo_t j = jo_object_alloc();
-   revk_event_copy("disarm", &j, ioteventarm);
    jo_area(j, "areas", a);
    if (why && *why)
       jo_string(j, "reason", why);
+   revk_event_copy("disarm", &j, ioteventarm);
 }
 
 void alarm_init(void)
@@ -212,6 +212,7 @@ const char *system_makesummary(jo_t j)
       timer1 = 0;
    else if (!alarmdelay || (timer1 += meshcycle) > alarmdelay)
       state_alarm = ((state_alarm | state_prealarm) & state_armed);
+   state_alarm &= state_armed;
    static uint16_t timer2 = 0;  // Post alarm timer - ideally per area, but this will be fine
    if (state_prealarm)
       timer2 = 0;
@@ -253,16 +254,16 @@ const char *system_summary(jo_t j)
       const char *json = jo_rewind(j);
       if (json)
       {
-         json = strchr(json, ',');      // Skip time as that changes every time, duh
-         static unsigned int last = 0;  // using a CRC is a lot less memory than a copy of this or of the states
+         uint32_t now = uptime();
+         static unsigned int last_crc = 0;      // using a CRC is a lot less memory than a copy of this or of the states
          unsigned int crc = 0;
+         json = strchr(json, ',');      // Skip time as that changes every time, duh
          if (json)
             crc = df_crc(strlen(json), (void *) json);
-         uint32_t now = uptime();
-         if (last != crc || now > summary_next)
+         if (last_crc != crc || now > summary_next)
          {                      // Changed
             summary_next = now + 60;
-            last = crc;
+            last_crc = crc;
             jo_t c = jo_copy(j);
             revk_state_copy("system", &c, iotstatesystem);
          }

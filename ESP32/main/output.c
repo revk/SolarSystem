@@ -137,6 +137,7 @@ static void task(void *pvParameters)
    esp_task_wdt_add(NULL);
    pvParameters = pvParameters;
    static output_t output_last = 0;     // Last reported
+   static output_t output_last_pulsed = 0;      // Last reported
    static uint16_t output_hold[MAXOUTPUT] = { };
    // Scan inputs
    while (1)
@@ -160,9 +161,10 @@ static void task(void *pvParameters)
                   output_hold[i] = outputpulse[i];
                output_write(i); // Update output state
             }
-      if (output_mix != output_last || now > report_next)
+      if (output_mix != output_last || output_pulsed != output_last_pulsed || now > report_next)
       {
          output_last = output_mix;
+         output_last_pulsed = output_pulsed;
          report_next = now + 3600;
          jo_t j = jo_object_alloc();
          if (*name)
@@ -172,7 +174,12 @@ static void task(void *pvParameters)
             t--;
          for (int i = 0; i < t; i++)
             if (output[i])
-               jo_bool(j, outputname[i], (output_mix >> i) & 1);
+            {
+               if (output_pulsed & (1ULL << i))
+                  jo_null(j, outputname[i]);    // Distinct state for false but should be true
+               else
+                  jo_bool(j, outputname[i], (output_mix >> i) & 1);
+            }
          revk_state_copy("output", &j, iotstateoutput);
       }
       usleep(100000);           // 100 ms (timers assume this)
