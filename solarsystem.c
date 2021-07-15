@@ -102,9 +102,11 @@ static const char *settings(SQL * sqlp, SQL * sqlkeyp, SQL_RES * res, slot_t id)
    j_store_string(j, "name", sql_colz(res, "devicename"));
    if (*CONFIG_OTA_HOSTNAME)
       j_store_string(j, "otahost", CONFIG_OTA_HOSTNAME);
+   char isdoor=0;
    j_t door = j_store_object(j, "door");
    if (*sql_colz(res, "door") == 't')
    {
+	   isdoor=1;
       j_store_int(door, "auto", 5);
       if (*sql_colz(res, "doorexitarm") == 't')
          j_store_boolean(door, "exitarm", 1);
@@ -185,8 +187,8 @@ static const char *settings(SQL * sqlp, SQL * sqlkeyp, SQL_RES * res, slot_t id)
 #undef led
       }
       sql_free_result(p);
-      int i = (door ? 4 : 0),
-          o = (door ? 4 : 0);
+      int i = (isdoor ? 4 : 0), // Need to avoid inputs used for door control
+          o = (isdoor ? 4 : 0); // Need to avoid outputs used for door control
       j_t input = j_store_array(j, "input");
       j_t output = j_store_array(j, "output");
       j_t power = j_store_array(j, "power");

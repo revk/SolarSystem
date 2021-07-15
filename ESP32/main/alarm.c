@@ -25,7 +25,7 @@ const char *alarm_tamper = NULL;
 
 area_t latch_fault = 0;         // From board fault
 area_t latch_tamper = 0;        // From board tamper
-area_t latch_warning = 0;        // From board tamper
+area_t latch_warning = 0;       // From board tamper
 area_t latch_presence = 0;      // From board tamper
 static uint32_t summary_next = 0;       // When to report summary
 
@@ -247,7 +247,7 @@ const char *system_summary(jo_t j)
          static unsigned int last = 0;  // using a CRC is a lot less memory than a copy of this or of the states
          unsigned int crc = 0;
          if (json)
-            df_crc(strlen(json), (void *) json);
+            crc = df_crc(strlen(json), (void *) json);
          uint32_t now = uptime();
          if (last != crc || now > summary_next)
          {                      // Changed
