@@ -15,7 +15,7 @@ const char *output_tamper = NULL;
 static uint8_t output[MAXOUTPUT];
 static uint8_t power[MAXOUTPUT];        /* fixed outputs */
 static char *outputname[MAXOUTPUT];
-static uint16_t outputpulse[MAXOUTPUT];
+static uint16_t outputpulse[MAXOUTPUT]; // Timeout in s/10
 
 #define i(x) area_t output##x[MAXOUTPUT];
 #define s(x) i(x)
@@ -25,6 +25,7 @@ static uint64_t output_state = 0;       // Port state
 static uint64_t output_raw = 0; // Actual output
 static uint32_t report_next = 0;        // When to report output
 uint64_t output_forced = 0;     // Output forced externally
+uint64_t output_pulsed = 0;     // Output pulse timed out
 
 int output_active(int p)
 {
@@ -38,7 +39,7 @@ int output_active(int p)
 
 static void output_write(int p)
 {                               // Write current (combined) state
-   uint64_t v = ((output_state | output_forced) >> p) & 1;
+   uint64_t v = (((output_state | output_forced) & ~output_pulsed) >> p) & 1;
    output_raw = (output_raw & ~(1ULL << p)) | (v << p);
    gpio_hold_dis(port_mask(output[p]));
    gpio_set_level(port_mask(output[p]), (output[p] & PORT_INV) ? 1 - v : v);
@@ -63,7 +64,7 @@ int output_get(int p)
    if (p < 1 || p > MAXOUTPUT)
       return -1;
    p--;
-   if ((output_state | output_forced) & (1ULL << p))
+   if (((output_state | output_forced) & ~output_pulsed) & (1ULL << p))
       return 1;
    return 0;
 }
@@ -136,16 +137,27 @@ static void task(void *pvParameters)
    esp_task_wdt_add(NULL);
    pvParameters = pvParameters;
    static uint64_t output_last = 0;     // Last reported
+   static uint16_t output_hold[MAXOUTPUT] = { };
    // Scan inputs
    while (1)
    {
       esp_task_wdt_reset();
       uint32_t now = uptime();
-      uint64_t output_mix = output_state | output_forced;
+      uint64_t output_mix = (output_state | output_forced);
+      for (int i = 0; i < MAXOUTPUT; i++)
+         if (!(output_mix & (1ULL << i)))
+            output_hold[i] = 0;
+         else if (output_hold[i] && !--output_hold[i])
+            output_pulsed |= (1ULL << i);
+      output_mix &= ~output_pulsed;
       if (output_mix != output_raw)
          for (int i = 0; i < MAXOUTPUT; i++)
             if ((output_mix ^ output_raw) & (1ULL << i))
+            {
+               if (output_mix & (1ULL << i))
+                  output_hold[i] = outputpulse[i];
                output_write(i); // Update output state
+            }
       if (report_next < now || output_mix != output_last)
       {
          output_last = output_mix;
@@ -161,7 +173,7 @@ static void task(void *pvParameters)
                jo_bool(j, outputname[i], (output_mix >> i) & 1);
          revk_state_copy("output", &j, iotstateoutput);
       }
-      usleep(100000);
+      usleep(100000);           // 100 ms (timers assume this)
    }
 }
 

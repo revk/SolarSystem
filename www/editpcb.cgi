@@ -114,9 +114,9 @@ xmlsql -C -d "$DB" head.html - foot.html << END
 <tr><td><select name=nfcbell>$GPIONFCPICK</select></td><td>PN532 NFC Bell input</td></tr>
 </if>
 <sql table=gpio where="pcb=\$pcb" order=io,inittype,initname>
-<tr><td><input name=gpio type=hidden><select name=pin>$GPIONUMPICK</select></td><td><select name=io>$GPIOIOPICK</select><select name=inittype>$GPIOTYPEPICK</select> <input name="initname\$gpio" value="\$initname" size=10> <input name="inithold\$gpio" size=3 value="\$inithold">ms <input name="initpulse\$gpio" size=5 value="\$initpulse">s</td></tr></td>
+<tr><td><input name=gpio type=hidden><select name=pin>$GPIONUMPICK</select></td><td><select name=io>$GPIOIOPICK</select><select name=inittype>$GPIOTYPEPICK</select> <input name="initname\$gpio" value="\$initname" size=10> <input name="inithold\$gpio" size=3 value="\$inithold">ms <input name="initpulse\$gpio" size=5 value="\$initpulse">s/10</td></tr></td>
 </sql>
-<tr><td><input name=gpio type=hidden value=0><select name=pin>$GPIONUMPICK</select></td><td><select name=io>$GPIOIOPICK</select><select name=inittype>$GPIOTYPEPICK</select> <input name=initname size=10 placeholder='New pin'> <input name=inithold size=3 placeholder="Hold">ms <input name=initpulse size=5 placeholder="Pulse">s</td></tr></td>
+<tr><td><input name=gpio type=hidden value=0><select name=pin>$GPIONUMPICK</select></td><td><select name=io>$GPIOIOPICK</select><select name=inittype>$GPIOTYPEPICK</select> <input name=initname size=10 placeholder='New pin'> <input name=inithold size=3 placeholder="Hold">ms <input name=initpulse size=5 placeholder="Pulse">s/10</td></tr></td>
 </table>
 </sql>
 <input type=submit value="Update">

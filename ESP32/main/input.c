@@ -30,7 +30,6 @@ static uint64_t input_stable = 0;
 static uint64_t input_invert = 0;
 uint64_t input_latch = 0;       // holds resettable state of input
 uint64_t input_flip = 0;        // holds flipped flag for each input, i.e. state has changed
-static uint8_t input_hold[MAXINPUT] = { };
 
 static uint32_t report_next = 0;
 
@@ -78,6 +77,7 @@ static void task(void *pvParameters)
    esp_task_wdt_add(NULL);
    pvParameters = pvParameters;
    int poll = (inputpoll ? : 1);
+static uint8_t input_hold[MAXINPUT] = { };
    // Scan inputs
    while (1)
    {
