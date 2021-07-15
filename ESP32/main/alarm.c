@@ -236,15 +236,21 @@ const char *system_summary(jo_t j)
    if (esp_mesh_is_root())
    {                            // We are root, so we have updated anyway, but let's report to IoT
       const char *json = jo_rewind(j);
-      static unsigned int last = 0;     // using a CRC is a lot less memory than a copy of this or of the states
-      unsigned int crc = df_crc(strlen(json), (void *) json);
-      uint32_t now = uptime();
-      if (last != crc || now > summary_next)
-      {                         // Changed
-         summary_next = now + 60;
-         last = crc;
-         jo_t c = jo_copy(j);
-         revk_state_copy("system", &c, iotstatesystem);
+      if (json)
+      {
+         json = strchr(json, ',');      // Skip time as that changes every time, duh
+         static unsigned int last = 0;  // using a CRC is a lot less memory than a copy of this or of the states
+         unsigned int crc = 0;
+         if (json)
+            df_crc(strlen(json), (void *) json);
+         uint32_t now = uptime();
+         if (last != crc || now > summary_next)
+         {                      // Changed
+            summary_next = now + 60;
+            last = crc;
+            jo_t c = jo_copy(j);
+            revk_state_copy("system", &c, iotstatesystem);
+         }
       }
    } else
    {                            // We are leaf, get the data

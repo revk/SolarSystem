@@ -565,9 +565,9 @@ int main(int argc, const char *argv[])
       }
       {
          static int tick = 0;
-         if (now / 600 != tick || poke)
+         if (now / 60 != tick || poke)
          {
-            tick = now / 600;
+            tick = now / 60;
             if (poke)
             {
                poke = 0;
