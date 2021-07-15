@@ -135,6 +135,9 @@ areas(engineer);             // Site wide engineering state
 areas(alarmed);			// Site wide state from mesh
 areas(tampered);		// Site wide state from mesh
 areas(faulted);			// Site wide state from mesh
+num(prearm);			// Pre arm time
+num(prealarm);			// Pre alarm time
+num(postalarm);			// Hold alarm state time
 
 table(area, 0);
 link(organisation);             // Quicker

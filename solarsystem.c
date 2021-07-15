@@ -261,6 +261,9 @@ static void addsitedata(SQL * sqlp, j_t j, SQL_RES * site, const char *deviceid,
    v = sql_colz(site, "iothost");
    j_store_string(j, "mqtthost2", *v ? v : NULL);
    addarea(j, "engineer", sql_colz(site, "engineer"), 1);
+   j_store_int(j, "prearm", atoi(sql_colz(site, "prearm")));
+   j_store_int(j, "prealarm", atoi(sql_colz(site, "prealarm")));
+   j_store_int(j, "postalarm", atoi(sql_colz(site, "postalarm")));
    j_t wifi = j_store_object(j, "wifi");
    if ((v = sql_colz(site, "wifissid")) && *v)
       j_store_string(wifi, "ssid", v);

@@ -39,14 +39,19 @@ area_t latch_presence = 0;      // From board tamper
 	area(areadisarm)	\
 	area(engineer)		\
 	area(armed)		\
+	u16(prearm)		\
+	u16(prealarm)		\
+	u16(postalarm)		\
 
 #define area(n) area_t n;
 #define s(n) char *n;
 #define ss(n) char *n;
+#define u16(n) uint16_t n;
 settings
 #undef area
 #undef s
 #undef ss
+#undef u16
 const char *alarm_command(const char *tag, jo_t j)
 {
    // TODO ARM and DISARM commands
@@ -84,10 +89,12 @@ void alarm_init(void)
 #define area(n) revk_register(#n,0,sizeof(n),&n,AREAS,SETTING_BITFIELD|SETTING_LIVE);
 #define s(n) revk_register(#n,0,0,&n,NULL,0);
 #define ss(n) revk_register(#n,0,0,&n,NULL,SETTING_SECRET);
+#define u16(n) revk_register(#n,0,sizeof(n),&n,NULL,0);
    settings
 #undef area
 #undef s
 #undef ss
+#undef u16
        control_arm = armed;     // Arm from flash state
 }
 
@@ -174,29 +181,28 @@ const char *system_makesummary(jo_t j)
 #include "states.m"
 
    // Make system states
-   // simple latched states
-   state_tampered |= report_tamper;
-   state_faulted |= report_fault;
-   state_alarmed |= state_alarm;
+   // simple latched states - cleared by re-arming
+   state_tampered = ((state_tampered & ~report_arm) | report_tamper);
+   state_faulted = ((state_faulted ^ ~report_arm) | report_fault);
+   state_alarmed = ((state_alarmed & ~report_arm) | state_alarm);
    // arming normally holds off for presence (obviously) but also tamper and access - forcing armed is possible
-   state_armed |= (report_arm & ~state_presence & ~(state_tamper & ~engineer) & ~state_access);
-   // disarm
-   state_armed &= ~report_disarm;
+   state_armed = ((state_armed | report_forcearm | (report_arm & ~state_presence & ~(state_tamper & ~engineer) & ~state_access)) & ~report_disarm);
    // prearm if any not armed yet
    state_prearm = (report_arm & ~state_armed);
    // Alarm based only on presence, but change of tamper or access trips presence anyway. Basically you can force arm with tamper and access
-   state_prealarm = ((state_prealarm | state_presence) & state_armed);
-   // TODO delay for alarm from prealarm
-   state_alarm = ((state_alarm | state_prealarm) & state_armed);
-   state_prealarm &= ~state_alarm;
+   state_prealarm = (((state_prealarm | state_presence) & state_armed) & ~state_alarm);
+   static uint16_t timer1 = 0;  // Pre alarm timer - ideally per area, but this will be fine
+   if (!state_prealarm)
+      timer1 = 0;
+   else if (prealarm && (timer1 += meshcycle) > prealarm)
+      state_alarm = ((state_alarm | state_prealarm) & state_armed);
+   static uint16_t timer2 = 0;  // Post alarm timer - ideally per area, but this will be fine
+   if (state_prealarm)
+      timer2 = 0;
+   else if (postalarm && (timer2 += meshcycle) > postalarm)
+      state_alarm = 0;
    // Fixed
    state_engineer = engineer;   // From flash - could be changed live though, so set here
-
-   // TODO for now, a way to clear alarmed, faulted, tampered - when arming
-   state_alarmed &= ~report_arm;
-   state_faulted &= ~report_arm;
-   state_tampered &= ~report_arm;
-
 
    // Send summary
 #define i(x) jo_area(j,#x,state_##x);report_##x=0;
@@ -257,9 +263,17 @@ const char *system_summary(jo_t j)
 #include "states.m"
    }
    // Clear control bits when actioned
-   // TODO timer cancel arm
    control_arm &= ~state_armed;
+   control_forcearm &= ~state_armed;
    control_disarm &= state_armed;
+   static uint16_t timer = 0;
+   if (!control_arm)
+      timer = 0;
+   else if (prearm && (timer += meshcycle) > prearm)
+   {                            // Cancel arming (ideally per area, but this is good enough)
+      control_arm = 0;
+      // TODO event on arming times out
+   }
    // Outputs
    uint64_t forced = 0;
    for (int i = 0; i < MAXOUTPUT; i++)

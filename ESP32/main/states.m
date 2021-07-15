@@ -22,6 +22,7 @@ i(fire)
 i(panic)
 
 c(arm)
+c(forcearm)
 c(disarm)
 
 s(prearm)
