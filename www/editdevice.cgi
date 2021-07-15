@@ -55,6 +55,7 @@ if($?devicename) then # save
 	setenv pcb `sql "$DB" 'SELECT pcb FROM device WHERE device="$device"'`
 	if($?pcb) then
 		setenv nfc `sql "$DB" 'SELECT IF(nfctx="-","false","true") FROM pcb WHERE pcb=$pcb'`
+		setenv keypad `sql "$DB" 'SELECT IF(keypadtx="-","false","true") FROM pcb WHERE pcb=$pcb'`
 	endif
 	if($?nfc && ! $?nfcadmin) setenv nfcadmin false
 	if($?nfc && ! $?nfctrusted) setenv nfctrusted false
@@ -141,7 +142,7 @@ xmlsql -C -d "$DB" head.html - foot.html << END
 <if USER_ADMIN=true nfc=true><tr><td><label for=nfctrusted>Trusted NFC reader</label></td><td><input type=checkbox id=nfctrusted name=nfctrusted value=true></td></tr></if>
 </sql>
 <sql select="device.device,gpio.*,devicegpio.*" table="device JOIN gpio USING (pcb) LEFT JOIN devicegpio ON (devicegpio.device=device.device AND devicegpio.gpio=gpio.gpio)" WHERE="device.device='\$device'">
-<tr><td><output name=pinname href="/editgpio.cgi/\$device/\$gpio"></td>
+<tr><td><output name=name href="/editgpio.cgi/\$device/\$gpio" blank="GPIO" missing="GPIO"></td>
 <if type><td><b><output name=type $GPIOTYPEOUT><if invert=true> (inverted)</if></b><for space S="$STATELIST"><if not "\$S"=''> <output name=S></if></for></td></if>
 <if not type><td><b><output name=io $GPIOIOOUT></td></if>
 </tr>

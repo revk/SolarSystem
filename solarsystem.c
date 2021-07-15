@@ -218,7 +218,27 @@ static const char *settings(SQL * sqlp, SQL * sqlkeyp, SQL_RES * res, slot_t id)
             if (*pin)
             {
                j_store_literalf(gpio, "gpio", "%s%s", (invert ? "-" : ""), pin);
-#define i(n) addarea(gpio,#n,sql_col(g,#n),0);j_store_string(gpio,"name",sql_col(g,"pinname"));
+               if (*type != 'P')
+               {
+                  const char *name = sql_colz(g, "name");
+                  if (!*name)
+                     name = sql_colz(g, "initname");
+                  if (*name)
+                     j_store_string(gpio, "name", name);
+               }
+               if (*type == 'I')
+               {
+                  int hold = atoi(sql_colz(g, "hold")) ? : atoi(sql_colz(g, "inithold"));
+                  if (hold)
+                     j_store_int(gpio, "hold", hold);
+               }
+               if (*type == 'O')
+               {
+                  int pulse = atoi(sql_colz(g, "pulse")) ? : atoi(sql_colz(g, "initpulse"));
+                  if (pulse)
+                     j_store_int(gpio, "pulse", pulse);
+               }
+#define i(n) addarea(gpio,#n,sql_col(g,#n),0);
 #define s(n) i(n)
 #include "ESP32/main/states.m"
             }

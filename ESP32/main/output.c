@@ -15,6 +15,7 @@ const char *output_tamper = NULL;
 static uint8_t output[MAXOUTPUT];
 static uint8_t power[MAXOUTPUT];        /* fixed outputs */
 static char *outputname[MAXOUTPUT];
+static uint16_t outputpulse[MAXOUTPUT];
 
 #define i(x) area_t output##x[MAXOUTPUT];
 #define s(x) i(x)
@@ -169,6 +170,7 @@ void output_init(void)
    revk_register("output", MAXOUTPUT, sizeof(*output), &output, BITFIELDS, SETTING_BITFIELD | SETTING_SET | SETTING_SECRET);
    revk_register("outputgpio", MAXOUTPUT, sizeof(*output), &output, BITFIELDS, SETTING_BITFIELD | SETTING_SET);
    revk_register("outputname", MAXOUTPUT, 0, &outputname, NULL, 0);
+   revk_register("outputpulse", MAXOUTPUT, sizeof(*outputpulse), &outputpulse, NULL, 0);
    revk_register("power", MAXOUTPUT, sizeof(*power), &power, BITFIELDS, SETTING_BITFIELD | SETTING_SET | SETTING_SECRET);
    revk_register("powergpio", MAXOUTPUT, sizeof(*power), &power, BITFIELDS, SETTING_BITFIELD | SETTING_SET);
 #define i(x) revk_register("output"#x, MAXOUTPUT, sizeof(*output##x), &output##x, AREAS, SETTING_BITFIELD);

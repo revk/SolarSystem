@@ -238,6 +238,9 @@ text(fault, 0);                 // Latest fault state
 
 join(device, gpio) gpiotype(type);      // Pin Usage (in/out/power/exit/etc)
 bool (invert);                  // Invert normal polarity for pin
+text(name,0);			// Port name, default to pin name
+num(hold);			// Port hold time
+num(pulse);			// Port output time
 #define i(state) areas(state)
 #define s(state) areas(state)
 #include "ESP32/main/states.m"  // Related areas
@@ -282,8 +285,10 @@ link(pcb);
 gpio(pin);
 unique(pcb, gpio);
 gpiopcb(io);
-gpiotype(init);
-text(pinname, 0);
+gpiotype(inittype);
+text(initname, 0);		// Default port pin name
+num(inithold);			// Default port hold time
+num(initpulse);			// Default port pulse time
 
 table(aid, 6);                  // AID
 link(organisation);

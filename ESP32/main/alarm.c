@@ -241,7 +241,7 @@ const char *system_summary(jo_t j)
       uint32_t now = uptime();
       if (last != crc || now > summary_next)
       {                         // Changed
-         summary_next = now + 60000000LL;
+         summary_next = now + 60;
          last = crc;
          jo_t c = jo_copy(j);
          revk_state_copy("system", &c, iotstatesystem);
