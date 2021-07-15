@@ -14,6 +14,7 @@ extern uint8_t iotstatefault;
 extern uint8_t iotstatetamper;
 extern uint8_t iotstatesystem;
 extern uint8_t ioteventfob;
+extern char *name; // Device name
 
 #define	MAX_PORT	40
 const char *port_check(int p, const char *module, int i);       // Check port is OK, NULL if OK, else error

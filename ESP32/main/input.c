@@ -106,12 +106,14 @@ static void task(void *pvParameters)
          input_latch |= input_stable;
          input_flip |= (input_stable ^ was);
          jo_t j = jo_object_alloc();
+         if (*name)
+            jo_string(j, "name", name);
          int t = MAXINPUT;
          while (t && !input[t - 1])
             t--;
          for (i = 0; i < t; i++)
             jo_bool(j, inputname[i], (input_stable >> i) & 1);
-         revk_state_copy(TAG, &j, iotstateinput);
+         revk_state_copy("input", &j, iotstateinput);
       }
       // Sleep
       usleep((inputpoll ? : 1) * 1000);

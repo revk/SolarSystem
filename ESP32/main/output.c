@@ -150,13 +150,15 @@ static void task(void *pvParameters)
          output_last = output_mix;
          output_report = now + 3600 * 1000000ULL;
          jo_t j = jo_object_alloc();
+         if (*name)
+            jo_string(j, "name", name);
          int t = MAXOUTPUT;
          while (t && !output[t - 1])
             t--;
          for (int i = 0; i < t; i++)
             if (output[i])
                jo_bool(j, outputname[i], (output_mix >> i) & 1);
-         revk_state_copy(TAG, &j, iotstateoutput);
+         revk_state_copy("output", &j, iotstateoutput);
       }
       usleep(100000);
    }
