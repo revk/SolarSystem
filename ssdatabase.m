@@ -222,6 +222,7 @@ link(aid);                      // The AID for door access (defines what site it
 areas(areaenter);               // Areas allowed enter by fob
 areas(areaarm);                 // Areas allowed arm by fob
 areas(areadisarm);              // Areas allowed disarm by fob
+areas(areawarning);              // Areas set by warning
 areas(areafault);               // Areas set by fault
 areas(areatamper);              // Areas set by tamper
 areas(areabell);		// Areas for door bell input

@@ -107,6 +107,7 @@ static void status_report(int force)
             jo_t j = jo_object_alloc();
             jo_string(j, "controller", r);
             revk_event("warning", &j);
+	    latch_warning|=area_warning;
          }
          reason = -1;           // Just once
       }

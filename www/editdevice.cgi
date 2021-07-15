@@ -66,7 +66,7 @@ if($?devicename) then # save
 	if(! $?iotstatetamper) setenv iotstatetamper false
 	if(! $?iotstatesystem) setenv iotstatesystem false
 	if(! $?ioteventfob) setenv ioteventfob false
-	setenv allow "devicename areatamper areafault areaenter areaarm areadisarm areabell nfc nfcadmin door aid site iotstatedoor iotstateinput iotstateoutput iotstatefault iotstatetamper iotstatesystem ioteventfob"
+	setenv allow "devicename areawarning areafault areatamper areaenter areaarm areadisarm areabell nfc nfcadmin door aid site iotstatedoor iotstateinput iotstateoutput iotstatefault iotstatetamper iotstatesystem ioteventfob"
 	if("$USER_ADMIN" == "true") setenv allow "$allow nfctrusted"
 	sqlwrite -o -n "$DB" device $allow
 	sql "$DB" 'UPDATE device SET poke=NOW() WHERE device="$device"'
@@ -127,6 +127,7 @@ xmlsql -C -d "$DB" head.html - foot.html << END
 </td>
 </if>
 </sql>
+<tr><td>Warning</td><td><sql select="tag" table=area where="site=\$site"><label for=warning\$tag><output name=tag>:</label><input id=warning\$tag name=areawarning type=checkbox value=\$tag></sql></td></tr>
 <tr><td>Fault</td><td><sql select="tag" table=area where="site=\$site"><label for=fault\$tag><output name=tag>:</label><input id=fault\$tag name=areafault type=checkbox value=\$tag></sql></td></tr>
 <tr><td>Tamper</td><td><sql select="tag" table=area where="site=\$site"><label for=tamper\$tag><output name=tag>:</label><input id=tamper\$tag name=areatamper type=checkbox value=\$tag></sql></td></tr>
 <if nfc=true><tr><td>Enter</td><td><sql select="tag" table=area where="site=\$site"><label for=enter\$tag><output name=tag>:</label><input id=enter\$tag name=areaenter type=checkbox value=\$tag></sql></td></tr></if>

@@ -25,6 +25,7 @@ const char *alarm_tamper = NULL;
 
 area_t latch_fault = 0;         // From board fault
 area_t latch_tamper = 0;        // From board tamper
+area_t latch_warning = 0;        // From board tamper
 area_t latch_presence = 0;      // From board tamper
 static uint32_t summary_next = 0;       // When to report summary
 
@@ -32,6 +33,7 @@ static uint32_t summary_next = 0;       // When to report summary
 // TODO commands to clean latched states
 
 #define settings		\
+	area(areawarning)	\
 	area(areafault)		\
 	area(areatamper)	\
 	area(areaenter)		\
@@ -167,6 +169,9 @@ const char *system_makereport(jo_t j)
    latch = latch_presence;
    latch_presence = 0;
    presence |= latch;
+   latch = latch_warning;
+   latch_warning = 0;
+   warning |= latch;
 #define i(x) jo_area(j,#x,x);
 #define c(x) jo_area(j,#x,control_##x);
 #include "states.m"
