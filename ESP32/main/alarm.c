@@ -200,7 +200,7 @@ const char *system_makesummary(jo_t j)
    static uint16_t timer1 = 0;  // Pre alarm timer - ideally per area, but this will be fine
    if (!state_prealarm)
       timer1 = 0;
-   else if (alarmdelay && (timer1 += meshcycle) > alarmdelay)
+   else if (!alarmdelay || (timer1 += meshcycle) > alarmdelay)
       state_alarm = ((state_alarm | state_prealarm) & state_armed);
    static uint16_t timer2 = 0;  // Post alarm timer - ideally per area, but this will be fine
    if (state_prealarm)
