@@ -822,8 +822,12 @@ int main(int argc, const char *argv[])
                               } else
                                  sql_safe_query_free(&sql, sql_printf("UPDATE `device` SET `online`=NOW(),`offlinereason`=NULL,`lastonline`=NOW(),`id`=%lld,`via`=NULL WHERE `device`=%#.*s", id, p - dev, dev));
                               device = sql_safe_query_store_free(&sql, sql_printf("SELECT * FROM `device` WHERE `device`=%#.*s", p - dev, dev));
-                              if (sql_fetch_row(device) && !upgrade(device, id))
+                              if (sql_fetch_row(device))
+                              {
+                                 if (!strncmp(secureid, dev, p - dev))
+                                    upgrade(device, id); // Priority upgrade for connecting device as fastest
                                  settings(&sql, &sqlkey, device, id);
+                              }
                            } else
                               sql_safe_query_free(&sql, sql_printf("INSERT INTO `pending` SET `pending`=%#.*s,`online`=NOW(),`id`=%lld ON DUPLICATE KEY UPDATE `id`=%lld", p - dev, dev, id, id));
                         }
