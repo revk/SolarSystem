@@ -133,7 +133,7 @@ static void status_report(int force)
          last_tamper = strdup(tamper);
          revk_state_copy("tamper", &j, iotstatetamper);
          latch_presence |= areatamper;  // Change is presence
-         if (faults)
+         if (tampers)
             latch_tamper |= areatamper;
       }
       jo_free(&j);              // safe to call even if freed by revk_state
