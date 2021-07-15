@@ -358,19 +358,25 @@ void daily(SQL * sqlp)
    sql_safe_query(sqlp, "DELETE FROM `session` WHERE `expires`<NOW()"); // Old sessions
 }
 
-void dopoke(SQL * sqlp, SQL * sqlkeyp)
-{                               // Poking that may need doing
-   SQL_RES *res = sql_safe_query_store(sqlp, "SELECT * FROM `device` WHERE (`poke`<=NOW() OR `upgrade`<=NOW()) AND `id` IS NOT NULL");
+void doupgrade(SQL * sqlp)
+{                               // Poking upgrades that may need doing
+   SQL_RES *res = sql_safe_query_store(sqlp, "SELECT * FROM `device` WHERE `upgrade`<=NOW() AND `id` IS NOT NULL ORDER BY `upgrade`");
    while (sql_fetch_row(res))
    {
       slot_t id = strtoull(sql_colz(res, "id"), NULL, 10);
-      if (sql_col(res, "upgrade"))
-         upgrade(res, id);
-      else if (sql_col(res, "poke"))
-      {
-         sql_safe_query_free(sqlp, sql_printf("UPDATE `device` SET `poke`=NULL WHERE `device`=%#s", sql_col(res, "device")));
-         settings(sqlp, sqlkeyp, res, id);
-      }
+      upgrade(res, id);
+   }
+   sql_free_result(res);
+}
+
+void dopoke(SQL * sqlp, SQL * sqlkeyp)
+{                               // Poking that may need doing
+   SQL_RES *res = sql_safe_query_store(sqlp, "SELECT * FROM `device` WHERE `poke`<=NOW() AND `upgrade` IS NULL AND `id` IS NOT NULL ORDER BY `poke`");
+   while (sql_fetch_row(res))
+   {
+      slot_t id = strtoull(sql_colz(res, "id"), NULL, 10);
+      sql_safe_query_free(sqlp, sql_printf("UPDATE `device` SET `poke`=NULL WHERE `device`=%#s", sql_col(res, "device")));
+      settings(sqlp, sqlkeyp, res, id);
    }
    sql_free_result(res);
 }
@@ -528,20 +534,24 @@ int main(int argc, const char *argv[])
    int poke = 1;
    while (1)
    {
+      time_t now = time(0);
       {                         // Daily jobs
          static int today = 0;
-         time_t now = time(0);
          if (now / 86400 != today)
          {
             today = now / 86400;
             daily(&sql);
-            poke = 1;
          }
       }
-      if (poke)
       {
-         poke = 0;
-         dopoke(&sql, &sqlkey);
+         static int tick = 0;
+         if (now / 600 != tick || poke)
+         {
+            tick = now / 600;
+            poke = 0;
+            dopoke(&sql, &sqlkey);
+            doupgrade(&sql);
+         }
       }
       j_t j = incoming();
       if (!j)
