@@ -68,10 +68,15 @@ void alarm_arm(area_t a, const char *why)
    a &= areaarm;
    if (((state_armed | control_arm) & a & ~control_disarm) == a)
       return;                   // All armed
-   ESP_LOGD(TAG, "Arm %X %s", a, why);
+   ESP_LOGD(TAG, "Arm %X %s", a, why ? : "");
    control_arm |= a;
    control_disarm &= ~a;
    door_check();
+   jo_t j = jo_object_alloc();
+   jo_area(j, "areas", a);
+   if (why && *why)
+      jo_string(j, "reason", why);
+   revk_event_copy("arm", &j, ioteventarm);
 }
 
 void alarm_disarm(area_t a, const char *why)
@@ -80,10 +85,15 @@ void alarm_disarm(area_t a, const char *why)
    a &= areadisarm;
    if (!((state_armed | control_arm) & a & ~control_disarm))
       return;                   // Not armed
-   ESP_LOGD(TAG, "Disarm %X %s", a, why);
+   ESP_LOGD(TAG, "Disarm %X %s", a, why ? : "");
    control_arm &= ~a;
    control_disarm |= a;
    door_check();
+   jo_t j = jo_object_alloc();
+   revk_event_copy("disarm", &j, ioteventarm);
+   jo_area(j, "areas", a);
+   if (why && *why)
+      jo_string(j, "reason", why);
 }
 
 void alarm_init(void)

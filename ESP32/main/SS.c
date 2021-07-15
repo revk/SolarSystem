@@ -52,7 +52,7 @@ static const char *port_inuse[MAX_PORT];
 	b(iotstatetamper)\
 	b(iotstatesystem)\
 	b(ioteventfob)	\
-
+	b(ioteventarm)	\
 
 #define io(n) static uint8_t n;
 #define area(n) area_t n;

@@ -160,6 +160,8 @@ static const char *settings(SQL * sqlp, SQL * sqlkeyp, SQL_RES * res, slot_t id)
                j_store_true(iot, "statesystem");
             if (*sql_colz(res, "ioteventfob") == 't')
                j_store_true(iot, "eventfob");
+            if (*sql_colz(res, "ioteventarm") == 't')
+               j_store_true(iot, "eventarm");
          }
       }
       sql_free_result(s);

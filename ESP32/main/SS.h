@@ -14,6 +14,7 @@ extern uint8_t iotstatefault;
 extern uint8_t iotstatetamper;
 extern uint8_t iotstatesystem;
 extern uint8_t ioteventfob;
+extern uint8_t ioteventarm;
 extern char *name;              // Device name
 
 #define	MAX_PORT	40
