@@ -9,7 +9,7 @@ source ../types
 
 if($?type) then
 	if(! $?invert) setenv invert false
-	sqlwrite -q -o -n "$DB" devicegpio device gpio type invert name hold $STATELIST
+	sqlwrite -q -o -n "$DB" devicegpio device gpio type invert name hold pulse $STATELIST
 	sql "$DB" 'UPDATE device SET poke=NOW() WHERE device="$device"'
 	message --poke
 	../login/redirect "editdevice.cgi/$device"
@@ -27,8 +27,9 @@ xmlsql -C -d "$DB" head.html - foot.html << END
 <tr><td>Device</td><td><output name=devicename blank="Unnamed" missing="Unnamed"></td></tr>
 <tr><td>PCB</td><td><sql table=pcb where="pcb=\$pcb"><output name=pcbname></sql></td></tr>
 <tr><td>GPIO</td><td><output name=pinname></td></tr>
-<tr><td>Name</td><td><input name=name size=10 autofocus></td></tr>
-<tr><td>Hold</td><td><input name=hold size=3>ms</td></tr>
+<if not type=P><tr><td>Name</td><td><input name=name size=10 autofocus></td></tr></if>
+<if type=*I><tr><td>Hold</td><td><input name=hold size=3>ms</td></tr></if>
+<if type=*O><tr><td>Pulse</td><td><input name=pulse size=3>s</td></tr></if>
 <tr><td>Type</td><td><output name=io $GPIOIOOUT>:<if io=I><select name=type>$GPIOTYPEPICKI</select></if><if io=O><select name=type>$GPIOTYPEPICKO</select></if><if io=IO><select name=type>$GPIOTYPEPICK</select></if></td></tr>
 <tr><td><label for=invert>Invert</label></td><td><input id=invert name=invert type=checkbox value=true></td></tr>
 </table>
