@@ -77,7 +77,7 @@ static void task(void *pvParameters)
    esp_task_wdt_add(NULL);
    pvParameters = pvParameters;
    int poll = (inputpoll ? : 1);
-static uint8_t input_hold[MAXINPUT] = { };
+   static uint8_t input_hold[MAXINPUT] = { };
    // Scan inputs
    while (1)
    {
@@ -109,7 +109,7 @@ static uint8_t input_hold[MAXINPUT] = { };
       uint32_t now = uptime();
       if (was != input_stable || now < report_next)
       {                         // JSON
-         report_next = now+3600;
+         report_next = now + 3600;
          input_latch |= input_stable;
          input_flip |= (input_stable ^ was);
          jo_t j = jo_object_alloc();
