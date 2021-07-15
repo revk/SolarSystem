@@ -51,14 +51,16 @@ if($?DELETE || $?FACTORY) then
 endif
 if($?devicename) then # save
 	can --redirect --device='$device' editdevice
-	if(! $?door) setenv door false
 	setenv pcb `sql "$DB" 'SELECT pcb FROM device WHERE device="$device"'`
 	if($?pcb) then
 		setenv nfc `sql "$DB" 'SELECT IF(nfctx="-","false","true") FROM pcb WHERE pcb=$pcb'`
 		setenv keypad `sql "$DB" 'SELECT IF(keypadtx="-","false","true") FROM pcb WHERE pcb=$pcb'`
 	endif
-	if($?nfc && ! $?nfcadmin) setenv nfcadmin false
-	if($?nfc && ! $?nfctrusted) setenv nfctrusted false
+	if(! $?nfcadmin) setenv nfcadmin false
+	if(! $?nfctrusted) setenv nfctrusted false
+	if(! $?door) setenv door false
+	if(! $?doorexitarm) setenv doorexitarm false
+	if(! $?doorexitdisarm) setenv doorexitdisarm false
 	if(! $?iotstatedoor) setenv iotstatedoor false
 	if(! $?iotstateinput) setenv iotstateinput false
 	if(! $?iotstateoutput) setenv iotstateoutput false
@@ -66,7 +68,7 @@ if($?devicename) then # save
 	if(! $?iotstatetamper) setenv iotstatetamper false
 	if(! $?iotstatesystem) setenv iotstatesystem false
 	if(! $?ioteventfob) setenv ioteventfob false
-	setenv allow "devicename areawarning areafault areatamper areaenter areaarm areadisarm areabell nfc nfcadmin door aid site iotstatedoor iotstateinput iotstateoutput iotstatefault iotstatetamper iotstatesystem ioteventfob"
+	setenv allow "devicename areawarning areafault areatamper areaenter areaarm areadisarm areabell nfc nfcadmin door doorexitarm doorexitdisarm aid site iotstatedoor iotstateinput iotstateoutput iotstatefault iotstatetamper iotstatesystem ioteventfob"
 	if("$USER_ADMIN" == "true") setenv allow "$allow nfctrusted"
 	sqlwrite -o -n "$DB" device $allow
 	sql "$DB" 'UPDATE device SET poke=NOW() WHERE device="$device"'
@@ -138,9 +140,11 @@ xmlsql -C -d "$DB" head.html - foot.html << END
 <tr><td>Online</td><td><if online><output name=online></if><if else>Last online <output name=lastonline missing="never"></if><if upgrade> (upgrade scheduled)</if></td></tr>
 <tr><td>Version</td><td><output name=version></td></tr>
 <sql table=pcb where="pcb=\$pcb">
-<if nfc=true><tr><td><label for=door>Door control</label></td><td><input type=checkbox id=door name=door value=true></td></tr></if>
-<if nfc=true><tr><td><label for=nfcadmin>Admin NFC reader</label></td><td><input type=checkbox id=nfcadmin name=nfcadmin value=true></td></tr></if>
-<if USER_ADMIN=true nfc=true><tr><td><label for=nfctrusted>Trusted NFC reader</label></td><td><input type=checkbox id=nfctrusted name=nfctrusted value=true></td></tr></if>
+<if nfc=true><tr><td><input type=checkbox id=door name=door value=true></td><td><label for=door>Door control</label></td></tr></if>
+<if nfc=true door=true><tr><td><input type=checkbox id=doorexitdisarm name=doorexitdisarm value=true></td><td><label for=doorexitdisarm>Door exit button disarm</label></td></tr></if>
+<if nfc=true door=true><tr><td><input type=checkbox id=doorexitarm name=doorexitarm value=true></td><td><label for=doorexitarm>Door exit button arm on hold</label></td></tr></if>
+<if nfc=true><tr><td><input type=checkbox id=nfcadmin name=nfcadmin value=true></td><td><label for=nfcadmin>Admin NFC reader</label></td></tr></if>
+<if USER_ADMIN=true nfc=true><tr><td><input type=checkbox id=nfctrusted name=nfctrusted value=true></td><td><label for=nfctrusted>Trusted NFC reader</label></td></tr></if>
 </sql>
 <sql select="device.device,gpio.*,devicegpio.*" table="device JOIN gpio USING (pcb) LEFT JOIN devicegpio ON (devicegpio.device=device.device AND devicegpio.gpio=gpio.gpio)" WHERE="device.device='\$device'">
 <tr><td><output name=name href="/editgpio.cgi/\$device/\$gpio" blank="GPIO" missing="GPIO"></td>

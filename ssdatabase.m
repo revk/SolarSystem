@@ -129,15 +129,15 @@ key(meshid, 12);
 text(meshpass, 0);              // Mesh WiFi passphrase
 text(meshkey, 32);              // AES key
 key(meshkey, 32);
-text(smsuser,0);
-text(smspass,0);
-areas(engineer);             // Site wide engineering state
-areas(alarmed);			// Site wide state from mesh
-areas(tampered);		// Site wide state from mesh
-areas(faulted);			// Site wide state from mesh
-num(prearm);			// Pre arm time
-num(prealarm);			// Pre alarm time
-num(postalarm);			// Hold alarm state time
+text(smsuser, 0);
+text(smspass, 0);
+areas(engineer);                // Site wide engineering state
+areas(alarmed);                 // Site wide state from mesh
+areas(tampered);                // Site wide state from mesh
+areas(faulted);                 // Site wide state from mesh
+num(prearm);                    // Pre arm time
+num(prealarm);                  // Pre alarm time
+num(postalarm);                 // Hold alarm state time
 
 table(area, 0);
 link(organisation);             // Quicker
@@ -208,6 +208,8 @@ bool (nfc);                     // Yes, can get from pcb, but useful to referenc
 bool (nfcadmin);                // NFC reader for admin use, e.g. on a desk
 bool (nfctrusted);              // Trusted device for fob provisioning
 bool (door);                    // This is a door
+bool (doorexitarm);             // Exit button hold arm
+bool (doorexitdisarm);          // Exit button disarm
 text(version, 0);               // S/w version
 text(build, 0);                 // S/w build
 num(chan);                      // WiFi channel
@@ -222,10 +224,10 @@ link(aid);                      // The AID for door access (defines what site it
 areas(areaenter);               // Areas allowed enter by fob
 areas(areaarm);                 // Areas allowed arm by fob
 areas(areadisarm);              // Areas allowed disarm by fob
-areas(areawarning);              // Areas set by warning
+areas(areawarning);             // Areas set by warning
 areas(areafault);               // Areas set by fault
 areas(areatamper);              // Areas set by tamper
-areas(areabell);		// Areas for door bell input
+areas(areabell);                // Areas for door bell input
 datetime(online);               // When online, if online
 datetime(lastonline);           // When last went offline
 text(offlinereason, 0);         // If sent offline reason, what was it
@@ -239,9 +241,9 @@ text(fault, 0);                 // Latest fault state
 
 join(device, gpio) gpiotype(type);      // Pin Usage (in/out/power/exit/etc)
 bool (invert);                  // Invert normal polarity for pin
-text(name,0);			// Port name, default to pin name
-num(hold);			// Port hold time
-num(pulse);			// Port output time
+text(name, 0);                  // Port name, default to pin name
+num(hold);                      // Port hold time
+num(pulse);                     // Port output time
 #define i(state) areas(state)
 #define s(state) areas(state)
 #include "ESP32/main/states.m"  // Related areas
@@ -287,9 +289,9 @@ gpio(pin);
 unique(pcb, gpio);
 gpiopcb(io);
 gpiotype(inittype);
-text(initname, 0);		// Default port pin name
-num(inithold);			// Default port hold time
-num(initpulse);			// Default port pulse time
+text(initname, 0);              // Default port pin name
+num(inithold);                  // Default port hold time
+num(initpulse);                 // Default port pulse time
 
 table(aid, 6);                  // AID
 link(organisation);

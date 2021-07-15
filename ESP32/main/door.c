@@ -41,11 +41,13 @@ uint8_t afile[256];             // Access file saved
   u32(dooropen,5000); \
   u32(doorclose,500); \
   u32(doorprop,60000); \
-  u32(doorexit,60000); \
+  u32(doorexit,3000); \
   u32(doorpoll,100); \
   u32(doordebounce,100); \
-  u1(doordebug); \
-  u1(doorsilent); \
+  b(doordebug); \
+  b(doorsilent); \
+  b(doorexitarm); \
+  b(doorexitdisarm); \
   ta(fallback,10); \
   ta(blacklist,10); \
   s(iotopen)	\
@@ -56,7 +58,7 @@ uint8_t afile[256];             // Access file saved
 #define u32(n,d) uint32_t n;
 #define u16(n,d) uint16_t n;
 #define u8(n,d) uint8_t n;
-#define u1(n) uint8_t n;
+#define b(n) uint8_t n;
 #define ta(n,c) const char*n[c]={};
 #define area(n) area_t n;
 #define s(n) char *n;
@@ -65,7 +67,7 @@ settings
 #undef u32
 #undef u16
 #undef u8
-#undef u1
+#undef b
 #undef area
 #undef s
 #define lock_states \
@@ -388,7 +390,7 @@ const char *door_fob(fob_t * fob)
             }
             if (e)
             {
-               if (fob->armlate && fob->held && !(areaarm & ~fob->arm))
+               if (fob->armlate && fob->held && !(areaarm & fob->arm))
                {
                   fob->armok = 1;
                   return e;
@@ -399,8 +401,8 @@ const char *door_fob(fob_t * fob)
       }
       if (fob->block)
          return "Card blocked";
-      if (!fob->held && !(areadisarm & ~fob->disarm))
-         fob->disarmok = 1;     // TODO should this be only if we can also enter
+      if (!fob->held && !((areadisarm & fob->disarm) && !(areaenter & state_armed & ~control_disarm & ~fob->disarm)))
+         fob->disarmok = 1;
       else if (fob->held && !(areaarm & ~fob->arm))
          fob->armok = 1;
       if (areaenter & state_armed & ~control_disarm & ~(fob->disarmok ? fob->disarm : 0))
@@ -665,14 +667,16 @@ static void task(void *pvParameters)
                doorwhy = NULL;
             }
          }
-         static int64_t exit1 = 0;      // Main exit button
+         static int64_t exit = 0;       // Main exit button
          if (input_get(IEXIT1))
          {
-            if (!exit1)
+            if (!exit)
             {
-               exit1 = now + (int64_t) doorexit *1000LL;
+               exit = now + (int64_t) doorexit *1000LL;
                if (doorauto >= 2)
                {
+                  if (doorexitdisarm && !(areaenter & (state_armed | control_arm) & ~control_disarm & ~areadisarm))
+                     alarm_disarm(areadisarm, "button");
                   if (!(areaenter & (state_armed | control_arm) & ~control_disarm))
                      door_unlock(NULL, "button");
                   else
@@ -684,7 +688,7 @@ static void task(void *pvParameters)
                }
             }
          } else
-            exit1 = 0;
+            exit = 0;
          // Check faults
          if (lock[0].state == LOCK_UNLOCKFAIL)
             status(door_fault = "Lock stuck");
@@ -694,9 +698,14 @@ static void task(void *pvParameters)
             status(door_fault = "Lock fault");
          else if (lock[1].state == LOCK_FAULT)
             status(door_fault = "Deadlock fault");
-         else if (exit1 && exit1 < now)
-            status(door_fault = "Exit stuck");
-         else
+         else if (exit && exit < now)
+         {
+            exit = -1;
+            if (doorexitdisarm)
+               alarm_disarm(areadisarm, "button");
+            else
+               status(door_fault = "Exit stuck");
+         } else
             status(door_fault = NULL);
          // Check tampers
          if (lock[0].state == LOCK_FORCED)
@@ -736,7 +745,7 @@ void door_init(void)
 #define u32(n,d) revk_register(#n,0,sizeof(n),&n,#d,0);
 #define u16(n,d) revk_register(#n,0,sizeof(n),&n,#d,0);
 #define u8(n,d) revk_register(#n,0,sizeof(n),&n,#d,0);
-#define u1(n) revk_register(#n,0,sizeof(n),&n,NULL,SETTING_BOOLEAN);
+#define b(n) revk_register(#n,0,sizeof(n),&n,NULL,SETTING_BOOLEAN);
 #define ta(n,c) revk_register(#n,c,0,&n,NULL,SETTING_LIVE);
 #define d(n,l) revk_register("led"#n,0,0,&doorled[DOOR_##n],#l,0);
 #define area(n) revk_register(#n,0,sizeof(n),&n,AREAS,SETTING_BITFIELD);
@@ -746,7 +755,7 @@ void door_init(void)
 #undef u32
 #undef u16
 #undef u8
-#undef u1
+#undef b
 #undef d
 #undef area
 #undef s
