@@ -76,6 +76,7 @@ settings
 #undef u16
 #undef u8
 static void task(void *pvParameters);
+static void node_online(const mac_t mac);
 
 const char *alarm_command(const char *tag, jo_t j)
 {
@@ -84,11 +85,8 @@ const char *alarm_command(const char *tag, jo_t j)
       summary_next = uptime() + 1;      // Report
       if (esp_mesh_is_root())
          for (int i = 0; i < nodes; i++)
-            if (node[i].online && memcmp(node[i].mac, revk_mac, 6))
-            {
-               revk_send_sub(0, node[i].mac);
-               revk_send_sub(1, node[i].mac);
-            }
+            if (node[i].online)
+               node_online(node[i].mac);
    }
    return NULL;
 }
@@ -284,7 +282,14 @@ static void node_offline(const mac_t mac)
 
 static void node_online(const mac_t mac)
 {
-   // TODO
+   if (memcmp(mac, revk_mac, 6))
+   {
+      revk_send_sub(0, mac);
+      revk_send_sub(1, mac);
+      jo_t j = jo_object_alloc();
+      jo_null(j, "connect");
+      revk_mesh_send_json(mac, &j);
+   }
 }
 
 static void mesh_now_root(void)
@@ -312,11 +317,6 @@ static int check_online(const char *target)
       node[child].online = 1;
       node[child].reported = 0;
       nodes_online++;
-      if (memcmp(mac, revk_mac, 6))
-      {
-         revk_send_sub(0, mac);
-         revk_send_sub(1, mac);
-      }
       node_online(mac);
    }
    return child;
@@ -640,6 +640,11 @@ void alarm_rx(const char *target, jo_t j)
    if (!jo_strcmp(j, "summary"))
    {
       mesh_handle_summary(target, j);
+      return;
+   }
+   if (!jo_strcmp(j, "connect"))
+   {
+      revk_command("status", NULL);
       return;
    }
 }

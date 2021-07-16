@@ -38,7 +38,7 @@ int output_active(int p)
 }
 
 static void output_write(int p)
-{                               // Write current (combined) state
+{                               // Write current (combined) state (p from 0)
    output_t v = (((output_state | output_forced) & ~output_pulsed) >> p) & 1;
    output_raw = (output_raw & ~(1ULL << p)) | (v << p);
    gpio_hold_dis(port_mask(output[p]));
@@ -234,8 +234,7 @@ void output_boot(void)
          REVK_ERR_CHECK(gpio_config(&c));
       for (i = 0; i < MAXOUTPUT; i++)
          if (output[i])
-            REVK_ERR_CHECK(gpio_hold_en(port_mask(output[i])));
-
+		 output_write(i);
    }
 }
 
