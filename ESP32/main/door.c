@@ -608,6 +608,8 @@ static void task(void *pvParameters)
             if (doorstate != DOOR_NOTCLOSED && doorstate != DOOR_PROPPED && doorstate != DOOR_OPEN)
             {                   // We have moved to open state, this can cancel the locking operation
                jo_t j = jo_object_alloc();
+               if (*nodename)
+                  jo_string(j, "node", nodename);
                if (!doorwhy)
                   doorwhy = ((lock[0].state == LOCK_LOCKED) ? "forced" : "manual");
                if (doorwhy)
@@ -671,6 +673,8 @@ static void task(void *pvParameters)
                if (doorstate == DOOR_UNLOCKED)
                {
                   jo_t j = jo_object_alloc();
+                  if (*nodename)
+                     jo_string(j, "node", nodename);
                   if (doorwhy)
                      jo_string(j, "trigger", doorwhy);
                   revk_event("notopen", &j);
@@ -694,6 +698,8 @@ static void task(void *pvParameters)
                   else
                   {             // Not opening door
                      jo_t j = jo_object_alloc();
+                     if (*nodename)
+                        jo_string(j, "node", nodename);
                      jo_string(j, "trigger", "exit");
                      revk_event("notopen", &j);
                   }
@@ -776,7 +782,8 @@ void door_boot(void)
 #undef d
 #undef area
 #undef s
-} void door_start(void)
+}
+void door_start(void)
 {
    if (!doorauto)
       return;                   // No door control in operation
