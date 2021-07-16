@@ -44,7 +44,6 @@ static const char *port_inuse[MAX_PORT];
 // Other settings
 #define settings  	\
   	io(tamper) 	\
-	s(name)		\
 	b(iotstatedoor)	\
 	b(iotstateinput)\
 	b(iotstateoutput)\
@@ -196,8 +195,11 @@ const char *port_check(int p, const char *module, int in)
 const char *app_callback(int client, const char *prefix, const char *target, const char *suffix, jo_t j)
 {
    const char *e = NULL;
-   if (!client && prefix && !strcmp(prefix, "mesh") && suffix)
-      return system_mesh(suffix, j);
+   if (!client && prefix && !strcmp(prefix, "mesh"))
+   {
+      alarm_rx(target, j);
+      return NULL;
+   }
    if (client || !prefix || target || strcmp(prefix, prefixcommand))
       return NULL;              // Not for us or not a command from main MQTT
 #define m(x) extern const char * x##_command(const char *,jo_t); jo_rewind(j);if(!e)e=x##_command(suffix,j);
@@ -215,7 +217,7 @@ uint8_t iotcopy;                // group heading
 void app_main()
 {
    reason = esp_reset_reason();
-   revk_init(&app_callback);
+   revk_boot(&app_callback);
    revk_register("iot", 0, 0, &iotcopy, "true", SETTING_BOOLEAN | SETTING_SECRET);      // iot group
 #define io(n) revk_register(#n,0,sizeof(n),&n,BITFIELDS,SETTING_SET|SETTING_BITFIELD);
 #define s(n) revk_register(#n,0,0,&n,NULL,0);
@@ -233,7 +235,12 @@ void app_main()
    int p;
    for (p = 6; p <= 11; p++)
       port_check(p, "Flash", 0);        // Flash chip uses 6-11
-#define m(x) extern void x##_init(void); x##_init();
+#define m(x) extern void x##_boot(void); x##_boot();
+   modules;
+#undef m
+   // Start
+   revk_start();
+#define m(x) extern void x##_start(void); x##_start();
    modules;
 #undef m
    // Main loop, if needed

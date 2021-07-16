@@ -742,7 +742,7 @@ static void task(void *pvParameters)
    }
 }
 
-void door_init(void)
+void door_boot(void)
 {
    extern char *ledIDLE;
    revk_register("door", 0, sizeof(doorauto), &doorauto, NULL, SETTING_SECRET); // Parent
@@ -764,7 +764,10 @@ void door_init(void)
 #undef d
 #undef area
 #undef s
+}
+void door_start(void)
+{
    if (!doorauto)
-       return;                  // No door control in operation
+      return;                   // No door control in operation
    revk_task(TAG, task, NULL);
 }

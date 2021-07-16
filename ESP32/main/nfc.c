@@ -573,7 +573,7 @@ const char *nfc_command(const char *tag, jo_t j)
    return NULL;
 }
 
-void nfc_init(void)
+void nfc_boot(void)
 {
    revk_register("nfc", 0, sizeof(nfctx), &nfctx, BITFIELDS, SETTING_SET | SETTING_BITFIELD | SETTING_SECRET);  // parent setting
 #define i8(n,d) revk_register(#n,0,sizeof(n),&n,#d,SETTING_SIGNED);
@@ -628,7 +628,6 @@ void nfc_init(void)
       if (nfcrx)
          gpio_set_pull_mode(port_mask(nfcrx), GPIO_PULLUP_PULLDOWN);
    }
-   nfc_led(0, NULL);
    if (nfctx && nfcrx)
    {
       const char *e = port_check(port_mask(nfctx), TAG, 0);
@@ -644,9 +643,16 @@ void nfc_init(void)
          if (!pn532)
             status(nfc_fault = "Failed to start PN532");
          df_init(&df, pn532, pn532_dx); // Start anyway, er re-try init
-         revk_task(TAG, task, pn532);
       }
    } else if (nfcrx || nfctx)
       status(nfc_fault = "Set nfctx, and nfcrx");
-   report_state();
+}
+
+void nfc_start(void)
+{
+   if (nfctx && nfcrx)
+   {
+      revk_task(TAG, task, pn532);
+      nfc_led(0, NULL);
+   }
 }

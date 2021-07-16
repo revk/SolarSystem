@@ -133,7 +133,7 @@ const char *output_command(const char *tag, jo_t j)
 }
 
 static void task(void *pvParameters)
-{                               // Main RevK task
+{                               // Output poll
    esp_task_wdt_add(NULL);
    pvParameters = pvParameters;
    static output_t output_last = 0;     // Last reported
@@ -186,7 +186,7 @@ static void task(void *pvParameters)
    }
 }
 
-void output_init(void)
+void output_boot(void)
 {
    revk_register("output", MAXOUTPUT, sizeof(*output), &output, BITFIELDS, SETTING_BITFIELD | SETTING_SET | SETTING_SECRET);
    revk_register("outputgpio", MAXOUTPUT, sizeof(*output), &output, BITFIELDS, SETTING_BITFIELD | SETTING_SET);
@@ -237,5 +237,13 @@ void output_init(void)
             REVK_ERR_CHECK(gpio_hold_en(port_mask(output[i])));
 
    }
+}
+
+void output_start(void)
+{
+   int i;
+   for (i = 0; i < MAXOUTPUT && !output[i] && !power[i]; i++);
+   if (i == MAXOUTPUT)
+      return;
    revk_task(TAG, task, NULL);
 }

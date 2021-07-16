@@ -22,7 +22,7 @@ extern area_t live_presence;
 
 void jo_area(jo_t j, const char *tag, area_t area);     // Store area
 area_t jo_read_area(jo_t);      // Read area
-const char *system_mesh(const char *suffix, jo_t j);
+void alarm_rx(const char *target, jo_t j);
 void alarm_arm(area_t a, const char *why);
 void alarm_disarm(area_t a, const char *why);
 void send_sms(const char *to, const char *fmt, ...);

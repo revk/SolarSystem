@@ -13,6 +13,7 @@ static const char __attribute__((unused)) TAG[] = "alarm";
 #ifdef  CONFIG_MBEDTLS_CERTIFICATE_BUNDLE
 #include "esp_crt_bundle.h"
 #endif
+#include "freertos/semphr.h"
 const char *alarm_fault = NULL;
 const char *alarm_tamper = NULL;
 
@@ -31,10 +32,21 @@ area_t latch_warning = 0;       // System settings from other modules
 area_t live_warning = 0;        // System settings from other modules
 area_t latch_presence = 0;      // System settings from other modules
 area_t live_presence = 0;       // System settings from other modules
+
 static uint32_t summary_next = 0;       // When to report summary
+static SemaphoreHandle_t node_mutex = NULL;
+
+typedef struct node_s {
+   mac_t mac;
+   uint8_t online:1;
+   uint8_t reported:1;
+} node_t;
+static node_t *node = NULL;
+static int nodes = 0;
+static int nodes_online = 0;
+static int nodes_reported = 0;
 
 // TODO keypad UI
-// TODO commands to clean latched states
 
 #define settings		\
 	area(areawarning)	\
@@ -49,16 +61,22 @@ static uint32_t summary_next = 0;       // When to report summary
 	u16(armcancel)		\
 	u16(alarmdelay)		\
 	u16(alarmhold)		\
+        u8(meshcycle,3)		\
+        u8(meshwarmup,30)	\
 
 #define area(n) area_t n;
 #define s(n) char *n;
 #define ss(n) char *n;
 #define u16(n) uint16_t n;
+#define u8(n,d) uint16_t n;
 settings
 #undef area
 #undef s
 #undef ss
 #undef u16
+#undef u8
+static void task(void *pvParameters);
+
 const char *alarm_command(const char *tag, jo_t j)
 {
    if (!strcmp(tag, "connect"))
@@ -104,20 +122,29 @@ void alarm_disarm(area_t a, const char *why)
    revk_event_copy("disarm", &j, ioteventarm);
 }
 
-void alarm_init(void)
+void alarm_boot(void)
 {
+   node_mutex = xSemaphoreCreateBinary();
+   xSemaphoreGive(node_mutex);
 #include "states.m"
-   revk_register("area", 0, sizeof(areafault), &areafault, AREAS, SETTING_BITFIELD | SETTING_LIVE | SETTING_SECRET);    // TODO something has to be set here to work?
+   revk_register("area", 0, sizeof(areafault), &areafault, AREAS, SETTING_BITFIELD | SETTING_LIVE | SETTING_SECRET); // Will control if shown in dump!
 #define area(n) revk_register(#n,0,sizeof(n),&n,AREAS,SETTING_BITFIELD|SETTING_LIVE);
 #define s(n) revk_register(#n,0,0,&n,NULL,0);
 #define ss(n) revk_register(#n,0,0,&n,NULL,SETTING_SECRET);
 #define u16(n) revk_register(#n,0,sizeof(n),&n,NULL,0);
+#define u8(n,d) revk_register(#n,0,sizeof(n),&n,#d,0);
    settings
 #undef area
 #undef s
 #undef ss
 #undef u16
+#undef u8
        control_arm = armed;     // Arm from flash state
+}
+
+void alarm_start(void)
+{
+   revk_task(TAG, task, NULL);
 }
 
 // JSON functions
@@ -149,7 +176,48 @@ area_t jo_read_area(jo_t j)
    return a;
 }
 
-const char *system_makereport(jo_t j)
+static int mesh_find_child(const mac_t mac, char insert)
+{
+   xSemaphoreTake(node_mutex, portMAX_DELAY);
+   int l = 0,
+       m = 0,
+       h = nodes - 1,
+       d = -1;
+   while (l <= h)
+   {
+      m = (l + h) / 2;
+      d = memcmp(mac, node[m].mac, 6);
+      if (d < 0)
+         h = m - 1;
+      else if (d > 0)
+         l = m + 1;
+      else
+         break;
+   }
+   if (d)
+   {
+      m = -1;                   // Not found
+      if (insert)
+      {
+         if (nodes >= meshmax)
+            ESP_LOGE(TAG, "Too many children (%d)", nodes);
+         else
+         {                      // Insert
+            m = l;
+            ESP_LOGD(TAG, "Added leaf %02X%02X%02X%02X%02X%02X at %d/%d", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5], m, nodes + 1);
+            if (m < nodes)
+               memmove(&node[m + 1], &node[m], (nodes - m) * sizeof(node_t));
+            nodes++;
+            memset(&node[m], 0, sizeof(node_t));
+            memcpy(node[m].mac, mac, 6);
+         }
+      }
+   }
+   xSemaphoreGive(node_mutex);
+   return m;
+}
+
+const char *mesh_make_report(jo_t j)
 {                               // Make the report from leaf to root for out states...
 #define i(x) area_t x=0;        // what we are going to send
 #include "states.m"
@@ -200,8 +268,58 @@ const char *system_makereport(jo_t j)
 #define c(x) i(x)
 #include "states.m"
 
-const char *system_makesummary(jo_t j)
+static void node_offline(const mac_t mac)
+{
+   // TODO
+}
+
+static void node_online(const mac_t mac)
+{
+   // TODO
+}
+
+static void mesh_now_root(void)
+{
+   // TODO
+}
+
+static void mesh_now_leaf(void)
+{
+   // TODO
+}
+
+static int check_online(const char *target)
+{
+   if (!target || strlen(target) != 12)
+      return -1;
+   mac_t mac;
+   for (int n = 0; n < sizeof(mac); n++)
+      mac[n] = (((target[n * 2] & 0xF) + (target[n * 2] > '9' ? 9 : 0)) << 4) + ((target[1 + n * 2] & 0xF) + (target[1 + n * 2] > '9' ? 9 : 0));
+   int child = mesh_find_child(mac, 1);
+   if (child < 0)
+      return child;
+   if (!node[child].online)
+   { // Is there risk of a race in any way? mutex?
+      node[child].online = 1;
+      node[child].reported = 0;
+      nodes_online++;
+      if (memcmp(mac, revk_mac, 6))
+      {
+         revk_send_sub(0, mac);
+         revk_send_sub(1, mac);
+      }
+      node_online(mac);
+   }
+   return child;
+}
+
+static void mesh_make_summary(jo_t j)
 {                               // Process reports received, and make summary
+   jo_int(j, "nodes", nodes);
+   if (nodes_online < nodes)
+      jo_int(j, "offline", nodes - nodes_online);
+   if(nodes<meshmax)
+      jo_int(j, "missing", meshmax - nodes);
 #define i(x) state_##x=report_##x;      // Set aggregate states anyway (done by summary anyway)
 #include "states.m"
    // Make system states
@@ -233,11 +351,17 @@ const char *system_makesummary(jo_t j)
 #define c(x) report_##x=0;
 #define s(x) jo_area(j,#x,state_##x);
 #include "states.m"
-   return NULL;
 }
 
-const char *system_report(jo_t j)
+static void mesh_handle_report(const char *target, jo_t j)
 {                               // Alarm state - process a report from a device - aggregate them
+   int child = check_online(target);
+   if (child < 0)
+      return;
+   if (node[child].reported)
+      return;                   // Odd
+   node[child].reported = 1;
+   nodes_reported++;
    jo_rewind(j);
    jo_type_t t;
    while ((t = jo_next(j)))
@@ -251,11 +375,11 @@ const char *system_report(jo_t j)
          }
       }
    }
-   return NULL;
 }
 
-const char *system_summary(jo_t j)
+static void mesh_handle_summary(const char *target, jo_t j)
 {                               // Alarm state - process summary of output states
+   check_online(target);
    if (esp_mesh_is_root())
    {                            // We are root, so we have updated anyway, but let's report to IoT
       const char *json = jo_rewind(j);
@@ -289,6 +413,26 @@ const char *system_summary(jo_t j)
       {
          if (t == JO_TAG)
          {
+            if (!jo_strcmp(j, "summary"))
+            {
+               jo_next(j);
+               if (jo_here(j) == JO_NUMBER)
+               {                // Oddly time() is strange so using int32_t for now - fix before 2038 maybe :-)
+                  int32_t new = jo_read_int(j);
+                  int32_t now = time(0);
+                  int32_t diff = now - new;
+                  if (diff > 60 || diff < -60)
+                  {             // Big change
+                     struct timeval tv = { new, 0 };
+                     if (settimeofday(&tv, NULL))
+                        ESP_LOGE(TAG, "Time set %d failed", new);
+                  } else if (diff)
+                  {
+                     struct timeval delta = { diff, 0 };
+                     adjtime(&delta, NULL);
+                  }
+               }
+            } else
 #define i(x) if(!jo_strcmp(j,#x)){jo_next(j);x=jo_read_area(j);} else
 #define s(x) i(x)
 #include "states.m"
@@ -333,32 +477,162 @@ const char *system_summary(jo_t j)
       lastarmed = state_armed;
       door_check();
    }
-   return NULL;
 }
 
-const char *system_mesh(const char *suffix, jo_t j)
-{                               // Note, some of these fill in j and used by library
-   if (!strcmp(suffix, "makereport"))
-      return system_makereport(j);
-   else if (!strcmp(suffix, "makesummary"))
-      return system_makesummary(j);
-   else if (!strcmp(suffix, "report"))
-      return system_report(j);
-   else if (!strcmp(suffix, "summary"))
-      return system_summary(j);
-   else if (!strcmp(suffix, "noquorum"))
-      status(alarm_fault = "No quorum");
-   else if (!strcmp(suffix, "quorum"))
+static void task(void *pvParameters)
+{                               // 
+   esp_task_wdt_add(NULL);
+   pvParameters = pvParameters;
+   uint64_t summary_next = 0;   // Send summary cycle
+   uint64_t report_next = 0;    // Send report cycle
+   uint32_t isroot = 0;
+   int wasonline = 0;
+   node = malloc(sizeof(*node) * meshmax);
+   mesh_find_child(revk_mac, 1);        // We count as a child
+   node[0].online = 1;          // Us
+   nodes_online++;
+   while (1)
    {
-      latch_warning |= areawarning;     // Ideally this stays active until working - we need to add alarm_warning thing maybe?
-      //status(alarm_fault = "Missing devices");
-   } else if (!strcmp(suffix, "fullhouse"))
-      status(alarm_fault = NULL);
-   else if (!strcmp(suffix, "other"))
-   {
-      // TODO messages to clear latched states
+      esp_task_wdt_reset();
+      uint64_t now = esp_timer_get_time();
+      if (!esp_mesh_is_device_active())
+      {
+         sleep(1);
+         continue;
+      }
+      uint64_t next = report_next;
+      if (isroot && summary_next < report_next)
+         next = summary_next;
+      if (next > now)
+      {
+         usleep(next - now);
+         now = next;
+      }
+      // Periodic
+      if (isroot)
+      {                         // Collecting reports
+         if (nodes_reported < nodes_online && summary_next <= now)
+         {                      // Time out reporting cycle
+            for (int n = 0; n < nodes; n++)
+               if (!node[n].reported && node[n].online)
+               {                // Gone off line
+                  char mac[13];
+                  sprintf(mac, "%02X%02X%02X%02X%02X%02X", node[n].mac[0], node[n].mac[1], node[n].mac[2], node[n].mac[3], node[n].mac[4], node[n].mac[5]);
+                  node[n].online = 0;
+                  nodes_online--;
+                  if (memcmp(node[n].mac, revk_mac, 6))
+                  {
+                     revk_send_unsub(0, node[n].mac);
+                     revk_send_unsub(1, node[n].mac);
+                     char *topic;       // Tell IoT
+                     asprintf(&topic, "state/%s/%s", mac, appname);
+                     revk_mqtt_send_raw(topic, 1, "{\"up\":false}", -1);
+                     free(topic);
+                  } else
+                     ESP_LOGE(TAG, "Self offline");
+                  node_offline(node[n].mac);
+               }
+         }
+         if (nodes_reported >= nodes_online)
+         {                      // End of reporting cycle - no need to wait
+            summary_next = now + 1000000LL * meshcycle * 3;
+	    // Clear reports
+            for (int n = 0; n < nodes; n++)
+               node[n].reported = 0;
+            nodes_reported = 0;
+            jo_t j = jo_object_alloc();
+            uint32_t t = time(0);
+            if (t > 1000000000)
+               jo_int(j, "summary", t);
+            else
+               jo_bool(j, "summary", 0);
+            mesh_make_summary(j);
+            const mac_t addr = { 255, 255, 255, 255, 255, 255 };
+            revk_mesh_send_json(addr, &j);
+         }
+      }
+      if (report_next <= now)
+      {                         // Periodic send  to root - even to self
+         report_next = now + 1000000LL * meshcycle;
+         jo_t j = jo_object_alloc();
+         uint32_t t = time(0);
+         if (t > 1000000000)
+            jo_int(j, "report", t);
+         else
+            jo_null(j, "report");
+         mesh_make_report(j);
+         revk_mesh_send_json(NULL, &j);
+      }
+      if (esp_mesh_is_root())
+      {
+         if (!isroot)
+         {                      // We have become root
+            mesh_now_root();
+            isroot = uptime();
+            wasonline = 0;
+	    // Clear down
+            for (int i = 0; i < nodes; i++)
+            {
+               node[i].online = 0;
+               node[i].reported = 0;
+            }
+            nodes_online = 0;
+            nodes_reported = 0;
+            revk_mqtt_init();
+            report_next = 0;    // Send report from us to us
+            summary_next = now + 1000000LL * meshcycle * 3;     // Start reporting cycle
+         }
+         if (uptime() - isroot > meshwarmup)
+         {                      // Checking was have quorum / full house
+            if (wasonline != nodes_online)
+            {
+               wasonline = nodes_online;
+               if (nodes_online <= meshmax / 2)
+               {                // too few - force restart of mesh
+                  // TODO
+#if 0                           // TODO some sort of back off?
+                  revk_wifi_close();
+                  mesh_init();
+#endif
+               } else if (nodes_online < meshmax)
+               {                // Missing devices
+                  // TODO
+               } else
+               {                // All on line
+                  // TODO
+               }
+            }
+         }
+      } else
+      {
+         if (isroot)
+         {                      // We are no longer root
+            revk_mqtt_close("Not root");
+            freez(node);
+            mesh_now_leaf();
+         }
+      }
    }
-   return NULL;
+}
+
+void alarm_rx(const char *target, jo_t j)
+{
+   ESP_LOGD(TAG, "Rx JSON %s %s", target, jo_rewind(j) ? : "?");
+   if (jo_here(j) != JO_OBJECT)
+      return;
+   jo_next(j);
+   if (jo_here(j) != JO_TAG)
+      return;
+   if (!jo_strcmp(j, "report"))
+   {
+      mesh_handle_report(target, j);
+      return;
+   }
+   if (!jo_strcmp(j, "summary"))
+   {
+      mesh_handle_summary(target, j);
+      return;
+   }
 }
 
 void send_sms(const char *to, const char *fmt, ...)

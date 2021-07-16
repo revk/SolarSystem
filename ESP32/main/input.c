@@ -73,7 +73,7 @@ const char *input_command(const char *tag, jo_t j)
 }
 
 static void task(void *pvParameters)
-{                               // Main RevK task
+{                               // Input poll
    esp_task_wdt_add(NULL);
    pvParameters = pvParameters;
    int poll = (inputpoll ? : 1);
@@ -127,7 +127,7 @@ static void task(void *pvParameters)
    }
 }
 
-void input_init(void)
+void input_boot(void)
 {
    revk_register("input", MAXINPUT, sizeof(*input), &input, BITFIELDS, SETTING_BITFIELD | SETTING_SET | SETTING_SECRET);
    revk_register("inputgpio", MAXINPUT, sizeof(*input), &input, BITFIELDS, SETTING_BITFIELD | SETTING_SET);
@@ -161,5 +161,13 @@ void input_init(void)
       if (c.pin_bit_mask)
          REVK_ERR_CHECK(gpio_config(&c));
    }
+}
+
+void input_start(void)
+{
+   int i;
+   for (i = 0; i < MAXINPUT && !input[i]; i++);
+   if (i == MAXINPUT)
+      return;
    revk_task(TAG, task, NULL);
 }

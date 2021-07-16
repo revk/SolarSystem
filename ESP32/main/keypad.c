@@ -338,7 +338,7 @@ static void task(void *pvParameters)
    }
 }
 
-void keypad_init(void)
+void keypad_boot(void)
 {
    revk_register("keypad", 0, sizeof(keypadtx), &keypadtx, NULL, SETTING_SET | SETTING_SECRET); // Parent
 #define u8(n,d) revk_register(#n,0,sizeof(n),&n,#d,0);
@@ -361,7 +361,12 @@ void keypad_init(void)
          port_check(port_mask(keypadre), TAG, 0);
       if (err && keypadde != keypadre)
          status(keypad_fault = err);
-      revk_task(TAG, task, NULL);
    } else if (keypadtx || keypadrx || keypadde)
       status(keypad_fault = "Set keypadtx, keypadrx and keypadde");
+}
+
+void keypad_start(void)
+{
+   if (keypadtx && keypadrx && keypadde)
+      revk_task(TAG, task, NULL);
 }
