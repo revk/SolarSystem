@@ -514,8 +514,7 @@ static void task(void *pvParameters)
             r = 3;
          static char led[50] = "";
          char newled[50] = "";
-	 // TODO ledarea, once cloud can set it
-#define i(x,c) if(state_##x/*&ledarea*/&&strlen(newled)+strlen(led##x)<sizeof(newled)-1)strcat(newled,led##x);
+#define i(x,c) if(state_##x&(ledarea?:(area_t)-1)&&strlen(newled)+strlen(led##x)<sizeof(newled)-1)strcat(newled,led##x);
 #define s(x,c) i(x,c)
 #include "states.m"
          if (!*led && strlen(ledidle) < sizeof(newled) - 1)
