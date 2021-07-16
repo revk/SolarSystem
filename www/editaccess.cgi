@@ -37,7 +37,7 @@ if($?access) then
 	if(! $?commit) setenv commit false
 	if(! $?armlate) setenv armlate false
 	if($?ADMINORGANISATION) setenv allow "$allow override"
-	sqlwrite -o -n "$DB" access $allow
+	sqlwrite -qon "$DB" access $allow
 	../login/redirect editaccess.cgi
 	exit 0
 endif

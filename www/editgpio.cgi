@@ -9,7 +9,7 @@ source ../types
 
 if($?type) then
 	if(! $?invert) setenv invert false
-	sqlwrite -q -o -n "$DB" devicegpio device gpio type invert name hold pulse $STATELIST
+	sqlwrite -qon "$DB" devicegpio device gpio type invert name hold pulse $STATELIST
 	sql "$DB" 'UPDATE device SET poke=NOW() WHERE device="$device"'
 	message --poke
 	../login/redirect "editdevice.cgi/$device"

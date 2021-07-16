@@ -17,8 +17,8 @@ static uint8_t power[MAXOUTPUT];        /* fixed outputs */
 static char *outputname[MAXOUTPUT];
 static uint16_t outputpulse[MAXOUTPUT]; // Timeout in s/10
 
-#define i(x) area_t output##x[MAXOUTPUT];
-#define s(x) i(x)
+#define i(x,c) area_t output##x[MAXOUTPUT];
+#define s(x,c) i(x,c)
 #include "states.m"
 
 static output_t output_state = 0;       // Port state
@@ -194,8 +194,8 @@ void output_boot(void)
    revk_register("outputpulse", MAXOUTPUT, sizeof(*outputpulse), &outputpulse, NULL, 0);
    revk_register("power", MAXOUTPUT, sizeof(*power), &power, BITFIELDS, SETTING_BITFIELD | SETTING_SET | SETTING_SECRET);
    revk_register("powergpio", MAXOUTPUT, sizeof(*power), &power, BITFIELDS, SETTING_BITFIELD | SETTING_SET);
-#define i(x) revk_register("output"#x, MAXOUTPUT, sizeof(*output##x), &output##x, AREAS, SETTING_BITFIELD);
-#define s(x) i(x)
+#define i(x,c) revk_register("output"#x, MAXOUTPUT, sizeof(*output##x), &output##x, AREAS, SETTING_BITFIELD);
+#define s(x,c) i(x,c)
 #include "states.m"
    {                            // GPIO
     gpio_config_t c = { mode:GPIO_MODE_OUTPUT };

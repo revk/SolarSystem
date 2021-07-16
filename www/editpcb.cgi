@@ -20,7 +20,7 @@ if($?pcbname) then # save
 	if($pcb == 0) then
 		setenv pcb `sql -i "$DB" 'INSERT INTO pcb SET pcb=0'`
 	endif
-	sqlwrite "$DB" pcb
+	sqlwrite -qon "$DB" pcb
 	set gpio=(`printenv gpio|sed 's/[^0-9 	]//g'`)
 	set pin=(`printenv pin|sed 's/[^-0-9 	]//g'`)
 	set io=(`printenv io|sed 's/[^-0-9A-Z 	]//g'`)

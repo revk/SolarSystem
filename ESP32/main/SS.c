@@ -143,17 +143,6 @@ static void status_report(int force)
       }
       jo_free(&j);              // safe to call even if freed by revk_state
    }
-   // TODO moved to alarm module...
-   if (tampers)
-      revk_blink(1, 1, "R-");
-   else if (faults)
-      revk_blink(1, 5, "M-");
-   else if (esp_mesh_is_root())
-      revk_blink(1, 5, revk_offline()? "GR-" : "G-");
-   else if (revk_offline())
-      revk_blink(1, 5, "C-");
-   else
-      revk_blink(0, 0, "RYGCBM");
 }
 
 // External

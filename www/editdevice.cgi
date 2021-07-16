@@ -70,7 +70,7 @@ if($?devicename) then # save
 	if(! $?ioteventfob) setenv ioteventfob false
 	setenv allow "devicename areawarning areafault areatamper areaenter areaarm areadisarm areabell nfc nfcadmin door doorexitarm doorexitdisarm aid site iotstatedoor iotstateinput iotstateoutput iotstatefault iotstatetamper iotstatesystem ioteventfob doorunlock doorlock dooropen doorclose doorprop doorexit"
 	if("$USER_ADMIN" == "true") setenv allow "$allow nfctrusted"
-	sqlwrite -o -n "$DB" device $allow
+	sqlwrite -qon "$DB" device $allow
 	sql "$DB" 'UPDATE device SET poke=NOW() WHERE device="$device"'
         message --poke
 	redirect editdevice.cgi

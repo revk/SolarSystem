@@ -19,9 +19,9 @@ const char *alarm_tamper = NULL;
 
 // Alarm control
 
-#define i(x) area_t state_##x;  // system wide aggregated input states
-#define s(x) area_t state_##x;  // system wide calculated states
+#define i(x,c) area_t state_##x;        // system wide aggregated input states
 #define c(x) area_t control_##x;        // local control flags
+#define s(x,c) area_t state_##x;        // system wide calculated states
 #include "states.m"
 
 area_t latch_fault = 0;         // System settings from other modules
@@ -58,6 +58,8 @@ static int nodes_reported = 0;
 	area(areadisarm)	\
 	area(engineer)		\
 	area(armed)		\
+	area(ledarea)		\
+	s(ledidle,G-)		\
 	u16(armcancel)		\
 	u16(alarmdelay)		\
 	u16(alarmhold)		\
@@ -65,16 +67,17 @@ static int nodes_reported = 0;
         u8(meshwarmup,30)	\
 
 #define area(n) area_t n;
-#define s(n) char *n;
-#define ss(n) char *n;
+#define s(n,d) char *n;
 #define u16(n) uint16_t n;
 #define u8(n,d) uint16_t n;
 settings
 #undef area
 #undef s
-#undef ss
 #undef u16
 #undef u8
+#define i(x,c) char *led##x=NULL;
+#define s(x,c) i(x,c)
+#include "states.m"
 static void task(void *pvParameters);
 static void node_online(const mac_t mac);
 
@@ -133,19 +136,20 @@ void alarm_boot(void)
 {
    node_mutex = xSemaphoreCreateBinary();
    xSemaphoreGive(node_mutex);
-#include "states.m"
    revk_register("area", 0, sizeof(areafault), &areafault, AREAS, SETTING_BITFIELD | SETTING_LIVE | SETTING_SECRET);    // Will control if shown in dump!
+   revk_register("led", 0, sizeof(ledarea), &ledarea, AREAS, SETTING_BITFIELD | SETTING_LIVE | SETTING_SECRET);
 #define area(n) revk_register(#n,0,sizeof(n),&n,AREAS,SETTING_BITFIELD|SETTING_LIVE);
-#define s(n) revk_register(#n,0,0,&n,NULL,0);
-#define ss(n) revk_register(#n,0,0,&n,NULL,SETTING_SECRET);
+#define s(n,d) revk_register(#n,0,0,&n,#d,0);
 #define u16(n) revk_register(#n,0,sizeof(n),&n,NULL,0);
 #define u8(n,d) revk_register(#n,0,sizeof(n),&n,#d,0);
    settings
 #undef area
 #undef s
-#undef ss
 #undef u16
 #undef u8
+#define i(x,c) revk_register("led"#x,0,0,&led##x,#c,0);
+#define s(x,c) i(x,c)
+#include "states.m"
        control_arm = armed;     // Arm from flash state
 }
 
@@ -226,7 +230,7 @@ static int mesh_find_child(const mac_t mac, char insert)
 
 const char *mesh_make_report(jo_t j)
 {                               // Make the report from leaf to root for out states...
-#define i(x) area_t x=0;        // what we are going to send
+#define i(x,c) area_t x=0;      // what we are going to send
 #include "states.m"
    {                            // Inputs
       input_t latch = input_latch;
@@ -237,7 +241,7 @@ const char *mesh_make_report(jo_t j)
       {
          if ((latch | input_stable) & (1ULL << i))
          {                      // State is active (or has been, even if briefly)
-#define i(x) x|=input##x[i];
+#define i(x,c) x|=input##x[i];
 #include "states.m"
          }
          if (flip & (1ULL << i))
@@ -265,14 +269,14 @@ const char *mesh_make_report(jo_t j)
    latch = latch_warning;
    latch_warning = 0;
    warning |= latch | live_warning;
-#define i(x) jo_area(j,#x,x);
+#define i(x,c) jo_area(j,#x,x);
 #define c(x) jo_area(j,#x,control_##x);
 #include "states.m"
    return NULL;
 }
 
-#define i(x) static area_t report_##x=0;        // The collated reports
-#define c(x) i(x)
+#define c(x) static area_t report_##x=0;        // The collated reports
+#define i(x,l) c(x)
 #include "states.m"
 
 static void node_offline(const mac_t mac)
@@ -329,7 +333,7 @@ static void mesh_make_summary(jo_t j)
       jo_int(j, "offline", nodes - nodes_online);
    if (nodes < meshmax)
       jo_int(j, "missing", meshmax - nodes);
-#define i(x) state_##x=report_##x;      // Set aggregate states anyway (done by summary anyway)
+#define i(x,c) state_##x=report_##x;    // Set aggregate states anyway (done by summary anyway)
 #include "states.m"
    // Make system states
    // simple latched states - cleared by re-arming
@@ -356,9 +360,9 @@ static void mesh_make_summary(jo_t j)
    // Fixed
    state_engineer = engineer;   // From flash - could be changed live though, so set here
    // Send summary
-#define i(x) jo_area(j,#x,state_##x);report_##x=0;
+#define i(x,c) jo_area(j,#x,state_##x);report_##x=0;
 #define c(x) report_##x=0;
-#define s(x) jo_area(j,#x,state_##x);
+#define s(x,c) jo_area(j,#x,state_##x);
 #include "states.m"
 }
 
@@ -377,8 +381,8 @@ static void mesh_handle_report(const char *target, jo_t j)
    {
       if (t == JO_TAG)
       {
-#define i(x) if(!jo_strcmp(j,#x)){jo_next(j);report_##x|=jo_read_area(j);} else
-#define c(x) i(x)
+#define c(x) if(!jo_strcmp(j,#x)){jo_next(j);report_##x|=jo_read_area(j);} else
+#define i(x,l) c(x)
 #include "states.m"
          {                      // Unknown?
          }
@@ -413,8 +417,8 @@ static void mesh_handle_summary(const char *target, jo_t j)
       }
    } else
    {                            // We are leaf, get the data
-#define i(x) area_t x=0;        // Zero if not specified
-#define s(x) i(x)
+#define i(x,c) area_t x=0;      // Zero if not specified
+#define s(x,c) i(x,c)
 #include "states.m"
       jo_rewind(j);
       jo_type_t t;
@@ -442,15 +446,15 @@ static void mesh_handle_summary(const char *target, jo_t j)
                   }
                }
             } else
-#define i(x) if(!jo_strcmp(j,#x)){jo_next(j);x=jo_read_area(j);} else
-#define s(x) i(x)
+#define i(x,c) if(!jo_strcmp(j,#x)){jo_next(j);x=jo_read_area(j);} else
+#define s(x,c) i(x,c)
 #include "states.m"
             {                   // Unknown?
             }
          }
       }
-#define i(x) state_##x=x;
-#define s(x) i(x)
+#define i(x,c) state_##x=x;
+#define s(x,c) i(x,c)
 #include "states.m"
    }
    // Clear control bits when actioned
@@ -469,8 +473,8 @@ static void mesh_handle_summary(const char *target, jo_t j)
    output_t forced = 0;
    for (int i = 0; i < MAXOUTPUT; i++)
    {
-#define i(x) if(output##x[i]&state_##x)forced|=(1ULL<<i);
-#define s(x) i(x)
+#define i(x,c) if(output##x[i]&state_##x)forced|=(1ULL<<i);
+#define s(x,c) i(x,c)
 #include "states.m"
    }
    output_forced = forced;
@@ -503,6 +507,24 @@ static void task(void *pvParameters)
    while (1)
    {
       esp_task_wdt_reset();
+      // LED
+      {
+         int r = 1;
+         if ((isroot && !revk_offline() && nodes_online == meshmax) || (!isroot && esp_mesh_is_device_active()))
+            r = 3;
+         static char led[50] = "";
+         char newled[50] = "";
+#define i(x,c) if(state_##x/*&ledarea*/&&strlen(newled)+strlen(led##x)<sizeof(newled)-1)strcat(newled,led##x);
+#define s(x,c) i(x,c)
+#include "states.m"
+         if (!*led && strlen(ledidle) < sizeof(newled) - 1)
+            strcpy(newled, ledidle);
+         if (!*led)
+            strcpy(led, "G");
+         strcpy(led, newled);
+         revk_blink(r, r, led);
+      }
+      // Waiting
       uint64_t now = esp_timer_get_time();
       if (!esp_mesh_is_device_active())
       {

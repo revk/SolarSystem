@@ -4,7 +4,7 @@ if(! $?user) setenv user "$USER_ID"	# Edit self
 can --redirect --user="$user" edituser
 if($?email) then # save
 	# update other fields... not email
-	sqlwrite -o "$DB" user user="$user" user username
+	sqlwrite -qon "$DB" user user="$user" user username
 	# check email change as special handling
 	setenv was `sql "$DB" 'SELECT email FROM user WHERE user=$user'`
 	if("$email" != "$was") then

@@ -116,11 +116,11 @@ void sstypes(const char *fn)
          list(area);
       }
    start("STATELIST");
-#define i(n) list(#n);
-#define s(n) list(#n);
+#define i(n,c) list(#n);
+#define s(n,c) list(#n);
 #include "ESP32/main/states.m"
    start("STATELISTI");
-#define i(n) list(#n);
+#define i(n,c) list(#n);
 #include "ESP32/main/states.m"
    done();
    fclose(f);

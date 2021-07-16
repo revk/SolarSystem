@@ -27,7 +27,7 @@ if($?organisationname) then
 		sql "$DB" 'INSERT INTO area SET organisation=$organisation,site=$site,tag="A",areaname="Main building"'
 		setenv aid `makeaid --site="$site"`
 		sql "$DB" 'UPDATE session SET organisation=$organisation,site=$site WHERE session="$ENVCGI"'
-		sqlwrite -o "$DB" organisation organisationname
+		sqlwrite -qon "$DB" organisation organisationname
 		../login/redirect "editorganisation.cgi/$organisation"
 		exit 0
 	endif

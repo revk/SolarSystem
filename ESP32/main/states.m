@@ -1,7 +1,7 @@
 // States
 
 #ifndef i
-#define i(n)	// Input states
+#define i(n,c)	// Input states
 #endif
 
 #ifndef c
@@ -9,30 +9,30 @@
 #endif
 
 #ifndef s
-#define s(n)	// Internal states
+#define s(n,c)	// Internal states
 #endif
 
-i(doorbell)
-i(warning)
-i(fault)
-i(access)
-i(presence)
-i(tamper)
-i(fire)
-i(panic)
+i(doorbell,)
+i(warning,GY-)
+i(fault,BY-)
+i(access,GM-)
+i(presence,)
+i(tamper,M-)
+i(fire,RR-RR-)
+i(panic,RG-)
 
 c(arm)
 c(forcearm)
 c(disarm)
 
-s(prearm)
-s(armed)
-s(prealarm)
-s(alarm)
-s(alarmed)
-s(faulted)
-s(tampered)
-s(engineer)
+s(prearm,)
+s(armed,Y-)
+s(prealarm,)
+s(alarm,RR-BB-)
+s(alarmed,W-)
+s(faulted,)
+s(tampered,)
+s(engineer,)
 
 #undef i
 #undef s
