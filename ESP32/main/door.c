@@ -401,7 +401,7 @@ const char *door_fob(fob_t * fob)
       }
       if (fob->block)
          return "Card blocked";
-      if (!fob->held && !(areadisarm & fob->disarm) && (!(areaenter & state_armed & ~control_disarm & ~fob->disarm)))
+      if (!fob->held && !(areadisarm & ~fob->disarm) && !(areaenter & state_armed & ~control_disarm & ~fob->disarm))
          fob->disarmok = 1;
       else if (fob->held && !(areaarm & ~fob->arm))
          fob->armok = 1;
