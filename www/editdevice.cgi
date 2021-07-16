@@ -98,7 +98,7 @@ xmlsql -C -d "$DB" head.html - foot.html << END
 <set s=""><if lastonline><set s="background:green;"></if><if not online><set s="background:yellow;"></if>
 <td style="\$s"><if online><tt><output name=online></tt><if via><br><i>via</i> <tt><output name=via></tt></if><if else><br><tt><output name=bssid>#<output name=chan></tt> <i><output name=ssid></i></if></if><if else><tt><output name=lastonline missing="never"></tt><br><i><output name=offlinereason missing=Offline></i></if></td>
 <td><output name=address></td>
-<td><if upgrade>Upgrade scheduled<br></if><set s="background:red;"><if version="\$V"><set s="background:green;"></if><tt style="\$s"><output name=version></tt><br><set s="background:yellow;"><if build="\$B"><set s="background:green;"></if><tt style="\$s"><output name=build></tt></td>
+<td><if upgrade><i style='background:cyan;'>Upgrade scheduled</i><br></if><set s="background:red;"><if version="\$V"><set s="background:green;"></if><tt style="\$s"><output name=version></tt><br><set s="background:yellow;"><if build="\$B"><set s="background:green;"></if><tt style="\$s"><output name=build></tt></td>
 <td><output name=pcbname><br>Flash:<output name=flash type=mega></td>
 <set s><if not fault="{}"><set s="background:yellow;"></if><if not tamper="{}"><set s="background:red;"></if>
 <td style="\$s"><if door=true>Door </if><if nfc=true>NFC reader </if><if nfcadmin=true> (admin)</if><if nfctrusted=true><b> (trusted)</b></if><br>
