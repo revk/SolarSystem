@@ -197,7 +197,7 @@ datetime(expires);              // Fixed expiry (local time on server)
 
 table(device, 12);
 link2(device, via);             // Via another device using mesh
-text(devicename, 0);
+text(devicename, 20);
 link(organisation);             // Yes, can get from site, but useful to reference quickly
 link(site);                     // The site the device is on
 link(pcb);                      // What type of device this is

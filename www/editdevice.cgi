@@ -114,7 +114,7 @@ xmlsql -C -d "$DB" head.html - foot.html << END
 <sql table="device LEFT JOIN pcb USING (pcb)" KEY=device>
 <table>
 <tr><td>PCB</td><td><output name=pcbname></td></tr>
-<tr><td>Name</td><td><input name=devicename ize=40 autofocus></td></tr>
+<tr><td>Name</td><td><input name=devicename ize=20 maxlength=20 autofocus></td></tr>
 <tr><td>Site</td><td><select name=site><sql table=site where="organisation=$SESSION_ORGANISATION"><option value='\$site'><output name=sitename></option></sql></select></td></tr>
 <sql table=site where="site=\$site">
 <if not iothost="">
