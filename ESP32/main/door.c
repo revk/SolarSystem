@@ -7,8 +7,6 @@ static const char TAG[] = "door";
 const char *door_fault = NULL;
 const char *door_tamper = NULL;
 
-// TODO softdoor - deadlock manually changed causing disarm or arm
-
 // Autonomous door control
 // Door mode set by door setting
 // 0 - no control
@@ -25,7 +23,7 @@ const char *door_tamper = NULL;
 #define OERROR 4
 
 #define FILE3                   // Check for old file 3 access file
-#define MINAFILE  32            // Minimum we read from afile before checking length
+#define MINAFILE  40            // Minimum we read from afile before checking length
 
 #include "nfc.h"
 #include "input.h"
@@ -296,12 +294,26 @@ const char *door_fob(fob_t * fob)
             {                   // Padding
                if (!l)
                   break;        // end of file
+            } else if (c == 0x4)
+            {                   // Name
+               if (l)
+               {
+                  memcpy(fob->name, p, l);
+                  fob->name[l] = 0;
+                  fob->nameset = 1;
+               }
             } else if (c == 0xA)
             {                   // Arm
                fob->arm = 0;
                for (int q = 0; q < l; q++)
                   fob->arm |= (p[q] << (24 - q * 8));
                fob->armset = 1;
+            } else if (c == 0xB)
+            {                   // Force arm
+               fob->forcearm = 0;
+               for (int q = 0; q < l; q++)
+                  fob->forcearm |= (p[q] << (24 - q * 8));
+               fob->forcearmset = 1;
             } else if (c == 0xD)
             {                   // Disarm
                fob->disarm = 0;
@@ -764,8 +776,7 @@ void door_boot(void)
 #undef d
 #undef area
 #undef s
-}
-void door_start(void)
+} void door_start(void)
 {
    if (!doorauto)
       return;                   // No door control in operation

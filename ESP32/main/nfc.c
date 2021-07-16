@@ -105,6 +105,8 @@ static void fobevent(void)
       if (fob.secureset)
          jo_bool(j, "secure", fob.secure);
       jo_string(j, "id", fob.id);
+      if (fob.nameset)
+         jo_string(j, "name", fob.name);
       if (fob.verset)
          jo_stringf(j, "ver", "%02X", fob.ver);
       if (fob.keyupdated)

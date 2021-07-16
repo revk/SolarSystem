@@ -154,7 +154,8 @@ link(organisation);             // Quicker access
 link(site);
 text(accessname, 0);
 areas(enter);                   // Allow enter
-areas(arm);                     // Allow /arm
+areas(arm);                     // Allow arm
+areas(forcearm);		// Allow forcearm
 areas(disarm);                  // Allow disarm
 num(expiry);                    // Auto expiry (days)
 time0000(sunfrom);
@@ -191,7 +192,7 @@ link(access);                   // Access permissions
 join(fob, organisation);        // Yes, per org, for security reasons
 datetime(blocked);              // Block card (when blocked)
 datetime(confirmed);            // When confirmed blocked
-text(fobname, 0);               // Name of fob user
+text(fobname, 15);               // Name of fob user
 datetime(expires);              // Fixed expiry (local time on server)
 
 table(device, 12);

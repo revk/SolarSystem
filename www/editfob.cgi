@@ -125,7 +125,7 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <form method=post action=/editfob.cgi><input name=fob type=hidden>
 <sql table=foborganisation where="fob='$fob'">
 <table>
-<tr><td>Name</td><td colspan=2><input name=fobname size=30 autofocus></td></tr>
+<tr><td>Name</td><td colspan=2><input name=fobname size=15 maxlength=15 autofocus></td></tr>
 <tr><td>Expiry</td><td colspan=2><input name=expires id=expires type=datetime-local><input type=button onclick='document.getElementById("expires").value="";' value="No expiry"></td></tr>
 <if blocked><tr><td>Block</td><td>Access blocked <output name=blocked> <if blocked and confirmed>(confirmed <output name=confirmed>)</if></td></tr></if>
 <sql table="aid" where="site='$SESSION_SITE'" order=aidname><set adopted><set access$aid><sql table=fobaid where="fob='$fob' AND aid='$aid'"><set access$aid=$access><if adopted><set adopted="$adopted"></if></sql>

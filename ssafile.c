@@ -41,6 +41,16 @@ unsigned int makeafile(SQL_RES * res, unsigned char *afile)
       addbcd(v / 100);
       addbcd(v % 100);
    }
+   const char *name = sql_colz(res, "fobname");
+   if (*name)
+   {
+      int l = strlen(name);
+      if (l > 15)
+         l = 15;
+      add(0x40 + l);
+      for (int i = 0; i < l; i++)
+         add(name[i]);
+   }
    if (!res || !sql_col(res, "access") || sql_col(res, "blocked"))
       add(0xFB);
    else
