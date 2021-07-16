@@ -323,7 +323,7 @@ static void task(void *pvParameters)
             if (!fob.remote && !fob.held && nfchold && found < now)
             {                   // Card has been held for a while, report
                fob.held = 1;
-               fob.deny = NULL;
+               fob.deny = NULL; // Re-evaluate as held
                door_fob(&fob);
                door_act(&fob);  // Action from held
                fobevent();

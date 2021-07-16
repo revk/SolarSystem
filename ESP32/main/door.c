@@ -390,7 +390,7 @@ const char *door_fob(fob_t * fob)
             }
             if (e)
             {
-               if (fob->armlate && fob->held && !(areaarm & fob->arm))
+               if (fob->armlate && fob->held && !(areaarm & ~fob->arm))
                {
                   fob->armok = 1;
                   return e;
