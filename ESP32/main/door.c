@@ -593,7 +593,7 @@ static void task(void *pvParameters)
                lock[l].i = i;
                if (doordebug && (force || last != lock[l].state))
                {
-                  jo_t j = jo_object_alloc();
+                  jo_t j = jo_make();
                   jo_string(j, "state", lockstates[lock[l].state]);
                   if (lock[l].timeout > now)
                      jo_int(j, "timeout", (lock[l].timeout - now) / 1000);
@@ -607,9 +607,7 @@ static void task(void *pvParameters)
          {                      // Open
             if (doorstate != DOOR_NOTCLOSED && doorstate != DOOR_PROPPED && doorstate != DOOR_OPEN)
             {                   // We have moved to open state, this can cancel the locking operation
-               jo_t j = jo_object_alloc();
-               if (*nodename)
-                  jo_string(j, "node", nodename);
+               jo_t j = jo_make();
                if (!doorwhy)
                   doorwhy = ((lock[0].state == LOCK_LOCKED) ? "forced" : "manual");
                if (doorwhy)
@@ -672,9 +670,7 @@ static void task(void *pvParameters)
             {                   // Time to lock the door
                if (doorstate == DOOR_UNLOCKED)
                {
-                  jo_t j = jo_object_alloc();
-                  if (*nodename)
-                     jo_string(j, "node", nodename);
+                  jo_t j = jo_make();
                   if (doorwhy)
                      jo_string(j, "trigger", doorwhy);
                   revk_event("notopen", &j);
@@ -697,9 +693,7 @@ static void task(void *pvParameters)
                      door_unlock(NULL, "button");
                   else
                   {             // Not opening door
-                     jo_t j = jo_object_alloc();
-                     if (*nodename)
-                        jo_string(j, "node", nodename);
+                     jo_t j = jo_make();
                      jo_string(j, "trigger", "exit");
                      revk_event("notopen", &j);
                   }
@@ -743,9 +737,7 @@ static void task(void *pvParameters)
          if (force || doorstate != lastdoorstate)
          {
             nfc_led(strlen(doorled[doorstate]), doorled[doorstate]);
-            jo_t j = jo_object_alloc();
-            if (*nodename)
-               jo_string(j, "node", nodename);
+            jo_t j = jo_make();
             jo_string(j, "state", doorstates[doorstate]);
             if (doorwhy && doorstate == DOOR_UNLOCKING)
                jo_string(j, "trigger", doorwhy);
@@ -782,8 +774,7 @@ void door_boot(void)
 #undef d
 #undef area
 #undef s
-}
-void door_start(void)
+} void door_start(void)
 {
    if (!doorauto)
       return;                   // No door control in operation

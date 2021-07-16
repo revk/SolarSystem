@@ -104,9 +104,7 @@ void alarm_arm(area_t a, const char *why)
    control_arm |= a;
    control_disarm &= ~a;
    door_check();
-   jo_t j = jo_object_alloc();
-   if (*nodename)
-      jo_string(j, "node", nodename);
+   jo_t j = jo_make();
    jo_area(j, "areas", a);
    if (why && *why)
       jo_string(j, "reason", why);
@@ -123,9 +121,7 @@ void alarm_disarm(area_t a, const char *why)
    control_arm &= ~a;
    control_disarm |= a;
    door_check();
-   jo_t j = jo_object_alloc();
-   if (*nodename)
-      jo_string(j, "node", nodename);
+   jo_t j = jo_make();
    jo_area(j, "areas", a);
    if (why && *why)
       jo_string(j, "reason", why);
