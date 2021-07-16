@@ -23,7 +23,7 @@ if($?userorganisationname) then
 	if($?CANEDITFOB) setenv allow "$allow caneditfob"
 	if($?CANEDITUSER) setenv allow "$allow canedituser"
 	if($?CANEDITAREA) setenv allow "$allow caneditarea"
-	sqlwrite -o "$DB" userorganisation $allow
+	sqlwrite -qon "$DB" userorganisation $allow
 endif
 if($?DELETE) then
 	if(! $?SURE) then

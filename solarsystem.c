@@ -266,8 +266,8 @@ static const char *settings(SQL * sqlp, SQL * sqlkeyp, SQL_RES * res, slot_t id)
                   if (pulse)
                      j_store_int(gpio, "pulse", pulse);
                }
-#define i(n) addarea(gpio,#n,sql_col(g,#n),0);
-#define s(n) i(n)
+#define i(n,c) addarea(gpio,#n,sql_col(g,#n),0);
+#define s(n,c) i(n,c)
 #include "ESP32/main/states.m"
             }
          }
@@ -990,7 +990,7 @@ int main(int argc, const char *argv[])
                      *o = 0;
                      return temp;
                   }
-#define s(n) if(strcmp(#n,"engineer")){const char *v=commalist(j_get(j,#n));if(strcmp(sql_colz(res,#n),v))sql_sprintf(&s,"`%#S`=%#s,",#n,v);}
+#define s(n,c) if(strcmp(#n,"engineer")){const char *v=commalist(j_get(j,#n));if(strcmp(sql_colz(res,#n),v))sql_sprintf(&s,"`%#S`=%#s,",#n,v);}
 #include "ESP32/main/states.m"
                   if (sql_back_s(&s) == ',' && deviceid)
                   {

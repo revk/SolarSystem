@@ -13,7 +13,7 @@ if($?AREAA) then #save
 			sql "$DB" 'REPLACE INTO area SET organisation=$SESSION_ORGANISATION,site=$SESSION_SITE,tag="$A",areaname="$D"'
 		endif
 	end
-	sqlwrite -o "$DB" site site="$SESSION_SITE" engineer
+	sqlwrite -qon "$DB" site site="$SESSION_SITE" engineer
         sql "$DB" 'UPDATE device SET poke=NOW() WHERE site=$SESSION_SITE'
 	message --poke
 	../login/redirect / Updated

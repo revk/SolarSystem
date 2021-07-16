@@ -1,9 +1,9 @@
 // Alarm state
 // Copyright © 2019-21 Adrian Kennard, Andrews & Arnold Ltd. See LICENCE file for details. GPL 3.0
 
-#define i(x) extern area_t state_##x;   // system wide aggregated input states
-#define s(x) extern area_t state_##x;   // system wide calculated states
+#define i(x,c) extern area_t state_##x;   // system wide aggregated input states
 #define	c(x) extern area_t control_##x; // local control flags
+#define s(x,c) extern area_t state_##x;   // system wide calculated states
 #include "states.m"
 extern area_t areaenter;
 extern area_t areaarm;
