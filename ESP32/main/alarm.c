@@ -84,7 +84,7 @@ const char *alarm_command(const char *tag, jo_t j)
       summary_next = uptime() + 1;      // Report
       if (esp_mesh_is_root())
          for (int i = 0; i < nodes; i++)
-            if (node[i].online)
+            if (node[i].online && memcmp(node[i].mac, revk_mac, 6))
             {
                revk_send_sub(0, node[i].mac);
                revk_send_sub(1, node[i].mac);
