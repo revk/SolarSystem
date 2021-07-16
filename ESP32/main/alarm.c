@@ -80,7 +80,16 @@ static void task(void *pvParameters);
 const char *alarm_command(const char *tag, jo_t j)
 {
    if (!strcmp(tag, "connect"))
+   {
       summary_next = uptime() + 1;      // Report
+      if (esp_mesh_is_root())
+         for (int i = 0; i < nodes; i++)
+            if (node[i].online)
+            {
+               revk_send_sub(0, node[i].mac);
+               revk_send_sub(1, node[i].mac);
+            }
+   }
    return NULL;
 }
 
@@ -127,7 +136,7 @@ void alarm_boot(void)
    node_mutex = xSemaphoreCreateBinary();
    xSemaphoreGive(node_mutex);
 #include "states.m"
-   revk_register("area", 0, sizeof(areafault), &areafault, AREAS, SETTING_BITFIELD | SETTING_LIVE | SETTING_SECRET); // Will control if shown in dump!
+   revk_register("area", 0, sizeof(areafault), &areafault, AREAS, SETTING_BITFIELD | SETTING_LIVE | SETTING_SECRET);    // Will control if shown in dump!
 #define area(n) revk_register(#n,0,sizeof(n),&n,AREAS,SETTING_BITFIELD|SETTING_LIVE);
 #define s(n) revk_register(#n,0,0,&n,NULL,0);
 #define ss(n) revk_register(#n,0,0,&n,NULL,SETTING_SECRET);
@@ -299,7 +308,7 @@ static int check_online(const char *target)
    if (child < 0)
       return child;
    if (!node[child].online)
-   { // Is there risk of a race in any way? mutex?
+   {                            // Is there risk of a race in any way? mutex?
       node[child].online = 1;
       node[child].reported = 0;
       nodes_online++;
@@ -318,7 +327,7 @@ static void mesh_make_summary(jo_t j)
    jo_int(j, "nodes", nodes);
    if (nodes_online < nodes)
       jo_int(j, "offline", nodes - nodes_online);
-   if(nodes<meshmax)
+   if (nodes < meshmax)
       jo_int(j, "missing", meshmax - nodes);
 #define i(x) state_##x=report_##x;      // Set aggregate states anyway (done by summary anyway)
 #include "states.m"
@@ -536,7 +545,7 @@ static void task(void *pvParameters)
          if (nodes_reported >= nodes_online)
          {                      // End of reporting cycle - no need to wait
             summary_next = now + 1000000LL * meshcycle * 3;
-	    // Clear reports
+            // Clear reports
             for (int n = 0; n < nodes; n++)
                node[n].reported = 0;
             nodes_reported = 0;
@@ -570,7 +579,7 @@ static void task(void *pvParameters)
             mesh_now_root();
             isroot = uptime();
             wasonline = 0;
-	    // Clear down
+            // Clear down
             for (int i = 0; i < nodes; i++)
             {
                node[i].online = 0;
