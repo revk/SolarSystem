@@ -113,8 +113,8 @@ static void task(void *pvParameters)
          input_latch |= input_stable;
          input_flip |= (input_stable ^ was);
          jo_t j = jo_object_alloc();
-         if (*name)
-            jo_string(j, "name", name);
+         if (*nodename)
+            jo_string(j, "node", nodename);
          int t = MAXINPUT;
          while (t && !input[t - 1])
             t--;

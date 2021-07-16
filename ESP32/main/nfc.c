@@ -102,6 +102,8 @@ static void fobevent(void)
    jo_t j = jo_object_alloc();
    if (*fob.id)
    {
+      if (*nodename)
+         jo_string(j, "node", nodename);
       if (fob.secureset)
          jo_bool(j, "secure", fob.secure);
       jo_string(j, "id", fob.id);

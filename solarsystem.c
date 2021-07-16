@@ -72,7 +72,7 @@ const char *upgrade(SQL_RES * res, slot_t id)
 static const char *settings(SQL * sqlp, SQL * sqlkeyp, SQL_RES * res, slot_t id)
 {                               // Security and settings
    j_t j = j_create();
-   j_store_string(j, "name", sql_colz(res, "devicename"));
+   j_store_string(j, "nodename", sql_colz(res, "devicename"));
    // Security
    const char *aid = sql_colz(res, "aid");
    char nfc = (*sql_colz(res, "nfc") == 't');
