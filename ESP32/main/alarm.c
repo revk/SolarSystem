@@ -165,7 +165,7 @@ void alarm_boot(void)
    xSemaphoreGive(node_mutex);
    revk_register("area", 0, sizeof(areafault), &areafault, AREAS, SETTING_BITFIELD | SETTING_LIVE | SETTING_SECRET);    // Will control if shown in dump!
    revk_register("sms", 0, sizeof(smsalarm), &smsalarm, AREAS, SETTING_BITFIELD | SETTING_LIVE | SETTING_SECRET);
-   revk_register("led", 0, sizeof(ledarea), &ledarea, AREAS, SETTING_BITFIELD | SETTING_LIVE | SETTING_SECRET);
+   //revk_register("led", 0, sizeof(ledarea), &ledarea, AREAS, SETTING_BITFIELD | SETTING_LIVE | SETTING_SECRET); parent in door
 #define area(n) revk_register(#n,0,sizeof(n),&n,AREAS,SETTING_BITFIELD|SETTING_LIVE);
 #define s(n,d) revk_register(#n,0,0,&n,#d,0);
 #define u16(n) revk_register(#n,0,sizeof(n),&n,NULL,0);
