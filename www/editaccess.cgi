@@ -26,7 +26,7 @@ if($?access) then
 	endif
 	can --redirect --access="$access" editaccess
 	if($status) exit 0
-	setenv allow "accessname clock log count armlate commit enter arm disarm expiry"
+	setenv allow "accessname clock log count armlate commit enter arm disarm strongarm prop expiry"
 	foreach day ($days)
 		setenv allow "$allow ${day}from ${day}to"
 	end
@@ -47,7 +47,7 @@ list:
 xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <h1>Access classes</h1>
 <table>
-<tr><th>Access</th><th>Notes</th><th>Expiry</th><th>Sunday</th><th>Monday</th><th>Tuesday</th><th>Wednesday</th><th>Thursday</th><th>Friday</th><th>Saturday</th><th>Enter</th><th>Arm</th><th>ForceArm</th><th>Disarm</th></tr>
+<tr><th>Access</th><th>Notes</th><th>Expiry</th><th>Sunday</th><th>Monday</th><th>Tuesday</th><th>Wednesday</th><th>Thursday</th><th>Friday</th><th>Saturday</th><th>Enter</th><th>Arm</th><th>Strong arm</th><th>Disarm</th><th>Prop</th></tr>
 <sql table=access where="site=$SESSION_SITE">
 <tr>
 <td><output name=accessname missing="Unnamed" blank="Unnanmed" href="editaccess.cgi/$access"></td>
@@ -65,8 +65,9 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 </for>
 <td><output name=enter></td>
 <td><output name=arm></td>
-<td><output name=forcearm></td>
+<td><output name=strongarm></td>
 <td><output name=disarm></td>
+<td><output name=prop></td>
 </tr>
 </sql>
 </table>
@@ -83,10 +84,6 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <sql table=access key=access><input name=access type=hidden>
 <table>
 <tr><td>Name</td><td><input name=accessname size=40 autofocus></td></tr>
-<tr><td>Enter</td><td><sql select="tag" table=area where="site=$site"><label for=enter$tag><output name=tag>:</label><input id=enter$tag name=enter type=checkbox value=$tag></sql></td></tr>
-<tr><td>Arm</td><td><sql select="tag" table=area where="site=$site"><label for=arm$tag><output name=tag>:</label><input id=arm$tag name=arm type=checkbox value=$tag></sql></td></tr>
-<tr><td>ForceArm</td><td><sql select="tag" table=area where="site=$site"><label for=forcearm$tag><output name=tag>:</label><input id=forcearm$tag name=forcearm type=checkbox value=$tag></sql></td></tr>
-<tr><td>Disarm</td><td><sql select="tag" table=area where="site=$site"><label for=disarm$tag><output name=tag>:</label><input id=disarm$tag name=disarm type=checkbox value=$tag></sql></td></tr>
 <tr><td><input type=checkbox id=clock name=clock value=true></td><td><label for=clock>Ignore time restrictions if clock not set.</label></td></tr>
 <tr><td><input type=checkbox id=log name=log value=true></td><td><label for=log>Try to log access to fob.</label></td></tr>
 <tr><td><input type=checkbox id=count name=count value=true></td><td><label for=count>Try to count access on fob.</label></td></tr>
@@ -98,6 +95,21 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <tr><td><output name=day sun=Sunday mon=Monday tue=Tuesday wed=Wednesday thu=Thursday fri=Friday sat=Saturday></td><td><input name="${day}from" type=time>-<input name="${day}to" type=time></td></tr>
 </for>
 </table>
+<table border=1>
+<set tags="enter arm strongarm disarm prop">
+<tr><th></th>
+<for SPACE T="$tags"><th><output name=T></th></for>
+<th>Areas</th>
+</tr>
+<sql table=area where="site=$SESSION_SITE">
+<tr>
+<th><output name=tag></th>
+<for SPACE T="$tags"><td><input name="$T" type=checkbox value="$tag"></td></for>
+<td><output name=areaname></td>
+</tr>
+</sql>
+</table>
+
 <input type=submit value="Update"><if ADMINORGANISATION><input type=submit name=DELETE Value="Delete"><input name=SURE type=checkbox></if>
 </sql>
 </form>
