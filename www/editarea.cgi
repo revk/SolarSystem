@@ -13,7 +13,6 @@ if($?AREAA) then #save
 			sql "$DB" 'REPLACE INTO area SET organisation=$SESSION_ORGANISATION,site=$SESSION_SITE,tag="$A",areaname="$D"'
 		endif
 	end
-	sqlwrite -qon "$DB" site site="$SESSION_SITE" engineer
         sql "$DB" 'UPDATE device SET poke=NOW() WHERE site=$SESSION_SITE'
 	message --poke
 	../login/redirect / Updated
@@ -25,13 +24,12 @@ xmlsql -C -d "$DB" head.html - foot.html << END
 <form method=post>
 <sql table=site WHERE="site=$SESSION_SITE">
 <table>
-<tr><th>Area</th><th>Name</th><th>Engineering mode</th></tr>
+<tr><th>Area</th><th>Name</th></tr>
 <sql table=area WHERE="site=$SESSION_SITE"><set "AREA\$tag"="\$areaname"></sql>
 <for space A="$AREALIST">
 <tr>
 <td><output name=A></td>
 <td><input name="AREA\$A" size=20></td>
-<td><input name=engineer type=checkbox value=\$A></td>
 <tr>
 </for>
 </table>

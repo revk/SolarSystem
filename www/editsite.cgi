@@ -28,7 +28,7 @@ if($?sitename) then
 	endif
 	if(! $?nomesh) setenv nomesh false
 	if(! $?ioteventarm) setenv ioteventarm false
-	sqlwrite -qon "$DB" site sitename wifissid wifipass iothost nomesh smsuser smspass armcancel alarmdelay alarmhold ioteventarm
+	sqlwrite -qon "$DB" site sitename wifissid wifipass iothost nomesh smsuser smspass armcancel alarmdelay alarmhold ioteventarm smsarm smsarmfail smsdisarm smsalarm engineer
 	sql "$DB" 'UPDATE device SET poke=NOW() WHERE site=$site'
 	message --poke
 	../login/redirect /
@@ -51,6 +51,20 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <tr><td>Arm-Cancel</td><td><input name=armcancel size=3> seconds (timeout before cancelling arming)</td></tr>
 <tr><td>Alarm-Delay</td><td><input name=alarmdelay size=3> seconds (timeout before alarm triggers)</td></tr>
 <tr><td>Alarm-Hold</td><td><input name=alarmhold size=3> seconds (timeout before alarm cancels after last trigger)</td></tr>
+</table>
+<table border=1>
+<set tags="engineer smsarm smsarmfail smsdisarm smsalarm">
+<tr><th></th>
+<for SPACE T="$tags"><th><output name=T></th></for>
+<th>Areas</th>
+</tr>
+<sql table=area where="site=$SESSION_SITE">
+<tr>
+<th><output name=tag></th>
+<for SPACE T="$tags"><td><input name="$T" type=checkbox value="$tag"></td></for>
+<td><output name=areaname></td>
+</tr>
+</sql>
 </table>
 </sql>
 <input type=submit value="Update">

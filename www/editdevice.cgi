@@ -167,7 +167,6 @@ xmlsql -C -d "$DB" head.html - foot.html << END
 </tr>
 </sql>
 </table>
-
 <input type=submit value="Update">
 <if online><input type=submit value="Restart" name=RESTART></if>
 <if not upgrade><input type=submit value="Upgrade" name=UPGRADE></if>

@@ -144,7 +144,7 @@ bool (ioteventarm);             // Copy stuff to IoT
 text(smsnumber,20);		// Number to SMS
 areas(smsarm);			// When to SMS
 areas(smsdisarm);
-areas(smsfailarm);
+areas(smsarmfail);
 areas(smsalarm);
 
 table(area, 0);
