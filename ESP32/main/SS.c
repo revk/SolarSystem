@@ -34,9 +34,9 @@ static const char __attribute__((unused)) TAG[] = "SS";
 static const char *port_inuse[MAX_PORT];
 
 #define modules		\
+	m(output)	\
 	m(alarm)	\
 	m(input)	\
-	m(output)	\
 	m(keypad)	\
 	m(door)		\
 	m(nfc)		\
