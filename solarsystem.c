@@ -1020,11 +1020,13 @@ int main(int argc, const char *argv[])
                   const char *n = sql_colz(res, "smsnumber");
                   if (*u && *p && *n)
                   {
+                  const char *f = sql_colz(res, "smsfrom");
+		  if(!*f)f=deviceid;
                      j_t s = j_create();
                      j_store_string(s, "username", u);
                      j_store_string(s, "password", p);
                      j_store_string(s, "da", n);
-                     j_store_string(s, "oa", deviceid);
+                     j_store_string(s, "oa", f);
                      j_store_string(s, "ud", j_get(j, "message"));
                      j_curl_send(NULL, s, NULL, NULL, "https://sms.aa.net.uk");
                      j_delete(&s);

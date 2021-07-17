@@ -129,7 +129,7 @@ void alarm_arm(area_t a, jo_t * jp)
    door_check();
    jo_area(j, "areas", a);
    if (smsarm & a)
-      sms_event("arm", j);
+      sms_event("Armed", j);
    revk_event_copy("arm", &j, ioteventarm);
 }
 
@@ -155,7 +155,7 @@ void alarm_disarm(area_t a, jo_t * jp)
    door_check();
    jo_area(j, "areas", a);
    if (smsdisarm & a)
-      sms_event("disarm", j);
+      sms_event("Disarmed", j);
    revk_event_copy("disarm", &j, ioteventarm);
 }
 
@@ -497,7 +497,7 @@ static void mesh_handle_summary(const char *target, jo_t j)
       {
          jo_t j = jo_make();
          jo_area(j, "areas", control_arm);
-         sms_event("armfail", j);
+         sms_event("Arm failed", j);
          jo_free(&j);
       }
       control_arm = 0;
@@ -530,7 +530,7 @@ static void mesh_handle_summary(const char *target, jo_t j)
       {
          jo_t j = jo_make();
          jo_area(j, "areas", state_alarmed & ~lastalarmed);
-         sms_event("alarm", j);
+         sms_event("Alarm!", j);
          jo_free(&j);
 
       }
@@ -724,9 +724,18 @@ void send_sms(const char *fmt, ...)
 
 static void sms_event(const char *tag, jo_t j)
 {
-   // Get areas
-   // Get fob ID
-   // Get fob name
-   // Get device name
-   send_sms("A thing happened: %s", tag);
+   char areas[sizeof(area_t)*8+1]="";
+   char id[15]="";
+   char name[16]="";
+   char node[21]="";
+   jo_rewind(j);
+   jo_type_t t;
+   while((t=jo_next(j)))if(t==JO_TAG)
+   {
+	   if(!jo_strcmp(j,"node")){jo_next(j);jo_strncmp(j,node,sizeof(node));continue;}
+	   if(!jo_strcmp(j,"name")){jo_next(j);jo_strncmp(j,name,sizeof(name));continue;}
+	   if(!jo_strcmp(j,"id")){jo_next(j);jo_strncmp(j,id,sizeof(id));continue;}
+	   if(!jo_strcmp(j,"areas")){jo_next(j);jo_strncmp(j,areas,sizeof(areas));continue;}
+   }
+   send_sms("%s: %s\n%s\n%s %s", tag,areas,node,id,name);
 }

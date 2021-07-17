@@ -28,7 +28,7 @@ if($?sitename) then
 	endif
 	if(! $?nomesh) setenv nomesh false
 	if(! $?ioteventarm) setenv ioteventarm false
-	sqlwrite -qon "$DB" site sitename wifissid wifipass iothost nomesh smsuser smspass armcancel alarmdelay alarmhold ioteventarm smsarm smsarmfail smsdisarm smsalarm engineer smsnumber
+	sqlwrite -qon "$DB" site sitename wifissid wifipass iothost nomesh smsuser smspass armcancel alarmdelay alarmhold ioteventarm smsarm smsarmfail smsdisarm smsalarm engineer smsnumber smsfrom
 	sql "$DB" 'UPDATE device SET poke=NOW() WHERE site=$site'
 	message --poke
 	../login/redirect /
@@ -49,6 +49,7 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <tr><td>SMS Username</td><td><input name=smsuser size=40></td></tr>
 <tr><td>SMS Password</td><td><input name=smspass size=40></td></tr>
 <tr><td>SMS Target</td><td><input name=smsnumber size=20 maxlength=20></td></tr>
+<tr><td>SMS From</td><td><input name=smsfrom size=10 maxlength=10> (if carrier allows)</td></tr>
 <tr><td>Arm-Cancel</td><td><input name=armcancel size=3> seconds (timeout before cancelling arming)</td></tr>
 <tr><td>Alarm-Delay</td><td><input name=alarmdelay size=3> seconds (timeout before alarm triggers)</td></tr>
 <tr><td>Alarm-Hold</td><td><input name=alarmhold size=3> seconds (timeout before alarm cancels after last trigger)</td></tr>
