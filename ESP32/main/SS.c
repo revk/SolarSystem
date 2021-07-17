@@ -7,6 +7,10 @@ static const char __attribute__((unused)) TAG[] = "SS";
 #include <driver/gpio.h>
 #include <esp_mesh.h>
 
+#ifndef	CONFIG_REVK_MESH
+#error	Needs CONFIG_REVK_MESH
+#endif
+
 #ifdef	CONFIG_REVK_APCONFIG
 #warning	You do not want door controller running CONFIG_REVK_APCONFIG
 #endif
