@@ -498,7 +498,7 @@ static void mesh_handle_summary(const char *target, jo_t j)
          jo_t j = jo_make();
          jo_area(j, "areas", control_arm);
          sms_event("Arm failed", j);
-	 revk_event_copy("armfail",&j,ioteventarm);
+         revk_event_copy("armfail", &j, ioteventarm);
       }
       control_arm = 0;
    }
@@ -530,6 +530,7 @@ static void mesh_handle_summary(const char *target, jo_t j)
       {
          jo_t j = jo_make();
          jo_area(j, "areas", state_alarmed & ~lastalarmed);
+         jo_string(j, "reason", "System");      // No node name
          sms_event("Alarm!", j);
          jo_free(&j);
 
@@ -726,7 +727,7 @@ static void sms_event(const char *tag, jo_t j)
 {
    char areas[sizeof(area_t) * 8 + 1] = "";
    char id[15] = "";
-   char name[16] = "";
+   char name[30] = "";
    char node[21] = "";
    jo_rewind(j);
    jo_type_t t;
@@ -739,7 +740,7 @@ static void sms_event(const char *tag, jo_t j)
             jo_strncpy(j, node, sizeof(node));
             continue;
          }
-         if (!jo_strcmp(j, "name"))
+         if (!jo_strcmp(j, "name") || !jo_strcmp(j, "reason"))
          {
             jo_next(j);
             jo_strncpy(j, name, sizeof(name));
