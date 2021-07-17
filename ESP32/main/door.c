@@ -820,8 +820,7 @@ void door_boot(void)
 #undef d
 #undef area
 #undef s
-}
-void door_start(void)
+} void door_start(void)
 {
    if (!doorauto)
       return;                   // No door control in operation

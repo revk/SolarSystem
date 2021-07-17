@@ -87,6 +87,7 @@ settings
 #include "states.m"
 static void task(void *pvParameters);
 static void node_online(const mac_t mac);
+static void sms_event(const char *tag, jo_t);
 
 const char *alarm_command(const char *tag, jo_t j)
 {
@@ -127,6 +128,8 @@ void alarm_arm(area_t a, jo_t * jp)
    control_disarm &= ~a;
    door_check();
    jo_area(j, "areas", a);
+   if (smsarm & a)
+      sms_event("arm", j);
    revk_event_copy("arm", &j, ioteventarm);
 }
 
@@ -151,6 +154,8 @@ void alarm_disarm(area_t a, jo_t * jp)
    control_disarm |= a;
    door_check();
    jo_area(j, "areas", a);
+   if (smsdisarm & a)
+      sms_event("disarm", j);
    revk_event_copy("disarm", &j, ioteventarm);
 }
 
@@ -159,7 +164,7 @@ void alarm_boot(void)
    node_mutex = xSemaphoreCreateBinary();
    xSemaphoreGive(node_mutex);
    revk_register("area", 0, sizeof(areafault), &areafault, AREAS, SETTING_BITFIELD | SETTING_LIVE | SETTING_SECRET);    // Will control if shown in dump!
-   revk_register("sms", 0, sizeof(smsalarm), &smsalarm, AREAS,  SETTING_BITFIELD | SETTING_LIVE |SETTING_SECRET); 
+   revk_register("sms", 0, sizeof(smsalarm), &smsalarm, AREAS, SETTING_BITFIELD | SETTING_LIVE | SETTING_SECRET);
    revk_register("led", 0, sizeof(ledarea), &ledarea, AREAS, SETTING_BITFIELD | SETTING_LIVE | SETTING_SECRET);
 #define area(n) revk_register(#n,0,sizeof(n),&n,AREAS,SETTING_BITFIELD|SETTING_LIVE);
 #define s(n,d) revk_register(#n,0,0,&n,#d,0);
@@ -488,8 +493,14 @@ static void mesh_handle_summary(const char *target, jo_t j)
       timer = 0;
    else if (armcancel && (timer += meshcycle) > armcancel)
    {                            // Cancel arming (ideally per area, but this is good enough)
+      if (smsarmfail & control_arm)
+      {
+         jo_t j = jo_make();
+         jo_area(j, "areas", control_arm);
+         sms_event("armfail", j);
+         jo_free(&j);
+      }
       control_arm = 0;
-      // TODO event on arming times out
    }
    // Outputs
    output_t forced = 0;
@@ -509,8 +520,21 @@ static void mesh_handle_summary(const char *target, jo_t j)
       jo_area(j, "armed", state_armed);
       revk_setting(j);
       jo_free(&j);
-      lastarmed = state_armed;
       door_check();
+      lastarmed = state_armed;
+   }
+   static area_t lastalarmed = -1;
+   if (lastalarmed != state_alarmed)
+   {
+      if (smsalarm & (state_alarmed & ~lastalarmed))
+      {
+         jo_t j = jo_make();
+         jo_area(j, "areas", state_alarmed & ~lastalarmed);
+         sms_event("alarm", j);
+         jo_free(&j);
+
+      }
+      lastalarmed = state_alarmed;
    }
 }
 
@@ -685,18 +709,24 @@ void alarm_rx(const char *target, jo_t j)
    }
 }
 
-void send_sms(const char *to, const char *fmt, ...)
+void send_sms(const char *fmt, ...)
 {
-   if (!to || !*to)
-      return;
    char *v = NULL;
    va_list ap;
    va_start(ap, fmt);
    vasprintf(&v, fmt, ap);
    va_end(ap);
    jo_t j = jo_object_alloc();
-   jo_string(j, "target", to);
    jo_string(j, "message", v);
    free(v);
    revk_mqtt_send("sms", 1, NULL, &j);
+}
+
+static void sms_event(const char *tag, jo_t j)
+{
+   // Get areas
+   // Get fob ID
+   // Get fob name
+   // Get device name
+   send_sms("A thing happened: %s", tag);
 }
