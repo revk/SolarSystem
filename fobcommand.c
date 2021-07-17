@@ -297,11 +297,15 @@ void *fobcommand(void *arg)
                status("Making access file");
                df(create_file(&d, 0x0A, 'B', 1, 0x0010, 256, 0, 0, 0, 0, 0));
             }
-            // Not doing name file
+	    // File 0 - name
+	    // Not used - name is in access file
+	    // File 1 - log
             if (!(fids & (1 << 0x01)))
-               df(create_file(&d, 1, 'C', 1, 0x0100, 13, 0, 0, 10, 0, 0));
+               df(create_file(&d, 0x01, 'C', 1, 0x0100, 13, 0, 0, 10, 0, 0));
+	    // File 2 - counter
             if (!(fids & (1 << 0x02)))
                df(create_file(&d, 0x02, 'V', 1, 0x0010, 0, 0, 0x7FFFFFFF, 0, 0, 0));
+	    // File A - access
             if (*afile)
             {
                status("Storing access file");
