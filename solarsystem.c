@@ -329,6 +329,11 @@ static void addsitedata(SQL * sqlp, j_t j, SQL_RES * site, const char *deviceid,
       j_store_string(wifi, "ssid", v);
    if ((v = sql_colz(site, "wifipass")) && *v)
       j_store_string(wifi, "pass", v);
+   j_t sms = j_store_object(j, "sms");
+   addarea(sms, "arm", sql_col(site, "smsarm"), 0);
+   addarea(sms, "disarm", sql_col(site, "smsdisarm"), 0);
+   addarea(sms, "armfail", sql_col(site, "smsarmfail"), 0);
+   addarea(sms, "alarm", sql_col(site, "smsalarm"), 0);
 #ifdef	CONFIG_REVK_MESH
    j_t mesh = j_store_object(j, "mesh");
    j_store_int(mesh, "cycle", 2);
@@ -827,7 +832,7 @@ int main(int argc, const char *argv[])
                               if (sql_fetch_row(device))
                               {
                                  if (!strncmp(secureid, dev, p - dev))
-                                    upgrade(device, id); // Priority upgrade for connecting device as fastest
+                                    upgrade(device, id);        // Priority upgrade for connecting device as fastest
                                  settings(&sql, &sqlkey, device, id);
                               }
                            } else
@@ -1012,13 +1017,14 @@ int main(int argc, const char *argv[])
                {
                   const char *u = sql_colz(res, "smsuser");
                   const char *p = sql_colz(res, "smspass");
-                  if (*u && *p)
+                  const char *n = sql_colz(res, "smsnumber");
+                  if (*u && *p && *n)
                   {
                      j_t s = j_create();
                      j_store_string(s, "username", u);
                      j_store_string(s, "password", p);
+                     j_store_string(s, "da", n);
                      j_store_string(s, "oa", deviceid);
-                     j_store_string(s, "da", j_get(j, "target"));
                      j_store_string(s, "ud", j_get(j, "message"));
                      j_curl_send(NULL, s, NULL, NULL, "https://sms.aa.net.uk");
                      j_delete(&s);

@@ -141,6 +141,11 @@ num(alarmhold);                 // Hold alarm state time
 bool (ioteventarm);             // Copy stuff to IoT
 #define s(state,c) areas(state)
 #include "ESP32/main/states.m"  // Related areas
+text(smsnumber,20);		// Number to SMS
+areas(smsarm);			// When to SMS
+areas(smsdisarm);
+areas(smsfailarm);
+areas(smsalarm);
 
 table(area, 0);
 link(organisation);             // Quicker

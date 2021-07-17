@@ -68,6 +68,10 @@ static int nodes_reported = 0;
 	u16(alarmhold)		\
         u8(meshcycle,3)		\
         u8(meshwarmup,30)	\
+	area(smsarm)		\
+	area(smsdisarm)		\
+	area(smsarmfail)	\
+	area(smsalarm)		\
 
 #define area(n) area_t n;
 #define s(n,d) char *n;
@@ -155,6 +159,7 @@ void alarm_boot(void)
    node_mutex = xSemaphoreCreateBinary();
    xSemaphoreGive(node_mutex);
    revk_register("area", 0, sizeof(areafault), &areafault, AREAS, SETTING_BITFIELD | SETTING_LIVE | SETTING_SECRET);    // Will control if shown in dump!
+   revk_register("sms", 0, sizeof(smsalarm), &smsalarm, AREAS,  SETTING_BITFIELD | SETTING_LIVE |SETTING_SECRET); 
    revk_register("led", 0, sizeof(ledarea), &ledarea, AREAS, SETTING_BITFIELD | SETTING_LIVE | SETTING_SECRET);
 #define area(n) revk_register(#n,0,sizeof(n),&n,AREAS,SETTING_BITFIELD|SETTING_LIVE);
 #define s(n,d) revk_register(#n,0,0,&n,#d,0);
