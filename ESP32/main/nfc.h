@@ -20,12 +20,12 @@ typedef struct {
    area_t arm;                  // Arm allow areas
    area_t strongarm;            // Force arm allow areas
    area_t disarm;               // Disarm allow areas
-   area_t prop;			// Prop allowed
+   area_t prop;                 // Prop allowed
    uint8_t aesid;               // The AES key index used
    uint8_t ver;                 // AES key version on fob
    uint8_t verset:1;            // Ver is set
    uint8_t enterset:1;          // Afile has enter setting
-   uint8_t propset:1;		// Afile has prop setting
+   uint8_t propset:1;           // Afile has prop setting
    uint8_t nameset:1;           // Afile has name set
    uint8_t armset:1;            // Afile has arm setting
    uint8_t strongarmset:1;      // Afile has strongarm setting
@@ -56,7 +56,7 @@ typedef struct {
    uint8_t enterok:1;           // Afile checks say door can be entered
    uint8_t disarmok:1;          // Afile checks say system can be disarmed
    uint8_t disarmed:1;          // Disarm was done
-   uint8_t armed:1;		// Arm was done
+   uint8_t armed:1;             // Arm was done
    uint8_t armok:1;             // Afile checks say system can be armed
    uint8_t strongarmok:1;       // Afile checks say system can be force armed
    uint8_t remote:1;            // Normal working overridden for remote NFC

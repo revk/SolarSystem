@@ -102,37 +102,51 @@ area_t alarm_armed(void)
    return (state_armed | control_arm) & ~control_disarm;
 }
 
-void alarm_arm(area_t a, const char *why)
+void alarm_arm(area_t a, jo_t * jp)
 {                               // Arm
-   why = why;
    a &= areaarm;
    if (((state_armed | control_arm) & a & ~control_disarm) == a)
+   {
+      jo_free(jp);
       return;                   // All armed
-   ESP_LOGD(TAG, "Arm %X %s", a, why ? : "");
+   }
+   jo_t j = NULL;
+   if (jp)
+   {
+      j = *jp;
+      *jp = NULL;
+   }
+   if (!j)
+      j = jo_make();
+   ESP_LOGD(TAG, "Arm %X", a);
    control_arm |= a;
    control_disarm &= ~a;
    door_check();
-   jo_t j = jo_make();
    jo_area(j, "areas", a);
-   if (why && *why)
-      jo_string(j, "reason", why);
    revk_event_copy("arm", &j, ioteventarm);
 }
 
-void alarm_disarm(area_t a, const char *why)
+void alarm_disarm(area_t a, jo_t * jp)
 {                               // Disarm
-   why = why;
    a &= areadisarm;
    if (!((state_armed | control_arm) & a & ~control_disarm))
+   {
+      jo_free(jp);
       return;                   // Not armed
-   ESP_LOGD(TAG, "Disarm %X %s", a, why ? : "");
+   }
+   jo_t j = NULL;
+   if (jp)
+   {
+      j = *jp;
+      *jp = NULL;
+   }
+   if (!j)
+      j = jo_make();
+   ESP_LOGD(TAG, "Disarm %X", a);
    control_arm &= ~a;
    control_disarm |= a;
    door_check();
-   jo_t j = jo_make();
    jo_area(j, "areas", a);
-   if (why && *why)
-      jo_string(j, "reason", why);
    revk_event_copy("disarm", &j, ioteventarm);
 }
 
@@ -407,17 +421,13 @@ static void mesh_handle_summary(const char *target, jo_t j)
          unsigned int crc = 0;
          char *comma = strchr(json, ',');       // Skip time as that changes every time, duh
          if (comma)
-            *comma = '{';       // Fudge it
-         if (json)
             crc = df_crc(strlen(comma), (void *) comma);
          if (last_crc != crc || now > summary_next)
          {                      // Changed
             summary_next = now + 60;
             last_crc = crc;
-            revk_mqtt_send_payload_copy("state", 1, "system", comma ? : "{}", iotstatesystem);
+            revk_mqtt_send_payload_copy("state", 1, "system", json, iotstatesystem);
          }
-         if (comma)
-            *comma = ',';       // Put back
       }
    } else
    {                            // We are leaf, get the data

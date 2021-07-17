@@ -206,7 +206,12 @@ void door_act(fob_t * fob)
    {                            // Simple, we can arm
       if (doorauto >= 5)
       {
-         alarm_arm(fob->arm & areaarm, "fob");
+         jo_t e = jo_make();
+         jo_string(e, "reason", "fob");
+         jo_string(e, "id", fob->id);
+         if (fob->nameset)
+            jo_string(e, "name", fob->name);
+         alarm_arm(fob->arm & areaarm, &e);
          door_lock(NULL, "fob");
          fob->armed = 1;
       }
@@ -218,7 +223,12 @@ void door_act(fob_t * fob)
    {
       if (doorauto >= 5)
       {
-         alarm_disarm(fob->disarm & areadisarm, "fob");
+         jo_t e = jo_make();
+         jo_string(e, "reason", "fob");
+         jo_string(e, "id", fob->id);
+         if (fob->nameset)
+            jo_string(e, "name", fob->name);
+         alarm_disarm(fob->disarm & areadisarm, &e);
          fob->disarmed = 1;
       }
    }
@@ -709,7 +719,9 @@ static void task(void *pvParameters)
                jo_area(j, "disarmok", doorexitdisarm & areadeadlock);
                if (door_deadlocked() && doorexitdisarm && !(alarm_armed() & ~(areadeadlock & areadisarm)))
                {
-                  alarm_disarm(areadeadlock & areadisarm, "button");
+                  jo_t e = jo_make();
+                  jo_string(e, "reason", "exit button");
+                  alarm_disarm(areadeadlock & areadisarm, &e);
                   jo_bool(j, "disarmed", 1);
                }
                if (!door_deadlocked())
@@ -732,7 +744,9 @@ static void task(void *pvParameters)
                   jo_area(j, "armok", areadeadlock & areaarm);
                   if (doorauto >= 2 && (areadeadlock & areaarm & ~alarm_armed()))
                   {
-                     alarm_arm(areadeadlock & areaarm, "button");
+                     jo_t e = jo_make();
+                     jo_string(e, "reason", "exit button");
+                     alarm_arm(areadeadlock & areaarm, &e);
                      jo_bool(j, "armed", 1);
                      door_lock(NULL, "button");
                   }
