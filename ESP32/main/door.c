@@ -632,7 +632,7 @@ static void task(void *pvParameters)
                   doorwhy = ((lock[0].state == LOCK_LOCKED) ? "forced" : "manual");
                if (doorwhy)
                   jo_string(j, "trigger", doorwhy);
-               revk_event("open", &j);
+               revk_event_copy("open", &j, iotstatedoor);
                doorwhy = NULL;
                doorstate = DOOR_OPEN;
                if (doorauto >= 2)
@@ -693,7 +693,7 @@ static void task(void *pvParameters)
                   jo_t j = jo_make();
                   if (doorwhy)
                      jo_string(j, "trigger", doorwhy);
-                  revk_event("notopen", &j);
+                  revk_event_copy("notopen", &j, iotstatedoor);
                }
                door_lock(NULL, NULL);
                doorwhy = NULL;
@@ -721,7 +721,7 @@ static void task(void *pvParameters)
                   } else
                      jo_bool(j, "unlockok", 1);
                }
-               revk_event("button", &j);
+               revk_event_copy("button", &j, iotstatedoor);
             } else if (doorexitarm && exit && exit < now)
             {                   // Held (not applicable if not arming allowed, so leaves to do exit stuck fault)
                exit = -1;       // Don't report stuck - this is max value as unsigned
@@ -737,7 +737,7 @@ static void task(void *pvParameters)
                      door_lock(NULL, "button");
                   }
                }
-               revk_event("button", &j);
+               revk_event_copy("button", &j, iotstatedoor);
             }
          } else
             exit = 0;
@@ -806,7 +806,8 @@ void door_boot(void)
 #undef d
 #undef area
 #undef s
-} void door_start(void)
+}
+void door_start(void)
 {
    if (!doorauto)
       return;                   // No door control in operation
