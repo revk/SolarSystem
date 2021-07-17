@@ -443,20 +443,23 @@ static void mesh_handle_summary(const char *target, jo_t j)
             if (!jo_strcmp(j, "summary"))
             {
                jo_next(j);
-               if (jo_here(j) == JO_NUMBER)
+               if (jo_here(j) == JO_STRING)
                {                // Oddly time() is strange so using int32_t for now - fix before 2038 maybe :-)
-                  int32_t new = jo_read_int(j);
-                  int32_t now = time(0);
-                  int32_t diff = now - new;
-                  if (diff > 60 || diff < -60)
-                  {             // Big change
-                     struct timeval tv = { new, 0 };
-                     if (settimeofday(&tv, NULL))
-                        ESP_LOGE(TAG, "Time set %d failed", new);
-                  } else if (diff)
+                  int32_t new = jo_read_datetime(j);
+                  if (new > 1000000000)
                   {
-                     struct timeval delta = { diff, 0 };
-                     adjtime(&delta, NULL);
+                     int32_t now = time(0);
+                     int32_t diff = now - new;
+                     if (diff > 60 || diff < -60)
+                     {          // Big change
+                        struct timeval tv = { new, 0 };
+                        if (settimeofday(&tv, NULL))
+                           ESP_LOGE(TAG, "Time set %d failed", new);
+                     } else if (diff)
+                     {
+                        struct timeval delta = { diff, 0 };
+                        adjtime(&delta, NULL);
+                     }
                   }
                }
             } else
@@ -586,11 +589,7 @@ static void task(void *pvParameters)
                node[n].reported = 0;
             nodes_reported = 0;
             jo_t j = jo_object_alloc();
-            uint32_t t = time(0);
-            if (t > 1000000000)
-               jo_int(j, "summary", t);
-            else
-               jo_bool(j, "summary", 0);
+            jo_datetime(j, "summary", time(0));
             mesh_make_summary(j);
             const mac_t addr = { 255, 255, 255, 255, 255, 255 };
             revk_mesh_send_json(addr, &j);
@@ -600,11 +599,7 @@ static void task(void *pvParameters)
       {                         // Periodic send  to root - even to self
          report_next = now + 1000000LL * meshcycle;
          jo_t j = jo_object_alloc();
-         uint32_t t = time(0);
-         if (t > 1000000000)
-            jo_int(j, "report", t);
-         else
-            jo_null(j, "report");
+         jo_datetime(j, "report", time(0));
          mesh_make_report(j);
          revk_mesh_send_json(NULL, &j);
       }
