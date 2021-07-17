@@ -501,6 +501,9 @@ int main(int argc, const char *argv[])
    }
    if (!sqldebug && !mqttdump && !dump)
       daemon(1, 1);
+   CURL *curl = curl_easy_init();
+   if (sqldebug)
+      curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
    // Get started
    signal(SIGPIPE, SIG_IGN);    // Don't crash on pipe errors
    openlog("SS", LOG_CONS | LOG_PID, LOG_USER); // Main logging is to syslog
@@ -1029,7 +1032,7 @@ int main(int argc, const char *argv[])
                      j_store_string(s, "da", n);
                      j_store_string(s, "oa", f);
                      j_store_string(s, "ud", j_get(j, "message"));
-                     j_curl_send(NULL, s, NULL, NULL, "https://sms.aa.net.uk");
+                     j_curl_send(curl, s, NULL, NULL, "https://sms.aa.net.uk");
                      j_delete(&s);
                   }
                }
@@ -1193,5 +1196,7 @@ int main(int argc, const char *argv[])
 
    sql_close(&sql);
    sql_close(&sqlkey);
+   curl_easy_cleanup(curl);
+
    return 0;
 }
