@@ -498,7 +498,7 @@ static void mesh_handle_summary(const char *target, jo_t j)
          jo_t j = jo_make();
          jo_area(j, "areas", control_arm);
          sms_event("Arm failed", j);
-         jo_free(&j);
+	 revk_event_copy("armfail",&j,ioteventarm);
       }
       control_arm = 0;
    }
