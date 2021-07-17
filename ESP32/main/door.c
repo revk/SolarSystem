@@ -135,6 +135,11 @@ struct {
 uint8_t doorstate = -1;
 const char *doorwhy = NULL;
 
+static area_t door_deadlocked(void)
+{
+   return areadeadlock & alarm_armed();
+}
+
 const char *door_access(const uint8_t * a)
 {                               // Confirm access
    if (!a)
@@ -160,7 +165,7 @@ const char *door_access(const uint8_t * a)
 void door_check(void)
 {
    if (doorauto >= 2)
-      output_set(OUNLOCK + 1, (areaenter & state_armed & ~control_disarm) ? 0 : 1);
+      output_set(OUNLOCK + 1, door_deadlocked()? 0 : 1);
 }
 
 const char *door_unlock(const uint8_t * a, const char *why)
@@ -169,7 +174,6 @@ const char *door_unlock(const uint8_t * a, const char *why)
    {
       if (why && !doorwhy)
          doorwhy = why;
-      // TODO disarm first?
       ESP_LOGI(TAG, "Unlock %s", why ? : "?");
       output_set(OUNLOCK + 0, 1);
       output_set(OUNLOCK + 1, 1);
@@ -198,8 +202,8 @@ const char *door_prop(const uint8_t * a, const char *why)
 
 void door_act(fob_t * fob)
 {                               // Act on fob (unlock/lock/arm/disarm)
-   if (fob->armok)
-   {
+   if (fob->armok && fob->held)
+   {                            // Simple, we can arm
       if (doorauto >= 5)
       {
          alarm_arm(fob->arm & areaarm, "fob");
@@ -207,17 +211,25 @@ void door_act(fob_t * fob)
       }
       return;
    }
+   if (!fob->override && door_deadlocked() && (!fob->enterok || !fob->disarmok || (fob->disarmok && (areadeadlock & alarm_armed() & ~(areadisarm & fob->disarm)))))
+      return;                   // Same check as Deadlocked - cannot enter or cannot disarm or cannot disarm enough... Unless override
    if (fob->disarmok)
    {
       if (doorauto >= 5)
+      {
          alarm_disarm(fob->disarm & areadisarm, "fob");
+         fob->disarmed = 1;
+      }
    }
-   if (fob->unlockok || fob->override)
+   if (fob->enterok || fob->override)
    {
       if (doorauto >= 4)
+      {
          door_unlock(NULL, "fob");
-   }
-   if (fob->deny)
+         fob->unlocked = 1;
+      } else
+         fob->unlockok = 1;
+   } else if (fob->deny)
    {
       if (doorauto >= 4)
          door_lock(NULL, "fob");
@@ -310,10 +322,16 @@ const char *door_fob(fob_t * fob)
                fob->armset = 1;
             } else if (c == 0xB)
             {                   // Force arm
-               fob->forcearm = 0;
+               fob->strongarm = 0;
                for (int q = 0; q < l; q++)
-                  fob->forcearm |= (p[q] << (24 - q * 8));
-               fob->forcearmset = 1;
+                  fob->strongarm |= (p[q] << (24 - q * 8));
+               fob->strongarmset = 1;
+            } else if (c == 0xC)
+            {                   // Prop
+               fob->prop = 0;
+               for (int q = 0; q < l; q++)
+                  fob->prop |= (p[q] << (24 - q * 8));
+               fob->propset = 1;
             } else if (c == 0xD)
             {                   // Disarm
                fob->disarm = 0;
@@ -402,7 +420,8 @@ const char *door_fob(fob_t * fob)
             }
             if (e)
             {
-               if (fob->armlate && fob->held && !(areaarm & ~fob->arm))
+               // Consider armlate to say if amrok even whilst out of time
+               if (fob->armlate && (areaarm & fob->arm))
                   fob->armok = 1;
                return e;
             }
@@ -410,14 +429,17 @@ const char *door_fob(fob_t * fob)
       }
       if (fob->block)
          return "Card blocked";
-      if (!fob->held && !(areadisarm & ~fob->disarm) && !(areaenter & state_armed & ~control_disarm & ~fob->disarm))
-         fob->disarmok = 1;
-      else if (fob->held && !(areaarm & ~fob->arm))
-         fob->armok = 1;
-      if (areaenter & state_armed & ~control_disarm & ~(fob->disarmok ? fob->disarm : 0))
-         return "Deadlocked";
+      // We are OK and in time...
+      if (areaarm & fob->arm)
+         fob->armok = 1;        // Can arm if any areas can be armed
+      if (areastrongarm & fob->strongarm)
+         fob->strongarmok = 1;  // Can arm is any areas can be armed
+      if (!(areadisarm & ~fob->disarm))
+         fob->disarmok = 1;     // Can disarm if any areas can be disarmed, but will only do so if can enter when disarmed
       if (!(areaenter & ~fob->enter))
-         fob->unlockok = 1;
+         fob->enterok = 1;
+      if (door_deadlocked() && (!fob->enterok || !fob->disarmok || (fob->disarmok && (areadeadlock & alarm_armed() & ~(areadisarm & fob->disarm)))))
+         return "Deadlocked";   // We could not enter, or could not disarm, or could not disarm enough to get in
       return NULL;
    }
    if (fob->secure && df.keylen)
@@ -427,7 +449,7 @@ const char *door_fob(fob_t * fob)
       if (!strcmp(fallback[i], fob->id))
       {
          fob->fallback = 1;
-         fob->unlockok = 1;
+         fob->enterok = 1;
          break;
       }
    // Check blacklist
@@ -436,7 +458,7 @@ const char *door_fob(fob_t * fob)
          if (!strcmp(blacklist[i], fob->id))
          {
             fob->blacklist = 1;
-            fob->unlockok = 0;
+            fob->enterok = 0;
             fob->disarmok = 0;
             fob->armok = 0;
             if (!fob->deny)
@@ -680,29 +702,37 @@ static void task(void *pvParameters)
          if (input_get(IEXIT1))
          {
             if (!exit)
-            {
-               exit = now + (int64_t) doorexit *1000LL; // Exit button timout
-               if (doorauto >= 2)
+            {                   // Pushed
+               jo_t j = jo_make();
+               exit = now + (int64_t) doorexit *1000LL; // Exit button timeout
+               if (doorexitdisarm && (alarm_armed() & areadeadlock & areadisarm))
+                  alarm_disarm(areadeadlock & areadisarm, "button");
+               if (!(alarm_armed() & ~areaenter))
                {
-                  if (doorexitdisarm && !(areaenter & (state_armed | control_arm) & ~control_disarm & ~areadisarm))
-                     alarm_disarm(areadisarm, "button");
-                  if (!(areaenter & (state_armed | control_arm) & ~control_disarm))
+                  if (doorauto >= 2)
+                  {
                      door_unlock(NULL, "button");
-                  else
-                  {             // Not opening door
-                     jo_t j = jo_make();
-                     jo_string(j, "trigger", "exit");
-                     revk_event("notopen", &j);
+                     jo_bool(j, "unlocked", 1);
+                  } else
+                     jo_bool(j, "unlockok", 1);
+               }
+               revk_event("button", &j);
+            } else if (doorexitarm && exit && exit < now)
+            {                   // Held (not applicable if not arming allowed, so leaves to do exit stuck fault)
+               exit = -1;       // Don't report stuck - this is max value as unsigned
+               jo_t j = jo_make();
+               jo_bool(j, "held", 1);
+               if (areadeadlock & areaarm)
+               {
+                  jo_area(j, "armok", areadeadlock & areaarm);
+                  if (doorauto >= 2)
+                  {
+                     alarm_arm(areadeadlock & areaarm, "button");
+                     jo_bool(j, "armed", 1);
+                     door_lock(NULL, "button");
                   }
                }
-            } else if (doorexitarm && exit && exit < now)
-            {                   // timeout held
-               exit = -1;       // Don't report stuck - this is max value as unsigned
-               if (doorauto >= 2)
-               {
-                  alarm_arm(areaarm, "button");
-                  door_lock(NULL, "button");
-               }
+               revk_event("button", &j);
             }
          } else
             exit = 0;

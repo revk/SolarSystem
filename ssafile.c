@@ -212,7 +212,8 @@ unsigned int makeafile(SQL_RES * res, unsigned char *afile)
       }
    }
    addarea(0xA0, "arm");
-   addarea(0xB0, "forcearm");
+   addarea(0xB0, "strongarm");
+   addarea(0xC0, "prop");
    addarea(0xD0, "disarm");
    addarea(0xE0, "enter");
    if (p >= 256)

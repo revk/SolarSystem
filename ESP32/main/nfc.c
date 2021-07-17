@@ -119,6 +119,8 @@ static void fobevent(void)
          jo_bool(j, "updated", fob.updated);
       if (fob.logged)
          jo_bool(j, "logged", fob.logged);
+      if (fob.counted)
+         jo_bool(j, "counted", fob.counted);
       if (fob.checked)
          jo_bool(j, "checked", fob.checked);
       if (fob.held)
@@ -131,16 +133,22 @@ static void fobevent(void)
          jo_bool(j, "blacklist", fob.blacklist);
       if (fob.fallback)
          jo_bool(j, "fallback", fob.fallback);
-      if (fob.checked)
+      if (fob.unlocked)
+         jo_bool(j, "unlocked", fob.unlocked);
+      if (fob.disarmed)
+         jo_bool(j, "disarmed", fob.disarmed);
+      if (fob.unlockok)
          jo_bool(j, "unlockok", fob.unlockok);
-      if (fob.checked)
-         jo_bool(j, "disarmok", fob.disarmok);
-      if (fob.checked && fob.held)
-      {
-         jo_bool(j, "armok", fob.armok);
-         if (fob.armok && fob.armlate)
-            jo_bool(j, "armlate", fob.armlate);
-      }
+      if (fob.enterok)
+         jo_bool(j, "enterok", fob.enterok);
+      if (fob.disarmok)
+         jo_area(j, "disarmok", fob.disarm & areadisarm);
+      if (fob.armok)
+         jo_area(j, "armok", fob.arm & areaarm);
+      if (fob.strongarmok)
+         jo_area(j, "strongarmok", fob.strongarm & areaarm);
+      if (fob.armlate)
+         jo_bool(j, "armlate", fob.armlate);
       if (fob.afile)
          jo_stringf(j, "crc", "%08X", fob.crc);
       if (fob.override)
@@ -441,7 +449,10 @@ static void task(void *pvParameters)
                if (fob.log || fob.count || fob.updated)
                {                // Commit
                   if ((e = df_commit(&df)))
+                  {
+                     fob.updated = 0;
                      return;
+                  }
                }
                // Key update
                if (fob.aesid)
@@ -473,7 +484,7 @@ static void task(void *pvParameters)
                   ESP_LOGI(TAG, "Read %s", fob.id);
                if (!e && df.keylen && fob.commit)
                   log();        // Log before reporting or opening door
-               if (fob.unlockok)
+               if (fob.enterok)
                   blink(nfcgreen);
                else if (fob.deny)
                   blink(nfcred);

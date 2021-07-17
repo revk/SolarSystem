@@ -53,9 +53,12 @@ static int nodes_reported = 0;
 	area(areafault)		\
 	area(areatamper)	\
 	area(areaenter)		\
+	area(deadlock)		\
 	area(areaarm)		\
+	area(areastrongarm)	\
 	area(areabell)		\
 	area(areadisarm)	\
+	area(areadeadlock)	\
 	area(engineer)		\
 	area(armed)		\
 	area(ledarea)		\
@@ -92,6 +95,11 @@ const char *alarm_command(const char *tag, jo_t j)
                node_online(node[i].mac);
    }
    return NULL;
+}
+
+area_t alarm_armed(void)
+{                               // What areas are, in effect, armed
+   return (state_armed | control_arm) & ~control_disarm;
 }
 
 void alarm_arm(area_t a, const char *why)
@@ -337,7 +345,7 @@ static void mesh_make_summary(jo_t j)
    state_faulted = ((state_faulted & ~report_arm) | report_fault);
    state_alarmed = ((state_alarmed & ~report_arm) | state_alarm);
    // arming normally holds off for presence (obviously) but also tamper and access - forcing armed is possible
-   state_armed = ((state_armed | report_forcearm | (report_arm & ~state_presence & ~(state_tamper & ~engineer) & ~state_access)) & ~report_disarm);
+   state_armed = ((state_armed | report_strongarm | (report_arm & ~state_presence & ~(state_tamper & ~engineer) & ~state_access)) & ~report_disarm);
    // prearm if any not armed yet
    state_prearm = (report_arm & ~state_armed);
    // Alarm based only on presence, but change of tamper or access trips presence anyway. Basically you can force arm with tamper and access
@@ -455,7 +463,7 @@ static void mesh_handle_summary(const char *target, jo_t j)
    }
    // Clear control bits when actioned
    control_arm &= ~state_armed;
-   control_forcearm &= ~state_armed;
+   control_strongarm &= ~state_armed;
    control_disarm &= state_armed;
    static uint16_t timer = 0;
    if (!control_arm)

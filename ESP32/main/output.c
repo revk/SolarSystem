@@ -232,7 +232,7 @@ void output_boot(void)
          REVK_ERR_CHECK(gpio_config(&c));
       for (i = 0; i < MAXOUTPUT; i++)
          if (output[i])
-		 output_write(i);
+            output_write(i);
    }
 }
 

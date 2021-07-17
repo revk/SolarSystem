@@ -136,7 +136,7 @@ areas(alarmed);                 // Site wide state from mesh
 areas(tampered);                // Site wide state from mesh
 areas(faulted);                 // Site wide state from mesh
 num(armcancel);                 // Pre arm time
-num(alarmdelay);                  // Pre alarm time
+num(alarmdelay);                // Pre alarm time
 num(alarmhold);                 // Hold alarm state time
 bool (ioteventarm);             // Copy stuff to IoT
 #define s(state,c) areas(state)
@@ -155,7 +155,7 @@ link(site);
 text(accessname, 0);
 areas(enter);                   // Allow enter
 areas(arm);                     // Allow arm
-areas(forcearm);		// Allow forcearm
+areas(forcearm);                // Allow forcearm
 areas(disarm);                  // Allow disarm
 num(expiry);                    // Auto expiry (days)
 time0000(sunfrom);
@@ -192,7 +192,7 @@ link(access);                   // Access permissions
 join(fob, organisation);        // Yes, per org, for security reasons
 datetime(blocked);              // Block card (when blocked)
 datetime(confirmed);            // When confirmed blocked
-text(fobname, 15);               // Name of fob user
+text(fobname, 15);              // Name of fob user
 datetime(expires);              // Fixed expiry (local time on server)
 
 table(device, 12);
@@ -227,11 +227,13 @@ num(flash);                     // Flash size
 link(aid);                      // The AID for door access (defines what site it is)
 areas(areaenter);               // Areas allowed enter by fob
 areas(areaarm);                 // Areas allowed arm by fob
+areas(areaforcearm);            // Areas allowed arm by fob
 areas(areadisarm);              // Areas allowed disarm by fob
 areas(areawarning);             // Areas set by warning
 areas(areafault);               // Areas set by fault
 areas(areatamper);              // Areas set by tamper
 areas(areabell);                // Areas for door bell input
+areas(areadeadloc);             // Areas for door bell input
 datetime(online);               // When online, if online
 datetime(lastonline);           // When last went offline
 text(offlinereason, 0);         // If sent offline reason, what was it
@@ -241,14 +243,14 @@ num(id);                        // Instance for communications when on line
 datetime(poke);                 // Poke settings
 text(tamper, 0);                // Latest tamper state
 text(fault, 0);                 // Latest fault state
-num(doorunlock);		// Door timer
-num(doorlock);		// Door timer
-num(dooropen);		// Door timer
-num(doorclose);		// Door timer
-num(doorprop);		// Door timer
-num(doorexit);		// Door timer
-num(doorpoll);		// Door timer
-num(doordebounce);		// Door timer
+num(doorunlock);                // Door timer
+num(doorlock);                  // Door timer
+num(dooropen);                  // Door timer
+num(doorclose);                 // Door timer
+num(doorprop);                  // Door timer
+num(doorexit);                  // Door timer
+num(doorpoll);                  // Door timer
+num(doordebounce);              // Door timer
 
 join(device, gpio) gpiotype(type);      // Pin Usage (in/out/power/exit/etc)
 bool (invert);                  // Invert normal polarity for pin
