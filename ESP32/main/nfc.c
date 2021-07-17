@@ -137,6 +137,8 @@ static void fobevent(void)
          jo_bool(j, "unlocked", fob.unlocked);
       if (fob.disarmed)
          jo_bool(j, "disarmed", fob.disarmed);
+      if (fob.armed)
+         jo_bool(j, "armed", fob.armed);
       if (fob.unlockok)
          jo_bool(j, "unlockok", fob.unlockok);
       if (fob.enterok)

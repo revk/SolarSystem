@@ -202,18 +202,19 @@ const char *door_prop(const uint8_t * a, const char *why)
 
 void door_act(fob_t * fob)
 {                               // Act on fob (unlock/lock/arm/disarm)
-   if (fob->armok && fob->held)
+   if (fob->armok && fob->held && (fob->arm & areaarm & ~alarm_armed()))
    {                            // Simple, we can arm
       if (doorauto >= 5)
       {
          alarm_arm(fob->arm & areaarm, "fob");
          door_lock(NULL, "fob");
+         fob->armed = 1;
       }
       return;
    }
    if (!fob->override && door_deadlocked() && (!fob->enterok || !fob->disarmok || (fob->disarmok && (areadeadlock & alarm_armed() & ~(areadisarm & fob->disarm)))))
       return;                   // Same check as Deadlocked - cannot enter or cannot disarm or cannot disarm enough... Unless override
-   if (fob->disarmok)
+   if (fob->disarmok && (alarm_armed() & fob->disarm & areadisarm))
    {
       if (doorauto >= 5)
       {
@@ -705,9 +706,13 @@ static void task(void *pvParameters)
             {                   // Pushed
                jo_t j = jo_make();
                exit = now + (int64_t) doorexit *1000LL; // Exit button timeout
-               if (doorexitdisarm && (alarm_armed() & areadeadlock & areadisarm))
+               jo_area(j, "disarmok", doorexitdisarm & areadeadlock);
+               if (door_deadlocked() && doorexitdisarm && !(alarm_armed() & ~(areadeadlock & areadisarm)))
+               {
                   alarm_disarm(areadeadlock & areadisarm, "button");
-               if (!(alarm_armed() & ~areaenter))
+                  jo_bool(j, "disarmed", 1);
+               }
+               if (!door_deadlocked())
                {
                   if (doorauto >= 2)
                   {
@@ -725,7 +730,7 @@ static void task(void *pvParameters)
                if (areadeadlock & areaarm)
                {
                   jo_area(j, "armok", areadeadlock & areaarm);
-                  if (doorauto >= 2)
+                  if (doorauto >= 2 && (areadeadlock & areaarm & ~alarm_armed()))
                   {
                      alarm_arm(areadeadlock & areaarm, "button");
                      jo_bool(j, "armed", 1);
@@ -801,8 +806,7 @@ void door_boot(void)
 #undef d
 #undef area
 #undef s
-}
-void door_start(void)
+} void door_start(void)
 {
    if (!doorauto)
       return;                   // No door control in operation
