@@ -1020,8 +1020,9 @@ int main(int argc, const char *argv[])
                   const char *n = sql_colz(res, "smsnumber");
                   if (*u && *p && *n)
                   {
-                  const char *f = sql_colz(res, "smsfrom");
-		  if(!*f)f=deviceid;
+                     const char *f = sql_colz(res, "smsfrom");
+                     if (!*f)
+                        f = deviceid;
                      j_t s = j_create();
                      j_store_string(s, "username", u);
                      j_store_string(s, "password", p);

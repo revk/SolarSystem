@@ -724,18 +724,39 @@ void send_sms(const char *fmt, ...)
 
 static void sms_event(const char *tag, jo_t j)
 {
-   char areas[sizeof(area_t)*8+1]="";
-   char id[15]="";
-   char name[16]="";
-   char node[21]="";
+   char areas[sizeof(area_t) * 8 + 1] = "";
+   char id[15] = "";
+   char name[16] = "";
+   char node[21] = "";
    jo_rewind(j);
    jo_type_t t;
-   while((t=jo_next(j)))if(t==JO_TAG)
-   {
-	   if(!jo_strcmp(j,"node")){jo_next(j);jo_strncmp(j,node,sizeof(node));continue;}
-	   if(!jo_strcmp(j,"name")){jo_next(j);jo_strncmp(j,name,sizeof(name));continue;}
-	   if(!jo_strcmp(j,"id")){jo_next(j);jo_strncmp(j,id,sizeof(id));continue;}
-	   if(!jo_strcmp(j,"areas")){jo_next(j);jo_strncmp(j,areas,sizeof(areas));continue;}
-   }
-   send_sms("%s: %s\n%s\n%s %s", tag,areas,node,id,name);
+   while ((t = jo_next(j)))
+      if (t == JO_TAG)
+      {
+         if (!jo_strcmp(j, "node"))
+         {
+            jo_next(j);
+            jo_strncpy(j, node, sizeof(node));
+            continue;
+         }
+         if (!jo_strcmp(j, "name"))
+         {
+            jo_next(j);
+            jo_strncpy(j, name, sizeof(name));
+            continue;
+         }
+         if (!jo_strcmp(j, "id"))
+         {
+            jo_next(j);
+            jo_strncpy(j, id, sizeof(id));
+            continue;
+         }
+         if (!jo_strcmp(j, "areas"))
+         {
+            jo_next(j);
+            jo_strncpy(j, areas, sizeof(areas));
+            continue;
+         }
+      }
+   send_sms("%s: %s\n%s\n%s %s", tag, areas, node, id, name);
 }
