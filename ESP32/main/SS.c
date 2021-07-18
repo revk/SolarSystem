@@ -37,6 +37,7 @@ static const char __attribute__((unused)) TAG[] = "SS";
 // Common
 static const char *port_inuse[MAX_PORT];
 
+// Output first to minimise startup
 #define modules		\
 	m(output)	\
 	m(input)	\

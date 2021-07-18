@@ -88,6 +88,7 @@ settings
 static void task(void *pvParameters);
 static void node_online(const mac_t mac);
 static void sms_event(const char *tag, jo_t);
+static void set_outputs(void);
 
 const char *alarm_command(const char *tag, jo_t j)
 {
@@ -205,7 +206,10 @@ void alarm_boot(void)
 #define i(x,c) revk_register("led"#x,0,0,&led##x,#c,0);
 #define s(x,c) i(x,c)
 #include "states.m"
-       control_arm = armed;     // Arm from flash state
+       // Pick up flash stored state to get started
+       state_armed = control_arm = armed;
+   state_engineer = engineer;
+   set_outputs();               // Ensure output states set so when output starts it knows expected state
 }
 
 void alarm_start(void)
@@ -445,6 +449,18 @@ static void mesh_handle_report(const char *target, jo_t j)
    }
 }
 
+static void set_outputs(void)
+{                               // Outputs set based on state
+   output_t forced = 0;
+   for (int i = 0; i < MAXOUTPUT; i++)
+   {
+#define i(x,c) if(output##x[i]&state_##x)forced|=(1ULL<<i);
+#define s(x,c) i(x,c)
+#include "states.m"
+   }
+   output_forced = forced;
+}
+
 static void mesh_handle_summary(const char *target, jo_t j)
 {                               // Alarm state - process summary of output states
    check_online(target);
@@ -529,15 +545,7 @@ static void mesh_handle_summary(const char *target, jo_t j)
       }
       control_arm = 0;
    }
-   // Outputs
-   output_t forced = 0;
-   for (int i = 0; i < MAXOUTPUT; i++)
-   {
-#define i(x,c) if(output##x[i]&state_##x)forced|=(1ULL<<i);
-#define s(x,c) i(x,c)
-#include "states.m"
-   }
-   output_forced = forced;
+   set_outputs();
 
    // Store armed state
    static area_t lastarmed = -1;

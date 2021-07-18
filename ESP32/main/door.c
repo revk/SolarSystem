@@ -562,24 +562,8 @@ const char *door_command(const char *tag, jo_t j)
 
 static void task(void *pvParameters)
 {                               // Main RevK task
-   sleep(1);
    esp_task_wdt_add(NULL);
    pvParameters = pvParameters;
-   if (input_get(IOPEN))
-   {
-      doorstate = DOOR_OPEN;
-      if (doorauto >= 2)
-         output_set(OUNLOCK + 0, 1);    // Start with unlocked doors
-   } else
-   {
-      int64_t now = esp_timer_get_time();
-      doorstate = DOOR_LOCKING;
-      if (doorauto >= 2)
-         output_set(OUNLOCK + 0, 0);    // Start with locked doors
-      lock[0].timeout = now + (int64_t) doorlock *1000LL;
-      lock[1].timeout = now + (int64_t) doorlock *1000LL;
-   }
-   door_check();	// Deadlock based on alarm state
    while (1)
    {
       esp_task_wdt_reset();
@@ -830,7 +814,24 @@ void door_boot(void)
 #undef d
 #undef area
 #undef s
+       // Initial states before output starts
+   if (input_get(IOPEN))
+   {
+      doorstate = DOOR_OPEN;
+      if (doorauto >= 2)
+         output_set(OUNLOCK + 0, 1);    // Start with unlocked doors
+   } else
+   {
+      int64_t now = esp_timer_get_time();
+      doorstate = DOOR_LOCKING;
+      if (doorauto >= 2)
+         output_set(OUNLOCK + 0, 0);    // Start with locked doors
+      lock[0].timeout = now + (int64_t) doorlock *1000LL;
+      lock[1].timeout = now + (int64_t) doorlock *1000LL;
+   }
+   door_check();                // Deadlock based on alarm state
 }
+
 
 void door_start(void)
 {

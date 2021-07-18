@@ -134,11 +134,15 @@ const char *output_command(const char *tag, jo_t j)
 
 static void task(void *pvParameters)
 {                               // Output poll
-   esp_task_wdt_add(NULL);
    pvParameters = pvParameters;
+   esp_task_wdt_add(NULL);
    static output_t output_last = 0;     // Last reported
    static output_t output_last_pulsed = 0;      // Last reported
    static uint16_t output_hold[MAXOUTPUT] = { };
+   // Set outputs to their current state
+   for (int i = 0; i < MAXOUTPUT; i++)
+      if (output[i])
+         output_write(i);
    // Scan inputs
    while (1)
    {
@@ -230,9 +234,6 @@ void output_boot(void)
       }
       if (c.pin_bit_mask)
          REVK_ERR_CHECK(gpio_config(&c));
-      for (i = 0; i < MAXOUTPUT; i++)
-         if (output[i])
-            output_write(i);
    }
 }
 
