@@ -778,5 +778,5 @@ static void sms_event(const char *tag, jo_t j, int system)
             continue;
          }
       }
-   send_sms("%s: %s\n%s%s%s %s %s", tag, areas, system ? nodename : "", system ? "\n" : "", reason, id, name);
+   send_sms("%s: %s\n%s%s%s %s %s", tag, areas, system ? "" : nodename, system ? "" : "\n", reason, id, name);
 }
