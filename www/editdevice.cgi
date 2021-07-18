@@ -68,7 +68,7 @@ if($?devicename) then # save
 	if(! $?iotstatetamper) setenv iotstatetamper false
 	if(! $?iotstatesystem) setenv iotstatesystem false
 	if(! $?ioteventfob) setenv ioteventfob false
-	setenv allow "devicename areawarning areafault areatamper areaenter areastrongarm areadeadlock areaarm areadisarm areabell nfc nfcadmin door doorexitarm doorexitdisarm aid site iotstatedoor iotstateinput iotstateoutput iotstatefault iotstatetamper iotstatesystem ioteventfob doorunlock doorlock dooropen doorclose doorprop doorexit"
+	setenv allow "devicename areawarning areafault areatamper areaenter areastrongarm areadeadlock areaarm areadisarm areabell arealed nfc nfcadmin door doorexitarm doorexitdisarm aid site iotstatedoor iotstateinput iotstateoutput iotstatefault iotstatetamper iotstatesystem ioteventfob doorunlock doorlock dooropen doorclose doorprop doorexit"
 	if("$USER_ADMIN" == "true") setenv allow "$allow nfctrusted"
 	sqlwrite -qon "$DB" device $allow
 	sql "$DB" 'UPDATE device SET poke=NOW() WHERE device="$device"'
@@ -154,7 +154,7 @@ xmlsql -C -d "$DB" head.html - foot.html << END
 </table>
 <table border=1>
 <set tags="warning fault tamper">
-<if nfc=true><set tags="\$tags deadlock enter arm strongarm disarm bell"></if>
+<if nfc=true><set tags="\$tags deadlock enter arm strongarm disarm bell led"></if>
 <tr><th></th>
 <for SPACE T="\$tags"><th><output name=T></th></for>
 <th>Areas</th>

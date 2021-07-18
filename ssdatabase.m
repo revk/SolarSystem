@@ -144,9 +144,9 @@ num(alarmhold);                 // Hold alarm state time
 bool (ioteventarm);             // Copy stuff to IoT
 #define s(state,c) areas(state)
 #include "ESP32/main/states.m"  // Related areas
-text(smsnumber,20);		// Number to SMS
-text(smsfrom,10);		// From, where settable by carrier
-areas(smsarm);			// When to SMS
+text(smsnumber, 20);            // Number to SMS
+text(smsfrom, 10);              // From, where settable by carrier
+areas(smsarm);                  // When to SMS
 areas(smsdisarm);
 areas(smsarmfail);
 areas(smsalarm);
@@ -164,8 +164,8 @@ link(site);
 text(accessname, 0);
 areas(enter);                   // Allow enter
 areas(arm);                     // Allow arm
-areas(strongarm);                // Allow strong arm
-areas(prop);			// Allow prop
+areas(strongarm);               // Allow strong arm
+areas(prop);                    // Allow prop
 areas(disarm);                  // Allow disarm
 num(expiry);                    // Auto expiry (days)
 time0000(sunfrom);
@@ -237,13 +237,14 @@ num(flash);                     // Flash size
 link(aid);                      // The AID for door access (defines what site it is)
 areas(areaenter);               // Areas allowed enter by fob
 areas(areaarm);                 // Areas allowed arm by fob
-areas(areastrongarm);            // Areas allowed arm by fob
+areas(areastrongarm);           // Areas allowed arm by fob
 areas(areadisarm);              // Areas allowed disarm by fob
 areas(areawarning);             // Areas set by warning
 areas(areafault);               // Areas set by fault
 areas(areatamper);              // Areas set by tamper
 areas(areabell);                // Areas for door bell input
-areas(areadeadlock);             // Areas for door bell input
+areas(areadeadlock);            // Areas for door bell input
+areas(arealed);                 // LED area
 datetime(online);               // When online, if online
 datetime(lastonline);           // When last went offline
 text(offlinereason, 0);         // If sent offline reason, what was it
