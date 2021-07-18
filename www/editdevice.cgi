@@ -27,7 +27,7 @@ if($?RESTART) then
 	redirect editdevice.cgi
 	exit 0
 endif
-if($?DELETE || $?FACTORY) then
+if($?DELETE && "$USER_ADMIN" == "true" || $?FACTORY) then
 	can --redirect --device='$device' editdevice
 	if(! $?SURE) then
 		setenv MSG "Are you sure?"
@@ -171,7 +171,7 @@ xmlsql -C -d "$DB" head.html - foot.html << END
 <input type=submit value="Update">
 <if online><input type=submit value="Restart" name=RESTART></if>
 <if not upgrade><input type=submit value="Upgrade" name=UPGRADE></if>
-<input type=submit value="Delete" name=DELETE>
+<if USER_ADMIN=true><input type=submit value="Delete" name=DELETE></if>
 <if online><input type=submit value="Factory Reset" name=FACTORY></if>
 <input type=checkbox name=SURE title='Tick this to say you are sure'>
 </sql>
