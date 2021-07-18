@@ -219,6 +219,7 @@ bool (iotstatetamper);          // Copy stuff to IoT
 bool (iotstatesystem);          // Copy stuff to IoT
 bool (ioteventfob);             // Copy stuff to IoT
 bool (nfc);                     // Yes, can get from pcb, but useful to reference quickly
+bool (rgb);			// Yes, can get from pcb, but useful to reference quickly
 bool (nfcadmin);                // NFC reader for admin use, e.g. on a desk
 bool (nfctrusted);              // Trusted device for fob provisioning
 bool (door);                    // This is a door

@@ -1,4 +1,4 @@
-#!../login/loggedin /bin/csh -f
+#!../login/loggedin /bin/csh -fx
 # TODO door lock control timings
 if($?PATH_INFO) then
 	setenv device "$PATH_INFO:t"
@@ -53,6 +53,7 @@ if($?devicename) then # save
 	can --redirect --device='$device' editdevice
 	setenv pcb `sql "$DB" 'SELECT pcb FROM device WHERE device="$device"'`
 	if($?pcb) then
+		setenv rgb `sql "$DB" 'SELECT IF(ledr="-","false","true") FROM pcb WHERE pcb=$pcb'`
 		setenv nfc `sql "$DB" 'SELECT IF(nfctx="-","false","true") FROM pcb WHERE pcb=$pcb'`
 		setenv keypad `sql "$DB" 'SELECT IF(keypadtx="-","false","true") FROM pcb WHERE pcb=$pcb'`
 	endif
@@ -68,7 +69,7 @@ if($?devicename) then # save
 	if(! $?iotstatetamper) setenv iotstatetamper false
 	if(! $?iotstatesystem) setenv iotstatesystem false
 	if(! $?ioteventfob) setenv ioteventfob false
-	setenv allow "devicename areawarning areafault areatamper areaenter areastrongarm areadeadlock areaarm areadisarm areabell arealed nfc nfcadmin door doorexitarm doorexitdisarm aid site iotstatedoor iotstateinput iotstateoutput iotstatefault iotstatetamper iotstatesystem ioteventfob doorunlock doorlock dooropen doorclose doorprop doorexit"
+	setenv allow "devicename areawarning areafault areatamper areaenter areastrongarm areadeadlock areaarm areadisarm areabell arealed nfc rgb nfcadmin door doorexitarm doorexitdisarm aid site iotstatedoor iotstateinput iotstateoutput iotstatefault iotstatetamper iotstatesystem ioteventfob doorunlock doorlock dooropen doorclose doorprop doorexit"
 	if("$USER_ADMIN" == "true") setenv allow "$allow nfctrusted"
 	sqlwrite -qon "$DB" device $allow
 	sql "$DB" 'UPDATE device SET poke=NOW() WHERE device="$device"'
@@ -153,7 +154,8 @@ xmlsql -C -d "$DB" head.html - foot.html << END
 </sql>
 </table>
 <table border=1>
-<set tags="warning fault tamper led">
+<set tags="warning fault tamper">
+<if rgb=true><set tags="\$tags led"></if>
 <if nfc=true><set tags="\$tags deadlock enter arm strongarm disarm bell"></if>
 <tr><th></th>
 <for SPACE T="\$tags"><th><output name=T></th></for>
