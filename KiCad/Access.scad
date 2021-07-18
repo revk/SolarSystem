@@ -12,8 +12,8 @@ module top()
     }
     for(x=[10-2,54-10-2])translate([x-5,-3,0])hull(){cube([10,2,1]);cube([10,1,2]);}
     translate([7,1,5.5])cube([18,17,1.5]); // ESP
-    translate([41,12,5.1])cube([9+3,13,1.5]); // USB
-    translate([33,18,2])cube([2,2,4.5]); // PCB
+    translate([41,12,5.5])cube([9+3,13,1.5]); // USB
+    //translate([33,18,2])cube([2,2,4.5]); // PCB
     for(x=[-3,51])for(y=[-2,31])translate([x,y,3])cube([2,4,3.9]);
 }
 
