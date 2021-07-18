@@ -25,7 +25,7 @@ ifndef KCONFIG_CONFIG
 KCONFIG_CONFIG=solarsystem.conf
 endif
 
-all: alarmpanel cardissue solarsystem can message makeaid sscert login.conf SQLlib/sql xmlsql/xmlsql .git/hooks/pre-commit
+all: solarsystem can message makeaid sscert login.conf SQLlib/sql xmlsql/xmlsql .git/hooks/pre-commit
 
 .git/hooks/pre-commit: pre-commit
 	cp $< $@
@@ -80,24 +80,6 @@ login.conf: login/Kconfig
 login/redirect.o: login/redirect.c
 	make -C login redirect.o
 
-cardissue: cardissue.c DESFireAES/desfireaes.o AXL/axl.o AJL/ajl.o afile.o Makefile
-	gcc -g -Wall -Wextra -O -o $@ $< -I. -IDESFireAES/include DESFireAES/desfireaes.o -IAXL AXL/axl.o -IAJL AJL/ajl.o -lcrypto -lpopt -pthread -lcurl -lmosquitto afile.o
-
-alarmpanel: alarmpanel.c galaxybus.o galaxybus.h port.o port.h afile.o door.o door.h AXL/axl.o AJL/ajl.o Dataformat/dataformat.o websocket/websocketxml.o DESFireAES/desfireaes.o trace.h Makefile
-	gcc -g -Wall -Wextra -O -o $@ $< galaxybus.o port.o afile.o door.o -I. -IAXL -IAJL -IDataformat -Iwebsocket -IDESFireAES/include AXL/axl.o AJL/ajl.o Dataformat/dataformat.o websocket/websocketxml.o DESFireAES/desfireaes.o -lcurl -pthread -lpopt -DLIBWS ${LIBEMAIL} ${LIBMQTT} -lcrypto -lssl
-
-galaxybus.o: galaxybus.c galaxybus.h port.h Makefile
-	gcc -g -Wall -Wextra -O -c -o $@ $< -I. -DLIB -pthread
-
-afile.o: afile.c afile.h Makefile
-	gcc -g -Wall -Wextra -O -c -o $@ $< -I. -IAJL -IDESFireAES/include -DLIB -pthread
-
-door.o: door.c door.h galaxybus.h Makefile
-	gcc -g -Wall -Wextra -O -c -o $@ $< -I. -DLIB -pthread
-
-port.o: port.c port.h galaxybus.h Makefile
-	gcc -g -Wall -Wextra -O -c -o $@ $< -I. -DLIB -pthread
-
 ssdatabase.o: ssdatabase.c ssdatabase.m ssdatabase.h config.h types.m Makefile ESP32/main/states.m
 	gcc -g -Wall -Wextra -O -c -o $@ $< ${SQLINC} -DLIB
 
@@ -116,8 +98,8 @@ mqttmsg.o: mqttmsg.c mqttmsg.h Makefile config.h
 ssafile.o: ssafile.c ssafile.h Makefile config.h
 	gcc -g -Wall -Wextra -O -c -o $@ $< ${SQLINC} -DLIB
 
-solarsystem: solarsystem.c config.h AXL/axl.o AJL/ajl.o Dataformat/dataformat.o websocket/websocketxml.o DESFireAES/desfireaes.o SQLlib/sqllib.o Makefile ssdatabase.o ssmqtt.o sscert.o fobcommand.o mqttmsg.o ssafile.o
-	gcc -g -Wall -Wextra -O -o $@ $< ssdatabase.o ssmqtt.o sscert.o AJL/ajlcurl.o AXL/axl.o Dataformat/dataformat.o websocket/websocketxml.o DESFireAES/desfireaes.o SQLlib/sqllib.o ${SQLINC} ${SQLLIB} -lpopt -lcrypto -pthread -lcurl -lssl fobcommand.o mqttmsg.o ssafile.o
+solarsystem: solarsystem.c config.h AXL/axl.o AJL/ajl.o Dataformat/dataformat.o DESFireAES/desfireaes.o SQLlib/sqllib.o Makefile ssdatabase.o ssmqtt.o sscert.o fobcommand.o mqttmsg.o ssafile.o
+	gcc -g -Wall -Wextra -O -o $@ $< ssdatabase.o ssmqtt.o sscert.o AJL/ajlcurl.o AXL/axl.o Dataformat/dataformat.o DESFireAES/desfireaes.o SQLlib/sqllib.o ${SQLINC} ${SQLLIB} -lpopt -lcrypto -pthread -lcurl -lssl fobcommand.o mqttmsg.o ssafile.o
 
 can: can.c config.h Makefile login/redirect.o
 	gcc -g -Wall -Wextra -O -o $@ $< SQLlib/sqllib.o ${SQLINC} ${SQLLIB} -lpopt -lcurl AJL/ajl.o login/redirect.o
