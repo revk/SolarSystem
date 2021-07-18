@@ -153,8 +153,8 @@ xmlsql -C -d "$DB" head.html - foot.html << END
 </sql>
 </table>
 <table border=1>
-<set tags="warning fault tamper">
-<if nfc=true><set tags="\$tags deadlock enter arm strongarm disarm bell led"></if>
+<set tags="warning fault tamper led">
+<if nfc=true><set tags="\$tags deadlock enter arm strongarm disarm bell"></if>
 <tr><th></th>
 <for SPACE T="\$tags"><th><output name=T></th></for>
 <th>Areas</th>
