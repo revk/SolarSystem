@@ -58,6 +58,7 @@ typedef struct {
    uint8_t disarmok:1;          // Afile checks say system can be disarmed
    uint8_t disarmed:1;          // Disarm was done
    uint8_t armed:1;             // Arm was done
+   uint8_t strongarmed:1;       // Strong arm was done
    uint8_t armok:1;             // Afile checks say system can be armed
    uint8_t strongarmok:1;       // Afile checks say system can be force armed
    uint8_t remote:1;            // Normal working overridden for remote NFC

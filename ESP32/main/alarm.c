@@ -133,6 +133,32 @@ void alarm_arm(area_t a, jo_t * jp)
    revk_event_copy("arm", &j, ioteventarm);
 }
 
+void alarm_strongarm(area_t a, jo_t * jp)
+{                               // Strong arm
+   a &= areastrongarm;
+   if (((state_armed | control_arm | control_strongarm) & a & ~control_disarm) == a)
+   {
+      jo_free(jp);
+      return;                   // All armed
+   }
+   jo_t j = NULL;
+   if (jp)
+   {
+      j = *jp;
+      *jp = NULL;
+   }
+   if (!j)
+      j = jo_make();
+   ESP_LOGD(TAG, "Arm %X", a);
+   control_strongarm |= a;
+   control_disarm &= ~a;
+   door_check();
+   jo_area(j, "areas", a);
+   if (smsarm & a)
+      sms_event("Armed", j);
+   revk_event_copy("strongarm", &j, ioteventarm);
+}
+
 void alarm_disarm(area_t a, jo_t * jp)
 {                               // Disarm
    a &= areadisarm;

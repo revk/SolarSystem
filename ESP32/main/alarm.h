@@ -26,6 +26,7 @@ void jo_area(jo_t j, const char *tag, area_t area);     // Store area
 area_t jo_read_area(jo_t);      // Read area
 void alarm_rx(const char *target, jo_t j);
 void alarm_arm(area_t a, jo_t *);
+void alarm_strongarm(area_t a, jo_t *);
 void alarm_disarm(area_t a, jo_t *);
 void send_sms(const char *fmt, ...);
 area_t alarm_armed(void);       // What areas are, in effect, armed

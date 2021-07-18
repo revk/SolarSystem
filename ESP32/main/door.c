@@ -202,6 +202,21 @@ const char *door_prop(const uint8_t * a, const char *why)
 
 void door_act(fob_t * fob)
 {                               // Act on fob (unlock/lock/arm/disarm)
+   if (fob->strongarmok && fob->longheld && (fob->strongarm & areastrongarm & ~alarm_armed()))
+   {                            // Simple, we can arm
+      if (doorauto >= 5)
+      {
+         jo_t e = jo_make();
+         jo_string(e, "reason", "fob");
+         jo_string(e, "id", fob->id);
+         if (fob->nameset)
+            jo_string(e, "name", fob->name);
+         alarm_strongarm(fob->strongarm & areastrongarm, &e);
+         door_lock(NULL, "fob");
+         fob->strongarmed = 1;
+      }
+      return;
+   }
    if (fob->armok && fob->held && (fob->arm & areaarm & ~alarm_armed()))
    {                            // Simple, we can arm
       if (doorauto >= 5)
@@ -820,8 +835,7 @@ void door_boot(void)
 #undef d
 #undef area
 #undef s
-}
-void door_start(void)
+} void door_start(void)
 {
    if (!doorauto)
       return;                   // No door control in operation
