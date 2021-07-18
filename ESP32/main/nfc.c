@@ -41,9 +41,9 @@ int16_t gpio_mask(uint8_t p)
   io(nfcrx) \
   io(nfcpower) \
   u16(nfcpoll,50) \
-  u16(nfchold,3000) \
   u16(nfcholdpoll,500) \
-  u8(nfclongholdpolls,12) \
+  u8(nfchold,6) \
+  u8(nfclonghold,20) \
   u16(nfcledpoll,100) \
   u16(nfciopoll,200) \
   u8(nfcuart,1) \
@@ -205,7 +205,7 @@ static void task(void *pvParameters)
             else
             {
                nextio = now;    // Try again right away
-               ESP_LOGI(TAG, "Retry %d", retry + 1);
+               ESP_LOGD(TAG, "Retry %d", retry + 1);
                if (retry++ >= 10)
                {                // We don't expect this in normal operation, but some flash operations seem to stall serial a bit
                   pn532 = pn532_end(pn532);
@@ -325,12 +325,12 @@ static void task(void *pvParameters)
       // Card
       if (nextpoll < now)
       {                         // Check for card
-         nextpoll = now + (uint64_t) nfcpoll *1000LL;
+         nextpoll = now + (uint64_t) nfcpoll *1000LL;   // Default polling
          if (found && !pn532_Present(pn532))
          {                      // Card gone
             ESP_LOGI(TAG, "gone %s", fob.id);
             fob.gone = 1;
-            if (fob.remote || (fob.held && nfchold))
+            if (fob.remote || (fob.held && nfchold) || (fob.longheld && nfclonghold))
                fobevent();
             memset(&fob, 0, sizeof(fob));
             found = 0;
@@ -340,8 +340,8 @@ static void task(void *pvParameters)
          {
             if (holdpolls < 255)
                holdpolls++;
-            nextpoll = now + (int64_t) nfcholdpoll *1000LL;
-            if (!fob.remote && !fob.held && nfchold && found < now)
+            nextpoll = now + (int64_t) nfcholdpoll *1000LL;     // Polling while held
+            if (!fob.remote && !fob.held && nfchold && holdpolls >= nfchold)
             {                   // Card has been held for a while, report
                fob.held = 1;
                fob.deny = NULL; // Re-evaluate as held
@@ -349,13 +349,12 @@ static void task(void *pvParameters)
                door_act(&fob);  // Action from held
                fobevent();
             }
-            if (!fob.remote && fob.held && !fob.longheld && nfchold && found < now && nfclongholdpolls && holdpolls > nfclongholdpolls)
+            if (!fob.remote && !fob.longheld && nfclonghold && holdpolls >= nfclonghold)
             {                   // Card has been held for a while, report
-               found = now;     // Start hold time again
                fob.longheld = 1;
-               fob.deny = NULL; // Re-evaluate as held
+               fob.deny = NULL; // Re-evaluate as long held
                door_fob(&fob);
-               door_act(&fob);  // Action from held
+               door_act(&fob);  // Action from long held
                fobevent();
             }
             continue;           // Waiting for card to go
@@ -375,7 +374,7 @@ static void task(void *pvParameters)
             if (fob.recheck)
                memset(&fob, 0, sizeof(fob));    // Fresh start
             xSemaphoreTake(nfc_mutex, portMAX_DELAY);
-            nextpoll = now + (int64_t) nfcholdpoll *1000LL;     // Set periodic check for card held
+            nextpoll = now + (int64_t) nfcholdpoll *1000LL;     // Polling while held
             const char *e = NULL;
             uint8_t *ats = pn532_ats(pn532);
             pn532_nfcid(pn532, fob.id);
@@ -523,7 +522,7 @@ static void task(void *pvParameters)
                      fobevent();        // Log the issue unless simple timeout
                   }
                }
-               found = now + (uint64_t) nfchold *1000LL;
+               found = now;
             }
             xSemaphoreGive(nfc_mutex);
          }

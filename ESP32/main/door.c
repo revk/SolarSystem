@@ -202,8 +202,8 @@ const char *door_prop(const uint8_t * a, const char *why)
 
 void door_act(fob_t * fob)
 {                               // Act on fob (unlock/lock/arm/disarm)
-   if (fob->strongarmok && fob->longheld && (fob->strongarm & areastrongarm & ~alarm_armed()))
-   {                            // Simple, we can arm
+   if (fob->strongarmok && fob->longheld && (fob->strongarm & areastrongarm & ~((state_armed | control_strongarm) & ~control_disarm)))
+   {                            // Simple, we can arm (Not using alarm_armed as that includes what we are trying, and failing, to control_arm)
       if (doorauto >= 5)
       {
          jo_t e = jo_make();
@@ -215,7 +215,6 @@ void door_act(fob_t * fob)
          door_lock(NULL, "fob");
          fob->strongarmed = 1;
       }
-      return;
    }
    if (fob->armok && fob->held && (fob->arm & areaarm & ~alarm_armed()))
    {                            // Simple, we can arm
@@ -230,8 +229,9 @@ void door_act(fob_t * fob)
          door_lock(NULL, "fob");
          fob->armed = 1;
       }
-      return;
    }
+   if (fob->held)
+      return;                   // Other actions were done already
    if (!fob->override && door_deadlocked() && (!fob->enterok || !fob->disarmok || (fob->disarmok && (areadeadlock & alarm_armed() & ~(areadisarm & fob->disarm)))))
       return;                   // Same check as Deadlocked - cannot enter or cannot disarm or cannot disarm enough... Unless override
    if (fob->disarmok && (alarm_armed() & fob->disarm & areadisarm))
@@ -569,22 +569,17 @@ static void task(void *pvParameters)
    {
       doorstate = DOOR_OPEN;
       if (doorauto >= 2)
-      {
          output_set(OUNLOCK + 0, 1);    // Start with unlocked doors
-         output_set(OUNLOCK + 1, 1);
-      }
    } else
    {
       int64_t now = esp_timer_get_time();
       doorstate = DOOR_LOCKING;
       if (doorauto >= 2)
-      {
          output_set(OUNLOCK + 0, 0);    // Start with locked doors
-         output_set(OUNLOCK + 1, 0);
-      }
       lock[0].timeout = now + (int64_t) doorlock *1000LL;
       lock[1].timeout = now + (int64_t) doorlock *1000LL;
    }
+   door_check();	// Deadlock based on alarm state
    while (1)
    {
       esp_task_wdt_reset();
@@ -835,7 +830,9 @@ void door_boot(void)
 #undef d
 #undef area
 #undef s
-} void door_start(void)
+}
+
+void door_start(void)
 {
    if (!doorauto)
       return;                   // No door control in operation

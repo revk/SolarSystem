@@ -104,13 +104,13 @@ const char *alarm_command(const char *tag, jo_t j)
 
 area_t alarm_armed(void)
 {                               // What areas are, in effect, armed
-   return (state_armed | control_arm) & ~control_disarm;
+   return (state_armed | control_arm | control_strongarm) & ~control_disarm;
 }
 
 void alarm_arm(area_t a, jo_t * jp)
 {                               // Arm
    a &= areaarm;
-   if (((state_armed | control_arm) & a & ~control_disarm) == a)
+   if (!(a & ~alarm_armed()))
    {
       jo_free(jp);
       return;                   // All armed
@@ -136,7 +136,7 @@ void alarm_arm(area_t a, jo_t * jp)
 void alarm_strongarm(area_t a, jo_t * jp)
 {                               // Strong arm
    a &= areastrongarm;
-   if (((state_armed | control_arm | control_strongarm) & a & ~control_disarm) == a)
+   if (!(a & ~((state_armed | control_strongarm) & ~control_disarm)))   // Not using alarm_armed as that includes what we are trying, and failing, to control_arm
    {
       jo_free(jp);
       return;                   // All armed
@@ -149,20 +149,20 @@ void alarm_strongarm(area_t a, jo_t * jp)
    }
    if (!j)
       j = jo_make();
-   ESP_LOGD(TAG, "Arm %X", a);
+   ESP_LOGD(TAG, "Strong arm %X", a);
    control_strongarm |= a;
    control_disarm &= ~a;
    door_check();
    jo_area(j, "areas", a);
    if (smsarm & a)
-      sms_event("Armed", j);
+      sms_event("Strong armed", j);
    revk_event_copy("strongarm", &j, ioteventarm);
 }
 
 void alarm_disarm(area_t a, jo_t * jp)
 {                               // Disarm
    a &= areadisarm;
-   if (!((state_armed | control_arm) & a & ~control_disarm))
+   if (!(a & alarm_armed()))
    {
       jo_free(jp);
       return;                   // Not armed
@@ -177,6 +177,7 @@ void alarm_disarm(area_t a, jo_t * jp)
       j = jo_make();
    ESP_LOGD(TAG, "Disarm %X", a);
    control_arm &= ~a;
+   control_strongarm &= ~a;
    control_disarm |= a;
    door_check();
    jo_area(j, "areas", a);
