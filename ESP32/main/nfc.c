@@ -43,6 +43,7 @@ int16_t gpio_mask(uint8_t p)
   u16(nfcpoll,50) \
   u16(nfchold,3000) \
   u16(nfcholdpoll,500) \
+  u8(nfclongholdpolls,12) \
   u16(nfcledpoll,100) \
   u16(nfciopoll,200) \
   u8(nfcuart,1) \
@@ -125,6 +126,8 @@ static void fobevent(void)
          jo_bool(j, "checked", fob.checked);
       if (fob.held)
          jo_bool(j, "held", fob.held);
+      if (fob.longheld)
+         jo_bool(j, "longheld", fob.longheld);
       if (fob.gone)
          jo_bool(j, "gone", fob.gone);
       if (fob.block)
@@ -180,6 +183,7 @@ static void task(void *pvParameters)
    uint8_t ledlast = 0xFF;
    uint8_t ledpos = 0;
    uint8_t retry = 0;
+   uint8_t holdpolls = 0;
    while (1)
    {
       esp_task_wdt_reset();
@@ -328,13 +332,25 @@ static void task(void *pvParameters)
                fobevent();
             memset(&fob, 0, sizeof(fob));
             found = 0;
+            holdpolls = 0;
          }
          if (found && !fob.recheck)
          {
+            if (holdpolls < 255)
+               holdpolls++;
             nextpoll = now + (int64_t) nfcholdpoll *1000LL;
             if (!fob.remote && !fob.held && nfchold && found < now)
             {                   // Card has been held for a while, report
                fob.held = 1;
+               fob.deny = NULL; // Re-evaluate as held
+               door_fob(&fob);
+               door_act(&fob);  // Action from held
+               fobevent();
+            }
+            if (!fob.remote && fob.held && !fob.longheld && nfchold && found < now && nfclongholdpolls && holdpolls > nfclongholdpolls)
+            {                   // Card has been held for a while, report
+               found = now;     // Start hold time again
+               fob.longheld = 1;
                fob.deny = NULL; // Re-evaluate as held
                door_fob(&fob);
                door_act(&fob);  // Action from held
