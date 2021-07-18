@@ -83,7 +83,7 @@ settings
 #undef u8
 static void task(void *pvParameters);
 static void node_online(const mac_t mac);
-static void sms_event(const char *tag, jo_t);
+static void sms_event(const char *tag, jo_t, int);
 static void set_outputs(void);
 
 const char *alarm_command(const char *tag, jo_t j)
@@ -126,7 +126,7 @@ void alarm_arm(area_t a, jo_t * jp)
    door_check();
    jo_area(j, "areas", a);
    if (smsarm & a)
-      sms_event("Armed", j);
+      sms_event("Armed", j, 0);
    revk_event_copy("arm", &j, ioteventarm);
 }
 
@@ -152,7 +152,7 @@ void alarm_strongarm(area_t a, jo_t * jp)
    door_check();
    jo_area(j, "areas", a);
    if (smsarm & a)
-      sms_event("Strong armed", j);
+      sms_event("Strong armed", j, 0);
    revk_event_copy("strongarm", &j, ioteventarm);
 }
 
@@ -179,7 +179,7 @@ void alarm_disarm(area_t a, jo_t * jp)
    door_check();
    jo_area(j, "areas", a);
    if (smsdisarm & a)
-      sms_event("Disarmed", j);
+      sms_event("Disarmed", j, 0);
    revk_event_copy("disarm", &j, ioteventarm);
 }
 
@@ -532,7 +532,7 @@ static void mesh_handle_summary(const char *target, jo_t j)
       {
          jo_t j = jo_make();
          jo_area(j, "areas", control_arm);
-         sms_event("Arm failed", j);
+         sms_event("Arm failed", j, 0);
          revk_event_copy("armfail", &j, ioteventarm);
       }
       control_arm = 0;
@@ -557,8 +557,7 @@ static void mesh_handle_summary(const char *target, jo_t j)
       {
          jo_t j = jo_make();
          jo_area(j, "areas", state_alarmed & ~lastalarmed);
-         jo_string(j, "reason", "System");      // No node name
-         sms_event("Alarm!", j);
+         sms_event("Alarm!", j, 1);
          jo_free(&j);
 
       }
@@ -743,21 +742,21 @@ void send_sms(const char *fmt, ...)
    revk_mqtt_send("sms", 1, NULL, &j);
 }
 
-static void sms_event(const char *tag, jo_t j)
+static void sms_event(const char *tag, jo_t j, int system)
 {
    char areas[sizeof(area_t) * 8 + 1] = "";
    char id[15] = "";
    char name[30] = "";
-   char node[21] = "";
+   char reason[20] = "";
    jo_rewind(j);
    jo_type_t t;
    while ((t = jo_next(j)))
       if (t == JO_TAG)
       {
-         if (!jo_strcmp(j, "node") || !jo_strcmp(j, "reason"))
+         if (!jo_strcmp(j, "reason"))
          {
             jo_next(j);
-            jo_strncpy(j, node, sizeof(node));
+            jo_strncpy(j, reason, sizeof(reason));
             continue;
          }
          if (!jo_strcmp(j, "name"))
@@ -779,5 +778,5 @@ static void sms_event(const char *tag, jo_t j)
             continue;
          }
       }
-   send_sms("%s: %s\n%s\n%s %s", tag, areas, node, id, name);
+   send_sms("%s: %s\n%s%s%s %s %s", tag, areas, system ? nodename : "", system ? "\n" : "", reason, id, name);
 }
