@@ -62,7 +62,6 @@ static int nodes_reported = 0;
 	area(engineer)		\
 	area(armed)		\
 	area(ledarea)		\
-	s(ledidle,G-)		\
 	u16(armcancel)		\
 	u16(alarmdelay)		\
 	u16(alarmhold)		\
@@ -82,9 +81,6 @@ settings
 #undef s
 #undef u16
 #undef u8
-#define i(x,c) char *led##x=NULL;
-#define s(x,c) i(x,c)
-#include "states.m"
 static void task(void *pvParameters);
 static void node_online(const mac_t mac);
 static void sms_event(const char *tag, jo_t);
@@ -193,7 +189,6 @@ void alarm_boot(void)
    xSemaphoreGive(node_mutex);
    revk_register("area", 0, sizeof(areafault), &areafault, AREAS, SETTING_BITFIELD | SETTING_LIVE | SETTING_SECRET);    // Will control if shown in dump!
    revk_register("sms", 0, sizeof(smsalarm), &smsalarm, AREAS, SETTING_BITFIELD | SETTING_LIVE | SETTING_SECRET);
-   //revk_register("led", 0, sizeof(ledarea), &ledarea, AREAS, SETTING_BITFIELD | SETTING_LIVE | SETTING_SECRET); parent in door
 #define area(n) revk_register(#n,0,sizeof(n),&n,AREAS,SETTING_BITFIELD|SETTING_LIVE);
 #define s(n,d) revk_register(#n,0,0,&n,#d,0);
 #define u16(n) revk_register(#n,0,sizeof(n),&n,NULL,0);
@@ -203,9 +198,6 @@ void alarm_boot(void)
 #undef s
 #undef u16
 #undef u8
-#define i(x,c) revk_register("led"#x,0,0,&led##x,#c,0);
-#define s(x,c) i(x,c)
-#include "states.m"
        // Pick up flash stored state to get started
        state_armed = control_arm = armed;
    state_engineer = engineer;
@@ -589,21 +581,14 @@ static void task(void *pvParameters)
    while (1)
    {
       esp_task_wdt_reset();
-      // LED
-      {
+      {                         // Set LED mode
          int r = 1;
          if ((isroot && !revk_offline() && nodes_online == meshmax) || (!isroot && esp_mesh_is_device_active()))
             r = 3;
-         static char led[50] = "";
-         char newled[50] = "";
-#define i(x,c) if(state_##x&(ledarea?:(area_t)-1)&&strlen(newled)+strlen(led##x)<sizeof(newled)-1)strcat(newled,led##x);
+         const char *led = "G";
+#define i(x,c) if((state_##x&(ledarea?:(area_t)-1))&&*#c)led=#c;
 #define s(x,c) i(x,c)
 #include "states.m"
-         if (!*led && strlen(ledidle) < sizeof(newled) - 1)
-            strcpy(newled, ledidle);
-         if (!*led)
-            strcpy(led, "G");
-         strcpy(led, newled);
          revk_blink(r, r, led);
       }
       // Waiting
