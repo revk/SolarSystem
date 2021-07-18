@@ -25,6 +25,7 @@ static output_t output_state = 0;       // Port state
 static output_t output_raw = 0; // Actual output
 output_t output_forced = 0;     // Output forced externally
 output_t output_pulsed = 0;     // Output pulse timed out
+output_t output_mask = 0;       // Configure outputs
 static uint32_t report_next = 0;        // When to report output
 
 int output_active(int p)
@@ -39,11 +40,14 @@ int output_active(int p)
 
 static void output_write(int p)
 {                               // Write current (combined) state (p from 0)
-   output_t v = (((output_state | output_forced) & ~output_pulsed) >> p) & 1;
-   output_raw = (output_raw & ~(1ULL << p)) | (v << p);
-   gpio_hold_dis(port_mask(output[p]));
-   gpio_set_level(port_mask(output[p]), (output[p] & PORT_INV) ? 1 - v : v);
-   gpio_hold_en(port_mask(output[p]));
+   if (output[p])
+   {
+      output_t v = (((output_state | output_forced) & ~output_pulsed) >> p) & 1;
+      output_raw = (output_raw & ~(1ULL << p)) | (v << p);
+      gpio_hold_dis(port_mask(output[p]));
+      gpio_set_level(port_mask(output[p]), (output[p] & PORT_INV) ? 1 - v : v);
+      gpio_hold_en(port_mask(output[p]));
+   }
 }
 
 void output_set(int p, int v)
@@ -55,8 +59,7 @@ void output_set(int p, int v)
       output_state |= (1ULL << p);
    else
       output_state &= ~(1ULL << p);
-   if (output[p])
-      output_write(p);
+   output_write(p);
 }
 
 int output_get(int p)
@@ -142,13 +145,16 @@ static void task(void *pvParameters)
    // Set outputs to their current state
    for (int i = 0; i < MAXOUTPUT; i++)
       if (output[i])
+      {
+         output_mask |= (1ULL << i);
          output_write(i);
+      }
    // Scan inputs
    while (1)
    {
       esp_task_wdt_reset();
       uint32_t now = uptime();
-      output_t output_mix = (output_state | output_forced);
+      output_t output_mix = ((output_state | output_forced) & output_mask);
       for (int i = 0; i < MAXOUTPUT; i++)
          if (!(output_mix & (1ULL << i)))
          {

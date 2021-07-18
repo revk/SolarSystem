@@ -174,7 +174,7 @@ const char *door_unlock(const uint8_t * a, const char *why)
    {
       if (why && !doorwhy)
          doorwhy = why;
-      ESP_LOGI(TAG, "Unlock %s", why ? : "?");
+      ESP_LOGD(TAG, "Unlock %s", why ? : "?");
       output_set(OUNLOCK + 0, 1);
       output_set(OUNLOCK + 1, 1);
    }
@@ -185,7 +185,7 @@ const char *door_lock(const uint8_t * a, const char *why)
 {                               // Lock the door - i.e. move to normal locked operation
    if (doorauto >= 2)
    {
-      why = why;
+      ESP_LOGD(TAG, "Lock %s", why ? : "?");
       output_set(OUNLOCK + 0, 0);
    }
    return door_access(a);
