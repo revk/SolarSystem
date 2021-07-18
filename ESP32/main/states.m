@@ -12,6 +12,8 @@
 #define s(n,c)	// Internal states
 #endif
 
+s(engineer,GY)
+
 i(doorbell,W)
 i(warning,Y)
 i(fault,M)
@@ -32,7 +34,6 @@ s(alarm,RB)
 s(alarmed,)
 s(faulted,)
 s(tampered,)
-s(engineer,)
 
 #undef i
 #undef s
