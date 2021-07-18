@@ -1,5 +1,4 @@
 #!../login/loggedin /bin/csh -f
-# TODO door lock control timings
 if($?PATH_INFO) then
 	setenv device "$PATH_INFO:t"
 endif
@@ -40,8 +39,8 @@ if($?DELETE || $?FACTORY) then
 	else
 		setenv MSG `message --device="$device" --command=restart`
 	endif
-	sql "$DB" 'DELETE FROM devicegpio WHERE device=$device'
-	setenv C `sql -c "$DB" 'DELETE FROM device WHERE device=$device'`
+	sql "$DB" 'DELETE FROM devicegpio WHERE device="$device"'
+	setenv C `sql -c "$DB" 'DELETE FROM device WHERE device="$device"'`
 	if("$C" == "" || "$C" == "0") then
 		setenv MSG "Cannot delete as in use"
 		goto done
@@ -115,7 +114,7 @@ xmlsql -C -d "$DB" head.html - foot.html << END
 <sql table="device LEFT JOIN pcb USING (pcb)" KEY=device>
 <table>
 <tr><td>PCB</td><td><output name=pcbname></td></tr>
-<tr><td>Name</td><td><input name=devicename ize=20 maxlength=20 autofocus></td></tr>
+<tr><td>Name</td><td><input name=devicename size=20 maxlength=20 autofocus></td></tr>
 <tr><td>Site</td><td><select name=site><sql table=site where="organisation=$SESSION_ORGANISATION"><option value='\$site'><output name=sitename></option></sql></select></td></tr>
 <sql table=site where="site=\$site">
 <if not iothost="">

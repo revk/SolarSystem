@@ -37,6 +37,7 @@ if($?DEPORT) then
 	endif
 endif
 done:
+setenv pcb `sql "$DB" 'SELECT pcb FROM device WHERE device="$device"'`
 xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <h1>Provision device for this site</h1>
 <form style="display:inline;" method=post>
