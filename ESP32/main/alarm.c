@@ -193,13 +193,13 @@ void alarm_boot(void)
 #define s(n,d) revk_register(#n,0,0,&n,#d,0);
 #define u16(n) revk_register(#n,0,sizeof(n),&n,NULL,0);
 #define u8(n,d) revk_register(#n,0,sizeof(n),&n,#d,0);
-   settings
+   settings;
 #undef area
 #undef s
 #undef u16
 #undef u8
-       // Pick up flash stored state to get started
-       state_armed = control_arm = armed;
+   // Pick up flash stored state to get started
+   state_armed = armed;
    state_engineer = engineer;
    set_outputs();               // Ensure output states set so when output starts it knows expected state
 }
