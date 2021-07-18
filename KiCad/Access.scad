@@ -9,11 +9,11 @@ module top()
         translate([-2,-2,-1])cube([54,37,7]);
         translate([3-2.45,-2,-1])cube([50-.55-.55,40,7]);
         translate([3-2.45,27.35+6.6-4.9,2])cube([48.9,10,6]); // SPOX
+        translate([29.45-3,5.2-3,4.5])cube([6,6,2]); // Button
     }
     for(x=[10-2,54-10-2])translate([x-5,-3,0])hull(){cube([10,2,1]);cube([10,1,2]);}
-    //translate([7,1,5.5])cube([18,17,1.5]); // ESP
-    //translate([41,12,5.5])cube([9+3,13,1.5]); // USB
-    //translate([33,18,2])cube([2,2,4.5]); // PCB
+    //translate([7,1,6])cube([18,17,1.5]); // ESP
+    //translate([41,12,6])cube([9+3,13,1.5]); // USB
     for(x=[-3,51])for(y=[-2,31])translate([x,y,3])cube([2,4,3.9]);
 }
 
