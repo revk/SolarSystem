@@ -17,6 +17,7 @@ extern uint8_t ioteventfob;
 extern uint8_t ioteventarm;
 
 #define	MAX_PORT	40
+const char *app_callback(int client, const char *prefix, const char *target, const char *suffix, jo_t j);
 const char *port_check(int p, const char *module, int i);       // Check port is OK, NULL if OK, else error
 uint8_t bcdutctime(time_t now, uint8_t datetime[7]);
 uint8_t bcdlocaltime(time_t now, uint8_t datetime[7]);
