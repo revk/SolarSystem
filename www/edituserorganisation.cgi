@@ -93,7 +93,7 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <if CANEDITAREA><tr><td><input type=checkbox id=caneditarea name=caneditarea value=true></td><td><label for=caneditarea>Can edit area</lable></td></tr></if>
 <if CANARM><tr><td><input type=checkbox id=canarm name=canarm value=true></td><td><label for=canarm>Can arm</lable></td></tr></if>
 <if CANDISARM><tr><td><input type=checkbox id=candisarm name=candisarm value=true></td><td><label for=candisarm>Can disarm</lable></td></tr></if>
-<if CANUNLOCK><tr><td><input type=checkbox id=canunlonk name=canunlonk value=true></td><td><label for=canunlonk>Can unlock</lable></td></tr></if>
+<if CANUNLOCK><tr><td><input type=checkbox id=canunlock name=canunlock value=true></td><td><label for=canunlock>Can unlock</lable></td></tr></if>
 </table>
 <input type=submit value="Update">
 <input type=submit name=DELETE value="Delete"><input type=checkbox name=SURE>
