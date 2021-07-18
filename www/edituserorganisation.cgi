@@ -15,6 +15,9 @@ if($?userorganisationname) then
 	if(! $?caneditfob) setenv caneditfob false
 	if(! $?canedituser) setenv canedituser false
 	if(! $?caneditarea) setenv caneditarea false
+	if(! $?canarm) setenv canarm false
+	if(! $?candisarm) setenv candisarm false
+	if(! $?canunlock) setenv canunlock false
 	if($?ADMINORGANISATION) setenv allow "$allow admin"
 	if($?CANEDITORGANISATION) setenv allow "$allow caneditorganisation"
 	if($?CANEDITACCESS) setenv allow "$allow caneditaccess"
@@ -23,6 +26,9 @@ if($?userorganisationname) then
 	if($?CANEDITFOB) setenv allow "$allow caneditfob"
 	if($?CANEDITUSER) setenv allow "$allow canedituser"
 	if($?CANEDITAREA) setenv allow "$allow caneditarea"
+	if($?CANARM) setenv allow "$allow canarm"
+	if($?CANDISARM) setenv allow "$allow candisarm"
+	if($?CANUNLOCK) setenv allow "$allow canunlock"
 	sqlwrite -qon "$DB" userorganisation $allow
 endif
 if($?DELETE) then
@@ -85,6 +91,9 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <if CANEDITFOB><tr><td><input type=checkbox id=caneditfob name=caneditfob value=true></td><td><label for=caneditfob>Can edit fob</lable></td></tr></if>
 <if CANEDITUSER><tr><td><input type=checkbox id=canedituser name=canedituser value=true></td><td><label for=canedituser>Can edit user</lable></td></tr></if>
 <if CANEDITAREA><tr><td><input type=checkbox id=caneditarea name=caneditarea value=true></td><td><label for=caneditarea>Can edit area</lable></td></tr></if>
+<if CANARM><tr><td><input type=checkbox id=canarm name=canarm value=true></td><td><label for=canarm>Can arm</lable></td></tr></if>
+<if CANDISARM><tr><td><input type=checkbox id=candisarm name=candisarm value=true></td><td><label for=candisarm>Can disarm</lable></td></tr></if>
+<if CANUNLOCK><tr><td><input type=checkbox id=canunlonk name=canunlonk value=true></td><td><label for=canunlonk>Can unlock</lable></td></tr></if>
 </table>
 <input type=submit value="Update">
 <input type=submit name=DELETE value="Delete"><input type=checkbox name=SURE>

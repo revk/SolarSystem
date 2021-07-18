@@ -7,6 +7,9 @@ unsetenv CANEDITSITE
 unsetenv CANEDITDEVICE
 unsetenv CANEDITFOB
 unsetenv CANEDITUSER
+unsetenv CANARM
+unsetenv CANDISARM
+unsetenv CANUNLOCK
 if($?SESSION_ORGANISATION) then
 can --organisation='$SESSION_ORGANISATION' admin
 if(! $status)setenv ADMINORGANISATION
@@ -18,6 +21,12 @@ can --organisation='$SESSION_ORGANISATION' edituser
 if(! $status)setenv CANEDITUSER
 can --organisation='$SESSION_ORGANISATION' viewlog
 if(! $status)setenv CANVIEWLOG
+can --organisation='$SESSION_ORGANISATION' arm
+if(! $status)setenv CANARM
+can --organisation='$SESSION_ORGANISATION' disarm
+if(! $status)setenv CANDISARM
+can --organisation='$SESSION_ORGANISATION' disunlock
+if(! $status)setenv CANUNLOCK
 endif
 if($?SESSION_SITE) then
 can --organisation='$SESSION_ORGANISATION' --site='$SESSION_SITE' editaccess
