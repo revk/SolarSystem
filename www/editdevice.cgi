@@ -1,4 +1,4 @@
-#!../login/loggedin /bin/csh -fx
+#!../login/loggedin /bin/csh -f
 # TODO door lock control timings
 if($?PATH_INFO) then
 	setenv device "$PATH_INFO:t"
