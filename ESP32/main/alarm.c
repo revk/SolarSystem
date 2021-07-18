@@ -761,13 +761,13 @@ static void sms_event(const char *tag, jo_t j)
    while ((t = jo_next(j)))
       if (t == JO_TAG)
       {
-         if (!jo_strcmp(j, "node"))
+         if (!jo_strcmp(j, "node") || !jo_strcmp(j, "reason"))
          {
             jo_next(j);
             jo_strncpy(j, node, sizeof(node));
             continue;
          }
-         if (!jo_strcmp(j, "name") || !jo_strcmp(j, "reason"))
+         if (!jo_strcmp(j, "name"))
          {
             jo_next(j);
             jo_strncpy(j, name, sizeof(name));
