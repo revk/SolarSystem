@@ -822,13 +822,15 @@ int main(int argc, const char *argv[])
                         {
                            if (secureid)
                            {
+				   int site=0;
+                              SQL_RES *res = sql_safe_query_store_free(&sql, sql_printf("SELECT * FROM `device` WHERE `device`=%#s", secureid));
+                              if (!sql_fetch_row(res))
+                                 sql_safe_query_free(&sql, sql_printf("INSERT INTO `device` SET `device`=%#s,`id`=%lld,`online`=NOW()", secureid,id));
+			      else site=atoi(sql_colz(res,"site"));
+                              sql_free_result(res);
+			      if(!site)sql_safe_query_free(&sql, sql_printf("INSERT INTO `pending` SET `pending`=%#s,`id`=%lld,`online`=NOW() ON DUPLICATE KEY UPDATE `id`=%lld",secureid,id,id));
                               if (strncmp(secureid, dev, p - dev))
-                              { // Check same site
-                                 int site = -0;
-                                 SQL_RES *res = sql_safe_query_store_free(&sql, sql_printf("SELECT * FROM `device` WHERE `device`=%#s", secureid));
-                                 if (sql_fetch_row(res))
-                                    site = atoi(sql_colz(res, "site"));
-                                 sql_free_result(res);
+                              { // Must be same site
                                  sql_safe_query_free(&sql, sql_printf("UPDATE `device` SET `online`=NOW(),`offlinereason`=NULL,`lastonline`=NOW(),`id`=%lld,`via`=%#s WHERE `device`=%#.*s AND `site`=%d", id, secureid, p - dev, dev, site));
                               } else
                                  sql_safe_query_free(&sql, sql_printf("UPDATE `device` SET `online`=NOW(),`offlinereason`=NULL,`lastonline`=NOW(),`id`=%lld,`via`=NULL WHERE `device`=%#.*s", id, p - dev, dev));
