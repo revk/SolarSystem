@@ -59,9 +59,9 @@ static int nodes_reported = 0;
 	area(areabell)		\
 	area(areadisarm)	\
 	area(areadeadlock)	\
+	area(arealed)		\
 	area(engineer)		\
 	area(armed)		\
-	area(ledarea)		\
 	u16(armcancel)		\
 	u16(alarmdelay)		\
 	u16(alarmhold)		\
@@ -586,7 +586,7 @@ static void task(void *pvParameters)
          if ((isroot && !revk_offline() && nodes_online == meshmax) || (!isroot && esp_mesh_is_device_active()))
             r = 3;
          const char *led = "G";
-#define i(x,c) if((state_##x&(ledarea?:(area_t)-1))&&*#c)led=#c;
+#define i(x,c) if((state_##x&(arealed?:(area_t)-1))&&*#c)led=#c;
 #define s(x,c) i(x,c)
 #include "states.m"
          revk_blink(r, r, led);
