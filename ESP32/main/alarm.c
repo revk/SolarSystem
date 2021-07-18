@@ -724,7 +724,8 @@ void alarm_rx(const char *target, jo_t j)
    }
    if (!jo_strcmp(j, "connect"))
    {
-      revk_command("status", NULL);
+      revk_command("status", NULL); // For up message
+      revk_command("connect", NULL); // Mainly for apps to send status
       return;
    }
 }
