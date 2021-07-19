@@ -179,6 +179,7 @@ static const char *settings(SQL * sqlp, SQL * sqlkeyp, SQL_RES * res, slot_t id)
       SQL_RES *p = sql_safe_query_store_free(sqlp, sql_printf("SELECT * FROM `pcb` WHERE `pcb`=%d", pcb));
       if (sql_fetch_row(p))
       {
+         const char *v;
 #define set(n) {const char *v=sql_colz(p,#n);if(!*v||!strcmp(v,"-"))j_store_string(j,#n,""); else j_store_literal(j,#n,v);}
          set(tamper);
 #undef set
@@ -188,6 +189,8 @@ static const char *settings(SQL * sqlp, SQL * sqlkeyp, SQL_RES * res, slot_t id)
          set(keypad, rx);
          set(keypad, re);
          set(keypad, de);
+         if (j_len(o) && (v = sql_colz(res, "keypadidle")) && *v)
+            j_store_string(o, "idle", v);
          o = j_store_object(j, "nfc");
          set(nfc, tx);
          set(nfc, rx);
@@ -322,7 +325,6 @@ static void addsitedata(SQL * sqlp, j_t j, SQL_RES * site, const char *deviceid,
    const char *v;
    if (!parentid || !*parentid || !strcmp(parentid, deviceid))
       parentid = NULL;          // Not sensible
-   //if ((v = sql_colz(site, "sitename")) && *v) j_store_string(j, "keypadidle", v);
    // Standard wifi settings
    v = sql_colz(site, "iothost");
    j_store_string(j, "mqtthost2", *v ? v : NULL);

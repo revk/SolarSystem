@@ -67,6 +67,7 @@ int64_t keypad_ui(char key)
 {                               // Update display for UI
    ESP_LOGI(TAG, "UI %c", key);
    // TODO keypad display format...
+   // TODO keypad beeping
 
    if (!key)
    {                            // To idle
@@ -171,7 +172,6 @@ static void task(void *pvParameters)
                   status(keypad_tamper = NULL);
                if (!send0B)
                {                // Key
-                  toggle0B = !toggle0B;
                   if (buf[2] == 0x7F)
                   {             // No key
                      if (lastkey & 0x80)
@@ -187,6 +187,7 @@ static void task(void *pvParameters)
                         lastkey = 0x7F;
                   } else
                   {             // key
+                     toggle0B = !toggle0B;
                      send0B = 1;
                      if ((lastkey & 0x80) && buf[2] != lastkey)
                      {
