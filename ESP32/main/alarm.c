@@ -128,7 +128,7 @@ void alarm_arm(area_t a, jo_t * jp)
    jo_area(j, "areas", a);
    if (smsarm & a)
       sms_event("Armed", j, 0);
-   revk_event_copy("arm", &j, ioteventarm);
+   revk_event_clients("arm", &j, 1 | (ioteventarm << 1));
 }
 
 void alarm_strongarm(area_t a, jo_t * jp)
@@ -154,7 +154,7 @@ void alarm_strongarm(area_t a, jo_t * jp)
    jo_area(j, "areas", a);
    if (smsarm & a)
       sms_event("Strong armed", j, 0);
-   revk_event_copy("strongarm", &j, ioteventarm);
+   revk_event_clients("strongarm", &j, 1 | (ioteventarm << 1));
 }
 
 void alarm_disarm(area_t a, jo_t * jp)
@@ -181,7 +181,7 @@ void alarm_disarm(area_t a, jo_t * jp)
    jo_area(j, "areas", a);
    if (smsdisarm & a)
       sms_event("Disarmed", j, 0);
-   revk_event_copy("disarm", &j, ioteventarm);
+   revk_event_clients("disarm", &j, 1 | (ioteventarm << 1));
 }
 
 void alarm_boot(void)
@@ -472,7 +472,7 @@ static void mesh_handle_summary(const char *target, jo_t j)
          {                      // Changed
             summary_next = now + 60;
             last_crc = crc;
-            revk_mqtt_send_payload_copy("state", 1, "system", json, iotstatesystem);
+            revk_mqtt_send_payload_clients("state", 1, "system", json, 1 | (iotstatesystem << 1));
          }
       }
    } else
@@ -534,7 +534,7 @@ static void mesh_handle_summary(const char *target, jo_t j)
          jo_t j = jo_make();
          jo_area(j, "areas", control_arm);
          sms_event("Arm failed", j, 0);
-         revk_event_copy("armfail", &j, ioteventarm);
+         revk_event_clients("armfail", &j, 1 | (ioteventarm << 1));
       }
       control_arm = 0;
    }

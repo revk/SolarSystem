@@ -151,6 +151,7 @@ areas(smsdisarm);
 areas(smsarmfail);
 areas(smsalarm);
 areas(smspanic);
+bool(debug);			// MQTT debug logging
 
 table(area, 0);
 link(organisation);             // Quicker

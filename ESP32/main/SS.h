@@ -15,6 +15,7 @@ extern uint8_t iotstatetamper;
 extern uint8_t iotstatesystem;
 extern uint8_t ioteventfob;
 extern uint8_t ioteventarm;
+extern uint8_t debug;
 
 #define	MAX_PORT	40
 const char *app_callback(int client, const char *prefix, const char *target, const char *suffix, jo_t j);

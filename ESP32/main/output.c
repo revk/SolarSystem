@@ -188,7 +188,7 @@ static void task(void *pvParameters)
                else
                   jo_bool(j, outputname[i], (output_mix >> i) & 1);
             }
-         revk_state_copy("output", &j, iotstateoutput);
+         revk_state_clients("output", &j, debug | (iotstateoutput << 1));
       }
       usleep(100000);           // 100 ms (timers assume this)
    }

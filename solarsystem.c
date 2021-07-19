@@ -325,6 +325,7 @@ static void addsitedata(SQL * sqlp, j_t j, SQL_RES * site, const char *deviceid,
    j_store_int(j, "armcancel", atoi(sql_colz(site, "armcancel")));
    j_store_int(j, "alarmdelay", atoi(sql_colz(site, "alarmdelay")));
    j_store_int(j, "alarmhold", atoi(sql_colz(site, "alarmhold")));
+   j_store_boolean(j, "debug", *sql_colz(site, "debug") == 't');
    j_t wifi = j_store_object(j, "wifi");
    if ((v = sql_colz(site, "wifissid")) && *v)
       j_store_string(wifi, "ssid", v);
@@ -822,13 +823,15 @@ int main(int argc, const char *argv[])
                         {
                            if (secureid)
                            {
-				   int site=0;
+                              int site = 0;
                               SQL_RES *res = sql_safe_query_store_free(&sql, sql_printf("SELECT * FROM `device` WHERE `device`=%#s", secureid));
                               if (!sql_fetch_row(res))
-                                 sql_safe_query_free(&sql, sql_printf("INSERT INTO `device` SET `device`=%#s,`id`=%lld,`online`=NOW()", secureid,id));
-			      else site=atoi(sql_colz(res,"site"));
+                                 sql_safe_query_free(&sql, sql_printf("INSERT INTO `device` SET `device`=%#s,`id`=%lld,`online`=NOW()", secureid, id));
+                              else
+                                 site = atoi(sql_colz(res, "site"));
                               sql_free_result(res);
-			      if(!site)sql_safe_query_free(&sql, sql_printf("INSERT INTO `pending` SET `pending`=%#s,`id`=%lld,`online`=NOW() ON DUPLICATE KEY UPDATE `id`=%lld",secureid,id,id));
+                              if (!site)
+                                 sql_safe_query_free(&sql, sql_printf("INSERT INTO `pending` SET `pending`=%#s,`id`=%lld,`online`=NOW() ON DUPLICATE KEY UPDATE `id`=%lld", secureid, id, id));
                               if (strncmp(secureid, dev, p - dev))
                               { // Must be same site
                                  sql_safe_query_free(&sql, sql_printf("UPDATE `device` SET `online`=NOW(),`offlinereason`=NULL,`lastonline`=NOW(),`id`=%lld,`via`=%#s WHERE `device`=%#.*s AND `site`=%d", id, secureid, p - dev, dev, site));

@@ -163,7 +163,7 @@ static void fobevent(void)
    }
    if (fob.remote)
       jo_bool(j, "remote", 1);
-   revk_event_copy("fob", &j, ioteventfob);
+   revk_event_clients("fob", &j, 1 | (ioteventfob << 1));
 }
 
 void nfc_retry(void)
@@ -270,10 +270,10 @@ static void task(void *pvParameters)
                   {
                      bell = 1;
                      if (nfcmqttbell)
-                        revk_mqtt_send_str_copy(nfcmqttbell, 0, -1);
+                        revk_mqtt_send_str_clients(nfcmqttbell, 0, 2);
                      jo_t j = jo_create_alloc();
                      jo_lit(j, NULL, "true");
-                     revk_event_copy("bell", &j, ioteventfob);
+                     revk_event_clients("bell", &j, 1 | (ioteventfob << 1));
                      bell_latch = 1;
                   }
                } else
