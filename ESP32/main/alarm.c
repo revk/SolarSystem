@@ -470,7 +470,7 @@ static void mesh_handle_summary(const char *target, jo_t j)
             crc = df_crc(strlen(comma), (void *) comma);
          if (last_crc != crc || now > summary_next)
          {                      // Changed
-            summary_next = now + 600;
+            summary_next = now + 3600;
             last_crc = crc;
             revk_mqtt_send_payload_clients("state", 1, "system", json, 1 | (iotstatesystem << 1));
          }
