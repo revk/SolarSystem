@@ -763,6 +763,7 @@ void send_sms(const char *fmt, ...)
 static void sms_event(const char *tag, jo_t j, int system)
 {
    char areas[sizeof(area_t) * 8 + 1] = "";
+   char ts[21] = "";
    char id[15] = "";
    char name[30] = "";
    char reason[20] = "";
@@ -771,6 +772,12 @@ static void sms_event(const char *tag, jo_t j, int system)
    while ((t = jo_next(j)))
       if (t == JO_TAG)
       {
+         if (!jo_strcmp(j, "ts"))
+         {
+            jo_next(j);
+            jo_strncpy(j, ts, sizeof(ts));
+            continue;
+         }
          if (!jo_strcmp(j, "reason"))
          {
             jo_next(j);
@@ -796,5 +803,5 @@ static void sms_event(const char *tag, jo_t j, int system)
             continue;
          }
       }
-   send_sms("%s: %s\n%s%s%s %s %s", tag, areas, system ? "" : nodename, system ? "" : "\n", reason, id, name);
+   send_sms("%s\n%s: %s\n%s%s%s %s %s", ts, tag, areas, system ? "" : nodename, system ? "" : "\n", reason, id, name);
 }
