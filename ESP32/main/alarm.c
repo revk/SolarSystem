@@ -544,7 +544,10 @@ static void mesh_handle_summary(const char *target, jo_t j)
    if (lastarmed != state_armed)
    {
       jo_t j = jo_object_alloc();
-      jo_area(j, "armed", state_armed);
+      if (state_armed)
+         jo_area(j, "armed", state_armed);
+      else
+         jo_string(j, "armed", "");
       revk_setting(j);
       jo_free(&j);
       door_check();
