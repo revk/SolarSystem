@@ -53,10 +53,12 @@ static const char *port_inuse[MAX_PORT];
 	bl(iotstateinput)\
 	bl(iotstateoutput)\
 	bl(iotstatefault)\
+	bl(iotstatewarning)\
 	bl(iotstatetamper)\
 	bl(iotstatesystem)\
 	bl(ioteventfob)	\
 	bl(ioteventarm)	\
+	bl(iotkeypad)	\
 	bl(debug)	\
 
 #define io(n) static uint8_t n;
@@ -113,7 +115,7 @@ static void status_report(int force)
          {
             jo_t j = jo_object_alloc();
             jo_string(j, "controller", r);
-            revk_event("warning", &j);
+            revk_event_clients("warning", &j, debug | (iotstatewarning << 1));
             latch_warning |= areawarning;
             // Transient so no live_warning
          }
@@ -162,7 +164,7 @@ const char *port_check(int p, const char *module, int in)
       jo_string(j, "description", "Port not valid");
       jo_string(j, "module", module);
       jo_int(j, "port", p);
-      revk_error("port", &j);
+      revk_error_clients("port", &j, 1);
       if (p < 0 || p >= MAX_PORT)
          return "Bad GPIO port number";
       return "Invalid GPIO port";
@@ -173,7 +175,7 @@ const char *port_check(int p, const char *module, int in)
       jo_string(j, "description", "Port not valid for output");
       jo_string(j, "module", module);
       jo_int(j, "port", p);
-      revk_error("port", &j);
+      revk_error_clients("port", &j, 1);
       return "Bad GPIO for output";
    }
    if (port_inuse[p])
@@ -182,7 +184,7 @@ const char *port_check(int p, const char *module, int in)
       jo_string(j, "description", "Port clash");
       jo_string(j, "module", module);
       jo_string(j, "clash", port_inuse[p]);
-      revk_error("port", &j);
+      revk_error_clients("port", &j, 1);
       return "GPIO clash";
    }
    port_inuse[p] = module;

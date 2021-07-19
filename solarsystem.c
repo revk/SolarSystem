@@ -157,6 +157,8 @@ static const char *settings(SQL * sqlp, SQL * sqlkeyp, SQL_RES * res, slot_t id)
                j_store_true(iot, "stateoutput");
             if (*sql_colz(res, "iotstatefault") == 't')
                j_store_true(iot, "statefault");
+            if (*sql_colz(res, "iotstatewarning") == 't')
+               j_store_true(iot, "statewarning");
             if (*sql_colz(res, "iotstatetamper") == 't')
                j_store_true(iot, "statetamper");
             if (*sql_colz(res, "iotstatesystem") == 't')
@@ -165,6 +167,8 @@ static const char *settings(SQL * sqlp, SQL * sqlkeyp, SQL_RES * res, slot_t id)
                j_store_true(iot, "eventfob");
             if (*sql_colz(s, "ioteventarm") == 't')
                j_store_true(iot, "eventarm");
+            if (*sql_colz(s, "iotkeypad") == 't')
+               j_store_true(iot, "keypad");
          }
       }
       sql_free_result(s);

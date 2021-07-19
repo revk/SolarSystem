@@ -132,7 +132,7 @@ static void task(void *pvParameters)
                      {
                         jo_t j = jo_object_alloc();
                         jo_stringf(j, "key", "%.1s", keymap + (lastkey & 0x0F));
-                        revk_event("gone", &j);
+                        revk_event_clients("gone", &j, debug | (iotkeypad << 1));
                         lastkey = 0x7F;
                      }
                   } else
@@ -155,7 +155,7 @@ static void task(void *pvParameters)
                         {
                            jo_t j = jo_object_alloc();
                            jo_stringf(j, "key", "%.1s", keymap + (lastkey & 0x0F));
-                           revk_event("gone", &j);
+                           revk_event_clients("gone", &j, debug | (iotkeypad << 1));
                            lastkey = 0x7F;
                         }
                      } else
@@ -167,13 +167,13 @@ static void task(void *pvParameters)
                      {
                         jo_t j = jo_object_alloc();
                         jo_stringf(j, "key", "%.1s", keymap + (lastkey & 0x0F));
-                        revk_event("gone", &j);
+                        revk_event_clients("gone", &j, debug | (iotkeypad << 1));
                      }
                      if (!(buf[2] & 0x80) || buf[2] != lastkey)
                      {
                         jo_t j = jo_object_alloc();
                         jo_stringf(j, "key", "%.1s", keymap + (lastkey & 0x0F));
-                        revk_event((buf[2] & 0x80) ? "hold" : "key", &j);
+                        revk_event_clients((buf[2] & 0x80) ? "hold" : "key", &j, debug | (iotkeypad << 1));
                      }
                      if (buf[2] & 0x80)
                         keyhold = now + 2000000LL;

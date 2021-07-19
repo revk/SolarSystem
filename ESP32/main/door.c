@@ -622,7 +622,7 @@ static void task(void *pvParameters)
                   jo_string(j, "state", lockstates[lock[l].state]);
                   if (lock[l].timeout > now)
                      jo_int(j, "timeout", (lock[l].timeout - now) / 1000);
-                  revk_state(l ? "deadlock" : "lock", &j);
+                  revk_state_clients(l ? "deadlock" : "lock", &j, debug | (iotstatedoor << 1));
                }
             }
          }

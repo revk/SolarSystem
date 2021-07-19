@@ -151,7 +151,7 @@ areas(smsdisarm);
 areas(smsarmfail);
 areas(smsalarm);
 areas(smspanic);
-bool(debug);			// MQTT debug logging
+bool (debug);                   // MQTT debug logging
 
 table(area, 0);
 link(organisation);             // Quicker
@@ -217,9 +217,11 @@ bool (iotstatedoor);            // Copy stuff to IoT
 bool (iotstateinput);           // Copy stuff to IoT
 bool (iotstateoutput);          // Copy stuff to IoT
 bool (iotstatefault);           // Copy stuff to IoT
+bool (iotstatewarning);         // Copy stuff to IoT
 bool (iotstatetamper);          // Copy stuff to IoT
 bool (iotstatesystem);          // Copy stuff to IoT
 bool (ioteventfob);             // Copy stuff to IoT
+bool (iotkeypad);               // Copy stuff to IoT
 bool (nfc);                     // Yes, can get from pcb, but useful to reference quickly
 bool (rgb);                     // Yes, can get from pcb, but useful to reference quickly
 bool (nfcadmin);                // NFC reader for admin use, e.g. on a desk

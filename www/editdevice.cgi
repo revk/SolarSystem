@@ -60,10 +60,12 @@ if($?devicename) then # save
 	if(! $?iotstateinput) setenv iotstateinput false
 	if(! $?iotstateoutput) setenv iotstateoutput false
 	if(! $?iotstatefault) setenv iotstatefault false
+	if(! $?iotstatewarning) setenv iotstatewarning false
 	if(! $?iotstatetamper) setenv iotstatetamper false
 	if(! $?iotstatesystem) setenv iotstatesystem false
+	if(! $?iotkeypad) setenv iotkeypad false
 	if(! $?ioteventfob) setenv ioteventfob false
-	setenv allow "devicename areawarning areafault areatamper areaenter areastrongarm areadeadlock areaarm areadisarm areabell arealed nfc rgb nfcadmin door doorexitarm doorexitdisarm aid site iotstatedoor iotstateinput iotstateoutput iotstatefault iotstatetamper iotstatesystem ioteventfob doorunlock doorlock dooropen doorclose doorprop doorexit"
+	setenv allow "devicename areawarning areafault areatamper areaenter areastrongarm areadeadlock areaarm areadisarm areabell arealed nfc rgb nfcadmin door doorexitarm doorexitdisarm aid site iotstatedoor iotstateinput iotstateoutput iotstatefault iotstatewarning iotstatetamper iotstatesystem ioteventfob iotkeypad doorunlock doorlock dooropen doorclose doorprop doorexit"
 	if("$USER_ADMIN" == "true") setenv allow "$allow nfctrusted"
 	sqlwrite -qon "$DB" device $allow
 	sql "$DB" 'UPDATE device SET poke=NOW() WHERE device="$device"'
@@ -118,9 +120,11 @@ xmlsql -C -d "$DB" head.html - foot.html << END
 <input id=iotstateinput name=iotstateinput value=true type=checkbox><label for=iotstateinput>Input</label>
 <input id=iotstateoutput name=iotstateoutput value=true type=checkbox><label for=iotstateoutput>Output</label>
 <input id=iotstatefault name=iotstatefault value=true type=checkbox><label for=iotstatefault>Fault</label>
+<input id=iotstatewarning name=iotstatewarning value=true type=checkbox><label for=iotstatewarning>Warning</label>
 <input id=iotstatetamper name=iotstatetamper value=true type=checkbox><label for=iotstatetamper>Tamper</label>
 <input id=iotstatesystem name=iotstatesystem value=true type=checkbox><label for=iotstatesystem>System</label>
 <input id=ioteventfob name=ioteventfob value=true type=checkbox><label for=ioteventfob>Fob events</label>
+<input id=iotkeypad name=iotkeypad value=true type=checkbox><label for=iotkeypad>Keypad events</label>
 </td>
 </if>
 </sql>
