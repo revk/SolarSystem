@@ -656,9 +656,9 @@ void nfc_boot(void)
       usleep(100000);
       // These pins could try to power the nfc when power off
       if (nfctx)
-         gpio_set_pull_mode(port_mask(nfctx), GPIO_PULLUP_PULLDOWN);
+         gpio_set_pull_mode(port_mask(nfctx), GPIO_PULLDOWN_ONLY);
       if (nfcrx)
-         gpio_set_pull_mode(port_mask(nfcrx), GPIO_PULLUP_PULLDOWN);
+         gpio_set_pull_mode(port_mask(nfcrx), GPIO_PULLDOWN_ONLY);
    }
    if (nfctx && nfcrx)
    {

@@ -322,6 +322,7 @@ static void addsitedata(SQL * sqlp, j_t j, SQL_RES * site, const char *deviceid,
    const char *v;
    if (!parentid || !*parentid || !strcmp(parentid, deviceid))
       parentid = NULL;          // Not sensible
+   //if ((v = sql_colz(site, "sitename")) && *v) j_store_string(j, "keypadidle", v);
    // Standard wifi settings
    v = sql_colz(site, "iothost");
    j_store_string(j, "mqtthost2", *v ? v : NULL);

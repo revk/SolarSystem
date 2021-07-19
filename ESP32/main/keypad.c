@@ -6,6 +6,7 @@ const char *keypad_fault = NULL;
 const char *keypad_tamper = NULL;
 
 #include "galaxybus.h"
+#include <driver/gpio.h>
 
 #define port_mask(p) ((p)&127)
 
@@ -17,13 +18,12 @@ const char *keypad_tamper = NULL;
   p(keypadclk) \
   u8(keypadtimer,0) \
   u8h(keypadaddress,10)	\
-  b(keypaddebug)	\
   b(keypadtamper)	\
   u8(keypadtxpre,50)	\
   u8(keypadtxpost,40)	\
   u8(keypadrxpre,50)	\
   u8(keypadrxpost,10)	\
-  s(keypadidle)	\
+  sl(keypadidle)	\
 
 #define commands  \
   f(07,display,32,0) \
@@ -37,13 +37,13 @@ const char *keypad_tamper = NULL;
 #define u8h(n,d) uint8_t n;
 #define b(n) uint8_t n;
 #define p(n) uint8_t n;
-#define s(n) char *n;
+#define sl(n) char *n;
 settings
 #undef u8
 #undef u8h
 #undef b
 #undef p
-#undef s
+#undef sl
 #define f(id,name,len,def) static uint8_t name[len]={def};uint8_t send##id=false;uint8_t name##_len=0;
     commands
 #undef  f
@@ -74,8 +74,8 @@ int64_t keypad_ui(char key)
       time_t now = time(0);
       localtime_r(&now, &t);
       char temp[50];
-      snprintf(temp, sizeof(temp), "%.16s%04d-%02d-%02d %02d:%02d", *keypadidle ? keypadidle : revk_id, t.tm_year + 1900, t.tm_mon + 1, t.tm_mday, t.tm_hour, t.tm_min);
-      memcpy(display, temp, 32);
+      snprintf(temp, sizeof(temp), "%-16.16s%04d-%02d-%02d %02d:%02d", *keypadidle ? keypadidle : revk_id, t.tm_year + 1900, t.tm_mon + 1, t.tm_mday, t.tm_hour, t.tm_min);
+      memcpy(display, temp, display_len = 32);
       send07 = 1;
       return esp_timer_get_time() + 1000000LL * (60 - t.tm_sec);        // Next minute
    }
@@ -114,7 +114,6 @@ static void task(void *pvParameters)
       static uint8_t toggle07 = 0;
       static uint8_t send07c = 0;
       static uint8_t lastkey = 0x7F;
-      static uint8_t sounderack = 0;
       static unsigned int galaxybusfault = 0;
       static int64_t rxwait = 0;
 
@@ -125,12 +124,13 @@ static void task(void *pvParameters)
          static const char keymap[] = "0123456789BAEX*#";
          if (p < 2)
          {
+            ESP_LOGI(TAG, "Rx fail %s", galaxybus_err_to_name(p));
             if (galaxybusfault++ > 5)
             {
                status(keypad_fault = galaxybus_err_to_name(p));
                online = 0;
             }
-            sleep(1);
+            usleep(100000);
          } else
          {
             galaxybusfault = 0;
@@ -165,6 +165,7 @@ static void task(void *pvParameters)
                }
             } else if (cmd == 0x06 && buf[1] == 0xF4 && p >= 3)
             {                   // Status
+		    ESP_LOGI(TAG,"Status %02X",buf[2]); // TODO
                if (keypadtamper && (buf[2] & 0x40))
                   status(keypad_tamper = "Case open");
                else
@@ -197,22 +198,12 @@ static void task(void *pvParameters)
                      if (!(buf[2] & 0x80) || buf[2] != lastkey)
                      {
                         jo_t j = jo_object_alloc();
-                        jo_stringf(j, "key", "%.1s", keymap + (lastkey & 0x0F));
+                        jo_stringf(j, "key", "%.1s", keymap + (buf[2] & 0x0F));
                         revk_event_clients((buf[2] & 0x80) ? "hold" : "key", &j, debug | (iotkeypad << 1));
-                        keypad_next = keypad_ui(keymap[lastkey & 0x0F]);
+                        keypad_next = keypad_ui(keymap[buf[2] & 0x0F]);
                      }
                      if (buf[2] & 0x80)
                         keyhold = now + 2000000LL;
-                     if (revk_offline())
-                     {          // Special case for safe mode (off line)
-                        if (buf[2] == 0x0D)
-                        {       // ESC in safe mode, shut up
-                           sounderack = 1;
-                           send0C = 1;
-                        }
-                        if (buf[2] == 0x8D)
-                           revk_restart("ESC", 0);      // ESC held in safe mode
-                     }
                      lastkey = buf[2];
                   }
                }
@@ -245,7 +236,6 @@ static void task(void *pvParameters)
          send0C = 1;
          send0D = 1;
          send19 = 1;
-         sounderack = 0;
       }
       p = 0;
       if (!online)
@@ -263,14 +253,6 @@ static void task(void *pvParameters)
          buf[++p] = 0x01 | ((blink[0] & 1) ? 0x08 : 0x00) | (toggle07 ? 0x80 : 0);
          uint8_t len = display_len;
          uint8_t *dis = display;
-#if 1
-         uint8_t temp[33];
-         if (revk_offline())
-         {                      // Off line
-            len = snprintf((char *) temp, sizeof(temp), "%-16.16s%-16.16s", revk_wifi(), revk_id);
-            dis = temp;
-         }
-#endif
          if (cursor_len)
             buf[++p] = 0x07;    // cursor off while we update
          if (len)
@@ -310,35 +292,13 @@ static void task(void *pvParameters)
       {                         // Key keyclicks
          send19 = 0;
          buf[++p] = 0x19;
-         if (revk_offline())
-            buf[++p] = 0x01;    // Sound normal
-         else
-            buf[++p] = (keyclick[0] & 0x7);     // 0x03 (silent), 0x05 (quiet), or 0x01 (normal)
+         buf[++p] = (keyclick[0] & 0x7);        // 0x03 (silent), 0x05 (quiet), or 0x01 (normal)
          buf[++p] = 0;
       } else if (send0C)
       {                         // Beeper
          send0C = 0;
          uint8_t *s = sounder;
          uint8_t len = sounder_len;
-         if (revk_offline() > 10)
-         {
-            if (sounderack)
-               len = 0;         // quiet
-            else
-            {
-               const uint8_t beepy[] = { 1, 255 };
-               s = (uint8_t *) beepy;
-               len = 2;
-            }
-         }
-#if 0                           // TODO use output_get and configure which output
-         else if (keypadbeepoverride)
-         {
-            const uint8_t beepy[] = { 1, 0 };
-            s = (uint8_t *) beepy;
-            len = 2;
-         }
-#endif
          buf[++p] = 0x0C;
          buf[++p] = (len ? s[1] ? 3 : 1 : 0);
          buf[++p] = (s[0] & 0x3F);      // Time on
@@ -347,10 +307,7 @@ static void task(void *pvParameters)
       {                         // Light change
          send0D = 0;
          buf[++p] = 0x0D;
-         if (revk_offline())
-            buf[++p] = 1;
-         else
-            buf[++p] = (backlight[0] & 1);
+         buf[++p] = (backlight[0] & 1);
       } else
          buf[++p] = 0x06;       // Normal poll
       // Send
@@ -360,7 +317,8 @@ static void task(void *pvParameters)
       int l = galaxybus_tx(g, p, buf);
       if (l < 0)
       {
-         sleep(1);
+         ESP_LOGI(TAG, "Tx fail %s", galaxybus_err_to_name(l));
+         usleep(500000);
          rxwait = 0;
       }
    }
@@ -373,13 +331,13 @@ void keypad_boot(void)
 #define u8h(n,d) revk_register(#n,0,sizeof(n),&n,#d,SETTING_HEX);
 #define b(n) revk_register(#n,0,sizeof(n),&n,NULL,SETTING_BOOLEAN|SETTING_LIVE);
 #define p(n) revk_register(#n,0,sizeof(n),&n,NULL,SETTING_SET);
-#define s(n) revk_register(#n,0,0,&n,NULL,0);
+#define sl(n) revk_register(#n,0,0,&n,NULL,SETTING_LIVE);
    settings;
 #undef u8
 #undef u8h
 #undef b
 #undef p
-#undef s
+#undef sl
    if (keypadtx && keypadrx && keypadde && keypadre)
    {
       const char *err = port_check(port_mask(keypadtx), TAG, 0);
@@ -389,6 +347,7 @@ void keypad_boot(void)
          err = port_check(port_mask(keypadde), TAG, 0);
       if (!err && keypadde != keypadre)
          err = port_check(port_mask(keypadre), TAG, 0);
+      gpio_set_pull_mode(port_mask(keypadrx), GPIO_PULLUP_ONLY);
       status(keypad_fault = err);
       // Done early because it beeps a lot!
       revk_task(TAG, task, NULL);
