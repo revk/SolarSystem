@@ -35,7 +35,7 @@ apt:
 
 update:
 	git pull
-	git submodule update --init --remote --recursive
+	git submodule update --init --remote login xmlsql SQLlib AJL DESFireAES email ESP32/components/DESFireAES ESP32/components/ESP32-PN532 ESP32/components/ESP32-RevK ESP32/components/ESP32-GalaxyBus
 	git commit -a -m "Library update"
 	git push
 	make -C login

@@ -487,6 +487,7 @@ const char *door_fob(fob_t * fob)
             fob->enterok = 0;
             fob->disarmok = 0;
             fob->armok = 0;
+            fob->strongarmok = 0;
             if (!fob->deny)
                fob->deny = "Blacklist";
             if (fob->secure && df.keylen)
@@ -621,7 +622,7 @@ static void task(void *pvParameters)
                   jo_string(j, "state", lockstates[lock[l].state]);
                   if (lock[l].timeout > now)
                      jo_int(j, "timeout", (lock[l].timeout - now) / 1000);
-                  revk_state(l ? "deadlock" : "lock", &j);
+                  revk_state_clients(l ? "deadlock" : "lock", &j, debug | (iotstatedoor << 1));
                }
             }
          }
@@ -636,7 +637,7 @@ static void task(void *pvParameters)
                   doorwhy = ((lock[0].state == LOCK_LOCKED) ? "forced" : "manual");
                if (doorwhy)
                   jo_string(j, "trigger", doorwhy);
-               revk_event_copy("open", &j, iotstatedoor);
+               revk_event_clients("open", &j, 1 | (iotstatedoor << 1));
                doorwhy = NULL;
                doorstate = DOOR_OPEN;
                if (doorauto >= 2)
@@ -665,13 +666,13 @@ static void task(void *pvParameters)
          if (doorstate != lastdoorstate)
          {                      // State change - iot and set timeout
             if (doorstate == DOOR_OPEN && *iotopen)
-               revk_mqtt_send_str_copy(iotopen, 0, -1);
+               revk_mqtt_send_str_clients(iotopen, 0, 2);
             if (lastdoorstate == DOOR_OPEN && *iotclose)
-               revk_mqtt_send_str_copy(iotclose, 0, -1);
+               revk_mqtt_send_str_clients(iotclose, 0, 2);
             if (doorstate == DOOR_DEADLOCKED && *iotarm)
-               revk_mqtt_send_str_copy(iotarm, 0, -1);
+               revk_mqtt_send_str_clients(iotarm, 0, 2);
             if (lastdoorstate == DOOR_DEADLOCKED && *iotdisarm)
-               revk_mqtt_send_str_copy(iotdisarm, 0, -1);
+               revk_mqtt_send_str_clients(iotdisarm, 0, 2);
             if (doorstate == DOOR_OPEN)
                doortimeout = now + (int64_t) doorprop *1000LL;
             else if (doorstate == DOOR_CLOSED)
@@ -697,7 +698,7 @@ static void task(void *pvParameters)
                   jo_t j = jo_make();
                   if (doorwhy)
                      jo_string(j, "trigger", doorwhy);
-                  revk_event_copy("notopen", &j, iotstatedoor);
+                  revk_event_clients("notopen", &j, 1 | (iotstatedoor << 1));
                }
                door_lock(NULL, NULL);
                doorwhy = NULL;
@@ -727,7 +728,7 @@ static void task(void *pvParameters)
                   } else
                      jo_bool(j, "unlockok", 1);
                }
-               revk_event_copy("button", &j, iotstatedoor);
+               revk_event_clients("button", &j, 1 | (iotstatedoor << 1));
             } else if (doorexitarm && exit && exit < now)
             {                   // Held (not applicable if not arming allowed, so leaves to do exit stuck fault)
                exit = -1;       // Don't report stuck - this is max value as unsigned
@@ -745,7 +746,7 @@ static void task(void *pvParameters)
                      door_lock(NULL, "button");
                   }
                }
-               revk_event_copy("button", &j, iotstatedoor);
+               revk_event_clients("button", &j, 1 | (iotstatedoor << 1));
             }
          } else
             exit = 0;
@@ -783,7 +784,7 @@ static void task(void *pvParameters)
                jo_string(j, "trigger", doorwhy);
             if (doortimeout > now)
                jo_int(j, "timeout", (doortimeout - now) / 1000);
-            revk_state_copy("door", &j, iotstatedoor);
+            revk_state_clients("door", &j, debug | (iotstatedoor << 1));
             lastdoorstate = doorstate;
          }
          if (doorauto >= 2)

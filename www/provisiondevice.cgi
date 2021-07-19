@@ -11,9 +11,8 @@ if($?PROVISION) then
 	endif
 	setenv authenticated `sql "$DB" 'SELECT authenticated FROM pending WHERE pending="$PROVISION"'`
 	setenv nfc `sql "$DB" 'SELECT IF(nfctx="-","false","true") FROM pcb WHERE pcb=$pcb'`
+	sql "$DB" 'INSERT INTO device SET device="$PROVISION",pcb="$pcb",organisation="$SESSION_ORGANISATION",site="$SESSION_SITE",aid="$aid",nfc="$nfc" ON DUPLICATE KEY UPDATE pcb="$pcb",organisation="$SESSION_ORGANISATION",site="$SESSION_SITE",aid="$aid",nfc="$nfc"'
 	sql "$DB" 'DELETE FROM devicegpio WHERE device="$PROVISION"'
-	sql "$DB" 'DELETE FROM device WHERE device="$PROVISION"'
-	sql "$DB" 'INSERT INTO device SET device="$PROVISION",pcb="$pcb",organisation="$SESSION_ORGANISATION",site="$SESSION_SITE",aid="$aid",nfc="$nfc"'
 	sql "$DB" 'INSERT INTO devicegpio (device,gpio,type,name,hold,pulse) SELECT "$PROVISION",gpio,inittype,initname,inithold,initpulse FROM gpio WHERE pcb=$pcb'
 	if("$authenticated" == "true")then
 		setenv MSG `message --pending="$PROVISION" --command="restart"`
@@ -37,6 +36,7 @@ if($?DEPORT) then
 	endif
 endif
 done:
+setenv pcb `sql "$DB" 'SELECT pcb FROM device WHERE device="$device"'`
 xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <h1>Provision device for this site</h1>
 <form style="display:inline;" method=post>

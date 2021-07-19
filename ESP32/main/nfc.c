@@ -88,7 +88,7 @@ const char *nfc_led(int len, const void *value)
       len = strlen(value = ledIDLE);    // Default
    jo_t j = jo_object_alloc();
    jo_stringf(j, "sequence", "%.*s", len, value);
-   revk_info("led", &j);
+   revk_info_clients("led", &j, debug | (ioteventfob << 1));
    if (len > sizeof(ledpattern))
       len = sizeof(ledpattern);
    if (len < sizeof(ledpattern))
@@ -163,7 +163,7 @@ static void fobevent(void)
    }
    if (fob.remote)
       jo_bool(j, "remote", 1);
-   revk_event_copy("fob", &j, ioteventfob);
+   revk_event_clients("fob", &j, 1 | (ioteventfob << 1));
 }
 
 void nfc_retry(void)
@@ -270,10 +270,10 @@ static void task(void *pvParameters)
                   {
                      bell = 1;
                      if (nfcmqttbell)
-                        revk_mqtt_send_str_copy(nfcmqttbell, 0, -1);
+                        revk_mqtt_send_str_clients(nfcmqttbell, 0, 2);
                      jo_t j = jo_create_alloc();
                      jo_lit(j, NULL, "true");
-                     revk_event_copy("bell", &j, ioteventfob);
+                     revk_event_clients("bell", &j, 1 | (ioteventfob << 1));
                      bell_latch = 1;
                   }
                } else
@@ -540,7 +540,7 @@ static void report_state(void)
    jo_array(j, "ver");
    for (int i = 0; i < sizeof(aes) / sizeof(*aes) && aes[i][0]; i++)
       jo_stringf(j, NULL, "%02X", aes[i][0]);
-   revk_state("keys", &j);
+   revk_state_clients("keys", &j, 1);
 }
 
 const char *nfc_command(const char *tag, jo_t j)
@@ -591,7 +591,7 @@ const char *nfc_command(const char *tag, jo_t j)
          jo_string(i, NULL, err);
       else
          jo_base16(i, NULL, buf, len);
-      revk_info(len < 0 ? "nfcerror" : "nfc", &i);
+      revk_info_clients(len < 0 ? "nfcerror" : "nfc", &i, debug | (ioteventfob << 1));
       return "";
    }
    if (!strcmp(tag, "nfcdone"))

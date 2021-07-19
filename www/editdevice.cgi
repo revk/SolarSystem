@@ -1,5 +1,4 @@
 #!../login/loggedin /bin/csh -f
-# TODO door lock control timings
 if($?PATH_INFO) then
 	setenv device "$PATH_INFO:t"
 endif
@@ -28,7 +27,7 @@ if($?RESTART) then
 	redirect editdevice.cgi
 	exit 0
 endif
-if($?DELETE || $?FACTORY) then
+if($?DELETE && "$USER_ADMIN" == "true" || $?FACTORY) then
 	can --redirect --device='$device' editdevice
 	if(! $?SURE) then
 		setenv MSG "Are you sure?"
@@ -40,12 +39,7 @@ if($?DELETE || $?FACTORY) then
 	else
 		setenv MSG `message --device="$device" --command=restart`
 	endif
-	sql "$DB" 'DELETE FROM devicegpio WHERE device=$device'
-	setenv C `sql -c "$DB" 'DELETE FROM device WHERE device=$device'`
-	if("$C" == "" || "$C" == "0") then
-		setenv MSG "Cannot delete as in use"
-		goto done
-	endif
+	sql "$DB" 'UPDATE device SET site=NULL WHERE device="$device"'
 	redirect editdevice.cgi
 	exit 0
 endif
@@ -66,10 +60,12 @@ if($?devicename) then # save
 	if(! $?iotstateinput) setenv iotstateinput false
 	if(! $?iotstateoutput) setenv iotstateoutput false
 	if(! $?iotstatefault) setenv iotstatefault false
+	if(! $?iotstatewarning) setenv iotstatewarning false
 	if(! $?iotstatetamper) setenv iotstatetamper false
 	if(! $?iotstatesystem) setenv iotstatesystem false
+	if(! $?iotkeypad) setenv iotkeypad false
 	if(! $?ioteventfob) setenv ioteventfob false
-	setenv allow "devicename areawarning areafault areatamper areaenter areastrongarm areadeadlock areaarm areadisarm areabell arealed nfc rgb nfcadmin door doorexitarm doorexitdisarm aid site iotstatedoor iotstateinput iotstateoutput iotstatefault iotstatetamper iotstatesystem ioteventfob doorunlock doorlock dooropen doorclose doorprop doorexit"
+	setenv allow "devicename areawarning areafault areatamper areaenter areastrongarm areadeadlock areaarm areadisarm areabell arealed nfc rgb nfcadmin door doorexitarm doorexitdisarm aid site iotstatedoor iotstateinput iotstateoutput iotstatefault iotstatewarning iotstatetamper iotstatesystem ioteventfob iotkeypad doorunlock doorlock dooropen doorclose doorprop doorexit"
 	if("$USER_ADMIN" == "true") setenv allow "$allow nfctrusted"
 	sqlwrite -qon "$DB" device $allow
 	sql "$DB" 'UPDATE device SET poke=NOW() WHERE device="$device"'
@@ -115,7 +111,7 @@ xmlsql -C -d "$DB" head.html - foot.html << END
 <sql table="device LEFT JOIN pcb USING (pcb)" KEY=device>
 <table>
 <tr><td>PCB</td><td><output name=pcbname></td></tr>
-<tr><td>Name</td><td><input name=devicename ize=20 maxlength=20 autofocus></td></tr>
+<tr><td>Name</td><td><input name=devicename size=20 maxlength=20 autofocus></td></tr>
 <tr><td>Site</td><td><select name=site><sql table=site where="organisation=$SESSION_ORGANISATION"><option value='\$site'><output name=sitename></option></sql></select></td></tr>
 <sql table=site where="site=\$site">
 <if not iothost="">
@@ -124,9 +120,11 @@ xmlsql -C -d "$DB" head.html - foot.html << END
 <input id=iotstateinput name=iotstateinput value=true type=checkbox><label for=iotstateinput>Input</label>
 <input id=iotstateoutput name=iotstateoutput value=true type=checkbox><label for=iotstateoutput>Output</label>
 <input id=iotstatefault name=iotstatefault value=true type=checkbox><label for=iotstatefault>Fault</label>
+<input id=iotstatewarning name=iotstatewarning value=true type=checkbox><label for=iotstatewarning>Warning</label>
 <input id=iotstatetamper name=iotstatetamper value=true type=checkbox><label for=iotstatetamper>Tamper</label>
 <input id=iotstatesystem name=iotstatesystem value=true type=checkbox><label for=iotstatesystem>System</label>
 <input id=ioteventfob name=ioteventfob value=true type=checkbox><label for=ioteventfob>Fob events</label>
+<input id=iotkeypad name=iotkeypad value=true type=checkbox><label for=iotkeypad>Keypad events</label>
 </td>
 </if>
 </sql>
@@ -172,7 +170,7 @@ xmlsql -C -d "$DB" head.html - foot.html << END
 <input type=submit value="Update">
 <if online><input type=submit value="Restart" name=RESTART></if>
 <if not upgrade><input type=submit value="Upgrade" name=UPGRADE></if>
-<input type=submit value="Delete" name=DELETE>
+<if USER_ADMIN=true><input type=submit value="Delete" name=DELETE></if>
 <if online><input type=submit value="Factory Reset" name=FACTORY></if>
 <input type=checkbox name=SURE title='Tick this to say you are sure'>
 </sql>

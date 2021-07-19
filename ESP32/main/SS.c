@@ -49,20 +49,24 @@ static const char *port_inuse[MAX_PORT];
 // Other settings
 #define settings  	\
   	io(tamper) 	\
-	b(iotstatedoor)	\
-	b(iotstateinput)\
-	b(iotstateoutput)\
-	b(iotstatefault)\
-	b(iotstatetamper)\
-	b(iotstatesystem)\
-	b(ioteventfob)	\
-	b(ioteventarm)	\
+	bl(iotstatedoor)	\
+	bl(iotstateinput)\
+	bl(iotstateoutput)\
+	bl(iotstatefault)\
+	bl(iotstatewarning)\
+	bl(iotstatetamper)\
+	bl(iotstatesystem)\
+	bl(ioteventfob)	\
+	bl(ioteventarm)	\
+	bl(iotkeypad)	\
+	bl(debug)	\
 
 #define io(n) static uint8_t n;
 #define area(n) area_t n;
 #define	s(n) char *n;
 #define	sa(n,a) char *n[a];
 #define b(n) uint8_t n;
+#define bl(n) uint8_t n;
 #define bd(n,d)         static revk_bindata_t *n;
 settings
 #undef io
@@ -71,6 +75,7 @@ settings
 #undef sa
 #undef bd
 #undef b
+#undef bl
 #define port_mask(p) ((p)&63)
 #define BITFIELDS "-"
 #define PORT_INV 0x40
@@ -110,7 +115,7 @@ static void status_report(int force)
          {
             jo_t j = jo_object_alloc();
             jo_string(j, "controller", r);
-            revk_event("warning", &j);
+            revk_event_clients("warning", &j, debug | (iotstatewarning << 1));
             latch_warning |= areawarning;
             // Transient so no live_warning
          }
@@ -121,7 +126,7 @@ static void status_report(int force)
       {
          free((void *) last_fault);
          last_fault = strdup(fault);
-         revk_state_copy("fault", &j, iotstatefault);
+         revk_state_clients("fault", &j, debug | (iotstatefault << 1));
          if (faults)
             latch_fault |= (live_fault = areafault);
          else
@@ -139,7 +144,7 @@ static void status_report(int force)
       {
          free((void *) last_tamper);
          last_tamper = strdup(tamper);
-         revk_state_copy("tamper", &j, iotstatetamper);
+         revk_state_clients("tamper", &j, debug | (iotstatetamper << 1));
          latch_presence |= areatamper;  // Change is presence
          if (tampers)
             latch_tamper |= (live_tamper = areatamper);
@@ -159,7 +164,7 @@ const char *port_check(int p, const char *module, int in)
       jo_string(j, "description", "Port not valid");
       jo_string(j, "module", module);
       jo_int(j, "port", p);
-      revk_error("port", &j);
+      revk_error_clients("port", &j, 1);
       if (p < 0 || p >= MAX_PORT)
          return "Bad GPIO port number";
       return "Invalid GPIO port";
@@ -170,7 +175,7 @@ const char *port_check(int p, const char *module, int in)
       jo_string(j, "description", "Port not valid for output");
       jo_string(j, "module", module);
       jo_int(j, "port", p);
-      revk_error("port", &j);
+      revk_error_clients("port", &j, 1);
       return "Bad GPIO for output";
    }
    if (port_inuse[p])
@@ -179,7 +184,7 @@ const char *port_check(int p, const char *module, int in)
       jo_string(j, "description", "Port clash");
       jo_string(j, "module", module);
       jo_string(j, "clash", port_inuse[p]);
-      revk_error("port", &j);
+      revk_error_clients("port", &j, 1);
       return "GPIO clash";
    }
    port_inuse[p] = module;
@@ -219,6 +224,7 @@ void app_main()
 #define area(n) revk_register(#n,0,sizeof(n),&n,AREAS,SETTING_BITFIELD);
 #define bd(n,d)         revk_register(#n,0,0,&n,d,SETTING_BINDATA);
 #define b(n)          revk_register(#n,0,1,&n,NULL,SETTING_BOOLEAN);
+#define bl(n)          revk_register(#n,0,1,&n,NULL,SETTING_BOOLEAN|SETTING_LIVE);
    settings
 #undef io
 #undef area
@@ -226,6 +232,7 @@ void app_main()
 #undef sa
 #undef bd
 #undef b
+#undef bl
    int p;
    for (p = 6; p <= 11; p++)
       port_check(p, "Flash", 0);        // Flash chip uses 6-11

@@ -28,7 +28,8 @@ if($?sitename) then
 	endif
 	if(! $?nomesh) setenv nomesh false
 	if(! $?ioteventarm) setenv ioteventarm false
-	sqlwrite -qon "$DB" site sitename wifissid wifipass iothost nomesh smsuser smspass armcancel alarmdelay alarmhold ioteventarm smsarm smsarmfail smsdisarm smsalarm engineer smsnumber smsfrom
+	if(! $?debug) setenv debug false
+	sqlwrite -qon "$DB" site sitename wifissid wifipass iothost nomesh smsuser smspass armcancel alarmdelay alarmhold debug ioteventarm smsarm smsarmfail smsdisarm smsalarm smspanic engineer smsnumber smsfrom
 	sql "$DB" 'UPDATE device SET poke=NOW() WHERE site=$site'
 	message --poke
 	../login/redirect /
@@ -46,6 +47,7 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <tr><td><input type=checkbox id=nomesh name=nomesh value=true></td><td><label for=nomesh>Don't use mesh wifi on site (i.e. only access control).</label></td></tr>
 <tr><td>IoT MQTT</td><td><input name=iothost size=40></td></tr>
 <tr><td><input type=checkbox id=ioteventarm name=ioteventarm value=true></td><td><label for=ioteventarm>Log arm/disarm events to IoT.</label></td></tr>
+<tr><td><input type=checkbox id=debug name=debug value=true></td><td><label for=debug>Debug mode (additional logging).</label></td></tr>
 <tr><td>SMS Username</td><td><input name=smsuser size=40></td></tr>
 <tr><td>SMS Password</td><td><input name=smspass size=40></td></tr>
 <tr><td>SMS Target</td><td><input name=smsnumber size=20 maxlength=20></td></tr>
@@ -55,7 +57,7 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <tr><td>Alarm-Hold</td><td><input name=alarmhold size=3> seconds (timeout before alarm cancels after last trigger)</td></tr>
 </table>
 <table border=1>
-<set tags="engineer smsarm smsarmfail smsdisarm smsalarm">
+<set tags="engineer smsarm smsarmfail smsdisarm smsalarm smspanic">
 <tr><th></th>
 <for SPACE T="$tags"><th><output name=T></th></for>
 <th>Areas</th>
