@@ -487,6 +487,7 @@ const char *door_fob(fob_t * fob)
             fob->enterok = 0;
             fob->disarmok = 0;
             fob->armok = 0;
+            fob->strongarmok = 0;
             if (!fob->deny)
                fob->deny = "Blacklist";
             if (fob->secure && df.keylen)
