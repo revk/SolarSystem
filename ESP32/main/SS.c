@@ -115,7 +115,7 @@ static void status_report(int force)
          {
             jo_t j = jo_object_alloc();
             jo_string(j, "controller", r);
-            revk_event_clients("warning", &j, debug | (iotstatewarning << 1));
+            revk_event_clients("warning", &j, 1 | (iotstatewarning << 1));
             latch_warning |= areawarning;
             // Transient so no live_warning
          }
@@ -126,7 +126,7 @@ static void status_report(int force)
       {
          free((void *) last_fault);
          last_fault = strdup(fault);
-         revk_state_clients("fault", &j, debug | (iotstatefault << 1));
+         revk_state_clients("fault", &j, 1 | (iotstatefault << 1));
          if (faults)
             latch_fault |= (live_fault = areafault);
          else
@@ -144,7 +144,7 @@ static void status_report(int force)
       {
          free((void *) last_tamper);
          last_tamper = strdup(tamper);
-         revk_state_clients("tamper", &j, debug | (iotstatetamper << 1));
+         revk_state_clients("tamper", &j, 1 | (iotstatetamper << 1));
          latch_presence |= areatamper;  // Change is presence
          if (tampers)
             latch_tamper |= (live_tamper = areatamper);
