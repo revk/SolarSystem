@@ -165,7 +165,6 @@ static void task(void *pvParameters)
                }
             } else if (cmd == 0x06 && buf[1] == 0xF4 && p >= 3)
             {                   // Status
-		    ESP_LOGI(TAG,"Status %02X",buf[2]); // TODO
                if (keypadtamper && (buf[2] & 0x40))
                   status(keypad_tamper = "Case open");
                else
@@ -200,7 +199,8 @@ static void task(void *pvParameters)
                         jo_t j = jo_object_alloc();
                         jo_stringf(j, "key", "%.1s", keymap + (buf[2] & 0x0F));
                         revk_event_clients((buf[2] & 0x80) ? "hold" : "key", &j, debug | (iotkeypad << 1));
-                        keypad_next = keypad_ui(keymap[buf[2] & 0x0F]);
+                        if (!(buf[2] & 0x80))
+                           keypad_next = keypad_ui(keymap[buf[2] & 0x0F]);
                      }
                      if (buf[2] & 0x80)
                         keyhold = now + 2000000LL;
