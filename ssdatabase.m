@@ -150,6 +150,7 @@ areas(smsarm);                  // When to SMS
 areas(smsdisarm);
 areas(smsarmfail);
 areas(smsalarm);
+areas(smspanic);
 
 table(area, 0);
 link(organisation);             // Quicker

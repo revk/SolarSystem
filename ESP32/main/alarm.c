@@ -71,6 +71,7 @@ static int nodes_reported = 0;
 	area(smsdisarm)		\
 	area(smsarmfail)	\
 	area(smsalarm)		\
+	area(smspanic)		\
 
 #define area(n) area_t n;
 #define s(n,d) char *n;
@@ -553,18 +554,31 @@ static void mesh_handle_summary(const char *target, jo_t j)
       door_check();
       lastarmed = state_armed;
    }
-   static area_t lastalarmed = -1;
-   if (lastalarmed != state_alarmed)
+   static area_t lastalarm = -1;
+   if (lastalarm != state_alarm)
    {
-      if (smsalarm & (state_alarmed & ~lastalarmed))
+      if (smsalarm & (state_alarm & ~lastalarm))
       {
          jo_t j = jo_make();
-         jo_area(j, "areas", state_alarmed & ~lastalarmed);
+         jo_area(j, "areas", state_alarm & ~lastalarm);
          sms_event("Alarm!", j, 1);
          jo_free(&j);
 
       }
-      lastalarmed = state_alarmed;
+      lastalarm = state_alarm;
+   }
+   static area_t lastpanic = -1;
+   if (lastpanic != state_panic)
+   {
+      if (smspanic & (state_panic & ~lastpanic))
+      {
+         jo_t j = jo_make();
+         jo_area(j, "areas", state_panic & ~lastpanic);
+         sms_event("Panic", j, 1);
+         jo_free(&j);
+
+      }
+      lastpanic = state_panic;
    }
 }
 
