@@ -17,15 +17,15 @@ if($?DELETE) then
 	goto done
 endif
 if($?pcbname) then # save
+	set changed=0
 	if($pcb == 0) then
 		setenv pcb `sql -i "$DB" 'INSERT INTO pcb SET pcb=0'`
 	endif
-	sqlwrite -q "$DB" pcb
+	@ changed = $changed + `sqlwrite -c "$DB" pcb`
 	set gpio=(`printenv gpio|sed 's/[^0-9 	]//g'`)
 	set pin=(`printenv pin|sed 's/[^-0-9 	]//g'`)
 	set io=(`printenv io|sed 's/[^-0-9A-Z 	]//g'`)
 	set inittype=(`printenv inittype|sed 's/[^-0-9A-Z 	]//g'`)
-	set changed=0
 	setenv set ""
 	foreach n ($gpio)
 	setenv n "$n"
@@ -85,20 +85,22 @@ xmlsql -C -d "$DB" head.html - foot.html << END
 </table>
 <a href="/editpcb.cgi/0">New PCB</a>
 </if><if else>
-<form method=post action=/editpcb.cgi><input type=hidden name=pcb>
+<form method=post action=/editpcb.cgi name=F><input type=hidden name=pcb>
 <sql table=pcb key=pcb>
 <table>
-<tr><td>Name</td><td><input name=pcbname ize=40 autofocus></td></tr>
+<tr><td>Name</td><td><input name=pcbname size=40 autofocus></td></tr>
 <tr><td><select name=tamper>$GPIONUMPICK</select></td><td>GPIO Controller Tamper</td></tr>
 <if ledr=='-' ledg=='-' ledb=='-'><tr><td><select name=leda>$GPIONUMPICK</select></td><td>GPIO Controller LED (amber)</td></tr></if>
 <if leda=='-'><tr><td><select name=ledr>$GPIONUMPICK</select></td><td>GPIO Controller LED (red)</td></tr></if>
 <if leda=='-'><tr><td><select name=ledg>$GPIONUMPICK</select></td><td>GPIO Controller LED (green)</td></tr></if>
 <if leda=='-'><tr><td><select name=ledb>$GPIONUMPICK</select></td><td>GPIO Controller LED (blue)</td></tr></if>
-<tr><td><select name=keypadtx>$GPIONUMPICK</select></td><td>GPIO Keypad Tx</td></tr>
+<tr><td><select name=keypadtx onchange='F.submit();'>$GPIONUMPICK</select></td><td>GPIO Keypad Tx</td></tr>
+<if not keypadtx=='-'>
 <tr><td><select name=keypadrx>$GPIONUMPICK</select></td><td>GPIO Keypad Rx</td></tr>
 <tr><td><select name=keypadde>$GPIONUMPICK</select></td><td>GPIO Keypad DE</td></tr>
 <tr><td><select name=keypadre>$GPIONUMPICK</select></td><td>GPIO Keypad RE</td></tr>
-<tr><td><select name=nfctx>$GPIONUMPICK</select></td><td>GPIO NFC Tx</td></tr>
+</if>
+<tr><td><select name=nfctx onchange='F.submit();'>$GPIONUMPICK</select></td><td>GPIO NFC Tx</td></tr>
 <if not nfctx=='-'>
 <tr><td><select name=nfcrx>$GPIONUMPICK</select></td><td>GPIO NFC Rx</td></tr>
 <tr><td><select name=nfcpower>$GPIONUMPICK</select></td><td>GPIO NFC Power</td></tr>
