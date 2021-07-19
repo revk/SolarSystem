@@ -39,12 +39,7 @@ if($?DELETE && "$USER_ADMIN" == "true" || $?FACTORY) then
 	else
 		setenv MSG `message --device="$device" --command=restart`
 	endif
-	sql "$DB" 'DELETE FROM devicegpio WHERE device="$device"'
-	setenv C `sql -c "$DB" 'DELETE FROM device WHERE device="$device"'`
-	if("$C" == "" || "$C" == "0") then
-		setenv MSG "Cannot delete as in use"
-		goto done
-	endif
+	sql "$DB" 'UPDATE device SET site=NULL WHERE device="$device"'
 	redirect editdevice.cgi
 	exit 0
 endif
