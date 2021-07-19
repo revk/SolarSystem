@@ -236,12 +236,12 @@ void app_main()
    int p;
    for (p = 6; p <= 11; p++)
       port_check(p, "Flash", 0);        // Flash chip uses 6-11
-#define m(x) extern void x##_boot(void); x##_boot();
+#define m(x) extern void x##_boot(void); ESP_LOGI(TAG,"Boot "#x); x##_boot();
    modules;
 #undef m
    // Start
    revk_start();
-#define m(x) extern void x##_start(void); x##_start();
+#define m(x) extern void x##_start(void); ESP_LOGI(TAG,"Start "#x); x##_start();
    modules;
 #undef m
    // Main loop, if needed

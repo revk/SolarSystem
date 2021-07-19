@@ -23,6 +23,7 @@ const char *keypad_tamper = NULL;
   u8(keypadtxpost,40)	\
   u8(keypadrxpre,50)	\
   u8(keypadrxpost,10)	\
+  s(keypadidle)	\
 
 #define commands  \
   f(07,display,32,0) \
@@ -36,11 +37,13 @@ const char *keypad_tamper = NULL;
 #define u8h(n,d) uint8_t n;
 #define b(n) uint8_t n;
 #define p(n) uint8_t n;
+#define s(n) char *n;
 settings
 #undef u8
 #undef u8h
 #undef b
 #undef p
+#undef s
 #define f(id,name,len,def) static uint8_t name[len]={def};uint8_t send##id=false;uint8_t name##_len=0;
     commands
 #undef  f
@@ -60,6 +63,25 @@ const char *keypad_command(const char *tag, jo_t j)
        return NULL;
 }
 
+int64_t keypad_ui(char key)
+{                               // Update display for UI
+   ESP_LOGI(TAG, "UI %c", key);
+   // TODO keypad display format...
+
+   if (!key)
+   {                            // To idle
+      struct tm t;
+      time_t now = time(0);
+      localtime_r(&now, &t);
+      char temp[50];
+      snprintf(temp, sizeof(temp), "%.16s%04d-%02d-%02d %02d:%02d", *keypadidle ? keypadidle : revk_id, t.tm_year + 1900, t.tm_mon + 1, t.tm_mday, t.tm_hour, t.tm_min);
+      memcpy(display, temp, 32);
+      send07 = 1;
+      return esp_timer_get_time() + 1000000LL * (60 - t.tm_sec);        // Next minute
+   }
+   return esp_timer_get_time() + 1000000LL;
+}
+
 static void task(void *pvParameters)
 {
    galaxybus_t *g = galaxybus_init(keypadtimer, port_mask(keypadtx), port_mask(keypadrx), port_mask(keypadde),
@@ -72,13 +94,16 @@ static void task(void *pvParameters)
       return;
    }
    esp_task_wdt_add(NULL);
+   int64_t keypad_next = 0;
    galaxybus_set_timing(g, keypadtxpre, keypadtxpost, keypadrxpre, keypadrxpost);
    galaxybus_start(g);
    while (1)
    {
       esp_task_wdt_reset();
-      usleep(1000);             // TODO
+      usleep(1000);
       int64_t now = esp_timer_get_time();
+      if (now > keypad_next)
+         keypad_next = keypad_ui(0);
 
       static uint8_t buf[100],
        p = 0;
@@ -174,6 +199,7 @@ static void task(void *pvParameters)
                         jo_t j = jo_object_alloc();
                         jo_stringf(j, "key", "%.1s", keymap + (lastkey & 0x0F));
                         revk_event_clients((buf[2] & 0x80) ? "hold" : "key", &j, debug | (iotkeypad << 1));
+                        keypad_next = keypad_ui(keymap[lastkey & 0x0F]);
                      }
                      if (buf[2] & 0x80)
                         keyhold = now + 2000000LL;
@@ -236,13 +262,15 @@ static void task(void *pvParameters)
          buf[++p] = 0x07;
          buf[++p] = 0x01 | ((blink[0] & 1) ? 0x08 : 0x00) | (toggle07 ? 0x80 : 0);
          uint8_t len = display_len;
-         uint8_t temp[33];
          uint8_t *dis = display;
+#if 1
+         uint8_t temp[33];
          if (revk_offline())
          {                      // Off line
             len = snprintf((char *) temp, sizeof(temp), "%-16.16s%-16.16s", revk_wifi(), revk_id);
             dis = temp;
          }
+#endif
          if (cursor_len)
             buf[++p] = 0x07;    // cursor off while we update
          if (len)
@@ -345,28 +373,29 @@ void keypad_boot(void)
 #define u8h(n,d) revk_register(#n,0,sizeof(n),&n,#d,SETTING_HEX);
 #define b(n) revk_register(#n,0,sizeof(n),&n,NULL,SETTING_BOOLEAN|SETTING_LIVE);
 #define p(n) revk_register(#n,0,sizeof(n),&n,NULL,SETTING_SET);
-   settings
+#define s(n) revk_register(#n,0,0,&n,NULL,0);
+   settings;
 #undef u8
 #undef u8h
 #undef b
 #undef p
-       if (keypadtx && keypadrx && keypadde)
+#undef s
+   if (keypadtx && keypadrx && keypadde && keypadre)
    {
       const char *err = port_check(port_mask(keypadtx), TAG, 0);
       if (!err && keypadtx != keypadrx)
-         port_check(port_mask(keypadrx), TAG, 1);
+         err = port_check(port_mask(keypadrx), TAG, 1);
       if (!err)
-         port_check(port_mask(keypadde), TAG, 0);
-      if (!err && keypadre)
-         port_check(port_mask(keypadre), TAG, 0);
-      if (err && keypadde != keypadre)
-         status(keypad_fault = err);
+         err = port_check(port_mask(keypadde), TAG, 0);
+      if (!err && keypadde != keypadre)
+         err = port_check(port_mask(keypadre), TAG, 0);
+      status(keypad_fault = err);
+      // Done early because it beeps a lot!
+      revk_task(TAG, task, NULL);
    } else if (keypadtx || keypadrx || keypadde)
-      status(keypad_fault = "Set keypadtx, keypadrx and keypadde");
+      status(keypad_fault = "Set keypadtx, keypadrx, keypadde and keypadre");
 }
 
 void keypad_start(void)
 {
-   if (keypadtx && keypadrx && keypadde)
-      revk_task(TAG, task, NULL);
 }
