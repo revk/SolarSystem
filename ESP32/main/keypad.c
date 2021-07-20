@@ -116,6 +116,9 @@ int64_t keypad_ui(char key)
                localtime_r(&now, &tm);
                char t[50];
                snprintf(t, sizeof(t), "%04d-%02d-%02d %02d:%02d", tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min);
+               for (char *p = t; *p; p++)
+                  if (*p == '0')
+                     *p = 'O';  // The crossed zeros look crap
                memcpy(display + x, t, 16);
                x += 16;
             }
@@ -223,7 +226,7 @@ int64_t keypad_ui(char key)
                *p++ = AREAS[z];
          *p = 0;
          dprintf("%s: %s\n", statename[pos], areas);
-	 // TODO beeping - pre-arm, and alarm, and maybe tamper?
+         // TODO beeping - pre-arm, and alarm, and maybe tamper?
       }
       break;
    case PIN:
