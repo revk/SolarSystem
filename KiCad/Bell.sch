@@ -5,8 +5,8 @@ $Descr A4 11693 8268
 encoding utf-8
 Sheet 1 1
 Title "bell box control"
-Date "2021-06-18"
-Rev "1"
+Date "2021-07-20"
+Rev "2"
 Comp "Adrian Kennard Andrews & Arnold Ltd"
 Comment1 "@TheRealRevK"
 Comment2 "www.me.uk"
@@ -833,7 +833,7 @@ L Device:R R2
 U 1 1 60CE4750
 P 7550 3925
 F 0 "R2" V 7450 3925 50  0000 C CNN
-F 1 "1K" V 7550 3925 50  0000 C CNN
+F 1 "2K" V 7550 3925 50  0000 C CNN
 F 2 "RevK:R_0603" V 7480 3925 50  0001 C CNN
 F 3 "~" H 7550 3925 50  0001 C CNN
 	1    7550 3925
@@ -862,4 +862,6 @@ Text GLabel 2700 3200 2    50   Input ~ 0
 G
 Text GLabel 2700 3100 2    50   Input ~ 0
 R
+Text Notes 4100 4300 0    50   ~ 0
+ISL89411 or ISL89412 would work as s/w is configurable for polarity.
 $EndSCHEMATC
