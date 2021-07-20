@@ -1,9 +1,9 @@
 // Generated case design for KiCad/Bell.kicad_pcb
 // By https://github.com/revk/PCBCase
-// Generated 2021-07-19 11:14:53
+// Generated 2021-07-20 18:58:43
 // title:	Bell box controller
-// date:	2021-06-18
-// rev:	1.000000
+// date:	2021-07-20
+// rev:	2.000000
 // company:	Adrian Kennard, Andrews & Arnold Ltd
 //
 

@@ -9,7 +9,7 @@ module top()
         translate([-2,-2,-1])cube([54,37,7]);
         translate([3-2.45,-2,-1])cube([50-.55-.55,40,7]);
         translate([3-2.45,27.35+6.6-4.9-0.3,2])cube([48.9,10,6]); // SPOX
-        translate([29.45-3,5.2-3,4.5])cube([6,6,2]); // Button
+        translate([29.45-3,5.2-3,4.2])cube([6,6,2]); // Button
         translate([28-0.5,12.5-0.5,4])cube([1,1,10]); // LED
     }
     for(x=[10-2,54-10-2])translate([x-5,-3,0])hull(){cube([10,2,1]);cube([10,1,2]);}
