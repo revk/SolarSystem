@@ -13,6 +13,7 @@ extern area_t areawarning;
 extern area_t areafault;
 extern area_t areatamper;
 extern area_t areadeadlock;
+extern area_t areakeypad;
 extern area_t latch_tamper;
 extern area_t live_tamper;
 extern area_t latch_fault;

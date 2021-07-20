@@ -7,6 +7,7 @@ const char *keypad_tamper = NULL;
 
 #include "galaxybus.h"
 #include <driver/gpio.h>
+#include "alarm.h"
 
 #define port_mask(p) ((p)&127)
 
@@ -30,7 +31,7 @@ const char *keypad_tamper = NULL;
   f(19,keyclick,1,5) \
   f(0C,sounder,2,0) \
   f(0D,backlight,1,1) \
-  f(07a,cursor,2,0) \
+  f(07a,cursor,1,0) \
   f(07b,blink,1,0) \
 
 #define u8(n,d) uint8_t n;
@@ -63,23 +64,181 @@ const char *keypad_command(const char *tag, jo_t j)
        return NULL;
 }
 
+enum { IDLE, STATE, PIN };
+area_t const *states[] = {
+#define s(x,c) &state_##x,
+#include "states.m"
+};
+
+const char *statename[] = {
+#define s(x,c) #x,
+#include "states.m"
+};
+
+#define STATES (sizeof(states)/sizeof(*states))
+
 int64_t keypad_ui(char key)
 {                               // Update display for UI
-   ESP_LOGI(TAG, "UI %c", key);
-   // TODO keypad display format...
-   // TODO keypad beeping
-
-   if (!key)
-   {                            // To idle
-      struct tm t;
-      time_t now = time(0);
-      localtime_r(&now, &t);
-      char temp[50];
-      snprintf(temp, sizeof(temp), "%-16.16s%04d-%02d-%02d %02d:%02d", *keypadidle ? keypadidle : revk_id, t.tm_year + 1900, t.tm_mon + 1, t.tm_mday, t.tm_hour, t.tm_min);
-      memcpy(display, temp, display_len = 32);
-      send07 = 1;
-      return esp_timer_get_time() + 1000000LL * (60 - t.tm_sec);        // Next minute
+   static uint8_t state = IDLE;
+   static int8_t pos = 0;
+   if (key == 'X')
+      state = IDLE;
+   if (key >= '0' && key <= '9' && state != PIN)
+   {
+      state = PIN;
+      pos = 0;
    }
+   void dprintf(const char *fmt, ...) {
+      char *out = NULL;
+      va_list ap;
+      va_start(ap, fmt);
+      vasprintf(&out, fmt, ap);
+      va_end(ap);
+      char *v = out;
+      int x = 0;
+      while (*v && *v != '\n')
+      {
+         if (x < 16)
+            display[x++] = *v;
+         v++;
+      }
+      while (x < 16)
+         display[x++] = ' ';
+      if (*v)
+      {                         // New line
+         v++;                   // Line 2
+         if (!*v)
+         {                      // No second line - put date/time if set - print a space if not wanted or just one line with no \n
+            time_t now = time(0);
+            if (now > 1000000000)
+            {
+               struct tm tm;
+               localtime_r(&now, &tm);
+               char t[50];
+               snprintf(t, sizeof(t), "%04d-%02d-%02d %02d:%02d", tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min);
+               memcpy(display + x, t, 16);
+               x += 16;
+            }
+         } else
+         {                      // Second line
+            while (*v && *v != '\n')
+            {
+               if (x < 32)
+                  display[x++] = *v;
+               v++;
+            }
+         }
+      }
+      while (x < 32)
+         display[x++] = ' ';
+      free(out);
+      display_len = 32;
+      send07 = 1;
+      if (cursor_len)
+         send07a = 1;           // Cursor off
+      cursor_len = 0;
+   }
+   int64_t message(char *m) {
+      dprintf("%s", m);
+      return esp_timer_get_time() + 3000000LL;
+   }
+   switch (state)
+   {                            // Pre display
+   case IDLE:
+      {
+         int q = 0,
+             b = -1;
+         for (q = 0; q < STATES; q++)
+            if (*states[q] & areakeypad)
+               b = q;
+         if (b >= 0)
+         {                      // Active state (last one)
+            state = STATE;
+            pos = b;
+         }
+      }
+      break;
+   case STATE:
+      if (!key && !(*states[pos] & areakeypad))
+         state = IDLE;
+      if (key == 'A')
+      {                         // next
+         do
+            pos++;
+         while (pos < STATES && !(*states[pos] & areakeypad));
+         if (pos >= STATES)
+         {
+            pos = 0;
+            do
+               pos++;
+            while (pos < STATES && !(*states[pos] & areakeypad));
+            if (pos >= STATES)
+            {
+               state = IDLE;
+               return message("No more");
+            }
+         }
+      }
+      if (key == 'B')
+      {                         // prev
+         do
+            pos--;
+         while (pos >= 0 && !(*states[pos] & areakeypad));
+         if (pos < 0)
+         {
+            pos = STATES;
+            do
+               pos--;
+            while (pos >= 0 && !(*states[pos] & areakeypad));
+            if (pos < 0)
+            {
+               state = IDLE;
+               return message("No more");
+            }
+         }
+      }
+      break;
+   case PIN:
+      if (key >= '0' && key <= '9')
+         pos++;
+      if (key == 'E' || !key)
+      {
+         state = IDLE;          // TODO PIN entered
+         return message("TODO");
+      }
+      break;
+   }
+   switch (state)
+   {
+   case IDLE:
+      dprintf("%-16s\n", *keypadidle ? keypadidle : revk_id);
+      break;                    // Actually idle
+   case STATE:
+      {
+         area_t area = (*states[pos] & areakeypad);
+         char areas[sizeof(area_t) * 8 + 1],
+         *p = areas;
+         for (int z = 0; AREAS[z]; z++)
+            if (area & (1ULL << (sizeof(area_t) * 8 - z - 1)))
+               *p++ = AREAS[z];
+         *p = 0;
+         dprintf("%s: %s\n", statename[pos], areas);
+      }
+      break;
+   case PIN:
+      {
+         dprintf("PIN Entry:\n%.*s", pos, "****************");
+         if (pos < 16)
+         {
+            cursor[0] = pos + 0x10 + 0x40;      // Line 1 underscore at pos
+            cursor_len = 1;
+            send07a = 1;
+         }
+         return esp_timer_get_time() + 10000000LL;
+      }
+      break;
+   }
+   // Default one second
    return esp_timer_get_time() + 1000000LL;
 }
 

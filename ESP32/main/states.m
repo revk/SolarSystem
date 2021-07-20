@@ -12,7 +12,14 @@
 #define s(n,c)	// Internal states
 #endif
 
-s(engineer,GY)
+s(engineer,GY) // In order or importance
+s(alarmed,)
+s(faulted,)
+s(tampered,)
+s(prearm,)
+s(armed,C)
+s(prealarm,)
+s(alarm,RB)
 
 i(doorbell,W)
 i(warning,Y)
@@ -27,13 +34,6 @@ c(arm)
 c(strongarm)
 c(disarm)
 
-s(prearm,)
-s(armed,C)
-s(prealarm,)
-s(alarm,RB)
-s(alarmed,)
-s(faulted,)
-s(tampered,)
 
 #undef i
 #undef s

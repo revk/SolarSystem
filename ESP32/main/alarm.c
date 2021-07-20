@@ -60,6 +60,7 @@ static int nodes_reported = 0;
 	area(areadisarm)	\
 	area(areadeadlock)	\
 	area(arealed)		\
+	area(areakeypad)	\
 	area(engineer)		\
 	area(armed)		\
 	u16(armcancel)		\

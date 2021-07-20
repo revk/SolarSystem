@@ -139,6 +139,7 @@ static const char *settings(SQL * sqlp, SQL * sqlkeyp, SQL_RES * res, slot_t id)
    addarea(area, "disarm", sql_colz(res, "areadisarm"), 0);
    addarea(area, "bell", sql_colz(res, "areabell"), 0);
    addarea(area, "led", sql_colz(res, "arealed"), 0);
+   addarea(area, "keypad", sql_colz(res, "areakeypad"), 0);
    addarea(area, "deadlock", sql_colz(res, "areadeadlock"), 0);
    int site = atoi(sql_colz(res, "site"));
    {                            // site

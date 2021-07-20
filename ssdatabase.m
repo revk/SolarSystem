@@ -209,8 +209,8 @@ datetime(expires);              // Fixed expiry (local time on server)
 
 table(device, 12);
 link2(device, via);             // Via another device using mesh
-text(devicename, 20);		// Device name
-text(keypadidle,16);		// Keypad display name
+text(devicename, 20);           // Device name
+text(keypadidle, 16);           // Keypad display name
 link(organisation);             // Yes, can get from site, but useful to reference quickly
 link(site);                     // The site the device is on
 link(pcb);                      // What type of device this is
@@ -230,7 +230,7 @@ bool (nfctrusted);              // Trusted device for fob provisioning
 bool (door);                    // This is a door
 bool (doorexitarm);             // Exit button hold arm
 bool (doorexitdisarm);          // Exit button disarm
-bool (keypad);			// Keypad
+bool (keypad);                  // Keypad
 text(version, 0);               // S/w version
 text(build, 0);                 // S/w build
 num(chan);                      // WiFi channel
@@ -252,6 +252,7 @@ areas(areatamper);              // Areas set by tamper
 areas(areabell);                // Areas for door bell input
 areas(areadeadlock);            // Areas for door bell input
 areas(arealed);                 // LED area
+areas(areakeypad);              // Keypad area
 datetime(online);               // When online, if online
 datetime(lastonline);           // When last went offline
 text(offlinereason, 0);         // If sent offline reason, what was it
