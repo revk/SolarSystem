@@ -153,7 +153,10 @@ void keypad_ui(char key)
        shh = 0;
    static int8_t pos = 0;
    if (key == 'X' || (!key && now > timeout))
+   {
+      timeout = 0;
       state = IDLE;
+   }
    if (key >= '0' && key <= '9' && state != PIN)
    {
       state = PIN;
