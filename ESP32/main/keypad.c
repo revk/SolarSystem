@@ -235,7 +235,6 @@ void keypad_ui(char key)
          {                      // PIN for full 12 keys
             if (pos < sizeof(code))
                code[pos++] = key;
-            pos++;
          } else if (key == 'B' && pos)
             pos--;              // Delete
          else if (key == 'E')
