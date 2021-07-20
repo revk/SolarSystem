@@ -169,6 +169,7 @@ void keypad_ui(char key)
    switch (state)
    {                            // Pre display
    case IDLE:
+      if (now > timeout)
       {
          int q = 0,
              b = -1;
