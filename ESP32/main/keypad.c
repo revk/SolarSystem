@@ -157,7 +157,7 @@ void keypad_ui(char key)
       timeout = 0;
       state = IDLE;
    }
-   if (key >= '0' && key <= '9' && state != PIN)
+   if (((key >= '0' && key <= '9') || key == '*' || key == '#') && state != PIN)
    {
       state = PIN;
       pos = 0;
@@ -485,7 +485,7 @@ static void task(void *pvParameters)
          buf[++p] = 0x0E;
       } else if (ui.keyconfirm)
       {                         // key confirm
-	      // TODO has been known to get stuck constantly sending keys somehow
+         // TODO has been known to get stuck constantly sending keys somehow
          ui.keyconfirm = 0;
          buf[++p] = 0x0B;
          buf[++p] = ui.keybit ? 2 : 0;
