@@ -226,7 +226,7 @@ void keypad_ui(char key)
          timeout = now + 10;
       }
       if (key == 'E')
-         return fail("Wrong PIN");      // TODO No UI for PIN yet
+         fail("Wrong PIN");     // TODO No UI for PIN yet
       else
          shh = 1;
       break;
@@ -281,10 +281,10 @@ void keypad_ui(char key)
    }
    switch (state)
    {
-   case IDLE:
-      if (timeout < now)
+   case IDLE:                  // Idle display
+      if (now > timeout)
          displayprint("%-16s\n", *keypadidle ? keypadidle : revk_id);
-      break;                    // Actually idle
+      break;
    case STATE:
       {
          area_t area = (*states[pos] & areakeypad);
