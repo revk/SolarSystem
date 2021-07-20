@@ -224,15 +224,26 @@ void keypad_ui(char key)
       }
       break;
    case PIN:
-      if (key >= '0' && key <= '9')
       {
-         pos++;
-         timeout = now + 10;
+         static char code[16];
+         if (key)
+         {
+            timeout = now + 10;
+            shh = 1;
+         }
+         if ((key >= '0' && key <= '9') || key == '*' || key == '#')
+         {                      // PIN for full 12 keys
+            if (pos < sizeof(code))
+               code[pos++] = key;
+            pos++;
+         } else if (key == 'B' && pos)
+            pos--;              // Delete
+         else if (key == 'E')
+         {                      // ENT
+            // TODO check code?
+            fail("Wrong PIN");
+         }
       }
-      if (key == 'E')
-         fail("Wrong PIN");     // TODO No UI for PIN yet
-      else
-         shh = 1;
       break;
    }
    {                            // Backlight
