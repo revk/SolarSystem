@@ -146,7 +146,7 @@ static void displayprint(const char *fmt, ...)
 
 void keypad_ui(char key)
 {                               // Update display for UI
-   ESP_LOGD(TAG, "UI %c", key); // TODO
+   ESP_LOGI(TAG, "UI %c", key); // TODO
    static uint32_t timeout = 0;
    uint32_t now = uptime();
    static uint8_t state = IDLE,
@@ -485,6 +485,7 @@ static void task(void *pvParameters)
          buf[++p] = 0x0E;
       } else if (ui.keyconfirm)
       {                         // key confirm
+	      // TODO has been known to get stuck constantly sending keys somehow
          ui.keyconfirm = 0;
          buf[++p] = 0x0B;
          buf[++p] = ui.keybit ? 2 : 0;
