@@ -5,8 +5,8 @@ $Descr A4 11693 8268
 encoding utf-8
 Sheet 1 1
 Title "Galaxy Keypad controller"
-Date "2021-06-01"
-Rev "4"
+Date "2021-07-20"
+Rev "5"
 Comp "Adrian Kennard Andrews & Arnold Ltd"
 Comment1 "@TheRealRevK"
 Comment2 "www.me.uk"
@@ -556,7 +556,7 @@ U 1 1 60CC7AD0
 P 2725 2850
 F 0 "U1" H 2725 4431 50  0000 C CNN
 F 1 "ESP32-WROOM-32" H 2725 4340 50  0000 C CNN
-F 2 "RF_Module:ESP32-WROOM-32" H 2725 1350 50  0001 C CNN
+F 2 "RevK:ESP32-WROOM-32" H 2725 1350 50  0001 C CNN
 F 3 "https://www.espressif.com/sites/default/files/documentation/esp32-wroom-32_datasheet_en.pdf" H 2425 2900 50  0001 C CNN
 	1    2725 2850
 	1    0    0    -1  
