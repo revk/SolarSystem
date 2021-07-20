@@ -26,13 +26,29 @@ const char *keypad_tamper = NULL;
   u8(keypadrxpost,10)	\
   sl(keypadidle)	\
 
-#define commands  \
-  f(07,display,32,0) \
-  f(19,keyclick,1,5) \
-  f(0C,sounder,2,0) \
-  f(0D,backlight,1,1) \
-  f(07a,cursor,1,0) \
-  f(07b,blink,1,0) \
+struct {
+   uint8_t display[32];
+   uint8_t cursor;              // low 4 bits is x, 0x10 is second row, 0x40 is underline, 0x80 is block
+   uint8_t on:6;                // Sounder on
+   uint8_t off:6;               // Sounder off
+   uint8_t quiet:1;             // Key click
+   uint8_t silent:1;            // Key click
+   uint8_t backlight:1;         // Backlight
+   uint8_t blink:1;             // Blink LED
+   // Send
+   uint8_t senddisplay:1;       // Send display
+   uint8_t sendcursor:1;        // Send cursor
+   uint8_t sendkeyclick:1;      // Send quiet/silent
+   uint8_t sendsounder:1;       // Send on/off
+   uint8_t sendbacklight:1;     // Send backlight
+   uint8_t sendblink:1;         // Send blink
+   // Internal
+   uint8_t keyconfirm:1;        // Key confirmation
+   uint8_t keybit:1;            // Key confirm toggle bit
+   uint8_t displaybit:1;        // Display update toggle bit
+   uint8_t wascursor:1;         // Cursor was set
+   uint8_t resenddisplay;       // Resend display
+} ui;
 
 #define u8(n,d) uint8_t n;
 #define u8h(n,d) uint8_t n;
@@ -45,10 +61,9 @@ settings
 #undef b
 #undef p
 #undef sl
-#define f(id,name,len,def) static uint8_t name[len]={def};uint8_t send##id=false;uint8_t name##_len=0;
-    commands
-#undef  f
 static volatile uint8_t force;
+
+static void displayprint(const char *fmt, ...);
 
 const char *keypad_command(const char *tag, jo_t j)
 {
@@ -58,10 +73,7 @@ const char *keypad_command(const char *tag, jo_t j)
       val[len = 0] = 0;
    if (!strcmp(tag, "connect") || !strcmp(tag, "disconnect") || !strcmp(tag, "change"))
       force = 1;
-#define f(i,n,l,d) if(!strcasecmp(tag,#n)&&len<=l){memcpy(n,val,len);n##_len=len;if(len<l)memset(n+len,0,l-len);send##i=1;return "";}
-   commands
-#undef f
-       return NULL;
+   return NULL;
 }
 
 enum { IDLE, STATE, PIN };
@@ -77,9 +89,64 @@ const char *statename[] = {
 
 #define STATES (sizeof(states)/sizeof(*states))
 
+static void displayprint(const char *fmt, ...)
+{
+   char *out = NULL;
+   va_list ap;
+   va_start(ap, fmt);
+   vasprintf(&out, fmt, ap);
+   va_end(ap);
+   char *v = out;
+   int x = 0;
+   while (*v && *v != '\n')
+   {
+      if (x < 16)
+         ui.display[x++] = *v;
+      v++;
+   }
+   while (x < 16)
+      ui.display[x++] = ' ';
+   if (*v)
+   {                            // New line
+      v++;                      // Line 2
+      if (!*v)
+      {                         // No second line - put date/time if set - print a space if not wanted or just one line with no \n
+         time_t now = time(0);
+         if (now > 1000000000)
+         {
+            struct tm tm;
+            localtime_r(&now, &tm);
+            char t[50];
+            snprintf(t, sizeof(t), "%04d-%02d-%02d %02d:%02d", tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min);
+            for (char *p = t; *p; p++)
+               if (*p == '0')
+                  *p = 'O';     // The crossed zeros look crap
+            memcpy(ui.display + x, t, 16);
+            x += 16;
+         }
+      } else
+      {                         // Second line
+         while (*v && *v != '\n')
+         {
+            if (x < 32)
+               ui.display[x++] = *v;
+            v++;
+         }
+      }
+   }
+   while (x < 32)
+      ui.display[x++] = ' ';
+   free(out);
+   ui.senddisplay = 1;
+   if (ui.cursor)
+      ui.sendcursor = 1;
+   ui.cursor = 0;
+}
+
 int64_t keypad_ui(char key)
 {                               // Update display for UI
-   static uint8_t state = IDLE;
+   static uint8_t state = IDLE,
+       shh = 0;
    static int8_t pos = 0;
    if (key == 'X')
       state = IDLE;
@@ -87,62 +154,10 @@ int64_t keypad_ui(char key)
    {
       state = PIN;
       pos = 0;
-   }
-   void dprintf(const char *fmt, ...) {
-      char *out = NULL;
-      va_list ap;
-      va_start(ap, fmt);
-      vasprintf(&out, fmt, ap);
-      va_end(ap);
-      char *v = out;
-      int x = 0;
-      while (*v && *v != '\n')
-      {
-         if (x < 16)
-            display[x++] = *v;
-         v++;
-      }
-      while (x < 16)
-         display[x++] = ' ';
-      if (*v)
-      {                         // New line
-         v++;                   // Line 2
-         if (!*v)
-         {                      // No second line - put date/time if set - print a space if not wanted or just one line with no \n
-            time_t now = time(0);
-            if (now > 1000000000)
-            {
-               struct tm tm;
-               localtime_r(&now, &tm);
-               char t[50];
-               snprintf(t, sizeof(t), "%04d-%02d-%02d %02d:%02d", tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min);
-               for (char *p = t; *p; p++)
-                  if (*p == '0')
-                     *p = 'O';  // The crossed zeros look crap
-               memcpy(display + x, t, 16);
-               x += 16;
-            }
-         } else
-         {                      // Second line
-            while (*v && *v != '\n')
-            {
-               if (x < 32)
-                  display[x++] = *v;
-               v++;
-            }
-         }
-      }
-      while (x < 32)
-         display[x++] = ' ';
-      free(out);
-      display_len = 32;
-      send07 = 1;
-      if (cursor_len)
-         send07a = 1;           // Cursor off
-      cursor_len = 0;
+      shh = 0;
    }
    int64_t message(char *m) {
-      dprintf("%s", m);
+      displayprint("%s", m);
       return esp_timer_get_time() + 3000000LL;
    }
    switch (state)
@@ -164,6 +179,8 @@ int64_t keypad_ui(char key)
    case STATE:
       if (!key && !(*states[pos] & areakeypad))
          state = IDLE;
+      else if (key)
+         shh = 1;
       if (key == 'A')
       {                         // next
          do
@@ -208,16 +225,50 @@ int64_t keypad_ui(char key)
       {
          state = IDLE;          // TODO PIN entered
          return message("TODO");
-      }
+      } else
+         shh = 1;
       break;
    }
-         // TODO beeping - pre-arm, and alarm, and maybe tamper?
-	 // TODO led
-	 // TODO backlight
+   {                            // Backlight
+      char bl = 0;
+      if (state != IDLE)
+         bl = 1;
+      if (ui.backlight != bl)
+         ui.sendbacklight = 1;
+      ui.backlight = bl;
+   }
+   {                            // Beep
+      char on = 0,
+          off = 0;
+      if (!shh)
+      {
+         if (state_alarm & areakeypad)
+            on = 1;             // solid
+         else if (state_prearm & areakeypad)
+            on = off = 1;
+         else if (state_tamper & areakeypad)
+         {
+            on = 1;
+            off = 20;
+         }
+      }
+      if (ui.on != on || ui.off != off)
+         ui.sendsounder = 1;
+      ui.on = on;
+      ui.off = off;
+   }
+   {                            // LED
+      char bl = 0;
+      if (state_alarmed & areakeypad)
+         bl = 1;
+      if (ui.blink != bl)
+         ui.sendblink = 1;
+      ui.blink = bl;
+   }
    switch (state)
    {
    case IDLE:
-      dprintf("%-16s\n", *keypadidle ? keypadidle : revk_id);
+      displayprint("%-16s\n", *keypadidle ? keypadidle : revk_id);
       break;                    // Actually idle
    case STATE:
       {
@@ -228,17 +279,16 @@ int64_t keypad_ui(char key)
             if (area & (1ULL << (sizeof(area_t) * 8 - z - 1)))
                *p++ = AREAS[z];
          *p = 0;
-         dprintf("%s: %s\n", statename[pos], areas);
+         displayprint("%s: %s\n", statename[pos], areas);
       }
       break;
    case PIN:
       {
-         dprintf("PIN Entry:\n%.*s", pos, "****************");
+         displayprint("PIN Entry:\n%.*s", pos, "****************");
          if (pos < 16)
          {
-            cursor[0] = pos + 0x10 + 0x40;      // Line 1 underscore at pos
-            cursor_len = 1;
-            send07a = 1;
+            ui.cursor = pos + 0x10 + 0x40;      // Line 1 underscore at pos
+            ui.sendcursor = 1;
          }
          return esp_timer_get_time() + 10000000LL;
       }
@@ -275,10 +325,6 @@ static void task(void *pvParameters)
        p = 0;
       static uint8_t cmd = 0;
       static uint8_t online = 0;
-      static uint8_t send0B = 0;
-      static uint8_t toggle0B = 0;
-      static uint8_t toggle07 = 0;
-      static uint8_t send07c = 0;
       static uint8_t lastkey = 0x7F;
       static unsigned int galaxybusfault = 0;
       static int64_t rxwait = 0;
@@ -307,15 +353,14 @@ static void task(void *pvParameters)
                if (!online)
                {
                   online = 1;
-                  //toggle0B = 1;
-                  toggle07 = 1;
+                  ui.displaybit = 1;
                }
             } else if (buf[1] == 0xF2)
                force = 1;       // Error?
             else if (buf[1] == 0xFE)
             {                   // Idle, no tamper, no key
                status(keypad_tamper = NULL);
-               if (!send0B)
+               if (!ui.keyconfirm)
                {
                   if (lastkey & 0x80)
                   {
@@ -335,7 +380,7 @@ static void task(void *pvParameters)
                   status(keypad_tamper = "Case open");
                else
                   status(keypad_tamper = NULL);
-               if (!send0B)
+               if (!ui.keyconfirm)
                {                // Key
                   if (buf[2] == 0x7F)
                   {             // No key
@@ -352,8 +397,8 @@ static void task(void *pvParameters)
                         lastkey = 0x7F;
                   } else
                   {             // key
-                     toggle0B = !toggle0B;
-                     send0B = 1;
+                     ui.keybit = !ui.keybit;
+                     ui.keyconfirm = 1;
                      if ((lastkey & 0x80) && buf[2] != lastkey)
                      {
                         jo_t j = jo_object_alloc();
@@ -395,31 +440,31 @@ static void task(void *pvParameters)
       if (force || galaxybusfault || !online)
       {                         // Update all the shit
          force = 0;
-         send07 = 1;
-         send07a = 1;
-         send07b = 1;
-         send0B = 1;
-         send0C = 1;
-         send0D = 1;
-         send19 = 1;
+         ui.senddisplay = 1;
+         ui.sendcursor = 1;
+         ui.sendblink = 1;
+         ui.keyconfirm = 1;
+         ui.sendsounder = 1;
+         ui.sendbacklight = 1;
+         ui.sendkeyclick = 1;
       }
       p = 0;
       if (!online)
       {                         // Init
          buf[++p] = 0x00;
          buf[++p] = 0x0E;
-      } else if (send0B)
+      } else if (ui.keyconfirm)
       {                         // key confirm
-         send0B = 0;
+         ui.keyconfirm = 0;
          buf[++p] = 0x0B;
-         buf[++p] = toggle0B ? 2 : 0;
-      } else if (lastkey >= 0x7F && (send07 || send07a || send07b || send07c))
+         buf[++p] = ui.keybit ? 2 : 0;
+      } else if (lastkey >= 0x7F && (ui.senddisplay || ui.sendcursor || ui.sendblink || ui.resenddisplay))
       {                         // Text
          buf[++p] = 0x07;
-         buf[++p] = 0x01 | ((blink[0] & 1) ? 0x08 : 0x00) | (toggle07 ? 0x80 : 0);
-         uint8_t len = display_len;
-         uint8_t *dis = display;
-         if (cursor_len)
+         buf[++p] = 0x01 | (ui.blink ? 0x08 : 0x00) | (ui.displaybit ? 0x80 : 0);
+         uint8_t len = 32;
+         uint8_t *dis = ui.display;
+         if (ui.wascursor)
             buf[++p] = 0x07;    // cursor off while we update
          if (len)
          {
@@ -439,41 +484,40 @@ static void task(void *pvParameters)
             }
          } else
             buf[++p] = 0x17;    // clear
-         if (send07a || cursor_len)
+         if ((ui.sendcursor && ui.cursor) || ui.wascursor)
          {                      // cursor
             buf[++p] = 0x03;
-            buf[++p] = ((cursor[0] & 0x10) ? 0x40 : 0) + (cursor[0] & 0x0F);
-            if (cursor[0] & 0x80)
+            buf[++p] = ((ui.cursor & 0x10) ? 0x40 : 0) + (ui.cursor & 0x0F);
+            if (ui.cursor & 0x80)
                buf[++p] = 0x06; // Solid block
-            else if (cursor[0] & 0x40)
+            else if (ui.cursor & 0x40)
                buf[++p] = 0x10; // Underline
+            ui.wascursor = (ui.cursor ? 1 : 0);
          }
-         toggle07 = !toggle07;
-         if (send07)
-            send07c = 1;        // always send twice
+         ui.displaybit = !ui.displaybit;
+         if (ui.senddisplay)
+            ui.resenddisplay = 1;       // always send twice
          else
-            send07a = send07b = send07c = 0;    // sent
-         send07 = 0;
-      } else if (send19)
+            ui.sendcursor = ui.sendblink = ui.resenddisplay = 0;        // sent
+         ui.senddisplay = 0;
+      } else if (ui.sendkeyclick)
       {                         // Key keyclicks
-         send19 = 0;
+         ui.sendkeyclick = 0;
          buf[++p] = 0x19;
-         buf[++p] = (keyclick[0] & 0x7);        // 0x03 (silent), 0x05 (quiet), or 0x01 (normal)
+         buf[++p] = (ui.silent ? 3 : ui.quiet ? 5 : 1);
          buf[++p] = 0;
-      } else if (send0C)
+      } else if (ui.sendsounder)
       {                         // Beeper
-         send0C = 0;
-         uint8_t *s = sounder;
-         uint8_t len = sounder_len;
+         ui.sendsounder = 0;
          buf[++p] = 0x0C;
-         buf[++p] = (len ? s[1] ? 3 : 1 : 0);
-         buf[++p] = (s[0] & 0x3F);      // Time on
-         buf[++p] = (s[1] & 0x3F);      // Time off
-      } else if (send0D)
+         buf[++p] = ((ui.on && ui.off) ? 3 : ui.on ? 1 : 0);
+         buf[++p] = ui.on;
+         buf[++p] = ui.off;
+      } else if (ui.sendbacklight)
       {                         // Light change
-         send0D = 0;
+         ui.sendbacklight = 0;
          buf[++p] = 0x0D;
-         buf[++p] = (backlight[0] & 1);
+         buf[++p] = ui.backlight;
       } else
          buf[++p] = 0x06;       // Normal poll
       // Send
