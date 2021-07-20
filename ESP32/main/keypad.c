@@ -146,7 +146,7 @@ static void displayprint(const char *fmt, ...)
 
 void keypad_ui(char key)
 {                               // Update display for UI
-   ESP_LOGI(TAG, "UI %c", key); // TODO
+   ESP_LOGD(TAG, "UI %c", key); // TODO
    static uint32_t timeout = 0;
    uint32_t now = uptime();
    static uint8_t state = IDLE,
@@ -239,7 +239,7 @@ void keypad_ui(char key)
       if (ui.backlight != bl)
       {
          ui.sendbacklight = 1;
-         ESP_LOGI(TAG, "Backlight %d", bl);
+         ESP_LOGD(TAG, "Backlight %d", bl);
       }
       ui.backlight = bl;
    }
@@ -264,7 +264,7 @@ void keypad_ui(char key)
       if (ui.on != on || ui.off != off)
       {
          ui.sendsounder = 1;
-         ESP_LOGI(TAG, "Sounder %d %d", on, off);
+         ESP_LOGD(TAG, "Sounder %d %d", on, off);
       }
       ui.on = on;
       ui.off = off;
@@ -276,7 +276,7 @@ void keypad_ui(char key)
       if (ui.blink != bl)
       {
          ui.sendblink = 1;
-         ESP_LOGI(TAG, "LED Blink %d", bl);
+         ESP_LOGD(TAG, "LED Blink %d", bl);
       }
       ui.blink = bl;
    }
@@ -353,7 +353,7 @@ static void task(void *pvParameters)
          static const char keymap[] = "0123456789BAEX*#";
          if (p < 2)
          {
-            ESP_LOGI(TAG, "Rx fail %s", galaxybus_err_to_name(p));
+            ESP_LOGD(TAG, "Rx fail %s", galaxybus_err_to_name(p));
             if (galaxybusfault++ > 5)
             {
                status(keypad_fault = galaxybus_err_to_name(p));
@@ -544,7 +544,7 @@ static void task(void *pvParameters)
       int l = galaxybus_tx(g, p, buf);
       if (l < 0)
       {
-         ESP_LOGI(TAG, "Tx fail %s", galaxybus_err_to_name(l));
+         ESP_LOGD(TAG, "Tx fail %s", galaxybus_err_to_name(l));
          usleep(500000);
          rxwait = 0;
       }
