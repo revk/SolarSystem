@@ -188,7 +188,7 @@ int64_t keypad_ui(char key)
          while (pos < STATES && !(*states[pos] & areakeypad));
          if (pos >= STATES)
          {
-            pos = 0;
+            pos = -1;
             do
                pos++;
             while (pos < STATES && !(*states[pos] & areakeypad));
