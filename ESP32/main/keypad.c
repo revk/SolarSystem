@@ -26,6 +26,7 @@ const char *keypad_tamper = NULL;
   u8(keypadrxpost,10)	\
   sl(keypadidle)	\
 
+// TODO keypad tamper in web UI?
 struct {
    uint8_t display[32];
    uint8_t cursor;              // low 4 bits is x, 0x10 is second row, 0x40 is underline, 0x80 is block
@@ -143,12 +144,15 @@ static void displayprint(const char *fmt, ...)
    ui.cursor = 0;
 }
 
-int64_t keypad_ui(char key)
+void keypad_ui(char key)
 {                               // Update display for UI
+   ESP_LOGI(TAG, "UI %c", key); // TODO
+   static uint32_t timeout = 0;
+   uint32_t now = uptime();
    static uint8_t state = IDLE,
        shh = 0;
    static int8_t pos = 0;
-   if (key == 'X')
+   if (key == 'X' || (!key && now > timeout))
       state = IDLE;
    if (key >= '0' && key <= '9' && state != PIN)
    {
@@ -156,9 +160,11 @@ int64_t keypad_ui(char key)
       pos = 0;
       shh = 0;
    }
-   int64_t message(char *m) {
+   void fail(const char *m) {
       displayprint("%s", m);
-      return esp_timer_get_time() + 3000000LL;
+      state = IDLE;
+      pos = 0;
+      timeout = now + 5;
    }
    switch (state)
    {                            // Pre display
@@ -177,10 +183,11 @@ int64_t keypad_ui(char key)
       }
       break;
    case STATE:
-      if (!key && !(*states[pos] & areakeypad))
-         state = IDLE;
-      else if (key)
+      if (key)
+      {
          shh = 1;
+         timeout = now + 10;
+      }
       if (key == 'A')
       {                         // next
          do
@@ -193,10 +200,7 @@ int64_t keypad_ui(char key)
                pos++;
             while (pos < STATES && !(*states[pos] & areakeypad));
             if (pos >= STATES)
-            {
-               state = IDLE;
-               return message("No more");
-            }
+               fail("No more");
          }
       }
       if (key == 'B')
@@ -211,64 +215,75 @@ int64_t keypad_ui(char key)
                pos--;
             while (pos >= 0 && !(*states[pos] & areakeypad));
             if (pos < 0)
-            {
-               state = IDLE;
-               return message("No more");
-            }
+               fail("No more");
          }
       }
       break;
    case PIN:
       if (key >= '0' && key <= '9')
-         pos++;
-      if (key == 'E' || !key)
       {
-         state = IDLE;          // TODO PIN entered
-         return message("TODO");
-      } else
+         pos++;
+         timeout = now + 10;
+      }
+      if (key == 'E')
+         return fail("Wrong PIN");      // TODO No UI for PIN yet
+      else
          shh = 1;
       break;
    }
    {                            // Backlight
-      char bl = 0;
+      uint8_t bl = 0;
       if (state != IDLE)
          bl = 1;
       if (ui.backlight != bl)
+      {
          ui.sendbacklight = 1;
+         ESP_LOGI(TAG, "Backlight %d", bl);
+      }
       ui.backlight = bl;
    }
    {                            // Beep
-      char on = 0,
+      uint8_t on = 0,
           off = 0;
       if (!shh)
       {
          if (state_alarm & areakeypad)
-            on = 1;             // solid
-         else if (state_prearm & areakeypad)
+         {
+            on = 10;
+            off = 1;
+         } else if (state_prearm & areakeypad)
+         {
             on = off = 1;
-         else if (state_tamper & areakeypad)
+         } else if (state_tamper & areakeypad)
          {
             on = 1;
-            off = 20;
+            off = 63;
          }
       }
       if (ui.on != on || ui.off != off)
+      {
          ui.sendsounder = 1;
+         ESP_LOGI(TAG, "Sounder %d %d", on, off);
+      }
       ui.on = on;
       ui.off = off;
    }
-   {                            // LED
-      char bl = 0;
+   {                            // LED blink
+      uint8_t bl = 0;
       if (state_alarmed & areakeypad)
          bl = 1;
       if (ui.blink != bl)
+      {
          ui.sendblink = 1;
+         ESP_LOGI(TAG, "LED Blink %d", bl);
+      }
       ui.blink = bl;
    }
    switch (state)
    {
    case IDLE:
-      displayprint("%-16s\n", *keypadidle ? keypadidle : revk_id);
+      if (timeout < now)
+         displayprint("%-16s\n", *keypadidle ? keypadidle : revk_id);
       break;                    // Actually idle
    case STATE:
       {
@@ -290,12 +305,10 @@ int64_t keypad_ui(char key)
             ui.cursor = pos + 0x10 + 0x40;      // Line 1 underscore at pos
             ui.sendcursor = 1;
          }
-         return esp_timer_get_time() + 10000000LL;
       }
       break;
    }
    // Default one second
-   return esp_timer_get_time() + 1000000LL;
 }
 
 static void task(void *pvParameters)
@@ -319,7 +332,10 @@ static void task(void *pvParameters)
       usleep(1000);
       int64_t now = esp_timer_get_time();
       if (now > keypad_next)
-         keypad_next = keypad_ui(0);
+      {
+         keypad_next = now + 1000000ULL;
+         keypad_ui(0);
+      }
 
       static uint8_t buf[100],
        p = 0;
@@ -411,7 +427,7 @@ static void task(void *pvParameters)
                         jo_stringf(j, "key", "%.1s", keymap + (buf[2] & 0x0F));
                         revk_event_clients((buf[2] & 0x80) ? "hold" : "key", &j, debug | (iotkeypad << 1));
                         if (!(buf[2] & 0x80))
-                           keypad_next = keypad_ui(keymap[buf[2] & 0x0F]);
+                           keypad_ui(keymap[buf[2] & 0x0F]);
                      }
                      if (buf[2] & 0x80)
                         keyhold = now + 2000000LL;

@@ -13,9 +13,9 @@
 #endif
 
 s(engineer,GY) // In order or importance
-s(alarmed,)
 s(faulted,)
 s(tampered,)
+s(alarmed,)
 s(prearm,)
 s(armed,C)
 s(prealarm,)
