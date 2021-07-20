@@ -223,6 +223,7 @@ int64_t keypad_ui(char key)
                *p++ = AREAS[z];
          *p = 0;
          dprintf("%s: %s\n", statename[pos], areas);
+	 // TODO beeping - pre-arm, and alarm, and maybe tamper?
       }
       break;
    case PIN:
