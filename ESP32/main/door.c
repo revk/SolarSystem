@@ -50,8 +50,6 @@ uint8_t afile[256];             // Access file saved
   ta(blacklist,10); \
   s(iotopen)	\
   s(iotclose)	\
-  s(iotarm)	\
-  s(iotdisarm)	\
 
 #define u32(n,d) uint32_t n;
 #define u16(n,d) uint16_t n;
@@ -669,10 +667,6 @@ static void task(void *pvParameters)
                revk_mqtt_send_str_clients(iotopen, 0, 2);
             if (lastdoorstate == DOOR_OPEN && *iotclose)
                revk_mqtt_send_str_clients(iotclose, 0, 2);
-            if (doorstate == DOOR_DEADLOCKED && *iotarm)
-               revk_mqtt_send_str_clients(iotarm, 0, 2);
-            if (lastdoorstate == DOOR_DEADLOCKED && *iotdisarm)
-               revk_mqtt_send_str_clients(iotdisarm, 0, 2);
             if (doorstate == DOOR_OPEN)
                doortimeout = now + (int64_t) doorprop *1000LL;
             else if (doorstate == DOOR_CLOSED)

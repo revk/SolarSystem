@@ -73,14 +73,22 @@ static int nodes_reported = 0;
 	area(smsarmfail)	\
 	area(smsalarm)		\
 	area(smspanic)		\
+	arean(mixand,MAX_MIX)	\
+	arean(mixset,MAX_MIX)	\
+	sn(mixarm,MAX_MIX)	\
+	sn(mixdisarm,MAX_MIX)	\
 
 #define area(n) area_t n;
+#define arean(n,q) area_t n[q];
 #define s(n,d) char *n;
+#define sn(n,q) char *n[q];
 #define u16(n) uint16_t n;
 #define u8(n,d) uint16_t n;
 settings
 #undef area
+#undef arean
 #undef s
+#undef sn
 #undef u16
 #undef u8
 static void task(void *pvParameters);
@@ -191,13 +199,18 @@ void alarm_boot(void)
    xSemaphoreGive(node_mutex);
    revk_register("area", 0, sizeof(areafault), &areafault, AREAS, SETTING_BITFIELD | SETTING_LIVE | SETTING_SECRET);    // Will control if shown in dump!
    revk_register("sms", 0, sizeof(smsalarm), &smsalarm, AREAS, SETTING_BITFIELD | SETTING_LIVE | SETTING_SECRET);
+   revk_register("mix", sizeof(mixand) / sizeof(*mixand), sizeof(mixand), &mixand, AREAS, SETTING_BITFIELD | SETTING_LIVE | SETTING_SECRET);
 #define area(n) revk_register(#n,0,sizeof(n),&n,AREAS,SETTING_BITFIELD|SETTING_LIVE);
+#define arean(n,q) revk_register(#n,q,sizeof(n),&n,AREAS,SETTING_BITFIELD|SETTING_LIVE);
 #define s(n,d) revk_register(#n,0,0,&n,#d,0);
+#define sn(n,q) revk_register(#n,q,0,&n,NULL,0);
 #define u16(n) revk_register(#n,0,sizeof(n),&n,NULL,0);
 #define u8(n,d) revk_register(#n,0,sizeof(n),&n,#d,0);
    settings;
 #undef area
+#undef arean
 #undef s
+#undef sn
 #undef u16
 #undef u8
    // Pick up flash stored state to get started
@@ -379,6 +392,18 @@ static int check_online(const char *target)
    return child;
 }
 
+static area_t andset(area_t a)
+{                               // Mix and set
+   for (int s = 0; s < MAX_MIX; s++)
+   {
+      if (mixand[s] & ~a)
+         a &= ~mixset[s];
+      else
+         a |= mixset[s];
+   }
+   return a;
+}
+
 static void mesh_make_summary(jo_t j)
 {                               // Process reports received, and make summary
    jo_int(j, "nodes", nodes);
@@ -394,9 +419,9 @@ static void mesh_make_summary(jo_t j)
    state_faulted = ((state_faulted & ~report_arm) | report_fault);
    state_alarmed = ((state_alarmed & ~report_arm) | state_alarm);
    // arming normally holds off for presence (obviously) but also tamper and access - forcing armed is possible
-   state_armed = ((state_armed | report_strongarm | (report_arm & ~state_presence & ~(state_tamper & ~engineer) & ~state_access)) & ~report_disarm);
+   state_armed = andset((state_armed | report_strongarm | (report_arm & ~state_presence & ~(state_tamper & ~engineer) & ~state_access)) & ~report_disarm);
    // prearm if any not armed yet
-   state_prearm = (report_arm & ~state_armed);
+   state_prearm = andset(report_arm & ~state_armed);
    // Alarm based only on presence, but change of tamper or access trips presence anyway. Basically you can force arm with tamper and access
    state_prealarm = (((state_prealarm | state_presence) & state_armed) & ~state_alarm);
    static uint16_t timer1 = 0;  // Pre alarm timer - ideally per area, but this will be fine
@@ -559,6 +584,11 @@ static void mesh_handle_summary(const char *target, jo_t j)
       revk_setting(j);
       jo_free(&j);
       door_check();
+      for (int s = 0; s < MAX_MIX; s++)
+         if (*mixarm[s] && !(mixand[s] & ~state_armed) && (mixand[s] & ~lastarmed))
+            revk_mqtt_send_str_clients(mixarm[s], 0, 2);
+         else if (*mixdisarm[s] && (mixand[s] & ~state_armed) && !(mixand[s] & ~lastarmed))
+            revk_mqtt_send_str_clients(mixdisarm[s], 0, 2);
       lastarmed = state_armed;
    }
    static area_t lastalarm = -1;

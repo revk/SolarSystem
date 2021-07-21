@@ -151,6 +151,18 @@ areas(smsdisarm);
 areas(smsarmfail);
 areas(smsalarm);
 areas(smspanic);
+areas(mixand1);
+areas(mixset1);
+text(mixarm1,0);
+text(mixdisarm1,0);
+areas(mixand2);
+areas(mixset2);
+text(mixarm2,0);
+text(mixdisarm2,0);
+areas(mixand3);
+areas(mixset3);
+text(mixarm3,0);
+text(mixdisarm3,0);
 bool (debug);                   // MQTT debug logging
 
 table(area, 0);

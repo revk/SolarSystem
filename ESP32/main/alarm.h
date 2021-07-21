@@ -5,6 +5,9 @@
 #define	c(x) extern area_t control_##x; // local control flags
 #define s(x,c) extern area_t state_##x; // system wide calculated states
 #include "states.m"
+
+#define	MAX_MIX 3
+
 extern area_t areaenter;
 extern area_t areaarm;
 extern area_t areastrongarm;

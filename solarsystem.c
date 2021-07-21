@@ -130,6 +130,27 @@ static const char *settings(SQL * sqlp, SQL * sqlkeyp, SQL_RES * res, slot_t id)
       if ((v = atoi(sql_colz(res, "doordebounce"))))
          j_store_int(door, "debounce", v);
    }
+   j_t mix = j_store_array(j, "mix");
+   for (int s = 0; s < 3; s++)
+   {
+      char temp[30];
+      const char *v;
+      sprintf(temp, "mixand%d", s + 1);
+      if ((v = sql_colz(res, temp)) && *v)
+      {
+         j_t j = j_append_object(mix);
+         addarea(j, "and", v, 0);
+         sprintf(temp, "mixset%d", s + 1);
+         if ((v = sql_colz(res, temp)) && *v)
+            addarea(j, "set", v, 0);
+         sprintf(temp, "mixarm%d", s + 1);
+         if ((v = sql_colz(res, temp)) && *v)
+            j_store_string(j, "arm", v);
+         sprintf(temp, "mixdisarm%d", s + 1);
+         if ((v = sql_colz(res, temp)) && *v)
+            j_store_string(j, "disarm", v);
+      }
+   }
    j_t area = j_store_object(j, "area");
    addarea(area, "fault", sql_colz(res, "areafault"), 0);
    addarea(area, "tamper", sql_colz(res, "areatamper"), 0);
