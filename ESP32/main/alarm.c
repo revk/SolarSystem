@@ -538,6 +538,7 @@ static void mesh_handle_summary(const char *target, jo_t j)
          revk_event_clients("armfail", &j, 1 | (ioteventarm << 1));
       }
       control_arm = 0;
+      door_check();
    }
    set_outputs();
 
