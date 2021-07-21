@@ -636,13 +636,13 @@ int main(int argc, const char *argv[])
             {
                poke = 0;
                dopoke(&sql, &sqlkey);
-            }
-            doupgrade(&sql);
+            } else
+               doupgrade(&sql);
          }
       }
       j_t j = incoming();
       if (!j)
-         warnx("WTF");
+	      continue;
       else
       {
          if (dump)
