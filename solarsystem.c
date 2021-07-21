@@ -130,27 +130,6 @@ static const char *settings(SQL * sqlp, SQL * sqlkeyp, SQL_RES * res, slot_t id)
       if ((v = atoi(sql_colz(res, "doordebounce"))))
          j_store_int(door, "debounce", v);
    }
-   j_t mix = j_store_array(j, "mix");
-   for (int s = 0; s < 3; s++)
-   {
-      char temp[30];
-      const char *v;
-      sprintf(temp, "mixand%d", s + 1);
-      if ((v = sql_colz(res, temp)) && *v)
-      {
-         j_t j = j_append_object(mix);
-         addarea(j, "and", v, 0);
-         sprintf(temp, "mixset%d", s + 1);
-         if ((v = sql_colz(res, temp)) && *v)
-            addarea(j, "set", v, 0);
-         sprintf(temp, "mixarm%d", s + 1);
-         if ((v = sql_colz(res, temp)) && *v)
-            j_store_string(j, "arm", v);
-         sprintf(temp, "mixdisarm%d", s + 1);
-         if ((v = sql_colz(res, temp)) && *v)
-            j_store_string(j, "disarm", v);
-      }
-   }
    j_t area = j_store_object(j, "area");
    addarea(area, "fault", sql_colz(res, "areafault"), 0);
    addarea(area, "tamper", sql_colz(res, "areatamper"), 0);
@@ -170,7 +149,7 @@ static const char *settings(SQL * sqlp, SQL * sqlkeyp, SQL_RES * res, slot_t id)
          addsitedata(sqlp, j, s, sql_colz(res, "device"), sql_col(res, "via"));
          j_t iot = j_store_object(j, "iot");
          if (*sql_colz(s, "iothost"))
-         {
+         { // Only if IOT host
             if (*sql_colz(res, "iotstatedoor") == 't')
                j_store_true(iot, "statedoor");
             if (*sql_colz(res, "iotstateinput") == 't')
@@ -347,6 +326,27 @@ static void addsitedata(SQL * sqlp, j_t j, SQL_RES * site, const char *deviceid,
    const char *v;
    if (!parentid || !*parentid || !strcmp(parentid, deviceid))
       parentid = NULL;          // Not sensible
+   // Mix
+   j_t mix = j_store_array(j, "mix");
+   for (int s = 0; s < 3; s++)
+   {
+      char temp[30];
+      sprintf(temp, "mixand%d", s + 1);
+      if ((v = sql_colz(site, temp)) && *v)
+      {
+         j_t j = j_append_object(mix);
+         addarea(j, "and", v, 0);
+         sprintf(temp, "mixset%d", s + 1);
+         if ((v = sql_colz(site, temp)) && *v)
+            addarea(j, "set", v, 0);
+         sprintf(temp, "mixarm%d", s + 1);
+         if ((v = sql_colz(site, temp)) && *v)
+            j_store_string(j, "arm", v);
+         sprintf(temp, "mixdisarm%d", s + 1);
+         if ((v = sql_colz(site, temp)) && *v)
+            j_store_string(j, "disarm", v);
+      }
+   }
    // Standard wifi settings
    v = sql_colz(site, "iothost");
    j_store_string(j, "mqtthost2", *v ? v : NULL);

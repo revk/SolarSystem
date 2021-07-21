@@ -716,10 +716,11 @@ static void task(void *pvParameters)
             // Clear down
             for (int i = 0; i < nodes; i++)
             {
-               node[i].online = 0;
+               if (memcmp(node[i].mac, revk_mac, 6))
+                  node[i].online = 0;   // All that are not us
                node[i].reported = 0;
             }
-            nodes_online = 0;
+            nodes_online = 1;   // Us
             nodes_reported = 0;
             revk_mqtt_init();
             report_next = 0;    // Send report from us to us
