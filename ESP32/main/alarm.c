@@ -202,10 +202,10 @@ void alarm_boot(void)
    revk_register("mix", sizeof(mixand) / sizeof(*mixand), sizeof(*mixand), &mixand, AREAS, SETTING_BITFIELD | SETTING_LIVE | SETTING_SECRET);
 #define area(n) revk_register(#n,0,sizeof(n),&n,AREAS,SETTING_BITFIELD|SETTING_LIVE);
 #define arean(n,q) revk_register(#n,q,sizeof(*n),&n,AREAS,SETTING_BITFIELD|SETTING_LIVE);
-#define s(n,d) revk_register(#n,0,0,&n,#d,0);
-#define sn(n,q) revk_register(#n,q,0,&n,NULL,0);
-#define u16(n) revk_register(#n,0,sizeof(n),&n,NULL,0);
-#define u8(n,d) revk_register(#n,0,sizeof(n),&n,#d,0);
+#define s(n,d) revk_register(#n,0,0,&n,#d,SETTING_LIVE);
+#define sn(n,q) revk_register(#n,q,0,&n,NULL,SETTING_LIVE);
+#define u16(n) revk_register(#n,0,sizeof(n),&n,NULL,SETTING_LIVE);
+#define u8(n,d) revk_register(#n,0,sizeof(n),&n,#d,SETTING_LIVE);
    settings;
 #undef area
 #undef arean
