@@ -2,7 +2,7 @@
 can --redirect --site='$SESSION_SITE' editarea
 if($status) exit 0
 source ../types
-setenv MIX "1 2 3"
+setenv MIX "1 2 3 4 5"
 
 if($?AREAA) then #save
 	foreach a ($AREALIST)
@@ -27,9 +27,25 @@ endif
 
 done:
 xmlsql -C -d "$DB" head.html - foot.html << END
+<h1>Areas</h1>
 <form method=post>
 <sql table=site WHERE="site=$SESSION_SITE">
 <table border=1>
+<eval C=3><for SPACE S="$MIX"><eval C=\$C+3></for>
+<tr><th colspan=\$C>IoT messages</th></tr>
+<eval C=3>
+<for SPACE S="$MIX">
+<tr>
+<td>Arm</td>
+<td><input name=mixarm\$S size=20></td>
+<td align=right colspan=\$C rowspan=2 style='font-size:300%;'>↴</td>
+</tr>
+<tr>
+<td>Disarm</td>
+<td><input name=mixdisarm\$S size=20></td>
+</tr>
+<eval C=\$C+3>
+</for>
 <tr>
 <th>Area</th><th>Name</th>
 <for SPACE S="$MIX">
@@ -48,19 +64,6 @@ xmlsql -C -d "$DB" head.html - foot.html << END
 <td><input type=checkbox name=mixset\$S value=\$A></td>
 </for>
 </tr>
-</for>
-<eval C=3>
-<for SPACE S="$MIX">
-<tr>
-<td>Arm</td>
-<td><input name=mixarm\$S size=20></td>
-<td align=right colspan=\$C rowspan=2 style='font-size:300%;'>⬏</td>
-</tr>
-<tr>
-<td>Disarm</td>
-<td><input name=mixdisarm\$S size=20></td>
-</tr>
-<eval C=\$C+3>
 </for>
 </table>
 </sql>

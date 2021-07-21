@@ -30,6 +30,8 @@
 #include "ssafile.h"
 #include "fobcommand.h"
 
+#define MAX_MIX 5
+
 const char *cakey = "",
     *cacert = "";
 const char *mqttkey = "",
@@ -328,7 +330,7 @@ static void addsitedata(SQL * sqlp, j_t j, SQL_RES * site, const char *deviceid,
       parentid = NULL;          // Not sensible
    // Mix
    j_t mix = j_store_array(j, "mix");
-   for (int s = 0; s < 3; s++)
+   for (int s = 0; s < MAX_MIX; s++)
    {
       char temp[30];
       sprintf(temp, "mixand%d", s + 1);

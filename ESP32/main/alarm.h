@@ -6,7 +6,7 @@
 #define s(x,c) extern area_t state_##x; // system wide calculated states
 #include "states.m"
 
-#define	MAX_MIX 3
+#define	MAX_MIX 5
 
 extern area_t areaenter;
 extern area_t areaarm;

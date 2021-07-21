@@ -163,6 +163,14 @@ areas(mixand3);
 areas(mixset3);
 text(mixarm3,0);
 text(mixdisarm3,0);
+areas(mixand4);
+areas(mixset4);
+text(mixarm4,0);
+text(mixdisarm4,0);
+areas(mixand5);
+areas(mixset5);
+text(mixarm5,0);
+text(mixdisarm5,0);
 bool (debug);                   // MQTT debug logging
 
 table(area, 0);
