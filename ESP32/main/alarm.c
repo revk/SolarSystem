@@ -199,9 +199,9 @@ void alarm_boot(void)
    xSemaphoreGive(node_mutex);
    revk_register("area", 0, sizeof(areafault), &areafault, AREAS, SETTING_BITFIELD | SETTING_LIVE | SETTING_SECRET);    // Will control if shown in dump!
    revk_register("sms", 0, sizeof(smsalarm), &smsalarm, AREAS, SETTING_BITFIELD | SETTING_LIVE | SETTING_SECRET);
-   revk_register("mix", sizeof(mixand) / sizeof(*mixand), sizeof(mixand), &mixand, AREAS, SETTING_BITFIELD | SETTING_LIVE | SETTING_SECRET);
+   revk_register("mix", sizeof(mixand) / sizeof(*mixand), sizeof(*mixand), &mixand, AREAS, SETTING_BITFIELD | SETTING_LIVE | SETTING_SECRET);
 #define area(n) revk_register(#n,0,sizeof(n),&n,AREAS,SETTING_BITFIELD|SETTING_LIVE);
-#define arean(n,q) revk_register(#n,q,sizeof(n),&n,AREAS,SETTING_BITFIELD|SETTING_LIVE);
+#define arean(n,q) revk_register(#n,q,sizeof(*n),&n,AREAS,SETTING_BITFIELD|SETTING_LIVE);
 #define s(n,d) revk_register(#n,0,0,&n,#d,0);
 #define sn(n,q) revk_register(#n,q,0,&n,NULL,0);
 #define u16(n) revk_register(#n,0,sizeof(n),&n,NULL,0);
@@ -667,20 +667,21 @@ static void task(void *pvParameters)
             for (int n = 0; n < nodes; n++)
                if (!node[n].reported && node[n].online)
                {                // Gone off line
-                  char mac[13];
-                  sprintf(mac, "%02X%02X%02X%02X%02X%02X", node[n].mac[0], node[n].mac[1], node[n].mac[2], node[n].mac[3], node[n].mac[4], node[n].mac[5]);
                   node[n].online = 0;
                   nodes_online--;
-                  if (memcmp(node[n].mac, revk_mac, 6))
-                  {
-                     revk_send_unsub(0, node[n].mac);
-                     revk_send_unsub(1, node[n].mac);
-                     char *topic;       // Tell IoT
-                     asprintf(&topic, "state/%s/%s", mac, appname);
-                     revk_mqtt_send_raw(topic, 1, "{\"up\":false}", -1);
-                     free(topic);
-                  } else
+                  if (!memcmp(node[n].mac, revk_mac, 6))
+                  {             // Should not happen
                      ESP_LOGE(TAG, "Self offline");
+                     continue;
+                  }
+                  char mac[13];
+                  sprintf(mac, "%02X%02X%02X%02X%02X%02X", node[n].mac[0], node[n].mac[1], node[n].mac[2], node[n].mac[3], node[n].mac[4], node[n].mac[5]);
+                  revk_send_unsub(0, node[n].mac);
+                  revk_send_unsub(1, node[n].mac);
+                  char *topic;  // Tell IoT
+                  asprintf(&topic, "state/%s/%s", mac, appname);
+                  revk_mqtt_send_raw(topic, 1, "{\"up\":false}", -1);
+                  free(topic);
                   node_offline(node[n].mac);
                }
          }
@@ -716,8 +717,7 @@ static void task(void *pvParameters)
             // Clear down
             for (int i = 0; i < nodes; i++)
             {
-               if (memcmp(node[i].mac, revk_mac, 6))
-                  node[i].online = 0;   // All that are not us
+               node[i].online = (memcmp(node[i].mac, revk_mac, 6) ? 0 : 1);     // All that are not us
                node[i].reported = 0;
             }
             nodes_online = 1;   // Us
