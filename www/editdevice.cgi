@@ -97,7 +97,7 @@ xmlsql -C -d "$DB" head.html - foot.html << END
 <td><output name=address></td>
 <td><if upgrade><i style='background:cyan;'>Upgrade scheduled</i><br></if><set s="background:red;"><if version="\$V"><set s="background:green;"></if><tt style="\$s"><output name=version></tt><br><set s="background:yellow;"><if build="\$B"><set s="background:green;"></if><tt style="\$s"><output name=build></tt></td>
 <td><output name=pcbname><br>Flash:<output name=flash type=mega></td>
-<set s><if not fault="{}"><set s="background:yellow;"></if><if not tamper="{}"><set s="background:red;"></if>
+<set s><if not fault="{}" and not areafault=""><set s="background:yellow;"></if><if not tamper="{}" and not areatamper=""><set s="background:red;"></if>
 <td style="\$s"><if door=true>Door </if><if nfc=true>NFC reader </if><if nfcadmin=true> (admin)</if><if nfctrusted=true><b> (trusted)</b></if><br>
 <if not tamper="{}">Tamper:<b><output name=tamper></b><br></if>
 <if not fault="{}">Fault:<b><output name=fault></b><br></if>
