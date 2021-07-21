@@ -494,7 +494,6 @@ j_t incoming(void)
    const struct timespec to = { 60,0 };
    if (sem_timedwait(&rxq_sem, &to))
       return NULL;
-   sem_wait(&rxq_sem);
    pthread_mutex_lock(&rxq_mutex);
    rxq_t *q = rxq;
    if (q)
