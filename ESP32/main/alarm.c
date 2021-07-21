@@ -527,7 +527,7 @@ static void mesh_handle_summary(const char *target, jo_t j)
                         if (now > 1000000000 && diff < -60)
                         {
                            ESP_LOGE(TAG, "Replay attack? %d", diff);
-                           return;
+                           //return;
                         }
                         struct timeval tv = { new, 0 };
                         if (settimeofday(&tv, NULL))
