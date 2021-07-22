@@ -85,7 +85,7 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <tr><td>Name</td><td><output name=username></td></tr>
 <tr><td>Email</td><td><output name=email></td></tr>
 <tr><td>Job title</td><td><input name=userorganisationname size=40 autofocus></td></tr>
-<if ADMINORGANISATION><tr><td><input type=checkbox id=admin name=admin value=true></td><td><label for=admin>Admin for organisation</lable></td></tr></if>
+<if ADMINORGANISATION><tr><td><input type=checkbox id=admin name=admin value=true></td><td><label for=admin>Admin for organisation (can do all of these)</label></td></tr></if>
 <if CANEDITORGANISATION><tr><td><input type=checkbox id=caneditorganisation name=caneditorganisation value=true></td><td><label for=caneditorganisation>Can edit organisation</lable></td></tr></if>
 <if CANEDITACCESS><tr><td><input type=checkbox id=caneditaccess name=caneditaccess value=true></td><td><label for=caneditaccess>Can edit access</lable></td></tr></if>
 <if CANEDITSITE><tr><td><input type=checkbox id=caneditsite name=caneditsite value=true></td><td><label for=caneditsite>Can edit site</lable></td></tr></if>
