@@ -258,8 +258,6 @@ text(bssid, 0);                 // WiFi SSID
 text(ssid, 0);                  // WiFi SSID
 bool (encryptednvs);            // Built with encrypted NVS
 bool (secureboot);              // Built with secure boot
-bool (adoptnext);               // Adopt next unknown fob seen, if possible
-bool (formatnext);              // Format next unknown fob seen, if possible
 num(flash);                     // Flash size
 link(aid);                      // The AID for door access (defines what site it is)
 areas(areaenter);               // Areas allowed enter by fob

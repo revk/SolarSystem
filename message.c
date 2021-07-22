@@ -28,7 +28,10 @@ int main(int argc, const char *argv[])
    const char *pending = NULL;
    const char *topic = "";
    const char *command = NULL;
+   int fobidentify = 0;
    int fobprovision = 0;
+   const char *fobadopt = 0;
+   const char *fobformat = 0;
    const char *deport = NULL;
    const char *aid = NULL;
    const char *status = NULL;
@@ -40,13 +43,18 @@ int main(int argc, const char *argv[])
    int provision = 0;
    int poke = 0;
    int site = 0;
+   int access = 0;
    {                            // POPT
       poptContext optCon;       // context for parsing command-line options
       const struct poptOption optionsTable[] = {
+         { "fob-identify", 0, POPT_ARG_NONE, &fobidentify, 0, "Fob identify", NULL },
+         { "fob-adopt", 0, POPT_ARG_STRING, &fobadopt, 0, "Fob adopt", NULL },
+         { "fob-format", 0, POPT_ARG_STRING, &fobformat, 0, "Fob format", NULL },
          { "fob-provision", 0, POPT_ARG_NONE, &fobprovision, 0, "Fob provision", NULL },
          { "command", 0, POPT_ARG_STRING, &command, 0, "Command", "tag" },
          { "settings", 0, POPT_ARG_NONE, &setting, 0, "Setting", NULL },
          { "aid", 0, POPT_ARG_STRING, &aid, 0, "AID", "XXXXXX" },
+         { "access", 0, POPT_ARG_INT, &access, 0, "Access", "N" },
          { "deport", 0, POPT_ARG_STRING, &deport, 0, "Deport", "mqtthost" },
          { "device", 'd', POPT_ARG_STRING, &device, 0, "Device", "XXXXXXXXXXXX" },
          { "site", 's', POPT_ARG_INT, &site, 0, "Site", "N" },
@@ -95,6 +103,29 @@ int main(int argc, const char *argv[])
          errx(1, "Specify device to use for fob provisioning");
       j_store_true(meta, "fobprovision");
    }
+   if (fobidentify)
+   {
+      if (!device)
+         errx(1, "Specify device to use for fob identify");
+      j_store_true(meta, "fobidentify");
+      silent = 1;
+   }
+   if (fobformat)
+   {
+      if (!device)
+         errx(1, "Specify device to use for fob format");
+      j_store_string(meta, "fob", fobformat);
+      j_store_true(meta, "fobformat");
+   }
+   if (fobadopt)
+   {
+      if (!device)
+         errx(1, "Specify device to use for fob adopt");
+      if (!aid)
+         errx(1, "Specify aid to use for fob adopt");
+      j_store_string(meta, "fob", fobadopt);
+      j_store_true(meta, "fobadopt");
+   }
    if (command)
    {
       j_store_string(meta, "prefix", "command");
@@ -105,6 +136,8 @@ int main(int argc, const char *argv[])
       j_store_string(meta, "prefix", "setting");
    if (site)
       j_store_int(meta, "site", site);
+   if (access)
+      j_store_int(meta, "access", access);
    if (arm && *arm)
    {
       j_store_string(meta, "prefix", "command");
@@ -241,20 +274,31 @@ int main(int argc, const char *argv[])
       mqtt_dataonly(j);
       if (j && !j_isnull(j))
       {
+         if (fobidentify)
+         {
+            const char *f = j_get(j, "fobid");
+            if (f && *f)
+            {
+               printf("%s", f);
+               done = 1;
+            }
+         }
          if (status)
          {
             const char *s = j_get(j, "status");
             if (s)
-               printf("<script>e=document.createElement('li'),e.textContent='%s';document.getElementById('%s').append(e);</script>\n", s, status);
+               printf("<script>e=document.createElement('li');e.textContent='%s';document.getElementById('%s').append(e);</script>\n", s, status);
          }
          ret = 1;
-         if (!silent)
-         {
             if (j_isstring(j))
+	    {
+		    if(status)
+               printf("<script>e=document.createElement('li');e.textContent='%s';document.getElementById('%s').append(e);</script>\n", j_val(j), status);
+		    if(!silent)
                printf("%s", j_val(j));
-            else
+	    }
+            else if(!silent)
                j_err(j_write_pretty(j, stdout));
-         }
          fflush(stdout);
       } else
          done = 1;

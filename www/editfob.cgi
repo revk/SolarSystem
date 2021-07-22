@@ -5,32 +5,6 @@ unsetenv CANADOPTFOB
 can --organisation='$SESSION_ORGANISATION' adoptfob
 if(! $status) setenv CANADOPTFOB
 
-if($?ADOPTNEXT) then
-	sql "$DB" 'UPDATE device SET adoptnext="true" WHERE device="$device" and organisation="$SESSION_ORGANISATION"'
-	redirect editfob.cgi
-	exit 0
-endif
-if($?FORMATNEXT) then
-	sql "$DB" 'UPDATE device SET formatnext="true" WHERE device="$device" and organisation="$SESSION_ORGANISATION"'
-	redirect editfob.cgi
-	exit 0
-endif
-if($?CANCEL) then
-	sql "$DB" 'UPDATE device SET adoptnext="false",formatnext="false" WHERE device="$device" and organisation="$SESSION_ORGANISATION"'
-	redirect editfob.cgi
-	exit 0
-endif
-if($?ADOPT) then
-	setenv OK `sql "$DB" 'SELECT COUNT(*) FROM fob WHERE fob="$fob"'`
-	if("$OK" == 0 || "$OK" == "" || "$OK" == NULL) then
-		setenv MSG "Sorry, fob not found, ensure it is provisioned"
-		goto list
-	endif
-	sql "$DB" 'INSERT IGNORE INTO foborganisation SET fob="$fob",organisation="$SESSION_ORGANISATION"'
-	sql "$DB" 'INSERT INTO fobaid SET fob="$fob",aid="$aid"'
-	redirect editfob.cgi
-	exit 0
-endif
 if($?fobname) then
 	set aids=(`printenv aids|sed 's/[^0-9A-F	]//g'`)
 	foreach a ($aids)
@@ -65,38 +39,34 @@ endif
 
 if(! $?PATH_INFO) then
 list:
+echo "Content-encoding: none" # so no deflating and hence no caching for interactive status
 xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <h1>Fobs</h1>
 <if CANADOPTFOB>
 <h2>Adopting a provisioned fob</h1>
 <p>Fobs used on the system must have been provisioned.</p>
-<form method=post style="display:inline;">
-<select name=aid><sql table=aid where="site=$SESSION_SITE"><option value="$aid"><output name=aidname></option></sql></select><input name=fob size=14 autofocus placeholder="FOB ID">
-<input type=submit value="Adopt" name=ADOPT> Adopt a specific FOB.
-</form><br>
-<form method=post style="display:inline;">
+<form name=f method=post style="display:inline;">
 <select name=device>
 <sql table="device LEFT JOIN aid USING (aid)" where="device.site=$SESSION_SITE AND online IS NOT NULL AND (nfctrusted='true' OR nfcadmin='true')"><set found=1>
 <option value="$device"><output name=aidname>:<output name=devicename blank="$device"></option>
 </sql>
 </select>
-<if found><set found><input type=submit value="Adopt next fob" name=ADOPTNEXT><if USER_ADMIN=true><input type=submit value="Format next fob" name=FORMATNEXT></if></if>
-<if else><p>No admin NFC devices on line.</p></if>
-</form>
-<table>
-<sql table=device where="site=$SESSION_SITE AND online IS NOT NULL AND (nfctrusted='true' OR nfcadmin='true') AND (`adoptnext`='true' OR `formatnext`='true')">
-<if not found><set found=1><tr><th colspan=3>Devices waiting to auto handle a fob.</th></tr></if>
-<tr>
-<td><output name=aidname></td>
-<td><form method=post style="display:inline;"><input name=device type=hidden><input type=submit name=CANCEL value="Cancel"></form></td>
-<td><output name=devicename blank="$device"></td>
-<td><if formatnext=true>FORMAT NEXT CARD</if></td>
-</tr>
+<input type=submit name=IDENTIFY value="Read fob ID">
+<input type=hidden name=fob>
+<if not IDENTIFY fob not fob=""><h2>Fob <output name=fob href="editfob.cgi/$fob"><sql table=foborganisaiton where="fob='$fob' AND organisation=$SESSION_ORGANISATION"> <output name=fobname></sql></h2>
+<sql table="fobaid LEFT JOIN aid USING (aid) LEFT JOIN access USING (access)" WHERE="fob='$fob'">
+<p>Already adopted for <output name=aidname> <output name=accessname></p>
 </sql>
-</table>
-<if found><set found></if><if else><p>No devices set to auto adopt fobs.</p></if>
+<select name=aid><sql table=aid where='site=$SESSION_SITE'><option value=$aid><output name=aidname></option></sql></select>
+<select name=access><sql table=access where='site=$SESSION_SITE'><option value=$access><output name=accessname></option></sql></select>
+<input name=ADOPT type=submit value="Adopt fob">
+<if USER_ADMIN=true><input name=FORMAT type=submit value="Format"></if>
+</if>
+<if device><ul id=status></ul></if>
+</form>
 </if>
 
+<h2>Fobs</h2>
 <table>
 <sql table="foborganisation LEFT JOIN fobaid USING (fob) LEFT JOIN aid USING (aid) LEFT JOIN access USING (access)" where="foborganisation.organisation=$SESSION_ORGANISATION" group="fob" order="max(adopted) DESC" select="*,count(aid) as N, sum(if(adopted IS NULL AND aid.aid IS NOT NULL,1,0)) AS W,sum(if(override='true',1,0)) AS O">
 <if not found><set found=1><tr>
@@ -112,6 +82,36 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 </table>
 <if found><set found></if><if else><p>No fobs found</p></if>
 'END'
+
+if($?IDENTIFY) then
+	can --redirect --organisation='$SESSION_ORGANISATION' adoptfob
+	if($status) exit 0
+	echo "<script>e=document.createElement('li');e.textContent='Waiting for fob';document.getElementById('status').append(e);</script>"
+	setenv fob `message --device="$device" --fob-identify --silent`
+	if("$fob" == "") then
+		echo "<script>e=document.createElement('li');e.textContent='Failed';document.getElementById('status').append(e);</script>"
+	else
+		echo "<script>f.fob.value='$fob';f.submit();</script>"
+	endif
+	exit 0
+endif
+if($?ADOPT) then
+	can --redirect --organisation='$SESSION_ORGANISATION' adoptfob
+	if($status) exit 0
+	message --device="$device" --fob-adopt="$fob" --aid="$aid" --access="$access" --status=status --silent
+	exit 0
+endif
+if($?FORMAT) then
+	can --redirect admin
+	if($status) exit 0
+	if($?hardformat) then
+		message --device="$device" --fob-format="$fob" --status=status --silent
+	else
+		message --device="$device" --fob-format="$fob" --status=status --silent
+	endif
+	exit 0
+endif
+
 exit 0
 endif
 
@@ -143,3 +143,5 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 </sql>
 </form>
 'END'
+
+
