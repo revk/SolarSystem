@@ -692,11 +692,13 @@ int main(int argc, const char *argv[])
          meta = j_detach(meta);
       char forked = 0;
       const char *local(slot_t local) { // Commands sent to us from local system
-         slot_t id = 0;         // Device id
+         slot_t id = 0;         // Collection id
          const char *v;
          {                      // Identify the device we want to talk to...
             SQL_RES *res = NULL;
-            if ((v = j_get(meta, "device")))
+            if ((v = j_get(meta, "site"))&&atoi(v))
+               res = sql_safe_query_store_free(&sql, sql_printf("SELECT `id` FROM `device` WHERE `site`=%d AND `id` IS NOT NULL AND `via` IS NULL LIMIT 1", atoi(v)));
+	    else if ((v = j_get(meta, "device")))
                res = sql_safe_query_store_free(&sql, sql_printf("SELECT `id` FROM `device` WHERE `device`=%#s", v));
             else if ((v = j_get(meta, "pending")))
                res = sql_safe_query_store_free(&sql, sql_printf("SELECT `id` FROM `pending` WHERE `pending`=%#s", v));

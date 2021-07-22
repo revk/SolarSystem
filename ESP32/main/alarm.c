@@ -105,6 +105,21 @@ const char *alarm_command(const char *tag, jo_t j)
          for (int i = 0; i < nodes; i++)
             if (node[i].online)
                node_online(node[i].mac);
+      return NULL;
+   }
+   if (!strcmp(tag, "arm"))
+   {
+      jo_t e = jo_make();
+      jo_string(e, "reason", "remote");
+      alarm_arm(jo_read_area(j), &e);
+      return "";
+   }
+   if (!strcmp(tag, "disarm"))
+   {
+      jo_t e = jo_make();
+      jo_string(e, "reason", "remote");
+      alarm_disarm(jo_read_area(j), &e);
+      return "";
    }
    return NULL;
 }
@@ -524,10 +539,10 @@ static void mesh_handle_summary(const char *target, jo_t j)
                      int32_t diff = now - new;
                      if (diff > 60 || diff < -60)
                      {          // Big change
-                        if (now > 1000000000 && diff < -60)
+                        if (now > 1000000000 && diff < -300)
                         {
                            ESP_LOGE(TAG, "Replay attack? %d", diff);
-                           //return;
+                           return;
                         }
                         struct timeval tv = { new, 0 };
                         if (settimeofday(&tv, NULL))

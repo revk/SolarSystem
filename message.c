@@ -32,11 +32,14 @@ int main(int argc, const char *argv[])
    const char *deport = NULL;
    const char *aid = NULL;
    const char *status = NULL;
+   const char *arm = NULL;
+   const char *disarm = NULL;
    int debug = 0;
    int setting = 0;
    int silent = 0;
    int provision = 0;
    int poke = 0;
+   int site = 0;
    {                            // POPT
       poptContext optCon;       // context for parsing command-line options
       const struct poptOption optionsTable[] = {
@@ -46,6 +49,9 @@ int main(int argc, const char *argv[])
          { "aid", 0, POPT_ARG_STRING, &aid, 0, "AID", "XXXXXX" },
          { "deport", 0, POPT_ARG_STRING, &deport, 0, "Deport", "mqtthost" },
          { "device", 'd', POPT_ARG_STRING, &device, 0, "Device", "XXXXXXXXXXXX" },
+         { "site", 's', POPT_ARG_INT, &site, 0, "Site", "N" },
+         { "arm", 0, POPT_ARG_STRING, &arm, 0, "Arm", "A...Z" },
+         { "disarm", 0, POPT_ARG_STRING, &disarm, 0, "Disarm", "A...Z" },
          { "pending", 'p', POPT_ARG_STRING, &pending, 0, "Pending device", "XXXXXXXXXXXX" },
          { "status", 's', POPT_ARG_STRING, &status, 0, "Status", "div ID" },
          { "provision", 0, POPT_ARG_NONE, &provision, 0, "Provision", NULL },
@@ -97,6 +103,19 @@ int main(int argc, const char *argv[])
    }
    if (setting)
       j_store_string(meta, "prefix", "setting");
+   if (site)
+      j_store_int(meta, "site", site);
+   if (arm && *arm)
+   {
+      j_store_string(meta, "prefix", "command");
+      j_store_string(meta, "suffix", "arm");
+      j_store_string(j, "_data", arm);
+   } else if (disarm && *disarm)
+   {
+      j_store_string(meta, "prefix", "command");
+      j_store_string(meta, "suffix", "disarm");
+      j_store_string(j, "_data", disarm);
+   }
    if (device && *device)
       j_store_string(meta, "device", device);
    if (aid && *aid)

@@ -195,7 +195,7 @@ static void task(void *pvParameters)
       // Check tamper
       if (nextio < now)
       {                         // Check tamper
-         nextio += (uint64_t) nfciopoll *1000LL;
+         nextio += (int64_t) nfciopoll *1000LL;
          int p3 = -1;
          if (pn532)
          {                      // Connected, get port
@@ -286,12 +286,13 @@ static void task(void *pvParameters)
          if (!p)
             return;             // Port not set
          // if (ledlast & (1 << gpio_mask(p))) return;             // Already set
-         pn532_write_GPIO(pn532, (ledlast ^= (1 << gpio_mask(p))) ^ nfcinvert); // Blink (invert)
-         nextled = now + (uint64_t) nfcledpoll *1000LL;
+         ledlast ^= (1 << gpio_mask(p));        // Invert the LED
+         pn532_write_GPIO(pn532, ledlast ^ nfcinvert);
+         nextled = now + 200000LL;      // Show this for long enough to see it
       }
       if (nextled < now)
       {                         // Check LED
-         nextled = now + (uint64_t) nfcledpoll *1000LL;
+         nextled = now + (int64_t) nfcledpoll *1000LL;
          static int count = 0;
          if (count)
             count--;            // We are repeating existing pattern for a while
@@ -324,7 +325,7 @@ static void task(void *pvParameters)
       // Card
       if (nextpoll < now)
       {                         // Check for card
-         nextpoll = now + (uint64_t) nfcpoll *1000LL;   // Default polling
+         nextpoll = now + (int64_t) nfcpoll *1000LL;    // Default polling
          if (found && !pn532_Present(pn532))
          {                      // Card gone
             ESP_LOGI(TAG, "gone %s", fob.id);
@@ -508,7 +509,6 @@ static void task(void *pvParameters)
                   blink(nfcred);
                else
                   blink(nfcamber);
-               nextled = now + 200000LL;
                if (!e)
                   door_act(&fob);
                fobevent();      // Report

@@ -12,6 +12,8 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <if SESSION_SITE CANEDITSITE><li><a href="editsite.cgi/$SESSION_SITE">Edit site</a></li></if>
 <if SESSION_SITE CANEDITAREA><li><a href="editarea.cgi">Edit area</a></li></if>
 <if SESSION_ORGANISATION AND ADMINORGANISATION><li><a href="editaid.cgi">Edit AID</a></li></if>
+<if SESSION_SITE CANARM><li><a href="arm.cgi">Arm</a></li></if>
+<if SESSION_SITE CANDISARM><li><a href="disarm.cgi">Disarm</a></li></if>
 <hr>
 <if SESSION_ORGANISATION AND ADMINORGANISATION><li><a href="editaccess.cgi">Edit Access classes</a></li></if>
 <if SESSION_SITE CANEDITFOB><li><a href="editfob.cgi">Edit fobs</a></li></if>
