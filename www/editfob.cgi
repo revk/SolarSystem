@@ -13,11 +13,9 @@ if($?expires) then
 		if($status) exit 0
 		setenv access `printenv "access$A"`
 		if("$access" == "") then
-			setenv C `sql -c "$DB" 'DELETE FROM fobaid WHERE  fob="$fob" AND aid="$A"'`
-			if("$C" == 1) sql "$DB" 'UPDATE device SET device.poke=NOW() WHERE aid="$A"'
+			setenv C `sql -c "$DB" 'DELETE FROM fobaid WHERE fob="$fob" AND aid="$A"'`
 		else
 			setenv C `sql -c "$DB" 'INSERT IGNORE INTO fobaid SET fob="$fob",aid="$A"'`
-			if("$C" == 1) sql "$DB" 'UPDATE device SET device.poke=NOW() WHERE aid="$A"'
 			sql "$DB" 'UPDATE fobaid SET access=$access WHERE fob="$fob" AND aid="$A"'
 		endif
 	end
