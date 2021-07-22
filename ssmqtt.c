@@ -491,7 +491,7 @@ void mqtt_qin(j_t * jp)
 
 j_t incoming(void)
 {                               // Wait for next rx message
-   const struct timespec to = { 60,0 };
+   const struct timespec to = { 60, 0 };
    if (sem_timedwait(&rxq_sem, &to))
       return NULL;
    pthread_mutex_lock(&rxq_mutex);

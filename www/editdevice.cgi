@@ -5,8 +5,18 @@ endif
 can --redirect --organisation='$SESSION_ORGANISATION' editdevice
 if($status) exit 0
 
+if($?UNLOCK) then
+	can --redirect --device='$device' unlock
+	if($status) exit 0
+	setenv MSG `message --device="$device" --command=unlock`
+	if("$MSG" != "") goto done
+	redirect editdevice.cgi
+	exit 0
+endif
+
 if($?UPGRADEALL) then
 	can --redirect --device='$device' editdevice
+	if($status) exit 0
 	sql "$DB" 'UPDATE device SET upgrade=NOW() WHERE upgrade is NULL AND organisation="$SESSION_ORGANISATION" AND site="$SESSION_SITE"'
         message --poke
 	redirect editdevice.cgi
@@ -14,6 +24,7 @@ if($?UPGRADEALL) then
 endif
 if($?UPGRADE) then
 	can --redirect --device='$device' editdevice
+	if($status) exit 0
 	sql "$DB" 'UPDATE device SET upgrade=NOW() WHERE device="$device"'
 	setenv MSG `message --device="$device" --command=upgrade`
 	if("$MSG" != "") goto done
@@ -22,6 +33,7 @@ if($?UPGRADE) then
 endif
 if($?RESTART) then
 	can --redirect --device='$device' editdevice
+	if($status) exit 0
 	setenv MSG `message --device="$device" --command=restart`
 	if("$MSG" != "") goto done
 	redirect editdevice.cgi
@@ -29,6 +41,7 @@ if($?RESTART) then
 endif
 if($?DELETE && "$USER_ADMIN" == "true" || $?FACTORY) then
 	can --redirect --device='$device' editdevice
+	if($status) exit 0
 	if(! $?SURE) then
 		setenv MSG "Are you sure?"
 		goto done
@@ -45,6 +58,7 @@ if($?DELETE && "$USER_ADMIN" == "true" || $?FACTORY) then
 endif
 if($?devicename) then # save
 	can --redirect --device='$device' editdevice
+	if($status) exit 0
 	setenv pcb `sql "$DB" 'SELECT pcb FROM device WHERE device="$device"'`
 	if($?pcb) then
 		setenv rgb `sql "$DB" 'SELECT IF(ledr="-","false","true") FROM pcb WHERE pcb=$pcb'`
@@ -75,6 +89,7 @@ if($?devicename) then # save
 endif
 done:
 source ../types
+source ../setcan
 xmlsql -C -d "$DB" head.html - foot.html << END
 <h1>Device</h1>
 <if not device>
@@ -101,6 +116,7 @@ xmlsql -C -d "$DB" head.html - foot.html << END
 <td style="\$s"><if door=true>Door </if><if nfc=true>NFC reader </if><if nfcadmin=true> (admin)</if><if nfctrusted=true><b> (trusted)</b></if><br>
 <if not tamper="{}">Tamper:<b><output name=tamper></b><br></if>
 <if not fault="{}">Fault:<b><output name=fault></b><br></if>
+<if online door=true CANUNLOCK><form method=post><input type=hidden name=device><input type=submit name=UNLOCK value="Unlock"></form></if>
 </td>
 </tr>
 </sql>

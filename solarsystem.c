@@ -766,8 +766,10 @@ int main(int argc, const char *argv[])
             j_t data = j_find(j, "_data");
             if (data)
                slot_send(id, v, deviceid, suffix, &data);
-            else
+            else if (j_len(j))
                slot_send(id, v, deviceid, suffix, &j);
+            else
+               slot_send(id, v, deviceid, suffix, NULL);
             return fail;
          } else if (j_find(meta, "fobprovision"))
          {

@@ -5,7 +5,7 @@ if($status) exit 0
 if($?ARM) then
 	if($?arm) then
 		setenv MSG `message --site="$SESSION_SITE" --arm="$arm"`
-		if($status) goto done
+		if("$MSG" != "") goto done
 	endif
 	redirect /
 	exit 0

@@ -109,13 +109,13 @@ void sstypes(const char *fn)
 #define io(g,t) pick(#g,#t);
 #include "types.m"
    start("AREALIST");
-   int n=0;
+   int n = 0;
    for (char *a = AREAS; *a; a++)
       if (*a != '-')
       {
          const char area[2] = { *a };
          list(area);
-	 n++;
+         n++;
       }
    start("STATELIST");
 #define i(n,c) list(#n);
@@ -125,7 +125,7 @@ void sstypes(const char *fn)
 #define i(n,c) list(#n);
 #include "ESP32/main/states.m"
    done();
-   fprintf(f,"setenv AREACOUNT %d\n",n);
+   fprintf(f, "setenv AREACOUNT %d\n", n);
    fclose(f);
 }
 

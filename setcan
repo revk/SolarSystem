@@ -25,7 +25,7 @@ can --organisation='$SESSION_ORGANISATION' arm
 if(! $status)setenv CANARM
 can --organisation='$SESSION_ORGANISATION' disarm
 if(! $status)setenv CANDISARM
-can --organisation='$SESSION_ORGANISATION' disunlock
+can --organisation='$SESSION_ORGANISATION' unlock
 if(! $status)setenv CANUNLOCK
 endif
 if($?SESSION_SITE) then
