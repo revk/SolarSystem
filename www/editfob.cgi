@@ -53,7 +53,7 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 </select>
 <input type=submit name=IDENTIFY value="Read fob ID">
 <input type=hidden name=fob>
-<if not IDENTIFY fob not fob=""><h2>Fob <output name=fob href="editfob.cgi/$fob"><sql table=foborganisaiton where="fob='$fob' AND organisation=$SESSION_ORGANISATION"> <output name=fobname></sql></h2>
+<if not IDENTIFY fob not fob=""><h2>Fob <output name=fob href="editfob.cgi/$fob"><sql table=foborganisation where="fob='$fob' AND organisation=$SESSION_ORGANISATION"> <output name=fobname></sql></h2>
 <sql table="fobaid LEFT JOIN aid USING (aid) LEFT JOIN access USING (access)" WHERE="fob='$fob'">
 <p>Already adopted for <output name=aidname> <output name=accessname></p>
 </sql>
