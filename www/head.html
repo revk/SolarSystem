@@ -34,7 +34,7 @@
 <sql table=site WHERE="site=$SESSION_SITE">
 <table>
 <if not alarm=""><tr style='background:red;'><td>Alarm</td><td><output name=alarm></td></tr></if>
-<if else not alarmed=""><tr style='background:yellow;'><td>Alarmed</td><td><output name=alarm></td></tr></if>
+<if else not alarmed=""><tr style='background:yellow;'><td>Alarmed</td><td><output name=alarmed></td></tr></if>
 <if not armed=""><tr><td>Armed</td><td><output name=armed></td></tr></if>
 <if not faulted=""><tr style='background:yellow;'><td>Faulted</td><td><output name=faulted></td></tr></if>
 <if not tampered=""><tr style='background:yellow;'><td>Tampered</td><td><output name=tampered></td></tr></if>
