@@ -245,6 +245,14 @@ void door_act(fob_t * fob)
          fob->disarmed = 1;
       }
    }
+   if ((doorstate == DOOR_OPEN || doorstate == DOOR_NOTCLOSED) && !fob->held && fob->propok)
+   {
+      if (doorauto >= 4)
+      {
+         door_prop(NULL, "fob");
+         fob->propped = 1;
+      }
+   }
    if (fob->enterok || fob->override)
    {
       if (doorauto >= 4)
@@ -461,7 +469,9 @@ const char *door_fob(fob_t * fob)
       if (!(areadisarm & ~fob->disarm))
          fob->disarmok = 1;     // Can disarm if any areas can be disarmed, but will only do so if can enter when disarmed
       if (!(areaenter & ~fob->enter))
-         fob->enterok = 1;
+         fob->enterok = 1; // Can enter
+      if (!(areaenter & ~fob->prop))
+         fob->propok = 1; // Can prop
       if (door_deadlocked() && (!fob->enterok || !fob->disarmok || (fob->disarmok && (areadeadlock & alarm_armed() & ~(areadisarm & fob->disarm)))))
          return "Deadlocked";   // We could not enter, or could not disarm, or could not disarm enough to get in
       return NULL;
@@ -484,6 +494,7 @@ const char *door_fob(fob_t * fob)
          {
             fob->blacklist = 1;
             fob->enterok = 0;
+            fob->propok = 0;
             fob->disarmok = 0;
             fob->armok = 0;
             fob->strongarmok = 0;

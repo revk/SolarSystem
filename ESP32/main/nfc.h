@@ -53,8 +53,10 @@ typedef struct {
    uint8_t log:1;               // Afile says update log
    uint8_t logged:1;            // Card was successfully logged
    uint8_t unlocked:1;          // Door was unlocked
+   uint8_t propped:1;           // Door was propped
    uint8_t unlockok:1;          // Door would be unlocked
    uint8_t enterok:1;           // Afile checks say door can be entered
+   uint8_t propok:1;            // Afile checks say door can be proped
    uint8_t disarmok:1;          // Afile checks say system can be disarmed
    uint8_t disarmed:1;          // Disarm was done
    uint8_t armed:1;             // Arm was done

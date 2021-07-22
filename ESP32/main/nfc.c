@@ -148,6 +148,10 @@ static void fobevent(void)
          jo_bool(j, "unlockok", fob.unlockok);
       if (fob.enterok)
          jo_bool(j, "enterok", fob.enterok);
+      if (fob.propok)
+         jo_bool(j, "propok", fob.propok);
+      if (fob.propped)
+         jo_bool(j, "propped", fob.propped);
       if (fob.disarmok)
          jo_area(j, "disarmok", fob.disarm & areadisarm);
       if (fob.armok)
