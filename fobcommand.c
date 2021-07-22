@@ -303,7 +303,6 @@ void *fobcommand(void *arg)
                   return;
                if (strcmp(fob, j_base16(sizeof(uid), uid)))
                   e = "Fob mismatch";
-               warnx("Connect done");
             }
 
             void doadopt(void) {
