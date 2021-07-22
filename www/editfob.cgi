@@ -1,9 +1,7 @@
 #!../login/loggedin /bin/csh -f
 can --redirect --organisation='$SESSION_ORGANISATION' --site='$SESSION_SITE' editfob
 if($status) exit 0
-unsetenv CANADOPTFOB
-can --organisation='$SESSION_ORGANISATION' adoptfob
-if(! $status) setenv CANADOPTFOB
+source ../setcan
 
 if($?expires) then
 	set aids=(`printenv aids|sed 's/[^0-9A-F	]//g'`)

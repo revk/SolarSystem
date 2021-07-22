@@ -6,6 +6,7 @@ unsetenv CANEDITAREA
 unsetenv CANEDITSITE
 unsetenv CANEDITDEVICE
 unsetenv CANEDITFOB
+unsetenv CANADOPTFOB
 unsetenv CANEDITUSER
 unsetenv CANARM
 unsetenv CANDISARM
@@ -17,6 +18,8 @@ can --organisation='$SESSION_ORGANISATION' editoriganisation
 if(! $status)setenv CANEDITORGANISATION
 can --organisation='$SESSION_ORGANISATION' editfob
 if(! $status)setenv CANEDITFOB
+can --organisation='$SESSION_ORGANISATION' adoptfob
+if(! $status)setenv CANADOPTFOB
 can --organisation='$SESSION_ORGANISATION' edituser
 if(! $status)setenv CANEDITUSER
 can --organisation='$SESSION_ORGANISATION' viewlog

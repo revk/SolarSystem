@@ -13,6 +13,7 @@ if($?userorganisationname) then
 	if(! $?caneditsite) setenv caneditsite false
 	if(! $?caneditdevice) setenv caneditdevice false
 	if(! $?caneditfob) setenv caneditfob false
+	if(! $?canadoptfob) setenv canadoptfob false
 	if(! $?canedituser) setenv canedituser false
 	if(! $?caneditarea) setenv caneditarea false
 	if(! $?canarm) setenv canarm false
@@ -24,6 +25,7 @@ if($?userorganisationname) then
 	if($?CANEDITSITE) setenv allow "$allow caneditsite"
 	if($?CANEDITDEVICE) setenv allow "$allow caneditdevice"
 	if($?CANEDITFOB) setenv allow "$allow caneditfob"
+	if($?CANADOPTFOB) setenv allow "$allow canadoptfob"
 	if($?CANEDITUSER) setenv allow "$allow canedituser"
 	if($?CANEDITAREA) setenv allow "$allow caneditarea"
 	if($?CANARM) setenv allow "$allow canarm"
@@ -89,6 +91,7 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <if CANEDITSITE><tr><td><input type=checkbox id=caneditsite name=caneditsite value=true></td><td><label for=caneditsite>Can edit site</lable></td></tr></if>
 <if CANEDITDEVICE><tr><td><input type=checkbox id=caneditdevice name=caneditdevice value=true></td><td><label for=caneditdevice>Can edit device</lable></td></tr></if>
 <if CANEDITFOB><tr><td><input type=checkbox id=caneditfob name=caneditfob value=true></td><td><label for=caneditfob>Can edit fob</lable></td></tr></if>
+<if CANADOPTFOB><tr><td><input type=checkbox id=canadoptfob name=canadoptfob value=true></td><td><label for=canadoptfob>Can adopt fob</lable></td></tr></if>
 <if CANEDITUSER><tr><td><input type=checkbox id=canedituser name=canedituser value=true></td><td><label for=canedituser>Can edit user</lable></td></tr></if>
 <if CANEDITAREA><tr><td><input type=checkbox id=caneditarea name=caneditarea value=true></td><td><label for=caneditarea>Can edit area</lable></td></tr></if>
 <if CANARM><tr><td><input type=checkbox id=canarm name=canarm value=true></td><td><label for=canarm>Can arm</lable></td></tr></if>
