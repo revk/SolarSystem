@@ -151,7 +151,7 @@ static const char *settings(SQL * sqlp, SQL * sqlkeyp, SQL_RES * res, slot_t id)
          addsitedata(sqlp, j, s, sql_colz(res, "device"), sql_col(res, "via"));
          j_t iot = j_store_object(j, "iot");
          if (*sql_colz(s, "iothost"))
-         { // Only if IOT host
+         {                      // Only if IOT host
             if (*sql_colz(res, "iotstatedoor") == 't')
                j_store_true(iot, "statedoor");
             if (*sql_colz(res, "iotstateinput") == 't')
@@ -696,18 +696,20 @@ int main(int argc, const char *argv[])
          const char *v;
          {                      // Identify the device we want to talk to...
             SQL_RES *res = NULL;
-            if ((v = j_get(meta, "site"))&&atoi(v))
-               res = sql_safe_query_store_free(&sql, sql_printf("SELECT `id` FROM `device` WHERE `site`=%d AND `id` IS NOT NULL AND `via` IS NULL LIMIT 1", atoi(v)));
-	    else if ((v = j_get(meta, "device")))
-               res = sql_safe_query_store_free(&sql, sql_printf("SELECT `id` FROM `device` WHERE `device`=%#s", v));
+            if ((v = j_get(meta, "site")) && atoi(v))
+               res = sql_safe_query_store_free(&sql, sql_printf("SELECT `id`,`device` FROM `device` WHERE `site`=%d AND `id` IS NOT NULL AND `via` IS NULL LIMIT 1", atoi(v)));
+            else if ((v = j_get(meta, "device")))
+               res = sql_safe_query_store_free(&sql, sql_printf("SELECT `id`,`device` FROM `device` WHERE `device`=%#s", v));
             else if ((v = j_get(meta, "pending")))
-               res = sql_safe_query_store_free(&sql, sql_printf("SELECT `id` FROM `pending` WHERE `pending`=%#s", v));
+               res = sql_safe_query_store_free(&sql, sql_printf("SELECT `id`,`pending` AS `device` FROM `pending` WHERE `pending`=%#s", v));
             if (res)
             {                   // Check device on line, find id
                deviceid = v;
                if (sql_fetch_row(res))
+               {
                   id = strtoll(sql_colz(res, "id") ? : "", NULL, 10);
-               else
+                  deviceid = strdupa(sql_colz(res, "device"));
+               } else
                   sql_free_result(res);
                if (!id)
                   return "Device not on line";

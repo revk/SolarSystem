@@ -3,7 +3,10 @@ can --redirect --site='$SESSION_SITE' canarm
 if($status) exit 0
 
 if($?ARM) then
-	message --site="$SESSION_SITE" --arm="$ARM"
+	if($?arm) then
+		setenv MSG `message --site="$SESSION_SITE" --arm="$arm"`
+		if($status) goto done
+	endif
 	redirect /
 	exit 0
 endif

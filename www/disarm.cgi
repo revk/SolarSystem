@@ -3,7 +3,10 @@ can --redirect --site='$SESSION_SITE' candisarm
 if($status) exit 0
 
 if($?DISARM) then
-	message --site="$SESSION_SITE" --disarm="$DISARM"
+	if($?disarm) then
+		setenv MSG `message --site="$SESSION_SITE" --disarm="$disarm"`
+		if($status) goto done
+	endif
 	redirect /
 	exit 0
 endif

@@ -131,7 +131,6 @@ area_t alarm_armed(void)
 
 void alarm_arm(area_t a, jo_t * jp)
 {                               // Arm
-   a &= areaarm;
    if (!(a & ~alarm_armed()))
    {
       jo_free(jp);
@@ -157,7 +156,6 @@ void alarm_arm(area_t a, jo_t * jp)
 
 void alarm_strongarm(area_t a, jo_t * jp)
 {                               // Strong arm
-   a &= areastrongarm;
    if (!(a & ~((state_armed | control_strongarm) & ~control_disarm)))   // Not using alarm_armed as that includes what we are trying, and failing, to control_arm
    {
       jo_free(jp);
@@ -183,7 +181,6 @@ void alarm_strongarm(area_t a, jo_t * jp)
 
 void alarm_disarm(area_t a, jo_t * jp)
 {                               // Disarm
-   a &= areadisarm;
    if (!(a & alarm_armed()))
    {
       jo_free(jp);
@@ -609,7 +606,7 @@ static void mesh_handle_summary(const char *target, jo_t j)
    static area_t lastalarm = -1;
    if (lastalarm != state_alarm)
    {
-      if (smsalarm & (state_alarm & ~lastalarm))
+      if (esp_mesh_is_root() && smsalarm & (state_alarm & ~lastalarm))
       {
          jo_t j = jo_make();
          jo_area(j, "areas", state_alarm & ~lastalarm);
@@ -622,7 +619,7 @@ static void mesh_handle_summary(const char *target, jo_t j)
    static area_t lastpanic = -1;
    if (lastpanic != state_panic)
    {
-      if (smspanic & (state_panic & ~lastpanic))
+      if (esp_mesh_is_root() && smspanic & (state_panic & ~lastpanic))
       {
          jo_t j = jo_make();
          jo_area(j, "areas", state_panic & ~lastpanic);
