@@ -284,10 +284,9 @@ static void task(void *pvParameters)
       // LED
       void blink(uint8_t p) {   // Blink an LED
          if (!p)
-            return;             //Port not set
-         if (ledlast & (1 << gpio_mask(p)))
-            return;             //Already set
-         pn532_write_GPIO(pn532, (ledlast ^= (1 << gpio_mask(p))) ^ nfcinvert); //Blink on
+            return;             // Port not set
+         // if (ledlast & (1 << gpio_mask(p))) return;             // Already set
+         pn532_write_GPIO(pn532, (ledlast ^= (1 << gpio_mask(p))) ^ nfcinvert); // Blink (invert)
          nextled = now + (uint64_t) nfcledpoll *1000LL;
       }
       if (nextled < now)
