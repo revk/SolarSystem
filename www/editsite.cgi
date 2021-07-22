@@ -37,7 +37,7 @@ if($?sitename) then
 endif
 done:
 xmlsql -C -d "$DB" head.html - foot.html << 'END'
-<h1>Site</h1>
+<h1>Manage site</h1>
 <form method=post>
 <sql table=site key=site>
 <table>

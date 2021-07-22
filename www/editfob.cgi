@@ -39,9 +39,8 @@ if(! $?PATH_INFO) then
 list:
 echo "Content-encoding: none" # so no deflating and hence no caching for interactive status
 xmlsql -C -d "$DB" head.html - foot.html << 'END'
-<h1>Fobs</h1>
 <if CANADOPTFOB>
-<h2>Adopting a provisioned fob</h1>
+<h2>Adopting a fob</h1>
 <form name=f method=post style="display:inline;">
 <select name=device>
 <sql table="device LEFT JOIN aid USING (aid)" where="device.site=$SESSION_SITE AND online IS NOT NULL AND (nfctrusted='true' OR nfcadmin='true')"><set found=1>

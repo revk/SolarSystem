@@ -51,7 +51,7 @@ endif
 list:
 if(! $?PATH_INFO) then
 xmlsql -C -d "$DB" head.html - foot.html << 'END'
-<h1>Users</h1>
+<h1>Manage users</h1>
 <form method=post style='inline'>
 <table>
 <sql table="userorganisation LEFT JOIN user USING (user)" WHERE="organisation=$SESSION_ORGANISATION"><set found=1>
@@ -64,7 +64,7 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 </sql>
 <tr>
 <td><input type=submit value="Add user"></td>
-<td><input name=NEW type=email size=40 placeholder="Email address of user" autofocus></td>
+<td colspan=3><input name=NEW type=email size=40 placeholder="Email address of user" autofocus></td>
 </tr>
 </table>
 </form>

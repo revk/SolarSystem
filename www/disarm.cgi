@@ -14,7 +14,7 @@ endif
 done:
 source ../types
 xmlsql -C -d "$DB" head.html - foot.html << END
-<h1>Arming</h1>
+<h1>Disarming</h1>
 <sql table=site where='site=$SESSION_SITE'>
 <form method=post>
 <table border=1>

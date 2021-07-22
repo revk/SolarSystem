@@ -45,7 +45,7 @@ endif
 if(! $?PATH_INFO) then
 list:
 xmlsql -C -d "$DB" head.html - foot.html << 'END'
-<h1>Access classes</h1>
+<h1>Manage access classes</h1>
 <table>
 <tr><th>Access</th><th>Notes</th><th>Expiry</th><th>Sunday</th><th>Monday</th><th>Tuesday</th><th>Wednesday</th><th>Thursday</th><th>Friday</th><th>Saturday</th><th>Enter</th><th>Arm</th><th>Strong arm</th><th>Disarm</th><th>Prop</th></tr>
 <sql table=access where="site=$SESSION_SITE">

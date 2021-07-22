@@ -91,7 +91,7 @@ done:
 source ../types
 source ../setcan
 xmlsql -C -d "$DB" head.html - foot.html << END
-<h1>Device</h1>
+<h1>Manage devices</h1>
 <if not device>
 <table border=1>
 <tr>

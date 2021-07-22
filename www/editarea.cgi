@@ -27,7 +27,7 @@ endif
 
 done:
 xmlsql -C -d "$DB" head.html - foot.html << END
-<h1>Areas</h1>
+<h1>Manage areas</h1>
 <form method=post>
 <sql table=site WHERE="site=$SESSION_SITE">
 <table border=1>

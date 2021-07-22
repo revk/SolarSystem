@@ -23,7 +23,7 @@ if($?aids) then #save
 endif
 
 xmlsql -C -d "$DB" head.html - foot.html << 'END'
-<h1>AIDs in use</h1>
+<h1>Manage AIDs</h1>
 <form method=post>
 <table>
 <sql table=aid WHERE="site=$SESSION_SITE">

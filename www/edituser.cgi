@@ -31,7 +31,7 @@ END
 	exit 0
 endif
 xmlsql -C -d "$DB" head.html - foot.html << 'END'
-<h1>Edit user</h1>
+<h1>Your details</h1>
 <sql table=user where="user=$user">
 <form method=post><input type=hidden name=user>
 <table>
