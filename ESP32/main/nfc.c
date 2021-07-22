@@ -590,7 +590,7 @@ const char *nfc_command(const char *tag, jo_t j)
          jo_string(i, NULL, err);
       else
          jo_base16(i, NULL, buf, len);
-      revk_info_clients(len < 0 ? "nfcerror" : "nfc", &i, debug | (ioteventfob << 1));
+      revk_info_clients(len < 0 ? "nfcerror" : "nfc", &i, 1);
       return "";
    }
    if (!strcmp(tag, "nfcdone"))

@@ -116,7 +116,7 @@ xmlsql -C -d "$DB" head.html - foot.html << END
 <td style="\$s"><if door=true>Door </if><if nfc=true>NFC reader </if><if nfcadmin=true> (admin)</if><if nfctrusted=true><b> (trusted)</b></if><br>
 <if not tamper="{}">Tamper:<b><output name=tamper></b><br></if>
 <if not fault="{}">Fault:<b><output name=fault></b><br></if>
-<if online door=true CANUNLOCK><form method=post><input type=hidden name=device><input type=submit name=UNLOCK value="Unlock"></form></if>
+<if online door=true CANUNLOCK><form style="display:inline;" method=post><input type=hidden name=device><input type=submit name=UNLOCK value="Unlock"></form></if>
 </td>
 </tr>
 </sql>
