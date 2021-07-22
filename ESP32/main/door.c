@@ -469,13 +469,14 @@ const char *door_fob(fob_t * fob)
    if (fob->secure && df.keylen)
       fob->deny = afilecheck();
    // Check fallback
-   for (int i = 0; i < sizeof(fallback) / sizeof(*fallback); i++)
-      if (!strcmp(fallback[i], fob->id))
-      {
-         fob->fallback = 1;
-         fob->enterok = 1;
-         break;
-      }
+   if (*fob->id)
+      for (int i = 0; i < sizeof(fallback) / sizeof(*fallback); i++)
+         if (!strcmp(fallback[i], fob->id))
+         {
+            fob->fallback = 1;
+            fob->enterok = 1;
+            break;
+         }
    // Check blacklist
    if (*fob->id)
       for (int i = 0; i < sizeof(blacklist) / sizeof(*blacklist); i++)

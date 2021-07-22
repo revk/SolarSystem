@@ -194,6 +194,7 @@ void *fobcommand(void *arg)
          e = res;
          if (mqttdump)
             warnx("DF fail (%s): %s line %d", *res ? res : "Gone", func, line);
+	 if(!f.gone)status("Failed, remove fob");
       }
       return res;
    }

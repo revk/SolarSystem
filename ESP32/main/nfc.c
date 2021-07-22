@@ -169,7 +169,7 @@ static void fobevent(void)
 void nfc_retry(void)
 {
    fob.recheck = 1;
-   ESP_LOGI(TAG, "NFC permissions re-check");
+   ESP_LOGD(TAG, "NFC permissions re-check");
 }
 
 static void task(void *pvParameters)
@@ -568,7 +568,7 @@ const char *nfc_command(const char *tag, jo_t j)
    if (!strcmp(tag, "nfcremote"))
    {                            // Direct NFC data
       fob.remote = 1;           // Disable normal working
-      ESP_LOGI(TAG, "NFC access remote");
+      ESP_LOGD(TAG, "NFC access remote");
       return "";
    }
    if (!strcmp(tag, "nfc"))
@@ -595,7 +595,7 @@ const char *nfc_command(const char *tag, jo_t j)
    }
    if (!strcmp(tag, "nfcdone"))
    {
-      ESP_LOGI(TAG, "NFC access remote ended");
+      ESP_LOGD(TAG, "NFC access remote ended");
       fob.remote = 0;
       fob.recheck = 1;
       nfc_led(0, NULL);
