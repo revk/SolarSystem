@@ -66,8 +66,9 @@ static j_t getmsg(nfc_t * f)
       else
       {
          const char *prefix = j_get(j, "_meta.prefix");
+         const char *target = j_get(j, "_meta.target");
          const char *suffix = j_get(j, "_meta.suffix");
-         if (prefix && suffix && !strcmp(prefix, "event") && !strcmp(suffix, "fob"))
+         if (f->deviceid && prefix && target && suffix && !strcmp(prefix, "event") && !strcmp(target,f->deviceid) && !strcmp(suffix, "fob"))
          {
             if (j_test(j, "remote", 0))
                f->remote = 1;

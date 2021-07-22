@@ -7,15 +7,18 @@ if(! $status) setenv CANADOPTFOB
 
 if($?ADOPTNEXT) then
 	sql "$DB" 'UPDATE device SET adoptnext="true" WHERE device="$device" and organisation="$SESSION_ORGANISATION"'
-	setenv MSG "Device set to adopt next reader"
+	redirect editfob.cgi
+	exit 0
 endif
 if($?FORMATNEXT) then
 	sql "$DB" 'UPDATE device SET formatnext="true" WHERE device="$device" and organisation="$SESSION_ORGANISATION"'
-	setenv MSG "Device set to adopt next reader"
+	redirect editfob.cgi
+	exit 0
 endif
 if($?CANCEL) then
 	sql "$DB" 'UPDATE device SET adoptnext="false",formatnext="false" WHERE device="$device" and organisation="$SESSION_ORGANISATION"'
-	setenv MSG "Auto fob canceled"
+	redirect editfob.cgi
+	exit 0
 endif
 if($?ADOPT) then
 	setenv OK `sql "$DB" 'SELECT COUNT(*) FROM fob WHERE fob="$fob"'`
@@ -25,9 +28,8 @@ if($?ADOPT) then
 	endif
 	sql "$DB" 'INSERT IGNORE INTO foborganisation SET fob="$fob",organisation="$SESSION_ORGANISATION"'
 	sql "$DB" 'INSERT INTO fobaid SET fob="$fob",aid="$aid"'
-	setenv MSG "Fob is set up to be adopted"
-	unsetenv fob
-	goto list
+	redirect editfob.cgi
+	exit 0
 endif
 if($?fobname) then
 	set aids=(`printenv aids|sed 's/[^0-9A-F	]//g'`)
@@ -57,8 +59,8 @@ if($?fobname) then
 	if("$expires" == "Z") unsetenv expires
 	sqlwrite -qon "$DB" foborganisation fob organisation $allow
 	message --poke
-	setenv MSG "Updated"
-	goto list
+	redirect editfob.cgi
+	exit 0
 endif
 
 if(! $?PATH_INFO) then
@@ -75,7 +77,7 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <form method=post style="display:inline;">
 <select name=device>
 <sql table="device LEFT JOIN aid USING (aid)" where="device.site=$SESSION_SITE AND online IS NOT NULL AND (nfctrusted='true' OR nfcadmin='true')"><set found=1>
-<option value="$device"><output name=aidname>:<output name=devicename blank=Unnamed> <output name=address></option>
+<option value="$device"><output name=aidname>:<output name=devicename blank="$device"></option>
 </sql>
 </select>
 <if found><set found><input type=submit value="Adopt next fob" name=ADOPTNEXT><if USER_ADMIN=true><input type=submit value="Format next fob" name=FORMATNEXT></if></if>
@@ -87,7 +89,7 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <tr>
 <td><output name=aidname></td>
 <td><form method=post style="display:inline;"><input name=device type=hidden><input type=submit name=CANCEL value="Cancel"></form></td>
-<td><output name=devicename blank=Unnamed> <output name=address></td>
+<td><output name=devicename blank="$device"></td>
 <td><if formatnext=true>FORMAT NEXT CARD</if></td>
 </tr>
 </sql>
