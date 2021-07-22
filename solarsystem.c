@@ -788,7 +788,8 @@ int main(int argc, const char *argv[])
                // Not sending aid0key means has to finish else not going to adopt later
                j_store_string(init, "aid1key", getaes(&sqlkey, temp, aid, NULL));
             }
-            j_store_int(init, "device", j_get(meta, "device"));
+            j_store_int(init, "device", id);
+            j_store_string(init, "deviceid", deviceid);
             forked = 1;
             return forkcommand(&init, id, local);
          } else
