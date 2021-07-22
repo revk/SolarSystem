@@ -342,10 +342,16 @@ void *fobcommand(void *arg)
                // Not used - name is in access file
                // File 1 - log
                if (!(fids & (1 << 0x01)))
+               {
+                  status("Making log file");
                   df(create_file(&d, 0x01, 'C', 1, 0x0100, 13, 0, 0, 10, 0, 0));
+               }
                // File 2 - counter
                if (!(fids & (1 << 0x02)))
+               {
+                  status("Making counter file");
                   df(create_file(&d, 0x02, 'V', 1, 0x0010, 0, 0, 0x7FFFFFFF, 0, 0, 0));
+               }
                // File A - access
                if (*afile)
                {
