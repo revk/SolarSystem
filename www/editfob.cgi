@@ -5,7 +5,7 @@ unsetenv CANADOPTFOB
 can --organisation='$SESSION_ORGANISATION' adoptfob
 if(! $status) setenv CANADOPTFOB
 
-if($?fobname) then
+if($?expires) then
 	set aids=(`printenv aids|sed 's/[^0-9A-F	]//g'`)
 	foreach a ($aids)
 		setenv A "$a"
@@ -44,7 +44,6 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <h1>Fobs</h1>
 <if CANADOPTFOB>
 <h2>Adopting a provisioned fob</h1>
-<p>Fobs used on the system must have been provisioned.</p>
 <form name=f method=post style="display:inline;">
 <select name=device>
 <sql table="device LEFT JOIN aid USING (aid)" where="device.site=$SESSION_SITE AND online IS NOT NULL AND (nfctrusted='true' OR nfcadmin='true')"><set found=1>
@@ -53,14 +52,21 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 </select>
 <input type=submit name=IDENTIFY value="Read fob ID">
 <input type=hidden name=fob>
-<if not IDENTIFY fob not fob=""><h2>Fob <output name=fob href="editfob.cgi/$fob"><sql table=foborganisation where="fob='$fob' AND organisation=$SESSION_ORGANISATION"> <output name=fobname></sql></h2>
+<if not IDENTIFY fob not fob="">
+<sql table=fob where="fob='$fob'"><set foundfob=1></sql>
+<if not foundfob><p>Sorry, fob <output name=fob> is not recognised by the system. Any fob you wish to use must first be provisioned by the system administrator before it can be adopted. Please contact the system administrator <sql table=user where="admin='true'" limit=1 order="rand()"><output name=username></sql> for more information.</p></if>
+<if else>
+<h2>Fob <output name=fob href="editfob.cgi/$fob"></h2>
+<if IDENTIFIED><sql table=foborganisation where="fob='$fob' AND organisation=$SESSION_ORGANISATION"><set fobname="$fobname"></sql></if>
 <sql table="fobaid LEFT JOIN aid USING (aid) LEFT JOIN access USING (access)" WHERE="fob='$fob'">
 <p>Already adopted for <output name=aidname> <output name=accessname></p>
 </sql>
+<input name=fobname size=15 maxlength=15 placeholder="Name" autofocus><br>
 <select name=aid><sql table=aid where='site=$SESSION_SITE'><option value=$aid><output name=aidname></option></sql></select>
 <select name=access><sql table=access where='site=$SESSION_SITE'><option value=$access><output name=accessname></option></sql></select>
 <input name=ADOPT type=submit value="Adopt fob">
 <if USER_ADMIN=true><input name=FORMAT type=submit value="Format"></if>
+</if>
 </if>
 <if device><ul id=status></ul></if>
 </form>
@@ -76,7 +82,7 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <td><output name=fob href="editfob.cgi/$fob"></td>
 <td><output name=expires></td>
 <td><output name=fobname></td>
-<td><if not N=1><output name=N 0=No> AIDs</if><if else not N=0><output name=aidname> (<output name=accessname>) </if><if not W=0><output name=W 1=""> waiting to be adopted. </if><if blocked><b>BLOCKED<if confirmed>(confirmed) </if></b></if><if NOT O=0><b><ouput name=O 1=""> has override.</b></if></td>
+<td><if not N=1><output name=N 0=No> AIDs</if><if N=1><output name=aidname> (<output name=accessname>)</if></td>
 </tr>
 </sql>
 </table>
@@ -91,14 +97,14 @@ if($?IDENTIFY) then
 	if("$fob" == "") then
 		echo "<script>e=document.createElement('li');e.textContent='Failed';document.getElementById('status').append(e);</script>"
 	else
-		echo "<script>f.fob.value='$fob';f.submit();</script>"
+		echo "<script>f.fob.value='$fob';e=document.createElement('input');e.type='hidden';e.name='IDENTIFIED';f.append(e);f.submit();</script>"
 	endif
 	exit 0
 endif
 if($?ADOPT) then
 	can --redirect --organisation='$SESSION_ORGANISATION' adoptfob
 	if($status) exit 0
-	message --device="$device" --fob-adopt="$fob" --aid="$aid" --access="$access" --status=status --silent
+	message --device="$device" --fob-adopt="$fob" --aid="$aid" --access="$access" --status=status --silent --fob-name="$fobname" --organisation="$SESSION_ORGANISATION"
 	exit 0
 endif
 if($?FORMAT) then
@@ -130,16 +136,14 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <tr><td>Name</td><td colspan=2><input name=fobname size=15 maxlength=15 autofocus></td></tr>
 <tr><td>Expiry</td><td colspan=2><input name=expires id=expires type=datetime-local><input type=button onclick='document.getElementById("expires").value="";' value="No expiry"></td></tr>
 <if blocked><tr><td>Block</td><td>Access blocked <output name=blocked> <if blocked and confirmed>(confirmed <output name=confirmed>)</if></td></tr></if>
-<sql table="aid" where="site='$SESSION_SITE'" order=aidname><set adopted><set access$aid><sql table=fobaid where="fob='$fob' AND aid='$aid'"><set access$aid=$access><if adopted><set adopted="$adopted"></if></sql>
+<sql table="fobaid LEFT JOIN aid USING (aid)" where="fob='$fob'" order=aidname><set "access$aid"="$access">
 <tr>
 <td><input type=hidden name=aids value="$aid"><output name=aidname></td>
 <td><select name="access$aid"><option value=''>No access</option><sql table=access where="site=$site"><option value="$access"><output name=accessname></option></sql></select></td>
-<td><if access$aid AND not adopted>Waiting to be adopted</if></td>
 </tr>
 </sql>
 </table>
 <input type=submit value="Update"><if blocked><input type=SUBMIT name=UNBLOCK Value="Unblock"></if><if else><input type=SUBMIT name=BLOCK Value="Block"></if>
-</sql>
 </sql>
 </form>
 'END'

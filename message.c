@@ -37,12 +37,14 @@ int main(int argc, const char *argv[])
    const char *status = NULL;
    const char *arm = NULL;
    const char *disarm = NULL;
+   const char *fobname=NULL;
    int debug = 0;
    int setting = 0;
    int silent = 0;
    int provision = 0;
    int poke = 0;
    int site = 0;
+   int organisation = 0;
    int access = 0;
    {                            // POPT
       poptContext optCon;       // context for parsing command-line options
@@ -51,6 +53,7 @@ int main(int argc, const char *argv[])
          { "fob-adopt", 0, POPT_ARG_STRING, &fobadopt, 0, "Fob adopt", NULL },
          { "fob-format", 0, POPT_ARG_STRING, &fobformat, 0, "Fob format", NULL },
          { "fob-provision", 0, POPT_ARG_NONE, &fobprovision, 0, "Fob provision", NULL },
+         { "fob-name", 0, POPT_ARG_STRING, &fobname, 0, "Fob name", "name" },
          { "command", 0, POPT_ARG_STRING, &command, 0, "Command", "tag" },
          { "settings", 0, POPT_ARG_NONE, &setting, 0, "Setting", NULL },
          { "aid", 0, POPT_ARG_STRING, &aid, 0, "AID", "XXXXXX" },
@@ -58,6 +61,7 @@ int main(int argc, const char *argv[])
          { "deport", 0, POPT_ARG_STRING, &deport, 0, "Deport", "mqtthost" },
          { "device", 'd', POPT_ARG_STRING, &device, 0, "Device", "XXXXXXXXXXXX" },
          { "site", 's', POPT_ARG_INT, &site, 0, "Site", "N" },
+         { "organisation", 's', POPT_ARG_INT, &organisation, 0, "Organisation", "N" },
          { "arm", 0, POPT_ARG_STRING, &arm, 0, "Arm", "A...Z" },
          { "disarm", 0, POPT_ARG_STRING, &disarm, 0, "Disarm", "A...Z" },
          { "pending", 'p', POPT_ARG_STRING, &pending, 0, "Pending device", "XXXXXXXXXXXX" },
@@ -124,6 +128,7 @@ int main(int argc, const char *argv[])
       if (!aid)
          errx(1, "Specify aid to use for fob adopt");
       j_store_string(meta, "fob", fobadopt);
+      j_store_string(meta, "fobname", fobname);
       j_store_true(meta, "fobadopt");
    }
    if (command)
@@ -134,6 +139,8 @@ int main(int argc, const char *argv[])
    }
    if (setting)
       j_store_string(meta, "prefix", "setting");
+   if (organisation)
+      j_store_int(meta, "organisation", organisation);
    if (site)
       j_store_int(meta, "site", site);
    if (access)

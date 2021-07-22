@@ -146,7 +146,9 @@ void *fobcommand(void *arg)
    int organisation = 0;
    int access = 0;
    char *fob = NULL;
+   char *fobname=NULL;
    {                            // Get passed settings
+      const char *v;
       j_t j = arg;
       if (mqttdump)
       {
@@ -166,9 +168,10 @@ void *fobcommand(void *arg)
       identify = j_test(j, "identify", 0);
       if ((hardformat = j_test(j, "hardformat", 0)))
          format = 1;
-      const char *v = j_get(j, "deviceid");
-      if (v)
+      if ((v = j_get(j, "deviceid")))
          f.deviceid = strdupa(v);
+      if ((v = j_get(j, "fobname")))
+         fobname = strdupa(v);
       v = j_get(j, "fob");
       if (v)
          fob = strdupa(v);
@@ -269,7 +272,7 @@ void *fobcommand(void *arg)
                status("Formatting fob");
                df(format(&d, *masterkey, masterkey + 1));
                df(get_uid(&d, uid));
-               //status(j_base16(sizeof(uid), uid));
+               status(j_base16(sizeof(uid), uid));
                if (hardformat)
                {
                   df(change_key(&d, 0x80, 0, masterkey + 1, NULL));     // Hard reset to zero AES
@@ -380,6 +383,8 @@ void *fobcommand(void *arg)
                      j_store_int(j, "organisation", organisation);
                   if (access)
                      j_store_int(j, "access", access);
+                  if (fobname)
+                     j_store_string(j, "fobname", fobname);
                   j_store_int(j, "mem", mem);
                   mqtt_qin(&j);
                }
