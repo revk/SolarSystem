@@ -204,7 +204,7 @@ void door_act(fob_t * fob)
    {                            // Simple, we can arm (Not using alarm_armed as that includes what we are trying, and failing, to control_arm)
       if (doorauto >= 5)
       {
-         jo_t e = jo_make();
+         jo_t e = jo_make(NULL);
          jo_string(e, "reason", "fob");
          jo_string(e, "id", fob->id);
          if (fob->nameset)
@@ -218,7 +218,7 @@ void door_act(fob_t * fob)
    {                            // Simple, we can arm
       if (doorauto >= 5)
       {
-         jo_t e = jo_make();
+         jo_t e = jo_make(NULL);
          jo_string(e, "reason", "fob");
          jo_string(e, "id", fob->id);
          if (fob->nameset)
@@ -236,7 +236,7 @@ void door_act(fob_t * fob)
    {
       if (doorauto >= 5)
       {
-         jo_t e = jo_make();
+         jo_t e = jo_make(NULL);
          jo_string(e, "reason", "fob");
          jo_string(e, "id", fob->id);
          if (fob->nameset)
@@ -616,7 +616,7 @@ static void task(void *pvParameters)
                lock[l].i = i;
                if (doordebug && (force || last != lock[l].state))
                {
-                  jo_t j = jo_make();
+                  jo_t j = jo_make(NULL);
                   jo_string(j, "state", lockstates[lock[l].state]);
                   if (lock[l].timeout > now)
                      jo_int(j, "timeout", (lock[l].timeout - now) / 1000);
@@ -630,7 +630,7 @@ static void task(void *pvParameters)
          {                      // Open
             if (doorstate != DOOR_NOTCLOSED && doorstate != DOOR_PROPPED && doorstate != DOOR_OPEN)
             {                   // We have moved to open state, this can cancel the locking operation
-               jo_t j = jo_make();
+               jo_t j = jo_make(NULL);
                if (!doorwhy)
                   doorwhy = ((lock[0].state == LOCK_LOCKED) ? "forced" : "manual");
                if (doorwhy)
@@ -689,7 +689,7 @@ static void task(void *pvParameters)
             {                   // Time to lock the door
                if (doorstate == DOOR_UNLOCKED)
                {
-                  jo_t j = jo_make();
+                  jo_t j = jo_make(NULL);
                   if (doorwhy)
                      jo_string(j, "trigger", doorwhy);
                   revk_event_clients("notopen", &j, 1 | (iotstatedoor << 1));
@@ -703,12 +703,12 @@ static void task(void *pvParameters)
          {
             if (!exit)
             {                   // Pushed
-               jo_t j = jo_make();
+               jo_t j = jo_make(NULL);
                exit = now + (int64_t) doorexit *1000LL; // Exit button timeout
                jo_area(j, "disarmok", doorexitdisarm & areadeadlock);
                if (door_deadlocked() && doorexitdisarm && !(alarm_armed() & ~(areadeadlock & areadisarm)))
                {
-                  jo_t e = jo_make();
+                  jo_t e = jo_make(NULL);
                   jo_string(e, "reason", "exit button");
                   alarm_disarm(areadeadlock & areadisarm, &e);
                   jo_bool(j, "disarmed", 1);
@@ -726,14 +726,14 @@ static void task(void *pvParameters)
             } else if (doorexitarm && exit && exit < now)
             {                   // Held (not applicable if not arming allowed, so leaves to do exit stuck fault)
                exit = -1;       // Don't report stuck - this is max value as unsigned
-               jo_t j = jo_make();
+               jo_t j = jo_make(NULL);
                jo_bool(j, "held", 1);
                if (areadeadlock & areaarm)
                {
                   jo_area(j, "armok", areadeadlock & areaarm);
                   if (doorauto >= 2 && (areadeadlock & areaarm & ~alarm_armed()))
                   {
-                     jo_t e = jo_make();
+                     jo_t e = jo_make(NULL);
                      jo_string(e, "reason", "exit button");
                      alarm_arm(areadeadlock & areaarm, &e);
                      jo_bool(j, "armed", 1);
@@ -772,7 +772,7 @@ static void task(void *pvParameters)
          if (force || doorstate != lastdoorstate)
          {
             nfc_led(strlen(doorled[doorstate]), doorled[doorstate]);
-            jo_t j = jo_make();
+            jo_t j = jo_make(NULL);
             jo_string(j, "state", doorstates[doorstate]);
             if (doorwhy && doorstate == DOOR_UNLOCKING)
                jo_string(j, "trigger", doorwhy);

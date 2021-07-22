@@ -100,7 +100,7 @@ const char *nfc_led(int len, const void *value)
 
 static void fobevent(void)
 {
-   jo_t j = jo_make();
+   jo_t j = jo_make(NULL);
    if (*fob.id)
    {
       if (fob.secureset)

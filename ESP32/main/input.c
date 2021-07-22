@@ -112,7 +112,7 @@ static void task(void *pvParameters)
          report_next = now + 3600;
          input_latch |= input_stable;
          input_flip |= (input_stable ^ was);
-         jo_t j = jo_make();
+         jo_t j = jo_make(NULL);
          int t = MAXINPUT;
          while (t && !input[t - 1])
             t--;

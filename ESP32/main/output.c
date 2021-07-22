@@ -176,7 +176,7 @@ static void task(void *pvParameters)
          output_last = output_mix;
          output_last_pulsed = output_pulsed;
          report_next = now + 3600;
-         jo_t j = jo_make();
+         jo_t j = jo_make(NULL);
          int t = MAXOUTPUT;
          while (t && !output[t - 1])
             t--;
