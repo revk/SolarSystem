@@ -554,7 +554,7 @@ static void mesh_handle_summary(const char *target, jo_t j)
                         if (now > 1000000000 && diff < -300)
                         {
                            ESP_LOGE(TAG, "Replay attack? %d", diff);
-                           return;
+                           // return; // TODO we are seeing this in normal working, so something is amiss... Investigate
                         }
                         struct timeval tv = { new, 0 };
                         if (settimeofday(&tv, NULL))
