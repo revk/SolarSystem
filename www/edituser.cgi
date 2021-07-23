@@ -23,7 +23,7 @@ You have asked to changed your email addess to $email.
 You have been sent a link to confirm the change.
 Check your email for that account and click the link.
 END
-		../login/redirect / "An email address has been sent to $email, please check and follow link."
+		redirect / "An email address has been sent to $email, please check and follow link."
 		exit 0
 	endif
 	echo "Location: $ENVCGI_SERVER?MSG=Updated"

@@ -2,37 +2,34 @@
 can --redirect --site='$SESSION_SITE' admin
 if($status) exit 0
 if($?PROVISION) then
-	if("$pcb" == 0) then
-		setenv MSG "Pick PCB to provision"
-		goto done
-	endif
-	if("$aid" == "") then
-		setenv MSG "Pick AID"
-	endif
-	setenv authenticated `sql "$DB" 'SELECT authenticated FROM pending WHERE pending="$PROVISION"'`
-	setenv nfc `sql "$DB" 'SELECT IF(nfctx="-","false","true") FROM pcb WHERE pcb=$pcb'`
-	sql "$DB" 'INSERT INTO device SET device="$PROVISION",pcb="$pcb",organisation="$SESSION_ORGANISATION",site="$SESSION_SITE",aid="$aid",nfc="$nfc" ON DUPLICATE KEY UPDATE pcb="$pcb",organisation="$SESSION_ORGANISATION",site="$SESSION_SITE",aid="$aid",nfc="$nfc"'
-	sql "$DB" 'DELETE FROM devicegpio WHERE device="$PROVISION"'
-	sql "$DB" 'INSERT INTO devicegpio (device,gpio,type,name,hold,pulse) SELECT "$PROVISION",gpio,inittype,initname,inithold,initpulse FROM gpio WHERE pcb=$pcb'
-	if("$authenticated" == "true")then
-		setenv MSG `message --pending="$PROVISION" --command="restart"`
+	if("$deport" != "") then
+		setenv MSG `message --pending="$DEPORT" --deport="$deport"`
+		if(! $status) then
+			redirect / Deported
+			exit 0
+		endif
 	else
-		setenv MSG `message --pending="$PROVISION" --provision --pending="$PROVISION" --aid="$aid"`
-	endif
-	if(! $status) then
-		../login/redirect / Provisioned
-		exit 0
-	endif
-endif
-if($?DEPORT) then
-	if("$deport" == "") then
-		setenv MSG "Set deport MQTT server"
-		goto done
-	endif
-	setenv MSG `message --pending="$DEPORT" --deport="$deport"`
-	if(! $status) then
-		../login/redirect / Deported
-		exit 0
+		if("$pcb" == 0) then
+			setenv MSG "Pick PCB to provision"
+			goto done
+		endif
+		if("$aid" == "") then
+			setenv MSG "Pick AID"
+		endif
+		setenv authenticated `sql "$DB" 'SELECT authenticated FROM pending WHERE pending="$PROVISION"'`
+		setenv nfc `sql "$DB" 'SELECT IF(nfctx="-","false","true") FROM pcb WHERE pcb=$pcb'`
+		sql "$DB" 'INSERT INTO device SET device="$PROVISION",pcb="$pcb",organisation="$SESSION_ORGANISATION",site="$SESSION_SITE",aid="$aid",nfc="$nfc" ON DUPLICATE KEY UPDATE pcb="$pcb",organisation="$SESSION_ORGANISATION",site="$SESSION_SITE",aid="$aid",nfc="$nfc"'
+		sql "$DB" 'DELETE FROM devicegpio WHERE device="$PROVISION"'
+		sql "$DB" 'INSERT INTO devicegpio (device,gpio,type,name,hold,pulse) SELECT "$PROVISION",gpio,inittype,initname,inithold,initpulse FROM gpio WHERE pcb=$pcb'
+		if("$authenticated" == "true")then
+			setenv MSG `message --pending="$PROVISION" --command="restart"`
+		else
+			setenv MSG `message --pending="$PROVISION" --provision --pending="$PROVISION" --aid="$aid"`
+		endif
+		if(! $status) then
+			redirect / Provisioned
+			exit 0
+		endif
 	endif
 endif
 done:
@@ -48,9 +45,7 @@ Deport:<input name=deport size=20 placeholder='MQTT server' autofocus><br>
 <sql select="pending.*,device.device AS D,device.online AS O" table="pending LEFT JOIN device ON (pending=device)" order="pending.online" WHERE="pending.online<NOW()"><set found=1>
 <tr>
 <td>
-<if O><input type=submit value="Assign" name="PROVISION" onclick="this.value='$pending';"><br></if>
-<if NOT O><input type=submit value="Provision" name="PROVISION" onclick="this.value='$pending';"><br></if>
-<input type=submit value="Deport" name="DEPORT" onclick="this.value='$pending';">
+<input type=submit value="Provision" name="PROVISION" onclick="this.value='$pending';">
 </td>
 <td><output name=online></td>
 <td><output name=pending></td>

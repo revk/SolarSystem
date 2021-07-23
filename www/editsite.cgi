@@ -32,7 +32,7 @@ if($?sitename) then
 	sqlwrite -qon "$DB" site sitename wifissid wifipass iothost nomesh smsuser smspass armcancel alarmdelay alarmhold debug ioteventarm smsarm smsarmfail smsdisarm smsalarm smspanic engineer smsnumber smsfrom
 	sql "$DB" 'UPDATE device SET poke=NOW() WHERE site=$site'
 	message --poke
-	../login/redirect /
+	redirect /
 	exit 0
 endif
 done:

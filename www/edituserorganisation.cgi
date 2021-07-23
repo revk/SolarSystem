@@ -49,7 +49,7 @@ if($?NEW) then
 		goto list
 	endif
 	sql "$DB" 'INSERT INTO userorganisation SET organisation=$SESSION_ORGANISATION,user=$user'
-	../login/redirect "edituserorganisation.cgi/$user"
+	redirect "edituserorganisation.cgi/$user"
 	exit 0
 endif
 list:

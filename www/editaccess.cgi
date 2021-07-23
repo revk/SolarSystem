@@ -17,7 +17,7 @@ if($?DELETE) then
                 setenv MSG "Cannot delete as in use"
                 goto done
         endif
-        ../login/redirect editaccess.cgi
+        redirect editaccess.cgi
         exit 0
 endif
 if($?access) then
@@ -38,7 +38,7 @@ if($?access) then
 	if(! $?armlate) setenv armlate false
 	if($?ADMINORGANISATION) setenv allow "$allow override"
 	sqlwrite -qon "$DB" access $allow
-	../login/redirect editaccess.cgi
+	redirect editaccess.cgi
 	exit 0
 endif
 

@@ -21,7 +21,7 @@ if($?AREAA) then #save
 	end
 	sqlwrite -qon "$DB" site site="$SESSION_SITE" $allow
 	message --poke
-	../login/redirect / Updated
+	redirect / Updated
 	exit 0
 endif
 

@@ -60,7 +60,7 @@ if($?pcbname) then # save
 	sql "$DB" 'UPDATE device SET poke=NOW() WHERE pcb=$pcb'
        	message --poke
 	if($changed) goto done
-	../login/redirect editpcb.cgi
+	redirect editpcb.cgi
 	exit 0
 endif
 done:

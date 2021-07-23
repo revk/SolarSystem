@@ -18,7 +18,7 @@ if($?aids) then #save
 			setenv A `makeaid --site=$SESSION_SITE --name="$NEW"`
 		endif
 	endif
-	../login/redirect / Updated
+	redirect / Updated
 	exit 0
 endif
 

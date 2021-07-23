@@ -7,7 +7,7 @@ if($?NEWPASSWORD) then
 		setenv MSG `changepassword`
 	endif
 	if(! $status) then
-		../login/redirect edituser.cgi
+		redirect edituser.cgi
 		exit 0
 	endif
 	unsetenv OLDPASSWORD

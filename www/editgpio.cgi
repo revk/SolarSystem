@@ -12,7 +12,7 @@ if($?type) then
 	sqlwrite -qon "$DB" devicegpio device gpio type invert name hold pulse $STATELIST
 	sql "$DB" 'UPDATE device SET poke=NOW() WHERE device="$device"'
 	message --poke
-	../login/redirect "editdevice.cgi/$device"
+	redirect "editdevice.cgi/$device"
 	exit 0
 endif
 

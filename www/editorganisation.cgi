@@ -16,7 +16,7 @@ if($?DELETE) then
 		setenv MSG "Cannot delete as in use - you need to delete stuff in organiastion first"
 		goto done
 	endif
-	../login/redirect / Deleted
+	redirect / Deleted
 	exit 0
 endif
 if($?organisationname) then
@@ -28,11 +28,11 @@ if($?organisationname) then
 		setenv aid `makeaid --site="$site"`
 		sql "$DB" 'UPDATE session SET organisation=$organisation,site=$site WHERE session="$ENVCGI"'
 		sqlwrite -qon "$DB" organisation organisationname
-		../login/redirect "editorganisation.cgi/$organisation"
+		redirect "editorganisation.cgi/$organisation"
 		exit 0
 	endif
 	sqlwrite -o "$DB" organisation organisationname
-	../login/redirect /
+	redirect /
 	exit 0
 endif
 done:
