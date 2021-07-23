@@ -1,9 +1,9 @@
-#!../login/loggedin /bin/csh -f
+#!../login/loggedin /bin/csh -fx
 can --redirect --site='$SESSION_SITE' admin
 if($status) exit 0
 if($?PROVISION) then
 	if("$deport" != "") then
-		setenv MSG `message --pending="$DEPORT" --deport="$deport"`
+		setenv MSG `message --pending="$PROVISION" --deport="$deport"`
 		if(! $status) then
 			redirect / Deported
 			exit 0
