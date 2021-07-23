@@ -1,4 +1,5 @@
 # Used in a couple of places to get a set of can for current selected organisation
+setenv VERSION `cat ../ESP32/version.txt`
 unsetenv ADMINORGANISATION
 unsetenv CANEDITORGANISATION
 unsetenv CANEDITACCESS
