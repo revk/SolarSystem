@@ -138,6 +138,8 @@ areas(engineer);                // Site wide engineering state
 areas(alarmed);                 // Site wide state from mesh
 areas(tampered);                // Site wide state from mesh
 areas(faulted);                 // Site wide state from mesh
+num(nodes);			// Site reported nodes
+num(missing);			// Site reported nodes missing
 num(armcancel);                 // Pre arm time
 num(alarmdelay);                // Pre alarm time
 num(alarmhold);                 // Hold alarm state time

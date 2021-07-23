@@ -1070,6 +1070,11 @@ int main(int argc, const char *argv[])
                   *o = 0;
                   return temp;
                }
+               int n;
+               if ((n = atoi(j_get(j, "nodes") ? : "")) != atoi(sql_col(res, "nodes")?:"-1"))
+                  sql_sprintf(&s, "`nodes`=%d,", n);
+               if ((n = atoi(j_get(j, "missing") ? : "")) != atoi(sql_col(res, "missing")?:"-1"))
+                  sql_sprintf(&s, "`missing`=%d,", n);
 #define s(n,c) if(strcmp(#n,"engineer")){const char *v=commalist(j_get(j,#n));if(strcmp(sql_colz(res,#n),v))sql_sprintf(&s,"`%#S`=%#s,",#n,v);}
 #include "ESP32/main/states.m"
                if (sql_back_s(&s) == ',' && deviceid)

@@ -33,6 +33,7 @@
 <if MSG><span class=error><output name=MSG></span></if>
 <if SESSION_SITE>
 <sql table=site WHERE="site=$SESSION_SITE">
+<set s=""><if not missing=0><set s='background:red;'></if><span style="$s">Nodes <output name=nodes><if not missing=0> (missing <output name=missing>)</if></span>
 <table>
 <if not alarm=""><tr style='background:red;'><td>Alarm</td><td><output name=alarm></td></tr></if>
 <if else not alarmed=""><tr style='background:yellow;'><td>Alarmed</td><td><output name=alarmed></td></tr></if>
