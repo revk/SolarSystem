@@ -153,7 +153,7 @@ static void status_report(int force)
          if (areatamper & (state_armed | state_prearm))
          {
             jo_t e = jo_make(NULL);
-            jo_string(e, "tamper", last_tamper);
+            jo_lit(e, "tamper", last_tamper);
             revk_event_clients("trigger", &e, 1 | (ioteventarm << 1));
          }
       }
