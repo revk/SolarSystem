@@ -115,7 +115,7 @@ static void status_report(int force)
          {
             jo_t j = jo_object_alloc();
             jo_string(j, "controller", r);
-            revk_event_clients("warning", &j, 1 | (iotstatewarning << 1));
+            revk_info_clients("warning", &j, 1 | (iotstatewarning << 1));
             latch_warning |= areawarning;
             // Transient so no live_warning
          }
