@@ -100,6 +100,7 @@ xmlsql -C -d "$DB" head.html - foot.html << END
 <th>Connect</th>
 <th>Version</th>
 <th>PCB</th>
+<th>Flash</th>
 <th>Notes</th></tr>
 <sql table="device" where="organisation=$SESSION_ORGANISATION" select="max(version) AS V,max(build) AS B"><set V="\$V"><set B="\$B"></sql>
 <sql where="device.organisation=$SESSION_ORGANISATION" table="device LEFT JOIN pcb USING (pcb) LEFT JOIN device AS device2 ON (device.via=device2.device)" order="device2.devicename,device.devicename" WHERE="site=\$SESSION_SITE" select="device.*,pcb.pcbname,device2.devicename AS P"><set found=1>
@@ -109,7 +110,8 @@ xmlsql -C -d "$DB" head.html - foot.html << END
 <td style="\$s"><if online><tt title="When online"><output name=online></if><if else><tt title="Last online"><output name=lastonline missing="never"></tt><br><i><output name=offlinereason missing=Offline></i></if></td>
 <td><if via><i>via</i> <tt title="Mesh parent"><output name=P></tt></if><if else><tt title="SSID#channel"><output name=bssid>#<output name=chan></tt> <i><output name=ssid></i></if></td>
 <td><if upgrade><i style='background:cyan;'>Upgrade scheduled</i><br></if><set s="background:red;"><if version="\$V"><set s="background:green;"></if><tt style="\$s"><output name=version></tt></td>
-<td><output name=pcbname> <output name=flash type=mebi>B</td>
+<td><output name=pcbname></td>
+<td align-right><output name=flash type=mebi>B</td>
 <set s><if not fault="{}" and not areafault=""><set s="background:yellow;"></if><if not tamper="{}" and not areatamper=""><set s="background:red;"></if>
 <td style="\$s">
 <if online door=true CANUNLOCK><form style="display:inline;" method=post><input type=hidden name=device><input type=submit name=UNLOCK value="Unlock"></form></if>
