@@ -748,7 +748,7 @@ int main(int argc, const char *argv[])
             return fail;
          } else if ((v = j_get(meta, "deport")))
          {
-            j_store_string(j, "clientkey","");        // Clear client
+            j_store_object(j, "client");        // Clear client
             j_t mqtt = j_store_object(j, "mqtt");
             j_store_string(mqtt, "host", v);
             j_store_string(mqtt, "cert", "");   // Cleared as typically in factory default
