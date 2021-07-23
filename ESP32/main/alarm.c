@@ -319,18 +319,18 @@ const char *mesh_make_report(jo_t j)
 #define i(x,c) x|=input##x[i];
 #include "states.m"
          }
+	 // TODO how to address existing state when alarm started...
          if (flip & (1ULL << i))
          {                      // State has changed, so causes presence and event logging
             if ((inputpresence[i] | inputaccess[i] | inputtamper[i]) & (state_armed | state_prearm))
             {                   // Event log
                jo_t e = jo_make(NULL);
                jo_string(e, "input", inputname[i]);
-               if (inputpresence[i] & (state_armed | state_prearm))
-                  jo_bool(e, "presence", (input_stable >> i) & 1);
-               if (inputaccess[i] & (state_armed | state_prearm))
-                  jo_bool(e, "access", (input_stable >> i) & 1);
-               if (inputtamper[i] & (state_armed | state_prearm))
-                  jo_bool(e, "tamper", (input_stable >> i) & 1);
+#define i(x) if(input##x[i]&(state_armed|state_prearm))jo_area(e,#x,input##x[i]&(state_armed|state_prearm));
+	       i(presence); // Only these relate to alarm/trigger
+	       i(access);
+	       i(tamper);
+#undef i
                revk_event_clients("trigger", &e, 1 | (ioteventarm << 1));
             }
             presence |= inputtamper[i];
