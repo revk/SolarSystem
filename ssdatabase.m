@@ -213,7 +213,6 @@ bool (commit);                  // Commit log/count
 
 table(fob, 14);
 datetime(provisioned);          // When provisioned
-bool (format);                  // Admin only - reformat fob when seen
 num(mem);                       // Free memory
 
 join(fob, aid);                 // Fob is in AID (adopted)

@@ -50,7 +50,7 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <input type=submit name=IDENTIFY value="Read fob ID">
 <input type=hidden name=fob>
 <if not IDENTIFY fob not fob="">
-<sql table=fob where="fob='$fob'"><set foundfob=1></sql>
+<sql table=fob where="fob='$fob'"><set foundfob=1><if mem><set mem="$mem"></if></sql>
 <if not foundfob><p>Sorry, fob <output name=fob> is not recognised by the system. Any fob you wish to use must first be provisioned by the system administrator before it can be adopted. Please contact the system administrator <sql table=user where="admin='true'" limit=1 order="rand()"><output name=username></sql> for more information.</p></if>
 <if else>
 <h2>Fob <output name=fob href="editfob.cgi/$fob"></h2>
@@ -58,7 +58,7 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <sql table="fobaid LEFT JOIN aid USING (aid) LEFT JOIN access USING (access)" WHERE="fob='$fob'">
 <p>Already adopted for <output name=aidname> <output name=accessname></p>
 </sql>
-<input name=fobname size=15 maxlength=15 placeholder="Name" autofocus><br>
+<input name=fobname size=15 maxlength=15 placeholder="Name" autofocus><if mem> <output name=mem type=mebi>B free</if><br>
 <select name=aid><sql table=aid where='site=$SESSION_SITE'><option value=$aid><output name=aidname></option></sql></select>
 <select name=access><sql table=access where='site=$SESSION_SITE'><option value=$access><output name=accessname></option></sql></select>
 <input name=ADOPT type=submit value="Adopt fob">

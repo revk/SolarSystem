@@ -1040,11 +1040,6 @@ int main(int argc, const char *argv[])
             const char *bssid = j_get(j, "bssid");
             if (!device || (bssid && strcmp(sql_colz(device, "bssid"), bssid)))
                sql_sprintf(&s, "`bssid`=%#s,", bssid);
-#if 0                           // Changes a lot while running, we need total RAM from somewhere...
-            int mem = atoi(j_get(j, "mem") ? : "");
-            if (mem && (!device || (mem != atoi(sql_colz(device, "mem")))))
-               sql_sprintf(&s, "`mem`=%d,", flash);
-#endif
             if (sql_back_s(&s) == ',' && deviceid)
             {
                if (secureid)
