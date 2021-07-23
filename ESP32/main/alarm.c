@@ -626,8 +626,8 @@ static void mesh_handle_summary(const char *target, jo_t j)
          jo_t j = jo_make("System");
          jo_area(j, "areas", state_alarm & ~lastalarm);
          sms_event("Alarm!", j);
+         revk_event_clients("alarm", &j, 1 | (ioteventarm << 1));
          jo_free(&j);
-
       }
       lastalarm = state_alarm;
    }
@@ -639,6 +639,7 @@ static void mesh_handle_summary(const char *target, jo_t j)
          jo_t j = jo_make("System");
          jo_area(j, "areas", state_panic & ~lastpanic);
          sms_event("Panic", j);
+         revk_event_clients("panic", &j, 1 | (ioteventarm << 1));
          jo_free(&j);
 
       }

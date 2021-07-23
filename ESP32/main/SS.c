@@ -150,6 +150,7 @@ static void status_report(int force)
             latch_tamper |= (live_tamper = areatamper);
          else
             live_tamper = 0;
+	 // TODO any way to report this when arming so pre-existing tamper shows
          if (areatamper & (state_armed | state_prearm))
          {
             jo_t e = jo_make(NULL);
