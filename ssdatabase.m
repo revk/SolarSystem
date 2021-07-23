@@ -350,6 +350,12 @@ link(organisation);
 link(site);
 text(aidname, 0);
 
+table(event,0);			// Logging
+link(device);
+datetime(logged);
+text(suffix,0);
+text(event,0);
+
 #undef table
 #undef join
 #undef link

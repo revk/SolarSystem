@@ -455,6 +455,7 @@ void bogus(slot_t id)
 void daily(SQL * sqlp)
 {                               // Daily tasks and clean up
    sql_safe_query(sqlp, "DELETE FROM `session` WHERE `expires`<NOW()"); // Old sessions
+   sql_safe_query(sqlp, "DELETE FROM `event` WHERE `logged`<DATE_SUB(NOW(),INTERVAL 1 MONTH)"); // Old event logs
 }
 
 void doupgrade(SQL * sqlp)
