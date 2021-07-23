@@ -105,10 +105,9 @@ xmlsql -C -d "$DB" head.html - foot.html << END
 <sql table="device" where="organisation=$SESSION_ORGANISATION" select="max(version) AS V,max(build) AS B"><set V="\$V"><set B="\$B"></sql>
 <sql where="device.organisation=$SESSION_ORGANISATION" table="device LEFT JOIN pcb USING (pcb) LEFT JOIN device AS device2 ON (device.via=device2.device)" order="device2.devicename,device.devicename" WHERE="site=\$SESSION_SITE" select="device.*,pcb.pcbname,device2.devicename AS P"><set found=1>
 <tr>
-<td><tt><output name=device href="/editdevice.cgi/\$device"></tt></td>
-<td><output name=devicename blank="Unnamed" missing="Unnamed"></td>
+<td title="\$device"><output name=devicename blank="Unnamed" missing="Unnamed"></td>
 <set s=""><if lastonline><set s="background:green;"></if><if not online><set s="background:yellow;"></if>
-<td style="\$s"><if online><tt><output name=online></tt><if via><br><i>via</i> <tt><output name=via></tt></if><if else><br><tt><output name=bssid>#<output name=chan></tt> <i><output name=ssid></i></if></if><if else><tt><output name=lastonline missing="never"></tt><br><i><output name=offlinereason missing=Offline></i></if></td>
+<td style="\$s"><if online><tt title="When online"><output name=online></tt><if via><br><i>via</i> <tt title="Mesh parent"><output name=P></tt></if><if else><br><tt title="SSID#channel"><output name=bssid>#<output name=chan></tt> <i><output name=ssid></i></if></if><if else><tt title="Last online"><output name=lastonline missing="never"></tt><br><i><output name=offlinereason missing=Offline></i></if></td>
 <td><output name=address></td>
 <td><if upgrade><i style='background:cyan;'>Upgrade scheduled</i><br></if><set s="background:red;"><if version="\$V"><set s="background:green;"></if><tt style="\$s"><output name=version></tt></td>
 <td><output name=pcbname><br>Flash:<output name=flash type=mega></td>
