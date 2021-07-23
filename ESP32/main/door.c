@@ -191,9 +191,12 @@ const char *door_lock(const uint8_t * a, const char *why)
 
 const char *door_prop(const uint8_t * a, const char *why)
 {                               // Allow door propping
-   why = why;
    if (doorstate != DOOR_OPEN && doorstate != DOOR_NOTCLOSED && doorstate != DOOR_PROPPED)
       return false;
+   jo_t j = jo_make(NULL);
+   if (why)
+      jo_string(j, "trigger", why);
+   revk_event_clients("notopen", &j, 1 | (iotstatedoor << 1));
    doorstate = DOOR_PROPPED;
    return door_access(a);
 }
@@ -469,9 +472,9 @@ const char *door_fob(fob_t * fob)
       if (!(areadisarm & ~fob->disarm))
          fob->disarmok = 1;     // Can disarm if any areas can be disarmed, but will only do so if can enter when disarmed
       if (!(areaenter & ~fob->enter))
-         fob->enterok = 1; // Can enter
+         fob->enterok = 1;      // Can enter
       if (!(areaenter & ~fob->prop))
-         fob->propok = 1; // Can prop
+         fob->propok = 1;       // Can prop
       if (door_deadlocked() && (!fob->enterok || !fob->disarmok || (fob->disarmok && (areadeadlock & alarm_armed() & ~(areadisarm & fob->disarm)))))
          return "Deadlocked";   // We could not enter, or could not disarm, or could not disarm enough to get in
       return NULL;
