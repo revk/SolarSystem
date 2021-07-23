@@ -1017,7 +1017,8 @@ int main(int argc, const char *argv[])
             if (!device || (version && strcmp(sql_colz(device, "version"), version)))
             {
                sql_sprintf(&s, "`version`=%#s,", version);
-               sql_safe_query_free(&sql, sql_printf("INSERT INTO `event` SET `logged`=NOW(),`device`=%#s,`suffix`='upgrade',`data`='{\"version\":\"%#S\"}'", deviceid, version));
+               if (device)
+                  sql_safe_query_free(&sql, sql_printf("INSERT INTO `event` SET `logged`=NOW(),`device`=%#s,`suffix`='upgrade',`data`='{\"version\":\"%#S\"}'", deviceid, version));
             }
             const char *build = j_get(j, "build");
             if (!device || (build && strcmp(sql_colz(device, "build"), build)))
@@ -1071,9 +1072,9 @@ int main(int argc, const char *argv[])
                   return temp;
                }
                int n;
-               if ((n = atoi(j_get(j, "nodes") ? : "")) != atoi(sql_col(res, "nodes")?:"-1"))
+               if ((n = atoi(j_get(j, "nodes") ? : "")) != atoi(sql_col(res, "nodes") ? : "-1"))
                   sql_sprintf(&s, "`nodes`=%d,", n);
-               if ((n = atoi(j_get(j, "missing") ? : "")) != atoi(sql_col(res, "missing")?:"-1"))
+               if ((n = atoi(j_get(j, "missing") ? : "")) != atoi(sql_col(res, "missing") ? : "-1"))
                   sql_sprintf(&s, "`missing`=%d,", n);
 #define s(n,c) if(strcmp(#n,"engineer")){const char *v=commalist(j_get(j,#n));if(strcmp(sql_colz(res,#n),v))sql_sprintf(&s,"`%#S`=%#s,",#n,v);}
 #include "ESP32/main/states.m"
