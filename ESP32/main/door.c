@@ -674,7 +674,14 @@ static void task(void *pvParameters)
             else if (lock[0].state == LOCK_LOCKFAIL || lock[1].state == LOCK_LOCKFAIL)
                doorstate = DOOR_AJAR;
             else
+            {
+               if (doorstate == DOOR_NOTCLOSED || doorstate == DOOR_PROPPED)
+               {
+                  jo_t j = jo_make(NULL);
+                  revk_event_clients("closed", &j, 1 | (iotstatedoor << 1));
+               }
                doorstate = ((doorstate == DOOR_OPEN || doorstate == DOOR_NOTCLOSED || doorstate == DOOR_PROPPED || doorstate == DOOR_CLOSED) ? DOOR_CLOSED : DOOR_UNLOCKED);
+            }
          }
          if (doorstate != lastdoorstate)
          {                      // State change - iot and set timeout
@@ -700,6 +707,8 @@ static void task(void *pvParameters)
             {
                doorstate = DOOR_NOTCLOSED;
                doortimeout = 0;
+               jo_t j = jo_make(NULL);
+               revk_event_clients("notclosed", &j, 1 | (iotstatedoor << 1));
             } else if (doorstate == DOOR_UNLOCKED || doorstate == DOOR_CLOSED)
             {                   // Time to lock the door
                if (doorstate == DOOR_UNLOCKED)
