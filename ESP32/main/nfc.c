@@ -185,6 +185,7 @@ static void task(void *pvParameters)
    int64_t found = 0;
    int64_t nextpoll = 0;        // Timers
    int64_t nextled = 0;
+   uint8_t countled = 0;
    int64_t nextio = 0;
    uint8_t ledlast = 0xFF;
    uint8_t ledpos = 0;
@@ -286,28 +287,33 @@ static void task(void *pvParameters)
          }
       }
       // LED
-      void blink(uint8_t p) {   // Blink an LED
-         if (!p)
-            return;             // Port not set
-         // if (ledlast & (1 << gpio_mask(p))) return;             // Already set
-         ledlast ^= (1 << gpio_mask(p));        // Invert the LED
+      void blink(char r, char a, char g) {      // Blink an LED
+         uint8_t newled = 0;
+         if (nfcred && r)
+            newled |= (1 << gpio_mask(nfcred));
+         if (nfcamber && a)
+            newled |= (1 << gpio_mask(nfcamber));
+         if (nfcgreen && g)
+            newled |= (1 << gpio_mask(nfcgreen));
+         if (newled != ledlast)
+            pn532_write_GPIO(pn532, (ledlast = newled) ^ nfcinvert);
          pn532_write_GPIO(pn532, ledlast ^ nfcinvert);
-         nextled = now + 200000LL;      // Show this for long enough to see it
+         countled = 5;          // Hold for a bit
+         ledpos = 0;
       }
       if (nextled < now)
       {                         // Check LED
          nextled = now + (int64_t) nfcledpoll *1000LL;
-         static int count = 0;
-         if (count)
-            count--;            // We are repeating existing pattern for a while
-         if (!count)
+         if (countled)
+            countled--;         // We are repeating existing pattern for a while
+         if (!countled)
          {                      // Next colour
             ledpos++;
             if (ledpos >= sizeof(ledpattern) || !ledpattern[ledpos] || !*ledpattern)
                ledpos = 0;      // Wrap
             uint8_t newled = 0;
             while (ledpos < sizeof(ledpattern) && ledpattern[ledpos] && isdigit(ledpattern[ledpos]))
-               count = count * 10 + ledpattern[ledpos++] - '0';
+               countled = countled * 10 + ledpattern[ledpos++] - '0';
             while (ledpos < sizeof(ledpattern) && ledpattern[ledpos])
             {                   // Check combined colours
                if (nfcred && ledpattern[ledpos] == 'R')
@@ -493,7 +499,7 @@ static void task(void *pvParameters)
             }
             if (e && strstr(e, "TIMEOUT"))
             {
-               blink(nfcamber); // Read ID OK
+               blink(0, 1, 0);  // Read ID OK
                ESP_LOGI(TAG, "Retry %s %s", fob.id, e);
                nextpoll = 0;    // Try again immediately
                memset(&fob, 0, sizeof(fob));
@@ -508,11 +514,11 @@ static void task(void *pvParameters)
                if (!e && df.keylen && fob.commit)
                   log();        // Log before reporting or opening door
                if (fob.enterok)
-                  blink(nfcgreen);
+                  blink(0, 1, 1);
                else if (fob.deny)
-                  blink(nfcred);
+                  blink(1, 0, 1);
                else
-                  blink(nfcamber);
+                  blink(0, 1, 0);
                if (!e)
                   door_act(&fob);
                fobevent();      // Report
