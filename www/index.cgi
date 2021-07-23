@@ -14,6 +14,7 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <if SESSION_ORGANISATION AND ADMINORGANISATION><li><a href="editaid.cgi">Manage AIDs</a></li></if>
 <if SESSION_SITE CANARM><li><a href="arm.cgi">Arm</a></li></if>
 <if SESSION_SITE CANDISARM><li><a href="disarm.cgi">Disarm</a></li></if>
+<if SESSION_SITE CANVIEWLOG><li><a href="log.cgi">Logs</a></li></if>
 <hr>
 <if SESSION_ORGANISATION AND ADMINORGANISATION><li><a href="editaccess.cgi">Manage Access classes</a></li></if>
 <if SESSION_SITE CANEDITFOB><li><a href="editfob.cgi">Manage fobs</a></li></if>

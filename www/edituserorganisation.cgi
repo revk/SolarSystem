@@ -19,6 +19,7 @@ if($?userorganisationname) then
 	if(! $?canarm) setenv canarm false
 	if(! $?candisarm) setenv candisarm false
 	if(! $?canunlock) setenv canunlock false
+	if(! $?canviewlog) setenv canviewlog false
 	if($?ADMINORGANISATION) setenv allow "$allow admin"
 	if($?CANEDITORGANISATION) setenv allow "$allow caneditorganisation"
 	if($?CANEDITACCESS) setenv allow "$allow caneditaccess"
@@ -31,6 +32,7 @@ if($?userorganisationname) then
 	if($?CANARM) setenv allow "$allow canarm"
 	if($?CANDISARM) setenv allow "$allow candisarm"
 	if($?CANUNLOCK) setenv allow "$allow canunlock"
+	if($?CANVIEWLOG) setenv allow "$allow canviewlog"
 	sqlwrite -qon "$DB" userorganisation $allow
 endif
 if($?DELETE) then
@@ -86,17 +88,18 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <tr><td>Email</td><td><output name=email></td></tr>
 <tr><td>Job title</td><td><input name=userorganisationname size=40 autofocus></td></tr>
 <if ADMINORGANISATION><tr><td><input type=checkbox id=admin name=admin value=true></td><td><label for=admin>Admin for organisation (can do all of these)</label></td></tr></if>
-<if CANEDITORGANISATION><tr><td><input type=checkbox id=caneditorganisation name=caneditorganisation value=true></td><td><label for=caneditorganisation>Can edit organisation</lable></td></tr></if>
-<if CANEDITACCESS><tr><td><input type=checkbox id=caneditaccess name=caneditaccess value=true></td><td><label for=caneditaccess>Can edit access</lable></td></tr></if>
-<if CANEDITSITE><tr><td><input type=checkbox id=caneditsite name=caneditsite value=true></td><td><label for=caneditsite>Can edit site</lable></td></tr></if>
-<if CANEDITDEVICE><tr><td><input type=checkbox id=caneditdevice name=caneditdevice value=true></td><td><label for=caneditdevice>Can edit device</lable></td></tr></if>
-<if CANEDITFOB><tr><td><input type=checkbox id=caneditfob name=caneditfob value=true></td><td><label for=caneditfob>Can edit fob</lable></td></tr></if>
-<if CANADOPTFOB><tr><td><input type=checkbox id=canadoptfob name=canadoptfob value=true></td><td><label for=canadoptfob>Can adopt fob</lable></td></tr></if>
-<if CANEDITUSER><tr><td><input type=checkbox id=canedituser name=canedituser value=true></td><td><label for=canedituser>Can edit user</lable></td></tr></if>
-<if CANEDITAREA><tr><td><input type=checkbox id=caneditarea name=caneditarea value=true></td><td><label for=caneditarea>Can edit area</lable></td></tr></if>
-<if CANARM><tr><td><input type=checkbox id=canarm name=canarm value=true></td><td><label for=canarm>Can arm</lable></td></tr></if>
-<if CANDISARM><tr><td><input type=checkbox id=candisarm name=candisarm value=true></td><td><label for=candisarm>Can disarm</lable></td></tr></if>
-<if CANUNLOCK><tr><td><input type=checkbox id=canunlock name=canunlock value=true></td><td><label for=canunlock>Can unlock</lable></td></tr></if>
+<if CANEDITORGANISATION><tr><td><input type=checkbox id=caneditorganisation name=caneditorganisation value=true></td><td><label for=caneditorganisation>Can edit organisation</label></td></tr></if>
+<if CANEDITACCESS><tr><td><input type=checkbox id=caneditaccess name=caneditaccess value=true></td><td><label for=caneditaccess>Can edit access</label></td></tr></if>
+<if CANEDITSITE><tr><td><input type=checkbox id=caneditsite name=caneditsite value=true></td><td><label for=caneditsite>Can edit site</label></td></tr></if>
+<if CANEDITDEVICE><tr><td><input type=checkbox id=caneditdevice name=caneditdevice value=true></td><td><label for=caneditdevice>Can edit device</label></td></tr></if>
+<if CANEDITFOB><tr><td><input type=checkbox id=caneditfob name=caneditfob value=true></td><td><label for=caneditfob>Can edit fob</label></td></tr></if>
+<if CANADOPTFOB><tr><td><input type=checkbox id=canadoptfob name=canadoptfob value=true></td><td><label for=canadoptfob>Can adopt fob</label></td></tr></if>
+<if CANEDITUSER><tr><td><input type=checkbox id=canedituser name=canedituser value=true></td><td><label for=canedituser>Can edit user</label></td></tr></if>
+<if CANEDITAREA><tr><td><input type=checkbox id=caneditarea name=caneditarea value=true></td><td><label for=caneditarea>Can edit area</label></td></tr></if>
+<if CANARM><tr><td><input type=checkbox id=canarm name=canarm value=true></td><td><label for=canarm>Can arm</label></td></tr></if>
+<if CANDISARM><tr><td><input type=checkbox id=candisarm name=candisarm value=true></td><td><label for=candisarm>Can disarm</label></td></tr></if>
+<if CANUNLOCK><tr><td><input type=checkbox id=canunlock name=canunlock value=true></td><td><label for=canunlock>Can unlock</label></td></tr></if>
+<if CANVIEWLOG><tr><td><input type=checkbox id=canviewlog name=canviewlog value=true></td><td><label for=canviewlog>Can view logs</label></td></tr></if>
 </table>
 <input type=submit value="Update">
 <input type=submit name=DELETE value="Delete"><input type=checkbox name=SURE>
