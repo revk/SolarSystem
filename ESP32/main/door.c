@@ -196,7 +196,7 @@ const char *door_prop(const uint8_t * a, const char *why)
    jo_t j = jo_make(NULL);
    if (why)
       jo_string(j, "trigger", why);
-   revk_event_clients("notopen", &j, 1 | (iotstatedoor << 1));
+   revk_event_clients("propped", &j, 1 | (iotstatedoor << 1));
    doorstate = DOOR_PROPPED;
    return door_access(a);
 }
