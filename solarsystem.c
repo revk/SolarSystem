@@ -1015,7 +1015,10 @@ int main(int argc, const char *argv[])
                sql_sprintf(&s, "`address`=%#s,", address);
             const char *version = j_get(j, "version");
             if (!device || (version && strcmp(sql_colz(device, "version"), version)))
+            {
                sql_sprintf(&s, "`version`=%#s,", version);
+               sql_safe_query_free(&sql, sql_printf("INSERT INTO `event` SET `logged`=NOW(),`device`=%#s,`suffix`='upgrade',`data`='Version %#S'", version));
+            }
             const char *build = j_get(j, "build");
             if (!device || (build && strcmp(sql_colz(device, "build"), build)))
                sql_sprintf(&s, "`build`=%#s,", build);
