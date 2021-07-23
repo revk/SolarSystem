@@ -321,16 +321,16 @@ const char *mesh_make_report(jo_t j)
          }
          if (flip & (1ULL << i))
          {                      // State has changed, so causes presence and event logging
-            if ((inputpresence[i] || inputaccess[i] | inputtamper[i]) & (state_armed | state_prearm))
+            if ((inputpresence[i] | inputaccess[i] | inputtamper[i]) & (state_armed | state_prearm))
             {                   // Event log
                jo_t e = jo_make(NULL);
                jo_string(e, "input", inputname[i]);
                if (inputpresence[i] & (state_armed | state_prearm))
-                  jo_bool(e, "presence", 1);
+                  jo_bool(e, "presence", (input_stable >> i) & 1);
                if (inputaccess[i] & (state_armed | state_prearm))
-                  jo_bool(e, "access", 1);
+                  jo_bool(e, "access", (input_stable >> i) & 1);
                if (inputtamper[i] & (state_armed | state_prearm))
-                  jo_bool(e, "tamper", 1);
+                  jo_bool(e, "tamper", (input_stable >> i) & 1);
                revk_event_clients("trigger", &e, 1 | (ioteventarm << 1));
             }
             presence |= inputtamper[i];
