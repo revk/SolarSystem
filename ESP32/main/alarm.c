@@ -543,22 +543,24 @@ static void mesh_handle_summary(const char *target, jo_t j)
             {
                jo_next(j);
                if (jo_here(j) == JO_STRING)
-               {                // Oddly time() is strange so using int32_t for now - fix before 2038 maybe :-)
-                  int32_t new = jo_read_datetime(j);
+               {
+                  time_t new = jo_read_datetime(j);
                   if (new > 1000000000)
                   {
-                     int32_t now = time(0);
-                     int32_t diff = now - new;
+                     time_t now = time(0);
+                     time_t diff = now - new;
                      if (diff > 60 || diff < -60)
                      {          // Big change
                         if (now > 1000000000 && diff < -300)
                         {
-                           ESP_LOGE(TAG, "Replay attack? %d", diff);
+                           struct tm tm;
+                           gmtime_r(&new, &tm);
+                           ESP_LOGE(TAG, "Replay attack? diff=%d new=%04d-%04d-%02dT%02d:%02d:%02dZ", (int) diff, tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);
                            // return; // TODO we are seeing this in normal working, so something is amiss... Investigate
                         }
                         struct timeval tv = { new, 0 };
                         if (settimeofday(&tv, NULL))
-                           ESP_LOGE(TAG, "Time set %d failed", new);
+                           ESP_LOGE(TAG, "Time set %d failed", (int) new);
                      } else if (diff)
                      {
                         struct timeval delta = { diff, 0 };
