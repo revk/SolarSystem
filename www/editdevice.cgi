@@ -52,7 +52,7 @@ if($?DELETE && "$USER_ADMIN" == "true" || $?FACTORY) then
 	else
 		setenv MSG `message --device="$device" --command=restart`
 	endif
-	sql -v "$DB" 'UPDATE device SET site=NULL WHERE device="$device"'
+	sql "$DB" 'UPDATE device SET site=NULL WHERE device="$device"'
 	redirect editdevice.cgi
 	exit 0
 endif
