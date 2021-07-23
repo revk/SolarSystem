@@ -150,6 +150,12 @@ static void status_report(int force)
             latch_tamper |= (live_tamper = areatamper);
          else
             live_tamper = 0;
+         if (areatamper & (state_armed | state_prearm))
+         {
+            jo_t e = jo_make(NULL);
+            jo_string(e, "tamper", tamper);
+            revk_event_clients("trigger", &e, 1 | (ioteventarm << 1));
+         }
       }
       jo_free(&j);              // safe to call even if freed by revk_state
    }

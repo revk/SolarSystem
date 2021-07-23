@@ -33,20 +33,20 @@ area_t live_warning = 0;        // System settings from other modules
 area_t latch_presence = 0;      // System settings from other modules
 area_t live_presence = 0;       // System settings from other modules
 
-static uint32_t summary_next = 0;       // When to report summary
 static SemaphoreHandle_t node_mutex = NULL;
 
 typedef struct node_s {
    mac_t mac;
-   uint8_t online:1;
-   uint8_t reported:1;
+   uint8_t online:1;            // Is on line
+   uint8_t missed:1;            // Has missed a report
+   uint8_t reported:1;          // Has reported
 } node_t;
 static node_t *node = NULL;
 static int nodes = 0;
 static int nodes_online = 0;
 static int nodes_reported = 0;
-
-// TODO keypad UI
+int64_t summary_next = 0;       // Send summary cycle
+int64_t report_next = 0;        // Send report cycle
 
 #define settings		\
 	area(areawarning)	\
@@ -100,7 +100,6 @@ const char *alarm_command(const char *tag, jo_t j)
 {
    if (!strcmp(tag, "connect"))
    {
-      summary_next = uptime() + 1;      // Report
       if (esp_mesh_is_root())
          for (int i = 0; i < nodes; i++)
             if (node[i].online)
@@ -321,7 +320,19 @@ const char *mesh_make_report(jo_t j)
 #include "states.m"
          }
          if (flip & (1ULL << i))
-         {                      // State has changed, so causes presence
+         {                      // State has changed, so causes presence and event logging
+            if ((inputpresence[i] || inputaccess[i] | inputtamper[i]) & (state_armed | state_prearm))
+            { // Event log
+               jo_t e = jo_make(NULL);
+               jo_string(e, "input", inputname[i]);
+               if (inputpresence[i] & (state_armed | state_prearm))
+                  jo_bool(e, "presence",1);
+               if (inputaccess[i] & (state_armed | state_prearm))
+                  jo_bool(e, "access",1);
+               if (inputtamper[i] & (state_armed | state_prearm))
+                  jo_bool(e, "tamper",1);
+               revk_event_clients("trigger", &e, 1 | (ioteventarm << 1));
+            }
             presence |= inputtamper[i];
             presence |= inputaccess[i];
          }
@@ -333,18 +344,21 @@ const char *mesh_make_report(jo_t j)
    if (bell)
       doorbell |= areabell;
    // Latched from local fault or tamper
-   area_t latch = latch_fault;
+   area_t latch = latch_warning;
+   latch_warning = 0;
+   warning |= latch | live_warning;
+
+   latch = latch_fault;
    latch_fault = 0;
    fault |= latch | live_fault;
+
    latch = latch_tamper;
    latch_tamper = 0;
    tamper |= latch | live_tamper;
+
    latch = latch_presence;
    latch_presence = 0;
    presence |= latch | live_presence;;
-   latch = latch_warning;
-   latch_warning = 0;
-   warning |= latch | live_warning;
 #define i(x,c) jo_area(j,#x,x);
 #define c(x) jo_area(j,#x,control_##x);
 #include "states.m"
@@ -395,6 +409,7 @@ static int check_online(const char *target)
    if (!node[child].online)
    {                            // Is there risk of a race in any way? mutex?
       node[child].online = 1;
+      node[child].missed = 0;
       node[child].reported = 0;
       nodes_online++;
       node_online(mac);
@@ -461,6 +476,7 @@ static void mesh_handle_report(const char *target, jo_t j)
       return;
    if (node[child].reported)
       return;                   // Odd
+   node[child].missed = 0;
    node[child].reported = 1;
    nodes_reported++;
    jo_rewind(j);
@@ -492,6 +508,7 @@ static void set_outputs(void)
 
 static void mesh_handle_summary(const char *target, jo_t j)
 {                               // Alarm state - process summary of output states
+   report_next = esp_timer_get_time() + 1000000LL * meshcycle / 4 + 1000000LL * meshcycle * esp_random() / (1ULL << 32) / 2;    // Fit in reports
    check_online(target);
    if (esp_mesh_is_root())
    {                            // We are root, so we have updated anyway, but let's report to IoT
@@ -633,8 +650,6 @@ static void task(void *pvParameters)
 {                               // 
    esp_task_wdt_add(NULL);
    pvParameters = pvParameters;
-   uint64_t summary_next = 0;   // Send summary cycle
-   uint64_t report_next = 0;    // Send report cycle
    uint32_t isroot = 0;
    int wasonline = 0;
    node = malloc(sizeof(*node) * meshmax);
@@ -661,7 +676,7 @@ static void task(void *pvParameters)
          sleep(1);
          continue;
       }
-      uint64_t next = report_next;
+      int64_t next = report_next;
       if (isroot && summary_next < report_next)
          next = summary_next;
       if (next > now)
@@ -670,13 +685,17 @@ static void task(void *pvParameters)
          now = next;
       }
       // Periodic
-      if (isroot)
-      {                         // Collecting reports
-         if (nodes_reported < nodes_online && summary_next <= now)
-         {                      // Time out reporting cycle
-            for (int n = 0; n < nodes; n++)
-               if (!node[n].reported && node[n].online)
-               {                // Gone off line
+      if (isroot && summary_next <= now)
+      {                         // Summary reporting cycle
+         summary_next = now + 1000000LL * meshcycle * 3;
+         // Check off line
+         for (int n = 0; n < nodes; n++)
+            if (!node[n].reported && node[n].online)
+            {                   // Gone off line
+               if (!node[n].missed)
+                  node[n].missed = 1;   // Allow one missed report
+               else
+               {
                   node[n].online = 0;
                   nodes_online--;
                   if (!memcmp(node[n].mac, revk_mac, 6))
@@ -694,10 +713,9 @@ static void task(void *pvParameters)
                   free(topic);
                   node_offline(node[n].mac);
                }
-         }
+            }
          if (nodes_reported >= nodes_online)
-         {                      // End of reporting cycle - no need to wait
-            summary_next = now + 1000000LL * meshcycle * 3;
+         {                      // We have a full set, make a report - the off line logic means we may miss a report if a device goes off line
             // Clear reports
             for (int n = 0; n < nodes; n++)
                node[n].reported = 0;
@@ -710,7 +728,7 @@ static void task(void *pvParameters)
          }
       }
       if (report_next <= now)
-      {                         // Periodic send  to root - even to self
+      {                         // Periodic send to root - even to self
          report_next = now + 1000000LL * meshcycle;
          jo_t j = jo_object_alloc();
          jo_datetime(j, "report", time(0));
@@ -728,6 +746,7 @@ static void task(void *pvParameters)
             for (int i = 0; i < nodes; i++)
             {
                node[i].online = (memcmp(node[i].mac, revk_mac, 6) ? 0 : 1);     // All that are not us
+               node[i].missed = 0;
                node[i].reported = 0;
             }
             nodes_online = 1;   // Us

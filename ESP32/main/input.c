@@ -16,7 +16,7 @@ static uint8_t input[MAXINPUT];
 static uint8_t inputhold[MAXINPUT];
 #define i(x,c) area_t input##x[MAXINPUT];
 #include "states.m"
-static char *inputname[MAXINPUT];
+char *inputname[MAXINPUT];
 
 // Other settings
 #define settings	\
