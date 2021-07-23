@@ -164,7 +164,7 @@ xmlsql -C -d "$DB" head.html - foot.html << END
 </sql>
 <sql select="device.device,gpio.*,devicegpio.*" table="device JOIN gpio USING (pcb) LEFT JOIN devicegpio ON (devicegpio.device=device.device AND devicegpio.gpio=gpio.gpio)" WHERE="device.device='\$device'">
 <tr><td><output name=name href="/editgpio.cgi/\$device/\$gpio" blank="GPIO" missing="GPIO"></td>
-<if type><td><b><output name=type $GPIOTYPEOUT><if not pulse=0 AND type=*O>(<eval #=1 s="\$pulse/10"><output name=s>s)</if><if not hold=0 AND type=*I>(<output name=hold>ms)</if><if invert=true> (inverted)</if></b><for space S="$STATELIST"><if not "\$S"=''> <output name=S></if></for></td></if>
+<if type><td><b><output name=type $GPIOTYPEOUT><if not pulse=0 AND type=*O>(<eval #=1 s="\$pulse/10"><output name=s>s)</if><if not hold=0 AND type=*I>(<output name=hold>ms)</if><if invert=true> (inverted)</if></b><for space S="$STATELIST"><if not "\$S"=''> <output name=S>(<output name="\$S">)</if></for></td></if>
 <if not type><td><b><output name=io $GPIOIOOUT></td></if>
 </tr>
 </sql>

@@ -322,15 +322,15 @@ const char *mesh_make_report(jo_t j)
          if (flip & (1ULL << i))
          {                      // State has changed, so causes presence and event logging
             if ((inputpresence[i] || inputaccess[i] | inputtamper[i]) & (state_armed | state_prearm))
-            { // Event log
+            {                   // Event log
                jo_t e = jo_make(NULL);
                jo_string(e, "input", inputname[i]);
                if (inputpresence[i] & (state_armed | state_prearm))
-                  jo_bool(e, "presence",1);
+                  jo_bool(e, "presence", 1);
                if (inputaccess[i] & (state_armed | state_prearm))
-                  jo_bool(e, "access",1);
+                  jo_bool(e, "access", 1);
                if (inputtamper[i] & (state_armed | state_prearm))
-                  jo_bool(e, "tamper",1);
+                  jo_bool(e, "tamper", 1);
                revk_event_clients("trigger", &e, 1 | (ioteventarm << 1));
             }
             presence |= inputtamper[i];
@@ -679,6 +679,8 @@ static void task(void *pvParameters)
       int64_t next = report_next;
       if (isroot && summary_next < report_next)
          next = summary_next;
+      if (next > now + 1000000LL * meshcycle / 4)
+         next = now + 1000000LL * meshcycle / 4;        // Max time we wait, as we can change the waiting on rx of summary
       if (next > now)
       {
          usleep(next - now);
@@ -725,7 +727,8 @@ static void task(void *pvParameters)
             mesh_make_summary(j);
             const mac_t addr = { 255, 255, 255, 255, 255, 255 };
             revk_mesh_send_json(addr, &j);
-         }
+         } else
+            ESP_LOGI(TAG, "Missed report %d/%d", nodes_reported, nodes_online);
       }
       if (report_next <= now)
       {                         // Periodic send to root - even to self
