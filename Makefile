@@ -39,6 +39,7 @@ update:
 	git commit -a -m "Library update"
 	git push
 	make -C login
+	make -C login/SQLlib
 	make -C xmlsql
 	make -C SQLlib
 	make -C AJL
