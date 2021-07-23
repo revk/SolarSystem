@@ -38,10 +38,12 @@ list:
 echo "Content-encoding: none" # so no deflating and hence no caching for interactive status
 xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <if CANADOPTFOB>
+<sql table="device LEFT JOIN aid USING (aid)" where="device.site=$SESSION_SITE AND online IS NOT NULL AND (nfctrusted='true' OR nfcadmin='true')"><set found=1></sql>
+<if found>
 <h2>Adopting a fob</h1>
 <form name=f method=post style="display:inline;">
 <select name=device>
-<sql table="device LEFT JOIN aid USING (aid)" where="device.site=$SESSION_SITE AND online IS NOT NULL AND (nfctrusted='true' OR nfcadmin='true')"><set found=1>
+<sql table="device LEFT JOIN aid USING (aid)" where="device.site=$SESSION_SITE AND online IS NOT NULL AND (nfctrusted='true' OR nfcadmin='true')">
 <option value="$device"><output name=aidname>:<output name=devicename blank="$device"></option>
 </sql>
 </select>
@@ -65,6 +67,7 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 </if>
 <if device><ul id=status></ul></if>
 </form>
+</if>
 </if>
 
 <h2>Fobs</h2>
