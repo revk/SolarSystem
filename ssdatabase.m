@@ -354,7 +354,7 @@ table(event,0);			// Logging
 link(device);
 datetime(logged);
 text(suffix,0);
-text(event,0);
+text(data,0);
 
 #undef table
 #undef join

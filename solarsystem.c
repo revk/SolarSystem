@@ -1131,6 +1131,9 @@ int main(int argc, const char *argv[])
             }
          } else if (prefix && !strcmp(prefix, "event"))
          {
+            char *data = j_write_str(j);
+            sql_safe_query_free(&sql, sql_printf("INSERT INTO `event` SET `logged`=NOW(),`device`=%#s,`suffix`=%#s,`data`=%#s", deviceid, suffix, data));
+            free(data);
             if (!strcmp(suffix, "fob") && checkdevice())
             {                   // Fob usage - loads of options
                int organisation = atoi(sql_colz(device, "organisation"));

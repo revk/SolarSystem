@@ -37,7 +37,7 @@ int main(int argc, const char *argv[])
    const char *status = NULL;
    const char *arm = NULL;
    const char *disarm = NULL;
-   const char *fobname=NULL;
+   const char *fobname = NULL;
    int debug = 0;
    int setting = 0;
    int silent = 0;
@@ -297,15 +297,14 @@ int main(int argc, const char *argv[])
                printf("<script>e=document.createElement('li');e.textContent='%s';document.getElementById('%s').append(e);</script>\n", s, status);
          }
          ret = 1;
-            if (j_isstring(j))
-	    {
-		    if(status)
+         if (j_isstring(j))
+         {
+            if (status)
                printf("<script>e=document.createElement('li');e.textContent='%s';document.getElementById('%s').append(e);</script>\n", j_val(j), status);
-		    if(!silent)
+            if (!silent)
                printf("%s", j_val(j));
-	    }
-            else if(!silent)
-               j_err(j_write_pretty(j, stdout));
+         } else if (!silent)
+            j_err(j_write_pretty(j, stdout));
          fflush(stdout);
       } else
          done = 1;

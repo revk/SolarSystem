@@ -146,7 +146,7 @@ void *fobcommand(void *arg)
    int organisation = 0;
    int access = 0;
    char *fob = NULL;
-   char *fobname=NULL;
+   char *fobname = NULL;
    {                            // Get passed settings
       const char *v;
       j_t j = arg;
