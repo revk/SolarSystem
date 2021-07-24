@@ -122,9 +122,12 @@ unsigned int makeafile(SQL_RES * res, unsigned char *afile)
          if (strlen(v) >= 5)
          {
             to[d] = ((v[0] - '0') * 1000) + ((v[1] - '0') * 100) + ((v[3] - '0') * 10) + (v[4] - '0');
-            to[d]++;
-            if ((to[d] % 100) == 60)
-               to[d] += 40;
+            if (to[d] != from[d])
+            {
+               to[d]++;
+               if ((to[d] % 100) == 60)
+                  to[d] += 40;
+            }
          }
       }
       void addtimes(unsigned short day[7], unsigned char tag) {
