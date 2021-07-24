@@ -16,8 +16,8 @@ s(engineer,GY) // In order or importance
 s(faulted,)
 s(tampered,)
 s(alarmed,)
-s(prearm,)
 s(armed,C)
+s(prearm,)
 s(prealarm,)
 s(alarm,RB)
 
