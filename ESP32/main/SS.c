@@ -150,13 +150,24 @@ static void status_report(int force)
             latch_tamper |= (live_tamper = areatamper);
          else
             live_tamper = 0;
-	 // TODO any way to report this when arming so pre-existing tamper shows
          if (areatamper & (state_armed | state_prearm))
          {
             jo_t e = jo_make(NULL);
             jo_lit(e, "tamper", last_tamper);
             revk_event_clients("trigger", &e, 1 | (ioteventarm << 1));
          }
+      }
+      if (tampers)
+      {
+         static area_t was_prearm = 0;
+         area_t trigger = (areatamper & ~state_engineer);
+         if ((trigger & state_prearm) && !(trigger & was_prearm))
+         {
+            jo_t e = jo_make(NULL);
+            jo_lit(e, "tamper", last_tamper);
+            revk_event_clients("inhibit", &e, 1 | (ioteventarm << 1));
+         }
+         was_prearm = state_prearm;
       }
       jo_free(&j);              // safe to call even if freed by revk_state
    }
