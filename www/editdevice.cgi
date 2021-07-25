@@ -53,6 +53,9 @@ if($?DELETE && "$USER_ADMIN" == "true" || $?FACTORY) then
 		setenv MSG `message --device="$device" --command=restart`
 	endif
 	sql "$DB" 'UPDATE device SET site=NULL WHERE device="$device"'
+	# device count change
+	sql "$DB" 'UPDATE device SET poke=NOW() WHERE site=$site'
+        message --poke
 	redirect editdevice.cgi
 	exit 0
 endif

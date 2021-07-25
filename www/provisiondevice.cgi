@@ -21,6 +21,9 @@ if($?PROVISION) then
 		sql "$DB" 'INSERT INTO device SET device="$PROVISION",pcb="$pcb",organisation="$SESSION_ORGANISATION",site="$SESSION_SITE",aid="$aid",nfc="$nfc" ON DUPLICATE KEY UPDATE pcb="$pcb",organisation="$SESSION_ORGANISATION",site="$SESSION_SITE",aid="$aid",nfc="$nfc"'
 		sql "$DB" 'DELETE FROM devicegpio WHERE device="$PROVISION"'
 		sql "$DB" 'INSERT INTO devicegpio (device,gpio,type,name,hold,pulse) SELECT "$PROVISION",gpio,inittype,initname,inithold,initpulse FROM gpio WHERE pcb=$pcb'
+		# device count change
+		sql "$DB" 'UPDATE device SET poke=NOW() WHERE site=$site'
+		message --poke
 		if("$authenticated" == "true")then
 			setenv MSG `message --pending="$PROVISION" --command="restart"`
 		else
