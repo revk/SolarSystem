@@ -522,7 +522,7 @@ int main(int argc, const char *argv[])
          { "dump", 'V', POPT_ARG_NONE, &dump, 0, "Debug dump", NULL },
          { "no-daemon", 'D', POPT_ARG_NONE, &nodaemon, 0, "No daemon", NULL },
          { "mqtt", 'm', POPT_ARG_NONE, &mqttdump, 0, "Debug mqtt", NULL },
-         { "directory", 'd', POPT_ARG_NONE, &dir, 0, "Directory", "path" },
+         { "directory", 'd', POPT_ARG_STRING, &dir, 0, "Directory", "path" },
          POPT_AUTOHELP { }
       };
       optCon = poptGetContext(NULL, argc, argv, optionsTable, 0);
