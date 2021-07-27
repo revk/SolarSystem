@@ -513,12 +513,16 @@ int main(int argc, const char *argv[])
 #ifdef	SQL_DEBUG
    sqldebug = 1;
 #endif
+   const char *dir = NULL;
+   int nodaemon = 0;
    {                            // POPT
       poptContext optCon;       // context for parsing command-line options
       const struct poptOption optionsTable[] = {
          { "debug", 'v', POPT_ARG_NONE, &sqldebug, 0, "Debug", NULL },
          { "dump", 'V', POPT_ARG_NONE, &dump, 0, "Debug dump", NULL },
+         { "no-daemon", 'D', POPT_ARG_NONE, &nodaemon, 0, "No daemon", NULL },
          { "mqtt", 'm', POPT_ARG_NONE, &mqttdump, 0, "Debug mqtt", NULL },
+         { "directory", 'd', POPT_ARG_NONE, &dir, 0, "Directory", "path" },
          POPT_AUTOHELP { }
       };
       optCon = poptGetContext(NULL, argc, argv, optionsTable, 0);
@@ -533,7 +537,9 @@ int main(int argc, const char *argv[])
       }
       poptFreeContext(optCon);
    }
-   if (!sqldebug && !mqttdump && !dump)
+   if (dir && chdir(dir))
+      err(1, "Failed to chdir to %s", dir);
+   if (!sqldebug && !mqttdump && !dump && !nodaemon)
       daemon(1, 1);
    CURL *curl = curl_easy_init();
    if (sqldebug)
@@ -1017,7 +1023,7 @@ int main(int argc, const char *argv[])
             if (!device || (version && strcmp(sql_colz(device, "version"), version)))
             {
                sql_sprintf(&s, "`version`=%#s,", version);
-               if (device&&secureid)
+               if (device && secureid)
                   sql_safe_query_free(&sql, sql_printf("INSERT INTO `event` SET `logged`=NOW(),`device`=%#s,`suffix`='upgrade',`data`='{\"version\":\"%#S\"}'", deviceid, version));
             }
             const char *build = j_get(j, "build");
