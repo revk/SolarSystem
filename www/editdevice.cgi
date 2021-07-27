@@ -107,7 +107,7 @@ xmlsql -C -d "$DB" head.html - foot.html << END
 <th>Flash</th>
 <th>Notes</th></tr>
 <sql table="device" where="site=$SESSION_SITE" select="max(version) AS V,max(build) AS B"><set V="\$V"><set B="\$B"></sql>
-<sql table="device LEFT JOIN pcb USING (pcb) LEFT JOIN device AS device2 ON (device.via=device2.device) LEFT JOIN device AS device3 ON (device.bssid=device3.device)" order="device2.devicename,device.devicename" WHERE="device.site=\$SESSION_SITE" select="device.*,pcb.pcbname,device2.devicename AS VIA,device3.devicename AS PARENT"><set found=1>
+<sql table="device LEFT JOIN pcb USING (pcb) LEFT JOIN device AS device2 ON (device.via=device2.device) LEFT JOIN device AS device3 ON (device.bssid=device3.device)" order="device.devicename" WHERE="device.site=\$SESSION_SITE" select="device.*,pcb.pcbname,device2.devicename AS VIA,device3.devicename AS PARENT"><set found=1>
 <tr>
 <td title="\$device"><output href="/editdevice.cgi/\$device" name=devicename blank="Unnamed" missing="Unnamed"></td>
 <set s=""><if lastonline><set s="background:green;"></if><if not online><set s="background:yellow;"></if>
