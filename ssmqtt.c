@@ -259,6 +259,11 @@ static void *server(void *arg)
                      return "Too short";
                   unsigned short id = (data[0] << 8) + data[1];
                   data += 2;
+                  // Ack
+                  tx[txp++] = 0x90;
+                  txp += 2;     // len
+                  tx[txp++] = (id >> 8);
+                  tx[txp++] = id;
                   j_t j = j_create();
                   j_t s = j_array(j_path(j, "_meta.subscribe"));
                   while (data + 2 <= end)
@@ -268,14 +273,12 @@ static void *server(void *arg)
                      if (data + l <= end)
                         j_append_stringn(s, (char *) data, l);
                      data += l;
+                     uint8_t qos = *data++;
+                     tx[txp++] = qos;
                   }
                   addq(&j);
-                  // Ack
-                  tx[txp++] = 0x90;
-                  tx[txp++] = 3;
-                  tx[txp++] = (id >> 8);
-                  tx[txp++] = id;
-                  tx[txp++] = 0;        // QoS 0
+                  tx[2] = 0x80 + ((txp - 3) & 0x7f);    // len
+                  tx[3] = ((txp - 3) >> 7);
                }
                break;
             case 10:           // unsub
