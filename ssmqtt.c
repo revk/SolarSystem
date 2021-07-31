@@ -277,8 +277,8 @@ static void *server(void *arg)
                      tx[txp++] = qos;
                   }
                   addq(&j);
-                  tx[2] = 0x80 + ((txp - 3) & 0x7f);    // len
-                  tx[3] = ((txp - 3) >> 7);
+                  tx[1] = 0x80 + ((txp - 3) & 0x7f);    // len
+                  tx[2] = ((txp - 3) >> 7);
                }
                break;
             case 10:           // unsub
