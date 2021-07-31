@@ -1524,4 +1524,6 @@ Wire Wire Line
 Connection ~ 4325 3175
 Wire Wire Line
 	4325 3175 4425 3175
+Text Notes 6325 4000 0    118  ~ 0
+CHANGE THIS TO A FET\nThe specific BC817 is impacting\nwhether this works,\nso clearly on the edge somehow.
 $EndSCHEMATC
