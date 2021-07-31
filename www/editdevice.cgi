@@ -62,7 +62,6 @@ endif
 if($?devicename) then # save
 	can --redirect --device='$device' editdevice
 	if($status) exit 0
-	setenv pcb `sql "$DB" 'SELECT pcb FROM device WHERE device="$device"'`
 	if($?pcb) then
 		setenv rgb `sql "$DB" 'SELECT IF(ledr="-","false","true") FROM pcb WHERE pcb=$pcb'`
 		setenv nfc `sql "$DB" 'SELECT IF(nfctx="-","false","true") FROM pcb WHERE pcb=$pcb'`
@@ -82,7 +81,7 @@ if($?devicename) then # save
 	if(! $?iotstatesystem) setenv iotstatesystem false
 	if(! $?iotkeypad) setenv iotkeypad false
 	if(! $?ioteventfob) setenv ioteventfob false
-	setenv allow "devicename areawarning areafault areatamper areaenter areastrongarm areadeadlock areaarm areadisarm areabell arealed areakeypad nfc rgb nfcadmin door doorexitarm doorexitdisarm aid site iotstatedoor iotstateinput iotstateoutput iotstatefault iotstatewarning iotstatetamper iotstatesystem ioteventfob iotkeypad doorunlock doorlock dooropen doorclose doorprop doorexit keypadidle keypad"
+	setenv allow "devicename areawarning areafault areatamper areaenter areastrongarm areadeadlock areaarm areadisarm areabell arealed areakeypad nfc rgb nfcadmin door doorexitarm doorexitdisarm aid site iotstatedoor iotstateinput iotstateoutput iotstatefault iotstatewarning iotstatetamper iotstatesystem ioteventfob iotkeypad doorunlock doorlock dooropen doorclose doorprop doorexit keypadidle keypad pcb"
 	if("$USER_ADMIN" == "true") setenv allow "$allow nfctrusted"
 	sqlwrite -qon "$DB" device $allow
 	sql "$DB" 'UPDATE device SET poke=NOW() WHERE device="$device"'
@@ -131,7 +130,7 @@ xmlsql -C -d "$DB" head.html - foot.html << END
 <form method=post action=/editdevice.cgi><input type=hidden name=device>
 <sql table="device LEFT JOIN pcb USING (pcb)" KEY=device>
 <table>
-<tr><td>PCB</td><td><output name=pcbname></td></tr>
+<tr><td>PCB</td><td><select name=pcb><sql table=pcb order=pcbname><option value="\$pcb"><output name=pcbname></option></sql></select></td></tr>
 <tr><td>Name</td><td><input name=devicename size=20 maxlength=20 autofocus></td></tr>
 <if keypad=true><tr><td>Keypad</td><td><input name=keypadidle size=16 maxlength=16 autofocus></td></tr></if>
 <tr><td>Site</td><td><select name=site><sql table=site where="organisation=$SESSION_ORGANISATION"><option value='\$site'><output name=sitename></option></sql></select></td></tr>
