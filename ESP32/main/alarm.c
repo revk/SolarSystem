@@ -811,6 +811,7 @@ static void task(void *pvParameters)
 void alarm_rx(const char *target, jo_t j)
 {
    ESP_LOGD(TAG, "Rx JSON %s %s", target, jo_rewind(j) ? : "?");
+   jo_rewind(j);
    if (jo_here(j) != JO_OBJECT)
       return;
    jo_next(j);
