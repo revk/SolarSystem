@@ -7,7 +7,7 @@ if($?DELETE) then
 		setenv MSG "Tick to say you are sure"
 		goto done
 	endif
-	setenv C `sql -c "$DB" 'DELETE FROM gpio WHERE pcb=$pcb' 'DELETE FROM pcb WHERE pcb=$pcb'`
+	setenv C `sql -ct "$DB" 'DELETE FROM gpio WHERE pcb=$pcb' 'DELETE FROM pcb WHERE pcb=$pcb'`
 	if("$C" == "" || "$C" == "0") then
 		setenv MSG "Cannot delete as in use"
 		goto done
