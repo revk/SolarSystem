@@ -217,7 +217,7 @@ const char *app_callback(int client, const char *prefix, const char *target, con
       alarm_rx(target, j);
       return NULL;
    }
-   if (client || !prefix || target || strcmp(prefix, prefixcommand))
+   if (!prefix || target || strcmp(prefix, prefixcommand) || (client && strcmp(suffix, "connect")))
       return NULL;              // Not for us or not a command from main MQTT
 #define m(x) extern const char * x##_command(const char *,jo_t); jo_rewind(j);if(!e)e=x##_command(suffix,j);
    modules;
