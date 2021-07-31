@@ -9,7 +9,7 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <if SESSION_ORGANISATION AND CANEDITUSER><li><a href="edituserorganisation.cgi">Manage users</a></li></if>
 <hr>
 <if SESSION_ORGANISATION AND USER_ADMIN=true><li><a href="editsite.cgi/0">New site</a></li></if>
-<if SESSION_SITE CANEDITSITE><li><a href="editsite.cgi/$SESSION_SITE">Manage sites</a></li></if>
+<if SESSION_SITE CANEDITSITE><li><a href="editsite.cgi/$SESSION_SITE">Manage site</a></li></if>
 <if SESSION_SITE CANEDITAREA><li><a href="editarea.cgi">Manage areas</a></li></if>
 <if SESSION_ORGANISATION AND ADMINORGANISATION><li><a href="editaid.cgi">Manage AIDs</a></li></if>
 <if SESSION_SITE CANARM><li><a href="arm.cgi">Arm</a></li></if>

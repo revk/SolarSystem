@@ -16,6 +16,14 @@ if($?DELETE) then
 	setenv MSG Deleted
 	goto done
 endif
+if($?COPY) then
+	setenv C `sql "$DB" 'SELECT column_name FROM INFORMATION_SCHEMA.COLUMNS WHERE table_name="pcb" and column_name<>"pcb" AND column_name<>"pcbname"'|sed '2,$s/^/,/'`
+	setenv N `sql -i "$DB" 'INSERT INTO pcb (pcb,pcbname,'"$C"') SELECT 0,concat(pcbname," copy"),'"$C"' FROM pcb WHERE pcb=$pcb'`
+	setenv C `sql "$DB" 'SELECT column_name FROM INFORMATION_SCHEMA.COLUMNS WHERE table_name="gpio" and column_name<>"gpio" AND column_name<>"pcb"'|sed '2,$s/^/,/'`
+	sql "$DB" 'INSERT INTO gpio (gpio,pcb,'"$C"') SELECT 0,$N,'"$C"' FROM gpio WHERE pcb=$pcb'
+	setenv pcb "$N"
+	goto done
+endif
 if($?pcbname) then # save
 	set changed=0
 	if($pcb == 0) then
@@ -118,6 +126,7 @@ xmlsql -C -d "$DB" head.html - foot.html << END
 </table>
 </sql>
 <input type=submit value="Update">
+<IF not pcb=0><input type=submit value="Copy" name=COPY></if>
 <IF not pcb=0><input type=submit value="Delete" name=DELETE><input type=checkbox name=SURE title='Tick this to say you are sure'></if>
 </form>
 </if>
