@@ -273,12 +273,18 @@ areas(areadeadlock);            // Areas for door bell input
 areas(arealed);                 // LED area
 areas(areakeypad);              // Keypad area
 datetime(online);               // When online, if online
+index(online);
 datetime(lastonline);           // When last went offline
+index(lastonline)
+datetime(offlinereport);	// When reported offline
+index(offlinereport);
 text(offlinereason, 0);         // If sent offline reason, what was it
 datetime(upgrade);              // When to do upgrade
+index(upgrade);
 ip(address);                    // IP address when last online
 num(id);                        // Instance for communications when on line
 datetime(poke);                 // Poke settings
+index(poke);
 text(tamper, 0);                // Latest tamper state
 text(fault, 0);                 // Latest fault state
 num(doorunlock);                // Door timer

@@ -11,7 +11,7 @@ if($?DELETE) then
 		goto done
 	endif
 	sql "$DB" 'UPDATE session set site=NULL WHERE site=$site'
-	setenv C `sql -c "$DB" 'DELETE FROM site WHERE site=$site'`
+	setenv C `sql -ct "$DB" 'UPDATE session set site=NULL WHERE site=$site' 'DELETE FROM site WHERE site=$site'`
 	if("$C" == "" || "$C" == "0") then
 		setenv MSG "Cannot delete as in use"
 		goto done

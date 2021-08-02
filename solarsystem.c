@@ -41,6 +41,8 @@ extern int sqldebug;
 int dump = 0;                   // dump level debug
 int mqttdump = 0;               // mqtt logging
 
+CURL *curl = NULL;
+
 static void addarea(j_t j, const char *tag, const char *val, char always);
 static void addsitedata(SQL * sqlp, j_t j, SQL_RES * site, const char *deviceid, const char *parentid);
 
@@ -59,6 +61,27 @@ char *getaes(SQL * sqlkeyp, char *target, const char *aid, const char *fob)
    if (sql_query_free(sqlkeyp, sql_printf("INSERT INTO `AES` SET `aid`=%#s,`fob`=%#s,`ver`=%#.2s,`key`=%#s", aid ? : "", fob ? : "", target, target + 2)))
       *target = 0;
    return target;
+}
+
+void send_message(SQL_RES * res, const char *ud)
+{
+   const char *u = sql_colz(res, "smsuser");
+   const char *p = sql_colz(res, "smspass");
+   const char *n = sql_colz(res, "smsnumber");
+   if (*u && *p && *n)
+   {
+      const char *f = sql_colz(res, "smsfrom");
+      if (!*f)
+         f = sql_colz(res, "sitename");
+      j_t s = j_create();
+      j_store_string(s, "username", u);
+      j_store_string(s, "password", p);
+      j_store_string(s, "da", n);
+      j_store_string(s, "oa", f);
+      j_store_string(s, "ud", ud);
+      j_curl_send(curl, s, NULL, NULL, "https://sms.aa.net.uk");
+      j_delete(&s);
+   }
 }
 
 const char *upgrade(SQL_RES * res, slot_t id)
@@ -474,6 +497,35 @@ void doupgrade(SQL * sqlp)
    sql_free_result(res);
 }
 
+void dooffline(SQL * sqlp)
+{                               // Check offline sites
+   char *t;
+   SQL_RES *res;
+   res = sql_safe_query_store(sqlp, "SELECT * FROM `site` LEFT JOIN `device` USING (`site`) WHERE `online` IS NOT NULL GROUP BY `site` HAVING COUNT(`device`)=0");
+   while (sql_fetch_row(res))
+   {
+      sql_safe_query_free(sqlp, sql_printf("UPDATE `site` SET `missing`=`nodes` WHERE `site`=%#s", sql_colz(res, "site")));
+      if (asprintf(&t, "Site off line device\n%s", sql_colz(res, "sitename")) < 0)
+         errx(1, "malloc");
+      send_message(res, t);
+      free(t);
+   }
+   sql_free_result(res);
+   res = sql_safe_query_store(sqlp, "SELECT * FROM `device` LEFT JOIN `site` USING (`site`) WHERE `offlinereport` IS NULL AND `online` IS NULL");
+   while (sql_fetch_row(res))
+   {
+      if (atoi(sql_colz(res, "nodes")) != atoi(sql_colz(res, "missing")))
+      {                         // Individual device off line but not site
+         if (asprintf(&t, "%s\nOff line device\n%s", sql_colz(res, "lastonline"), sql_colz(res, "devicename")) < 0)
+            errx(1, "malloc");
+         send_message(res, t);
+         free(t);
+      }
+      sql_safe_query_free(sqlp, sql_printf("UPDATE `device` SET `offlinereport`=NOW() WHERE `device`=%#s", sql_col(res, "device")));
+   }
+   sql_free_result(res);
+}
+
 void dopoke(SQL * sqlp, SQL * sqlkeyp)
 {                               // Poking that may need doing
    SQL_RES *res = sql_safe_query_store(sqlp, "SELECT * FROM `device` WHERE `poke`<=NOW() AND `id` IS NOT NULL ORDER BY `poke`");
@@ -541,7 +593,7 @@ int main(int argc, const char *argv[])
       err(1, "Failed to chdir to %s", dir);
    if (!sqldebug && !mqttdump && !dump && !nodaemon)
       daemon(1, 1);
-   CURL *curl = curl_easy_init();
+   curl = curl_easy_init();
    if (sqldebug)
       curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
    // Get started
@@ -667,7 +719,19 @@ int main(int argc, const char *argv[])
                poke = 0;
                dopoke(&sql, &sqlkey);
             } else
-               doupgrade(&sql);
+            {
+               SQL_RES *res =
+                   sql_safe_query_store(&sql,
+                                        "SELECT SUM(IF(`upgrade`<now() AND `id` IS NOT NULL,1,0)) AS `U`,SUM(IF(`offlinereport` IS NULL AND `online` IS NULL AND `lastonline`<DATE_SUB(NOW(),INTERVAL 5 MINUTE),1,0)) AS `O` FROM `device` WHERE `upgrade`<now() AND `id` IS NOT NULL OR `offlinereport` IS NULL AND `online` IS NULL");
+               if (sql_fetch_row(res))
+               {
+                  if (atoi(sql_colz(res, "U")))
+                     doupgrade(&sql);
+                  if (atoi(sql_colz(res, "O")))
+                     dooffline(&sql);
+               }
+               sql_free_result(res);
+            }
          }
       }
       j_t j = incoming();
@@ -947,7 +1011,7 @@ int main(int argc, const char *argv[])
                      if (p - dev == 12)
                      {
                         if (checkdevice())
-                           sql_safe_query_free(&sql, sql_printf("UPDATE `device` SET `via`=NULL,`online`=NULL,`id`=NULL,`offlinereason`='Timeout' WHERE `device`=%#.*s AND `id`=%lld", p - dev, dev, id));
+                           sql_safe_query_free(&sql, sql_printf("UPDATE `device` SET `via`=NULL,`online`=NULL,`id`=NULL,`offlinereport`=NULL,`offlinereason`='Timeout' WHERE `device`=%#.*s AND `id`=%lld", p - dev, dev, id));
                         else
                            sql_safe_query_free(&sql, sql_printf("DELETE FROM `pending` WHERE `pending`=%#.*s AND `id`=%lld", p - dev, dev, id));
                      }
@@ -986,7 +1050,7 @@ int main(int argc, const char *argv[])
          {                      // Up message
             if (j_isbool(up) && !j_istrue(up))
             {                   // Down
-               sql_safe_query_free(&sql, sql_printf("UPDATE `device` SET `via`=NULL,`offlinereason`=%#s,`online`=NULL,`id`=NULL WHERE `device`=%#s AND `id`=%lld", j_get(j, "reason"), deviceid, id));
+               sql_safe_query_free(&sql, sql_printf("UPDATE `device` SET `via`=NULL,`offlinereport`=NULL,`offlinereason`=%#s,`online`=NULL,`id`=NULL WHERE `device`=%#s AND `id`=%lld", j_get(j, "reason"), deviceid, id));
                return NULL;
             }
             sql_string_t s = { };
@@ -1098,32 +1162,14 @@ int main(int argc, const char *argv[])
          {
             SQL_RES *res = sql_safe_query_store_free(&sql, sql_printf("SELECT * FROM `site` WHERE `site`=%#s", sql_col(device, "site")));
             if (sql_fetch_row(res))
-            {
-               const char *u = sql_colz(res, "smsuser");
-               const char *p = sql_colz(res, "smspass");
-               const char *n = sql_colz(res, "smsnumber");
-               if (*u && *p && *n)
-               {
-                  const char *f = sql_colz(res, "smsfrom");
-                  if (!*f)
-                     f = deviceid;
-                  j_t s = j_create();
-                  j_store_string(s, "username", u);
-                  j_store_string(s, "password", p);
-                  j_store_string(s, "da", n);
-                  j_store_string(s, "oa", f);
-                  j_store_string(s, "ud", j_get(j, "message"));
-                  j_curl_send(curl, s, NULL, NULL, "https://sms.aa.net.uk");
-                  j_delete(&s);
-               }
-            }
+               send_message(res, j_get(j, "message"));
             sql_free_result(res);
             return NULL;
          }
          if (!prefix)
          {                      // Down (all other messages have a topic)
             if (secureid)
-               sql_safe_query_free(&sql, sql_printf("UPDATE `device` SET `via`=NULL,`offlinereason`='Closed',`online`=NULL,`id`=NULL,`lastonline`=NOW() WHERE `id`=%lld", id));
+               sql_safe_query_free(&sql, sql_printf("UPDATE `device` SET `via`=NULL,`offlinereport`=NULL,`offlinereason`='Closed',`online`=NULL,`id`=NULL,`lastonline`=NOW() WHERE `id`=%lld", id));
             else                // pending
                sql_safe_query_free(&sql, sql_printf("DELETE FROM `pending` WHERE `id`=%lld", id));
             return NULL;
