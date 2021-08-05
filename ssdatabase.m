@@ -153,6 +153,7 @@ areas(smsdisarm);
 areas(smsarmfail);
 areas(smsalarm);
 areas(smspanic);
+areas(smsfire);
 areas(mixand1);
 areas(mixset1);
 text(mixarm1,0);

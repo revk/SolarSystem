@@ -73,6 +73,7 @@ int64_t report_next = 0;        // Send report cycle
 	area(smsarmfail)	\
 	area(smsalarm)		\
 	area(smspanic)		\
+	area(smsfire)		\
 	arean(mixand,MAX_MIX)	\
 	arean(mixset,MAX_MIX)	\
 	sn(mixarm,MAX_MIX)	\
@@ -660,6 +661,20 @@ static void mesh_handle_summary(const char *target, jo_t j)
 
       }
       lastpanic = state_panic;
+   }
+   static area_t lastfire = -1;
+   if (lastfire != state_fire)
+   {
+      if (esp_mesh_is_root() && smsfire & (state_fire & ~lastfire))
+      {
+         jo_t j = jo_make("System");
+         jo_area(j, "areas", state_fire & ~lastfire);
+         sms_event("Panic", j);
+         revk_event_clients("fire", &j, 1 | (ioteventarm << 1));
+         jo_free(&j);
+
+      }
+      lastfire = state_fire;
    }
 }
 

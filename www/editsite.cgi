@@ -29,7 +29,7 @@ if($?sitename) then
 	if(! $?nomesh) setenv nomesh false
 	if(! $?ioteventarm) setenv ioteventarm false
 	if(! $?debug) setenv debug false
-	sqlwrite -qon "$DB" site sitename wifissid wifipass iothost nomesh smsuser smspass armcancel alarmdelay alarmhold debug ioteventarm smsarm smsarmfail smsdisarm smsalarm smspanic engineer smsnumber smsfrom
+	sqlwrite -qon "$DB" site sitename wifissid wifipass iothost nomesh smsuser smspass armcancel alarmdelay alarmhold debug ioteventarm smsarm smsarmfail smsdisarm smsalarm smspanic smsfire engineer smsnumber smsfrom
 	sql "$DB" 'UPDATE device SET poke=NOW() WHERE site=$site'
 	message --poke
 	redirect /
@@ -57,7 +57,7 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <tr><td>Alarm-Hold</td><td><input name=alarmhold size=3> seconds (timeout before alarm cancels after last trigger)</td></tr>
 </table>
 <table border=1>
-<set tags="engineer smsarm smsarmfail smsdisarm smsalarm smspanic">
+<set tags="engineer smsarm smsarmfail smsdisarm smsalarm smspanic smsfire">
 <tr><th></th>
 <for SPACE T="$tags"><th><output name=T></th></for>
 <th>Areas</th>
