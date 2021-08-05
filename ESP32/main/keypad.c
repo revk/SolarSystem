@@ -146,7 +146,7 @@ static void displayprint(const char *fmt, ...)
 
 void keypad_ui(char key)
 {                               // Update display for UI
-   ESP_LOGI(TAG, "UI %c", key); // TODO
+   ESP_LOGI(TAG, "UI %c tx=%d rx=%d de=%d re=%d", key,port_mask(keypadtx),port_mask(keypadrx),port_mask(keypadde),port_mask(keypadre)); // TODO
    static uint32_t timeout = 0;
    uint32_t now = uptime();
    static uint8_t state = IDLE,
