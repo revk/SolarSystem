@@ -50,6 +50,8 @@ if($?pcbname) then # save
 				goto done
 			endif
 			@ changed = $changed + 1
+			if("$inithold" == "")setenv inithold 0
+			if("$initpulse" == "")setenv initpulse 0
 			set n=`sql -i "$DB" 'INSERT INTO gpio SET pcb="$pcb",pin="$g",io="$t",inittype="$i",initname="$initname",inithold=$inithold,initpulse=$initpulse'`
 		endif
 	else
