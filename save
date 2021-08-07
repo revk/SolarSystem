@@ -1,4 +1,0 @@
-#!/bin/csh -f
-# Save some fields
-mysqldump --insert-ignore -t --compact -c SS
-
