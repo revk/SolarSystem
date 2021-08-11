@@ -1,0 +1,13 @@
+[Unit]
+Description=Solar System
+
+[Service]
+Type=simple
+User=adrian
+Group=adrian
+WorkingDirectory=/projects/SolarSystem
+ExecStart=/projects/SolarSystem/solarsystem --no-daemon
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
