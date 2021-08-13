@@ -566,7 +566,7 @@ static void mesh_handle_summary(const char *target, jo_t j)
                   if (new > 1000000000)
                   {
                      time_t now = time(0);
-                     time_t diff = now - new;
+                     time_t diff = new - now;
                      if (diff > 60 || diff < -60)
                      {          // Big change
                         if (now > 1000000000 && diff < -300)
