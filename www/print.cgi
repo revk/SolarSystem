@@ -5,3 +5,4 @@ cat >> /tmp/json
 echo "" >> /tmp/json
 echo "Status: 204"
 echo ""
+../message --stdin --command=print
