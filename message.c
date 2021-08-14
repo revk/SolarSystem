@@ -48,6 +48,7 @@ main (int argc, const char *argv[])
   int organisation = 0;
   int access = 0;
   int jsonstdin = 0;
+  int print=0;
   {				// POPT
     poptContext optCon;		// context for parsing command-line options
     const struct poptOption optionsTable[] = {
@@ -69,6 +70,7 @@ main (int argc, const char *argv[])
       {"pending", 'p', POPT_ARG_STRING, &pending, 0, "Pending device", "XXXXXXXXXXXX"},
       {"status", 's', POPT_ARG_STRING, &status, 0, "Status", "div ID"},
       {"provision", 0, POPT_ARG_NONE, &provision, 0, "Provision", NULL},
+      {"print", 0, POPT_ARG_NONE, &print, 0, "Print", NULL},
       {"poke", 0, POPT_ARG_NONE, &poke, 0, "Poke", NULL},
       {"stdin", 0, POPT_ARG_NONE, &jsonstdin, 0, "JSON from stdin", NULL},
       {"silent", 'q', POPT_ARG_NONE, &silent, 0, "Silent", NULL},
@@ -109,6 +111,8 @@ main (int argc, const char *argv[])
   j_t meta = j_store_object (j, "_meta");
   if (provision)
     j_store_true (meta, "provision");
+  if (print)
+    j_store_true (meta, "print");
   if (poke)
     j_store_true (meta, "poke");
   if (deport)

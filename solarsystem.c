@@ -720,9 +720,8 @@ int main(int argc, const char *argv[])
                dopoke(&sql, &sqlkey);
             } else
             {
-               SQL_RES *res =
-                   sql_safe_query_store(&sql,
-                                        "SELECT SUM(IF(`upgrade`<now() AND `id` IS NOT NULL,1,0)) AS `U`,SUM(IF(`offlinereport` IS NULL AND `online` IS NULL AND `lastonline`<DATE_SUB(NOW(),INTERVAL 5 MINUTE),1,0)) AS `O` FROM `device` WHERE `upgrade`<now() AND `id` IS NOT NULL OR `offlinereport` IS NULL AND `online` IS NULL");
+               SQL_RES *res = sql_safe_query_store(&sql,
+                                                   "SELECT SUM(IF(`upgrade`<now() AND `id` IS NOT NULL,1,0)) AS `U`,SUM(IF(`offlinereport` IS NULL AND `online` IS NULL AND `lastonline`<DATE_SUB(NOW(),INTERVAL 5 MINUTE),1,0)) AS `O` FROM `device` WHERE `upgrade`<now() AND `id` IS NOT NULL OR `offlinereport` IS NULL AND `online` IS NULL");
                if (sql_fetch_row(res))
                {
                   if (atoi(sql_colz(res, "U")))
@@ -827,11 +826,26 @@ int main(int argc, const char *argv[])
             if (!fail)
                sql_safe_query_free(&sql, sql_printf("UPDATE `pending` SET `online`=%#T WHERE `pending`=%#s", time(0) + 60, deviceid));
             return fail;
-         } else if ((v = j_get(meta, "prefix")))
+         } else if ((v = j_get(meta, "print")))
+         {                      // Printing command
+            const char *fob = j_get(j, "id");
+            const char *ver = j_get(j, "ver");
+            const char *key = j_get(j, "key");
+            if (!fob || !*fob || !ver || !*ver || !key || !*key)
+               return "Bad request";
+            SQL_RES *res = sql_safe_query_store_free(&sqlkey, sql_printf("SELECT * FROM `AES` WHERE `fob`=%#s", fob));
+            if (sql_fetch_row(res))
+            {
+               sql_free_result(res);
+               return "Already exists";
+            }
+            sql_free_result(res);
+            sql_safe_query_free(&sqlkey, sql_printf("INSERT INTO `AES` SET `fob`=%#s,`ver`=%#s,`key`=%#s,`aid`=''", fob, ver, key));
+         } else if ((v = j_get(meta, "deport")))
          {                      // Send to device
             const char *suffix = j_get(meta, "suffix");
             if (!id)
-               return "No id";
+               return "No suffix";
 
             const char *fail = NULL;
             j_t data = j_find(j, "_data");
