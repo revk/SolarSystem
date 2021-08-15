@@ -827,10 +827,10 @@ int main(int argc, const char *argv[])
                sql_safe_query_free(&sql, sql_printf("UPDATE `pending` SET `online`=%#T WHERE `pending`=%#s", time(0) + 60, deviceid));
             return fail;
          } else if ((v = j_get(meta, "print")))
-         {                      // Printing command
-            const char *fob = j_get(j, "id");
-            const char *ver = j_get(j, "ver");
-            const char *key = j_get(j, "key");
+         {                      // Card printing - record allocated key
+            const char *fob = j_get(j, "_ID");
+            const char *ver = j_get(j, "_KEYVER");
+            const char *key = j_get(j, "_KEYAES");
             if (!fob || !*fob || !ver || !*ver || !key || !*key)
                return "Bad request";
             SQL_RES *res = sql_safe_query_store_free(&sqlkey, sql_printf("SELECT * FROM `AES` WHERE `fob`=%#s", fob));
@@ -841,6 +841,7 @@ int main(int argc, const char *argv[])
             }
             sql_free_result(res);
             sql_safe_query_free(&sqlkey, sql_printf("INSERT INTO `AES` SET `fob`=%#s,`ver`=%#s,`key`=%#s,`aid`=''", fob, ver, key));
+	    return NULL;
          } else if ((v = j_get(meta, "deport")))
          {                      // Send to device
             const char *suffix = j_get(meta, "suffix");
