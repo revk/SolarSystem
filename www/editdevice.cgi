@@ -81,7 +81,7 @@ if($?devicename) then # save
 	if(! $?iotstatesystem) setenv iotstatesystem false
 	if(! $?iotkeypad) setenv iotkeypad false
 	if(! $?ioteventfob) setenv ioteventfob false
-	setenv allow "devicename areawarning areafault areatamper areaenter areastrongarm areadeadlock areaarm areadisarm areabell arealed areakeypad nfc rgb nfcadmin door doorexitarm doorexitdisarm aid site iotstatedoor iotstateinput iotstateoutput iotstatefault iotstatewarning iotstatetamper iotstatesystem ioteventfob iotkeypad doorunlock doorlock dooropen doorclose doorprop doorexit keypadidle keypad pcb"
+	setenv allow "devicename areawarning areafault areatamper areaenter areastrongarm areadeadlock areaarm areadisarm areabell arealed areakeypad nfc rgb nfcadmin door doorexitarm doorexitdisarm aid site iotstatedoor iotstateinput iotstateoutput iotstatefault iotstatewarning iotstatetamper iotstatesystem ioteventfob iotkeypad doorunlock doorlock dooropen doorclose doorprop doorexit keypadidle keypad pcb dooriotopen dooriotclose"
 	if("$USER_ADMIN" == "true") setenv allow "$allow nfctrusted"
 	sqlwrite -qon "$DB" device $allow
 	sql "$DB" 'UPDATE device SET poke=NOW() WHERE device="$device"'
@@ -162,6 +162,8 @@ xmlsql -C -d "$DB" head.html - foot.html << END
 <if nfc=true door=true><tr><td><input size=5 id=doorexit name=doorexit>ms</td><td><label for=doorexit>Door exit button hold timer</label></td></tr></if>
 <if nfc=true door=true><tr><td><input type=checkbox id=doorexitdisarm name=doorexitdisarm value=true></td><td><label for=doorexitdisarm>Door exit button disarm</label></td></tr></if>
 <if nfc=true door=true><tr><td><input type=checkbox id=doorexitarm name=doorexitarm value=true></td><td><label for=doorexitarm>Door exit button arm on hold</label></td></tr></if>
+<if nfc=true door=true><tr><td>IoT open</td><td><input name=dooriotopen></td></tr></if>
+<if nfc=true door=true><tr><td>IoT close</td><td><input name=dooriotclose></td></tr></if>
 <if nfc=true><tr><td><input type=checkbox id=nfcadmin name=nfcadmin value=true></td><td><label for=nfcadmin>Admin NFC reader</label></td></tr></if>
 <if USER_ADMIN=true nfc=true><tr><td><input type=checkbox id=nfctrusted name=nfctrusted value=true></td><td><label for=nfctrusted>Trusted NFC reader</label></td></tr></if>
 </sql>

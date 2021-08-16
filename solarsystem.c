@@ -154,6 +154,11 @@ static const char *settings(SQL * sqlp, SQL * sqlkeyp, SQL_RES * res, slot_t id)
          j_store_int(door, "poll", v);
       if ((v = atoi(sql_colz(res, "doordebounce"))))
          j_store_int(door, "debounce", v);
+      const char *t;
+      if ((t = sql_colz(res, "dooriotopen")))
+         j_store_string(door, "iotopen", t);
+      if ((t = sql_colz(res, "dooriotclose")))
+         j_store_string(door, "iotclose", t);
    }
    j_t area = j_store_object(j, "area");
    addarea(area, "fault", sql_colz(res, "areafault"), 0);
