@@ -3,6 +3,13 @@ can --redirect --organisation='$SESSION_ORGANISATION' --site='$SESSION_SITE' edi
 if($status) exit 0
 source ../setcan
 
+if($?DELETE) then
+	sql "$DB" 'DELETE FROM fobaid WHERE fob="$fob" AND aid IN (SELECT aid from aid WHERE organisation="$SESSION_ORGANISATION")'
+	sql "$DB" 'DELETE FROM foborganisation WHERE fob="$fob" AND organisation="$SESSION_ORGANISATION"'
+	redirect /
+	exit 0
+endif
+
 if($?expires) then
 	set aids=(`printenv aids|sed 's/[^0-9A-F	]//g'`)
 	foreach a ($aids)
@@ -142,6 +149,7 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 </sql>
 </table>
 <input type=submit value="Update"><if blocked><input type=SUBMIT name=UNBLOCK Value="Unblock"></if><if else><input type=SUBMIT name=BLOCK Value="Block"></if>
+<input type=submit name="DELETE" value="Delete">
 </sql>
 </form>
 'END'
