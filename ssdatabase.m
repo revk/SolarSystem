@@ -296,8 +296,7 @@ num(doorprop);                  // Door timer
 num(doorexit);                  // Door timer
 num(doorpoll);                  // Door timer
 num(doordebounce);              // Door timer
-text(dooriotopen,0);		// IoT on open
-text(dooriotclose,0);		// IoT on close
+text(dooriotunlock,0);		// IoT on unlock
 
 join(device, gpio);
 index(device);
