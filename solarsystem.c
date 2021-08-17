@@ -861,6 +861,7 @@ main (int argc, const char *argv[])
 	      }
 	    sql_free_result (res);
 	    sql_safe_query_free (&sqlkey, sql_printf ("INSERT INTO `AES` SET `fob`=%#s,`ver`=%#s,`key`=%#s,`aid`=''", fob, ver, key));
+	    sql_safe_query_free (&sql, sql_printf ("INSERT INTO `fob` SET `fob`=%#s,`provisioned`=NOW()", fob));
 	    return NULL;
 	  }
 	else if ((v = j_get (meta, "deport")))
