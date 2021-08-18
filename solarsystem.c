@@ -864,7 +864,7 @@ main (int argc, const char *argv[])
 	    sql_safe_query_free (&sql, sql_printf ("INSERT INTO `fob` SET `fob`=%#s,`provisioned`=NOW()", fob));
 	    return NULL;
 	  }
-	else if ((v = j_get (meta, "deport")))
+	else if ((v = j_get (meta, "prefix")))
 	  {			// Send to device
 	    const char *suffix = j_get (meta, "suffix");
 	    if (!id)
