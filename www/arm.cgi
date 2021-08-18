@@ -11,6 +11,15 @@ if($?ARM) then
 	exit 0
 endif
 
+if($?STRONGARM) then
+	if($?arm) then
+		setenv MSG `message --site="$SESSION_SITE" --strongarm="$arm"`
+		if("$MSG" != "") goto done
+	endif
+	redirect /
+	exit 0
+endif
+
 done:
 source ../types
 xmlsql -C -d "$DB" head.html - foot.html << END
@@ -32,6 +41,7 @@ xmlsql -C -d "$DB" head.html - foot.html << END
 </sql>
 </table>
 <input type=submit value="Arm" name=ARM>
+<input type=submit value="Force" name=STRONGARM>
 </form>
 </sql>
 END

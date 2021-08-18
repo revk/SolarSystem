@@ -113,6 +113,12 @@ const char *alarm_command(const char *tag, jo_t j)
       alarm_arm(jo_read_area(j), &e);
       return "";
    }
+   if (!strcmp(tag, "strongarm"))
+   {
+      jo_t e = jo_make("Remote");
+      alarm_strongarm(jo_read_area(j), &e);
+      return "";
+   }
    if (!strcmp(tag, "disarm"))
    {
       jo_t e = jo_make("Remote");

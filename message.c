@@ -37,6 +37,7 @@ main (int argc, const char *argv[])
   const char *aid = NULL;
   const char *status = NULL;
   const char *arm = NULL;
+  const char *strongarm = NULL;
   const char *disarm = NULL;
   const char *fobname = NULL;
   int debug = 0;
@@ -48,7 +49,7 @@ main (int argc, const char *argv[])
   int organisation = 0;
   int access = 0;
   int jsonstdin = 0;
-  int print=0;
+  int print = 0;
   {				// POPT
     poptContext optCon;		// context for parsing command-line options
     const struct poptOption optionsTable[] = {
@@ -66,6 +67,7 @@ main (int argc, const char *argv[])
       {"site", 's', POPT_ARG_INT, &site, 0, "Site", "N"},
       {"organisation", 's', POPT_ARG_INT, &organisation, 0, "Organisation", "N"},
       {"arm", 0, POPT_ARG_STRING, &arm, 0, "Arm", "A...Z"},
+      {"strongarm", 0, POPT_ARG_STRING, &strongarm, 0, "Strongarm", "A...Z"},
       {"disarm", 0, POPT_ARG_STRING, &disarm, 0, "Disarm", "A...Z"},
       {"pending", 'p', POPT_ARG_STRING, &pending, 0, "Pending device", "XXXXXXXXXXXX"},
       {"status", 's', POPT_ARG_STRING, &status, 0, "Status", "div ID"},
@@ -166,6 +168,12 @@ main (int argc, const char *argv[])
       j_store_string (meta, "prefix", "command");
       j_store_string (meta, "suffix", "arm");
       j_store_string (j, "_data", arm);
+    }
+  else if (strongarm && *strongarm)
+    {
+      j_store_string (meta, "prefix", "command");
+      j_store_string (meta, "suffix", "strongarm");
+      j_store_string (j, "_data", strongarm);
     }
   else if (disarm && *disarm)
     {
