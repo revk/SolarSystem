@@ -22,7 +22,8 @@ int can(SQL_RES * res, const char *test)
    if (asprintf(&s, "can%s", test) < 0)
       errx(1, "malloc");
    char *v = sql_colz(res, s);
-	if(sqldebug)warnx("Testing %s=%s",s,v);
+   if (sqldebug)
+      warnx("Testing %s=%s", s, v);
    free(s);
    if (!v || *v != 't')
       return 0;
@@ -168,9 +169,10 @@ int main(int argc, const char *argv[])
             return NULL;        // No args is checking admin
          const char *a;
          while ((a = poptGetArg(optCon)))
-            if (!can(resus, a))
+            if (!can(res, a))
                return NULL;
          sql_free_result(res);
+         return "can do all requested";
       }
       return NULL;              // Fail
    }

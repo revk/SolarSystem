@@ -563,36 +563,41 @@ const char *forkcommand(j_t * jp, slot_t device, slot_t local)
    return NULL;
 }
 
-const char *doapi(SQL * sqlp, SQL * sqlkeyp, slot_t local, const char *user, j_t j)
+const char *doapi(SQL * sqlp, SQL * sqlkeyp, slot_t local, j_t meta, j_t j)
 {
    sqlkeyp = sqlkeyp;
    local = local;
-
    SQL_RES *res;
-   int site = atoi(j_get(j, "site") ? : ""),
-       organisation = 0;
-   if (!site)
-      return "No site";
-   res = sql_safe_query_store_free(sqlp, sql_printf("SELECT * FROM `site` WHERE `user`=%d", site));
-   if (sql_fetch_row(res))
-      organisation = atoi(sql_colz(res, "organisation"));
-   sql_free_result(res);
+   int organisation = atoi(j_get(meta, "organisation") ? : "");
+   int user = atoi(j_get(meta, "api") ? : "");
    if (!organisation)
-      return "Invalid site";
-   res = sql_safe_query_store_free(sqlp, sql_printf("SELECT * FROM `userorganisation` WHERE `user`=%#s AND `organisation`=%s", user, organisation));
+      return "No organisation";
+   if (!user)
+      return "No user";
+   res = sql_safe_query_store_free(sqlp, sql_printf("SELECT * FROM `userorganisation` WHERE `user`=%d AND `organisation`=%d", user, organisation));
    if (!sql_fetch_row(res))
    {
       sql_free_result(res);
-      return "No user";
+      return "No user found";
    }
-   int canapi = (*sql_colz(res, "canapi") != 't');
-   int apiexpires = (*sql_colz(res, "apiexpires") != 't');
+   int canapi = (*sql_colz(res, "canapi") == 't');
+   int apiexpires = (*sql_colz(res, "apiexpires") == 't');
    sql_free_result(res);
    if (!canapi)
       return "No API access";
-   fprintf(stderr, "API for [%s]\n", user);
-   j_err(j_write_pretty(j, stderr));
-   // TODO
+   const char *api = j_get(j, "command");
+   if (!api)
+      return "No API command";
+   if (!strcmp(api, "expires"))
+   {
+	   if(!apiexpires)return "Not allowed";
+      const char *fob = j_get(j, "fob");
+      if (!fob)
+         return "No fob";
+      const char *expires=j_get(j, "expires");
+      sql_safe_query_free(sqlp, sql_printf("UPDATE `foborganisation` SET `expires`=%#s WHERE `fob`=%#s AND `organisation`=%d", expires, fob, organisation));
+      return NULL;
+   }
    return "Unknown API";
 }
 
@@ -949,7 +954,7 @@ int main(int argc, const char *argv[])
             forked = 1;
             return forkcommand(&init, id, local);
          } else if (j_find(meta, "api"))
-            return doapi(&sql, &sqlkey, local, j_get(meta, "api"), j);
+            return doapi(&sql, &sqlkey, local, meta, j);
          else
             return "Unknown local request";
          return NULL;
