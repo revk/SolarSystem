@@ -22,6 +22,7 @@ int can(SQL_RES * res, const char *test)
    if (asprintf(&s, "can%s", test) < 0)
       errx(1, "malloc");
    char *v = sql_colz(res, s);
+	if(sqldebug)warnx("Testing %s=%s",s,v);
    free(s);
    if (!v || *v != 't')
       return 0;

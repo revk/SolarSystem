@@ -1,6 +1,6 @@
 #!../login/loggedin --http-auth /bin/csh -fx
 if(! $?PATH_INFO) then
-	echo "Status: 500"
+	echo "Status: 500"	# Organisation after API
 	echo ""
 	exit 0
 endif
