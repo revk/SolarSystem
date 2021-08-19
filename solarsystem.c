@@ -590,12 +590,16 @@ const char *doapi(SQL * sqlp, SQL * sqlkeyp, slot_t local, j_t meta, j_t j)
       return "No API command";
    if (!strcmp(api, "expires"))
    {
-	   if(!apiexpires)return "Not allowed";
+      if (!apiexpires)
+         return "Not allowed";
       const char *fob = j_get(j, "fob");
       if (!fob)
          return "No fob";
-      const char *expires=j_get(j, "expires");
-      sql_safe_query_free(sqlp, sql_printf("UPDATE `foborganisation` SET `expires`=%#T WHERE `fob`=%#s AND `organisation`=%d", j_time(expires), fob, organisation));
+      time_t expires = j_time(j_get(j, "expires"));
+      if (expires)
+         sql_safe_query_free(sqlp, sql_printf("UPDATE `foborganisation` SET `expires`=%#T WHERE `fob`=%#s AND `organisation`=%d", expires, fob, organisation));
+      else
+         sql_safe_query_free(sqlp, sql_printf("UPDATE `foborganisation` SET `expires`=NULL WHERE `fob`=%#s AND `organisation`=%d", fob, organisation));
       return NULL;
    }
    return "Unknown API";
