@@ -1,5 +1,5 @@
 #!../login/loggedin /bin/csh -f
-can --redirect --site='$SESSION_SITE' canarm
+can --redirect --site='$SESSION_SITE' arm
 if($status) exit 0
 
 if($?ARM) then
@@ -12,6 +12,8 @@ if($?ARM) then
 endif
 
 if($?STRONGARM) then
+	can --redirect --site='$SESSION_SITE' strongarm
+	if($status) exit 0
 	if($?arm) then
 		setenv MSG `message --site="$SESSION_SITE" --strongarm="$arm"`
 		if("$MSG" != "") goto done
@@ -21,6 +23,9 @@ if($?STRONGARM) then
 endif
 
 done:
+unsetenv CANSTRONGARM
+can --site='$SESSION_SITE' strongarm
+if(! $status) set CANSTRONGARM
 source ../types
 xmlsql -C -d "$DB" head.html - foot.html << END
 <h1>Arming</h1>
@@ -41,7 +46,7 @@ xmlsql -C -d "$DB" head.html - foot.html << END
 </sql>
 </table>
 <input type=submit value="Arm" name=ARM>
-<input type=submit value="Force" name=STRONGARM>
+<IF CANSTRNGARM><input type=submit value="Force" name=STRONGARM></if>
 </form>
 </sql>
 END

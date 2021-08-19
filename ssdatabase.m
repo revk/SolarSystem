@@ -104,19 +104,21 @@ link(site);                     // Current selected site
 join(user, organisation);
 text(userorganisationname, 0);  // Job Title
 bool (admin);                   // Customer level admin user - can do anything relating to this organisation
-bool (caneditorganisation);
-bool (caneditaccess);
-bool (caneditsite);
-bool (canedituser);
-bool (caneditdevice);
-bool (canadoptfob);
-bool (caneditfob);
-bool (caneditarea);
-bool (canarm);
-bool (candisarm);
-bool (canunlock);
-bool (canviewlog);
-bool (canapi);
+bool (caneditorganisation);	// Can edit organisation
+bool (caneditaccess);		// Can edit access
+bool (caneditsite);		// Can edit site
+bool (canedituser);		// Can edit user
+bool (caneditdevice);		// Can edit device
+bool (canadoptfob);		// Can adopt fob
+bool (caneditfob);		// Can edit fob
+bool (caneditarea);		// Can edit area
+bool (canarm);			// Can arm
+bool (canstrongarm);		// Can strong arm
+bool (candisarm);		// Can disarm
+bool (canunlock);		// Can unlock doors
+bool (canviewlog);		// Can view logs
+bool (canapi);			// Can access API
+bool (apiexpires);		// Can set fob expiries via API
 
 table(organisation, 0);         // Customer (may be more than one site)
 text(organisationname, 0);

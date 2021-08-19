@@ -21,6 +21,7 @@ if($?userorganisationname) then
 	if(! $?canunlock) setenv canunlock false
 	if(! $?canviewlog) setenv canviewlog false
 	if(! $?canapi) setenv canapi false
+	if(! $?apiexpires) setenv apiexpires false
 	if($?ADMINORGANISATION) setenv allow "$allow admin"
 	if($?CANEDITORGANISATION) setenv allow "$allow caneditorganisation"
 	if($?CANEDITACCESS) setenv allow "$allow caneditaccess"
@@ -34,7 +35,7 @@ if($?userorganisationname) then
 	if($?CANDISARM) setenv allow "$allow candisarm"
 	if($?CANUNLOCK) setenv allow "$allow canunlock"
 	if($?CANVIEWLOG) setenv allow "$allow canviewlog"
-	if($?CANAPI) setenv allow "$allow canapi"
+	if($?CANAPI) setenv allow "$allow canapi apiexpires"
 	sqlwrite -qon "$DB" userorganisation $allow
 endif
 if($?DELETE) then
@@ -107,6 +108,7 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <if CANUNLOCK><tr><td><input type=checkbox id=canunlock name=canunlock value=true></td><td><label for=canunlock>Can unlock</label></td></tr></if>
 <if CANVIEWLOG><tr><td><input type=checkbox id=canviewlog name=canviewlog value=true></td><td><label for=canviewlog>Can view logs</label></td></tr></if>
 <if CANAPI><tr><td><input type=checkbox id=canapi name=canapi value=true></td><td><label for=canapi>Can access API</label></td></tr></if>
+<if CANAPI canapi=true><tr><td><input type=checkbox id=apiexpires name=apiexpires value=true></td><td><label for=apiexpires>Can API set fob expires</label></td></tr></if>
 </table>
 <input type=submit value="Update">
 <input type=submit name=DELETE value="Delete"><input type=checkbox name=SURE>

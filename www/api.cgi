@@ -1,6 +1,14 @@
 #!../login/loggedin --http-auth /bin/csh -f
-can --redirect --organisation='$SESSION_ORGANISATION' api
-if($status) exit 0
+echo "Content-Type: text/plain"
+echo ""
+printenv
+
+can --organisation='$SESSION_ORGANISATION' api
+if($status) then
+	echo "Status: 403"
+	echo ""
+	exit 1
+endif
 
 setenv MSG `../message --api="$USER_ID" --stdin`
 if(! $status) then
