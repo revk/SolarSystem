@@ -19,5 +19,9 @@ zap:    bootmode flash
 ftdi: ftdizap/ftdizap
 	./ftdizap/ftdizap --serial="RevK" --description="SolarSystem" --cbus0-mode=8 --cbus1-mode=4 --cbus2-mode=13 --cbus3-mode=5
 
+# Program the FTDI for Generic module
+ftdi-invert: ftdizap/ftdizap
+	./ftdizap/ftdizap --serial="RevK" --description="SolarSystem" --cbus0-mode=7 --cbus1-mode=13 --invert-rts=1 --invert-dtr=1
+
 ftdizap/ftdizap: ftdizap/ftdizap.c
 	make -C ftdizap
