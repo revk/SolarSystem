@@ -1,4 +1,11 @@
-#!../login/loggedin --http-auth /bin/csh -f
+#!../login/loggedin --http-auth /bin/csh -fx
+if(! $?PATH_INFO) then
+	echo "Status: 500"
+	echo ""
+	exit 0
+endif
+setenv SESSION_ORGANISATION "$PATH_INFO:t"
+
 echo "Content-Type: text/plain"
 echo ""
 printenv
