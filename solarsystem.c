@@ -12,6 +12,7 @@
 #include <sys/resource.h>
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <sys/wait.h>
 #include <stdlib.h>
 #include <ctype.h>
 #include <err.h>
@@ -79,7 +80,11 @@ void send_message(SQL_RES * res, const char *ud)
       j_store_string(s, "da", n);
       j_store_string(s, "oa", f);
       j_store_string(s, "ud", ud);
+      if(!fork())
+      {
       j_curl_send(curl, s, NULL, NULL, "https://sms.aa.net.uk");
+      _exit(0);
+      }
       j_delete(&s);
    }
 }
@@ -607,6 +612,12 @@ const char *doapi(SQL * sqlp, SQL * sqlkeyp, slot_t local, j_t meta, j_t j)
 
 int main(int argc, const char *argv[])
 {
+   void babysit(int s) {
+      s = s;
+      while (waitpid(-1, 0, WNOHANG) > 0);
+      signal(SIGCHLD, &babysit);
+   }
+   signal(SIGCHLD, &babysit);
 #ifdef	SQL_DEBUG
    sqldebug = 1;
 #endif
@@ -1255,6 +1266,22 @@ int main(int argc, const char *argv[])
             free(data);
             if (!strcmp(suffix, "fob") && checkdevice())
             {                   // Fob usage - loads of options
+               {                // Hook
+                  SQL_RES *res = sql_safe_query_store_free(&sql, sql_printf("SELECT * FROM `site` WHERE `site`=%#s", sql_col(device, "site")));
+                  if (sql_fetch_row(res))
+                  {
+                     const char *hook = sql_col(res, "hookfobevent");
+                     if (hook && *hook)
+                     {
+			     if(!fork())
+			     {
+                        j_curl_send(curl, j, NULL, sql_col(res, "hookbearer"), "%s", hook);
+			_exit(0);
+			     }
+                     }
+                  }
+                  sql_free_result(res);
+               }
                int organisation = atoi(sql_colz(device, "organisation"));
                const char *aid = sql_colz(device, "aid");
                const char *fobid = j_get(j, "id");

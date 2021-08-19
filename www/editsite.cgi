@@ -29,7 +29,7 @@ if($?sitename) then
 	if(! $?nomesh) setenv nomesh false
 	if(! $?ioteventarm) setenv ioteventarm false
 	if(! $?debug) setenv debug false
-	sqlwrite -qon "$DB" site sitename wifissid wifipass iothost nomesh smsuser smspass armcancel alarmdelay alarmhold debug ioteventarm smsarm smsarmfail smsdisarm smsalarm smspanic smsfire engineer smsnumber smsfrom
+	sqlwrite -qon "$DB" site sitename wifissid wifipass iothost nomesh smsuser smspass armcancel alarmdelay alarmhold debug ioteventarm smsarm smsarmfail smsdisarm smsalarm smspanic smsfire engineer smsnumber smsfrom hookbearer hookfobevent
 	sql "$DB" 'UPDATE device SET poke=NOW() WHERE site=$site'
 	message --poke
 	redirect /
@@ -55,7 +55,11 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <tr><td>Arm-Cancel</td><td><input name=armcancel size=3> seconds (timeout before cancelling arming)</td></tr>
 <tr><td>Alarm-Delay</td><td><input name=alarmdelay size=3> seconds (timeout before alarm triggers)</td></tr>
 <tr><td>Alarm-Hold</td><td><input name=alarmhold size=3> seconds (timeout before alarm cancels after last trigger)</td></tr>
+<tr><td colspan=2>Web hooks</td></tr>
+<tr><td>Bearer</td><td><input name=hookbearer size=40 placeholder="To send on hooks"></td></tr>
+<tr><td>Fob event</td><td><input name=hookfobevent size=40 placeholder="https://..."></td></tr>
 </table>
+<p>Area settings</p>
 <table border=1>
 <set tags="engineer smsarm smsarmfail smsdisarm smsalarm smspanic smsfire">
 <tr><th></th>
