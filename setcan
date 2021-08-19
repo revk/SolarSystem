@@ -13,6 +13,7 @@ unsetenv CANARM
 unsetenv CANDISARM
 unsetenv CANUNLOCK
 unsetenv CANVIEWLOG
+unsetenv CANAPI
 if($?SESSION_ORGANISATION) then
 can --organisation='$SESSION_ORGANISATION' admin
 if(! $status)setenv ADMINORGANISATION
@@ -34,6 +35,8 @@ can --organisation='$SESSION_ORGANISATION' unlock
 if(! $status)setenv CANUNLOCK
 can --organisation='$SESSION_ORGANISATION' viewlog
 if(! $status)setenv CANVIEWLOG
+can --organisation='$SESSION_ORGANISATION' api
+if(! $status)setenv CANAPI
 endif
 if($?SESSION_SITE) then
 can --organisation='$SESSION_ORGANISATION' --site='$SESSION_SITE' editaccess

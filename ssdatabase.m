@@ -116,6 +116,7 @@ bool (canarm);
 bool (candisarm);
 bool (canunlock);
 bool (canviewlog);
+bool (canapi);
 
 table(organisation, 0);         // Customer (may be more than one site)
 text(organisationname, 0);

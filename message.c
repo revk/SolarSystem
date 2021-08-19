@@ -40,6 +40,7 @@ main (int argc, const char *argv[])
   const char *strongarm = NULL;
   const char *disarm = NULL;
   const char *fobname = NULL;
+  const char *api=NULL;
   int debug = 0;
   int setting = 0;
   int silent = 0;
@@ -69,6 +70,7 @@ main (int argc, const char *argv[])
       {"arm", 0, POPT_ARG_STRING, &arm, 0, "Arm", "A...Z"},
       {"strongarm", 0, POPT_ARG_STRING, &strongarm, 0, "Strongarm", "A...Z"},
       {"disarm", 0, POPT_ARG_STRING, &disarm, 0, "Disarm", "A...Z"},
+      {"api", 0, POPT_ARG_STRING, &api, 0, "API", "User (needs JSON also)"},
       {"pending", 'p', POPT_ARG_STRING, &pending, 0, "Pending device", "XXXXXXXXXXXX"},
       {"status", 's', POPT_ARG_STRING, &status, 0, "Status", "div ID"},
       {"provision", 0, POPT_ARG_NONE, &provision, 0, "Provision", NULL},
@@ -163,6 +165,8 @@ main (int argc, const char *argv[])
     j_store_int (meta, "site", site);
   if (access)
     j_store_int (meta, "access", access);
+  if(api)
+	  j_store_string(meta,"api",api);
   if (arm && *arm)
     {
       j_store_string (meta, "prefix", "command");

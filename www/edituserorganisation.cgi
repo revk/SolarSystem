@@ -1,5 +1,5 @@
 #!../login/loggedin /bin/csh -f
-unset user £ clash
+unset user # clash
 can --redirect --organisation='$SESSION_ORGANISATION' edituser
 if($status) exit 0
 source ../setcan
@@ -20,6 +20,7 @@ if($?userorganisationname) then
 	if(! $?candisarm) setenv candisarm false
 	if(! $?canunlock) setenv canunlock false
 	if(! $?canviewlog) setenv canviewlog false
+	if(! $?canapi) setenv canapi false
 	if($?ADMINORGANISATION) setenv allow "$allow admin"
 	if($?CANEDITORGANISATION) setenv allow "$allow caneditorganisation"
 	if($?CANEDITACCESS) setenv allow "$allow caneditaccess"
@@ -33,6 +34,7 @@ if($?userorganisationname) then
 	if($?CANDISARM) setenv allow "$allow candisarm"
 	if($?CANUNLOCK) setenv allow "$allow canunlock"
 	if($?CANVIEWLOG) setenv allow "$allow canviewlog"
+	if($?CANAPI) setenv allow "$allow canapi"
 	sqlwrite -qon "$DB" userorganisation $allow
 endif
 if($?DELETE) then
@@ -58,9 +60,13 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <h1>Manage users</h1>
 <form method=post style='inline'>
 <table>
-<sql table="userorganisation LEFT JOIN user USING (user)" WHERE="organisation=$SESSION_ORGANISATION"><set found=1>
+<sql select="*,user.admin AS A" table="userorganisation LEFT JOIN user USING (user)" WHERE="organisation=$SESSION_ORGANISATION"><set found=1>
 <tr>
-<td><if A=true><b>System admin</b></if><if else admin=true>Admin</if></td>
+<td>
+<if A=true><b>System Admin</b></if>
+<if admin=true>Admin</if>
+<if canapi=true>API</if>
+</td>
 <td><output name=email href="/edituserorganisation.cgi/$user"></td>
 <td><output name=username></td>
 <td><output name=userorganisationname></td>
@@ -100,6 +106,7 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <if CANDISARM><tr><td><input type=checkbox id=candisarm name=candisarm value=true></td><td><label for=candisarm>Can disarm</label></td></tr></if>
 <if CANUNLOCK><tr><td><input type=checkbox id=canunlock name=canunlock value=true></td><td><label for=canunlock>Can unlock</label></td></tr></if>
 <if CANVIEWLOG><tr><td><input type=checkbox id=canviewlog name=canviewlog value=true></td><td><label for=canviewlog>Can view logs</label></td></tr></if>
+<if CANAPI><tr><td><input type=checkbox id=canapi name=canapi value=true></td><td><label for=canapi>Can access API</label></td></tr></if>
 </table>
 <input type=submit value="Update">
 <input type=submit name=DELETE value="Delete"><input type=checkbox name=SURE>
