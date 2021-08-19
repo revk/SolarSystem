@@ -595,7 +595,7 @@ const char *doapi(SQL * sqlp, SQL * sqlkeyp, slot_t local, j_t meta, j_t j)
       if (!fob)
          return "No fob";
       const char *expires=j_get(j, "expires");
-      sql_safe_query_free(sqlp, sql_printf("UPDATE `foborganisation` SET `expires`=%#s WHERE `fob`=%#s AND `organisation`=%d", expires, fob, organisation));
+      sql_safe_query_free(sqlp, sql_printf("UPDATE `foborganisation` SET `expires`=%#T WHERE `fob`=%#s AND `organisation`=%d", j_time(expires), fob, organisation));
       return NULL;
    }
    return "Unknown API";
