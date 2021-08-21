@@ -557,6 +557,8 @@ static void task(void *pvParameters)
       int l = galaxybus_tx(g, p, buf);
       if (l < 0)
       {
+         status(keypad_fault = galaxybus_err_to_name(l));
+         online = 0;
          ESP_LOGD(TAG, "Tx fail %s", galaxybus_err_to_name(l));
          usleep(500000);
          rxwait = 0;
