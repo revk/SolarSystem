@@ -802,22 +802,10 @@ static void task(void *pvParameters)
          if (uptime() - isroot > meshwarmup)
          {                      // Checking was have quorum / full house
             if (wasonline != nodes_online)
-            {
+            {                   // Online change
                wasonline = nodes_online;
-               if (nodes_online <= meshmax / 2)
-               {                // too few - force restart of mesh
-                  // TODO
-#if 0                           // TODO some sort of back off?
-                  revk_wifi_close();
-                  mesh_init();
-#endif
-               } else if (nodes_online < meshmax)
-               {                // Missing devices
-                  // TODO
-               } else
-               {                // All on line
-                  // TODO
-               }
+               alarm_fault = ((nodes_online < meshmax) ? "Missing nodes" : NULL);
+               status(alarm_tamper = ((nodes_online == 1 && meshmax > 1) ? "Lonely" : NULL));
             }
          }
       } else
