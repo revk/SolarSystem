@@ -1,2 +1,3 @@
-set (COMPONENT_SRCS "SS.c" "door.c" "keypad.c" "nfc.c" "ranger.c" "input.c" "output.c")
-set (COMPONENT_REQUIRES "ESP32RevK") register_component ()
+set (COMPONENT_SRCS "SS.c" "door.c" "keypad.c" "nfc.c" "input.c" "output.c" "alarm.c")
+set (COMPONENT_REQUIRES "ESP32-RevK" "DESFireAES" "ESP32-PN532" "ESP32-GalaxyBus")
+register_component ()
