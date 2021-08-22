@@ -50,6 +50,3 @@
 	path = email
 	url = https://github.com/revk/email
 	branch = main
-[submodule "ESP32/components/esp-wolfssl"]
-	path = ESP32/components/esp-wolfssl
-	url = https://github.com/espressif/esp-wolfssl.git
