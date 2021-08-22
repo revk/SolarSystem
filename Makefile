@@ -21,6 +21,12 @@ SQLLIB=$(shell mariadb_config --libs)
 SQLVER=$(shell mariadb_config --version | sed 'sx\..*xx')
 endif
 
+ifneq ("$(wildcard ESP32/build/config/sdkconfig.h)","")
+BUILD_ESP32_USING_CMAKE=-DBUILD_ESP32_USING_CMAKE
+else
+BUILD_ESP32_USING_CMAKE=
+endif
+
 ifndef KCONFIG_CONFIG
 KCONFIG_CONFIG=solarsystem.conf
 endif
@@ -100,7 +106,7 @@ ssafile.o: ssafile.c ssafile.h Makefile config.h
 	gcc -g -Wall -Wextra -O -c -o $@ $< ${SQLINC} -DLIB
 
 solarsystem: solarsystem.c config.h AXL/axl.o AJL/ajl.o Dataformat/dataformat.o DESFireAES/desfireaes.o SQLlib/sqllib.o Makefile ssdatabase.o ssmqtt.o sscert.o fobcommand.o mqttmsg.o ssafile.o
-	gcc -g -Wall -Wextra -O -o $@ $< ssdatabase.o ssmqtt.o sscert.o AJL/ajlcurl.o AXL/axl.o Dataformat/dataformat.o DESFireAES/desfireaes.o SQLlib/sqllib.o ${SQLINC} ${SQLLIB} -lpopt -lcrypto -pthread -lcurl -lssl fobcommand.o mqttmsg.o ssafile.o
+	gcc -g -Wall -Wextra -O ${BUILD_ESP32_USING_CMAKE} -o $@ $< ssdatabase.o ssmqtt.o sscert.o AJL/ajlcurl.o AXL/axl.o Dataformat/dataformat.o DESFireAES/desfireaes.o SQLlib/sqllib.o ${SQLINC} ${SQLLIB} -lpopt -lcrypto -pthread -lcurl -lssl fobcommand.o mqttmsg.o ssafile.o
 
 can: can.c config.h Makefile login/redirect.o
 	gcc -g -Wall -Wextra -O -o $@ $< SQLlib/sqllib.o ${SQLINC} ${SQLLIB} -lpopt -lcurl AJL/ajl.o login/redirect.o

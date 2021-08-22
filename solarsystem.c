@@ -2,7 +2,11 @@
 
 #define _GNU_SOURCE             /* See feature_test_macros(7) */
 #include "config.h"
+#ifdef BUILD_ESP32_USING_CMAKE
+#include "ESP32/build/config/sdkconfig.h"
+#else
 #include "ESP32/build/include/sdkconfig.h"
+#endif
 #include "ESP32/main/areas.h"
 #include <stdio.h>
 #include <string.h>
