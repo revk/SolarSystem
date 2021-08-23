@@ -646,18 +646,19 @@ static void task(void *pvParameters)
             {                   // We have moved to open state, this can cancel the locking operation
                jo_t j = jo_make(NULL);
                if (!doorwhy)
-                  doorwhy = ((lock[0].state == LOCK_LOCKED) ? "forced" : "manual");
+                  doorwhy = (((output_active(OUNLOCK) && lock[0].state == LOCK_LOCKED) || (output_active(OUNLOCK + 1) && lock[1].state == LOCK_LOCKED)) ? "forced" : "manual");
                if (doorwhy)
                   jo_string(j, "trigger", doorwhy);
                revk_event_clients("open", &j, 1 | (iotstatedoor << 1));
                doorwhy = NULL;
-               doorstate = DOOR_OPEN;
+               if (doorstate == DOOR_UNLOCKING)
+                  doorstate = DOOR_OPEN;
+               else
+                  doorstate = DOOR_UNLOCKING;
                if (doorauto >= 2)
                {
-                  if (lock[0].state == LOCK_LOCKING || lock[0].state == LOCK_LOCKFAIL)
-                     output_set(OUNLOCK + 0, 1);        // Cancel lock
-                  if (lock[1].state == LOCK_LOCKING || lock[1].state == LOCK_LOCKFAIL)
-                     output_set(OUNLOCK + 1, 1);        // Cancel deadlock
+                  output_set(OUNLOCK + 0, 1);   // Cancel lock
+                  output_set(OUNLOCK + 1, 1);   // Cancel deadlock
                }
             }
          } else
