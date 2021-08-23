@@ -624,7 +624,7 @@ static void task(void *pvParameters)
                         lock[l].state = ((i == o || !input_active(IUNLOCK + l)) ? o ? LOCK_UNLOCKED : LOCK_LOCKED : o ? LOCK_UNLOCKFAIL : LOCK_LOCKFAIL);
                      }
                   } else if (lock[l].i != i)    // Input state change
-                     lock[l].state = ((i == o || !output_active(OUNLOCK + l)) ? i ? LOCK_UNLOCKED : LOCK_LOCKED : i ? LOCK_FORCED : LOCK_FAULT);
+                     lock[l].state = ((i == o) ? i ? LOCK_UNLOCKED : LOCK_LOCKED : i ? LOCK_FORCED : LOCK_FAULT);
                }
                lock[l].o = o;
                lock[l].i = i;
@@ -785,7 +785,7 @@ static void task(void *pvParameters)
             status(door_tamper = "Lock forced");
          else if (lock[1].state == LOCK_FORCED)
             status(door_tamper = "Deadlock forced");
-         else if (iopen && (lock[0].state == LOCK_LOCKED || lock[1].state == LOCK_LOCKED))
+         else if (iopen && ((output_active(OUNLOCK) && lock[0].state == LOCK_LOCKED) || (output_active(OUNLOCK + 1) && lock[1].state == LOCK_LOCKED)))
             status(door_tamper = "Door forced");
          else
             status(door_tamper = NULL);
