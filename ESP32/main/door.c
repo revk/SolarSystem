@@ -649,13 +649,11 @@ static void task(void *pvParameters)
                   doorwhy = (((output_active(OUNLOCK) && lock[0].state == LOCK_LOCKED) || (output_active(OUNLOCK + 1) && lock[1].state == LOCK_LOCKED)) ? "forced" : "manual");
                if (doorwhy)
                   jo_string(j, "trigger", doorwhy);
+               revk_event_clients("open", &j, 1 | (iotstatedoor << 1));
                doorwhy = NULL;
-               if (doorstate == DOOR_UNLOCKING)
-               {
-                  doorstate = DOOR_OPEN;
-                  revk_event_clients("open", &j, 1 | (iotstatedoor << 1));
-               } else
-                  doorstate = DOOR_UNLOCKING;
+               if (doorstate != DOOR_UNLOCKING && *dooriotunlock)
+                  revk_mqtt_send_str_clients(dooriotunlock, 0, 2);      // We skipped unlocking...
+               doorstate = DOOR_OPEN;
                if (doorauto >= 2)
                {
                   output_set(OUNLOCK + 0, 1);   // Cancel lock
