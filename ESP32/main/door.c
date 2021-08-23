@@ -624,7 +624,7 @@ static void task(void *pvParameters)
                         lock[l].state = ((i == o || !input_active(IUNLOCK + l)) ? o ? LOCK_UNLOCKED : LOCK_LOCKED : o ? LOCK_UNLOCKFAIL : LOCK_LOCKFAIL);
                      }
                   } else if (lock[l].i != i)    // Input state change
-                     lock[l].state = ((i == o) ? i ? LOCK_UNLOCKED : LOCK_LOCKED : i ? LOCK_FORCED : LOCK_FAULT);
+                     lock[l].state = ((i == o || !output_active(OUNLOCK + l)) ? i ? LOCK_UNLOCKED : LOCK_LOCKED : i ? LOCK_FORCED : LOCK_FAULT);
                }
                lock[l].o = o;
                lock[l].i = i;
@@ -649,11 +649,12 @@ static void task(void *pvParameters)
                   doorwhy = (((output_active(OUNLOCK) && lock[0].state == LOCK_LOCKED) || (output_active(OUNLOCK + 1) && lock[1].state == LOCK_LOCKED)) ? "forced" : "manual");
                if (doorwhy)
                   jo_string(j, "trigger", doorwhy);
-               revk_event_clients("open", &j, 1 | (iotstatedoor << 1));
                doorwhy = NULL;
                if (doorstate == DOOR_UNLOCKING)
+               {
                   doorstate = DOOR_OPEN;
-               else
+                  revk_event_clients("open", &j, 1 | (iotstatedoor << 1));
+               } else
                   doorstate = DOOR_UNLOCKING;
                if (doorauto >= 2)
                {
