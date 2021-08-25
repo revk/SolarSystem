@@ -8,7 +8,7 @@ Modules work as a mesh over WiFi, and one connects to a back end cloud managemen
 
 ## Back end management cloud system
 
-Cloud back end for management of devices without the need for on-site controller.
+Cloud back end for management of devices without the need for on-site controller. Runs on linux with mariadb and apache.
 
 ![Access](https://user-images.githubusercontent.com/996983/119697498-26a1e900-be48-11eb-8498-32d888ed1305.png)
 
