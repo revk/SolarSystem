@@ -1,16 +1,10 @@
 # SolarSystem
 
-## alarm panel
+Modular access control and alarm system.
 
-A complete alarm panel and access control system running on a Raspberry Pi
+## ESP32 code for modules
 
-- Works with Galaxy alarm parts over RS485 bus (Max Reader, Keypad, RIO)
-- Works with WiFi connected ESP32 modules
-- See SolarSystem.pages/pdf for more details
-
-## PCBs
-
-This includes KiCad PCB designs and 3D case designs.
+Modules work as a mesh over WiFi, and one connects to a back end cloud management system. PCB designs are included (KiCad) as are 3D printable case designs.
 
 ## solar system cloud
 
