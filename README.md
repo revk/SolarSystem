@@ -15,8 +15,6 @@ This includes KiCad PCB designs and 3D case designs.
 ## solar system cloud
 
 Cloud back end for management of devices without the need for on-site controller.
-Work in progress.
-*Note this uses a number of tools for the web interface which are not yet published, so you need to contact me if you want to run the web control side.*
 
 ![Access](https://user-images.githubusercontent.com/996983/119697498-26a1e900-be48-11eb-8498-32d888ed1305.png)
 
