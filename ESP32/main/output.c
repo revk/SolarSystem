@@ -149,7 +149,7 @@ static void task(void *pvParameters)
          output_mask |= (1ULL << i);
          output_write(i);
       }
-   // Scan inputs
+   // Scan outputs
    while (1)
    {
       esp_task_wdt_reset();
@@ -181,7 +181,7 @@ static void task(void *pvParameters)
          while (t && !output[t - 1])
             t--;
          for (int i = 0; i < t; i++)
-            if (output[i])
+            if (output[i] && *outputname[i])
             {
                if (output_pulsed & (1ULL << i))
                   jo_null(j, outputname[i]);    // Distinct state for false but should be true

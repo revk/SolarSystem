@@ -117,7 +117,8 @@ static void task(void *pvParameters)
          while (t && !input[t - 1])
             t--;
          for (i = 0; i < t; i++)
-            jo_bool(j, inputname[i], (input_stable >> i) & 1);
+            if (*inputname[i])
+               jo_bool(j, inputname[i], (input_stable >> i) & 1);
          revk_state_clients("input", &j, debug | (iotstateinput << 1));
       }
       // Sleep
