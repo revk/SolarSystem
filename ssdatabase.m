@@ -138,7 +138,10 @@ key(meshkey, 32);
 text(smsuser, 0);
 text(smspass, 0);
 text(hookbearer,0);		// Bearer for web hooks
-text(hookfobevent,0);		// Fob event web hook
+text(hookfob,0);		// Fob event web hook
+text(hookalarm,0);		// Alarm event web hook
+text(hookpanic,0);		// Panic event web hook
+text(hookfire,0);		// Fire event web hook
 areas(engineer);                // Site wide engineering state
 areas(alarmed);                 // Site wide state from mesh
 areas(tampered);                // Site wide state from mesh

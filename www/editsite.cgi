@@ -29,7 +29,7 @@ if($?sitename) then
 	if(! $?nomesh) setenv nomesh false
 	if(! $?ioteventarm) setenv ioteventarm false
 	if(! $?debug) setenv debug false
-	sqlwrite -qon "$DB" site sitename wifissid wifipass iothost nomesh smsuser smspass armcancel alarmdelay alarmhold debug ioteventarm smsarm smsarmfail smsdisarm smsalarm smspanic smsfire engineer smsnumber smsfrom hookbearer hookfobevent
+	sqlwrite -qon "$DB" site sitename wifissid wifipass iothost nomesh smsuser smspass armcancel alarmdelay alarmhold debug ioteventarm smsarm smsarmfail smsdisarm smsalarm smspanic smsfire engineer smsnumber smsfrom hookbearer hookfob hookalarm hookfire hookpanic
 	sql "$DB" 'UPDATE device SET poke=NOW() WHERE site=$site'
 	message --poke
 	redirect /
@@ -57,7 +57,10 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <tr><td>Alarm-Hold</td><td><input name=alarmhold size=3> seconds (timeout before alarm cancels after last trigger)</td></tr>
 <tr><td colspan=2>Web hooks</td></tr>
 <tr><td>Bearer</td><td><input name=hookbearer size=40 placeholder="To send on hooks"></td></tr>
-<tr><td>Fob event</td><td><input name=hookfobevent size=40 placeholder="https://..."></td></tr>
+<tr><td>Fob event</td><td><input name=hookfob size=40 placeholder="https://..."></td></tr>
+<tr><td>Alarm event</td><td><input name=hookalarm size=40 placeholder="https://..."></td></tr>
+<tr><td>Fire event</td><td><input name=hookfire size=40 placeholder="https://..."></td></tr>
+<tr><td>Panic event</td><td><input name=hookpanic size=40 placeholder="https://..."></td></tr>
 </table>
 <p>Area settings</p>
 <table border=1>

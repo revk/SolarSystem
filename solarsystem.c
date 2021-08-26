@@ -84,10 +84,10 @@ void send_message(SQL_RES * res, const char *ud)
       j_store_string(s, "da", n);
       j_store_string(s, "oa", f);
       j_store_string(s, "ud", ud);
-      if(!fork())
+      if (!fork())
       {
-      j_curl_send(curl, s, NULL, NULL, "https://sms.aa.net.uk");
-      _exit(0);
+         j_curl_send(curl, s, NULL, NULL, "https://sms.aa.net.uk");
+         _exit(0);
       }
       j_delete(&s);
    }
@@ -1268,24 +1268,28 @@ int main(int argc, const char *argv[])
             char *data = j_write_str(j);
             sql_safe_query_free(&sql, sql_printf("INSERT INTO `event` SET `logged`=NOW(),`device`=%#s,`suffix`=%#s,`data`=%#s", deviceid, suffix, data));
             free(data);
-            if (!strcmp(suffix, "fob") && checkdevice())
-            {                   // Fob usage - loads of options
-               {                // Hook
-                  SQL_RES *res = sql_safe_query_store_free(&sql, sql_printf("SELECT * FROM `site` WHERE `site`=%#s", sql_col(device, "site")));
-                  if (sql_fetch_row(res))
+            if (suffix && *suffix && checkdevice())
+            {                   // Event hooks
+               SQL_RES *res = sql_safe_query_store_free(&sql, sql_printf("SELECT * FROM `site` WHERE `site`=%#s", sql_col(device, "site")));
+               if (sql_fetch_row(res))
+               {
+                  char *tag;
+                  if (asprintf(&tag, "hook%s", suffix) < 0)
+                     errx(1, "malloc");
+                  const char *hook = sql_col(res, tag);
+                  if (hook && *hook)
                   {
-                     const char *hook = sql_col(res, "hookfobevent");
-                     if (hook && *hook)
+                     if (!fork())
                      {
-			     if(!fork())
-			     {
                         j_curl_send(curl, j, NULL, sql_col(res, "hookbearer"), "%s", hook);
-			_exit(0);
-			     }
+                        _exit(0);
                      }
                   }
-                  sql_free_result(res);
                }
+               sql_free_result(res);
+            }
+            if (!strcmp(suffix, "fob") && checkdevice())
+            {                   // Fob usage - loads of options
                int organisation = atoi(sql_colz(device, "organisation"));
                const char *aid = sql_colz(device, "aid");
                const char *fobid = j_get(j, "id");
