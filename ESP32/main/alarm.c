@@ -731,7 +731,7 @@ static void task(void *pvParameters)
       // Periodic
       if (isroot && summary_next <= now)
       {                         // Summary reporting cycle
-         summary_next = now + 1000000LL * meshcycle * 3;
+         summary_next = now + 1000000LL * meshcycle;
          // Check off line
          for (int n = 0; n < nodes; n++)
             if (!node[n].reported && node[n].online)
@@ -758,6 +758,7 @@ static void task(void *pvParameters)
                   node_offline(node[n].mac);
                }
             }
+         static char missed = 0;
          if (nodes_reported >= nodes_online)
          {                      // We have a full set, make a report - the off line logic means we may miss a report if a device goes off line
             // Clear reports
@@ -767,10 +768,16 @@ static void task(void *pvParameters)
             jo_t j = jo_object_alloc();
             jo_datetime(j, "summary", time(0));
             mesh_make_summary(j);
+            if (missed)
+               jo_int(j, "missed-reports", missed);
             const mac_t addr = { 255, 255, 255, 255, 255, 255 };
             revk_mesh_send_json(addr, &j);
+            missed = 0;
          } else
+         {
             ESP_LOGI(TAG, "Missed report %d/%d", nodes_reported, nodes_online);
+            missed++;
+         }
       }
       if (report_next <= now)
       {                         // Periodic send to root - even to self
@@ -798,7 +805,7 @@ static void task(void *pvParameters)
             nodes_reported = 0;
             revk_mqtt_init();
             report_next = 0;    // Send report from us to us
-            summary_next = now + 1000000LL * meshcycle * 3;     // Start reporting cycle
+            summary_next = now + 1000000LL * meshcycle; // Start reporting cycle
          }
          if (uptime() - isroot > meshwarmup)
          {                      // Checking was have quorum / full house
