@@ -312,17 +312,6 @@ F 3 "~" H 5725 4725 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L RevK:Regulator Reg1
-U 1 1 608E8C57
-P 9225 1675
-F 0 "Reg1" H 9803 1576 50  0000 L CNN
-F 1 "3.3V" H 9803 1485 50  0000 L CNN
-F 2 "RevK:RegulatorBlock" H 9675 1775 50  0001 C CNN
-F 3 "https://www.pololu.com/product/2842/resources" H 9675 1775 50  0001 C CNN
-	1    9225 1675
-	1    0    0    -1  
-$EndComp
-$Comp
 L power:+12V #PWR023
 U 1 1 60914FE1
 P 9225 1775
@@ -654,6 +643,82 @@ F 1 "AA" H 10525 6800 50  0000 L CNN
 F 2 "RevK:AA" H 10500 6800 50  0001 C CNN
 F 3 "" H 10500 6800 50  0001 C CNN
 	1    10500 6800
+	1    0    0    -1  
+$EndComp
+$Comp
+L RevK:LMR16006YQ3 U4
+U 1 1 610EE400
+P 9225 1675
+F 0 "U4" H 9725 1775 50  0000 L CNN
+F 1 "LMR16006YQ3" H 9225 1275 50  0000 L CNN
+F 2 "RevK:RegulatorBlock" H 9675 1775 50  0001 C CNN
+F 3 "https://www.ti.com/lit/ds/symlink/lmr16006y-q1.pdf" H 9675 1775 50  0001 C CNN
+F 4 "TI" H 9225 1675 50  0001 C CNN "Manufacturer"
+F 5 "LMR16006YQ3" H 9225 1675 50  0001 C CNN "Part No"
+F 6 "" H 9225 1675 50  0001 C CNN "Note"
+	1    9225 1675
+	1    0    0    -1  
+$EndComp
+$Comp
+L RevK:Hidden C2
+U 1 1 610F9B88
+P 9825 1675
+F 0 "C2" H 9800 1675 50  0000 L CNN
+F 1 "0.1uF" H 10350 1675 50  0000 R CNN
+F 2 "RevK:Hidden" H 9825 1675 50  0001 C CNN
+F 3 "" H 9825 1675 50  0001 C CNN
+F 4 "X7R or X5R 0603" H 9825 1675 50  0001 C CNN "Note"
+	1    9825 1675
+	1    0    0    -1  
+$EndComp
+$Comp
+L RevK:Hidden C3
+U 1 1 610FD0EF
+P 9825 1750
+F 0 "C3" H 9800 1750 50  0000 L CNN
+F 1 "2.2uF" H 10350 1750 50  0000 R CNN
+F 2 "RevK:Hidden" H 9825 1750 50  0001 C CNN
+F 3 "" H 9825 1750 50  0001 C CNN
+F 4 "0603 or 0805" H 9825 1750 50  0001 C CNN "Note"
+	1    9825 1750
+	1    0    0    -1  
+$EndComp
+$Comp
+L RevK:Hidden C4
+U 1 1 610FD80E
+P 9825 1825
+F 0 "C4" H 9800 1825 50  0000 L CNN
+F 1 "10uF" H 10350 1825 50  0000 R CNN
+F 2 "RevK:Hidden" H 9825 1825 50  0001 C CNN
+F 3 "" H 9825 1825 50  0001 C CNN
+F 4 "0603 or 0805" H 9825 1825 50  0001 C CNN "Note"
+	1    9825 1825
+	1    0    0    -1  
+$EndComp
+$Comp
+L RevK:Hidden L1
+U 1 1 610FE01A
+P 9825 1900
+F 0 "L1" H 9800 1900 50  0000 L CNN
+F 1 "6.8uH" H 10350 1900 50  0000 R CNN
+F 2 "RevK:Hidden" H 9825 1900 50  0001 C CNN
+F 3 "https://www.mouser.co.uk/datasheet/2/987/Laird_Performance_TYA4020_series__Rev_A_-1877538.pdf" H 9825 1900 50  0001 C CNN
+F 4 "Laird" H 9825 1900 50  0001 C CNN "Manufacturer"
+F 5 "TYA4020" H 9825 1900 50  0001 C CNN "Part No"
+	1    9825 1900
+	1    0    0    -1  
+$EndComp
+$Comp
+L RevK:Hidden D3
+U 1 1 610FE5D2
+P 9825 1975
+F 0 "D3" H 9800 1975 50  0000 L CNN
+F 1 "Schottky" H 10350 1975 50  0000 R CNN
+F 2 "RevK:Hidden" H 9825 1975 50  0001 C CNN
+F 3 "https://www.mouser.co.uk/datasheet/2/54/CD1206-B220_B2100-777245.pdf" H 9825 1975 50  0001 C CNN
+F 4 "Bourns" H 9825 1975 50  0001 C CNN "Manufacturer"
+F 5 "CD1206-B2100" H 9825 1975 50  0001 C CNN "Part No"
+	1    9825 1975
 	1    0    0    -1  
 $EndComp
 $EndSCHEMATC
