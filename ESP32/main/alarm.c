@@ -392,7 +392,6 @@ const char *mesh_make_report(jo_t j)
 
 static void node_offline(const mac_t mac)
 {
-   // TODO
 }
 
 static void node_online(const mac_t mac)
@@ -409,12 +408,10 @@ static void node_online(const mac_t mac)
 
 static void mesh_now_root(void)
 {
-   // TODO
 }
 
 static void mesh_now_leaf(void)
 {
-   // TODO
 }
 
 static int check_online(const char *target)
@@ -533,7 +530,7 @@ static void set_outputs(void)
 
 static void mesh_handle_summary(const char *target, jo_t j)
 {                               // Alarm state - process summary of output states
-   report_next = esp_timer_get_time() + 1000000LL * meshcycle / 4 + 1000000LL * meshcycle * esp_random() / (1ULL << 32) / 2;    // Fit in reports
+   report_next = esp_timer_get_time() + 1000000LL * meshcycle / 4 + 1000000LL * meshcycle * esp_random() / (1ULL << 32) / 2;    // Fit in reports random slots
    check_online(target);
    if (esp_mesh_is_root())
    {                            // We are root, so we have updated anyway, but let's report to IoT
@@ -541,14 +538,15 @@ static void mesh_handle_summary(const char *target, jo_t j)
       if (json)
       {
          uint32_t now = uptime();
+         static uint32_t periodic = 0;
          static unsigned int last_crc = 0;      // using a CRC is a lot less memory than a copy of this or of the states
          unsigned int crc = 0;
          char *comma = strchr(json, ',');       // Skip time as that changes every time, duh
          if (comma)
             crc = df_crc(strlen(comma), (void *) comma);
-         if (last_crc != crc || now > summary_next)
+         if (last_crc != crc || now > periodic)
          {                      // Changed
-            summary_next = now + 3600;
+            periodic = now + 3600;
             last_crc = crc;
             revk_mqtt_send_payload_clients("state", 1, "system", json, 1 | (iotstatesystem << 1));
          }
@@ -719,7 +717,7 @@ static void task(void *pvParameters)
          continue;
       }
       int64_t next = report_next;
-      if (isroot && summary_next < report_next)
+      if (isroot && next > summary_next)
          next = summary_next;
       if (next > now + 1000000LL * meshcycle / 4)
          next = now + 1000000LL * meshcycle / 4;        // Max time we wait, as we can change the waiting on rx of summary
@@ -774,10 +772,7 @@ static void task(void *pvParameters)
             revk_mesh_send_json(addr, &j);
             missed = 0;
          } else
-         {
-            ESP_LOGI(TAG, "Missed report %d/%d", nodes_reported, nodes_online);
-            missed++;
-         }
+            missed += nodes_online - nodes_reported;
       }
       if (report_next <= now)
       {                         // Periodic send to root - even to self
@@ -814,6 +809,16 @@ static void task(void *pvParameters)
                wasonline = nodes_online;
                alarm_fault = ((nodes_online < meshmax) ? "Missing nodes" : NULL);
                status(alarm_tamper = ((nodes_online == 1 && meshmax > 1) ? "Lonely" : NULL));
+               if (nodes_online <= meshmax / 2)
+               {                // Below quorum...
+                  int csa_newchan = (esp_random() % 14) + 1;
+                  ESP_LOGI(TAG, "Try channel %d", csa_newchan);
+                  jo_t j = jo_object_alloc();
+                  jo_int(j, "chan", csa_newchan);
+                  revk_info_clients("mesh", &j, 3);
+                  esp_mesh_switch_channel(NULL, csa_newchan, 3);
+                  isroot = uptime();    // Wait for it to settle
+               }
             }
          }
       } else
