@@ -1291,7 +1291,7 @@ int main(int argc, const char *argv[])
                   }
                   if (!strcmp(suffix, "alarm") || !strcmp(suffix, "fire") || !strcmp(suffix, "panic"))
                   {
-                     const char *areas = j_get(j,"areas");
+                     const char *areas = j_get(j, "areas");
                      if (areas && *areas)
                      {
                         char *msg = NULL;
@@ -1311,10 +1311,11 @@ int main(int argc, const char *argv[])
                               if (*suffix == 'p')
                                  fprintf(f, "PANIX!\n");
                               fprintf(f, "%s\n", sql_colz(res, "sitename"));
+                              char tag;
                               SQL_RES *a = sql_safe_query_store_free(&sql, sql_printf("SELECT * FROM `area` WHERE `site`=%s", sql_colz(res, "site")));
                               while (sql_fetch_row(a))
-                                 if (strchr(areas, *sql_colz(res, "tag")))
-                                    fprintf(f, "%s\n", sql_colz(res, "areaname"));
+                                 if (strchr(areas, tag = *sql_colz(a, "tag")))
+                                    fprintf(f, "%c:%s\n", tag, sql_colz(a, "areaname"));
                               sql_free_result(a);
                               fclose(f);
                            }
