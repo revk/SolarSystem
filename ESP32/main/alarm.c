@@ -646,11 +646,12 @@ static void mesh_handle_summary(const char *target, jo_t j)
    static area_t lastalarm = -1;
    if (lastalarm != state_alarm)
    {
-      if (esp_mesh_is_root() && smsalarm & (state_alarm & ~lastalarm))
+      if (esp_mesh_is_root())
       {
          jo_t j = jo_make("System");
          jo_area(j, "areas", state_alarm & ~lastalarm);
-         sms_event("Alarm!", j);
+         if (smsalarm & (state_alarm & ~lastalarm))
+            sms_event("Alarm!", j);
          revk_event_clients("alarm", &j, 1 | (ioteventarm << 1));
          jo_free(&j);
       }
@@ -659,11 +660,12 @@ static void mesh_handle_summary(const char *target, jo_t j)
    static area_t lastpanic = -1;
    if (lastpanic != state_panic)
    {
-      if (esp_mesh_is_root() && smspanic & (state_panic & ~lastpanic))
+      if (esp_mesh_is_root())
       {
          jo_t j = jo_make("System");
          jo_area(j, "areas", state_panic & ~lastpanic);
-         sms_event("Panic", j);
+         if (smspanic & (state_panic & ~lastpanic))
+            sms_event("Panic", j);
          revk_event_clients("panic", &j, 1 | (ioteventarm << 1));
          jo_free(&j);
 
@@ -673,11 +675,12 @@ static void mesh_handle_summary(const char *target, jo_t j)
    static area_t lastfire = -1;
    if (lastfire != state_fire)
    {
-      if (esp_mesh_is_root() && smsfire & (state_fire & ~lastfire))
+      if (esp_mesh_is_root())
       {
          jo_t j = jo_make("System");
          jo_area(j, "areas", state_fire & ~lastfire);
-         sms_event("Panic", j);
+         if (smsfire & (state_fire & ~lastfire))
+            sms_event("Fire", j);
          revk_event_clients("fire", &j, 1 | (ioteventarm << 1));
          jo_free(&j);
 

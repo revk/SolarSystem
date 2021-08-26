@@ -405,6 +405,8 @@ static void addsitedata(SQL * sqlp, j_t j, SQL_RES * site, const char *deviceid,
    addarea(sms, "disarm", sql_col(site, "smsdisarm"), 0);
    addarea(sms, "armfail", sql_col(site, "smsarmfail"), 0);
    addarea(sms, "alarm", sql_col(site, "smsalarm"), 0);
+   addarea(sms, "panic", sql_col(site, "smspanic"), 0);
+   addarea(sms, "fire", sql_col(site, "smsfire"), 0);
 #ifdef	CONFIG_REVK_MESH
    j_t mesh = j_store_object(j, "mesh");
    j_store_int(mesh, "cycle", 2);
