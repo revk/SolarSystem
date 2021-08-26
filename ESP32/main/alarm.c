@@ -498,11 +498,12 @@ static void mesh_handle_report(const char *target, jo_t j)
    int child = check_online(target);
    if (child < 0)
       return;
-   if (node[child].reported)
-      return;                   // Odd
    node[child].missed = 0;
-   node[child].reported = 1;
-   nodes_reported++;
+   if (!node[child].reported)
+   {
+      node[child].reported = 1;
+      nodes_reported++;
+   }
    jo_rewind(j);
    jo_type_t t;
    while ((t = jo_next(j)))
