@@ -646,7 +646,7 @@ static void mesh_handle_summary(const char *target, jo_t j)
    static area_t lastalarm = -1;
    if (lastalarm != state_alarm)
    {
-      if (esp_mesh_is_root())
+      if (esp_mesh_is_root() && (state_alarm & ~lastalarm))
       {
          jo_t j = jo_make("System");
          jo_area(j, "areas", state_alarm & ~lastalarm);
@@ -660,7 +660,7 @@ static void mesh_handle_summary(const char *target, jo_t j)
    static area_t lastpanic = -1;
    if (lastpanic != state_panic)
    {
-      if (esp_mesh_is_root())
+      if (esp_mesh_is_root() && (state_panic & ~lastpanic))
       {
          jo_t j = jo_make("System");
          jo_area(j, "areas", state_panic & ~lastpanic);
@@ -675,7 +675,7 @@ static void mesh_handle_summary(const char *target, jo_t j)
    static area_t lastfire = -1;
    if (lastfire != state_fire)
    {
-      if (esp_mesh_is_root())
+      if (esp_mesh_is_root() && (state_fire & ~lastfire))
       {
          jo_t j = jo_make("System");
          jo_area(j, "areas", state_fire & ~lastfire);
