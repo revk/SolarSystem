@@ -1309,7 +1309,7 @@ int main(int argc, const char *argv[])
                               if (*suffix == 'f')
                                  fprintf(f, "FIRE!\n");
                               if (*suffix == 'p')
-                                 fprintf(f, "PANIX!\n");
+                                 fprintf(f, "PANIC!\n");
                               fprintf(f, "%s\n", sql_colz(res, "sitename"));
                               char tag;
                               SQL_RES *a = sql_safe_query_store_free(&sql, sql_printf("SELECT * FROM `area` WHERE `site`=%s", sql_colz(res, "site")));
