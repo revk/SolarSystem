@@ -68,11 +68,10 @@ char *getaes(SQL * sqlkeyp, char *target, const char *aid, const char *fob)
    return target;
 }
 
-void send_message(SQL_RES * res, const char *ud)
+void send_message(SQL_RES * res, const char *ud, const char *n)
 {
    const char *u = sql_colz(res, "smsuser");
    const char *p = sql_colz(res, "smspass");
-   const char *n = sql_colz(res, "smsnumber");
    if (*u && *p && *n)
    {
       const char *f = sql_colz(res, "smsfrom");
@@ -522,9 +521,9 @@ void dooffline(SQL * sqlp)
    while (sql_fetch_row(res))
    {
       sql_safe_query_free(sqlp, sql_printf("UPDATE `site` SET `missing`=`nodes` WHERE `site`=%#s", sql_colz(res, "site")));
-      if (asprintf(&t, "Site off line device\n%s", sql_colz(res, "sitename")) < 0)
+      if (asprintf(&t, "Site off line\n%s", sql_colz(res, "sitename")) < 0)
          errx(1, "malloc");
-      send_message(res, t);
+      send_message(res, t, sql_colz(res, "smsnumber"));
       free(t);
    }
    sql_free_result(res);
@@ -535,7 +534,7 @@ void dooffline(SQL * sqlp)
       {                         // Individual device off line but not site
          if (asprintf(&t, "%s\nOff line device\n%s", sql_colz(res, "lastonline"), sql_colz(res, "devicename")) < 0)
             errx(1, "malloc");
-         send_message(res, t);
+         send_message(res, t, sql_colz(res, "smsnumber"));
          free(t);
       }
       sql_safe_query_free(sqlp, sql_printf("UPDATE `device` SET `offlinereport`=NOW() WHERE `device`=%#s", sql_col(res, "device")));
@@ -1245,7 +1244,7 @@ int main(int argc, const char *argv[])
          {
             SQL_RES *res = sql_safe_query_store_free(&sql, sql_printf("SELECT * FROM `site` WHERE `site`=%#s", sql_col(device, "site")));
             if (sql_fetch_row(res))
-               send_message(res, j_get(j, "message"));
+               send_message(res, j_get(j, "message"), sql_colz(res, "smsnumber"));
             sql_free_result(res);
             return NULL;
          }
@@ -1288,6 +1287,44 @@ int main(int argc, const char *argv[])
                      {
                         j_curl_send(curl, j, NULL, sql_col(res, "hookbearer"), "%s", hook);
                         _exit(0);
+                     }
+                  }
+                  if (!strcmp(suffix, "alarm") || !strcmp(suffix, "fire") || !strcmp(suffix, "panic"))
+                  {
+                     const char *areas = j_get(j,"areas");
+                     if (areas && *areas)
+                     {
+                        char *msg = NULL;
+                        void txt(const char *tag) {
+                           char *n = sql_colz(res, tag);
+                           if (!n)
+                              return;
+                           if (!msg)
+                           {
+                              size_t l;
+                              FILE *f = open_memstream(&msg, &l);
+                              fprintf(f, "%s\n", j_get(j, "ts"));
+                              if (*suffix == 'a')
+                                 fprintf(f, "ALARM!\n");
+                              if (*suffix == 'f')
+                                 fprintf(f, "FIRE!\n");
+                              if (*suffix == 'p')
+                                 fprintf(f, "PANIX!\n");
+                              fprintf(f, "%s\n", sql_colz(res, "sitename"));
+                              SQL_RES *a = sql_safe_query_store_free(&sql, sql_printf("SELECT * FROM `area` WHERE `site`=%s", sql_colz(res, "site")));
+                              while (sql_fetch_row(a))
+                                 if (strchr(areas, *sql_colz(res, "tag")))
+                                    fprintf(f, "%s\n", sql_colz(res, "areaname"));
+                              sql_free_result(a);
+                              fclose(f);
+                           }
+                           send_message(res, msg, n);
+                        }
+                        txt("smsafp1");
+                        txt("smsafp2");
+                        txt("smsafp3");
+                        if (msg)
+                           free(msg);
                      }
                   }
                }

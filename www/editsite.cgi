@@ -29,7 +29,7 @@ if($?sitename) then
 	if(! $?nomesh) setenv nomesh false
 	if(! $?ioteventarm) setenv ioteventarm false
 	if(! $?debug) setenv debug false
-	sqlwrite -qon "$DB" site sitename wifissid wifipass iothost nomesh smsuser smspass armcancel alarmdelay alarmhold debug ioteventarm smsarm smsarmfail smsdisarm smsalarm smspanic smsfire engineer smsnumber smsfrom hookbearer hookfob hookalarm hookfire hookpanic
+	sqlwrite -qon "$DB" site sitename wifissid wifipass iothost nomesh smsuser smspass armcancel alarmdelay alarmhold debug ioteventarm smsarm smsarmfail smsdisarm smsalarm smspanic smsfire engineer smsnumber smsafp1 smsafp2 smsafp3 smsfrom hookbearer hookfob hookalarm hookfire hookpanic
 	sql "$DB" 'UPDATE device SET poke=NOW() WHERE site=$site'
 	message --poke
 	redirect /
@@ -50,7 +50,10 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <tr><td><input type=checkbox id=debug name=debug value=true></td><td><label for=debug>Debug mode (additional logging).</label></td></tr>
 <tr><td>SMS Username</td><td><input name=smsuser size=40></td></tr>
 <tr><td>SMS Password</td><td><input name=smspass size=40></td></tr>
-<tr><td>SMS Target</td><td><input name=smsnumber size=20 maxlength=20></td></tr>
+<tr><td>SMS Target</td><td><input name=smsnumber size=20 maxlength=20> (Send for sms selected areas as listed below)</td></tr>
+<tr><td>SMS Alarm/Fire/Panic</td><td><input name=smsafp1 size=20 maxlength=20> (Sent for any alarm/fire/panic event while on-line)</td></tr>
+<tr><td>SMS Alarm/Fire/Panic</td><td><input name=smsafp2 size=20 maxlength=20></td></tr>
+<tr><td>SMS Alarm/Fire/Panic</td><td><input name=smsafp3 size=20 maxlength=20></td></tr>
 <tr><td>SMS From</td><td><input name=smsfrom size=10 maxlength=10> (if carrier allows)</td></tr>
 <tr><td>Arm-Cancel</td><td><input name=armcancel size=3> seconds (timeout before cancelling arming)</td></tr>
 <tr><td>Alarm-Delay</td><td><input name=alarmdelay size=3> seconds (timeout before alarm triggers)</td></tr>

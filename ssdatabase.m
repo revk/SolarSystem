@@ -159,6 +159,9 @@ bool (ioteventarm);             // Copy stuff to IoT
 #define s(state,c) areas(state)
 #include "ESP32/main/states.m"  // Related areas
 text(smsnumber, 20);            // Number to SMS
+text(smsafp1, 20);            // Number to SMS for alarm/fire/panic
+text(smsafp2, 20);            // Number to SMS for alarm/fire/panic
+text(smsafp3, 20);            // Number to SMS for alarm/fire/panic
 text(smsfrom, 10);              // From, where settable by carrier
 areas(smsarm);                  // When to SMS
 areas(smsdisarm);
