@@ -143,9 +143,13 @@ text(hookalarm,0);		// Alarm event web hook
 text(hookpanic,0);		// Panic event web hook
 text(hookfire,0);		// Fire event web hook
 areas(engineer);                // Site wide engineering state
-areas(alarmed);                 // Site wide state from mesh
-areas(tampered);                // Site wide state from mesh
-areas(faulted);                 // Site wide state from mesh
+areas(faulted);			// Site wide states from mesh
+areas(tampered);
+areas(alarmed);
+areas(armed);
+areas(prearm);
+areas(prealarm);
+areas(alarm);
 num(nodes);			// Site reported nodes
 num(missing);			// Site reported nodes missing
 num(armcancel);                 // Pre arm time
