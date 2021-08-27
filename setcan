@@ -10,6 +10,7 @@ unsetenv CANEDITFOB
 unsetenv CANADOPTFOB
 unsetenv CANEDITUSER
 unsetenv CANARM
+unsetenv CANSTRONGARM
 unsetenv CANDISARM
 unsetenv CANUNLOCK
 unsetenv CANVIEWLOG
@@ -29,6 +30,8 @@ can --organisation='$USER_ORGANISATION' viewlog
 if(! $status)setenv CANVIEWLOG
 can --organisation='$USER_ORGANISATION' arm
 if(! $status)setenv CANARM
+can --organisation='$USER_ORGANISATION' strongarm
+if(! $status)setenv CANSTRONGARM
 can --organisation='$USER_ORGANISATION' disarm
 if(! $status)setenv CANDISARM
 can --organisation='$USER_ORGANISATION' unlock

@@ -106,12 +106,13 @@ text(userorganisationname, 0);  // Job Title
 bool (admin);                   // Customer level admin user - can do anything relating to this organisation
 bool (caneditorganisation);	// Can edit organisation
 bool (caneditaccess);		// Can edit access
-bool (caneditsite);		// Can edit site
-bool (canedituser);		// Can edit user
-bool (caneditdevice);		// Can edit device
-bool (canadoptfob);		// Can adopt fob
-bool (caneditfob);		// Can edit fob
-bool (caneditarea);		// Can edit area
+bool (caneditsite);		// Can edit sites
+bool (canedituser);		// Can edit users
+bool (caneditdevice);		// Can edit devices
+bool (canviewdevice);		// Can view devices
+bool (canadoptfob);		// Can adopt fobs
+bool (caneditfob);		// Can edit fobs
+bool (caneditarea);		// Can edit areas
 bool (canarm);			// Can arm
 bool (canstrongarm);		// Can strong arm
 bool (candisarm);		// Can disarm

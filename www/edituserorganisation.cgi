@@ -17,6 +17,7 @@ if($?userorganisationname) then
 	if(! $?canedituser) setenv canedituser false
 	if(! $?caneditarea) setenv caneditarea false
 	if(! $?canarm) setenv canarm false
+	if(! $?canstrongarm) setenv canstrongarm false
 	if(! $?candisarm) setenv candisarm false
 	if(! $?canunlock) setenv canunlock false
 	if(! $?canviewlog) setenv canviewlog false
@@ -32,6 +33,7 @@ if($?userorganisationname) then
 	if($?CANEDITUSER) setenv allow "$allow canedituser"
 	if($?CANEDITAREA) setenv allow "$allow caneditarea"
 	if($?CANARM) setenv allow "$allow canarm"
+	if($?CANSTRONGARM) setenv allow "$allow canstrongarm"
 	if($?CANDISARM) setenv allow "$allow candisarm"
 	if($?CANUNLOCK) setenv allow "$allow canunlock"
 	if($?CANVIEWLOG) setenv allow "$allow canviewlog"
@@ -105,6 +107,7 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <if CANEDITUSER><tr><td><input type=checkbox id=canedituser name=canedituser value=true></td><td><label for=canedituser>Can edit user</label></td></tr></if>
 <if CANEDITAREA><tr><td><input type=checkbox id=caneditarea name=caneditarea value=true></td><td><label for=caneditarea>Can edit area</label></td></tr></if>
 <if CANARM><tr><td><input type=checkbox id=canarm name=canarm value=true></td><td><label for=canarm>Can arm</label></td></tr></if>
+<if CANSTRONGARM><tr><td><input type=checkbox id=canstrongarm name=canstrongarm value=true></td><td><label for=canstrongarm>Can strong-arm</label></td></tr></if>
 <if CANDISARM><tr><td><input type=checkbox id=candisarm name=candisarm value=true></td><td><label for=candisarm>Can disarm</label></td></tr></if>
 <if CANUNLOCK><tr><td><input type=checkbox id=canunlock name=canunlock value=true></td><td><label for=canunlock>Can unlock</label></td></tr></if>
 <if CANVIEWLOG><tr><td><input type=checkbox id=canviewlog name=canviewlog value=true></td><td><label for=canviewlog>Can view logs</label></td></tr></if>

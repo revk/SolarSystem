@@ -23,10 +23,8 @@ if($?STRONGARM) then
 endif
 
 done:
-unsetenv CANSTRONGARM
-can --site='$USER_SITE' strongarm
-if(! $status) set CANSTRONGARM
 source ../types
+source ../setcan
 xmlsql -C -d "$DB" head.html - foot.html << END
 <h1>Arming</h1>
 <sql table=site where='site=$USER_SITE'>
@@ -46,7 +44,7 @@ xmlsql -C -d "$DB" head.html - foot.html << END
 </sql>
 </table>
 <input type=submit value="Arm" name=ARM>
-<IF CANSTRNGARM><input type=submit value="Force" name=STRONGARM></if>
+<IF CANSTRONGARM><input type=submit value="Force" name=STRONGARM></if>
 </form>
 </sql>
 END
