@@ -1203,7 +1203,7 @@ int main(int argc, const char *argv[])
                sql_free_s(&s);
             return NULL;
          }
-         if (prefix && !strcmp(prefix, "state") && suffix && !strcmp(suffix, "system") && checkdevice())
+         if (prefix && !strcmp(prefix, "state") && suffix && !strcmp(suffix, "system") && checkdevice() && *sql_colz(device, "outofservice") == 'f')
          {
             SQL_RES *res = sql_safe_query_store_free(&sql, sql_printf("SELECT * FROM `site` WHERE `site`=%#s", sql_col(device, "site")));
             if (sql_fetch_row(res))
