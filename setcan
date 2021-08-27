@@ -6,6 +6,7 @@ unsetenv CANEDITACCESS
 unsetenv CANEDITAREA
 unsetenv CANEDITSITE
 unsetenv CANEDITDEVICE
+unsetenv CANVIEWDEVICE
 unsetenv CANEDITFOB
 unsetenv CANADOPTFOB
 unsetenv CANEDITUSER
@@ -48,6 +49,8 @@ can --organisation='$USER_ORGANISATION' --site='$USER_SITE' editsite
 if(! $status)setenv CANEDITSITE
 can --organisation='$USER_ORGANISATION' --site='$USER_SITE' editdevice
 if(! $status)setenv CANEDITDEVICE
+can --organisation='$USER_ORGANISATION' --site='$USER_SITE' viewdevice
+if(! $status)setenv CANVIEWDEVICE
 can --organisation='$USER_ORGANISATION' --site='$USER_SITE' editarea
 if(! $status)setenv CANEDITAREA
 endif

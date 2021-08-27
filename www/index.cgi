@@ -22,6 +22,7 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <hr>
 <IF USER_ADMIN=true><sql table=pending limit=1 WHERE="online<NOW()"><li><a href="provisiondevice.cgi">Provision new device</a></li></sql></if>
 <if USER_SITE CANEDITDEVICE><li><a href="editdevice.cgi">Manage devices</a></li></if>
+<if ELSE USER_SITE CANVIEWDEVICE><li><a href="editdevice.cgi">View devices</a></li></if>
 <if USER_ADMIN=true><li><a href="editpcb.cgi">Manage PCB templates</a></li></if>
 </ul>
 <pre>
