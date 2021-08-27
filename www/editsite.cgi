@@ -10,9 +10,8 @@ if($?DELETE) then
 		setenv MSG "Tick to say you are sure"
 		goto done
 	endif
-	sql "$DB" 'UPDATE session set site=NULL WHERE site=$site'
-	setenv C `sql -ct "$DB" 'UPDATE session set site=NULL WHERE site=$site' 'DELETE FROM site WHERE site=$site'`
-	if("$C" == "" || "$C" == "0") then
+	setenv C `sql -ct "$DB" 'UPDATE user SET site=NULL WHERE site=$site' 'DELETE FROM site WHERE site=$site'`
+	if($status || "$C" == "" || "$C" == "0") then
 		setenv MSG "Cannot delete as in use"
 		goto done
 	endif
