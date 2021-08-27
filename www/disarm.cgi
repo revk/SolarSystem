@@ -1,5 +1,5 @@
 #!../login/loggedin /bin/csh -f
-can --redirect --site='$USER_SITE' candisarm
+can --redirect --site='$USER_SITE' disarm
 if($status) exit 0
 
 if($?DISARM) then
