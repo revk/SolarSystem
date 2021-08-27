@@ -28,7 +28,7 @@ if($?sitename) then
 	if(! $?nomesh) setenv nomesh false
 	if(! $?ioteventarm) setenv ioteventarm false
 	if(! $?debug) setenv debug false
-	sqlwrite -qon "$DB" site sitename wifissid wifipass iothost nomesh smsuser smspass armcancel alarmdelay alarmhold debug ioteventarm smsarm smsarmfail smsdisarm smsalarm smspanic smsfire engineer smsnumber smsafp1 smsafp2 smsafp3 smsfrom hookbearer hookfob hookalarm hookfire hookpanic
+	sqlwrite -qon "$DB" site sitename wifissid wifipass wifichan iothost nomesh smsuser smspass armcancel alarmdelay alarmhold debug ioteventarm smsarm smsarmfail smsdisarm smsalarm smspanic smsfire engineer smsnumber smsafp1 smsafp2 smsafp3 smsfrom hookbearer hookfob hookalarm hookfire hookpanic
 	sql "$DB" 'UPDATE device SET poke=NOW() WHERE site=$site'
 	message --poke
 	redirect /
@@ -43,6 +43,7 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <tr><td>Name</td><td><input name=sitename size=40 autofocus></td></tr>
 <tr><td>WiFi SSID</td><td><input name=wifissid size=40 value="SolarSystem"></td></tr>
 <tr><td>WIFi pass</td><td><input name=wifipass size=40 value="security"></td></tr>
+<tr><td>WIFi chan</td><td><select name=wifichan><option value=0>Auto</option><FOR SPACE C="1 2 3 4 5 6 7 8 9 10 11"><option value=\$C><output name=C></option></FOR></select></td></tr>
 <tr><td><input type=checkbox id=nomesh name=nomesh value=true></td><td><label for=nomesh>Don't use mesh wifi on site (i.e. only access control).</label></td></tr>
 <tr><td>IoT MQTT</td><td><input name=iothost size=40></td></tr>
 <tr><td><input type=checkbox id=ioteventarm name=ioteventarm value=true></td><td><label for=ioteventarm>Log arm/trigger/disarm events to IoT.</label></td></tr>
