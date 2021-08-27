@@ -90,6 +90,8 @@ text(email, 0);                 // Users email - we expect unique
 key(email, 128);
 text(hash, 0);                  // Password hash
 bool (admin);                   // Top level admin user - can do anything
+link(organisation);             // Selected organisation
+link(site);                     // Selected site
 
 table(session, 36);             // Login session
 link(user);                     // Which user
@@ -98,8 +100,6 @@ datetime(expires);              // Session expiry
 index(expires);                 // Easier to delete
 ip(loginip);                    // Login ip
 text(useragent, 0);             // User agent
-link(organisation);             // Current selected organisation
-link(site);                     // Current selected site
 
 join(user, organisation);
 text(userorganisationname, 0);  // Job Title

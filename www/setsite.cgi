@@ -1,3 +1,3 @@
 #!../login/loggedin /bin/csh -f
-sql "$DB" 'UPDATE session SET site=$SET_SITE WHERE session="$ENVCGI"'
+sql "$DB" 'UPDATE user SET site=$SET_SITE WHERE user="$USER_ID"'
 redirect /

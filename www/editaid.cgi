@@ -1,5 +1,5 @@
 #!../login/loggedin /bin/csh -f
-can --redirect --site='$SESSION_SITE' admin
+can --redirect --site='$USER_SITE' admin
 if($status) exit 0
 
 if($?aids) then #save
@@ -8,15 +8,15 @@ if($?aids) then #save
 		setenv A "$a"
 		setenv D `printenv "NAME$A"`
 		if("$D" == "") then
-			sql "$DB" 'DELETE FROM aid WHERE site=$SESSION_SITE AND aid="$A"'
+			sql "$DB" 'DELETE FROM aid WHERE site=$USER_SITE AND aid="$A"'
 		else
-			sql "$DB" 'INSERT IGNORE INTO aid SET organisation=$SESSION_ORGANISATION,site=$SESSION_SITE,aid="$A",aidname="$D"'
-			sql "$DB" 'UPDATE aid SET aidname="$D" WHERE organisation=$SESSION_ORGANISATION AND site=$SESSION_SITE AND aid="$A"'
+			sql "$DB" 'INSERT IGNORE INTO aid SET organisation=$USER_ORGANISATION,site=$USER_SITE,aid="$A",aidname="$D"'
+			sql "$DB" 'UPDATE aid SET aidname="$D" WHERE organisation=$USER_ORGANISATION AND site=$USER_SITE AND aid="$A"'
 		endif
 	end
 	if($?USER_ADMIN) then
 		if("$NEW" != "") then
-			setenv A `makeaid --site=$SESSION_SITE --name="$NEW"`
+			setenv A `makeaid --site=$USER_SITE --name="$NEW"`
 		endif
 	endif
 	redirect / Updated
@@ -27,7 +27,7 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <h1>Manage AIDs</h1>
 <form method=post>
 <table>
-<sql table=aid WHERE="site=$SESSION_SITE">
+<sql table=aid WHERE="site=$USER_SITE">
 <tr>
 <td><input type=hidden name=aids value="$aid"><input name="NAME$aid" size=20 value="$aidname"></td>
 </tr>

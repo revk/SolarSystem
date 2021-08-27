@@ -1,6 +1,6 @@
 #!../login/loggedin /bin/csh -f
 unset user # clash
-can --redirect --organisation='$SESSION_ORGANISATION' edituser
+can --redirect --organisation='$USER_ORGANISATION' edituser
 if($status) exit 0
 source ../setcan
 # save
@@ -43,7 +43,7 @@ if($?DELETE) then
 		setenv MSG "Click to say you are sure"
 		goto edit
 	endif
-	sql "$DB" 'DELETE FROM userorganisation WHERE user=$user AND organisation=$SESSION_ORGANISATION'
+	sql "$DB" 'DELETE FROM userorganisation WHERE user=$user AND organisation=$USER_ORGANISATION'
 endif
 if($?NEW) then
 	setenv user `sql "$DB" 'SELECT user FROM user WHERE email="$NEW"'`
@@ -51,7 +51,7 @@ if($?NEW) then
 		setenv MSG "User not found, have them register first"
 		goto list
 	endif
-	sql "$DB" 'INSERT INTO userorganisation SET organisation=$SESSION_ORGANISATION,user=$user'
+	sql "$DB" 'INSERT INTO userorganisation SET organisation=$USER_ORGANISATION,user=$user'
 	redirect "edituserorganisation.cgi/$user"
 	exit 0
 endif
@@ -61,7 +61,7 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <h1>Manage users</h1>
 <form method=post style='inline'>
 <table>
-<sql select="*,user.admin AS A" table="userorganisation LEFT JOIN user USING (user)" WHERE="organisation=$SESSION_ORGANISATION"><set found=1>
+<sql select="*,user.admin AS A" table="userorganisation LEFT JOIN user USING (user)" WHERE="organisation=$USER_ORGANISATION"><set found=1>
 <tr>
 <td>
 <if A=true><b>System Admin</b></if>
@@ -88,7 +88,7 @@ setenv user "$PATH_INFO:t"
 edit:
 xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <h1>Edit user</h1>
-<sql table="userorganisation LEFT JOIN user USING (user)"  where="user=$user AND organisation=$SESSION_ORGANISATION">
+<sql table="userorganisation LEFT JOIN user USING (user)"  where="user=$user AND organisation=$USER_ORGANISATION">
 <form method=post action="/edituserorganisation.cgi"><input type=hidden name=user><input type=hidden name=organisation>
 <table>
 <tr><td>Name</td><td><output name=username></td></tr>

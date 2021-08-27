@@ -2,7 +2,7 @@
 if($?PATH_INFO) then
 	setenv device "$PATH_INFO:t"
 endif
-can --redirect --organisation='$SESSION_ORGANISATION' editdevice
+can --redirect --organisation='$USER_ORGANISATION' editdevice
 if($status) exit 0
 
 if($?UNLOCK) then
@@ -17,7 +17,7 @@ endif
 if($?UPGRADEALL) then
 	can --redirect --device='$device' editdevice
 	if($status) exit 0
-	sql "$DB" 'UPDATE device SET upgrade=NOW() WHERE upgrade is NULL AND organisation="$SESSION_ORGANISATION" AND site="$SESSION_SITE"'
+	sql "$DB" 'UPDATE device SET upgrade=NOW() WHERE upgrade is NULL AND organisation="$USER_ORGANISATION" AND site="$USER_SITE"'
         message --poke
 	redirect editdevice.cgi
 	exit 0
@@ -105,8 +105,8 @@ xmlsql -C -d "$DB" head.html - foot.html << END
 <th>PCB</th>
 <th>Flash</th>
 <th>Notes</th></tr>
-<sql table="device" where="site=$SESSION_SITE" select="max(version) AS V,max(build) AS B"><set V="\$V"><set B="\$B"></sql>
-<sql table="device LEFT JOIN pcb USING (pcb) LEFT JOIN device AS device2 ON (device.via=device2.device) LEFT JOIN device AS device3 ON (device.bssid=device3.device)" order="device.devicename" WHERE="device.site=\$SESSION_SITE" select="device.*,pcb.pcbname,device2.devicename AS VIA,device3.devicename AS PARENT"><set found=1>
+<sql table="device" where="site=$USER_SITE" select="max(version) AS V,max(build) AS B"><set V="\$V"><set B="\$B"></sql>
+<sql table="device LEFT JOIN pcb USING (pcb) LEFT JOIN device AS device2 ON (device.via=device2.device) LEFT JOIN device AS device3 ON (device.bssid=device3.device)" order="device.devicename" WHERE="device.site=\$USER_SITE" select="device.*,pcb.pcbname,device2.devicename AS VIA,device3.devicename AS PARENT"><set found=1>
 <tr>
 <td title="\$device"><output href="/editdevice.cgi/\$device" name=devicename blank="Unnamed" missing="Unnamed"></td>
 <set s=""><if lastonline><set s="background:green;"></if><if not online><set s="background:yellow;"></if>
@@ -133,7 +133,7 @@ xmlsql -C -d "$DB" head.html - foot.html << END
 <tr><td>PCB</td><td><select name=pcb><sql table=pcb order=pcbname><option value="\$pcb"><output name=pcbname></option></sql></select></td></tr>
 <tr><td>Name</td><td><input name=devicename size=20 maxlength=20 autofocus></td></tr>
 <if keypad=true><tr><td>Keypad</td><td><input name=keypadidle size=16 maxlength=16 autofocus></td></tr></if>
-<tr><td>Site</td><td><select name=site><sql table=site where="organisation=$SESSION_ORGANISATION"><option value='\$site'><output name=sitename></option></sql></select></td></tr>
+<tr><td>Site</td><td><select name=site><sql table=site where="organisation=$USER_ORGANISATION"><option value='\$site'><output name=sitename></option></sql></select></td></tr>
 <sql table=site where="site=\$site">
 <if not iothost="">
 <tr><td>IoT (<output name=iothost>)</td><td>
@@ -182,7 +182,7 @@ xmlsql -C -d "$DB" head.html - foot.html << END
 <for SPACE T="\$tags"><th><output name=T></th></for>
 <th>Areas</th>
 </tr>
-<sql table=area where="site=$SESSION_SITE">
+<sql table=area where="site=$USER_SITE">
 <tr>
 <th><output name=tag></th>
 <for SPACE T="\$tags"><td><input name="area\$T" type=checkbox value="\$tag"></td></for>

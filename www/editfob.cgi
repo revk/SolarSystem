@@ -1,11 +1,11 @@
 #!../login/loggedin /bin/csh -f
-can --redirect --organisation='$SESSION_ORGANISATION' --site='$SESSION_SITE' editfob
+can --redirect --organisation='$USER_ORGANISATION' --site='$USER_SITE' editfob
 if($status) exit 0
 source ../setcan
 
 if($?DELETE) then
-	sql "$DB" 'DELETE FROM fobaid WHERE fob="$fob" AND aid IN (SELECT aid from aid WHERE organisation="$SESSION_ORGANISATION")'
-	sql "$DB" 'DELETE FROM foborganisation WHERE fob="$fob" AND organisation="$SESSION_ORGANISATION"'
+	sql "$DB" 'DELETE FROM fobaid WHERE fob="$fob" AND aid IN (SELECT aid from aid WHERE organisation="$USER_ORGANISATION")'
+	sql "$DB" 'DELETE FROM foborganisation WHERE fob="$fob" AND organisation="$USER_ORGANISATION"'
 	redirect /
 	exit 0
 endif
@@ -24,13 +24,13 @@ if($?expires) then
 			sql "$DB" 'UPDATE fobaid SET access=$access WHERE fob="$fob" AND aid="$A"'
 		endif
 	end
-	setenv organisation "$SESSION_ORGANISATION"
+	setenv organisation "$USER_ORGANISATION"
 	setenv allow "fobname expires"
 	if($?BLOCK) setenv blocked "`date +'%F %T'`"
 	if($?BLOCK) setenv allow "$allow confirmed"
 	if($?UNBLOCK||$?BLOCK) then
 		setenv allow "$allow blocked"
-		sql "$DB" 'UPDATE device SET device.poke=NOW() WHERE organisation="$SESSION_ORGANISATION"'
+		sql "$DB" 'UPDATE device SET device.poke=NOW() WHERE organisation="$USER_ORGANISATION"'
 	endif
 	setenv expires "${expires}Z"
 	if("$expires" == "Z") unsetenv expires
@@ -45,12 +45,12 @@ list:
 echo "Content-encoding: none" # so no deflating and hence no caching for interactive status
 xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <if CANADOPTFOB>
-<sql table="device LEFT JOIN aid USING (aid)" where="device.site=$SESSION_SITE AND online IS NOT NULL AND (nfctrusted='true' OR nfcadmin='true')"><set found=1></sql>
+<sql table="device LEFT JOIN aid USING (aid)" where="device.site=$USER_SITE AND online IS NOT NULL AND (nfctrusted='true' OR nfcadmin='true')"><set found=1></sql>
 <if found>
 <h2>Adopting a fob</h1>
 <form name=f method=post style="display:inline;">
 <select name=device>
-<sql table="device LEFT JOIN aid USING (aid)" where="device.site=$SESSION_SITE AND online IS NOT NULL AND (nfctrusted='true' OR nfcadmin='true')">
+<sql table="device LEFT JOIN aid USING (aid)" where="device.site=$USER_SITE AND online IS NOT NULL AND (nfctrusted='true' OR nfcadmin='true')">
 <option value="$device"><output name=aidname>:<output name=devicename blank="$device"></option>
 </sql>
 </select>
@@ -61,13 +61,13 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <if not foundfob><p>Sorry, fob <output name=fob> is not recognised by the system. Any fob you wish to use must first be provisioned by the system administrator before it can be adopted. Please contact the system administrator <sql table=user where="admin='true'" limit=1 order="rand()"><output name=username></sql> for more information.</p></if>
 <if else>
 <h2>Fob <output name=fob href="editfob.cgi/$fob"></h2>
-<if IDENTIFIED><sql table=foborganisation where="fob='$fob' AND organisation=$SESSION_ORGANISATION"><set fobname="$fobname"></sql></if>
+<if IDENTIFIED><sql table=foborganisation where="fob='$fob' AND organisation=$USER_ORGANISATION"><set fobname="$fobname"></sql></if>
 <sql table="fobaid LEFT JOIN aid USING (aid) LEFT JOIN access USING (access)" WHERE="fob='$fob'">
 <p>Already adopted for <output name=aidname> <output name=accessname></p>
 </sql>
 <input name=fobname size=15 maxlength=15 placeholder="Name" autofocus><if mem> <output name=mem type=mebi>B free</if><br>
-<select name=aid><sql table=aid where='site=$SESSION_SITE'><option value=$aid><output name=aidname></option></sql></select>
-<select name=access><sql table=access where='site=$SESSION_SITE'><option value=$access><output name=accessname></option></sql></select>
+<select name=aid><sql table=aid where='site=$USER_SITE'><option value=$aid><output name=aidname></option></sql></select>
+<select name=access><sql table=access where='site=$USER_SITE'><option value=$access><output name=accessname></option></sql></select>
 <input name=ADOPT type=submit value="Adopt fob">
 <if USER_ADMIN=true><input name=FORMAT type=submit value="Format"></if>
 </if>
@@ -79,7 +79,7 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 
 <h2>Fobs</h2>
 <table>
-<sql table="foborganisation LEFT JOIN fobaid USING (fob) LEFT JOIN aid USING (aid) LEFT JOIN access USING (access)" where="foborganisation.organisation=$SESSION_ORGANISATION" group="fob" order="max(adopted) DESC" select="*,count(aid) as N, sum(if(adopted IS NULL AND aid.aid IS NOT NULL,1,0)) AS W,sum(if(override='true',1,0)) AS O">
+<sql table="foborganisation LEFT JOIN fobaid USING (fob) LEFT JOIN aid USING (aid) LEFT JOIN access USING (access)" where="foborganisation.organisation=$USER_ORGANISATION" group="fob" order="max(adopted) DESC" select="*,count(aid) as N, sum(if(adopted IS NULL AND aid.aid IS NOT NULL,1,0)) AS W,sum(if(override='true',1,0)) AS O">
 <if not found><set found=1><tr>
 <th>Fob</th><th>Expiry</th><th>Name</th><th>Notes</th>
 </tr></if>
@@ -95,7 +95,7 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 'END'
 
 if($?IDENTIFY) then
-	can --redirect --organisation='$SESSION_ORGANISATION' adoptfob
+	can --redirect --organisation='$USER_ORGANISATION' adoptfob
 	if($status) exit 0
 	echo "<script>e=document.createElement('li');e.textContent='Waiting for fob';document.getElementById('status').append(e);</script>"
 	setenv fob `message --device="$device" --fob-identify --silent`
@@ -107,9 +107,9 @@ if($?IDENTIFY) then
 	exit 0
 endif
 if($?ADOPT) then
-	can --redirect --organisation='$SESSION_ORGANISATION' adoptfob
+	can --redirect --organisation='$USER_ORGANISATION' adoptfob
 	if($status) exit 0
-	message --device="$device" --fob-adopt="$fob" --aid="$aid" --access="$access" --status=status --silent --fob-name="$fobname" --organisation="$SESSION_ORGANISATION"
+	message --device="$device" --fob-adopt="$fob" --aid="$aid" --access="$access" --status=status --silent --fob-name="$fobname" --organisation="$USER_ORGANISATION"
 	exit 0
 endif
 if($?FORMAT) then

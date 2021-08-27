@@ -1,10 +1,10 @@
 #!../login/loggedin /bin/csh -f
-can --redirect --site='$SESSION_SITE' arm
+can --redirect --site='$USER_SITE' arm
 if($status) exit 0
 
 if($?ARM) then
 	if($?arm) then
-		setenv MSG `message --site="$SESSION_SITE" --arm="$arm"`
+		setenv MSG `message --site="$USER_SITE" --arm="$arm"`
 		if("$MSG" != "") goto done
 	endif
 	redirect /
@@ -12,10 +12,10 @@ if($?ARM) then
 endif
 
 if($?STRONGARM) then
-	can --redirect --site='$SESSION_SITE' strongarm
+	can --redirect --site='$USER_SITE' strongarm
 	if($status) exit 0
 	if($?arm) then
-		setenv MSG `message --site="$SESSION_SITE" --strongarm="$arm"`
+		setenv MSG `message --site="$USER_SITE" --strongarm="$arm"`
 		if("$MSG" != "") goto done
 	endif
 	redirect /
@@ -24,19 +24,19 @@ endif
 
 done:
 unsetenv CANSTRONGARM
-can --site='$SESSION_SITE' strongarm
+can --site='$USER_SITE' strongarm
 if(! $status) set CANSTRONGARM
 source ../types
 xmlsql -C -d "$DB" head.html - foot.html << END
 <h1>Arming</h1>
-<sql table=site where='site=$SESSION_SITE'>
+<sql table=site where='site=$USER_SITE'>
 <form method=post>
 <table border=1>
 <tr>
 <th></th><th>Arm</th>
 <th>Areas</th>
 </tr>
-<sql table=area where="site=$SESSION_SITE">
+<sql table=area where="site=$USER_SITE">
 <set s='background:green;'><if armed=*\$tag><set s='background:yellow;'></if><if alarm=*\$tag><set s='background:red;'></if>
 <tr style="\$s">
 <th><label for=\$tag><output name=tag></label></th>

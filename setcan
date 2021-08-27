@@ -14,37 +14,37 @@ unsetenv CANDISARM
 unsetenv CANUNLOCK
 unsetenv CANVIEWLOG
 unsetenv CANAPI
-if($?SESSION_ORGANISATION) then
-can --organisation='$SESSION_ORGANISATION' admin
+if($?USER_ORGANISATION) then
+can --organisation='$USER_ORGANISATION' admin
 if(! $status)setenv ADMINORGANISATION
-can --organisation='$SESSION_ORGANISATION' editoriganisation
+can --organisation='$USER_ORGANISATION' editoriganisation
 if(! $status)setenv CANEDITORGANISATION
-can --organisation='$SESSION_ORGANISATION' editfob
+can --organisation='$USER_ORGANISATION' editfob
 if(! $status)setenv CANEDITFOB
-can --organisation='$SESSION_ORGANISATION' adoptfob
+can --organisation='$USER_ORGANISATION' adoptfob
 if(! $status)setenv CANADOPTFOB
-can --organisation='$SESSION_ORGANISATION' edituser
+can --organisation='$USER_ORGANISATION' edituser
 if(! $status)setenv CANEDITUSER
-can --organisation='$SESSION_ORGANISATION' viewlog
+can --organisation='$USER_ORGANISATION' viewlog
 if(! $status)setenv CANVIEWLOG
-can --organisation='$SESSION_ORGANISATION' arm
+can --organisation='$USER_ORGANISATION' arm
 if(! $status)setenv CANARM
-can --organisation='$SESSION_ORGANISATION' disarm
+can --organisation='$USER_ORGANISATION' disarm
 if(! $status)setenv CANDISARM
-can --organisation='$SESSION_ORGANISATION' unlock
+can --organisation='$USER_ORGANISATION' unlock
 if(! $status)setenv CANUNLOCK
-can --organisation='$SESSION_ORGANISATION' viewlog
+can --organisation='$USER_ORGANISATION' viewlog
 if(! $status)setenv CANVIEWLOG
-can --organisation='$SESSION_ORGANISATION' api
+can --organisation='$USER_ORGANISATION' api
 if(! $status)setenv CANAPI
 endif
-if($?SESSION_SITE) then
-can --organisation='$SESSION_ORGANISATION' --site='$SESSION_SITE' editaccess
+if($?USER_SITE) then
+can --organisation='$USER_ORGANISATION' --site='$USER_SITE' editaccess
 if(! $status)setenv CANEDITACCESS
-can --organisation='$SESSION_ORGANISATION' --site='$SESSION_SITE' editsite
+can --organisation='$USER_ORGANISATION' --site='$USER_SITE' editsite
 if(! $status)setenv CANEDITSITE
-can --organisation='$SESSION_ORGANISATION' --site='$SESSION_SITE' editdevice
+can --organisation='$USER_ORGANISATION' --site='$USER_SITE' editdevice
 if(! $status)setenv CANEDITDEVICE
-can --organisation='$SESSION_ORGANISATION' --site='$SESSION_SITE' editarea
+can --organisation='$USER_ORGANISATION' --site='$USER_SITE' editarea
 if(! $status)setenv CANEDITAREA
 endif

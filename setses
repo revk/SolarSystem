@@ -1,15 +1,15 @@
-if(! $?SESSION_ORGANISATION && "$USER_ADMIN" == false) then
+if(! $?USER_ORGANISATION && "$USER_ADMIN" == false) then
         setenv C `sql "$DB" 'SELECT COUNT(*) FROM userorganisation WHERE user=$USER_ID'`
         if("$C" == 1) then
-                setenv SESSION_ORGANISATION `sql "$DB" 'SELECT organisation FROM userorganisation WHERE user=$USER_ID'`
-                sql "$DB" 'UPDATE session SET organisation=$SESSION_ORGANISATION WHERE session="$ENVCGI"'
+                setenv USER_ORGANISATION `sql "$DB" 'SELECT organisation FROM userorganisation WHERE user=$USER_ID'`
+                sql "$DB" 'UPDATE user SET organisation=$USER_ORGANISATION WHERE user="$USER_ID"'
         endif
 endif
-if($?SESSION_ORGANISATION && ! $?SESSION_SITE) then
-        setenv C `sql "$DB" 'SELECT COUNT(*) FROM site WHERE organisation=$SESSION_ORGANISATION'`
+if($?USER_ORGANISATION && ! $?USER_SITE) then
+        setenv C `sql "$DB" 'SELECT COUNT(*) FROM site WHERE organisation=$USER_ORGANISATION'`
         if("$C" == 1) then
-                setenv SESSION_SITE `sql "$DB" 'SELECT site FROM site WHERE organisation=$SESSION_ORGANISATION'`
-                sql "$DB" 'UPDATE session SET site=$SESSION_SITE WHERE session="$ENVCGI"'
+                setenv USER_SITE `sql "$DB" 'SELECT site FROM site WHERE organisation=$USER_ORGANISATION'`
+                sql "$DB" 'UPDATE user SET site=$USER_SITE WHERE user="$USER_ID"'
         endif
 endif
 

@@ -3,15 +3,15 @@
 <a href="/">Home</a>
 <if USER_ID>
 <form style='display:inline;' name=organisation method=post action=/setorganisation.cgi>
-<if SESSION_ORGANISATION><set SET_ORGANISATION=$SESSION_ORGANISATION></if>
+<if USER_ORGANISATION><set SET_ORGANISATION=$USER_ORGANISATION></if>
 <select name=SET_ORGANISATION onchange='organisation.submit()'>
 	<if USER_ADMIN=true>
-		<IF NOT SESSION_ORGANISATION><option value=0>-- Select organisation --</option></if>
+		<IF NOT USER_ORGANISATION><option value=0>-- Select organisation --</option></if>
 		<sql table="organisation" ORDER="organisationname">
 		<option value=$organisation><output name=organisationname></option>
 		</sql>
 	</if><if else>
-		<IF NOT SESSION_ORGANISATION><option value=0>-- Select organisation --</option></if>
+		<IF NOT USER_ORGANISATION><option value=0>-- Select organisation --</option></if>
 		<sql table="userorganisation LEFT JOIN organisation USING (organisation)" WHERE="user=$USER_ID" ORDER="organisationname">
 		<option value=$organisation><output name=organisationname></option>
 		</sql>
@@ -19,20 +19,20 @@
 </select>
 </form>
 </if>
-<IF SESSION_ORGANISATION>
+<IF USER_ORGANISATION>
 <form style='display:inline;' name=site method=post action=/setsite.cgi>
-<if SESSION_SITE><set SET_SITE=$SESSION_SITE></if>
+<if USER_SITE><set SET_SITE=$USER_SITE></if>
 <select name=SET_SITE onchange='site.submit()'>
-<IF NOT SESSION_SITE><option value=0>-- Select site --</option></if>
-<sql table="site LEFT JOIN organisation USING (organisation)" WHERE="organisation=$SESSION_ORGANISATION" ORDER="sitename">
+<IF NOT USER_SITE><option value=0>-- Select site --</option></if>
+<sql table="site LEFT JOIN organisation USING (organisation)" WHERE="organisation=$USER_ORGANISATION" ORDER="sitename">
 <option value=$site><output name=sitename></option>
 </sql>
 </select>
 </form>
 </if>
 <if MSG><span class=error><output name=MSG></span></if>
-<if SESSION_SITE>
-<sql table=site WHERE="site=$SESSION_SITE">
+<if USER_SITE>
+<sql table=site WHERE="site=$USER_SITE">
 <set s=""><if not missing=0><set s='background:red;'></if><span style="$s">Nodes <output name=nodes><if not missing=0> (missing <output name=missing>)</if></span>
 <table>
 <if not alarm=""><tr style='background:red;'><td>Alarm</td><td><output name=alarm></td></tr></if>

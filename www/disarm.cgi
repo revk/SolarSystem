@@ -1,10 +1,10 @@
 #!../login/loggedin /bin/csh -f
-can --redirect --site='$SESSION_SITE' candisarm
+can --redirect --site='$USER_SITE' candisarm
 if($status) exit 0
 
 if($?DISARM) then
 	if($?disarm) then
-		setenv MSG `message --site="$SESSION_SITE" --disarm="$disarm"`
+		setenv MSG `message --site="$USER_SITE" --disarm="$disarm"`
 		if("$MSG" != "") goto done
 	endif
 	redirect /
@@ -15,14 +15,14 @@ done:
 source ../types
 xmlsql -C -d "$DB" head.html - foot.html << END
 <h1>Disarming</h1>
-<sql table=site where='site=$SESSION_SITE'>
+<sql table=site where='site=$USER_SITE'>
 <form method=post>
 <table border=1>
 <tr>
 <th></th><th>Disarm</th>
 <th>Areas</th>
 </tr>
-<sql table=area where="site=$SESSION_SITE">
+<sql table=area where="site=$USER_SITE">
 <set s='background:green;'><if armed=*\$tag><set s='background:yellow;'></if><if alarm=*\$tag><set s='background:red;'></if>
 <tr style="\$s">
 <th><label for=\$tag><output name=tag></label></th>

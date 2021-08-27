@@ -1,5 +1,5 @@
 #!../login/loggedin /bin/csh -f
-can --redirect --site="$SESSION_SITE" editaccess
+can --redirect --site="$USER_SITE" editaccess
 if($status) exit 0
 
 source ../setcan
@@ -22,7 +22,7 @@ if($?DELETE) then
 endif
 if($?access) then
 	if("$access" == 0) then
-		setenv access `sql -i "$DB" 'INSERT INTO access SET organisation=$SESSION_ORGANISATION,site=$SESSION_SITE'`
+		setenv access `sql -i "$DB" 'INSERT INTO access SET organisation=$USER_ORGANISATION,site=$USER_SITE'`
 	endif
 	can --redirect --access="$access" editaccess
 	if($status) exit 0
@@ -48,7 +48,7 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <h1>Manage access classes</h1>
 <table style='white-space:nowrap'>
 <tr><th>Access</th><th>Notes</th><th>Expiry</th><th>Sunday</th><th>Monday</th><th>Tuesday</th><th>Wednesday</th><th>Thursday</th><th>Friday</th><th>Saturday</th><th>Enter</th><th>Arm</th><th>Strong arm</th><th>Disarm</th><th>Prop</th></tr>
-<sql table=access where="site=$SESSION_SITE">
+<sql table=access where="site=$USER_SITE">
 <tr>
 <td><output name=accessname missing="Unnamed" blank="Unnanmed" href="editaccess.cgi/$access"></td>
 <td>
@@ -101,7 +101,7 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <for SPACE T="$tags"><th><output name=T></th></for>
 <th>Areas</th>
 </tr>
-<sql table=area where="site=$SESSION_SITE">
+<sql table=area where="site=$USER_SITE">
 <tr>
 <th><output name=tag></th>
 <for SPACE T="$tags"><td><input name="$T" type=checkbox value="$tag"></td></for>

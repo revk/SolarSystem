@@ -21,10 +21,10 @@ if($?DELETE) then
 endif
 if($?sitename) then
 	if($site == 0) then
-		setenv site `sql -i "$DB" 'INSERT INTO site SET organisation=$SESSION_ORGANISATION,site=0'`
-		sql "$DB" 'INSERT INTO access SET organisation=$SESSION_ORGANISATION,site="$site",accessname="Default access"'
-		sql "$DB" 'INSERT INTO area SET organisation=$SESSION_ORGANISATION,site=$site,area="A",areaname="Main building"'
-		sql "$DB" 'UPDATE session SET organisation=$SESSION_ORGANISATION,site=$site WHERE session="$ENVCGI"'
+		setenv site `sql -i "$DB" 'INSERT INTO site SET organisation=$USER_ORGANISATION,site=0'`
+		sql "$DB" 'INSERT INTO access SET organisation=$USER_ORGANISATION,site="$site",accessname="Default access"'
+		sql "$DB" 'INSERT INTO area SET organisation=$USER_ORGANISATION,site=$site,area="A",areaname="Main building"'
+		sql "$DB" 'UPDATE session SET organisation=$USER_ORGANISATION,site=$site WHERE session="$ENVCGI"'
 	endif
 	if(! $?nomesh) setenv nomesh false
 	if(! $?ioteventarm) setenv ioteventarm false
@@ -72,7 +72,7 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <for SPACE T="$tags"><th><output name=T></th></for>
 <th>Areas</th>
 </tr>
-<sql table=area where="site=$SESSION_SITE">
+<sql table=area where="site=$USER_SITE">
 <tr>
 <th><output name=tag></th>
 <for SPACE T="$tags"><td><input name="$T" type=checkbox value="$tag"></td></for>

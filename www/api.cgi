@@ -19,16 +19,16 @@ if("$CONTENT_TYPE" != "application/json") then
 	echo ""
 	exit 0
 endif
-setenv SESSION_ORGANISATION "$PATH_INFO:t"
+setenv USER_ORGANISATION "$PATH_INFO:t"
 
-can --organisation='$SESSION_ORGANISATION' api
+can --organisation='$USER_ORGANISATION' api
 if($status) then
 	echo "Status: 403"
 	echo ""
 	exit 0
 endif
 
-setenv MSG `../message --api="$USER_ID" --organisation="$SESSION_ORGANISATION" --stdin`
+setenv MSG `../message --api="$USER_ID" --organisation="$USER_ORGANISATION" --stdin`
 if(! $status) then
 	if("$MSG" != "") then
 		echo "Content-Type: application/json";

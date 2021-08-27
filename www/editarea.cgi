@@ -1,5 +1,5 @@
 #!../login/loggedin /bin/csh -f
-can --redirect --site='$SESSION_SITE' editarea
+can --redirect --site='$USER_SITE' editarea
 if($status) exit 0
 source ../types
 setenv MIX "1 2 3 4 5"
@@ -9,17 +9,17 @@ if($?AREAA) then #save
 		setenv A "$a"
 		setenv D `printenv "AREA$A"`
 		if("$D" == "") then
-			sql "$DB" 'DELETE FROM area WHERE site=$SESSION_SITE AND tag="$A"'
+			sql "$DB" 'DELETE FROM area WHERE site=$USER_SITE AND tag="$A"'
 		else
-			sql "$DB" 'REPLACE INTO area SET organisation=$SESSION_ORGANISATION,site=$SESSION_SITE,tag="$A",areaname="$D"'
+			sql "$DB" 'REPLACE INTO area SET organisation=$USER_ORGANISATION,site=$USER_SITE,tag="$A",areaname="$D"'
 		endif
 	end
-        sql "$DB" 'UPDATE device SET poke=NOW() WHERE site=$SESSION_SITE'
+        sql "$DB" 'UPDATE device SET poke=NOW() WHERE site=$USER_SITE'
 	set allow=""
 	foreach s ($MIX)
 		set allow="$allow mixand$s mixset$s mixarm$s mixdisarm$s"
 	end
-	sqlwrite -qon "$DB" site site="$SESSION_SITE" $allow
+	sqlwrite -qon "$DB" site site="$USER_SITE" $allow
 	message --poke
 	redirect / Updated
 	exit 0
@@ -29,7 +29,7 @@ done:
 xmlsql -C -d "$DB" head.html - foot.html << END
 <h1>Manage areas</h1>
 <form method=post>
-<sql table=site WHERE="site=$SESSION_SITE">
+<sql table=site WHERE="site=$USER_SITE">
 <table border=1>
 <eval C=3><for SPACE S="$MIX"><eval C=\$C+3></for>
 <tr><th colspan=\$C>IoT messages</th></tr>
@@ -54,7 +54,7 @@ xmlsql -C -d "$DB" head.html - foot.html << END
 <th>And</th><th>Set</th>
 </for>
 </tr>
-<sql table=area WHERE="site=$SESSION_SITE"><set "AREA\$tag"="\$areaname"></sql>
+<sql table=area WHERE="site=$USER_SITE"><set "AREA\$tag"="\$areaname"></sql>
 <for space A="$AREALIST">
 <tr>
 <td><output name=A></td>

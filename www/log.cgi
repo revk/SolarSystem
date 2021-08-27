@@ -5,13 +5,13 @@ if($?PATH_INFO) then
 else
 	setenv WHERE ""
 endif
-can --redirect --organisation='$SESSION_ORGANISATION' viewlog
+can --redirect --organisation='$USER_ORGANISATION' viewlog
 if($status) exit 0
 
 xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <h1>Logs<if fordevice> for <sql table=device where='device="$fordevice"'><output name=devicename></sql></if></h1>
 <table style="white-space:nowrap;">
-<sql table='event LEFT JOIN device USING (device)' WHERE='site=$SESSION_SITE $WHERE' ORDER='event DESC'>
+<sql table='event LEFT JOIN device USING (device)' WHERE='site=$USER_SITE $WHERE' ORDER='event DESC'>
 <tr>
 <td><output name=logged type=recent></td>
 <if not fordevice><td><output name=devicename></td></if>
