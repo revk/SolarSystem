@@ -518,7 +518,7 @@ void dooffline(SQL * sqlp)
 {                               // Check offline sites
    char *t;
    SQL_RES *res;
-   res = sql_safe_query_store(sqlp, "SELECT * FROM `site` LEFT JOIN `device` USING (`site`) WHERE `online` IS NOT NULL GROUP BY `site` HAVING COUNT(`device`)=0");
+   res = sql_safe_query_store(sqlp, "SELECT * FROM `site` LEFT JOIN `device` USING (`site`) WHERE `online` IS NOT NULL AND `outofservice`='false' GROUP BY `site` HAVING COUNT(`device`)=0");
    while (sql_fetch_row(res))
    {
       sql_safe_query_free(sqlp, sql_printf("UPDATE `site` SET `missing`=`nodes` WHERE `site`=%#s", sql_colz(res, "site")));
@@ -528,7 +528,7 @@ void dooffline(SQL * sqlp)
       free(t);
    }
    sql_free_result(res);
-   res = sql_safe_query_store(sqlp, "SELECT * FROM `device` LEFT JOIN `site` USING (`site`) WHERE `offlinereport` IS NULL AND `online` IS NULL");
+   res = sql_safe_query_store(sqlp, "SELECT * FROM `device` LEFT JOIN `site` USING (`site`) WHERE `offlinereport` IS NULL AND `online` IS NULL AND `outofservice`='false'");
    while (sql_fetch_row(res))
    {
       if (atoi(sql_colz(res, "nodes")) != atoi(sql_colz(res, "missing")))
@@ -786,7 +786,7 @@ int main(int argc, const char *argv[])
             } else
             {
                SQL_RES *res = sql_safe_query_store(&sql,
-                                                   "SELECT SUM(IF(`upgrade`<now() AND `id` IS NOT NULL,1,0)) AS `U`,SUM(IF(`offlinereport` IS NULL AND `online` IS NULL AND `lastonline`<DATE_SUB(NOW(),INTERVAL 5 MINUTE),1,0)) AS `O` FROM `device` WHERE `upgrade`<now() AND `id` IS NOT NULL OR `offlinereport` IS NULL AND `online` IS NULL");
+                                                   "SELECT SUM(IF(`upgrade`<now() AND `id` IS NOT NULL,1,0)) AS `U`,SUM(IF(`offlinereport` IS NULL AND `online` IS NULL AND `outofservice`='false' AND `lastonline`<DATE_SUB(NOW(),INTERVAL 5 MINUTE),1,0)) AS `O` FROM `device` WHERE `upgrade`<now() AND `id` IS NOT NULL OR `offlinereport` IS NULL AND `online` IS NULL AND `outofservice`='false'");
                if (sql_fetch_row(res))
                {
                   if (atoi(sql_colz(res, "U")))
