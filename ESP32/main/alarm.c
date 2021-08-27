@@ -68,7 +68,7 @@ int64_t report_next = 0;	// Send report cycle
 	u16(alarmdelay)		\
 	u16(alarmhold)		\
         u8(meshcycle,3)		\
-        u8(meshwarmup,30)	\
+        u8(meshwarmup,60)	\
 	area(smsarm)		\
 	area(smsdisarm)		\
 	area(smsarmfail)	\
