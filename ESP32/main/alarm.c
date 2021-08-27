@@ -835,8 +835,9 @@ task (void *pvParameters)
 		  wasonline = nodes_online;
 		  alarm_fault = ((nodes_online < meshmax) ? "Missing nodes" : NULL);
 		  status (alarm_tamper = ((nodes_online == 1 && meshmax > 1) ? "Lonely" : NULL));
-		  if (nodes_online <= meshmax / 2)
-		    {		// Below quorum...
+		  extern uint8_t wifichan;
+		  if (!wifichan && nodes_online <= meshmax / 2)
+		    {		// Below quorum... Try juggling channels in case we can repair split mesh
 		      int csa_newchan = (esp_random () % 11) + 1;
 		      ESP_LOGI (TAG, "Try channel %d", csa_newchan);
 		      jo_t j = jo_object_alloc ();

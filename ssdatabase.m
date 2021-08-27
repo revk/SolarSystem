@@ -129,6 +129,7 @@ link(organisation);
 text(sitename, 0);
 text(wifissid, 0);              // Site WiFi settings
 text(wifipass, 0);              // Site WiFi settings
+num(wifichan);			// Site WiFi settings
 text(iothost, 0);               // IoT host for local MQTT
 bool (nomesh);                  // Don't mesh - i.e. where separate devices on-line
 text(meshid, 12);               // Mesh ID (MAC)
