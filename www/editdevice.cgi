@@ -125,7 +125,7 @@ xmlsql -C -d "$DB" head.html - foot.html << END
 </tr>
 </sql>
 </table>
-<if found><form method=post><input name=UPGRADEALL value="Upgrade all" type=submit></form></if><if else><p>No devices found.</p></if>
+<if found><if CANEDITDEVICE><form method=post><input name=UPGRADEALL value="Upgrade all" type=submit></form></if></if><if else><p>No devices found.</p></if>
 </if><if else CANEDITDEVICE>
 <form method=post action=/editdevice.cgi><input type=hidden name=device>
 <sql table="device LEFT JOIN pcb USING (pcb)" KEY=device>
