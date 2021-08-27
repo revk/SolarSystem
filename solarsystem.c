@@ -49,7 +49,7 @@ int mqttdump = 0;               // mqtt logging
 CURL *curl = NULL;
 
 static void addarea(j_t j, const char *tag, const char *val, char always);
-static void addsitedata(SQL * sqlp, j_t j, SQL_RES * site, const char *deviceid, const char *parentid);
+static void addsitedata(SQL * sqlp, j_t j, SQL_RES * site, const char *deviceid, const char *parentid, char outofservice);
 
 #define AES_STRING_LEN	35
 char *getaes(SQL * sqlkeyp, char *target, const char *aid, const char *fob)
@@ -106,6 +106,7 @@ static const char *settings(SQL * sqlp, SQL * sqlkeyp, SQL_RES * res, slot_t id)
 {                               // Security and settings
    j_t j = j_create();
    j_store_string(j, "nodename", sql_colz(res, "devicename"));
+   char outofservice = (*sql_colz(res, "outofservice") == 't');
    // Security
    const char *aid = sql_colz(res, "aid");
    char nfc = (*sql_colz(res, "nfc") == 't');
@@ -182,7 +183,7 @@ static const char *settings(SQL * sqlp, SQL * sqlkeyp, SQL_RES * res, slot_t id)
       SQL_RES *s = sql_safe_query_store_free(sqlp, sql_printf("SELECT * FROM `site` WHERE `site`=%d", site));
       if (sql_fetch_row(s))
       {
-         addsitedata(sqlp, j, s, sql_colz(res, "device"), sql_col(res, "via"));
+         addsitedata(sqlp, j, s, sql_colz(res, "device"), sql_col(res, "via"), outofservice);
          j_t iot = j_store_object(j, "iot");
          if (*sql_colz(s, "iothost"))
          {                      // Only if IOT host
@@ -226,7 +227,7 @@ static const char *settings(SQL * sqlp, SQL * sqlkeyp, SQL_RES * res, slot_t id)
          set(keypad, rx);
          set(keypad, re);
          set(keypad, de);
-         if (j_len(o) && (v = sql_colz(res, "keypadidle")) && *v)
+         if (j_len(o) && (v = (outofservice ? "Out of service" : sql_colz(res, "keypadidle"))) && *v)
             j_store_string(o, "idle", v);
          o = j_store_object(j, "nfc");
          set(nfc, tx);
@@ -360,7 +361,7 @@ static void addarea(j_t j, const char *tag, const char *val, char always)
    j_store_string(j, tag, v);
 }
 
-static void addsitedata(SQL * sqlp, j_t j, SQL_RES * site, const char *deviceid, const char *parentid)
+static void addsitedata(SQL * sqlp, j_t j, SQL_RES * site, const char *deviceid, const char *parentid, char outofservice)
 {
    const char *v;
    if (!parentid || !*parentid || !strcmp(parentid, deviceid))
@@ -409,7 +410,7 @@ static void addsitedata(SQL * sqlp, j_t j, SQL_RES * site, const char *deviceid,
 #ifdef	CONFIG_REVK_MESH
    j_t mesh = j_store_object(j, "mesh");
    j_store_int(mesh, "cycle", 2);
-   if (*sql_colz(site, "nomesh") == 't')
+   if (outofservice || *sql_colz(site, "nomesh") == 't')
    {                            // Not making a mesh, so set a mesh of 1
       j_store_string(mesh, "id", deviceid);
       j_store_int(mesh, "max", 1);
@@ -474,7 +475,7 @@ static void addsitedata(SQL * sqlp, j_t j, SQL_RES * site, const char *deviceid,
       }
       if (*v)
          j_store_string(mesh, "pass", v);
-      SQL_RES *res = sql_safe_query_store_free(sqlp, sql_printf("SELECT COUNT(*) AS `N` FROM `device` WHERE `site`=%#s", sql_col(site, "site")));
+      SQL_RES *res = sql_safe_query_store_free(sqlp, sql_printf("SELECT COUNT(*) AS `N` FROM `device` WHERE `site`=%#s AND `outofservice`='false'", sql_col(site, "site")));
       if (sql_fetch_row(res))
          j_store_int(mesh, "max", atoi(sql_colz(res, "N")));
       sql_free_result(res);
@@ -870,7 +871,7 @@ int main(int argc, const char *argv[])
                if (sql_fetch_row(s))
                {
                   j = j_create();
-                  addsitedata(&sql, j, s, deviceid, NULL);
+                  addsitedata(&sql, j, s, deviceid, NULL, 0);
                   fail = slot_send(id, "setting", deviceid, NULL, &j);
                }
                sql_free_result(s);

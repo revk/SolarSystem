@@ -53,7 +53,6 @@ if($?DELETE && "$USER_ADMIN" == "true" || $?FACTORY) then
 		setenv MSG `message --device="$device" --command=restart`
 	endif
 	sql "$DB" 'UPDATE device SET site=NULL WHERE device="$device"'
-	# device count change
 	sql "$DB" 'UPDATE device SET poke=NOW() WHERE site=$site'
         message --poke
 	redirect editdevice.cgi
@@ -67,6 +66,7 @@ if($?devicename) then # save
 		setenv nfc `sql "$DB" 'SELECT IF(nfctx="-","false","true") FROM pcb WHERE pcb=$pcb'`
 		setenv keypad `sql "$DB" 'SELECT IF(keypadtx="-","false","true") FROM pcb WHERE pcb=$pcb'`
 	endif
+	if(! $?outofservice) setenv outofservice false
 	if(! $?nfcadmin) setenv nfcadmin false
 	if(! $?nfctrusted) setenv nfctrusted false
 	if(! $?door) setenv door false
@@ -81,10 +81,10 @@ if($?devicename) then # save
 	if(! $?iotstatesystem) setenv iotstatesystem false
 	if(! $?iotkeypad) setenv iotkeypad false
 	if(! $?ioteventfob) setenv ioteventfob false
-	setenv allow "devicename areawarning areafault areatamper areaenter areastrongarm areadeadlock areaarm areadisarm areabell arealed areakeypad nfc rgb nfcadmin door doorexitarm doorexitdisarm aid site iotstatedoor iotstateinput iotstateoutput iotstatefault iotstatewarning iotstatetamper iotstatesystem ioteventfob iotkeypad doorunlock doorlock dooropen doorclose doorprop doorexit keypadidle keypad pcb dooriotunlock"
+	setenv allow "devicename areawarning areafault areatamper areaenter areastrongarm areadeadlock areaarm areadisarm areabell arealed areakeypad nfc rgb nfcadmin door doorexitarm doorexitdisarm aid site iotstatedoor iotstateinput iotstateoutput iotstatefault iotstatewarning iotstatetamper iotstatesystem ioteventfob iotkeypad doorunlock doorlock dooropen doorclose doorprop doorexit keypadidle keypad pcb dooriotunlock outofservice"
 	if("$USER_ADMIN" == "true") setenv allow "$allow nfctrusted"
 	sqlwrite -qon "$DB" device $allow
-	sql "$DB" 'UPDATE device SET poke=NOW() WHERE device="$device"'
+	sql "$DB" 'UPDATE device SET poke=NOW() WHERE site=$site'
         message --poke
 	redirect editdevice.cgi
 	exit 0
@@ -106,21 +106,24 @@ xmlsql -C -d "$DB" head.html - foot.html << END
 <th>Flash</th>
 <th>Notes</th></tr>
 <sql table="device" where="site=$USER_SITE" select="max(version) AS V,max(build) AS B"><set V="\$V"><set B="\$B"></sql>
-<sql table="device LEFT JOIN pcb USING (pcb) LEFT JOIN device AS device2 ON (device.via=device2.device) LEFT JOIN device AS device3 ON (device.bssid=device3.device)" order="device.devicename" WHERE="device.site=\$USER_SITE" select="device.*,pcb.pcbname,device2.devicename AS VIA,device3.devicename AS PARENT"><set found=1>
-<tr>
+<sql table="device LEFT JOIN pcb USING (pcb) LEFT JOIN device AS device2 ON (device.via=device2.device) LEFT JOIN device AS device3 ON (device.bssid=device3.device)" order="device.outofservice,device.devicename" WHERE="device.site=\$USER_SITE" select="device.*,pcb.pcbname,device2.devicename AS VIA,device3.devicename AS PARENT"><set found=1>
+<set s=""><if lastonline><set s="background:green;"><if not via><set s="background:lightgreen;"></if></if><if not online><set s="background:yellow;"></if><if outofservice=true><set s="\${s}color:gray;"></if>
+<tr style="\$s">
 <td title="\$device"><IF CANEDITDEVICE><output href="/editdevice.cgi/\$device" name=devicename blank="Unnamed" missing="Unnamed"></if><if else><output name=devicename></if></td>
-<set s=""><if lastonline><set s="background:green;"></if><if not online><set s="background:yellow;"></if>
-<td style="\$s"><if online><tt title="When online"><output name=online></if><if else><tt title="Last online"><output name=lastonline missing="never"></tt></if></td>
+<td><if online><tt title="When online"><output name=online></if><if else><tt title="Last online"><output name=lastonline missing="never"></tt></if></td>
 <td><if online><if via><i>via</i> <output name=VIA><if PARENT NOT PARENT="\$VIA"> &amp; <output name=PARENT></if></if><if else><tt title="BSSID#channel"><output name=bssid>#<output name=chan></tt> <i title="SSID"><output name=ssid></i></if></if><if else><i title="Why offline"><output name=offlinereason></i></if></td>
 <td><if upgrade><i style='background:cyan;'>Upgrade scheduled</i><br></if><set s="background:red;"><if version="\$V"><set s="background:green;"></if><tt style="\$s"><output name=version></tt></td>
 <td><output name=pcbname></td>
 <td align-right><output name=flash type=mebi>B</td>
 <set s><if not fault="{}" and not areafault=""><set s="background:yellow;"></if><if not tamper="{}" and not areatamper=""><set s="background:red;"></if>
 <td style="\$s">
+<if outofservice=true>Out of service</if>
+<if else>
 <if online door=true CANUNLOCK><form style="display:inline;" method=post><input type=hidden name=device><input type=submit name=UNLOCK value="Unlock"></form></if>
 <if door=true>Door </if><if nfc=true>NFC reader </if><if nfcadmin=true> (admin)</if><if nfctrusted=true><b> (trusted)</b></if><br>
 <if not tamper="{}">Tamper:<b><output name=tamper></b><br></if>
 <if not fault="{}">Fault:<b><output name=fault></b><br></if>
+</if>
 </td>
 </tr>
 </sql>
@@ -130,6 +133,7 @@ xmlsql -C -d "$DB" head.html - foot.html << END
 <form method=post action=/editdevice.cgi><input type=hidden name=device>
 <sql table="device LEFT JOIN pcb USING (pcb)" KEY=device>
 <table>
+<tr><td><input type=checkbox id=outofservice name=outofservice value=true></td><td><label for=outofservice>Out of service</label></td></tr>
 <tr><td>PCB</td><td><select name=pcb><sql table=pcb order=pcbname><option value="\$pcb"><output name=pcbname></option></sql></select></td></tr>
 <tr><td>Name</td><td><input name=devicename size=20 maxlength=20 autofocus></td></tr>
 <if keypad=true><tr><td>Keypad</td><td><input name=keypadidle size=16 maxlength=16 autofocus></td></tr></if>

@@ -252,6 +252,7 @@ text(keypadidle, 16);           // Keypad display name
 link(organisation);             // Yes, can get from site, but useful to reference quickly
 link(site);                     // The site the device is on
 link(pcb);                      // What type of device this is
+bool (outofservice);		// Marked out of service
 bool (iotstatedoor);            // Copy stuff to IoT
 bool (iotstateinput);           // Copy stuff to IoT
 bool (iotstateoutput);          // Copy stuff to IoT
