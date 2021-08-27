@@ -2,7 +2,7 @@
 if($?PATH_INFO) then
 	setenv device "$PATH_INFO:t"
 endif
-can --redirect --organisation='$USER_ORGANISATION' editdevice
+can --redirect --organisation='$USER_ORGANISATION' viewdevice
 if($status) exit 0
 
 if($?UNLOCK) then
@@ -95,7 +95,7 @@ source ../setcan
 xmlsql -C -d "$DB" head.html - foot.html << END
 <h1>Manage devices <output name=VERSION></h1>
 <if device CANVIEWLOG><p><a href="/log.cgi/\$device">View logs</a></p></if>
-<if not device>
+<if not device CANVIEWDEVICE>
 <table border=1>
 <tr>
 <th>Device</th>
@@ -108,7 +108,7 @@ xmlsql -C -d "$DB" head.html - foot.html << END
 <sql table="device" where="site=$USER_SITE" select="max(version) AS V,max(build) AS B"><set V="\$V"><set B="\$B"></sql>
 <sql table="device LEFT JOIN pcb USING (pcb) LEFT JOIN device AS device2 ON (device.via=device2.device) LEFT JOIN device AS device3 ON (device.bssid=device3.device)" order="device.devicename" WHERE="device.site=\$USER_SITE" select="device.*,pcb.pcbname,device2.devicename AS VIA,device3.devicename AS PARENT"><set found=1>
 <tr>
-<td title="\$device"><output href="/editdevice.cgi/\$device" name=devicename blank="Unnamed" missing="Unnamed"></td>
+<td title="\$device"><IF CANEDITDEVICE><output href="/editdevice.cgi/\$device" name=devicename blank="Unnamed" missing="Unnamed"></if><if else><output name=devicename></if></td>
 <set s=""><if lastonline><set s="background:green;"></if><if not online><set s="background:yellow;"></if>
 <td style="\$s"><if online><tt title="When online"><output name=online></if><if else><tt title="Last online"><output name=lastonline missing="never"></tt></if></td>
 <td><if online><if via><i>via</i> <output name=VIA><if PARENT NOT PARENT="\$VIA"> &amp; <output name=PARENT></if></if><if else><tt title="BSSID#channel"><output name=bssid>#<output name=chan></tt> <i title="SSID"><output name=ssid></i></if></if><if else><i title="Why offline"><output name=offlinereason></i></if></td>
@@ -126,7 +126,7 @@ xmlsql -C -d "$DB" head.html - foot.html << END
 </sql>
 </table>
 <if found><form method=post><input name=UPGRADEALL value="Upgrade all" type=submit></form></if><if else><p>No devices found.</p></if>
-</if><if else>
+</if><if else CANEDITDEVICE>
 <form method=post action=/editdevice.cgi><input type=hidden name=device>
 <sql table="device LEFT JOIN pcb USING (pcb)" KEY=device>
 <table>
