@@ -107,7 +107,7 @@ xmlsql -C -d "$DB" head.html - foot.html << END
 <th>Notes</th></tr>
 <sql table="device" where="site=$USER_SITE" select="max(version) AS V,max(build) AS B"><set V="\$V"><set B="\$B"></sql>
 <sql table="device LEFT JOIN pcb USING (pcb) LEFT JOIN device AS device2 ON (device.via=device2.device) LEFT JOIN device AS device3 ON (device.bssid=device3.device)" order="device.outofservice,device.devicename" WHERE="device.site=\$USER_SITE" select="device.*,pcb.pcbname,device2.devicename AS VIA,device3.devicename AS PARENT"><set found=1>
-<set s=""><if lastonline><set s="background:green;"><if not via><set s="background:lightgreen;"></if></if><if not online><set s="background:yellow;"></if><if outofservice=true><set s="\${s}color:gray;"></if>
+<set s=""><if lastonline><set s="background:green;"><if not via><set s="background:lightgreen;"><if outofservice=true><set s="background:blue;"></if></if></if><if not online><set s="background:yellow;"></if><if outofservice=true><set s="\${s}color:gray;"></if>
 <tr style="\$s">
 <td title="\$device"><IF CANEDITDEVICE><output href="/editdevice.cgi/\$device" name=devicename blank="Unnamed" missing="Unnamed"></if><if else><output name=devicename></if></td>
 <td><if online><tt title="When online"><output name=online></if><if else><tt title="Last online"><output name=lastonline missing="never"></tt></if></td>
