@@ -837,7 +837,7 @@ task (void *pvParameters)
 		  status (alarm_tamper = ((nodes_online == 1 && meshmax > 1) ? "Lonely" : NULL));
 		  if (nodes_online <= meshmax / 2)
 		    {		// Below quorum...
-		      int csa_newchan = (esp_random () % 14) + 1;
+		      int csa_newchan = (esp_random () % 11) + 1;
 		      ESP_LOGI (TAG, "Try channel %d", csa_newchan);
 		      jo_t j = jo_object_alloc ();
 		      jo_int (j, "chan", csa_newchan);
