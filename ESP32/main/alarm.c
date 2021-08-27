@@ -843,8 +843,9 @@ task (void *pvParameters)
 		      jo_int (j, "chan", csa_newchan);
 		      revk_info_clients ("mesh", &j, 3);
 		      esp_mesh_switch_channel (NULL, csa_newchan, 3);
-		      isroot = uptime ();	// Wait for it to settle
-		      wasonline = 0;
+		      sleep (1);
+		      esp_mesh_waive_root (NULL, MESH_VOTE_REASON_ROOT_INITIATED);
+		      isroot = 0;
 		    }
 		}
 	    }
