@@ -57,11 +57,12 @@ if($?NEW) then
 endif
 list:
 if(! $?PATH_INFO) then
+setenv XMLSQLDEBUG
 xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <h1>Manage users</h1>
 <form method=post style='inline'>
 <table>
-<sql select="*,user.admin AS A" table="userorganisation LEFT JOIN user USING (user)" WHERE="organisation=$USER_ORGANISATION"><set found=1>
+<sql select="*,user.admin AS A" table="userorganisation LEFT JOIN user USING (user)" WHERE="userorganisation.organisation=$USER_ORGANISATION"><set found=1>
 <tr>
 <td>
 <if A=true><b>System Admin</b></if>
@@ -88,7 +89,7 @@ setenv user "$PATH_INFO:t"
 edit:
 xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <h1>Edit user</h1>
-<sql table="userorganisation LEFT JOIN user USING (user)"  where="user=$user AND organisation=$USER_ORGANISATION">
+<sql table="userorganisation LEFT JOIN user USING (user)"  where="user=$user AND userorganisation.organisation=$USER_ORGANISATION">
 <form method=post action="/edituserorganisation.cgi"><input type=hidden name=user><input type=hidden name=organisation>
 <table>
 <tr><td>Name</td><td><output name=username></td></tr>
