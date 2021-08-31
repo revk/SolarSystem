@@ -62,7 +62,7 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <if else>
 <h2>Fob <output name=fob href="editfob.cgi/$fob"></h2>
 <if IDENTIFIED><sql table=foborganisation where="fob='$fob' AND organisation=$USER_ORGANISATION"><set fobname="$fobname"></sql></if>
-<sql table="fobaid LEFT JOIN aid USING (aid) LEFT JOIN access USING (access)" WHERE="fob='$fob'">
+<sql table="fobaid LEFT JOIN aid USING (aid) LEFT JOIN access USING (access)" WHERE="fob='$fob' AND organisation=$USER_ORGANISATION">
 <p>Already adopted for <output name=aidname> <output name=accessname></p>
 </sql>
 <input name=fobname size=15 maxlength=15 placeholder="Name" autofocus><if mem> <output name=mem type=mebi>B free</if><br>
@@ -136,12 +136,12 @@ endif
 xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <h1>Fob <output name=fob></h1>
 <form method=post action=/editfob.cgi><input name=fob type=hidden>
-<sql table=foborganisation where="fob='$fob'">
+<sql table=foborganisation where="fob='$fob' AND organisation=$USER_ORGANISATION">
 <table>
 <tr><td>Name</td><td colspan=2><input name=fobname size=15 maxlength=15 autofocus></td></tr>
 <tr><td>Expiry</td><td colspan=2><input name=expires id=expires type=datetime-local><input type=button onclick='document.getElementById("expires").value="";' value="No expiry"></td></tr>
 <if blocked><tr><td>Block</td><td>Access blocked <output name=blocked> <if blocked and confirmed>(confirmed <output name=confirmed>)</if></td></tr></if>
-<sql table="fobaid LEFT JOIN aid USING (aid)" where="fob='$fob'" order=aidname><set "access$aid"="$access">
+<sql table="fobaid LEFT JOIN aid USING (aid)" where="fob='$fob' AND organisation=$USER_ORGANISATION" order=aidname><set "access$aid"="$access">
 <tr>
 <td><input type=hidden name=aids value="$aid"><output name=aidname></td>
 <td><select name="access$aid"><option value=''>No access</option><sql table=access where="site=$site"><option value="$access"><output name=accessname></option></sql></select></td>
