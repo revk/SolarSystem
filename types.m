@@ -23,8 +23,8 @@
 i(I,Input);
 i(I1,Exit button);
 i(I2,Door open contact);
-i(I3,Lock engaged);
-i(I4,Deadlock engaged);
+i(I3,Lock disengaged);
+i(I4,Deadlock disengaged);
 o(P,Power output);
 o(O,Output);
 o(O1,Lock relay);
