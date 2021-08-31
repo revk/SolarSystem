@@ -52,7 +52,8 @@ if($?pcbname) then # save
 			@ changed = $changed + 1
 			if("$inithold" == "")setenv inithold 0
 			if("$initpulse" == "")setenv initpulse 0
-			set n=`sql -i "$DB" 'INSERT INTO gpio SET pcb="$pcb",pin="$g",io="$t",inittype="$i",initname="$initname",inithold=$inithold,initpulse=$initpulse'`
+			if(! $?initinvert) setenv initinvert false
+			set n=`sql -i "$DB" 'INSERT INTO gpio SET pcb="$pcb",pin="$g",io="$t",inittype="$i",initname="$initname",inithold=$inithold,initpulse=$initpulse,initinvert="$initinvert"'`
 		endif
 	else
 		if("$g" == "-") then
@@ -61,7 +62,9 @@ if($?pcbname) then # save
 			setenv name `printenv "initname$n"`
 			setenv hold `printenv "inithold$n"`
 			setenv pulse `printenv "initpulse$n"`
-			@ changed = $changed + `sql -c "$DB" 'UPDATE gpio SET pin="$g",io="$t",inittype="$i",initname="$name",inithold=$hold,initpulse=$pulse WHERE gpio="$n" AND pcb="$pcb" AND (pin<>"$g" OR io<>"$t" OR inittype<>"$i" OR initname<>"$name" OR inithold<>$hold OR initpulse<>$pulse)'`
+			setenv invert `printenv "initinvert$n"`
+			if("$invert" == "") setenv invert false
+			@ changed = $changed + `sql -c "$DB" 'UPDATE gpio SET pin="$g",io="$t",inittype="$i",initname="$name",inithold=$hold,initpulse=$pulse,initinvert="$invert" WHERE gpio="$n" AND pcb="$pcb" AND (pin<>"$g" OR io<>"$t" OR inittype<>"$i" OR initname<>"$name" OR inithold<>$hold OR initpulse<>$pulse OR initinvert<>"$invert")'`
 		endif
 	endif
 	setenv set "$set,$n"
@@ -121,10 +124,10 @@ xmlsql -C -d "$DB" head.html - foot.html << END
 <tr><td><select name=nfctamper>$GPIONFCPICK</select></td><td>PN532 NFC Tamper button</td></tr>
 <tr><td><select name=nfcbell>$GPIONFCPICK</select></td><td>PN532 NFC Bell input</td></tr>
 </if>
-<sql table=gpio where="pcb=\$pcb" order=io,inittype,initname>
-<tr><td><input name=gpio type=hidden><select name=pin>$GPIONUMPICK</select></td><td><select name=io>$GPIOIOPICK</select><select name=inittype>$GPIOTYPEPICK</select> <input name="initname\$gpio" value="\$initname" size=10> <input name="inithold\$gpio" size=3 value="\$inithold">ms <input name="initpulse\$gpio" size=5 value="\$initpulse">s/10</td></tr></td>
+<sql table=gpio where="pcb=\$pcb" order=io,inittype,initname><set initinvert\$gpio="\$initinvert">
+<tr><td><input name=gpio type=hidden><select name=pin>$GPIONUMPICK</select></td><td><input name="initinvert\$gpio" type=checkbox value=true title="Invert"> <select name=io>$GPIOIOPICK</select><select name=inittype>$GPIOTYPEPICK</select> <input name="initname\$gpio" value="\$initname" size=10> <input name="inithold\$gpio" size=3 value="\$inithold">ms <input name="initpulse\$gpio" size=5 value="\$initpulse">s/10</td></tr></td>
 </sql>
-<tr><td><input name=gpio type=hidden value=0><select name=pin>$GPIONUMPICK</select></td><td><select name=io>$GPIOIOPICK</select><select name=inittype>$GPIOTYPEPICK</select> <input name=initname size=10 placeholder='New pin'> <input name=inithold size=3 placeholder="Hold">ms <input name=initpulse size=5 placeholder="Pulse">s/10</td></tr></td>
+<tr><td><input name=gpio type=hidden value=0><select name=pin>$GPIONUMPICK</select></td><td><input name=initinvert type=checkbox value=true title="Invert"> <select name=io>$GPIOIOPICK</select><select name=inittype>$GPIOTYPEPICK</select> <input name=initname size=10 placeholder='New pin'> <input name=inithold size=3 placeholder="Hold">ms <input name=initpulse size=5 placeholder="Pulse">s/10</td></tr></td>
 </table>
 </sql>
 <input type=submit value="Update">

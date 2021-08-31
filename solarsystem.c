@@ -304,13 +304,13 @@ static const char *settings(SQL * sqlp, SQL * sqlkeyp, SQL_RES * res, slot_t id)
                }
                if (*type == 'I')
                {
-                  int hold = atoi(sql_colz(g, "hold")) ? : atoi(sql_colz(g, "inithold"));
+                  int hold = atoi(sql_colz(g, "hold"));
                   if (hold)
                      j_store_int(gpio, "hold", hold);
                }
                if (*type == 'O')
                {
-                  int pulse = atoi(sql_colz(g, "pulse")) ? : atoi(sql_colz(g, "initpulse"));
+                  int pulse = atoi(sql_colz(g, "pulse"));
                   if (pulse)
                      j_store_int(gpio, "pulse", pulse);
                }

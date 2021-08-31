@@ -20,7 +20,7 @@ if($?PROVISION) then
 		setenv nfc `sql "$DB" 'SELECT IF(nfctx="-","false","true") FROM pcb WHERE pcb=$pcb'`
 		sql "$DB" 'INSERT INTO device SET device="$PROVISION",pcb="$pcb",organisation="$USER_ORGANISATION",site="$USER_SITE",aid="$aid",nfc="$nfc" ON DUPLICATE KEY UPDATE pcb="$pcb",organisation="$USER_ORGANISATION",site="$USER_SITE",aid="$aid",nfc="$nfc"'
 		sql "$DB" 'DELETE FROM devicegpio WHERE device="$PROVISION"'
-		sql "$DB" 'INSERT INTO devicegpio (device,gpio,type,name,hold,pulse) SELECT "$PROVISION",gpio,inittype,initname,inithold,initpulse FROM gpio WHERE pcb=$pcb'
+		sql "$DB" 'INSERT INTO devicegpio (device,gpio,type,name,hold,pulse,invert) SELECT "$PROVISION",gpio,inittype,initname,inithold,initpulse,initinvert FROM gpio WHERE pcb=$pcb'
 		# device count change
 		sql "$DB" 'UPDATE device SET poke=NOW() WHERE site=$site'
 		message --poke

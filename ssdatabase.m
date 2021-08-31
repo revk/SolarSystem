@@ -371,6 +371,7 @@ gpiotype(inittype);
 text(initname, 0);              // Default port pin name
 num(inithold);                  // Default port hold time
 num(initpulse);                 // Default port pulse time
+bool(initinvert);		// Default port invert setting
 
 table(aid, 6);                  // AID
 link(organisation);
