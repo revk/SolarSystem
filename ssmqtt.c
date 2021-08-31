@@ -719,11 +719,12 @@ const char *slot_send(slot_t id, const char *prefix, const char *deviceid, const
          int l = 3;
          while ((c = j_first(j)))
          {
+            int ln = strlen(j_name(c)) + 3;
             int lc = len(c);
-            if (l + lc > MAX_SETTING)
+            if (l + ln + lc > MAX_SETTING)
                break;
             j_store_json(n, j_name(c), &c);
-            l += lc + 1;
+            l += ln + lc + 1;
          }
          if (j_len(n))
          {
