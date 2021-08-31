@@ -88,7 +88,7 @@ const char *last_fault = NULL;
 const char *last_tamper = NULL;
 
 static void status_report(int force)
-{                               // Report status change
+{                               // Report status change (force is assumed to just be an update of status, not a change)
    int faults = 0;
    int tampers = 0;
    {                            // Faults
@@ -127,10 +127,13 @@ static void status_report(int force)
          free((void *) last_fault);
          last_fault = strdup(fault);
          revk_state_clients("fault", &j, 1 | (iotstatefault << 1));
-         if (faults)
-            latch_fault |= (live_fault = areafault);
-         else
-            live_fault = 0;;
+         if (!force)
+         {
+            if (faults)
+               latch_fault |= (live_fault = areafault);
+            else
+               live_fault = 0;;
+         }
       }
       jo_free(&j);              // safe to call even if freed by revk_state
    }
@@ -145,19 +148,22 @@ static void status_report(int force)
          free((void *) last_tamper);
          last_tamper = strdup(tamper);
          revk_state_clients("tamper", &j, 1 | (iotstatetamper << 1));
-         latch_presence |= areatamper;  // Change is presence
-         if (tampers)
-            latch_tamper |= (live_tamper = areatamper);
-         else
-            live_tamper = 0;
-         if (areatamper & (state_armed | state_prearm))
+         if (!force)
          {
-            jo_t e = jo_make(NULL);
-            jo_lit(e, "tamper", last_tamper);
-            revk_event_clients("trigger", &e, 1 | (ioteventarm << 1));
+            latch_presence |= areatamper;       // Change is presence
+            if (tampers)
+               latch_tamper |= (live_tamper = areatamper);
+            else
+               live_tamper = 0;
+            if (areatamper & (state_armed | state_prearm))
+            {
+               jo_t e = jo_make(NULL);
+               jo_lit(e, "tamper", last_tamper);
+               revk_event_clients("trigger", &e, 1 | (ioteventarm << 1));
+            }
          }
       }
-      if (tampers)
+      if (tampers && !force)
       {
          static area_t was_prearm = 0;
          area_t trigger = (areatamper & ~state_engineer);
@@ -223,10 +229,7 @@ const char *app_callback(int client, const char *prefix, const char *target, con
    modules;
 #undef m
    if (!strcmp(suffix, "connect"))
-   {
       status_report(1);
-      status_report(0);
-   }
    return e;
 }
 
