@@ -42,6 +42,7 @@ endif
 
 if(! $?PATH_INFO) then
 list:
+setenv XMLSQLDEBUG
 echo "Content-encoding: none" # so no deflating and hence no caching for interactive status
 xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <if CANADOPTFOB>
@@ -79,7 +80,7 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 
 <h2>Fobs</h2>
 <table>
-<sql table="foborganisation LEFT JOIN fobaid USING (fob) LEFT JOIN aid USING (aid) LEFT JOIN access USING (access)" where="foborganisation.organisation=$USER_ORGANISATION" group="fob" order="max(adopted) DESC" select="*,count(aid) as N, sum(if(adopted IS NULL AND aid.aid IS NOT NULL,1,0)) AS W,sum(if(override='true',1,0)) AS O">
+<sql table="foborganisation LEFT JOIN fobaid USING (fob) LEFT JOIN aid USING (aid) LEFT JOIN access USING (access)" where="foborganisation.organisation=$USER_ORGANISATION AND aid.organisation=$USER_ORGANISATION" group="fob" order="max(adopted) DESC" select="*,count(aid) as N, sum(if(adopted IS NULL AND aid.aid IS NOT NULL,1,0)) AS W,sum(if(override='true',1,0)) AS O">
 <if not found><set found=1><tr>
 <th>Fob</th><th>Expiry</th><th>Name</th><th>Notes</th>
 </tr></if>
