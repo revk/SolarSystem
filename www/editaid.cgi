@@ -2,7 +2,7 @@
 can --redirect --site='$USER_SITE' admin
 if($status) exit 0
 
-if($?aids) then #save
+if($?aids || $?NEW) then #save
         set aids=(`printenv aids|sed 's/[^0-9A-F	]//g'`)
 	foreach a ($aids)
 		setenv A "$a"

@@ -24,6 +24,7 @@ if($?sitename) then
 		sql "$DB" 'INSERT INTO access SET organisation=$USER_ORGANISATION,site="$site",accessname="Default access"'
 		sql "$DB" 'INSERT INTO area SET organisation=$USER_ORGANISATION,site=$site,area="A",areaname="Main building"'
 		sql "$DB" 'UPDATE session SET organisation=$USER_ORGANISATION,site=$site WHERE session="$ENVCGI"'
+		setenv aid `makeaid --site="$site"`
 	endif
 	if(! $?nomesh) setenv nomesh false
 	if(! $?ioteventarm) setenv ioteventarm false
