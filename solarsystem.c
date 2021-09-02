@@ -525,6 +525,7 @@ void dooffline(SQL * sqlp)
    while (sql_fetch_row(res))
    {
       sql_safe_query_free(sqlp, sql_printf("UPDATE `site` SET `missing`=`nodes` WHERE `site`=%#s", sql_colz(res, "site")));
+      sql_safe_query_free(sqlp, sql_printf("UPDATE `device` SET `offlinereport`=NOW() WHERE `online` IS NULL AND `outofservice`='false' AND `site`=%#s", sql_col(res, "site")));
       if (asprintf(&t, "Site off line\n%s", sql_colz(res, "sitename")) < 0)
          errx(1, "malloc");
       send_message(res, t, sql_colz(res, "smsnumber"));
