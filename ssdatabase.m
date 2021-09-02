@@ -136,6 +136,7 @@ text(meshid, 12);               // Mesh ID (MAC)
 key(meshid, 12);
 text(meshpass, 0);              // Mesh WiFi passphrase
 text(meshkey, 32);              // AES key
+bool(meshlr);			// Mesh is LR
 key(meshkey, 32);
 text(smsuser, 0);
 text(smspass, 0);

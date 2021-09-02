@@ -481,7 +481,8 @@ static void addsitedata(SQL * sqlp, j_t j, SQL_RES * site, const char *deviceid,
       if (sql_fetch_row(res))
          j_store_int(mesh, "max", atoi(sql_colz(res, "N")));
       sql_free_result(res);
-      j_store_true(mesh, "lr"); // May was well always be LR
+      if (*sql_colz(site, "meshlr") == 't')
+         j_store_true(mesh, "lr");
    }
 #endif
 }
