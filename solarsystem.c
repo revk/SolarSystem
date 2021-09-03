@@ -807,7 +807,7 @@ main (int argc, const char *argv[])
 	    else
 	      {
 		SQL_RES *res = sql_safe_query_store (&sql,
-						     "SELECT SUM(IF(`upgrade`<now() AND `id` IS NOT NULL,1,0)) AS `U`,SUM(IF(`offlinereport` IS NULL AND `online` IS NULL AND `outofservice`='false' AND `lastonline`<DATE_SUB(NOW(),INTERVAL 5 MINUTE),1,0)) AS `O` FROM `device` WHERE `upgrade`<now() AND `id` IS NOT NULL OR `offlinereport` IS NULL AND `online` IS NULL AND `outofservice`='false'");
+						     "SELECT SUM(IF(`upgrade`<now() AND `id` IS NOT NULL,1,0)) AS `U`,SUM(IF(`offlinereport` IS NULL AND `online` IS NULL AND `outofservice`='false' AND `lastonline`<DATE_SUB(NOW(),INTERVAL 5 MINUTE),1,0)) AS `O` FROM `device` WHERE `upgrade`<now() AND `id` IS NOT NULL OR `offlinereport` IS NULL AND `online` IS NULL");
 		if (sql_fetch_row (res))
 		  {
 		    if (atoi (sql_colz (res, "U")))
