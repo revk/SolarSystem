@@ -300,6 +300,7 @@ datetime(offlinereport);	// When reported offline
 index(offlinereport);
 text(offlinereason, 0);         // If sent offline reason, what was it
 datetime(upgrade);              // When to do upgrade
+num(progress);			// Upgrade percent
 index(upgrade);
 ip(address);                    // IP address when last online
 num(id);                        // Instance for communications when on line

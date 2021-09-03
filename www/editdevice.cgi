@@ -114,7 +114,7 @@ xmlsql -C -d "$DB" head.html - foot.html << END
 <td title="\$device"><IF CANEDITDEVICE><output href="/editdevice.cgi/\$device" name=devicename blank="Unnamed" missing="Unnamed"></if><if else><output name=devicename></if></td>
 <td><if online><tt title="When online"><output name=online></if><if else><tt title="Last online"><output name=lastonline missing="never"></tt></if></td>
 <td><if online><if via><i>via</i> <output name=VIA><if PARENT NOT PARENT="\$VIA"> &amp; <output name=PARENT></if></if><if else><tt title="BSSID#channel"><output name=bssid>#<output name=chan></tt> <i title="SSID"><output name=ssid></i></if></if><if else><i title="Why offline"><output name=offlinereason></i></if></td>
-<td><if upgrade><if online OR outofservice=false><i style='background:cyan;'>Upgrade scheduled</i><br></if></if><set s="background:red;"><if version="\$V"><set s="background:green;"></if><tt style="\$s"><output name=version></tt></td>
+<td><if upgrade><if online OR outofservice=false><i style='background:cyan;'>Upgrade <output name=progress missing=Scheduled></i><br></if></if><set s="background:red;"><if version="\$V"><set s="background:green;"></if><tt style="\$s"><output name=version></tt></td>
 <td><output name=pcbname></td>
 <td align-right><output name=flash type=mebi>B</td>
 <set s><if not fault="{}" and not areafault=""><set s="background:yellow;"></if><if not tamper="{}" and not areatamper=""><set s="background:red;"></if>
