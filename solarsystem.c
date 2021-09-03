@@ -1406,7 +1406,7 @@ int main(int argc, const char *argv[])
             if (suffix && !strcmp(suffix, "upgrade") && j_find(j, "complete") && checkdevice())
                sql_safe_query_free(&sql, sql_printf("UPDATE `device` SET `upgrade`=NULL,`progress`=NULL WHERE `device`=%#s", deviceid));        // Upgrade done
             else if (suffix && !strcmp(suffix, "upgrade") && j_find(j, "progress") && checkdevice())
-               sql_safe_query_free(&sql, sql_printf("UPDATE `device` SET `progress`=%d WHERE `device`=%#s", deviceid, atoi(j_get(j, "progress"))));
+               sql_safe_query_free(&sql, sql_printf("UPDATE `device` SET `progress`=%d WHERE `device`=%#s", atoi(j_get(j, "progress")), deviceid));
          } else
             return "Unknown message";
          if (j)
