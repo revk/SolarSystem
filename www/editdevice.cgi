@@ -15,7 +15,7 @@ if($?UNLOCK) then
 endif
 
 if($?UPGRADEALL) then
-	can --redirect --device='$device' editdevice
+	can --redirect --site='$USER_SITE' editdevice
 	if($status) exit 0
 	sql "$DB" 'UPDATE device SET upgrade=NOW() WHERE upgrade is NULL AND organisation="$USER_ORGANISATION" AND site="$USER_SITE"'
         message --poke
