@@ -142,10 +142,10 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <tr><td>Name</td><td colspan=2><input name=fobname size=15 maxlength=15 autofocus></td></tr>
 <tr><td>Expiry</td><td colspan=2><input name=expires id=expires type=datetime-local><input type=button onclick='document.getElementById("expires").value="";' value="No expiry"></td></tr>
 <if blocked><tr><td>Block</td><td>Access blocked <output name=blocked> <if blocked and confirmed>(confirmed <output name=confirmed>)</if></td></tr></if>
-<sql table="fobaid LEFT JOIN aid USING (aid)" where="fob='$fob' AND organisation=$USER_ORGANISATION" order=aidname><set "access$aid"="$access">
+<sql table="fobaid LEFT JOIN aid USING (aid) LEFT JOIN site USING (site)" where="fob='$fob' AND aid.organisation=$USER_ORGANISATION" order=sitename,aidname><set "access$aid"="$access">
 <tr>
-<td><input type=hidden name=aids value="$aid"><output name=aidname></td>
-<td><select name="access$aid"><option value=''>No access</option><sql table=access where="site=$site"><option value="$access"><output name=accessname></option></sql></select></td>
+<td><input type=hidden name=aids value="$aid"><output name=sitename></td>
+<td><select name="access$aid"><option value=''>No access</option><sql table=access where="site=$site"><option value="$access"><output name=accessname></option></sql></select></td><td><output name=aidname></td>
 </tr>
 </sql>
 </table>
