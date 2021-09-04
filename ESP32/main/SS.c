@@ -79,7 +79,7 @@ settings
 #define port_mask(p) ((p)&63)
 #define BITFIELDS "-"
 #define PORT_INV 0x40
-static esp_reset_reason_t reason = -1;  // Restart reason
+static int8_t reason = -1;  // Restart reason
 
 const char *controller_fault = NULL;
 const char *controller_tamper = NULL;
