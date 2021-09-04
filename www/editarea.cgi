@@ -21,6 +21,7 @@ if($?AREAA) then #save
 		set allow="$allow mixand$s mixset$s mixarm$s mixdisarm$s"
 	end
 	sqlwrite -qon "$DB" site site="$site" $allow
+        sql "$DB" 'UPDATE device SET poke=NOW() WHERE site=$site'
 	message --poke
 	redirect / Updated
 	exit 0
