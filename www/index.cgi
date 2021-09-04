@@ -10,10 +10,10 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <hr>
 <if USER_ORGANISATION AND USER_ADMIN=true><li><a href="editsite.cgi/0">New site</a></li></if>
 <if USER_SITE CANEDITSITE><li><a href="editsite.cgi/$USER_SITE">Manage site</a></li></if>
-<if USER_SITE CANEDITAREA><li><a href="editarea.cgi">Manage areas</a></li></if>
-<if USER_ORGANISATION AND ADMINORGANISATION><li><a href="editaid.cgi">Manage AIDs</a></li></if>
-<if USER_SITE CANARM><li><a href="arm.cgi">Arm</a></li></if>
-<if USER_SITE CANDISARM><li><a href="disarm.cgi">Disarm</a></li></if>
+<if USER_SITE CANEDITAREA><li><a href="editarea.cgi/$USER_SITE">Manage areas</a></li></if>
+<if USER_ORGANISATION AND ADMINORGANISATION><li><a href="editaid.cgi/$USER_SITE">Manage AIDs</a></li></if>
+<if USER_SITE CANARM><li><a href="arm.cgi/$USER_SITE">Arm</a></li></if>
+<if USER_SITE CANDISARM><li><a href="disarm.cgi/$USER_SITE">Disarm</a></li></if>
 <if USER_SITE CANVIEWLOG><li><a href="log.cgi">Logs</a></li></if>
 <hr>
 <if USER_ORGANISATION AND ADMINORGANISATION><li><a href="editaccess.cgi">Manage Access classes</a></li></if>
