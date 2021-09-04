@@ -503,7 +503,7 @@ void daily(SQL * sqlp)
 
 void doupgrade(SQL * sqlp, SQL_RES * site)
 {                               // Poking upgrades that may need doing - pick one per site, as site is one at a time
-   SQL_RES *device = sql_safe_query_store_free(sqlp, sql_printf("SELECT * FROM `device` WHERE `site`=%#s AND `upgrade`<=NOW() AND `id` IS NOT NULL ORDER BY IF(`via` IS NULL,if(`outofservice`='true',0,1),2),`upgrade` LIMIT 1", sql_col(site, "site")));
+   SQL_RES *device = sql_safe_query_store_free(sqlp, sql_printf("SELECT * FROM `device` WHERE `site`=%#s AND `upgrade`<=NOW() AND `id` IS NOT NULL ORDER BY if(`outofservice`='true',0,if(`via` IS NOT NULL,1,2)),`upgrade` LIMIT 1", sql_col(site, "site")));
    while (sql_fetch_row(device))
    {
       slot_t id = strtoull(sql_colz(device, "id"), NULL, 10);
