@@ -771,11 +771,6 @@ int main(int argc, const char *argv[])
             daily(&sql);
          }
       }
-      if (poke)
-      {
-         poke = 0;
-         dopoke(&sql, &sqlkey);
-      }
       {                         // Every minute
          static int tick = 0;
          if (now / 60 != tick || poke)
@@ -790,6 +785,11 @@ int main(int argc, const char *argv[])
                doupgrade(&sql, res);
             sql_free_result(res);
          }
+      }
+      if (poke)
+      {
+         poke = 0;
+         dopoke(&sql, &sqlkey);
       }
       j_t j = incoming();
       if (!j)
