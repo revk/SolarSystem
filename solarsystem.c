@@ -1396,7 +1396,7 @@ int main(int argc, const char *argv[])
          {
             if (suffix && !strcmp(suffix, "upgrade") && j_find(j, "complete") && checkdevice())
             {
-               sql_safe_query_free(&sql, sql_printf("UPDATE `device` SET `upgrade`=NULL,`progress`=NULL WHERE `device`=%#s", deviceid));        // Upgrade done
+               sql_safe_query_free(&sql, sql_printf("UPDATE `device` SET `upgrade`=NULL,`version`=NULL,`progress`=NULL WHERE `device`=%#s", deviceid));        // Upgrade done
                poke = 1;
             } else if (suffix && !strcmp(suffix, "upgrade") && j_find(j, "progress") && checkdevice())
                sql_safe_query_free(&sql, sql_printf("UPDATE `device` SET `progress`=%d WHERE `device`=%#s", atoi(j_get(j, "progress")), deviceid));
