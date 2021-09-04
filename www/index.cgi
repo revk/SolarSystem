@@ -1,5 +1,18 @@
 #!../login/loggedin --query /bin/csh -f
-source ../setses
+if(! $?USER_ORGANISATION && "$USER_ADMIN" == false) then
+        setenv C `sql "$DB" 'SELECT COUNT(*) FROM userorganisation WHERE user=$USER_ID'`
+        if("$C" == 1) then
+                setenv USER_ORGANISATION `sql "$DB" 'SELECT organisation FROM userorganisation WHERE user=$USER_ID'`
+                sql "$DB" 'UPDATE user SET organisation=$USER_ORGANISATION WHERE user="$USER_ID"'
+        endif
+endif
+if($?USER_ORGANISATION && ! $?USER_SITE) then
+        setenv C `sql "$DB" 'SELECT COUNT(*) FROM site WHERE organisation=$USER_ORGANISATION'`
+        if("$C" == 1) then
+                setenv USER_SITE `sql "$DB" 'SELECT site FROM site WHERE organisation=$USER_ORGANISATION'`
+                sql "$DB" 'UPDATE user SET site=$USER_SITE WHERE user="$USER_ID"'
+        endif
+endif
 source ../setcan
 xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <p>Solar System access control cloud service. <output name=VERSION></p>
