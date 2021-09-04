@@ -135,14 +135,14 @@ xmlsql -C -d "$DB" head.html - foot.html << END
 <form method=post action=/editdevice.cgi><input type=hidden name=device>
 <sql table="device LEFT JOIN pcb USING (pcb)" KEY=device>
 <table>
-<tr><td><input type=checkbox id=outofservice name=outofservice value=true></td><td><label for=outofservice>Out of service</label></td></tr>
-<tr><td>PCB</td><td><select name=pcb><sql table=pcb order=pcbname><option value="\$pcb"><output name=pcbname></option></sql></select></td></tr>
-<tr><td>Name</td><td><input name=devicename size=20 maxlength=20 autofocus></td></tr>
-<if keypad=true><tr><td>Keypad</td><td><input name=keypadidle size=16 maxlength=16 autofocus></td></tr></if>
-<tr><td>Site</td><td><select name=site><sql table=site where="organisation=$USER_ORGANISATION"><option value='\$site'><output name=sitename></option></sql></select></td></tr>
+<tr><td><input type=checkbox id=outofservice name=outofservice value=true></td><td colspan=2><label for=outofservice>Out of service</label></td></tr>
+<tr><td>PCB</td><td colspan=2><select name=pcb><sql table=pcb order=pcbname><option value="\$pcb"><output name=pcbname></option></sql></select></td></tr>
+<tr><td>Name</td><td colspan=2><input name=devicename size=20 maxlength=20 autofocus></td></tr>
+<if keypad=true><tr><td>Keypad</td><td colspan=2><input name=keypadidle size=16 maxlength=16 autofocus></td></tr></if>
+<tr><td>Site</td><td colspan=2><select name=site><sql table=site where="organisation=$USER_ORGANISATION"><option value='\$site'><output name=sitename></option></sql></select></td></tr>
 <sql table=site where="site=\$site">
 <if not iothost="">
-<tr><td>IoT (<output name=iothost>)</td><td>
+<tr><td>IoT (<output name=iothost>)</td><td colspan=2>
 <input id=iotstateinput name=iotstateinput value=true type=checkbox><label for=iotstateinput>Input</label>
 <input id=iotstateoutput name=iotstateoutput value=true type=checkbox><label for=iotstateoutput>Output</label>
 <input id=iotstatefault name=iotstatefault value=true type=checkbox><label for=iotstatefault>Fault</label>
@@ -155,27 +155,27 @@ xmlsql -C -d "$DB" head.html - foot.html << END
 </td>
 </if>
 </sql>
-<if nfc=true><tr><td>AID</td><td><select name=aid><sql table=aid where="site=\$site"><option value="\$aid"><output name=aidname></option></sql></select></td></tr></if>
-<tr><td>Online</td><td><if online><output name=online></if><if else>Last online <output name=lastonline missing="never"></if><if upgrade> (upgrade scheduled)</if></td></tr>
-<tr><td>Version</td><td><output name=version></td></tr>
+<if nfc=true><tr><td>AID</td><td colspan=2><select name=aid><sql table=aid where="site=\$site"><option value="\$aid"><output name=aidname></option></sql></select></td></tr></if>
+<tr><td>Online</td><td colspan=2><if online><output name=online></if><if else>Last online <output name=lastonline missing="never"></if><if upgrade> (upgrade scheduled)</if></td></tr>
+<tr><td>Version</td><td colspan=2><output name=version></td></tr>
 <sql table=pcb where="pcb=\$pcb">
-<if nfc=true><tr><td><input type=checkbox id=door name=door value=true></td><td><label for=door>Door control</label></td></tr></if>
-<if nfc=true door=true><tr><td><input size=5 id=doorunlock name=doorunlock>ms</td><td><label for=doorunlock>Door unlock timer</label></td></tr></if>
-<if nfc=true door=true><tr><td><input size=5 id=doorlock name=doorlock>ms</td><td><label for=doorlock>Door lock timer</label></td></tr></if>
-<if nfc=true door=true><tr><td><input size=5 id=dooropen name=dooropen>ms</td><td><label for=dooropen>Door open timer</label></td></tr></if>
-<if nfc=true door=true><tr><td><input size=5 id=doorclose name=doorclose>ms</td><td><label for=doorclose>Door close timer</label></td></tr></if>
-<if nfc=true door=true><tr><td><input size=5 id=doorprop name=doorprop>ms</td><td><label for=doorprop>Door prop timer</label></td></tr></if>
-<if nfc=true door=true><tr><td><input size=5 id=doorexit name=doorexit>ms</td><td><label for=doorexit>Door exit button hold timer</label></td></tr></if>
-<if nfc=true door=true><tr><td><input type=checkbox id=doorexitdisarm name=doorexitdisarm value=true></td><td><label for=doorexitdisarm>Door exit button disarm</label></td></tr></if>
-<if nfc=true door=true><tr><td><input type=checkbox id=doorexitarm name=doorexitarm value=true></td><td><label for=doorexitarm>Door exit button arm on hold</label></td></tr></if>
-<if nfc=true door=true><tr><td>IoT on unlock</td><td><input name=dooriotunlock></td></tr></if>
-<if nfc=true><tr><td><input type=checkbox id=nfcadmin name=nfcadmin value=true></td><td><label for=nfcadmin>Admin NFC reader</label></td></tr></if>
-<if USER_ADMIN=true nfc=true><tr><td><input type=checkbox id=nfctrusted name=nfctrusted value=true></td><td><label for=nfctrusted>Trusted NFC reader</label></td></tr></if>
+<if nfc=true><tr><td><input type=checkbox id=door name=door value=true></td><td colspan=2><label for=door>Door control</label></td></tr></if>
+<if nfc=true door=true><tr><td><input size=5 id=doorunlock name=doorunlock>ms</td><td colspan=2><label for=doorunlock>Door unlock timer</label></td></tr></if>
+<if nfc=true door=true><tr><td><input size=5 id=doorlock name=doorlock>ms</td><td colspan=2><label for=doorlock>Door lock timer</label></td></tr></if>
+<if nfc=true door=true><tr><td><input size=5 id=dooropen name=dooropen>ms</td><td colspan=2><label for=dooropen>Door open timer</label></td></tr></if>
+<if nfc=true door=true><tr><td><input size=5 id=doorclose name=doorclose>ms</td><td colspan=2><label for=doorclose>Door close timer</label></td></tr></if>
+<if nfc=true door=true><tr><td><input size=5 id=doorprop name=doorprop>ms</td><td colspan=2><label for=doorprop>Door prop timer</label></td></tr></if>
+<if nfc=true door=true><tr><td><input size=5 id=doorexit name=doorexit>ms</td><td colspan=2><label for=doorexit>Door exit button hold timer</label></td></tr></if>
+<if nfc=true door=true><tr><td><input type=checkbox id=doorexitdisarm name=doorexitdisarm value=true></td><td colspan=2><label for=doorexitdisarm>Door exit button disarm</label></td></tr></if>
+<if nfc=true door=true><tr><td><input type=checkbox id=doorexitarm name=doorexitarm value=true></td><td colspan=2><label for=doorexitarm>Door exit button arm on hold</label></td></tr></if>
+<if nfc=true door=true><tr><td>IoT on unlock</td><td colspan=2><input name=dooriotunlock></td></tr></if>
+<if nfc=true><tr><td><input type=checkbox id=nfcadmin name=nfcadmin value=true></td><td colspan=2><label for=nfcadmin>Admin NFC reader</label></td></tr></if>
+<if USER_ADMIN=true nfc=true><tr><td><input type=checkbox id=nfctrusted name=nfctrusted value=true></td><td colspan=2><label for=nfctrusted>Trusted NFC reader</label></td></tr></if>
 </sql>
 <sql select="device.device,gpio.*,devicegpio.*" table="device JOIN gpio USING (pcb) LEFT JOIN devicegpio ON (devicegpio.device=device.device AND devicegpio.gpio=gpio.gpio)" WHERE="device.device='\$device'">
 <tr><td><output name=name href="/editgpio.cgi/\$device/\$gpio" blank="GPIO" missing="GPIO"></td>
-<if type><td><b><output name=type $GPIOTYPEOUT><if not pulse=0 AND type=*O>(<eval #=1 s="\$pulse/10"><output name=s>s)</if><if not hold=0 AND type=*I>(<output name=hold>ms)</if><if invert=true> (inverted)</if></b><for space S="$STATELIST"><if not "\$S"=''> <output name=S>(<output name="\$S">)</if></for></td></if>
-<if not type><td><b><output name=io $GPIOIOOUT></td></if>
+<if type><td><if type=*-><i>Unused</i></if><if else><output name=invert false=H true=L>:<b><output name=type $GPIOTYPEOUT><if not pulse=0 AND type=*O>(<eval #=1 s="\$pulse/10"><output name=s>s)</if><if not hold=0 AND type=*I>(<output name=hold>ms)</if></b></td><td><for space S="$STATELIST"><if not "\$S"=''> <output name=S>(<output name="\$S">)</if></for></if></td></if>
+<if not type><td><b><output name=io $GPIOIOOUT></td><td><i>Undefined</i></td></if>
 </tr>
 </sql>
 </table>

@@ -33,7 +33,7 @@ xmlsql -C -d "$DB" head.html - foot.html << END
 <if type=*I><tr><td>Hold</td><td><input name=hold size=3>ms</td></tr></if>
 <if type=*O><tr><td>Pulse</td><td><input name=pulse size=3>s/10</td></tr></if>
 <tr><td>Type</td><td><output name=io $GPIOIOOUT>:<if io=I><select name=type>$GPIOTYPEPICKI</select></if><if io=O><select name=type>$GPIOTYPEPICKO</select></if><if io=IO><select name=type>$GPIOTYPEPICK</select></if></td></tr>
-<tr><td><label for=invert>Invert</label></td><td><input id=invert name=invert type=checkbox value=true></td></tr>
+<tr><td><label for=invert>Active low</label></td><td><input id=invert name=invert type=checkbox value=true></td></tr>
 </table>
 <if not type=*P>
 <if type=*O><set SL="$STATELIST"></if><if else><set SL="$STATELISTI"></if>
