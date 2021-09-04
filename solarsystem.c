@@ -825,7 +825,7 @@ int main(int argc, const char *argv[])
          {                      // Identify the device we want to talk to...
             SQL_RES *res = NULL;
             if ((v = j_get(meta, "site")) && atoi(v))
-               res = sql_safe_query_store_free(&sql, sql_printf("SELECT `id`,`device` FROM `device` WHERE `site`=%d AND `id` IS NOT NULL AND `via` IS NULL LIMIT 1", atoi(v)));
+               res = sql_safe_query_store_free(&sql, sql_printf("SELECT `id`,`device` FROM `device` WHERE `site`=%d AND `id` IS NOT NULL AND `via` IS NULL AND `outofservice`='false' LIMIT 1", atoi(v)));
             else if ((v = j_get(meta, "device")))
                res = sql_safe_query_store_free(&sql, sql_printf("SELECT `id`,`device` FROM `device` WHERE `device`=%#s", v));
             else if ((v = j_get(meta, "pending")))
