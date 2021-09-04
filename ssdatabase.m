@@ -293,6 +293,7 @@ areas(areadeadlock);            // Areas for door bell input
 areas(arealed);                 // LED area
 areas(areakeypad);              // Keypad area
 datetime(online);               // When online, if online
+datetime(boot);			// Boot time
 index(online);
 datetime(lastonline);           // When last went offline
 index(lastonline)
