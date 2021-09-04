@@ -88,7 +88,7 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <td><output name=fob href="editfob.cgi/$fob"></td>
 <td><output name=expires></td>
 <td><output name=fobname></td>
-<td><if not N=1><output name=N 0=No> AIDs</if><if N=1><output name=aidname> (<output name=accessname>)</if></td>
+<td><if not N=1><output name=N 0=No> AIDs</if><if N=1><sql table=site where="site=$site"><output name=sitename></sql>: <output name=aidname> (<output name=accessname>)</if></td>
 </tr>
 </sql>
 </table>
