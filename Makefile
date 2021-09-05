@@ -40,7 +40,6 @@ apt:
 	sudo apt install libpopt-dev  libssl-dev  libcurl4-openssl-dev  libmosquitto-dev  libmariadbd-dev  kconfig-frontends libargon2-dev python3-certbot-apache libgpgme-dev
 
 pull:
-	rm ESP32/version.txt
 	git pull
 	git submodule update
 
