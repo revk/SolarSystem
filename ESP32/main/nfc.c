@@ -541,8 +541,6 @@ static void task(void *pvParameters)
 
 static void report_state(void)
 {
-   if (revk_offline())
-      return;
    jo_t j = jo_object_alloc();
    if (aid[0] || aid[1] || aid[2])
       jo_stringf(j, "aid", "%02X%02X%02X", aid[0], aid[1], aid[2]);

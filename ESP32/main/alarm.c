@@ -68,7 +68,6 @@ int64_t report_next = 0;        // Send report cycle
 	u16(alarmhold)		\
         u8(meshcycle,3)		\
         u8(meshwarmup,60)	\
-	u8(meshdown,120)	\
 	area(smsarm)		\
 	area(smsdisarm)		\
 	area(smsarmfail)	\
@@ -708,7 +707,7 @@ static void task(void *pvParameters)
       esp_task_wdt_reset();
       {                         // Set LED mode
          int r = 1;
-         if ((isroot && !revk_offline() && nodes_online == meshmax) || (!isroot && esp_mesh_is_device_active()))
+         if ((isroot && !revk_link_down() && nodes_online == meshmax) || (!isroot && esp_mesh_is_device_active()))
             r = 3;
          const char *led = "G";
 #define i(x,c) if((state_##x&(arealed?:(area_t)-1))&&*#c)led=#c;
@@ -788,9 +787,6 @@ static void task(void *pvParameters)
          jo_datetime(j, "report", time(0));
          mesh_make_report(j);
          revk_mesh_send_json(NULL, &j);
-         //ESP_LOGI(TAG, "Nodes online %d link_down %d", nodes_online, revk_link_down());
-         if (nodes_online <= 1 && revk_link_down() > meshdown)
-            revk_restart("Mesh sucks", 0);      // Something very wrong
       }
       if (esp_mesh_is_root())
       {
