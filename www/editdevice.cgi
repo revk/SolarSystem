@@ -17,7 +17,7 @@ endif
 if($?OOSALL) then
 	can --redirect --site='$USER_SITE' admin
 	if($status) exit 0
-	sql "$DB" 'UPDATE device SET outofservice="true" WHERE upgrade is NULL AND organisation="$USER_ORGANISATION" AND site="$USER_SITE"'
+	sql "$DB" 'UPDATE device SET outofservice="true",poke=NOW() WHERE upgrade is NULL AND organisation="$USER_ORGANISATION" AND site="$USER_SITE"'
         message --poke
 	redirect editdevice.cgi
 	exit 0
