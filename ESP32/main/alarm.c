@@ -787,6 +787,9 @@ static void task(void *pvParameters)
          jo_datetime(j, "report", time(0));
          mesh_make_report(j);
          revk_mesh_send_json(NULL, &j);
+	 ESP_LOGI(TAG,"online %d uplink %d uptime %d",nodes_online,revk_uplink(),uptime());
+         if (nodes_online <= 1 && !revk_uplink() && uptime() > 30)
+            revk_restart("Mesh sucks", 0);      // Something very wrong
       }
       if (esp_mesh_is_root())
       {
@@ -812,8 +815,6 @@ static void task(void *pvParameters)
          {                      // Checking was have quorum / full house
             if (wasonline != nodes_online)
             {                   // Online change
-               if (nodes_online <= 1 && !revk_uplink())
-                  revk_restart("Mesh sucks", 1);
                wasonline = nodes_online;
                alarm_fault = ((nodes_online < meshmax) ? "Missing nodes" : NULL);
                status(alarm_tamper = ((nodes_online == 1 && meshmax > 1) ? "Lonely" : NULL));
@@ -836,6 +837,7 @@ static void task(void *pvParameters)
       {
          if (isroot)
          {                      // We are no longer root
+            nodes_online = 1;   // Us
             revk_mqtt_close("Not root");
             freez(node);
             mesh_now_leaf();
