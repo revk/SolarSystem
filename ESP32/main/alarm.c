@@ -68,6 +68,7 @@ int64_t report_next = 0;        // Send report cycle
 	u16(alarmhold)		\
         u8(meshcycle,3)		\
         u8(meshwarmup,120)	\
+	u8(meshdown,30)		\
 	area(smsarm)		\
 	area(smsdisarm)		\
 	area(smsarmfail)	\
@@ -788,7 +789,7 @@ static void task(void *pvParameters)
          mesh_make_report(j);
          revk_mesh_send_json(NULL, &j);
          ESP_LOGI(TAG, "online %d link_down %d", nodes_online, revk_link_down());
-         if (nodes_online <= 1 && revk_link_down() > 30)
+         if (nodes_online <= 1 && revk_link_down() > meshdown)
             revk_restart("Mesh sucks", 0);      // Something very wrong
       }
       if (esp_mesh_is_root())
