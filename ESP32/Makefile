@@ -8,6 +8,7 @@ PROJECT_NAME := SS
 include $(IDF_PATH)/make/project.mk
 
 pull:
+	rm version.txt
 	git pull
 	git submodule update
 
