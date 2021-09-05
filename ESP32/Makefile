@@ -7,6 +7,10 @@ PROJECT_NAME := SS
 
 include $(IDF_PATH)/make/project.mk
 
+pull:
+	git pull
+	git submodule update
+
 # Set GPIO low (whichever CBUS is set to mode 8/GPIO)
 bootmode: ftdizap/ftdizap
 	./ftdizap/ftdizap --cbus=0
