@@ -41,7 +41,7 @@ apt:
 
 pull:
 	git pull
-	git submodule update
+	git submodule update --recursive
 
 update:
 	git pull

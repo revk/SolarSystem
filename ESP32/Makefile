@@ -9,7 +9,7 @@ include $(IDF_PATH)/make/project.mk
 
 pull:
 	git pull
-	git submodule update
+	git submodule update --recursive
 
 # Set GPIO low (whichever CBUS is set to mode 8/GPIO)
 bootmode: ftdizap/ftdizap
