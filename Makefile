@@ -39,6 +39,10 @@ all: solarsystem can message makeaid sscert login.conf SQLlib/sql xmlsql/xmlsql 
 apt:
 	sudo apt install libpopt-dev  libssl-dev  libcurl4-openssl-dev  libmosquitto-dev  libmariadbd-dev  kconfig-frontends libargon2-dev python3-certbot-apache libgpgme-dev
 
+pull:
+	git pull
+	git submodule update
+
 update:
 	git pull
 	git submodule update --init --remote login xmlsql SQLlib AJL DESFireAES email ESP32/components/DESFireAES ESP32/components/ESP32-PN532 ESP32/components/ESP32-RevK ESP32/components/ESP32-GalaxyBus
