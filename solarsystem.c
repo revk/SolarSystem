@@ -406,6 +406,8 @@ addsitedata (SQL * sqlp, j_t j, SQL_RES * site, const char *deviceid, const char
     j_store_string (wifi, "pass", v);
   if (!outofservice && (v = sql_colz (site, "wifichan")) && atoi (v))
     j_store_int (wifi, "chan", atoi (v));
+  if (!outofservice && (v = sql_colz (site, "wifibssid")) && strlen (v) == 12)
+    j_store_string (wifi, "bssid", v);
   j_t sms = j_store_object (j, "sms");
   addarea (sms, "arm", sql_col (site, "smsarm"), 0);
   addarea (sms, "disarm", sql_col (site, "smsdisarm"), 0);
