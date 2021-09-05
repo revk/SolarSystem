@@ -787,8 +787,8 @@ static void task(void *pvParameters)
          jo_datetime(j, "report", time(0));
          mesh_make_report(j);
          revk_mesh_send_json(NULL, &j);
-	 ESP_LOGI(TAG,"online %d uplink %d uptime %d",nodes_online,revk_uplink(),uptime());
-         if (nodes_online <= 1 && !revk_uplink() && uptime() > 30)
+         ESP_LOGI(TAG, "online %d link_down %d", nodes_online, revk_link_down());
+         if (nodes_online <= 1 && revk_link_down() > 30)
             revk_restart("Mesh sucks", 0);      // Something very wrong
       }
       if (esp_mesh_is_root())
