@@ -22,6 +22,14 @@ if($?OOSALL) then
 	redirect editdevice.cgi
 	exit 0
 endif
+if($?ISALL) then
+	can --redirect --site='$USER_SITE' admin
+	if($status) exit 0
+	sql "$DB" 'UPDATE device SET outofservice="false",poke=NOW() WHERE upgrade is NULL AND organisation="$USER_ORGANISATION" AND site="$USER_SITE"'
+        message --poke
+	redirect editdevice.cgi
+	exit 0
+endif
 if($?UPGRADEALL) then
 	can --redirect --site='$USER_SITE' editdevice
 	if($status) exit 0
@@ -139,8 +147,9 @@ xmlsql -C -d "$DB" head.html - foot.html << END
 </sql>
 </table>
 <if found>
-<if CANEDITDEVICE><form method=post><input name=UPGRADEALL value="Upgrade all" type=submit></form></if>
-<if USER_ADMIN=true><form method=post><input name=OOSALL value="Out off service all" type=submit></form></if>
+<if CANEDITDEVICE><form method=post style="display:inline-block;"><input name=UPGRADEALL value="Upgrade all" type=submit></form></if>
+<if USER_ADMIN=true><form method=post style="display:inline-block;"><input name=OOSALL value="Out off service all" type=submit></form></if>
+<if USER_ADMIN=true><form method=post style="display:inline-block;"><input name=ISALL value="In service all" type=submit></form></if>
 </if><if else><p>No devices found.</p></if>
 </if><if else CANEDITDEVICE>
 <form method=post action=/editdevice.cgi><input type=hidden name=device>
