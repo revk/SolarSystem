@@ -58,7 +58,7 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <input type=submit name=IDENTIFY value="Read fob ID">
 <input type=hidden name=fob>
 <if not IDENTIFY fob not fob="">
-<sql table=fob where="fob='$fob'"><set foundfob=1><if mem><set mem="$mem"></if></sql>
+<set mem><set capacity><sql table=fob where="fob='$fob'"><set foundfob=1><if mem><set mem="$mem"></if><if capacity><set capacity="$capacity"></if></sql>
 <if not foundfob><p>Sorry, fob <output name=fob> is not recognised by the system. Any fob you wish to use must first be provisioned by the system administrator before it can be adopted. Please contact the system administrator <sql table=user where="admin='true'" limit=1 order="rand()"><output name=username></sql> for more information.</p></if>
 <if else>
 <h2>Fob <output name=fob href="editfob.cgi/$fob"></h2>

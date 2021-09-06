@@ -1012,7 +1012,9 @@ main (int argc, const char *argv[])
 	if (fob)
 	  sql_safe_query_free (&sql, sql_printf ("INSERT IGNORE INTO `fob` SET `fob`=%#s,`provisioned`=NOW()", fob));
 	if ((v = j_get (j, "mem")) && fob)
-	  sql_safe_query_free (&sql, sql_printf ("UPDATE `fob` SET `mem`=%#s WHERE `fob`=%#s AND `mem`!=%#s", v, fob, v));
+	  sql_safe_query_free (&sql, sql_printf ("UPDATE `fob` SET `mem`=%#s WHERE `fob`=%#s AND (`mem` IS NULL OR `mem`<>%#s)", v, fob, v));
+	if ((v = j_get (j, "capacity")) && fob)
+	  sql_safe_query_free (&sql, sql_printf ("UPDATE `fob` SET `capacity`=%#s WHERE `fob`=%#s AND (`capacity` IS NULL OR `capacity`<>%#s)", v, fob, v));
 	if (j_find (meta, "provisioned") && fob && (v = j_get (j, "masterkey")))
 	  {
 	    sql_safe_query_free (&sqlkey, sql_printf ("REPLACE INTO `AES` SET `fob`=%#s,`aid`='',`ver`=%#.2s,`key`=%#s", fob, v, v + 2));

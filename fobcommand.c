@@ -290,6 +290,7 @@ void *fobcommand(void *arg)
                   if (aid[0] || aid[1] || aid[2])
                      j_store_string(j, "aid", j_base16(sizeof(aid), aid));
                   j_store_string(j, "deviceid", f.deviceid);
+                  j_store_int(j, "capacity", mem);
                   j_store_int(j, "mem", mem);
                   mqtt_qin(&j);
                }
