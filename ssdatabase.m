@@ -161,6 +161,7 @@ num(armcancel);                 // Pre arm time
 num(alarmdelay);                // Pre alarm time
 num(alarmhold);                 // Hold alarm state time
 bool (ioteventarm);             // Copy stuff to IoT
+bool (iotstatesystem);          // Copy stuff to IoT
 #define s(state,c) areas(state)
 #include "ESP32/main/states.m"  // Related areas
 text(smsnumber, 20);            // Number to SMS
@@ -264,7 +265,6 @@ bool (iotstateoutput);          // Copy stuff to IoT
 bool (iotstatefault);           // Copy stuff to IoT
 bool (iotstatewarning);         // Copy stuff to IoT
 bool (iotstatetamper);          // Copy stuff to IoT
-bool (iotstatesystem);          // Copy stuff to IoT
 bool (ioteventfob);             // Copy stuff to IoT
 bool (iotkeypad);               // Copy stuff to IoT
 bool (nfc);                     // Yes, can get from pcb, but useful to reference quickly
