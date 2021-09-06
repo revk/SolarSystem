@@ -30,6 +30,7 @@ if($?sitename) then
 	if(! $?ioteventarm) setenv ioteventarm false
 	if(! $?meshlr) setenv meshlr false
 	if(! $?debug) setenv debug false
+	if("$root" == "") unsetenv root
 	sqlwrite -qon "$DB" site sitename wifissid wifipass wifichan iothost nomesh smsuser smspass armcancel alarmdelay alarmhold debug ioteventarm smsarm smsarmfail smsdisarm smsalarm smspanic smsfire engineer smsnumber smsafp1 smsafp2 smsafp3 smsfrom hookbearer hookfob hookalarm hookfire hookpanic meshlr wifibssid root
 	sql "$DB" 'UPDATE device SET poke=NOW() WHERE site=$site'
 	message --poke
