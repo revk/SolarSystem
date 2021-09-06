@@ -461,14 +461,19 @@ static void mesh_make_summary(jo_t j)
    // simple latched states - cleared by re-arming
    // arming normally holds off for presence (obviously) but also tamper and access - forcing armed is possible
    area_t was_armed = state_armed;
-   state_armed = andset((state_armed | report_strongarm | (report_arm & ~state_presence & ~(state_tamper & ~engineer) & ~state_access)) & ~report_disarm);
+   // prearm if any not armed yet
+   state_prearm = (andset(report_arm | state_armed) & ~state_armed & ~report_disarm);   // and/set to ensure we see implied arming areas
+   // Apply the prearm if we can
+   if (!(state_prearm & (state_presence | (state_tamper & ~engineer) | state_access)))
+      state_armed = andset(state_armed | state_prearm | report_strongarm);      // Prearm is clean
+   else
+      state_armed = andset(state_armed | report_strongarm);     // Prearm is not clean, but strongarm always applies
+   // What changed
    area_t new_armed = (state_armed & ~was_armed);
    // Arming clears latched states
    state_tampered = ((state_tampered & ~new_armed) | report_tamper);
    state_faulted = ((state_faulted & ~new_armed) | report_fault);
    state_alarmed = ((state_alarmed & ~new_armed) | state_alarm);
-   // prearm if any not armed yet
-   state_prearm = andset(report_arm & ~state_armed);
    // Alarm based only on presence, but change of tamper or access trips presence anyway. Basically you can force arm with tamper and access
    state_prealarm = (((state_prealarm | state_presence) & state_armed) & ~state_alarm);
    static uint16_t timer1 = 0;  // Pre alarm timer - ideally per area, but this will be fine
