@@ -449,6 +449,7 @@ area_t andset(area_t a)
 
 static void mesh_make_summary(jo_t j)
 {                               // Process reports received, and make summary
+   jo_string(j, "root", revk_node());
    jo_int(j, "nodes", nodes);
    if (nodes_online < nodes)
       jo_int(j, "offline", nodes - nodes_online);
