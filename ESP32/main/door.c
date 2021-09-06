@@ -232,7 +232,9 @@ void door_act(fob_t * fob)
    }
    if (fob->held)
       return;                   // Other actions were done already
-   if (!fob->override && door_deadlocked() && (!fob->enterok || !fob->disarmok || (fob->disarmok && (areadeadlock & alarm_armed() & ~(areadisarm & fob->disarm)))))
+   if (!fob->override && door_deadlocked() && (!fob->enterok || !fob->disarmok ||       //
+                                               (fob->disarmok &&        //
+                                                (areadeadlock & andset(alarm_armed() & ~(areadisarm & fob->disarm))))))
       return;                   // Same check as Deadlocked - cannot enter or cannot disarm or cannot disarm enough... Unless override
    if (fob->disarmok && (alarm_armed() & fob->disarm & areadisarm))
    {
@@ -474,7 +476,9 @@ const char *door_fob(fob_t * fob)
          fob->enterok = 1;      // Can enter
       if (!(areaenter & ~fob->prop))
          fob->propok = 1;       // Can prop
-      if (door_deadlocked() && (!fob->enterok || !fob->disarmok || (fob->disarmok && (areadeadlock & alarm_armed() & ~(areadisarm & fob->disarm)))))
+      if (door_deadlocked() && (!fob->enterok || !fob->disarmok ||      //
+                                (fob->disarmok &&       //
+                                 (areadeadlock & andset(alarm_armed() & ~(areadisarm & fob->disarm))))))
          return "Deadlocked";   // We could not enter, or could not disarm, or could not disarm enough to get in
       return NULL;
    }

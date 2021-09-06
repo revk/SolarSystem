@@ -435,7 +435,7 @@ static int check_online(const char *target)
    return child;
 }
 
-static area_t andset(area_t a)
+area_t andset(area_t a)
 {                               // Mix and set
    for (int s = 0; s < MAX_MIX; s++)
    {

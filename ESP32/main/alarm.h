@@ -34,3 +34,4 @@ void alarm_strongarm(area_t a, jo_t *);
 void alarm_disarm(area_t a, jo_t *);
 void send_sms(const char *fmt, ...);
 area_t alarm_armed(void);       // What areas are, in effect, armed
+area_t andset(area_t a);	// Do and/set logic
