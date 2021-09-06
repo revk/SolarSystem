@@ -77,6 +77,10 @@ endif
 if($?devicename) then # save
 	can --redirect --device='$device' editdevice
 	if($status) exit 0
+	setenv wassite `sql "$DB" 'SELECT site FROM device WHERE device="$device"'`
+	if("$site" != "$wassite") then
+		setenv aid `sql "$DB" 'SELECT aid FROM aid WHERE site=$site ORDER BY aid LIMIT 1'`
+	endif
 	if($?pcb) then
 		setenv rgb `sql "$DB" 'SELECT IF(ledr="-","false","true") FROM pcb WHERE pcb=$pcb'`
 		setenv nfc `sql "$DB" 'SELECT IF(nfctx="-","false","true") FROM pcb WHERE pcb=$pcb'`
@@ -101,6 +105,9 @@ if($?devicename) then # save
 	if("$USER_ADMIN" == "true") setenv allow "$allow nfctrusted"
 	sqlwrite -qon "$DB" device $allow
 	sql "$DB" 'UPDATE device SET poke=NOW() WHERE site=$site'
+	if("$site" != "$wassite") then
+		sql "$DB" 'UPDATE device SET poke=NOW() WHERE site=$wassite'
+	endif
         message --poke
 	redirect editdevice.cgi
 	exit 0
