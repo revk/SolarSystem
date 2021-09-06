@@ -140,6 +140,7 @@ void alarm_arm(area_t a, jo_t * jp)
       jo_free(jp);
       return;                   // All armed
    }
+   area_t a2 = andset(alarm_armed() | a);
    jo_t j = NULL;
    if (jp)
    {
@@ -153,6 +154,8 @@ void alarm_arm(area_t a, jo_t * jp)
    control_disarm &= ~a;
    door_check();
    jo_area(j, "areas", a);
+   if (a2 & ~a)
+      jo_area(j, "also", a2 & ~a);
    if (smsarm & a)
       sms_event("Armed", j);
    revk_event_clients("arm", &j, 1 | (ioteventarm << 1));
@@ -165,6 +168,7 @@ void alarm_strongarm(area_t a, jo_t * jp)
       jo_free(jp);
       return;                   // All armed
    }
+   area_t a2 = andset(alarm_armed() | a);
    jo_t j = NULL;
    if (jp)
    {
@@ -178,6 +182,8 @@ void alarm_strongarm(area_t a, jo_t * jp)
    control_disarm &= ~a;
    door_check();
    jo_area(j, "areas", a);
+   if (a2 & ~a)
+      jo_area(j, "also", a2 & ~a);
    if (smsarm & a)
       sms_event("Strong armed", j);
    revk_event_clients("strongarm", &j, 1 | (ioteventarm << 1));
@@ -190,6 +196,7 @@ void alarm_disarm(area_t a, jo_t * jp)
       jo_free(jp);
       return;                   // Not armed
    }
+   area_t a2 = (alarm_armed() & ~andset(alarm_armed() & ~a));
    jo_t j = NULL;
    if (jp)
    {
@@ -204,6 +211,8 @@ void alarm_disarm(area_t a, jo_t * jp)
    control_disarm |= a;
    door_check();
    jo_area(j, "areas", a);
+   if (a2 & ~a)
+      jo_area(j, "also", a2 & ~a);
    if (smsdisarm & a)
       sms_event("Disarmed", j);
    revk_event_clients("disarm", &j, 1 | (ioteventarm << 1));
