@@ -816,19 +816,6 @@ static void task(void *pvParameters)
                wasonline = nodes_online;
                alarm_fault = ((nodes_online < meshmax) ? "Missing nodes" : NULL);
                status(alarm_tamper = ((nodes_online == 1 && meshmax > 1) ? "Lonely" : NULL));
-               extern uint8_t wifichan;
-               if (!wifichan && nodes_online <= meshmax / 2)
-               {                // Below quorum... Try juggling channels in case we can repair split mesh
-                  int csa_newchan = (esp_random() % 11) + 1;
-                  ESP_LOGI(TAG, "Try channel %d", csa_newchan);
-                  jo_t j = jo_object_alloc();
-                  jo_int(j, "chan", csa_newchan);
-                  revk_info_clients("mesh", &j, 3);
-                  esp_mesh_switch_channel(NULL, csa_newchan, 3);
-                  sleep(1);
-                  esp_mesh_waive_root(NULL, MESH_VOTE_REASON_ROOT_INITIATED);
-                  isroot = 0;
-               }
             }
          }
       } else
