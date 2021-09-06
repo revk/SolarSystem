@@ -30,7 +30,7 @@ if($?sitename) then
 	if(! $?ioteventarm) setenv ioteventarm false
 	if(! $?meshlr) setenv meshlr false
 	if(! $?debug) setenv debug false
-	sqlwrite -qon "$DB" site sitename wifissid wifipass wifichan iothost nomesh smsuser smspass armcancel alarmdelay alarmhold debug ioteventarm smsarm smsarmfail smsdisarm smsalarm smspanic smsfire engineer smsnumber smsafp1 smsafp2 smsafp3 smsfrom hookbearer hookfob hookalarm hookfire hookpanic meshlr wifibssid
+	sqlwrite -qon "$DB" site sitename wifissid wifipass wifichan iothost nomesh smsuser smspass armcancel alarmdelay alarmhold debug ioteventarm smsarm smsarmfail smsdisarm smsalarm smspanic smsfire engineer smsnumber smsafp1 smsafp2 smsafp3 smsfrom hookbearer hookfob hookalarm hookfire hookpanic meshlr wifibssid root
 	sql "$DB" 'UPDATE device SET poke=NOW() WHERE site=$site'
 	message --poke
 	redirect /
@@ -50,6 +50,7 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <input name=wifibssid size=12 maxlength=12 placeholder="HEX BSSID">
 </td></tr>
 <tr><td><input type=checkbox id=nomesh name=nomesh value=true></td><td><label for=nomesh>Don't use mesh wifi on site (i.e. only access control).</label></td></tr>
+<if not nomesh=true><tr><td>Root</td><td><select name=root><option value=''>None</option><sql table=device where="site=$site"><option value="$device"><output name=devicename></option></sql></select><td> (preferred)<tr></if>
 <tr><td>IoT MQTT</td><td><input name=iothost size=40></td></tr>
 <tr><td><input type=checkbox id=ioteventarm name=ioteventarm value=true></td><td><label for=ioteventarm>Log arm/trigger/disarm events to IoT.</label></td></tr>
 <tr><td><input type=checkbox id=debug name=debug value=true></td><td><label for=debug>Debug mode (additional logging).</label></td></tr>

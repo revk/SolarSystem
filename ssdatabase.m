@@ -139,6 +139,7 @@ text(meshpass, 0);              // Mesh WiFi passphrase
 text(meshkey, 32);              // AES key
 bool(meshlr);			// Mesh is LR
 key(meshkey, 32);
+link2(device, root);            // Preferred root
 text(smsuser, 0);
 text(smspass, 0);
 text(hookbearer,0);		// Bearer for web hooks
