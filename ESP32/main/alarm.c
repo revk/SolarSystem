@@ -465,9 +465,9 @@ static void mesh_make_summary(jo_t j)
    state_prearm = (andset(report_arm | state_armed) & ~state_armed & ~report_disarm);   // and/set to ensure we see implied arming areas
    // Apply the prearm if we can
    if (!(state_prearm & (state_presence | (state_tamper & ~engineer) | state_access)))
-      state_armed = andset(state_armed | state_prearm | report_strongarm);      // Prearm is clean
+      state_armed = andset((state_armed | state_prearm | report_strongarm) & ~report_disarm);   // Prearm is clean
    else
-      state_armed = andset(state_armed | report_strongarm);     // Prearm is not clean, but strongarm always applies
+      state_armed = andset((state_armed | report_strongarm) & ~report_disarm);  // Prearm is not clean, but strongarm always applies
    // What changed
    area_t new_armed = (state_armed & ~was_armed);
    // Arming clears latched states
