@@ -771,7 +771,7 @@ main (int argc, const char *argv[])
   ssdatabase (&sql);
   syslog (LOG_INFO, "Starting");
   sql_safe_query (&sql, "DELETE FROM `pending`");
-  sql_safe_query (&sql, "UPDATE `device` SET `id`=NULL,`via`=NULL,`offlinereason`='System restart',`online`=NULL,`progress`=NULL WHERE `id` IS NOT NULL");
+  sql_safe_query (&sql, "UPDATE `device` SET `id`=NULL,`via`=NULL,`offlinereason`='System restart',`online`=NULL,`lastonline`=NOW(),`progress`=NULL WHERE `id` IS NOT NULL");
   mqtt_start ();
   // Main loop getting messages (from MQTT or websocket)
   int poke = 1;
@@ -1119,7 +1119,7 @@ main (int argc, const char *argv[])
 			if (p - dev == 12)
 			  {
 			    if (checkdevice ())
-			      sql_safe_query_free (&sql, sql_printf ("UPDATE `device` SET `via`=NULL,`online`=NULL,`progress`=NULL,`id`=NULL,`offlinereport`=NULL,`offlinereason`='Timeout' WHERE `device`=%#.*s AND `id`=%lld", p - dev, dev, id));
+			      sql_safe_query_free (&sql, sql_printf ("UPDATE `device` SET `via`=NULL,`online`=NULL,`lastonline`=NOW(),`progress`=NULL,`id`=NULL,`offlinereport`=NULL,`offlinereason`='Timeout' WHERE `device`=%#.*s AND `id`=%lld", p - dev, dev, id));
 			    else
 			      sql_safe_query_free (&sql, sql_printf ("DELETE FROM `pending` WHERE `pending`=%#.*s AND `id`=%lld", p - dev, dev, id));
 			  }
@@ -1158,7 +1158,7 @@ main (int argc, const char *argv[])
 	  {			// Up message
 	    if (j_isbool (up) && !j_istrue (up))
 	      {			// Down
-		sql_safe_query_free (&sql, sql_printf ("UPDATE `device` SET `via`=NULL,`offlinereport`=NULL,`offlinereason`=%#s,`online`=NULL,`progress`=NULL,`id`=NULL WHERE `device`=%#s AND `id`=%lld", j_get (j, "reason"), deviceid, id));
+		sql_safe_query_free (&sql, sql_printf ("UPDATE `device` SET `via`=NULL,`offlinereport`=NULL,`offlinereason`=%#s,`online`=NULL,`lastonline`=NOW(),`progress`=NULL,`id`=NULL WHERE `device`=%#s AND `id`=%lld", j_get (j, "reason"), deviceid, id));
 		return NULL;
 	      }
 	    sql_string_t s = { };
@@ -1285,7 +1285,7 @@ main (int argc, const char *argv[])
 	if (!prefix)
 	  {			// Down (all other messages have a topic)
 	    if (secureid)
-	      sql_safe_query_free (&sql, sql_printf ("UPDATE `device` SET `via`=NULL,`offlinereport`=NULL,`offlinereason`='Closed',`online`=NULL,`progress`=NULL,`id`=NULL,`lastonline`=NOW() WHERE `id`=%lld", id));
+	      sql_safe_query_free (&sql, sql_printf ("UPDATE `device` SET `via`=NULL,`offlinereport`=NULL,`offlinereason`='Closed',`online`=NULL,`lastonline`=NOW(),`progress`=NULL,`id`=NULL,`lastonline`=NOW() WHERE `id`=%lld", id));
 	    else		// pending
 	      sql_safe_query_free (&sql, sql_printf ("DELETE FROM `pending` WHERE `id`=%lld", id));
 	    return NULL;
