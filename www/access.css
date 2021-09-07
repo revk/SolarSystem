@@ -8,3 +8,6 @@ input[type=checkbox]:checked {
 }
 input[type=checkbox]:checked::after {
 }
+a {
+	text-decoration:none;
+}

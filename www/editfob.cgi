@@ -42,50 +42,20 @@ endif
 
 if(! $?PATH_INFO) then
 list:
-setenv XMLSQLDEBUG
-echo "Content-encoding: none" # so no deflating and hence no caching for interactive status
 xmlsql -C -d "$DB" head.html - foot.html << 'END'
-<if CANADOPTFOB>
-<sql table="device LEFT JOIN aid USING (aid)" where="device.site=$USER_SITE AND online IS NOT NULL AND (nfctrusted='true' OR nfcadmin='true')"><set found=1></sql>
-<if found>
-<h2>Adopting a fob</h1>
-<form name=f method=post style="display:inline;">
-<select name=device>
-<sql table="device LEFT JOIN aid USING (aid)" where="device.site=$USER_SITE AND online IS NOT NULL AND (nfctrusted='true' OR nfcadmin='true')">
-<option value="$device"><output name=aidname>:<output name=devicename blank="$device"></option>
-</sql>
-</select>
-<input type=submit name=IDENTIFY value="Read fob ID">
-<input type=hidden name=fob>
-<if not IDENTIFY fob not fob="">
-<set mem><set capacity><sql table=fob where="fob='$fob'"><set foundfob=1><if mem><set mem="$mem"></if><if capacity><set capacity="$capacity"></if></sql>
-<if not foundfob><p>Sorry, fob <output name=fob> is not recognised by the system. Any fob you wish to use must first be provisioned by the system administrator before it can be adopted. Please contact the system administrator <sql table=user where="admin='true'" limit=1 order="rand()"><output name=username></sql> for more information.</p></if>
-<if else>
-<h2>Fob <output name=fob href="editfob.cgi/$fob"></h2>
-<if IDENTIFIED><sql table=foborganisation where="fob='$fob' AND organisation=$USER_ORGANISATION"><set fobname="$fobname"></sql></if>
-<sql table="fobaid LEFT JOIN aid USING (aid) LEFT JOIN access USING (access)" WHERE="fob='$fob' AND organisation=$USER_ORGANISATION">
-<p>Already adopted for <output name=aidname> <output name=accessname></p>
-</sql>
-<input name=fobname size=15 maxlength=15 placeholder="Name" autofocus><if mem> <output name=mem type=mebi>B free</if><br>
-<select name=aid><sql table=aid where='site=$USER_SITE'><option value=$aid><output name=aidname></option></sql></select>
-<select name=access><sql table=access where='site=$USER_SITE'><option value=$access><output name=accessname></option></sql></select>
-<input name=ADOPT type=submit value="Adopt fob">
-<if USER_ADMIN=true><input name=FORMAT type=submit value="Format"></if>
-</if>
-</if>
-<if device><ul id=status></ul></if>
-</form>
-</if>
-</if>
-
 <h2>Fobs</h2>
 <table>
-<sql table="foborganisation LEFT JOIN fobaid USING (fob) LEFT JOIN aid USING (aid) LEFT JOIN access USING (access)" where="foborganisation.organisation=$USER_ORGANISATION AND aid.organisation=$USER_ORGANISATION" group="fob" order="max(adopted) DESC" select="*,count(aid) as N, sum(if(adopted IS NULL AND aid.aid IS NOT NULL,1,0)) AS W,sum(if(override='true',1,0)) AS O">
+<sql table="foborganisation LEFT JOIN fobaid USING (fob) LEFT JOIN aid USING (aid) LEFT JOIN access USING (access) LEFT JOIN fob USING (fob)" where="foborganisation.organisation=$USER_ORGANISATION AND aid.organisation=$USER_ORGANISATION" group="fob" order="max(adopted) DESC" select="*,count(aid) as N, sum(if(adopted IS NULL AND aid.aid IS NOT NULL,1,0)) AS W,sum(if(override='true',1,0)) AS O">
 <if not found><set found=1><tr>
-<th>Fob</th><th>Expiry</th><th>Name</th><th>Notes</th>
+<th>Fob</th>
+<th>Free</th>
+<th>Expiry</th>
+<th>Name</th>
+<th>Notes</th>
 </tr></if>
 <tr>
 <td><output name=fob href="editfob.cgi/$fob"></td>
+<td align=right><if mem><output name=mem type=mega>B</if></td>
 <td><output name=expires></td>
 <td><output name=fobname></td>
 <td><if not N=1><output name=N 0=No> AIDs</if><if N=1><sql table=site where="site=$site"><output name=sitename></sql>: <output name=aidname> (<output name=accessname>)</if></td>
@@ -94,36 +64,6 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 </table>
 <if found><set found></if><if else><p>No fobs found</p></if>
 'END'
-
-if($?IDENTIFY) then
-	can --redirect --organisation='$USER_ORGANISATION' adoptfob
-	if($status) exit 0
-	echo "<script>e=document.createElement('li');e.textContent='Waiting for fob';document.getElementById('status').append(e);</script>"
-	setenv fob `message --device="$device" --fob-identify --silent`
-	if("$fob" == "") then
-		echo "<script>e=document.createElement('li');e.textContent='Failed';document.getElementById('status').append(e);</script>"
-	else
-		echo "<script>f.fob.value='$fob';e=document.createElement('input');e.type='hidden';e.name='IDENTIFIED';f.append(e);f.submit();</script>"
-	endif
-	exit 0
-endif
-if($?ADOPT) then
-	can --redirect --organisation='$USER_ORGANISATION' adoptfob
-	if($status) exit 0
-	message --device="$device" --fob-adopt="$fob" --aid="$aid" --access="$access" --status=status --silent --fob-name="$fobname" --organisation="$USER_ORGANISATION"
-	exit 0
-endif
-if($?FORMAT) then
-	can --redirect admin
-	if($status) exit 0
-	if($?hardformat) then
-		message --device="$device" --fob-format="$fob" --status=status --silent
-	else
-		message --device="$device" --fob-format="$fob" --status=status --silent
-	endif
-	exit 0
-endif
-
 exit 0
 endif
 
