@@ -753,6 +753,7 @@ static void task(void *pvParameters)
             } else if (doorexitarm && exit && exit < now)
             {                   // Held (not applicable if not arming allowed, so leaves to do exit stuck fault)
                exit = -1;       // Don't report stuck - this is max value as unsigned
+	       // Allowed even if door open, one assumes this is not used for an actual alarm if being set from inside
                jo_t j = jo_make(NULL);
                jo_bool(j, "held", 1);
                if (areadeadlock & areaarm)
