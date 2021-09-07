@@ -651,13 +651,15 @@ static void task(void *pvParameters)
          {                      // Open
             if (doorstate != DOOR_NOTCLOSED && doorstate != DOOR_PROPPED && doorstate != DOOR_OPEN)
             {                   // We have moved to open state, this can cancel the locking operation
-               jo_t j = jo_make(NULL);
                if (!doorwhy)
                   doorwhy = (((output_active(OUNLOCK) && lock[0].state == LOCK_LOCKED) || (output_active(OUNLOCK + 1) && lock[1].state == LOCK_LOCKED)) ? "forced" : "manual");
                if (doorwhy)
+               {
+                  jo_t j = jo_make(NULL);
                   jo_string(j, "trigger", doorwhy);
-               revk_event_clients("open", &j, 1 | (iotstatedoor << 1));
-               doorwhy = NULL;
+                  revk_event_clients("open", &j, 1 | (iotstatedoor << 1));
+                  doorwhy = NULL;
+               }
                if (doorstate != DOOR_UNLOCKING && *dooriotunlock)
                   revk_mqtt_send_str_clients(dooriotunlock, 0, 2);      // We skipped unlocking...
                doorstate = DOOR_OPEN;
@@ -715,11 +717,10 @@ static void task(void *pvParameters)
                revk_event_clients("notclosed", &j, 1 | (iotstatedoor << 1));
             } else if (doorstate == DOOR_UNLOCKED || doorstate == DOOR_CLOSED)
             {                   // Time to lock the door
-               if (doorstate == DOOR_UNLOCKED)
-               {
+               if (doorstate == DOOR_UNLOCKED && doorwhy)
+               {                // Only if doorwhy set, as can spam if locking failing
                   jo_t j = jo_make(NULL);
-                  if (doorwhy)
-                     jo_string(j, "trigger", doorwhy);
+                  jo_string(j, "trigger", doorwhy);
                   revk_event_clients("notopen", &j, 1 | (iotstatedoor << 1));
                }
                door_lock(NULL, NULL);
