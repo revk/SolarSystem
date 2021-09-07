@@ -1,5 +1,8 @@
 body {background: #8cf;}
-.error {color:red;}
+.error {
+	color:red;
+	white-space:nowrap;
+}
 input[type=checkbox] {
 }
 input[type=checkbox]::after {
