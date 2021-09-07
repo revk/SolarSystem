@@ -204,6 +204,7 @@ void door_act(fob_t * fob)
 {                               // Act on fob (unlock/lock/arm/disarm)
    if (fob->strongarmok && fob->longheld && (fob->strongarm & areastrongarm & ~((state_armed | control_strongarm) & ~control_disarm)))
    {                            // Simple, we can arm (Not using alarm_armed as that includes what we are trying, and failing, to control_arm)
+	   // Allowing if door open, strong arm is an override, so yeh, suffer the consequences
       if (doorauto >= 5)
       {
          jo_t e = jo_make(NULL);

@@ -365,12 +365,12 @@ const char *mesh_make_report(jo_t j)
             presence |= inputtamper[i];
             presence |= inputaccess[i];
             if ((latch | input_stable) & (1ULL << i))
-            { // Event reporting regardless
+            {                   // Event reporting regardless
 #define i(x) if(input##x[i]){jo_t e = jo_make(NULL);jo_string(e, "input", inputname[i]);jo_area(e,#x,input##x[i]);revk_event_clients(#x, &e, 1);}
                i(warning);
                i(tamper);
                i(fault);
-	       i(panic);
+               i(panic);
 #undef i
             }
          }
