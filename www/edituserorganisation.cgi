@@ -92,7 +92,7 @@ endif
 setenv user "$PATH_INFO:t"
 edit:
 xmlsql -C -d "$DB" head.html - foot.html << 'END'
-<h1>Edit user</h1>
+<h1>📇 Edit user</h1>
 <sql table="userorganisation LEFT JOIN user USING (user)"  where="user=$user AND userorganisation.organisation=$USER_ORGANISATION">
 <form method=post action="/edituserorganisation.cgi"><input type=hidden name=user><input type=hidden name=organisation>
 <table>
