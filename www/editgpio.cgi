@@ -33,9 +33,9 @@ xmlsql -C -d "$DB" head.html - foot.html << END
 <if type=*I><tr><td>Hold</td><td><input name=hold size=3>ms</td></tr></if>
 <if type=*O><tr><td>Pulse</td><td><input name=pulse size=3>s/10</td></tr></if>
 <tr><td>Type</td><td><output name=io $GPIOIOOUT>:<if io=I><select name=type>$GPIOTYPEPICKI</select></if><if io=O><select name=type>$GPIOTYPEPICKO</select></if><if io=IO><select name=type>$GPIOTYPEPICK</select></if></td></tr>
-<tr><td><label for=invert>Active low</label></td><td><input id=invert name=invert type=checkbox value=true></td></tr>
+<If not type=-*><tr><td><label for=invert>Invert</label></td><td><input id=invert name=invert type=checkbox value=true> (off is <i><output name=value0></i> and on is <i><output name=value1></i> unless inverted)</td></tr></if>
 </table>
-<if not type=*P>
+<if not type=*P not type=*->
 <if type=*O><set SL="$STATELIST"></if><if else><set SL="$STATELISTI"></if>
 <table border=1>
 <tr><th></th><for space STATE="\$SL"><th><output name=STATE></th></for><th>Areas</th></tr>
