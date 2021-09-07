@@ -63,7 +63,7 @@ list:
 if(! $?PATH_INFO) then
 setenv XMLSQLDEBUG
 xmlsql -C -d "$DB" head.html - foot.html << 'END'
-<h1>Manage users</h1>
+<h1>📇 Manage users</h1>
 <form method=post style='inline'>
 <table>
 <sql select="*,user.admin AS A" table="userorganisation LEFT JOIN user USING (user)" WHERE="userorganisation.organisation=$USER_ORGANISATION"><set found=1>

@@ -43,7 +43,7 @@ endif
 if(! $?PATH_INFO) then
 list:
 xmlsql -C -d "$DB" head.html - foot.html << 'END'
-<h2>Fobs</h2>
+<h1>🔑 Fobs</h1>
 <table>
 <sql table="foborganisation LEFT JOIN fobaid USING (fob) LEFT JOIN aid USING (aid) LEFT JOIN access USING (access) LEFT JOIN fob USING (fob)" where="foborganisation.organisation=$USER_ORGANISATION AND aid.organisation=$USER_ORGANISATION" group="fob" order="max(adopted) DESC" select="*,count(aid) as N, sum(if(adopted IS NULL AND aid.aid IS NOT NULL,1,0)) AS W,sum(if(override='true',1,0)) AS O">
 <if not found><set found=1><tr>
@@ -75,7 +75,7 @@ if("$OK" == 0 || "$OK" == "" || "$OK" == NULL) then
 	goto list
 endif
 xmlsql -C -d "$DB" head.html - foot.html << 'END'
-<h1>Fob <output name=fob></h1>
+<h1>🔑 Fob <output name=fob></h1>
 <form method=post action=/editfob.cgi><input name=fob type=hidden>
 <sql table=foborganisation where="fob='$fob' AND organisation=$USER_ORGANISATION">
 <table>

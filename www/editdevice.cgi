@@ -115,7 +115,7 @@ done:
 source ../types
 source ../setcan
 xmlsql -C -d "$DB" head.html - foot.html << END
-<h1>Manage devices <output name=VERSION></h1>
+<h1>🪛 Manage devices <output name=VERSION></h1>
 <if device CANVIEWLOG><p><a href="/log.cgi/\$device">View logs</a></p></if>
 <if not device CANVIEWDEVICE>
 <table border=1>

@@ -30,7 +30,7 @@ endif
 done:
 xmlsql -C -d "$DB" head.html - foot.html << END
 <sql table=site WHERE="site=$site">
-<h1>Manage areas for <output name=sitename></h1>
+<h1>🔠 Manage areas for <output name=sitename></h1>
 <form method=post>
 <table border=1>
 <eval C=3><for SPACE S="$MIX"><eval C=\$C+3></for>

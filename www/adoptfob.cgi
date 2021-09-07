@@ -8,7 +8,7 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <if CANADOPTFOB>
 <sql table="device LEFT JOIN aid USING (aid)" where="device.site=$USER_SITE AND online IS NOT NULL AND (nfctrusted='true' OR nfcadmin='true')"><set found=1></sql>
 <if found>
-<h2>Adopting a fob</h1>
+<h1>🙋 Adopting a fob</h1>
 <form name=f method=post style="display:inline;">
 <select name=device>
 <sql table="device LEFT JOIN aid USING (aid)" where="device.site=$USER_SITE AND online IS NOT NULL AND (nfctrusted='true' OR nfcadmin='true')">
@@ -21,7 +21,7 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <set mem><set capacity><sql table=fob where="fob='$fob'"><set foundfob=1><if mem><set mem="$mem"></if><if capacity><set capacity="$capacity"></if></sql>
 <if not foundfob><p>Sorry, fob <output name=fob> is not recognised by the system. Any fob you wish to use must first be provisioned by the system administrator before it can be adopted. Please contact the system administrator <sql table=user where="admin='true'" limit=1 order="rand()"><output name=username></sql> for more information.</p></if>
 <if else>
-<h2>Fob <output name=fob href="editfob.cgi/$fob"></h2>
+<h1>🙋 Fob <output name=fob href="editfob.cgi/$fob"></h1>
 <if IDENTIFIED><sql table=foborganisation where="fob='$fob' AND organisation=$USER_ORGANISATION"><set fobname="$fobname"></sql></if>
 <sql table="fobaid LEFT JOIN aid USING (aid) LEFT JOIN access USING (access)" WHERE="fob='$fob' AND organisation=$USER_ORGANISATION">
 <p>Already adopted for <output name=aidname> <output name=accessname></p>

@@ -4,9 +4,11 @@
 </head><body>
 <div style='float:right'>Access.me.uk</div>
 <a href="/"  style="text-decoration:none;">🏠</a>
-<if USER_SITE CANEDITDEVICE><a href="editdevice.cgi" style="text-decoration:none;">🪛</a></if>
-<if USER_SITE CANEDITFOB><a href="editfob.cgi" style="text-decoration:none;">🔑</a></if>
-<if USER_SITE CANEDITFOB><a href="adoptfob.cgi" style="text-decoration:none;">🙋</a></if>
+<if USER_SITE CANARM><a href="/arm.cgi/$USER_SITE">🔔</a></if>
+<if USER_SITE CANDISARM><a href="/disarm.cgi/$USER_SITE">🔕</a></if>
+<if USER_SITE CANEDITFOB><a href="/adoptfob.cgi" style="text-decoration:none;">🙋</a></if>
+<if USER_SITE CANEDITFOB><a href="/editfob.cgi" style="text-decoration:none;">🔑</a></if>
+<if USER_SITE CANEDITDEVICE><a href="/editdevice.cgi" style="text-decoration:none;">🪛</a></if>
 <if USER_ID>
 <form style='display:inline;' name=organisation method=post action=/setorganisation.cgi$REQUEST_URI>
 <if USER_ORGANISATION><set SET_ORGANISATION=$USER_ORGANISATION></if>

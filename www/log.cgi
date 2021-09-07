@@ -10,7 +10,7 @@ if($status) exit 0
 source ../setcan
 
 xmlsql -C -d "$DB" head.html - foot.html << 'END'
-<h1>Logs<if fordevice> for <sql table=device where='device="$fordevice"'><output name=devicename></sql></if></h1>
+<h1>🗒 Logs<if fordevice> for <sql table=device where='device="$fordevice"'><output name=devicename></sql></if></h1>
 <table style="white-space:nowrap;">
 <sql table='event LEFT JOIN device USING (device)' WHERE='site=$USER_SITE $WHERE' ORDER='event DESC'>
 <tr>

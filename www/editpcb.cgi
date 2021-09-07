@@ -94,7 +94,7 @@ unsetenv inittype
 unsetenv io
 unsetenv initname
 xmlsql -C -d "$DB" head.html - foot.html << END
-<h1>PCB template</h1>
+<h1>🔬 PCB template</h1>
 <if not pcb>
 <table>
 <sql table=pcb order=pcbname>

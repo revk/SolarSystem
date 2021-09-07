@@ -17,7 +17,7 @@ done:
 source ../types
 xmlsql -C -d "$DB" head.html - foot.html << END
 <sql table=site where='site=$site'>
-<h1>Disarming for <output name=sitename></h1>
+<h1>🔕 Disarming for <output name=sitename></h1>
 <form method=post>
 <table border=1>
 <tr>

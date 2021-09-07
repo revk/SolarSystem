@@ -38,7 +38,7 @@ if($?organisationname) then
 endif
 done:
 xmlsql -C -d "$DB" head.html - foot.html << 'END'
-<h1>Organisation</h1>
+<h1><if organisation=0>🆕 </if>🏢 Organisation</h1>
 <form method=post>
 <sql table=organisation key=organisation>
 <table>
