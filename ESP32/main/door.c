@@ -204,7 +204,7 @@ void door_act(fob_t * fob)
 {                               // Act on fob (unlock/lock/arm/disarm)
    if (fob->strongarmok && fob->longheld && (fob->strongarm & areastrongarm & ~((state_armed | control_strongarm) & ~control_disarm)))
    {                            // Simple, we can arm (Not using alarm_armed as that includes what we are trying, and failing, to control_arm)
-	   // Allowing if door open, strong arm is an override, so yeh, suffer the consequences
+      // Allowing if door open, strong arm is an override, so yeh, suffer the consequences
       if (doorauto >= 5)
       {
          jo_t e = jo_make(NULL);
@@ -220,7 +220,7 @@ void door_act(fob_t * fob)
    if (fob->armok && fob->held && (fob->arm & areaarm & ~alarm_armed()))
    {                            // Simple, we can arm
       if (doorstate != DOOR_OPEN && doorstate != DOOR_NOTCLOSED && doorstate != DOOR_PROPPED)
-      	return; // Not if open
+         return;                // Not if open
       if (doorauto >= 5)
       {
          jo_t e = jo_make(NULL);
@@ -754,7 +754,7 @@ static void task(void *pvParameters)
             } else if (doorexitarm && exit && exit < now)
             {                   // Held (not applicable if not arming allowed, so leaves to do exit stuck fault)
                exit = -1;       // Don't report stuck - this is max value as unsigned
-	       // Allowed even if door open, one assumes this is not used for an actual alarm if being set from inside
+               // Allowed even if door open, one assumes this is not used for an actual alarm if being set from inside
                jo_t j = jo_make(NULL);
                jo_bool(j, "held", 1);
                if (areadeadlock & areaarm)
@@ -856,10 +856,14 @@ void door_boot(void)
    door_check();                // Deadlock based on alarm state
 }
 
-
 void door_start(void)
 {
    if (!doorauto)
       return;                   // No door control in operation
    revk_task(TAG, task, NULL);
+}
+
+const char *door_state_name(void)
+{
+   return doorstates[doorstate];
 }

@@ -164,6 +164,7 @@ static void fobevent(void)
          jo_stringf(j, "crc", "%08X", fob.crc);
       if (fob.override)
          jo_bool(j, "override", fob.override);
+      jo_string(j, "door", door_state_name());
    }
    if (fob.remote)
       jo_bool(j, "remote", 1);
@@ -664,7 +665,7 @@ void nfc_boot(void)
       if (nfcrx)
          gpio_set_pull_mode(port_mask(nfcrx), GPIO_PULLDOWN_ONLY);
       // Start off
-      gpio_set_level(port_mask(nfcpower), (nfcpower & PORT_INV) ? 1 : 0); // Off
+      gpio_set_level(port_mask(nfcpower), (nfcpower & PORT_INV) ? 1 : 0);       // Off
       gpio_set_direction(port_mask(nfcpower), GPIO_MODE_OUTPUT);
    }
    if (nfctx && nfcrx)
