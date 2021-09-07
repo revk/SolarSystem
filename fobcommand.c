@@ -142,7 +142,7 @@ void *fobcommand(void *arg)
    unsigned char masterkey[17] = { };   // Keys with version on front
    unsigned char aid0key[17] = { };
    unsigned char aid1key[17] = { };
-   unsigned char afile[256];
+   unsigned char afile[256] = { };
    int organisation = 0;
    int access = 0;
    char *fob = NULL;
@@ -356,12 +356,9 @@ void *fobcommand(void *arg)
                   df(create_file(&d, 0x02, 'V', 1, 0x0010, 0, 0, 0x7FFFFFFF, 0, 0, 0));
                }
                // File A - access
-               if (*afile)
-               {
-                  status("Storing access file");
-                  df(write_data(&d, 0x0A, 'B', 1, 0, *afile + 1, afile));
-                  df(commit(&d));
-               }
+               status("Storing access file");
+               df(write_data(&d, 0x0A, 'B', 1, 0, *afile + 1, afile));
+               df(commit(&d));
                // This is last as it is what marks a fob as finally adpoted
                if (df_authenticate(&d, 1, aid1key + 1))
                {                // Set key 1
