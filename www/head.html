@@ -2,9 +2,9 @@
 <div style='float:right'>Access.me.uk</div>
 <a href="/">Home</a>
 <if USER_ID>
-<form style='display:inline;' name=organisation method=post action=/setorganisation.cgi><input name=page type=hidden>
+<form style='display:inline;' name=organisation method=post action=/setorganisation.cgi$REQUEST_URI>
 <if USER_ORGANISATION><set SET_ORGANISATION=$USER_ORGANISATION></if>
-<select name=SET_ORGANISATION onchange='organisation.page.value=document.location;organisation.submit();'>
+<select name=SET_ORGANISATION onchange='organisation.submit();'>
 	<if USER_ADMIN=true>
 		<IF NOT USER_ORGANISATION><option value=0>-- Select organisation --</option></if>
 		<sql table="organisation" ORDER="organisationname">
@@ -20,9 +20,9 @@
 </form>
 </if>
 <IF USER_ORGANISATION>
-<form style='display:inline;' name=site method=post action=/setsite.cgi><input name=page type=hidden>
+<form style='display:inline;' name=site method=post action=/setsite.cgi$REQUEST_URI>
 <if USER_SITE><set SET_SITE=$USER_SITE></if>
-<select name=SET_SITE onchange='site.page.value=document.location;site.submit();'>
+<select name=SET_SITE onchange='site.submit();'>
 <IF NOT USER_SITE><option value=0>-- Select site --</option></if>
 <sql table="site LEFT JOIN organisation USING (organisation)" WHERE="organisation=$USER_ORGANISATION" ORDER="sitename">
 <option value=$site><output name=sitename></option>
