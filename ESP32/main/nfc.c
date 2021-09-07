@@ -330,6 +330,8 @@ static void task(void *pvParameters)
                   break;        // Combined LED pattern with +
                ledpos += 2;
             }
+            if (state_prearm && (ledpos & 1) && nfcred)
+               newled ^= (1 << gpio_mask(nfcred)); // Extra blinky when prearm... Not a nice bodge
             if (newled != ledlast)
                pn532_write_GPIO(pn532, (ledlast = newled) ^ nfcinvert);
          }
