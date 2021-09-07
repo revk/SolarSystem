@@ -164,7 +164,8 @@ static void fobevent(void)
          jo_stringf(j, "crc", "%08X", fob.crc);
       if (fob.override)
          jo_bool(j, "override", fob.override);
-      jo_string(j, "door", door_state_name());
+      if (door_state_name())
+         jo_string(j, "door", door_state_name());
    }
    if (fob.remote)
       jo_bool(j, "remote", 1);

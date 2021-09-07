@@ -865,5 +865,7 @@ void door_start(void)
 
 const char *door_state_name(void)
 {
+   if (!doorauto)
+      return NULL;
    return doorstates[doorstate];
 }
