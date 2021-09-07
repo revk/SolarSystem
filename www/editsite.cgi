@@ -76,6 +76,9 @@ Root:<select name=root><option value=''>None</option><sql table=device where="si
 <tr><td>Alarm event</td><td><input name=hookalarm size=40 placeholder="https://..."></td></tr>
 <tr><td>Fire event</td><td><input name=hookfire size=40 placeholder="https://..."></td></tr>
 <tr><td>Panic event</td><td><input name=hookpanic size=40 placeholder="https://..."></td></tr>
+<tr><td>Warning event</td><td><input name=hookwarning size=40 placeholder="https://..."></td></tr>
+<tr><td>Tamper event</td><td><input name=hooktamper size=40 placeholder="https://..."></td></tr>
+<tr><td>Fault event</td><td><input name=hookfault size=40 placeholder="https://..."></td></tr>
 </table>
 <p>Area settings</p>
 <table border=1>
