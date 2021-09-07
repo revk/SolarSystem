@@ -3,6 +3,7 @@ unset user # clash with csh variable, duh
 if(! $?user) setenv user "$USER_ID"	# Edit self
 can --redirect --user="$user" edituser
 if($status) exit 0
+source ../setcan
 if($?email) then # save
 	# update other fields... not email
 	sqlwrite -qon "$DB" user user="$user" user username
