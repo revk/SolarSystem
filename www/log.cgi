@@ -7,6 +7,7 @@ else
 endif
 can --redirect --organisation='$USER_ORGANISATION' viewlog
 if($status) exit 0
+source ../setcan
 
 xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <h1>Logs<if fordevice> for <sql table=device where='device="$fordevice"'><output name=devicename></sql></if></h1>

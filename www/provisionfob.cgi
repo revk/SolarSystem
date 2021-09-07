@@ -1,6 +1,7 @@
 #!../login/loggedin /bin/csh -f
 can --redirect --organisation='$USER_ORGANISATION' admin
 if($status) exit 0
+source ../setcan
 
 done:
 echo "Content-encoding: none" # so no deflating and hence no caching for interactive status

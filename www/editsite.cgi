@@ -3,6 +3,7 @@ unset user # csh
 setenv site "$PATH_INFO:t"
 can --redirect --site=$site editsite
 if($status) exit 0
+source ../setcan
 can --site=$site admin
 setenv NOTADMIN $status
 if($?DELETE) then

@@ -2,6 +2,7 @@
 setenv site "$PATH_INFO:t"
 can --redirect --site='$site' admin
 if($status) exit 0
+source ../setcan
 
 if($?aids || $?NEW) then #save
         set aids=(`printenv aids|sed 's/[^0-9A-F	]//g'`)

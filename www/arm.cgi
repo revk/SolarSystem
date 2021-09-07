@@ -2,6 +2,7 @@
 setenv site "$PATH_INFO:t"
 can --redirect --site='$site' arm
 if($status) exit 0
+source ../setcan
 
 if($?ARM) then
 	if($?arm) then
@@ -25,7 +26,6 @@ endif
 
 done:
 source ../types
-source ../setcan
 xmlsql -C -d "$DB" head.html - foot.html << END
 <sql table=site where='site=$site'>
 <h1>Arming for <output name=sitename></h1>

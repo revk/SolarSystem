@@ -3,6 +3,7 @@ unset user # csh
 setenv organisation "$PATH_INFO:t"
 can --redirect --organisation=$organisation editorganisation
 if($status) exit 0
+source ../setcan
 can --organisation=$organisation admin
 setenv NOTADMIN $status
 if($?DELETE) then

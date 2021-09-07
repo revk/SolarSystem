@@ -2,6 +2,7 @@
 setenv site "$PATH_INFO:t"
 can --redirect --site='$site' disarm
 if($status) exit 0
+source ../setcan
 
 if($?DISARM) then
 	if($?disarm) then
