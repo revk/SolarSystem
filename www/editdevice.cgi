@@ -199,7 +199,7 @@ xmlsql -C -d "$DB" head.html - foot.html << END
 </sql>
 <sql select="device.device,gpio.*,devicegpio.*" table="device JOIN gpio USING (pcb) LEFT JOIN devicegpio ON (devicegpio.device=device.device AND devicegpio.gpio=gpio.gpio)" WHERE="device.device='\$device'">
 <tr><td><output name=name href="/editgpio.cgi/\$device/\$gpio" blank="GPIO" missing="GPIO"></td>
-<if type><td><if type=*-><i>Unused</i></if><if else><output name=invert false=H true=L>:<b><output name=type $GPIOTYPEOUT><if not pulse=0 AND type=*O>(<eval #=1 s="\$pulse/10"><output name=s>s)</if><if not hold=0 AND type=*I>(<output name=hold>ms)</if></b></td><td><for space S="$STATELIST"><if not "\$S"=''> <output name=S>(<output name="\$S">)</if></for></if></td></if>
+<if type><td><if type=*-><i>Unused</i></if><if else><b><output name=type $GPIOTYPEOUT>(<output name=invert false="\$value1" true="\$value0"><if not pulse=0 AND type=*O> <eval #=1 s="\$pulse/10"><output name=s>s</if><if not hold=0 AND type=*I> <output name=hold>ms</if>)</b></td><td><for space S="$STATELIST"><if not "\$S"=''> <output name=S> (<output name="\$S">)</if></for></if></td></if>
 <if not type><td><b><output name=io $GPIOIOOUT></td><td><i>Undefined</i></td></if>
 </tr>
 </sql>

@@ -25,10 +25,10 @@ i(I1,Exit button);
 i(I2,Door open contact);
 i(I3,Lock disengaged);
 i(I4,Deadlock disengaged);
-o(P,Power output);
+o(P,Fixed output);
 o(O,Output);
-o(O1,Lock relay);
-o(O2,Deadlock relay);
+o(O1,Unlock output);
+o(O2,Undeadlock output);
 o(O3,Beep output);
 o(O4,Error output);
 
