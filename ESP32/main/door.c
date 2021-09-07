@@ -219,7 +219,7 @@ void door_act(fob_t * fob)
    }
    if (fob->armok && fob->held && (fob->arm & areaarm & ~alarm_armed()))
    {                            // Simple, we can arm
-      if (doorstate == DOOR_OPEN || doorstate == DOOR_OPENING || doorstate == DOOR_PROPPED || doorstate == DOOR_NOTCLOSED)
+      if (doorstate == DOOR_OPEN || doorstate == DOOR_PROPPED || doorstate == DOOR_NOTCLOSED)
          return;                // Not if open
       if (doorauto >= 5)
       {
