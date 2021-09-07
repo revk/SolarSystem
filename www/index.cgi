@@ -29,7 +29,7 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <if USER_SITE CANDISARM><li><a href="disarm.cgi/$USER_SITE">Disarm</a></li></if>
 <if USER_SITE CANVIEWLOG><li><a href="log.cgi">Logs</a></li></if>
 <hr>
-<if USER_ORGANISATION AND ADMINORGANISATION><li><a href="editaccess.cgi">Manage Access classes</a></li></if>
+<if USER_ORGANISATION AND CANEDITACCESS><li><a href="editaccess.cgi">Manage Access classes</a></li></if>
 <if USER_SITE CANEDITFOB><li><a href="editfob.cgi">Manage fobs</a></li></if>
 <if USER_ADMIN=true><sql table=device where="online is not null AND nfctrusted='true'" limit=1><li><a href="provisionfob.cgi">Provision new fob</a></li></sql></if>
 <hr>
