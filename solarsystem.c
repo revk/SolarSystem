@@ -505,9 +505,9 @@ void daily(SQL * sqlp)
    sql_safe_query(sqlp, "DELETE FROM `event` WHERE `logged`<DATE_SUB(NOW(),INTERVAL 1 MONTH)"); // Old event logs
 }
 
-void doupgrade(SQL * sqlp, SQL_RES * site)
+void doupgrade(SQL * sqlp, int site)
 {                               // Poking upgrades that may need doing - pick one per site, as site is one at a time
-   SQL_RES *device = sql_safe_query_store_free(sqlp, sql_printf("SELECT * FROM `device` WHERE `site`=%#s AND `upgrade`<=NOW() AND `id` IS NOT NULL ORDER BY if(`outofservice`='true',0,if(`via` IS NOT NULL,1,2)),`devicename` LIMIT 1", sql_col(site, "site")));
+   SQL_RES *device = sql_safe_query_store_free(sqlp, sql_printf("SELECT * FROM `device` WHERE `site`=%d AND `upgrade`<=NOW() AND `id` IS NOT NULL ORDER BY if(`outofservice`='true',0,if(`via` IS NOT NULL,1,2)),`devicename` LIMIT 1", site));
    while (sql_fetch_row(device))
    {
       slot_t id = strtoull(sql_colz(device, "id"), NULL, 10);
@@ -516,32 +516,38 @@ void doupgrade(SQL * sqlp, SQL_RES * site)
    sql_free_result(device);
 }
 
-void dooffline(SQL * sqlp, SQL_RES * site)
+void dooffline(SQL * sqlp, int site)
 {                               // Check offline sites
-   char *msg = NULL;
-   size_t len = 0;
-   FILE *f = NULL;
-   SQL_RES *device = sql_safe_query_store_free(sqlp, sql_printf("SELECT * FROM `device` WHERE `site`=%#s AND `offlinereport` IS NULL AND `online` IS NULL AND `outofservice` IS NULL", sql_col(site, "site")));
-   while (sql_fetch_row(device))
+   SQL_RES *res = sql_safe_query_store_free(sqlp, sql_printf("SELECT * FROM `site` WHERE `site`=%d", site));
+   if (sql_fetch_row(res))
    {
-      if (!f)
+      char *msg = NULL;
+      size_t len = 0;
+      FILE *f = NULL;
+      SQL_RES *device = sql_safe_query_store_free(sqlp, sql_printf("SELECT * FROM `device` WHERE `site`=%d AND `offlinereport` IS NULL AND `online` IS NULL AND `outofservice`='false'", site));
+      while (sql_fetch_row(device))
       {
-         f = open_memstream(&msg, &len);
-         struct tm tm;
-         time_t now = time(0);
-         localtime_r(&now, &tm);
-         fprintf(f, "%04d-%02d-%02d %02d:%02d\n", tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min);
-         fprintf(f, "Off line %s\n", sql_colz(site, "sitename"));
+         if (!f)
+         {
+            f = open_memstream(&msg, &len);
+            struct tm tm;
+            time_t now = time(0);
+            localtime_r(&now, &tm);
+            fprintf(f, "%04d-%02d-%02d %02d:%02d\n", tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min);
+            fprintf(f, "Off line %s\n", sql_colz(res, "sitename"));
+         }
+         fprintf(f, "%s\n", sql_colz(device, "devicename"));
+	 sql_safe_query_free(sqlp,sql_printf("UPDATE `device` SET `offlinereport`=NOW() WHERE `device`=%#s",sql_colz(device,"device")));
       }
-      fprintf(f, "%s\n", sql_colz(device, "devicename"));
+      sql_free_result(device);
+      if (f)
+      {
+         fclose(f);
+         send_message(res, msg, sql_colz(res, "smsnumber"));
+         free(msg);
+      }
    }
-   sql_free_result(device);
-   if (f)
-   {
-      fclose(f);
-      send_message(site, msg, sql_colz(site, "smsnumber"));
-      free(msg);
-   }
+   sql_free_result(res);
 }
 
 void dopoke(SQL * sqlp, SQL * sqlkeyp)
@@ -782,11 +788,11 @@ int main(int argc, const char *argv[])
             tick = now / 60;
             SQL_RES *res = sql_safe_query_store(&sql, "SELECT `site` FROM `device` WHERE `online` IS NULL AND `offlinereport` IS NULL AND `outofservice`='false' AND `lastonline`<DATE_SUB(NOW(),INTERVAL 5 MINUTE) GROUP BY `site`");
             while (sql_fetch_row(res))
-               dooffline(&sql, res);
+               dooffline(&sql, atoi(sql_colz(res, "site")));
             sql_free_result(res);
             res = sql_safe_query_store(&sql, "SELECT `site` FROM `device` WHERE `id` IS NOT NULL AND `upgrade` IS NOT NULL AND `upgrade`<NOW() GROUP BY `site`");
             while (sql_fetch_row(res))
-               doupgrade(&sql, res);
+               doupgrade(&sql, atoi(sql_colz(res, "site")));
             sql_free_result(res);
          }
       }
