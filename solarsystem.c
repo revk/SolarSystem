@@ -146,6 +146,12 @@ static const char *settings(SQL * sqlp, SQL * sqlkeyp, SQL_RES * res, slot_t id)
          j_store_boolean(door, "exitarm", 1);
       if (*sql_colz(res, "doorexitdisarm") == 't')
          j_store_boolean(door, "exitdisarm", 1);
+      if (*sql_colz(res, "doordebug") == 't')
+         j_store_boolean(door, "debug", 1);
+      if (*sql_colz(res, "doorsilent") == 't')
+         j_store_boolean(door, "silent", 1);
+      if (*sql_colz(res, "doorcatch") == 't')
+         j_store_boolean(door, "catch", 1);
       int v;
       if ((v = atoi(sql_colz(res, "doorunlock"))))
          j_store_int(door, "unlock", v);

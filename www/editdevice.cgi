@@ -92,6 +92,9 @@ if($?devicename) then # save
 	if(! $?door) setenv door false
 	if(! $?doorexitarm) setenv doorexitarm false
 	if(! $?doorexitdisarm) setenv doorexitdisarm false
+	if(! $?doorsilent) setenv doorsilent false
+	if(! $?doordebug) setenv doordebug false
+	if(! $?doorcatch) setenv doorcatch false
 	if(! $?iotstatedoor) setenv iotstatedoor false
 	if(! $?iotstateinput) setenv iotstateinput false
 	if(! $?iotstateoutput) setenv iotstateoutput false
@@ -100,7 +103,7 @@ if($?devicename) then # save
 	if(! $?iotstatetamper) setenv iotstatetamper false
 	if(! $?iotkeypad) setenv iotkeypad false
 	if(! $?ioteventfob) setenv ioteventfob false
-	setenv allow "devicename areawarning areafault areatamper areaenter areastrongarm areadeadlock areaarm areadisarm areabell arealed areakeypad nfc rgb nfcadmin door doorexitarm doorexitdisarm aid site iotstatedoor iotstateinput iotstateoutput iotstatefault iotstatewarning iotstatetamper ioteventfob iotkeypad doorunlock doorlock dooropen doorclose doorprop doorexit keypadidle keypad pcb dooriotunlock outofservice"
+	setenv allow "devicename areawarning areafault areatamper areaenter areastrongarm areadeadlock areaarm areadisarm areabell arealed areakeypad nfc rgb nfcadmin door doorexitarm doorexitdisarm aid site iotstatedoor iotstateinput iotstateoutput iotstatefault iotstatewarning iotstatetamper ioteventfob iotkeypad doorunlock doorlock dooropen doorclose doorprop doorexit keypadidle keypad pcb dooriotunlock outofservice doorsilent doordebug doorcatch"
 	if("$USER_ADMIN" == "true") setenv allow "$allow nfctrusted"
 	sqlwrite -qon "$DB" device $allow
 	sql "$DB" 'UPDATE device SET poke=NOW() WHERE site=$site'
@@ -175,6 +178,7 @@ xmlsql -C -d "$DB" head.html - foot.html << END
 <input id=iotstatewarning name=iotstatewarning value=true type=checkbox><label for=iotstatewarning>Warning</label>
 <input id=iotstatetamper name=iotstatetamper value=true type=checkbox><label for=iotstatetamper>Tamper</label>
 <if door=true><input id=iotstatedoor name=iotstatedoor value=true type=checkbox><label for=iotstatedoor>Door</label></if>
+<if door=true><input id=doordebug name=doordebug value=true type=checkbox><label for=doordebug>Door debug</label></if>
 <if nfc=true><input id=ioteventfob name=ioteventfob value=true type=checkbox><label for=ioteventfob>Fob events</label></if>
 <if keypad=true><input id=iotkeypad name=iotkeypad value=true type=checkbox><label for=iotkeypad>Keypad events</label></if>
 </td>
@@ -185,15 +189,17 @@ xmlsql -C -d "$DB" head.html - foot.html << END
 <tr><td>Version</td><td colspan=2><output name=version></td></tr>
 <sql table=pcb where="pcb=\$pcb">
 <if nfc=true><tr><td><input type=checkbox id=door name=door value=true></td><td colspan=2><label for=door>Door control</label></td></tr></if>
-<if nfc=true door=true><tr><td><input size=5 id=doorunlock name=doorunlock>ms</td><td colspan=2><label for=doorunlock>Door unlock timer</label></td></tr></if>
-<if nfc=true door=true><tr><td><input size=5 id=doorlock name=doorlock>ms</td><td colspan=2><label for=doorlock>Door lock timer</label></td></tr></if>
-<if nfc=true door=true><tr><td><input size=5 id=dooropen name=dooropen>ms</td><td colspan=2><label for=dooropen>Door open timer</label></td></tr></if>
-<if nfc=true door=true><tr><td><input size=5 id=doorclose name=doorclose>ms</td><td colspan=2><label for=doorclose>Door close timer</label></td></tr></if>
-<if nfc=true door=true><tr><td><input size=5 id=doorprop name=doorprop>ms</td><td colspan=2><label for=doorprop>Door prop timer</label></td></tr></if>
-<if nfc=true door=true><tr><td><input size=5 id=doorexit name=doorexit>ms</td><td colspan=2><label for=doorexit>Door exit button hold timer</label></td></tr></if>
-<if nfc=true door=true><tr><td><input type=checkbox id=doorexitdisarm name=doorexitdisarm value=true></td><td colspan=2><label for=doorexitdisarm>Door exit button disarm</label></td></tr></if>
-<if nfc=true door=true><tr><td><input type=checkbox id=doorexitarm name=doorexitarm value=true></td><td colspan=2><label for=doorexitarm>Door exit button arm on hold</label></td></tr></if>
-<if nfc=true door=true><tr><td>IoT on unlock</td><td colspan=2><input name=dooriotunlock></td></tr></if>
+<if door=true><tr><td><input size=5 id=doorunlock name=doorunlock>ms</td><td colspan=2><label for=doorunlock>Door unlock timer</label></td></tr></if>
+<if door=true><tr><td><input size=5 id=doorlock name=doorlock>ms</td><td colspan=2><label for=doorlock>Door lock timer</label></td></tr></if>
+<if door=true><tr><td><input size=5 id=dooropen name=dooropen>ms</td><td colspan=2><label for=dooropen>Door open timer</label></td></tr></if>
+<if door=true><tr><td><input size=5 id=doorclose name=doorclose>ms</td><td colspan=2><label for=doorclose>Door close timer</label></td></tr></if>
+<if door=true><tr><td><input size=5 id=doorprop name=doorprop>ms</td><td colspan=2><label for=doorprop>Door prop timer</label></td></tr></if>
+<if door=true><tr><td><input size=5 id=doorexit name=doorexit>ms</td><td colspan=2><label for=doorexit>Door exit button hold timer</label></td></tr></if>
+<if door=true><tr><td><input type=checkbox id=doorexitdisarm name=doorexitdisarm value=true></td><td colspan=2><label for=doorexitdisarm>Door exit button disarm</label></td></tr></if>
+<if door=true><tr><td><input type=checkbox id=doorexitarm name=doorexitarm value=true></td><td colspan=2><label for=doorexitarm>Door exit button arm on hold</label></td></tr></if>
+<if door=true><tr><td><input type=checkbox id=doorsilent name=doorsilent value=true></td><td colspan=2><label for=doorsilent>Door silence working (no beep)</label></td></tr></if>
+<if door=true><tr><td><input type=checkbox id=doorcatch name=doorcatch value=true></td><td colspan=2><label for=doorcatch>Door catch mode (re-lock on opening)</label></td></tr></if>
+<if door=true><tr><td>IoT on unlock</td><td colspan=2><input name=dooriotunlock></td></tr></if>
 <if nfc=true><tr><td><input type=checkbox id=nfcadmin name=nfcadmin value=true></td><td colspan=2><label for=nfcadmin>Admin NFC reader</label></td></tr></if>
 <if USER_ADMIN=true nfc=true><tr><td><input type=checkbox id=nfctrusted name=nfctrusted value=true></td><td colspan=2><label for=nfctrusted>Trusted NFC reader</label></td></tr></if>
 </sql>

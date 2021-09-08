@@ -104,22 +104,22 @@ text(useragent, 0);             // User agent
 join(user, organisation);
 text(userorganisationname, 0);  // Job Title
 bool (admin);                   // Customer level admin user - can do anything relating to this organisation
-bool (caneditorganisation);	// Can edit organisation
-bool (caneditaccess);		// Can edit access
-bool (caneditsite);		// Can edit sites
-bool (canedituser);		// Can edit users
-bool (caneditdevice);		// Can edit devices
-bool (canviewdevice);		// Can view devices
-bool (canadoptfob);		// Can adopt fobs
-bool (caneditfob);		// Can edit fobs
-bool (caneditarea);		// Can edit areas
-bool (canarm);			// Can arm
-bool (canstrongarm);		// Can strong arm
-bool (candisarm);		// Can disarm
-bool (canunlock);		// Can unlock doors
-bool (canviewlog);		// Can view logs
-bool (canapi);			// Can access API
-bool (apiexpires);		// Can set fob expiries via API
+bool (caneditorganisation);     // Can edit organisation
+bool (caneditaccess);           // Can edit access
+bool (caneditsite);             // Can edit sites
+bool (canedituser);             // Can edit users
+bool (caneditdevice);           // Can edit devices
+bool (canviewdevice);           // Can view devices
+bool (canadoptfob);             // Can adopt fobs
+bool (caneditfob);              // Can edit fobs
+bool (caneditarea);             // Can edit areas
+bool (canarm);                  // Can arm
+bool (canstrongarm);            // Can strong arm
+bool (candisarm);               // Can disarm
+bool (canunlock);               // Can unlock doors
+bool (canviewlog);              // Can view logs
+bool (canapi);                  // Can access API
+bool (apiexpires);              // Can set fob expiries via API
 
 table(organisation, 0);         // Customer (may be more than one site)
 text(organisationname, 0);
@@ -128,38 +128,38 @@ table(site, 0);                 // Site
 link(organisation);
 text(sitename, 0);
 text(wifissid, 0);              // Site WiFi setting
-text(wifibssid,12);		// Site WiFi setting
+text(wifibssid, 12);            // Site WiFi setting
 text(wifipass, 0);              // Site WiFi setting
-num(wifichan);			// Site WiFi setting
+num(wifichan);                  // Site WiFi setting
 text(iothost, 0);               // IoT host for local MQTT
 bool (nomesh);                  // Don't mesh - i.e. where separate devices on-line
 text(meshid, 12);               // Mesh ID (MAC)
 key(meshid, 12);
 text(meshpass, 0);              // Mesh WiFi passphrase
 text(meshkey, 32);              // AES key
-bool(meshlr);			// Mesh is LR
+bool (meshlr);                  // Mesh is LR
 key(meshkey, 32);
 link2(device, root);            // Preferred root
 text(smsuser, 0);
 text(smspass, 0);
-text(hookbearer,0);		// Bearer for web hooks
-text(hookfob,0);		// Fob event web hook
-text(hookalarm,0);		// Alarm event web hook
-text(hookpanic,0);		// Panic event web hook
-text(hookfire,0);		// Fire event web hook
-text(hooktamper,0);		// Tamper event web hook
-text(hookwarning,0);		// Warning event web hook
-text(hookfault,0);		// Fault event web hook
+text(hookbearer, 0);            // Bearer for web hooks
+text(hookfob, 0);               // Fob event web hook
+text(hookalarm, 0);             // Alarm event web hook
+text(hookpanic, 0);             // Panic event web hook
+text(hookfire, 0);              // Fire event web hook
+text(hooktamper, 0);            // Tamper event web hook
+text(hookwarning, 0);           // Warning event web hook
+text(hookfault, 0);             // Fault event web hook
 areas(engineer);                // Site wide engineering state
-areas(faulted);			// Site wide states from mesh
+areas(faulted);                 // Site wide states from mesh
 areas(tampered);
 areas(alarmed);
 areas(armed);
 areas(prearm);
 areas(prealarm);
 areas(alarm);
-num(nodes);			// Site reported nodes
-num(missing);			// Site reported nodes missing
+num(nodes);                     // Site reported nodes
+num(missing);                   // Site reported nodes missing
 num(armcancel);                 // Pre arm time
 num(alarmdelay);                // Pre alarm time
 num(alarmhold);                 // Hold alarm state time
@@ -168,9 +168,9 @@ bool (iotstatesystem);          // Copy stuff to IoT
 #define s(state,c) areas(state)
 #include "ESP32/main/states.m"  // Related areas
 text(smsnumber, 20);            // Number to SMS
-text(smsafp1, 20);            // Number to SMS for alarm/fire/panic
-text(smsafp2, 20);            // Number to SMS for alarm/fire/panic
-text(smsafp3, 20);            // Number to SMS for alarm/fire/panic
+text(smsafp1, 20);              // Number to SMS for alarm/fire/panic
+text(smsafp2, 20);              // Number to SMS for alarm/fire/panic
+text(smsafp3, 20);              // Number to SMS for alarm/fire/panic
 text(smsfrom, 10);              // From, where settable by carrier
 areas(smsarm);                  // When to SMS
 areas(smsdisarm);
@@ -180,24 +180,24 @@ areas(smspanic);
 areas(smsfire);
 areas(mixand1);
 areas(mixset1);
-text(mixarm1,0);
-text(mixdisarm1,0);
+text(mixarm1, 0);
+text(mixdisarm1, 0);
 areas(mixand2);
 areas(mixset2);
-text(mixarm2,0);
-text(mixdisarm2,0);
+text(mixarm2, 0);
+text(mixdisarm2, 0);
 areas(mixand3);
 areas(mixset3);
-text(mixarm3,0);
-text(mixdisarm3,0);
+text(mixarm3, 0);
+text(mixdisarm3, 0);
 areas(mixand4);
 areas(mixset4);
-text(mixarm4,0);
-text(mixdisarm4,0);
+text(mixarm4, 0);
+text(mixdisarm4, 0);
 areas(mixand5);
 areas(mixset5);
-text(mixarm5,0);
-text(mixdisarm5,0);
+text(mixarm5, 0);
+text(mixdisarm5, 0);
 bool (debug);                   // MQTT debug logging
 
 table(area, 0);
@@ -240,7 +240,7 @@ bool (commit);                  // Commit log/count
 
 table(fob, 14);
 datetime(provisioned);          // When provisioned
-num(capacity);			// Total memory capacity
+num(capacity);                  // Total memory capacity
 num(mem);                       // Free memory
 
 join(fob, aid);                 // Fob is in AID (adopted)
@@ -261,7 +261,7 @@ text(keypadidle, 16);           // Keypad display name
 link(organisation);             // Yes, can get from site, but useful to reference quickly
 link(site);                     // The site the device is on
 link(pcb);                      // What type of device this is
-bool (outofservice);		// Marked out of service
+bool (outofservice);            // Marked out of service
 bool (iotstatedoor);            // Copy stuff to IoT
 bool (iotstateinput);           // Copy stuff to IoT
 bool (iotstateoutput);          // Copy stuff to IoT
@@ -277,6 +277,9 @@ bool (nfctrusted);              // Trusted device for fob provisioning
 bool (door);                    // This is a door
 bool (doorexitarm);             // Exit button hold arm
 bool (doorexitdisarm);          // Exit button disarm
+bool (doorsilent);              // Silent (no beep output)
+bool (doordebug);               // Lock state debug
+bool (doorcatch);               // Main lock catch logic (re-engage on opening)
 bool (keypad);                  // Keypad
 text(version, 0);               // S/w version
 text(build, 0);                 // S/w build
@@ -299,15 +302,14 @@ areas(areadeadlock);            // Areas for door bell input
 areas(arealed);                 // LED area
 areas(areakeypad);              // Keypad area
 datetime(online);               // When online, if online
-datetime(boot);			// Boot time
+datetime(boot);                 // Boot time
 index(online);
 datetime(lastonline);           // When last went offline
-index(lastonline)
-datetime(offlinereport);	// When reported offline
+index(lastonline) datetime(offlinereport);      // When reported offline
 index(offlinereport);
 text(offlinereason, 0);         // If sent offline reason, what was it
 datetime(upgrade);              // When to do upgrade
-num(progress);			// Upgrade percent
+num(progress);                  // Upgrade percent
 index(upgrade);
 ip(address);                    // IP address when last online
 num(id);                        // Instance for communications when on line
@@ -323,7 +325,7 @@ num(doorprop);                  // Door timer
 num(doorexit);                  // Door timer
 num(doorpoll);                  // Door timer
 num(doordebounce);              // Door timer
-text(dooriotunlock,0);		// IoT on unlock
+text(dooriotunlock, 0);         // IoT on unlock
 
 join(device, gpio);
 index(device);
@@ -380,20 +382,20 @@ gpiotype(inittype);
 text(initname, 0);              // Default port pin name
 num(inithold);                  // Default port hold time
 num(initpulse);                 // Default port pulse time
-bool(initinvert);		// Default port invert setting
-text(value0,0);			// Value name for 0
-text(value1,0);			// Value name for 1
+bool (initinvert);              // Default port invert setting
+text(value0, 0);                // Value name for 0
+text(value1, 0);                // Value name for 1
 
 table(aid, 6);                  // AID
 link(organisation);
 link(site);
 text(aidname, 0);
 
-table(event,0);			// Logging
+table(event, 0);                // Logging
 link(device);
 datetime(logged);
-text(suffix,0);
-text(data,0);
+text(suffix, 0);
+text(data, 0);
 
 #undef table
 #undef join

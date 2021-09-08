@@ -46,6 +46,7 @@ uint8_t afile[256];             // Access file saved
   b(doorsilent); \
   b(doorexitarm); \
   b(doorexitdisarm); \
+  b(doorcatch); \
   ta(fallback,10); \
   ta(blacklist,10); \
   s(dooriotunlock)	\
@@ -663,12 +664,14 @@ static void task(void *pvParameters)
                if (doorstate != DOOR_UNLOCKING && *dooriotunlock)
                   revk_mqtt_send_str_clients(dooriotunlock, 0, 2);      // We skipped unlocking...
                doorstate = DOOR_OPEN;
-               if (doorauto >= 2)
+               if (doorauto >= 2 && !doorcatch)
                {
                   output_set(OUNLOCK + 0, 1);   // Cancel lock
                   output_set(OUNLOCK + 1, 1);   // Cancel deadlock
                }
             }
+            if (doorauto >= 2 && doorcatch)
+               output_set(OUNLOCK + 0, 0);      // Door lock ready for when it closes
          } else
          {                      // Closed
             if (lock[1].state == LOCK_LOCKED && lock[0].state == LOCK_LOCKED)
@@ -843,17 +846,19 @@ void door_boot(void)
    if (input_get(IOPEN))
    {
       doorstate = DOOR_OPEN;
-      if (doorauto >= 2)
+      if (doorauto >= 2 && !doorcatch)
          output_set(OUNLOCK + 0, 1);    // Start with unlocked doors
    } else
    {
-      int64_t now = esp_timer_get_time();
       doorstate = DOOR_LOCKING;
-      if (doorauto >= 2)
+      if (doorauto >= 2 && doorcatch)
          output_set(OUNLOCK + 0, 0);    // Start with locked doors
-      lock[0].timeout = now + (int64_t) doorlock *1000LL;
-      lock[1].timeout = now + (int64_t) doorlock *1000LL;
    }
+   if (doorauto >= 2 && doorcatch)
+      output_set(OUNLOCK + 0, 0);       // Start with locked doors
+   int64_t now = esp_timer_get_time();
+   lock[0].timeout = now + 1000LL;
+   lock[1].timeout = now + 1000LL;
    door_check();                // Deadlock based on alarm state
 }
 
