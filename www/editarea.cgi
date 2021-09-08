@@ -3,6 +3,7 @@ setenv site "$PATH_INFO:t"
 can --redirect --site='$site' editarea
 if($status) exit 0
 source ../types
+source ../setcan
 setenv MIX "1 2 3 4 5"
 
 if($?AREAA) then #save
