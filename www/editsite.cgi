@@ -28,6 +28,7 @@ if($?sitename) then
 		setenv aid `makeaid --site="$site"`
 	endif
 	if(! $?nomesh) setenv nomesh false
+	if(! $?iotstatesystem) setenv iotstatesystem false
 	if(! $?ioteventarm) setenv ioteventarm false
 	if(! $?meshlr) setenv meshlr false
 	if(! $?debug) setenv debug false
