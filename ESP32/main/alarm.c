@@ -47,6 +47,7 @@ static int nodes_online = 0;
 static int nodes_reported = 0;
 int64_t summary_next = 0;       // Send summary cycle
 int64_t report_next = 0;        // Send report cycle
+uint32_t last_summary = 0;      // When last summary (uptime)
 
 #define settings		\
 	area(areawarning)	\
@@ -68,6 +69,7 @@ int64_t report_next = 0;        // Send report cycle
 	u16(alarmhold)		\
         u8(meshcycle,3)		\
         u8(meshwarmup,60)	\
+	u8(meshdied,240)	\
 	area(smsarm)		\
 	area(smsdisarm)		\
 	area(smsarmfail)	\
@@ -554,6 +556,7 @@ static void set_outputs(void)
 
 static void mesh_handle_summary(const char *target, jo_t j)
 {                               // Alarm state - process summary of output states
+   last_summary = uptime();
    report_next = esp_timer_get_time() + 1000000LL * meshcycle / 4 + 1000000LL * meshcycle * esp_random() / (1ULL << 32) / 2;    // Fit in reports random slots
    check_online(target);
    if (esp_mesh_is_root())
@@ -811,6 +814,8 @@ static void task(void *pvParameters)
          jo_datetime(j, "report", time(0));
          mesh_make_report(j);
          revk_mesh_send_json(NULL, &j);
+         if (meshdied && last_summary + meshdied < uptime())
+            revk_restart("No summaries", 0);
       }
       if (esp_mesh_is_root())
       {
