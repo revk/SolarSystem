@@ -61,7 +61,6 @@ if($?NEW) then
 endif
 list:
 if(! $?PATH_INFO) then
-setenv XMLSQLDEBUG
 xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <h1>📇 Manage users</h1>
 <form method=post style='inline'>
