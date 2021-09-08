@@ -2,9 +2,8 @@
 CONFIG_DB_DATABASE="SS"
 CONFIG_DB_USERNAME_FIELD="email"
 CONFIG_DB_USER_ID_FIELD="user"
-CONFIG_ENV_USER_FIELD_LIST="username,admin"
+CONFIG_ENV_USER_FIELD_LIST="username,admin,organisation,site"
 CONFIG_CGI_PATH="..:../login:../email:../xmlsql:../login/SQLlib:/usr/local/bin:/bin:/usr/bin:/usr/local/mysql/bin"
 CONFIG_FORM_SECURITY_POSTS=y
 CONFIG_BLOCK_GET=y
-CONFIG_ENV_FIELD_LIST="username,admin,organisation,site"
 
