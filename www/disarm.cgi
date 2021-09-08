@@ -1,4 +1,5 @@
 #!../login/loggedin /bin/csh -f
+if(! $?PATH_INFO) setenv PATH_INFO /$USER_SITE
 setenv site "$PATH_INFO:t"
 can --redirect --site='$site' disarm
 if($status) exit 0
