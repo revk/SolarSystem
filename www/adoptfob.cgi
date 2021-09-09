@@ -26,7 +26,7 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
    <sql table="fobaid LEFT JOIN aid USING (aid) LEFT JOIN access USING (access)" WHERE="fob='$fob' AND access.organisation=$USER_ORGANISATION AND access.site=$USER_SITE">
    <p>Already adopted for <output name=aidname> <output name=accessname></p>
    </sql>
-   <input name=fobname size=15 maxlength=15 placeholder="Name" autofocus><if mem> <output name=mem type=mebi>B free</if><br>
+   <input name=fobname size=15 maxlength=15 placeholder="Name" autofocus><if mem> <output name=mem> free</if><br>
    <select name=aid><sql table=aid where='site=$USER_SITE'><option value=$aid><output name=aidname></option></sql></select>
    <select name=access><sql table=access where='site=$USER_SITE'><option value=$access><output name=accessname></option></sql></select>
    <input name=ADOPT type=submit value="Adopt fob">
