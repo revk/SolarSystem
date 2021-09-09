@@ -228,8 +228,10 @@ void output_boot(void)
          {
             const char *e = port_check(p = port_mask(power[i]), TAG, 0);
             if (e)
+            {
                status(output_fault = e);
-            else
+               power[i] = 0;
+            } else
             {                   // Set up power output pin
                c.pin_bit_mask |= (1ULL << p);
                REVK_ERR_CHECK(gpio_hold_dis(p));
@@ -246,7 +248,7 @@ void output_boot(void)
 void output_start(void)
 {
    int i;
-   for (i = 0; i < MAXOUTPUT && !output[i] && !power[i]; i++);
+   for (i = 0; i < MAXOUTPUT && !output[i]; i++);
    if (i == MAXOUTPUT)
       return;
    revk_task(TAG, task, NULL);

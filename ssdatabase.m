@@ -150,7 +150,6 @@ text(hookfire, 0);              // Fire event web hook
 text(hooktamper, 0);            // Tamper event web hook
 text(hookwarning, 0);           // Warning event web hook
 text(hookfault, 0);             // Fault event web hook
-areas(engineer);                // Site wide engineering state
 areas(faulted);                 // Site wide states from mesh
 areas(tampered);
 areas(alarmed);

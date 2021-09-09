@@ -11,7 +11,6 @@ if($?DELETE) then
 		setenv MSG "Are you sure?"
 		goto done
 	endif
-	sql "$DB" 'UPDATE session set organisation=NULL,site=NULL WHERE organisation=$organisation'
 	setenv C `sql -c "$DB" 'DELETE FROM organisation WHERE organisation=$organisation'`
 	if("$C" == "" || "$C" == "0") then
 		setenv MSG "Cannot delete as in use - you need to delete stuff in organiastion first"
@@ -27,7 +26,6 @@ if($?organisationname) then
 		sql "$DB" 'INSERT INTO access SET organisation=$organisation,site="$site",accessname="Default access"'
 		sql "$DB" 'INSERT INTO area SET organisation=$organisation,site=$site,tag="A",areaname="Main building"'
 		setenv aid `makeaid --site="$site"`
-		sql "$DB" 'UPDATE session SET organisation=$organisation,site=$site WHERE session="$ENVCGI"'
 		sqlwrite -qon "$DB" organisation organisationname
 		redirect "editorganisation.cgi/$organisation"
 		exit 0
