@@ -142,7 +142,7 @@ void alarm_arm(area_t a, jo_t * jp)
       jo_free(jp);
       return;                   // All armed
    }
-   area_t a2 = andset(alarm_armed() | a);
+   area_t a2 = (andset(alarm_armed() | a) & ~alarm_armed());
    jo_t j = NULL;
    if (jp)
    {
@@ -170,7 +170,7 @@ void alarm_strongarm(area_t a, jo_t * jp)
       jo_free(jp);
       return;                   // All armed
    }
-   area_t a2 = andset(alarm_armed() | a);
+   area_t a2 = (andset(alarm_armed() | a) & ~alarm_armed());
    jo_t j = NULL;
    if (jp)
    {
