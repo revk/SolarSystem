@@ -902,6 +902,7 @@ void send_sms(const char *fmt, ...)
 static void sms_event(const char *tag, jo_t j)
 {
    char areas[sizeof(area_t) * 8 + 1] = "";
+   char also[sizeof(area_t) * 8 + 1] = "";
    char ts[21] = "";
    char id[15] = "";
    char node[30] = "";
@@ -948,6 +949,12 @@ static void sms_event(const char *tag, jo_t j)
             jo_strncpy(j, areas, sizeof(areas));
             continue;
          }
+         if (!jo_strcmp(j, "also"))
+         {
+            jo_next(j);
+            jo_strncpy(j, also, sizeof(also));
+            continue;
+         }
       }
-   send_sms("%s\n%s: %s\n%s\n%s %s %s", ts, tag, areas, node, reason, id, name);
+   send_sms("%s\n%s: %s%s\n%s\n%s %s %s", ts, tag, areas, also, node, reason, id, name);
 }
