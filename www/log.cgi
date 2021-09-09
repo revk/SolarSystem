@@ -1,4 +1,4 @@
-#!../login/loggedin /bin/csh -fx
+#!../login/loggedin /bin/csh -f
 if($?PATH_INFO) then
         setenv fordevice `echo "$PATH_INFO:t"|sed 's/[^0-9A-Z]//g'`
 	setenv WHERE "AND device='$fordevice'"

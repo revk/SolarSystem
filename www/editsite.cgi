@@ -1,5 +1,6 @@
 #!../login/loggedin /bin/csh -f
 unset user # csh
+if(! $?PATH_INFO) setenv PATH_INFO /$USER_SITE
 setenv site "$PATH_INFO:t"
 can --redirect --site=$site editsite
 if($status) exit 0

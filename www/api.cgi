@@ -1,4 +1,4 @@
-#!../login/loggedin --insecure-post --http-auth /bin/csh -fx
+#!../login/loggedin --insecure-post --http-auth /bin/csh -f
 echo "Content-Type: text/plain"
 echo ""
 printenv
