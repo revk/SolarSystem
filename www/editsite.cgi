@@ -34,7 +34,7 @@ if($?sitename) then
 	if(! $?meshlr) setenv meshlr false
 	if(! $?debug) setenv debug false
 	if("$root" == "") unsetenv root
-	sqlwrite -qon "$DB" site sitename wifissid wifipass wifichan iothost nomesh smsuser smspass armcancel alarmdelay alarmhold debug iotstatesystem ioteventarm smsarm smsarmfail smsdisarm smsalarm smspanic smsfire engineer smsnumber smsafp1 smsafp2 smsafp3 smsfrom hookbearer hookfob hookalarm hookfire hookpanic meshlr wifibssid root
+	sqlwrite -qon "$DB" site sitename wifissid wifipass wifichan iothost nomesh smsuser smspass armcancel alarmdelay alarmhold debug iotstatesystem ioteventarm smsarm smsarmfail smsdisarm smsalarm smspanic smsfire engineer smsnumber smsafp1 smsafp2 smsafp3 smsfrom hookbearer hookfob hookalarm hookfire hookpanic hooktrigger hookinhibit hookfobdeny meshlr wifibssid root
 	sql "$DB" 'UPDATE device SET poke=NOW() WHERE site=$site'
 	message --poke
 	redirect /
@@ -76,12 +76,15 @@ Root:<select name=root><option value=''>None</option><sql table=device where="si
 <tr><td colspan=2>Web hooks</td></tr>
 <tr><td>Bearer</td><td><input name=hookbearer size=40 placeholder="To send on hooks"></td></tr>
 <tr><td>Fob event</td><td><input name=hookfob size=40 placeholder="https://..."></td></tr>
+<tr><td>Fob deny event</td><td><input name=hookfobdeny size=40 placeholder="https://..."></td></tr>
 <tr><td>Alarm event</td><td><input name=hookalarm size=40 placeholder="https://..."></td></tr>
 <tr><td>Fire event</td><td><input name=hookfire size=40 placeholder="https://..."></td></tr>
 <tr><td>Panic event</td><td><input name=hookpanic size=40 placeholder="https://..."></td></tr>
 <tr><td>Warning event</td><td><input name=hookwarning size=40 placeholder="https://..."></td></tr>
 <tr><td>Tamper event</td><td><input name=hooktamper size=40 placeholder="https://..."></td></tr>
 <tr><td>Fault event</td><td><input name=hookfault size=40 placeholder="https://..."></td></tr>
+<tr><td>Trigger event</td><td><input name=hooktrigger size=40 placeholder="https://..."></td></tr>
+<tr><td>Inhibit event</td><td><input name=hookinhibit size=40 placeholder="https://..."></td></tr>
 </table>
 <p>Area settings</p>
 <table border=1>

@@ -144,12 +144,15 @@ text(smsuser, 0);
 text(smspass, 0);
 text(hookbearer, 0);            // Bearer for web hooks
 text(hookfob, 0);               // Fob event web hook
+text(hookfobdeny, 0);           // Fob event web hook when deny set
 text(hookalarm, 0);             // Alarm event web hook
 text(hookpanic, 0);             // Panic event web hook
 text(hookfire, 0);              // Fire event web hook
 text(hooktamper, 0);            // Tamper event web hook
 text(hookwarning, 0);           // Warning event web hook
 text(hookfault, 0);             // Fault event web hook
+text(hooktrigger, 0);           // Trigger event web hook
+text(hookinhibit, 0);           // Inhibit event web hook
 areas(faulted);                 // Site wide states from mesh
 areas(tampered);
 areas(alarmed);
