@@ -427,6 +427,7 @@ static void addsitedata(SQL * sqlp, j_t j, SQL_RES * site, const char *deviceid,
    if (outofservice || *sql_colz(site, "nomesh") == 't')
    {                            // Not making a mesh, so set a mesh of 1
       j_store_string(mesh, "id", deviceid);
+      j_store_string(mesh, "pass", deviceid);
       j_store_int(mesh, "max", 1);
    } else
    {
