@@ -65,6 +65,7 @@ uint32_t last_summary = 0;      // When last summary (uptime)
 	area(engineer)		\
 	area(armed)		\
 	u16(armcancel)		\
+	u16(armdelay)		\
 	u16(alarmdelay)		\
 	u16(alarmhold)		\
         u8(meshcycle,3)		\
@@ -484,11 +485,16 @@ static void mesh_make_summary(jo_t j)
    area_t was_armed = state_armed;
    // prearm if any not armed yet
    state_prearm = (andset(report_arm | state_armed) & ~state_armed & ~report_disarm);   // and/set to ensure we see implied arming areas
-   // Apply the prearm if we can
-   if (!(state_prearm & (state_presence | (state_tamper & ~engineer) | state_access)))
-      state_armed = andset((state_armed | state_prearm | report_strongarm) & ~report_disarm);   // Prearm is clean
-   else
-      state_armed = andset((state_armed | report_strongarm) & ~report_disarm);  // Prearm is not clean, but strongarm always applies
+   static uint16_t timer1 = 0;
+   if (!state_prearm)
+      timer1 = 0;
+   else if (!armdelay || (timer1 += meshcycle) > armdelay)
+   {                            // Apply the prearm if we can
+      if (!(state_prearm & (state_presence | (state_tamper & ~engineer) | state_access)))
+         state_armed = andset((state_armed | state_prearm | report_strongarm) & ~report_disarm);        // Prearm is clean
+      else
+         state_armed = andset((state_armed | report_strongarm) & ~report_disarm);       // Prearm is not clean, but strongarm always applies
+   }
    // What changed
    area_t new_armed = (state_armed & ~was_armed);
    // Arming clears latched states
@@ -497,16 +503,16 @@ static void mesh_make_summary(jo_t j)
    state_alarmed = ((state_alarmed & ~new_armed) | state_alarm);
    // Alarm based only on presence, but change of tamper or access trips presence anyway. Basically you can force arm with tamper and access
    state_prealarm = (((state_prealarm | state_presence) & state_armed) & ~state_alarm);
-   static uint16_t timer1 = 0;  // Pre alarm timer - ideally per area, but this will be fine
+   static uint16_t timer2 = 0;  // Pre alarm timer - ideally per area, but this will be fine
    if (!state_prealarm)
-      timer1 = 0;
-   else if (!alarmdelay || (timer1 += meshcycle) > alarmdelay)
+      timer2 = 0;
+   else if (!alarmdelay || (timer2 += meshcycle) > alarmdelay)
       state_alarm = ((state_alarm | state_prealarm) & state_armed);
    state_alarm &= state_armed;
-   static uint16_t timer2 = 0;  // Post alarm timer - ideally per area, but this will be fine
+   static uint16_t timer3 = 0;  // Post alarm timer - ideally per area, but this will be fine
    if (state_prealarm)
-      timer2 = 0;
-   else if (alarmhold && (timer2 += meshcycle) > alarmhold)
+      timer3 = 0;
+   else if (alarmhold && (timer3 += meshcycle) > alarmhold)
       state_alarm = 0;
    // Fixed
    state_engineer = engineer;   // From flash - could be changed live though, so set here

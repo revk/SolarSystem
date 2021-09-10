@@ -34,7 +34,7 @@ if($?sitename) then
 	if(! $?meshlr) setenv meshlr false
 	if(! $?debug) setenv debug false
 	if("$root" == "") unsetenv root
-	sqlwrite -qon "$DB" site sitename wifissid wifipass wifichan iothost nomesh smsuser smspass armcancel alarmdelay alarmhold debug iotstatesystem ioteventarm smsarm smsarmfail smsdisarm smsalarm smspanic smsfire engineer smsnumber smsafp1 smsafp2 smsafp3 smsfrom hookbearer hookfob hookalarm hookfire hookpanic hooktrigger hookinhibit hookfobdeny meshlr wifibssid root
+	sqlwrite -qon "$DB" site sitename wifissid wifipass wifichan iothost nomesh smsuser smspass armcancel armdelay alarmdelay alarmhold debug iotstatesystem ioteventarm smsarm smsarmfail smsdisarm smsalarm smspanic smsfire engineer smsnumber smsafp1 smsafp2 smsafp3 smsfrom hookbearer hookfob hookalarm hookfire hookpanic hooktrigger hookinhibit hookfobdeny meshlr wifibssid root
 	sql "$DB" 'UPDATE device SET poke=NOW() WHERE site=$site'
 	message --poke
 	redirect /
@@ -71,6 +71,7 @@ Root:<select name=root><option value=''>None</option><sql table=device where="si
 <tr><td>SMS Alarm/Fire/Panic</td><td><input name=smsafp3 size=20 maxlength=20></td></tr>
 <tr><td>SMS From</td><td><input name=smsfrom size=10 maxlength=10> (if carrier allows)</td></tr>
 <tr><td>Arm-Cancel</td><td><input name=armcancel size=3> seconds (timeout before cancelling arming)</td></tr>
+<tr><td>Arm-Delay</td><td><input name=armdelay size=3> seconds (timeout before arm happens)</td></tr>
 <tr><td>Alarm-Delay</td><td><input name=alarmdelay size=3> seconds (timeout before alarm triggers)</td></tr>
 <tr><td>Alarm-Hold</td><td><input name=alarmhold size=3> seconds (timeout before alarm cancels after last trigger)</td></tr>
 <tr><td colspan=2>Web hooks</td></tr>

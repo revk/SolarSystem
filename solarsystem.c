@@ -402,6 +402,7 @@ static void addsitedata(SQL * sqlp, j_t j, SQL_RES * site, const char *deviceid,
    j_store_string(j, "mqtthost2", *v ? v : NULL);
    addarea(j, "engineer", sql_colz(site, "engineer"), 1);
    j_store_int(j, "armcancel", atoi(sql_colz(site, "armcancel")));
+   j_store_int(j, "armdelay", atoi(sql_colz(site, "armdelay")));
    j_store_int(j, "alarmdelay", atoi(sql_colz(site, "alarmdelay")));
    j_store_int(j, "alarmhold", atoi(sql_colz(site, "alarmhold")));
    j_store_boolean(j, "debug", *sql_colz(site, "debug") == 't');

@@ -163,6 +163,7 @@ areas(alarm);
 num(nodes);                     // Site reported nodes
 num(missing);                   // Site reported nodes missing
 num(armcancel);                 // Pre arm time
+num(armdelay);			// Pre arm delay
 num(alarmdelay);                // Pre alarm time
 num(alarmhold);                 // Hold alarm state time
 bool (ioteventarm);             // Copy stuff to IoT
