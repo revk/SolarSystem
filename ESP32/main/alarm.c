@@ -38,7 +38,7 @@ static SemaphoreHandle_t node_mutex = NULL;
 typedef struct node_s {
    mac_t mac;
    uint8_t online:1;            // Is on line
-   uint8_t missed:1;            // Has missed a report
+   uint8_t missed:2;            // Missed report count
    uint8_t reported:1;          // Has reported
 } node_t;
 static node_t *node = NULL;
@@ -767,8 +767,8 @@ static void task(void *pvParameters)
          for (int n = 0; n < nodes; n++)
             if (!node[n].reported && node[n].online)
             {                   // Gone off line
-               if (!node[n].missed)
-                  node[n].missed = 1;   // Allow one missed report
+               if (node[n].missed < 3)
+                  node[n].missed++;     // Allow some missed
                else
                {
                   node[n].online = 0;
