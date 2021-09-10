@@ -486,15 +486,12 @@ static void mesh_make_summary(jo_t j)
    // prearm if any not armed yet
    state_prearm = (andset(report_arm | state_armed) & ~state_armed & ~report_disarm);   // and/set to ensure we see implied arming areas
    static uint16_t timer1 = 0;
-   if (!state_prearm)
+   if (!state_prearm || (state_prearm & (state_presence | (state_tamper & ~engineer) | state_access)))
+   {                            // No prearm, or prearm waiting - restart timer
       timer1 = 0;
-   else if (!armdelay || (timer1 += meshcycle) > armdelay)
-   {                            // Apply the prearm if we can
-      if (!(state_prearm & (state_presence | (state_tamper & ~engineer) | state_access)))
-         state_armed = andset((state_armed | state_prearm | report_strongarm) & ~report_disarm);        // Prearm is clean
-      else
-         state_armed = andset((state_armed | report_strongarm) & ~report_disarm);       // Prearm is not clean, but strongarm always applies
-   }
+      state_armed = andset((state_armed | report_strongarm) & ~report_disarm);  // Apply strongarm anyway
+   } else if (!armdelay || (timer1 += meshcycle) > armdelay)
+      state_armed = andset((state_armed | state_prearm | report_strongarm) & ~report_disarm);   // Prearm is clean and ready to apply
    // What changed
    area_t new_armed = (state_armed & ~was_armed);
    // Arming clears latched states
