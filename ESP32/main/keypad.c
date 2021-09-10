@@ -277,9 +277,9 @@ void keypad_ui(char key)
       {
          ui.sendsounder = 1;
          ESP_LOGD(TAG, "Sounder %d %d", on, off);
+         ui.on = on;
+         ui.off = off;
       }
-      ui.on = on;
-      ui.off = off;
    }
    {                            // LED blink
       uint8_t bl = 0;
@@ -484,7 +484,6 @@ static void task(void *pvParameters)
          buf[++p] = 0x0E;
       } else if (ui.keyconfirm)
       {                         // key confirm
-         // TODO has been known to get stuck constantly sending keys somehow
          ui.keyconfirm = 0;
          buf[++p] = 0x0B;
          buf[++p] = ui.keybit ? 2 : 0;
