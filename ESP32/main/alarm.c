@@ -843,7 +843,7 @@ static void task(void *pvParameters)
          if (uptime() - isroot > meshwarmup)
          {                      // Checking network
             if (flapping < uptime())
-            { // Consider changes
+            {                   // Consider changes
                if (wasonline != nodes_online)
                {                // Change to mesh
                   wasonline = nodes_online;
@@ -962,5 +962,5 @@ static void sms_event(const char *tag, jo_t j)
             continue;
          }
       }
-   send_sms("%s\n%s: %s%s\n%s\n%s %s %s", ts, tag, areas, also, node, reason, id, name);
+   send_sms("%s\n%s: %s%s%s\n%s\n%s %s %s", ts, tag, areas, *also ? "+" : "", also, node, reason, id, name);
 }
