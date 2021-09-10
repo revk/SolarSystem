@@ -69,6 +69,7 @@ uint32_t last_summary = 0;      // When last summary (uptime)
 	u16(alarmhold)		\
         u8(meshcycle,3)		\
         u8(meshwarmup,60)	\
+        u8(meshflap,10)	\
 	u8(meshdied,240)	\
 	area(smsarm)		\
 	area(smsdisarm)		\
@@ -724,6 +725,7 @@ static void task(void *pvParameters)
    esp_task_wdt_add(NULL);
    pvParameters = pvParameters;
    uint32_t isroot = 0;
+   uint32_t flapping = 0;
    int wasonline = 0;
    node = malloc(sizeof(*node) * meshmax);
    mesh_find_child(revk_mac, 1);        // We count as a child
@@ -787,6 +789,7 @@ static void task(void *pvParameters)
                   revk_mqtt_send_raw(topic, 1, "{\"up\":false}", -1);
                   free(topic);
                   node_offline(node[n].mac);
+                  flapping = uptime() + meshflap;       // Ignore changes for a moment
                }
             }
          static char missed = 0;
@@ -838,12 +841,15 @@ static void task(void *pvParameters)
             summary_next = now + 1000000LL * meshcycle; // Start reporting cycle
          }
          if (uptime() - isroot > meshwarmup)
-         {                      // Checking was have quorum / full house
-            if (wasonline != nodes_online)
-            {                   // Online change
-               wasonline = nodes_online;
-               alarm_fault = ((nodes_online < meshmax) ? "Missing nodes" : NULL);
-               status(alarm_tamper = ((nodes_online == 1 && meshmax > 1) ? "Lonely" : NULL));
+         {                      // Checking network
+            if (flapping < uptime())
+            { // Consider changes
+               if (wasonline != nodes_online)
+               {                // Change to mesh
+                  wasonline = nodes_online;
+                  alarm_fault = ((nodes_online < meshmax) ? "Missing nodes" : NULL);
+                  status(alarm_tamper = ((nodes_online == 1 && meshmax > 1) ? "Lonely" : NULL));
+               }
             }
          }
       } else
