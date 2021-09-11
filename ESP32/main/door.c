@@ -474,12 +474,12 @@ const char *door_fob(fob_t * fob)
          fob->armok = 1;        // Can arm if any areas can be armed
       if (areastrongarm & fob->strongarm)
          fob->strongarmok = 1;  // Can arm is any areas can be armed
-      if (!(areadisarm & ~fob->disarm))
+      if (areadisarm & fob->disarm)
          fob->disarmok = 1;     // Can disarm if any areas can be disarmed, but will only do so if can enter when disarmed
       if (!(areaenter & ~fob->enter))
-         fob->enterok = 1;      // Can enter
+         fob->enterok = 1;      // Can enter if all enter areas covered
       if (!(areaenter & ~fob->prop))
-         fob->propok = 1;       // Can prop
+         fob->propok = 1;       // Can prop if all enter areas covered
       if (door_deadlocked() && (!fob->enterok || !fob->disarmok ||      //
                                 (fob->disarmok &&       //
                                  (areadeadlock & andset(alarm_armed() & ~(areadisarm & fob->disarm))))))
