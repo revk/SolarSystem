@@ -20,7 +20,7 @@ if($?AREAA) then #save
         sql "$DB" 'UPDATE device SET poke=NOW() WHERE site=$site'
 	set allow=""
 	foreach s ($MIX)
-		set allow="$allow mixand$s mixset$s mixarm$s mixdisarm$s"
+		set allow="$allow mixand$s mixset$s"
 	end
 	sqlwrite -qon "$DB" site site="$site" $allow
         sql "$DB" 'UPDATE device SET poke=NOW() WHERE site=$site'
@@ -37,19 +37,6 @@ xmlsql -C -d "$DB" head.html - foot.html << END
 <table border=1>
 <eval C=3><for SPACE S="$MIX"><eval C=\$C+3></for>
 <tr><th colspan=\$C>IoT messages</th></tr>
-<eval C=3>
-<for SPACE S="$MIX">
-<tr>
-<td>Arm</td>
-<td><input name=mixarm\$S size=20></td>
-<td align=right colspan=\$C rowspan=2 style='font-size:300%;'>↴</td>
-</tr>
-<tr>
-<td>Disarm</td>
-<td><input name=mixdisarm\$S size=20></td>
-</tr>
-<eval C=\$C+3>
-</for>
 <tr>
 <th>Area</th><th>Name</th>
 <for SPACE S="$MIX">
