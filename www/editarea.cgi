@@ -33,10 +33,10 @@ done:
 xmlsql -C -d "$DB" head.html - foot.html << END
 <sql table=site WHERE="site=$site">
 <h1>🔠 Manage areas for <output name=sitename></h1>
+<p>You can list the names for areas you wish to use, and can define how they can interact to create implicitly set areas. Areas listed under <i>Set</i> are only set when all those under <i>And</i> are set.</p>
 <form method=post>
 <table border=1>
 <eval C=3><for SPACE S="$MIX"><eval C=\$C+3></for>
-<tr><th colspan=\$C>IoT messages</th></tr>
 <tr>
 <th>Area</th><th>Name</th>
 <for SPACE S="$MIX">
