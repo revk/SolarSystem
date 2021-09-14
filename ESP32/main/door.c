@@ -49,6 +49,7 @@ uint8_t afile[256];             // Access file saved
   b(doorcatch); \
   ta(fallback,10); \
   ta(blacklist,10); \
+  s(dooriotdeadlk)	\
   s(dooriotunlock)	\
 
 #define u32(n,d) uint32_t n;
@@ -704,6 +705,8 @@ static void task(void *pvParameters)
          {                      // State change - iot and set timeout
             if (doorstate == DOOR_UNLOCKED && *dooriotunlock)
                revk_mqtt_send_str_clients(dooriotunlock, 0, 2);
+            if (doorstate == DOOR_DEADLOCKED && *dooriotdeadlk)
+               revk_mqtt_send_str_clients(dooriotdeadlk, 0, 2);
             if (doorstate == DOOR_OPEN)
                doortimeout = now + (int64_t) doorprop *1000LL;
             else if (doorstate == DOOR_CLOSED)

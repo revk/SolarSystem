@@ -183,24 +183,14 @@ areas(smspanic);
 areas(smsfire);
 areas(mixand1);
 areas(mixset1);
-text(mixarm1, 0);
-text(mixdisarm1, 0);
 areas(mixand2);
 areas(mixset2);
-text(mixarm2, 0);
-text(mixdisarm2, 0);
 areas(mixand3);
 areas(mixset3);
-text(mixarm3, 0);
-text(mixdisarm3, 0);
 areas(mixand4);
 areas(mixset4);
-text(mixarm4, 0);
-text(mixdisarm4, 0);
 areas(mixand5);
 areas(mixset5);
-text(mixarm5, 0);
-text(mixdisarm5, 0);
 bool (debug);                   // MQTT debug logging
 
 table(area, 0);
@@ -328,6 +318,7 @@ num(doorprop);                  // Door timer
 num(doorexit);                  // Door timer
 num(doorpoll);                  // Door timer
 num(doordebounce);              // Door timer
+text(dooriotdeadlk, 0);         // IoT on deadlock
 text(dooriotunlock, 0);         // IoT on unlock
 
 join(device, gpio);

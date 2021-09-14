@@ -176,6 +176,8 @@ static const char *settings(SQL * sqlp, SQL * sqlkeyp, SQL_RES * res, slot_t id)
       const char *t;
       if ((t = sql_colz(res, "dooriotunlock")) && *t)
          j_store_string(door, "iotunlock", t);
+      if ((t = sql_colz(res, "dooriotdeadlk")) && *t)
+         j_store_string(door, "iotdeadlk", t);
    }
    j_t area = j_store_object(j, "area");
    addarea(area, "fault", sql_colz(res, "areafault"), 0);
@@ -389,12 +391,6 @@ static void addsitedata(SQL * sqlp, j_t j, SQL_RES * site, const char *deviceid,
          sprintf(temp, "mixset%d", s + 1);
          if ((v = sql_colz(site, temp)) && *v)
             addarea(j, "set", v, 0);
-         sprintf(temp, "mixarm%d", s + 1);
-         if ((v = sql_colz(site, temp)) && *v)
-            j_store_string(j, "arm", v);
-         sprintf(temp, "mixdisarm%d", s + 1);
-         if ((v = sql_colz(site, temp)) && *v)
-            j_store_string(j, "disarm", v);
       }
    }
    // Standard wifi settings
