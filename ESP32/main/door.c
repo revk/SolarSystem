@@ -644,6 +644,12 @@ static void task(void *pvParameters)
                      jo_int(j, "timeout", (lock[l].timeout - now) / 1000);
                   revk_state_clients(l ? "deadlock" : "lock", &j, debug | (iotstatedoor << 1));
                }
+               if (last != lock[l].state && (lock[l].state == LOCK_FORCED))
+               {
+                  jo_t j = jo_make(NULL);
+                  jo_string(j, "lock", l ? "deadlock" : "lock");
+                  revk_event_clients("force", &j, debug | (iotstatedoor << 1));
+               }
             }
          }
          static int64_t doortimeout = 0;
@@ -790,15 +796,7 @@ static void task(void *pvParameters)
             status(door_fault = "Exit stuck");
          else
             status(door_fault = NULL);
-         // Check tampers
-         if (lock[0].state == LOCK_FORCED)
-            status(door_tamper = "Lock forced");
-         else if (lock[1].state == LOCK_FORCED)
-            status(door_tamper = "Deadlock forced");
-         else if (iopen && ((output_active(OUNLOCK) && lock[0].state == LOCK_LOCKED) || (output_active(OUNLOCK + 1) && lock[1].state == LOCK_LOCKED)))
-            status(door_tamper = "Door forced");
-         else
-            status(door_tamper = NULL);
+         // Note that forced are not logged as tampers, and picked up directly for alarm from open/disengaged inputs showing as access
          // Beep
          if (doorauto >= 2 && (door_tamper || door_fault || doorstate == DOOR_AJAR || doorstate == DOOR_NOTCLOSED))
             output_set(OBEEP, ((now - doortimeout) & (512 * 1024)) ? 1 : 0);
