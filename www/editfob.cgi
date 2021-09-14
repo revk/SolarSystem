@@ -58,7 +58,10 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <td align=right><if mem><output name=mem></if></td>
 <td><output name=expires></td>
 <td><output name=fobname></td>
-<td><if not N=1><output name=N 0=No> AIDs</if><if N=1><sql table=site where="site=$site"><output name=sitename></sql>: <output name=aidname> (<output name=accessname>)</if></td>
+<td>
+<if not N=1><output name=N 0=No> AIDs</if><if N=1><sql table=site where="site=$site"><output name=sitename></sql>: <output name=aidname> (<output name=accessname>)</if>
+<if blocked><b>Blocked</b></if>
+</td>
 </tr>
 </sql>
 </table>
