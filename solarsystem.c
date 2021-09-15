@@ -183,12 +183,10 @@ static const char *settings(SQL * sqlp, SQL * sqlkeyp, SQL_RES * res, slot_t id)
    }
    j_t area = j_store_object(j, "area");
    addarea(area, "fault", sql_colz(res, "areafault"), 0);
-   addarea(area, "tamper", sql_colz(res, "areatamper"), 0);
    addarea(area, "enter", sql_colz(res, "areaenter"), 0);
    addarea(area, "arm", sql_colz(res, "areaarm"), 0);
    addarea(area, "strongarm", sql_colz(res, "areastrongarm"), 0);
    addarea(area, "disarm", sql_colz(res, "areadisarm"), 0);
-   addarea(area, "bell", sql_colz(res, "areabell"), 0);
    addarea(area, "led", sql_colz(res, "arealed"), 0);
    addarea(area, "keypad", sql_colz(res, "areakeypad"), 0);
    addarea(area, "deadlock", sql_colz(res, "areadeadlock"), 0);
@@ -232,9 +230,6 @@ static const char *settings(SQL * sqlp, SQL * sqlkeyp, SQL_RES * res, slot_t id)
       if (sql_fetch_row(p))
       {
          const char *v;
-#define set(n) {const char *v=sql_colz(p,#n);if(!*v||!strcmp(v,"-"))j_store_string(j,#n,""); else j_store_literal(j,#n,v);}
-         set(tamper);
-#undef set
          j_t o = j_store_object(j, "keypad");
 #define set(h,c) {const char *v=sql_colz(p,#h#c);if(v&&strcmp(v,"-"))j_store_literal(o,#c,v);}
          set(keypad, tx);
@@ -250,8 +245,6 @@ static const char *settings(SQL * sqlp, SQL * sqlkeyp, SQL_RES * res, slot_t id)
          set(nfc, red);
          set(nfc, amber);
          set(nfc, green);
-         set(nfc, tamper);
-         set(nfc, bell);
          set(nfc, card);
 #undef set
          j_t blink = j_store_array(j, "blink");
@@ -1282,7 +1275,7 @@ int main(int argc, const char *argv[])
          }
          if (prefix && !strcmp(prefix, "state"))
          {                      // State
-            if (suffix && (!strcmp(suffix, "fault") || !strcmp(suffix, "tamper")) && checkdevice())
+            if (suffix && !strcmp(suffix, "fault") && checkdevice())
             {
                char *buf;
                size_t len;

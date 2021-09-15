@@ -289,9 +289,7 @@ areas(areastrongarm);           // Areas allowed arm by fob
 areas(areadisarm);              // Areas allowed disarm by fob
 areas(areawarning);             // Areas set by warning
 areas(areafault);               // Areas set by fault
-areas(areatamper);              // Areas set by tamper
-areas(areabell);                // Areas for door bell input
-areas(areadeadlock);            // Areas for door bell input
+areas(areadeadlock);            // Areas for deadlock input
 areas(arealed);                 // LED area
 areas(areakeypad);              // Keypad area
 datetime(online);               // When online, if online
@@ -308,7 +306,6 @@ ip(address);                    // IP address when last online
 num(id);                        // Instance for communications when on line
 datetime(poke);                 // Poke settings
 index(poke);
-text(tamper, 0);                // Latest tamper state
 text(fault, 0);                 // Latest fault state
 num(doorunlock);                // Door timer
 num(doorlock);                  // Door timer
@@ -349,7 +346,6 @@ num(flash);                     // Flash size
 
 table(pcb, 0);                  // PCB type
 text(pcbname, 0);
-gpio(tamper);                   // Fixed GPIOs
 gpio(leda);
 gpio(ledr);
 gpio(ledg);
@@ -364,8 +360,6 @@ gpio(nfcpower);
 gpionfc(nfcred);                // NFC GPIO (actually NFC PCB specific, but set here, so PCB for PCB+NFC combination)
 gpionfc(nfcamber);
 gpionfc(nfcgreen);
-gpionfc(nfctamper);
-gpionfc(nfcbell);
 gpionfc(nfccard);
 
 table(gpio, 0);

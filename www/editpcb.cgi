@@ -109,7 +109,6 @@ xmlsql -C -d "$DB" head.html - foot.html << END
 <sql table=pcb key=pcb>
 <table>
 <tr><td>Name</td><td><input name=pcbname size=40 autofocus></td></tr>
-<tr><td><select name=tamper>$GPIONUMPICK</select></td><td>GPIO Controller Tamper</td></tr>
 <if ledr=='-' ledg=='-' ledb=='-'><tr><td><select name=leda>$GPIONUMPICK</select></td><td>GPIO Controller LED (amber)</td></tr></if>
 <if leda=='-'><tr><td><select name=ledr>$GPIONUMPICK</select></td><td>GPIO Controller LED (red)</td></tr></if>
 <if leda=='-'><tr><td><select name=ledg>$GPIONUMPICK</select></td><td>GPIO Controller LED (green)</td></tr></if>
@@ -128,8 +127,6 @@ xmlsql -C -d "$DB" head.html - foot.html << END
 <tr><td><select name=nfcamber>$GPIONFCPICK</select></td><td>PN532 NFC amber LED</td></tr>
 <tr><td><select name=nfcgreen>$GPIONFCPICK</select></td><td>PN532 NFC green LED</td></tr>
 <tr><td><select name=nfccard>$GPIONFCPICK</select></td><td>PN532 NFC LED to blink for card</td></tr>
-<tr><td><select name=nfctamper>$GPIONFCPICK</select></td><td>PN532 NFC Tamper button</td></tr>
-<tr><td><select name=nfcbell>$GPIONFCPICK</select></td><td>PN532 NFC Bell input</td></tr>
 </if>
 <sql table=gpio where="pcb=\$pcb" order=io,inittype,initname><set initinvert\$gpio="\$initinvert">
 <tr><td><input name=gpio type=hidden><select name=pin>$GPIONUMPICK</select></td><td><input name="initinvert\$gpio" type=checkbox value=true title="Invert"> <input name="value0\$gpio" size=5 value="\$value0" placeholder="0 name"><input name="value1\$gpio" size=5 value="\$value1" placeholder="1 name"> <select name=io>$GPIOIOPICK</select><select name=inittype>$GPIOTYPEPICK</select> <input name="initname\$gpio" value="\$initname" size=10> <input name="inithold\$gpio" size=3 value="\$inithold">ms <input name="initpulse\$gpio" size=5 value="\$initpulse">s/10</td></tr></td>
