@@ -77,23 +77,23 @@ Root:<select name=root><option value=''>None</option><sql table=device where="si
 <tr><td>SMS From</td><td><input name=smsfrom size=10 maxlength=10> (if carrier allows)</td></tr>
 <tr><td colspan=2><hr></td></tr>
 <tr><td colspan=2>Event hooks</td></tr>
-<tr><td>Offline event</td><td><input name=hookoffline size=40 placeholder="https://... / email / number"></td></tr>
-<tr><td>Fob event</td><td><input name=hookfob size=40 placeholder="https://... / email / number"></td></tr>
-<tr><td>Fob deny event</td><td><input name=hookfobdeny size=40 placeholder="https://... / email / number"></td></tr>
-<tr><td>Alarm event</td><td><input name=hookalarm size=40 placeholder="https://... / email / number"></td></tr>
-<tr><td>Fire event</td><td><input name=hookfire size=40 placeholder="https://... / email / number"></td></tr>
-<tr><td>Panic event</td><td><input name=hookpanic size=40 placeholder="https://... / email / number"></td></tr>
-<tr><td>Warning event</td><td><input name=hookwarning size=40 placeholder="https://... / email / number"></td></tr>
-<tr><td>Tamper event</td><td><input name=hooktamper size=40 placeholder="https://... / email / number"></td></tr>
-<tr><td>Fault event</td><td><input name=hookfault size=40 placeholder="https://... / email / number"></td></tr>
-<tr><td>Trigger event</td><td><input name=hooktrigger size=40 placeholder="https://... / email / number"></td></tr>
-<tr><td>Inhibit event</td><td><input name=hookinhibit size=40 placeholder="https://... / email / number"></td></tr>
-<tr><td>Arm event</td><td><input name=hookarm size=40 placeholder="https://... / email / number"></td></tr>
-<tr><td>Strong arm event</td><td><input name=hookstrongarm size=40 placeholder="https://... / email / number"></td></tr>
-<tr><td>Disarm event</td><td><input name=hookdisarm size=40 placeholder="https://... / email / number"></td></tr>
-<tr><td>Arm fail event</td><td><input name=hookarmfail size=40 placeholder="https://... / email / number"></td></tr>
-<tr><td>Open event</td><td><input name=hookopen size=40 placeholder="https://... / email / number"></td></tr>
-<tr><td>Not open event</td><td><input name=hooknotopen size=40 placeholder="https://... / email / number"></td></tr>
+<tr><td>Offline event</td><td><input name=hookoffline size=80 placeholder="https://... / email / number"></td></tr>
+<tr><td>Fob event</td><td><input name=hookfob size=80 placeholder="https://... / email / number"></td></tr>
+<tr><td>Fob deny event</td><td><input name=hookfobdeny size=80 placeholder="https://... / email / number"></td></tr>
+<tr><td>Alarm event</td><td><input name=hookalarm size=80 placeholder="https://... / email / number"></td></tr>
+<tr><td>Fire event</td><td><input name=hookfire size=80 placeholder="https://... / email / number"></td></tr>
+<tr><td>Panic event</td><td><input name=hookpanic size=80 placeholder="https://... / email / number"></td></tr>
+<tr><td>Warning event</td><td><input name=hookwarning size=80 placeholder="https://... / email / number"></td></tr>
+<tr><td>Tamper event</td><td><input name=hooktamper size=80 placeholder="https://... / email / number"></td></tr>
+<tr><td>Fault event</td><td><input name=hookfault size=80 placeholder="https://... / email / number"></td></tr>
+<tr><td>Trigger event</td><td><input name=hooktrigger size=80 placeholder="https://... / email / number"></td></tr>
+<tr><td>Inhibit event</td><td><input name=hookinhibit size=80 placeholder="https://... / email / number"></td></tr>
+<tr><td>Arm event</td><td><input name=hookarm size=80 placeholder="https://... / email / number"></td></tr>
+<tr><td>Strong arm event</td><td><input name=hookstrongarm size=80 placeholder="https://... / email / number"></td></tr>
+<tr><td>Disarm event</td><td><input name=hookdisarm size=80 placeholder="https://... / email / number"></td></tr>
+<tr><td>Arm fail event</td><td><input name=hookarmfail size=80 placeholder="https://... / email / number"></td></tr>
+<tr><td>Open event</td><td><input name=hookopen size=80 placeholder="https://... / email / number"></td></tr>
+<tr><td>Not open event</td><td><input name=hooknotopen size=80 placeholder="https://... / email / number"></td></tr>
 </table>
 <p>Area settings</p>
 <table border=1>
