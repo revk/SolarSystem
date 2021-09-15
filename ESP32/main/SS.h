@@ -19,6 +19,8 @@ extern uint8_t ioteventarm;
 extern uint8_t iotkeypad;
 extern uint8_t debug;
 
+extern uint16_t logical_gpio;	// Logical GPIO (from GPIO 48, covers NFC, keypad...)
+
 #define	MAX_PORT	40
 const char *app_callback(int client, const char *prefix, const char *target, const char *suffix, jo_t j);
 const char *port_check(int p, const char *module, int i);       // Check port is OK, NULL if OK, else error

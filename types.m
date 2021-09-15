@@ -13,11 +13,15 @@
 #endif
 
 #ifndef n
-#define n(g)
+#define n(g,i)
 #endif
 
 #ifndef io
 #define io(g,t)
+#endif
+
+#ifndef x
+#define x(g,t)
 #endif
 
 i(I,Input);
@@ -60,17 +64,20 @@ g(35);
 g(36);
 g(39);
 
-n(30);
-n(31);
-n(32);
-n(33);
-n(34);
-n(35);
-n(71);
-n(72);
+n(30,48);
+n(31,49);
+n(32,50);
+n(33,51);
+n(34,52);
+n(35,53);
+n(71,54);
+n(72,55);
+
+x(Keytamper,56)
 
 #undef i
 #undef o
 #undef g
 #undef n
 #undef io
+#undef x

@@ -81,6 +81,8 @@ settings
 #define PORT_INV 0x40
 static int8_t reason = -1;      // Restart reason
 
+uint16_t logical_gpio = 0;      // Logical GPIO (from GPIO 48, covers NFC, keypad...)
+
 const char *controller_fault = NULL;
 const char *controller_tamper = NULL;
 

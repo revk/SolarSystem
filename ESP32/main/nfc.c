@@ -208,8 +208,10 @@ static void task(void *pvParameters)
          {                      // Connected, get port
             p3 = pn532_read_GPIO(pn532);
             if (p3 >= 0)
+            {
+               logical_gpio = ((logical_gpio & ~0xFF) | p3);
                retry = 0;
-            else
+            } else
             {
                nextio = now;    // Try again right away
                ESP_LOGD(TAG, "Retry %d", retry + 1);
@@ -331,7 +333,7 @@ static void task(void *pvParameters)
                ledpos += 2;
             }
             if (state_prearm && (ledpos & 1) && nfcred)
-               newled ^= (1 << gpio_mask(nfcred)); // Extra blinky when prearm... Not a nice bodge
+               newled ^= (1 << gpio_mask(nfcred));      // Extra blinky when prearm... Not a nice bodge
             if (newled != ledlast)
                pn532_write_GPIO(pn532, (ledlast = newled) ^ nfcinvert);
          }

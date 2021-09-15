@@ -72,32 +72,52 @@ void sstypes(const char *fn)
    start("GPIONUMLIST");
 #define g(g) list(#g);
 #include "types.m"
+#define n(g,t) list(#t);
+#include "types.m"
+#define x(g,t) list(#t);
+#include "types.m"
    start("GPIONUMOUT");
    out("-", "Unused");
 #define g(g) out(#g,#g);
 #include "types.m"
+#define n(g,t) out(#t,"NFC"#g);
+#include "types.m"
+#define x(g,t) out(#t,#g);
+#include "types.m"
 #define g(g) out("-"#g,#g" (active low)");
+#include "types.m"
+#define n(g,t) out(#t,"NFC"#g" (active low)");
+#include "types.m"
+#define x(g,t) out(#t,#g" (active low)");
 #include "types.m"
    start("GPIONUMPICK");
    pick("-", "-- GPIO --");
 #define g(g) pick(#g,#g);
 #include "types.m"
+#define n(g,t) pick(#t,"NFC"#g);
+#include "types.m"
+#define x(g,t) pick(#t,#g);
+#include "types.m"
 #define g(g) pick("-"#g,#g" (active low)");
 #include "types.m"
+#define n(g,t) pick(#t,"NFC"#g" (active low)");
+#include "types.m"
+#define x(g,t) pick(#t,#g" (active low)");
+#include "types.m"
    start("GPIONFCLIST");
-#define n(g) list(#g);
+#define n(g,t) list(#g);
 #include "types.m"
    start("GPIONFCOUT");
    out("-", "Unused");
-#define n(g) pick(#g,#g);
+#define n(g,t) pick(#g,#g);
 #include "types.m"
-#define n(g) pick("-"#g,#g" (active low)");
+#define n(g,t) pick("-"#g,#g" (active low)");
 #include "types.m"
    start("GPIONFCPICK");
    pick("-", "-- NFC GPIO --");
-#define n(g) pick(#g,#g);
+#define n(g,t) pick(#g,#g);
 #include "types.m"
-#define n(g) pick("-"#g,#g" (active low)");
+#define n(g,t) pick("-"#g,#g" (active low)");
 #include "types.m"
    start("GPIOIOLIST");
 #define io(g,t) list(#g);

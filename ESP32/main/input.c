@@ -88,7 +88,12 @@ static void task(void *pvParameters)
       for (i = 0; i < MAXINPUT; i++)
          if (input[i])
          {
-            int v = gpio_get_level(port_mask(input[i]));
+            int p = port_mask(input[i]),
+                v;
+            if (p >= 48)
+               v = ((logical_gpio >> (p - 48)) & 1);    // Logical GPIO, e.g. NFC ports, etc.
+            else
+               v = gpio_get_level(port_mask(input[i]));
             if ((1ULL << i) & input_invert)
                v = 1 - v;
             if (v != ((input_raw >> i) & 1))
