@@ -49,7 +49,8 @@ uint8_t afile[256];             // Access file saved
   b(doorcatch); \
   ta(fallback,10); \
   ta(blacklist,10); \
-  s(dooriotdeadlk)	\
+  s(dooriotdead)	\
+  s(dooriotundead)	\
   s(dooriotunlock)	\
 
 #define u32(n,d) uint32_t n;
@@ -57,7 +58,6 @@ uint8_t afile[256];             // Access file saved
 #define u8(n,d) uint8_t n;
 #define b(n) uint8_t n;
 #define ta(n,c) const char*n[c]={};
-#define area(n) area_t n;
 #define s(n) char *n;
 settings
 #undef ta
@@ -65,7 +65,6 @@ settings
 #undef u16
 #undef u8
 #undef b
-#undef area
 #undef s
 #define lock_states \
   l(LOCKING) \
@@ -705,8 +704,10 @@ static void task(void *pvParameters)
          {                      // State change - iot and set timeout
             if (doorstate == DOOR_UNLOCKED && *dooriotunlock)
                revk_mqtt_send_str_clients(dooriotunlock, 0, 2);
-            if (doorstate == DOOR_DEADLOCKED && *dooriotdeadlk)
-               revk_mqtt_send_str_clients(dooriotdeadlk, 0, 2);
+            if (doorstate == DOOR_DEADLOCKED && *dooriotdead)
+               revk_mqtt_send_str_clients(dooriotdead, 0, 2);
+            if (lastdoorstate == DOOR_DEADLOCKED && *dooriotundead)
+               revk_mqtt_send_str_clients(dooriotundead, 0, 2);
             if (doorstate == DOOR_OPEN)
                doortimeout = now + (int64_t) doorprop *1000LL;
             else if (doorstate == DOOR_CLOSED)
@@ -832,8 +833,7 @@ void door_boot(void)
 #define b(n) revk_register(#n,0,sizeof(n),&n,NULL,SETTING_BOOLEAN);
 #define ta(n,c) revk_register(#n,c,0,&n,NULL,SETTING_LIVE);
 #define d(n,l) revk_register("led"#n,0,0,&doorled[DOOR_##n],#l,0);
-#define area(n) revk_register(#n,0,sizeof(n),&n,AREAS,SETTING_BITFIELD);
-#define s(n) revk_register(#n,0,0,&n,NULL,0);
+#define s(n) revk_register(#n,0,0,&n,NULL,SETTING_LIVE);
    settings door_states
 #undef ta
 #undef u32
@@ -841,7 +841,6 @@ void door_boot(void)
 #undef u8
 #undef b
 #undef d
-#undef area
 #undef s
        // Initial states before output starts
    if (input_get(IOPEN))

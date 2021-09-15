@@ -176,8 +176,10 @@ static const char *settings(SQL * sqlp, SQL * sqlkeyp, SQL_RES * res, slot_t id)
       const char *t;
       if ((t = sql_colz(res, "dooriotunlock")) && *t)
          j_store_string(door, "iotunlock", t);
-      if ((t = sql_colz(res, "dooriotdeadlk")) && *t)
-         j_store_string(door, "iotdeadlk", t);
+      if ((t = sql_colz(res, "dooriotdead")) && *t)
+         j_store_string(door, "iotdead", t);
+      if ((t = sql_colz(res, "dooriotundead")) && *t)
+         j_store_string(door, "iotundead", t);
    }
    j_t area = j_store_object(j, "area");
    addarea(area, "fault", sql_colz(res, "areafault"), 0);

@@ -103,7 +103,7 @@ if($?devicename) then # save
 	if(! $?iotstatetamper) setenv iotstatetamper false
 	if(! $?iotkeypad) setenv iotkeypad false
 	if(! $?ioteventfob) setenv ioteventfob false
-	setenv allow "devicename areawarning areafault areatamper areaenter areastrongarm areadeadlock areaarm areadisarm areabell arealed areakeypad nfc rgb nfcadmin door doorexitarm doorexitdisarm aid site iotstatedoor iotstateinput iotstateoutput iotstatefault iotstatewarning iotstatetamper ioteventfob iotkeypad doorunlock doorlock dooropen doorclose doorprop doorexit keypadidle keypad pcb dooriotunlock dooriotdeadlk outofservice doorsilent doordebug doorcatch"
+	setenv allow "devicename areawarning areafault areatamper areaenter areastrongarm areadeadlock areaarm areadisarm areabell arealed areakeypad nfc rgb nfcadmin door doorexitarm doorexitdisarm aid site iotstatedoor iotstateinput iotstateoutput iotstatefault iotstatewarning iotstatetamper ioteventfob iotkeypad doorunlock doorlock dooropen doorclose doorprop doorexit keypadidle keypad pcb dooriotunlock dooriotdead dooriotundead outofservice doorsilent doordebug doorcatch"
 	if("$USER_ADMIN" == "true") setenv allow "$allow nfctrusted"
 	sqlwrite -qon "$DB" device $allow
 	sql "$DB" 'UPDATE device SET poke=NOW() WHERE site=$site'
@@ -199,7 +199,8 @@ xmlsql -C -d "$DB" head.html - foot.html << END
 <if door=true><tr><td><input type=checkbox id=doorexitarm name=doorexitarm value=true></td><td colspan=2><label for=doorexitarm>Door exit button arm on hold</label></td></tr></if>
 <if door=true><tr><td><input type=checkbox id=doorsilent name=doorsilent value=true></td><td colspan=2><label for=doorsilent>Door silence working (no beep)</label></td></tr></if>
 <if door=true><tr><td><input type=checkbox id=doorcatch name=doorcatch value=true></td><td colspan=2><label for=doorcatch>Door catch mode (re-lock on opening)</label></td></tr></if>
-<if door=true><tr><td>IoT on deadlock</td><td colspan=2><input name=dooriotdeadlk></td></tr></if>
+<if door=true><tr><td>IoT on deadlock</td><td colspan=2><input name=dooriotdead></td></tr></if>
+<if door=true><tr><td>IoT on un-deadlock</td><td colspan=2><input name=dooriotundead></td></tr></if>
 <if door=true><tr><td>IoT on unlock</td><td colspan=2><input name=dooriotunlock></td></tr></if>
 <if nfc=true><tr><td><input type=checkbox id=nfcadmin name=nfcadmin value=true></td><td colspan=2><label for=nfcadmin>Admin NFC reader</label></td></tr></if>
 <if USER_ADMIN=true nfc=true><tr><td><input type=checkbox id=nfctrusted name=nfctrusted value=true></td><td colspan=2><label for=nfctrusted>Trusted NFC reader</label></td></tr></if>
