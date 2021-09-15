@@ -124,11 +124,21 @@ void notify(SQL * sqlp, SQL_RES * res, const char *target, j_t j)
             sql_free_result(a);
             areas++;
          }
+      areas = j_get(j, "also");
+      if (areas)
+         while (*areas)
+         {
+            SQL_RES *a = sql_safe_query_store_free(sqlp, sql_printf("SELECT * FROM `area` WHERE `site`=%d AND `tag`=%#c", site, *areas));
+            if (sql_fetch_row(a))
+               fprintf(f, "Also:\t%s\n", sql_colz(a, "areaname"));
+            sql_free_result(a);
+            areas++;
+         }
       j_t e;
       for (e = j_first(j); e; e = j_next(e))
       {
          const char *tag = j_name(e);
-         if (strcmp(tag, "event") && strcmp(tag, "node") && strcmp(tag, "areas") && strcmp(tag, "ts"))
+         if (strcmp(tag, "event") && strcmp(tag, "node") && strcmp(tag, "areas") && strcmp(tag, "ts") && strcmp(tag, "also"))
             fprintf(f, "%s:\t%s\n", tag, j_val(e));
       }
       return t;
