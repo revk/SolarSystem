@@ -184,25 +184,28 @@ static void status_report(int force)
 // External
 const char *port_check(int p, const char *module, int in)
 {                               // Check port is OK
-   if (p < 0 || p >= MAX_PORT || !GPIO_IS_VALID_GPIO(p))
+   if (!in || p < LOGIC_PORT)
    {
-      jo_t j = jo_object_alloc();
-      jo_string(j, "description", "Port not valid");
-      jo_string(j, "module", module);
-      jo_int(j, "port", p);
-      revk_error_clients("port", &j, 1);
-      if (p < 0 || p >= MAX_PORT)
-         return "Bad GPIO port number";
-      return "Invalid GPIO port";
-   }
-   if (!in && !GPIO_IS_VALID_OUTPUT_GPIO(p))
-   {
-      jo_t j = jo_object_alloc();
-      jo_string(j, "description", "Port not valid for output");
-      jo_string(j, "module", module);
-      jo_int(j, "port", p);
-      revk_error_clients("port", &j, 1);
-      return "Bad GPIO for output";
+      if (p < 0 || p >= MAX_PORT || !GPIO_IS_VALID_GPIO(p))
+      {
+         jo_t j = jo_object_alloc();
+         jo_string(j, "description", "Port not valid");
+         jo_string(j, "module", module);
+         jo_int(j, "port", p);
+         revk_error_clients("port", &j, 1);
+         if (p < 0 || p >= MAX_PORT)
+            return "Bad GPIO port number";
+         return "Invalid GPIO port";
+      }
+      if (!in && !GPIO_IS_VALID_OUTPUT_GPIO(p))
+      {
+         jo_t j = jo_object_alloc();
+         jo_string(j, "description", "Port not valid for output");
+         jo_string(j, "module", module);
+         jo_int(j, "port", p);
+         revk_error_clients("port", &j, 1);
+         return "Bad GPIO for output";
+      }
    }
    if (port_inuse[p])
    {

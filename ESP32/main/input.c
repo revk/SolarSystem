@@ -90,8 +90,8 @@ static void task(void *pvParameters)
          {
             int p = port_mask(input[i]),
                 v;
-            if (p >= 48)
-               v = ((logical_gpio >> (p - 48)) & 1);    // Logical GPIO, e.g. NFC ports, etc.
+            if (p >= LOGIC_PORT)
+               v = ((logical_gpio >> (p - LOGIC_PORT)) & 1);    // Logical GPIO, e.g. NFC ports, etc.
             else
                v = gpio_get_level(port_mask(input[i]));
             if ((1ULL << i) & input_invert)
