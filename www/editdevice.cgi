@@ -103,7 +103,7 @@ if($?devicename) then # save
 	if(! $?iotstatetamper) setenv iotstatetamper false
 	if(! $?iotkeypad) setenv iotkeypad false
 	if(! $?ioteventfob) setenv ioteventfob false
-	setenv allow "devicename areawarning areafault areatamper areaenter areastrongarm areadeadlock areaarm areadisarm areabell arealed areakeypad nfc rgb nfcadmin door doorexitarm doorexitdisarm aid site iotstatedoor iotstateinput iotstateoutput iotstatefault iotstatewarning iotstatetamper ioteventfob iotkeypad doorunlock doorlock dooropen doorclose doorprop doorexit keypadidle keypad pcb dooriotunlock dooriotdead dooriotundead outofservice doorsilent doordebug doorcatch"
+	setenv allow "devicename areawarning areafault areaenter areastrongarm areadeadlock areaarm areadisarm areabell arealed areakeypad nfc rgb nfcadmin door doorexitarm doorexitdisarm aid site iotstatedoor iotstateinput iotstateoutput iotstatefault iotstatewarning iotstatetamper ioteventfob iotkeypad doorunlock doorlock dooropen doorclose doorprop doorexit keypadidle keypad pcb dooriotunlock dooriotdead dooriotundead outofservice doorsilent doordebug doorcatch"
 	if("$USER_ADMIN" == "true") setenv allow "$allow nfctrusted"
 	sqlwrite -qon "$DB" device $allow
 	sql "$DB" 'UPDATE device SET poke=NOW() WHERE site=$site'
@@ -142,13 +142,12 @@ xmlsql -C -d "$DB" head.html - foot.html << END
 <td><if upgrade><if online OR outofservice=false><i style='background:cyan;'>Upgrade <output name=progress 0=Started missing=Scheduled></i><br></if></if><set s="background:red;"><if version="\$V"><set s="background:green;"></if><tt style="\$s"><output name=version></tt></td>
 <td><output name=pcbname></td>
 <td align-right><output name=flash type=mebi>B</td>
-<set s><if not fault="{}" and not areafault=""><set s="background:yellow;"></if><if not tamper="{}" and not areatamper=""><set s="background:red;"></if>
+<set s><if not fault="{}" and not areafault=""><set s="background:yellow;"></if>
 <td style="\$s">
 <if outofservice=true>Out of service</if>
 <if else>
 <if online door=true CANUNLOCK><form style="display:inline;" method=post><input type=hidden name=device><input type=submit name=UNLOCK value="Unlock"></form></if>
 <if door=true>Door </if><if nfc=true>NFC reader </if><if nfcadmin=true> (admin)</if><if nfctrusted=true><b> (trusted)</b></if><br>
-<if not tamper="{}">Tamper:<b><output name=tamper></b><br></if>
 <if not fault="{}">Fault:<b><output name=fault></b><br></if>
 </if>
 </td>
@@ -213,10 +212,10 @@ xmlsql -C -d "$DB" head.html - foot.html << END
 </sql>
 </table>
 <table border=1>
-<set tags="warning fault tamper">
+<set tags="warning fault">
 <if rgb=true><set tags="\$tags led"></if>
 <if keypad=true><set tags="\$tags keypad"></if>
-<if nfc=true><set tags="\$tags deadlock enter arm strongarm disarm bell"></if>
+<if nfc=true><set tags="\$tags deadlock enter arm strongarm disarm"></if>
 <tr><th></th>
 <for SPACE T="\$tags"><th><output name=T></th></for>
 <th>Areas</th>
