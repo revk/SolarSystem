@@ -127,21 +127,22 @@ text(organisationname, 0);
 table(site, 0);                 // Site
 link(organisation);
 text(sitename, 16);
-text(wifissid, 32);              // Site WiFi setting
+text(wifissid, 32);             // Site WiFi setting
 text(wifibssid, 12);            // Site WiFi setting
-text(wifipass, 32);              // Site WiFi setting
+text(wifipass, 32);             // Site WiFi setting
 num(wifichan);                  // Site WiFi setting
-text(iothost, 64);               // IoT host for local MQTT
+text(iothost, 64);              // IoT host for local MQTT
 bool (nomesh);                  // Don't mesh - i.e. where separate devices on-line
 text(meshid, 12);               // Mesh ID (MAC)
 key(meshid, 12);
-text(meshpass, 32);              // Mesh WiFi passphrase
+text(meshpass, 32);             // Mesh WiFi passphrase
 text(meshkey, 32);              // AES key
 bool (meshlr);                  // Mesh is LR
 key(meshkey, 32);
 link2(device, root);            // Preferred root
 text(smsuser, 16);
 text(smspass, 32);
+text(hookoffline, 0);           // Off line devices
 text(hookbearer, 0);            // Bearer for web hooks
 text(hookfob, 0);               // Fob event web hook
 text(hookfobdeny, 0);           // Fob event web hook when deny set
@@ -153,6 +154,12 @@ text(hookwarning, 0);           // Warning event web hook
 text(hookfault, 0);             // Fault event web hook
 text(hooktrigger, 0);           // Trigger event web hook
 text(hookinhibit, 0);           // Inhibit event web hook
+text(hookarm, 0);               // Arm event web hook
+text(hookstrongarm, 0);         // Strongarm event web hook
+text(hookdisarm, 0);            // Disarm event web hook
+text(hookarmfail, 0);               // Arm fail event web hook
+text(hooknotopen, 0);            // Not open event web hook
+text(hookopen, 0);            // Open event web hook
 areas(faulted);                 // Site wide states from mesh
 areas(tampered);
 areas(alarmed);
@@ -163,7 +170,7 @@ areas(alarm);
 num(nodes);                     // Site reported nodes
 num(missing);                   // Site reported nodes missing
 num(armcancel);                 // Pre arm time
-num(armdelay);			// Pre arm delay
+num(armdelay);                  // Pre arm delay
 num(alarmdelay);                // Pre alarm time
 num(alarmhold);                 // Hold alarm state time
 bool (ioteventarm);             // Copy stuff to IoT
@@ -171,10 +178,8 @@ bool (iotstatesystem);          // Copy stuff to IoT
 #define s(state,c) areas(state)
 #include "ESP32/main/states.m"  // Related areas
 text(smsnumber, 20);            // Number to SMS
-text(smsafp1, 20);              // Number to SMS for alarm/fire/panic
-text(smsafp2, 20);              // Number to SMS for alarm/fire/panic
-text(smsafp3, 20);              // Number to SMS for alarm/fire/panic
 text(smsfrom, 10);              // From, where settable by carrier
+text(emailfrom, 0);             // From email
 areas(smsarm);                  // When to SMS
 areas(smsdisarm);
 areas(smsarmfail);
@@ -315,15 +320,15 @@ num(doorprop);                  // Door timer
 num(doorexit);                  // Door timer
 num(doorpoll);                  // Door timer
 num(doordebounce);              // Door timer
-text(dooriotdead, 64);         // IoT on deadlock
-text(dooriotundead, 64);         // IoT on undeadlock
-text(dooriotunlock, 64);         // IoT on unlock
+text(dooriotdead, 64);          // IoT on deadlock
+text(dooriotundead, 64);        // IoT on undeadlock
+text(dooriotunlock, 64);        // IoT on unlock
 
 join(device, gpio);
 index(device);
 gpiotype(type);                 // Pin Usage (in/out/power/exit/etc)
 bool (invert);                  // Invert normal polarity for pin
-text(name, 16);                  // Port name, default to pin name
+text(name, 16);                 // Port name, default to pin name
 num(hold);                      // Port hold time
 num(pulse);                     // Port output time
 #define i(state,c) areas(state)
@@ -368,7 +373,7 @@ gpio(pin);
 unique(pcb, gpio);
 gpiopcb(io);
 gpiotype(inittype);
-text(initname, 16);              // Default port pin name
+text(initname, 16);             // Default port pin name
 num(inithold);                  // Default port hold time
 num(initpulse);                 // Default port pulse time
 bool (initinvert);              // Default port invert setting

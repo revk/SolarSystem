@@ -34,7 +34,7 @@ if($?sitename) then
 	if(! $?meshlr) setenv meshlr false
 	if(! $?debug) setenv debug false
 	if("$root" == "") unsetenv root
-	sqlwrite -qon "$DB" site sitename wifissid wifipass wifichan iothost nomesh smsuser smspass armcancel armdelay alarmdelay alarmhold debug iotstatesystem ioteventarm smsarm smsarmfail smsdisarm smsalarm smspanic smsfire engineer smsnumber smsafp1 smsafp2 smsafp3 smsfrom hookbearer hookfob hookalarm hookfire hookpanic hooktrigger hookinhibit hookfobdeny meshlr wifibssid root
+	sqlwrite -qon "$DB" site sitename wifissid wifipass wifichan iothost nomesh smsuser smspass armcancel armdelay alarmdelay alarmhold debug iotstatesystem ioteventarm smsarm smsarmfail smsdisarm smsalarm smspanic smsfire engineer smsnumber smsfrom hookbearer hookfob hookalarm hookfire hookpanic hooktrigger hookinhibit hookfobdeny meshlr wifibssid root hookoffline emailfrom hookarm hookstrongarm hookdisarm hooknotopen hookopen hookarmfail
 	sql "$DB" 'UPDATE device SET poke=NOW() WHERE site=$site'
 	message --poke
 	redirect /
@@ -63,29 +63,37 @@ Root:<select name=root><option value=''>None</option><sql table=device where="si
 <input type=checkbox id=ioteventarm name=ioteventarm value=true><label for=ioteventarm>arm/trigger/disarm</for>
 </td></tr>
 <tr><td><input type=checkbox id=debug name=debug value=true></td><td><label for=debug>Debug mode (additional logging).</label></td></tr>
-<tr><td>SMS Username</td><td><input name=smsuser size=40></td></tr>
-<tr><td>SMS Password</td><td><input name=smspass size=40></td></tr>
-<tr><td>SMS Target</td><td><input name=smsnumber size=20 maxlength=20> (Send for sms selected areas as listed below)</td></tr>
-<tr><td>SMS Alarm/Fire/Panic</td><td><input name=smsafp1 size=20 maxlength=20> (Sent for any alarm/fire/panic event while on-line)</td></tr>
-<tr><td>SMS Alarm/Fire/Panic</td><td><input name=smsafp2 size=20 maxlength=20></td></tr>
-<tr><td>SMS Alarm/Fire/Panic</td><td><input name=smsafp3 size=20 maxlength=20></td></tr>
-<tr><td>SMS From</td><td><input name=smsfrom size=10 maxlength=10> (if carrier allows)</td></tr>
 <tr><td>Arm-Cancel</td><td><input name=armcancel size=3> seconds (timeout before cancelling arming)</td></tr>
 <tr><td>Arm-Delay</td><td><input name=armdelay size=3> seconds (timeout before arm happens)</td></tr>
 <tr><td>Alarm-Delay</td><td><input name=alarmdelay size=3> seconds (timeout before alarm triggers)</td></tr>
 <tr><td>Alarm-Hold</td><td><input name=alarmhold size=3> seconds (timeout before alarm cancels after last trigger)</td></tr>
-<tr><td colspan=2>Web hooks</td></tr>
-<tr><td>Bearer</td><td><input name=hookbearer size=40 placeholder="To send on hooks"></td></tr>
-<tr><td>Fob event</td><td><input name=hookfob size=40 placeholder="https://..."></td></tr>
-<tr><td>Fob deny event</td><td><input name=hookfobdeny size=40 placeholder="https://..."></td></tr>
-<tr><td>Alarm event</td><td><input name=hookalarm size=40 placeholder="https://..."></td></tr>
-<tr><td>Fire event</td><td><input name=hookfire size=40 placeholder="https://..."></td></tr>
-<tr><td>Panic event</td><td><input name=hookpanic size=40 placeholder="https://..."></td></tr>
-<tr><td>Warning event</td><td><input name=hookwarning size=40 placeholder="https://..."></td></tr>
-<tr><td>Tamper event</td><td><input name=hooktamper size=40 placeholder="https://..."></td></tr>
-<tr><td>Fault event</td><td><input name=hookfault size=40 placeholder="https://..."></td></tr>
-<tr><td>Trigger event</td><td><input name=hooktrigger size=40 placeholder="https://..."></td></tr>
-<tr><td>Inhibit event</td><td><input name=hookinhibit size=40 placeholder="https://..."></td></tr>
+<tr><td>SMS Target</td><td><input name=smsnumber size=20 maxlength=20> (Send for sms selected areas as listed below)</td></tr>
+<tr><td colspan=2><hr></td></tr>
+<tr><td colspan=2>Event hook settings</td></tr>
+<tr><td>Bearer</td><td><input name=hookbearer size=40 placeholder="To send on web hooks"> (for web hooks)</td></tr>
+<tr><td>Email From</td><td><input name=emailfrom size=40> (for email hooks)</td></tr>
+<tr><td>SMS Username</td><td><input name=smsuser size=40> (for sms hooks)</td></tr>
+<tr><td>SMS Password</td><td><input name=smspass size=40></td></tr>
+<tr><td>SMS From</td><td><input name=smsfrom size=10 maxlength=10> (if carrier allows)</td></tr>
+<tr><td colspan=2><hr></td></tr>
+<tr><td colspan=2>Event hooks</td></tr>
+<tr><td>Offline event</td><td><input name=hookoffline size=40 placeholder="https://... / email / number"></td></tr>
+<tr><td>Fob event</td><td><input name=hookfob size=40 placeholder="https://... / email / number"></td></tr>
+<tr><td>Fob deny event</td><td><input name=hookfobdeny size=40 placeholder="https://... / email / number"></td></tr>
+<tr><td>Alarm event</td><td><input name=hookalarm size=40 placeholder="https://... / email / number"></td></tr>
+<tr><td>Fire event</td><td><input name=hookfire size=40 placeholder="https://... / email / number"></td></tr>
+<tr><td>Panic event</td><td><input name=hookpanic size=40 placeholder="https://... / email / number"></td></tr>
+<tr><td>Warning event</td><td><input name=hookwarning size=40 placeholder="https://... / email / number"></td></tr>
+<tr><td>Tamper event</td><td><input name=hooktamper size=40 placeholder="https://... / email / number"></td></tr>
+<tr><td>Fault event</td><td><input name=hookfault size=40 placeholder="https://... / email / number"></td></tr>
+<tr><td>Trigger event</td><td><input name=hooktrigger size=40 placeholder="https://... / email / number"></td></tr>
+<tr><td>Inhibit event</td><td><input name=hookinhibit size=40 placeholder="https://... / email / number"></td></tr>
+<tr><td>Arm event</td><td><input name=hookarm size=40 placeholder="https://... / email / number"></td></tr>
+<tr><td>Strong arm event</td><td><input name=hookstrongarm size=40 placeholder="https://... / email / number"></td></tr>
+<tr><td>Disarm event</td><td><input name=hookdisarm size=40 placeholder="https://... / email / number"></td></tr>
+<tr><td>Arm fail event</td><td><input name=hookarmfail size=40 placeholder="https://... / email / number"></td></tr>
+<tr><td>Open event</td><td><input name=hookopen size=40 placeholder="https://... / email / number"></td></tr>
+<tr><td>Not open event</td><td><input name=hooknotopen size=40 placeholder="https://... / email / number"></td></tr>
 </table>
 <p>Area settings</p>
 <table border=1>
