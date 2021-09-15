@@ -144,9 +144,7 @@ void notify(SQL * sqlp, SQL_RES * res, const char *target, j_t j)
       return t;
    }
    const char *format(FILE * f) {
-      if (event && !strcasecmp(event, "alarm"))
-         return generic(f, "ALARM!");
-      if (event && (!strcasecmp(event, "arm") || !strcasecmp(event, "disarm") || !strcasecmp(event, "strongarm")))
+      if (event && (!strcasecmp(event, "arm") || !strcasecmp(event, "disarm") || !strcasecmp(event, "strongarm") || !strcasecmp(event, "alarm") || !strcasecmp(event, "fire") || !strcasecmp(event, "panic")))
          return generic(f, event);
       j_err(j_write_pretty(j, f));      // Default is simple JSON dump
       return event ? : "";
