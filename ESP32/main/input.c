@@ -4,7 +4,6 @@ static const char TAG[] = "input";
 #include "SS.h"
 #include "input.h"
 const char *input_fault = NULL;
-const char *input_tamper = NULL;
 
 #include <driver/gpio.h>
 

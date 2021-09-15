@@ -15,7 +15,6 @@ static const char __attribute__((unused)) TAG[] = "alarm";
 #endif
 #include "freertos/semphr.h"
 const char *alarm_fault = NULL;
-const char *alarm_tamper = NULL;
 
 // Alarm control
 
@@ -26,8 +25,6 @@ const char *alarm_tamper = NULL;
 
 area_t latch_fault = 0;         // System settings from other modules
 area_t live_fault = 0;          // System settings from other modules
-area_t latch_tamper = 0;        // System settings from other modules
-area_t live_tamper = 0;         // System settings from other modules
 area_t latch_warning = 0;       // System settings from other modules
 area_t live_warning = 0;        // System settings from other modules
 area_t latch_presence = 0;      // System settings from other modules
@@ -394,10 +391,6 @@ const char *mesh_make_report(jo_t j)
    latch = latch_fault;
    latch_fault = 0;
    fault |= latch | live_fault;
-
-   latch = latch_tamper;
-   latch_tamper = 0;
-   tamper |= latch | live_tamper;
 
    latch = latch_presence;
    latch_presence = 0;
@@ -850,8 +843,7 @@ static void task(void *pvParameters)
                if (wasonline != nodes_online)
                {                // Change to mesh
                   wasonline = nodes_online;
-                  alarm_fault = ((nodes_online < meshmax) ? "Missing nodes" : NULL);
-                  status(alarm_tamper = ((nodes_online == 1 && meshmax > 1) ? "Lonely" : NULL));
+                  status(alarm_fault = ((nodes_online == 1 && meshmax > 1) ? "Lonely" : (nodes_online < meshmax) ? "Missing nodes" : NULL));
                }
             }
          }

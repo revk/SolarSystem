@@ -3,7 +3,6 @@
 static const char TAG[] = "keypad";
 #include "SS.h"
 const char *keypad_fault = NULL;
-const char *keypad_tamper = NULL;
 
 #include "galaxybus.h"
 #include <driver/gpio.h>
@@ -389,7 +388,6 @@ static void task(void *pvParameters)
             else if (buf[1] == 0xFE)
             {                   // Idle, no tamper, no key
                logical_gpio &= ~0x100;
-               status(keypad_tamper = NULL);
                if (!ui.keyconfirm)
                {
                   if (lastkey & 0x80)
@@ -407,14 +405,9 @@ static void task(void *pvParameters)
             } else if (cmd == 0x06 && buf[1] == 0xF4 && p >= 3)
             {                   // Status
                if (keypadtamper && (buf[2] & 0x40))
-               {
-                  status(keypad_tamper = "Case open");
                   logical_gpio |= 0x100;
-               } else
-               {
-                  status(keypad_tamper = NULL);
+               else
                   logical_gpio &= ~0x100;
-               }
                if (!ui.keyconfirm)
                {                // Key
                   if (buf[2] == 0x7F)

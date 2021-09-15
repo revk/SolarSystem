@@ -5,7 +5,6 @@ static const char TAG[] = "door";
 #include "alarm.h"
 #include "desfireaes.h"
 const char *door_fault = NULL;
-const char *door_tamper = NULL;
 
 // Autonomous door control
 // Door mode set by door setting
@@ -802,7 +801,7 @@ static void task(void *pvParameters)
             status(door_fault = NULL);
          // Note that forced are not logged as tampers, and picked up directly for alarm from open/disengaged inputs showing as access
          // Beep
-         if (doorauto >= 2 && (door_tamper || door_fault || doorstate == DOOR_AJAR || doorstate == DOOR_NOTCLOSED))
+         if (doorauto >= 2 && (door_fault || doorstate == DOOR_AJAR || doorstate == DOOR_NOTCLOSED))
             output_set(OBEEP, ((now - doortimeout) & (512 * 1024)) ? 1 : 0);
          if (force || doorstate != lastdoorstate)
          {
@@ -817,7 +816,7 @@ static void task(void *pvParameters)
             lastdoorstate = doorstate;
          }
          if (doorauto >= 2)
-            output_set(OERROR, door_tamper || door_fault);
+            output_set(OERROR, door_fault ? 1 : 0);
       }
    }
 }

@@ -84,15 +84,12 @@ static int8_t reason = -1;      // Restart reason
 uint16_t logical_gpio = 0;      // Logical GPIO (from GPIO 48, covers NFC, keypad...)
 
 const char *controller_fault = NULL;
-const char *controller_tamper = NULL;
 
 const char *last_fault = NULL;
-const char *last_tamper = NULL;
 
 static void status_report(int force)
 {                               // Report status change (force is assumed to just be an update of status, not a change)
    int faults = 0;
-   int tampers = 0;
    {                            // Faults
       jo_t j = jo_object_alloc();
 #define m(n) extern const char *n##_fault;if(n##_fault){jo_string(j,#n,n##_fault);faults++;}
@@ -136,46 +133,6 @@ static void status_report(int force)
             else
                live_fault = 0;;
          }
-      }
-      jo_free(&j);              // safe to call even if freed by revk_state
-   }
-   {                            // Tampers
-      jo_t j = jo_object_alloc();
-#define m(n) extern const char *n##_tamper;if(n##_tamper){jo_string(j,#n,n##_tamper);tampers++;}
-      modules m(controller)
-#undef m
-      const char *tamper = jo_rewind(j);
-      if (tamper && (strcmp(tamper ? : "", last_tamper ? : "") || force))
-      {
-         free((void *) last_tamper);
-         last_tamper = strdup(tamper);
-         revk_state_clients("tamper", &j, 1 | (iotstatetamper << 1));
-         if (!force)
-         {
-            latch_presence |= areatamper;       // Change is presence
-            if (tampers)
-               latch_tamper |= (live_tamper = areatamper);
-            else
-               live_tamper = 0;
-            if (areatamper & (state_armed | state_prearm))
-            {
-               jo_t e = jo_make(NULL);
-               jo_lit(e, "tamper", last_tamper);
-               revk_event_clients("trigger", &e, 1 | (ioteventarm << 1));
-            }
-         }
-      }
-      if (tampers && !force)
-      {
-         static area_t was_prearm = 0;
-         area_t trigger = (areatamper & ~state_engineer);
-         if ((trigger & state_prearm) && !(trigger & was_prearm))
-         {
-            jo_t e = jo_make(NULL);
-            jo_lit(e, "tamper", last_tamper);
-            revk_event_clients("inhibit", &e, 1 | (ioteventarm << 1));
-         }
-         was_prearm = state_prearm;
       }
       jo_free(&j);              // safe to call even if freed by revk_state
    }
@@ -271,31 +228,6 @@ void app_main()
    modules;
 #undef m
    // Main loop, if needed
-   if (!tamper)
-      return;                   // Not tamper checking, nothing to do.
-   if (tamper)
-   {
-      port_check(port_mask(tamper), "Tamper", 1);
-      gpio_reset_pin(port_mask(tamper));
-      gpio_set_direction(port_mask(tamper), GPIO_MODE_INPUT);
-      gpio_set_pull_mode(port_mask(tamper), GPIO_PULLUP_ONLY);
-   }
-   while (1)
-   {                            // Tamper
-      if (tamper)
-      {
-         if (gpio_get_level(port_mask(tamper)) ^ ((tamper & PORT_INV) ? 1 : 0))
-         {
-            if (!controller_tamper)
-               status(controller_tamper = "Main board tamper switch");
-         } else
-         {
-            if (controller_tamper)
-               status(controller_tamper = NULL);
-         }
-      }
-      usleep(100000);
-   }
 }
 
 void status(const char *ignored)

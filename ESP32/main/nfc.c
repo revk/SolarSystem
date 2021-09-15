@@ -3,7 +3,6 @@
 static const char TAG[] = "nfc";
 #include "SS.h"
 const char *nfc_fault = NULL;
-const char *nfc_tamper = NULL;
 
 #include "desfireaes.h"
 #include "alarm.h"
@@ -35,8 +34,6 @@ int16_t gpio_mask(uint8_t p)
   gpio(nfcamber) \
   gpio(nfcgreen) \
   gpio(nfccard) \
-  gpio(nfctamper) \
-  gpio(nfcbell) \
   io(nfctx) \
   io(nfcrx) \
   io(nfcpower) \
@@ -260,35 +257,6 @@ static void task(void *pvParameters)
          }
          if (!pn532)
             continue;           // No point doing any more
-         if (p3 >= 0)
-         {                      // Inputs
-            p3 ^= nfcinvert;
-            if (nfctamper)
-            {                   // Check tamper
-               if (p3 & (1 << gpio_mask(nfctamper)))
-                  status(nfc_tamper = "NFC tamper switch");
-               else
-                  status(nfc_tamper = NULL);
-            }
-            if (nfcbell)
-            {
-               static uint8_t bell = 0;
-               if (p3 & (1 << gpio_mask(nfcbell)))
-               {
-                  if (!bell)
-                  {
-                     bell = 1;
-                     if (nfcmqttbell)
-                        revk_mqtt_send_str_clients(nfcmqttbell, 0, 2);
-                     jo_t j = jo_create_alloc();
-                     jo_lit(j, NULL, "true");
-                     revk_event_clients("bell", &j, 1 | (ioteventfob << 1));
-                     bell_latch = 1;
-                  }
-               } else
-                  bell = 0;
-            }
-         }
       }
       // LED
       void blink(char r, char a, char g) {      // Blink an LED
@@ -658,10 +626,6 @@ void nfc_boot(void)
       nfcinvert |= (1 << gpio_mask(nfcgreen));
    if (nfccard & GPIO_INV)
       nfcinvert |= (1 << gpio_mask(nfccard));
-   if (nfctamper & GPIO_INV)
-      nfcinvert |= (1 << gpio_mask(nfctamper));
-   if (nfcbell & GPIO_INV)
-      nfcinvert |= (1 << gpio_mask(nfcbell));
    if (nfcpower)
    {
       // These pins could try to power the nfc when power off
