@@ -126,22 +126,22 @@ text(organisationname, 0);
 
 table(site, 0);                 // Site
 link(organisation);
-text(sitename, 0);
-text(wifissid, 0);              // Site WiFi setting
+text(sitename, 16);
+text(wifissid, 32);              // Site WiFi setting
 text(wifibssid, 12);            // Site WiFi setting
-text(wifipass, 0);              // Site WiFi setting
+text(wifipass, 32);              // Site WiFi setting
 num(wifichan);                  // Site WiFi setting
-text(iothost, 0);               // IoT host for local MQTT
+text(iothost, 64);               // IoT host for local MQTT
 bool (nomesh);                  // Don't mesh - i.e. where separate devices on-line
 text(meshid, 12);               // Mesh ID (MAC)
 key(meshid, 12);
-text(meshpass, 0);              // Mesh WiFi passphrase
+text(meshpass, 32);              // Mesh WiFi passphrase
 text(meshkey, 32);              // AES key
 bool (meshlr);                  // Mesh is LR
 key(meshkey, 32);
 link2(device, root);            // Preferred root
-text(smsuser, 0);
-text(smspass, 0);
+text(smsuser, 16);
+text(smspass, 32);
 text(hookbearer, 0);            // Bearer for web hooks
 text(hookfob, 0);               // Fob event web hook
 text(hookfobdeny, 0);           // Fob event web hook when deny set
@@ -249,7 +249,7 @@ datetime(expires);              // Fixed expiry (local time on server)
 
 table(device, 12);
 link2(device, via);             // Via another device using mesh
-text(devicename, 20);           // Device name
+text(devicename, 16);           // Device name
 text(keypadidle, 16);           // Keypad display name
 link(organisation);             // Yes, can get from site, but useful to reference quickly
 link(site);                     // The site the device is on
@@ -315,15 +315,15 @@ num(doorprop);                  // Door timer
 num(doorexit);                  // Door timer
 num(doorpoll);                  // Door timer
 num(doordebounce);              // Door timer
-text(dooriotdead, 0);         // IoT on deadlock
-text(dooriotundead, 0);         // IoT on undeadlock
-text(dooriotunlock, 0);         // IoT on unlock
+text(dooriotdead, 64);         // IoT on deadlock
+text(dooriotundead, 64);         // IoT on undeadlock
+text(dooriotunlock, 64);         // IoT on unlock
 
 join(device, gpio);
 index(device);
 gpiotype(type);                 // Pin Usage (in/out/power/exit/etc)
 bool (invert);                  // Invert normal polarity for pin
-text(name, 0);                  // Port name, default to pin name
+text(name, 16);                  // Port name, default to pin name
 num(hold);                      // Port hold time
 num(pulse);                     // Port output time
 #define i(state,c) areas(state)
@@ -368,7 +368,7 @@ gpio(pin);
 unique(pcb, gpio);
 gpiopcb(io);
 gpiotype(inittype);
-text(initname, 0);              // Default port pin name
+text(initname, 16);              // Default port pin name
 num(inithold);                  // Default port hold time
 num(initpulse);                 // Default port pulse time
 bool (initinvert);              // Default port invert setting
