@@ -675,7 +675,7 @@ static void mesh_handle_summary(const char *target, jo_t j)
    {
       if (esp_mesh_is_root() && (state_alarm & ~lastalarm))
       {
-         jo_t j = jo_make("System");
+         jo_t j = jo_make("");
          jo_area(j, "areas", state_alarm & ~lastalarm);
          if (smsalarm & (state_alarm & ~lastalarm))
             sms_event("Alarm!", j);
@@ -689,7 +689,7 @@ static void mesh_handle_summary(const char *target, jo_t j)
    {
       if (esp_mesh_is_root() && (state_panic & ~lastpanic))
       {
-         jo_t j = jo_make("System");
+         jo_t j = jo_make("");
          jo_area(j, "areas", state_panic & ~lastpanic);
          if (smspanic & (state_panic & ~lastpanic))
             sms_event("Panic", j);
@@ -704,7 +704,7 @@ static void mesh_handle_summary(const char *target, jo_t j)
    {
       if (esp_mesh_is_root() && (state_fire & ~lastfire))
       {
-         jo_t j = jo_make("System");
+         jo_t j = jo_make("");
          jo_area(j, "areas", state_fire & ~lastfire);
          if (smsfire & (state_fire & ~lastfire))
             sms_event("Fire", j);
@@ -864,7 +864,8 @@ void mesh_handle_event(jo_t j)
 {
    if (!esp_mesh_is_root())
       return;
-   if(jo_next(j)!=JO_STRING)return;
+   if (jo_next(j) != JO_STRING)
+      return;
    // Send event to control
    // TODO remove event header
    // TODO how to know if to send to IoT as well?
