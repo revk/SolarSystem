@@ -166,7 +166,7 @@ static void fobevent(void)
    }
    if (fob.remote)
       jo_bool(j, "remote", 1);
-   revk_event_clients("fob", &j, 1 | (ioteventfob << 1));
+   alarm_event("fob", &j, ioteventfob);
 }
 
 void nfc_retry(void)

@@ -195,7 +195,7 @@ const char *door_prop(const uint8_t * a, const char *why)
    jo_t j = jo_make(NULL);
    if (why)
       jo_string(j, "trigger", why);
-   revk_event_clients("propped", &j, 1 | (iotstatedoor << 1));
+   alarm_event("propped", &j, iotstatedoor);
    doorstate = DOOR_PROPPED;
    return door_access(a);
 }
@@ -647,7 +647,7 @@ static void task(void *pvParameters)
                {
                   jo_t j = jo_make(NULL);
                   jo_string(j, "lock", l ? "deadlock" : "lock");
-                  revk_event_clients("force", &j, debug | (iotstatedoor << 1));
+                  alarm_event("force", &j, iotstatedoor);
                }
             }
          }
@@ -663,7 +663,7 @@ static void task(void *pvParameters)
                {
                   jo_t j = jo_make(NULL);
                   jo_string(j, "trigger", doorwhy);
-                  revk_event_clients("open", &j, 1 | (iotstatedoor << 1));
+                  alarm_event("open", &j, iotstatedoor);
                   doorwhy = NULL;
                }
                if (doorstate != DOOR_UNLOCKING && *dooriotunlock)
@@ -694,7 +694,7 @@ static void task(void *pvParameters)
                if (doorstate == DOOR_NOTCLOSED || doorstate == DOOR_PROPPED)
                {
                   jo_t j = jo_make(NULL);
-                  revk_event_clients("closed", &j, 1 | (iotstatedoor << 1));
+                  alarm_event("closed", &j, iotstatedoor);
                }
                doorstate = ((doorstate == DOOR_OPEN || doorstate == DOOR_NOTCLOSED || doorstate == DOOR_PROPPED || doorstate == DOOR_CLOSED) ? DOOR_CLOSED : DOOR_UNLOCKED);
             }
@@ -726,14 +726,14 @@ static void task(void *pvParameters)
                doorstate = DOOR_NOTCLOSED;
                doortimeout = 0;
                jo_t j = jo_make(NULL);
-               revk_event_clients("notclosed", &j, 1 | (iotstatedoor << 1));
+               alarm_event("notclosed", &j, iotstatedoor);
             } else if (doorstate == DOOR_UNLOCKED || doorstate == DOOR_CLOSED)
             {                   // Time to lock the door
                if (doorstate == DOOR_UNLOCKED && doorwhy)
                {                // Only if doorwhy set, as can spam if locking failing
                   jo_t j = jo_make(NULL);
                   jo_string(j, "trigger", doorwhy);
-                  revk_event_clients("notopen", &j, 1 | (iotstatedoor << 1));
+                  alarm_event("notopen", &j, iotstatedoor);
                }
                door_lock(NULL, NULL);
                doorwhy = NULL;
@@ -763,7 +763,7 @@ static void task(void *pvParameters)
                   } else
                      jo_bool(j, "unlockok", 1);
                }
-               revk_event_clients("button", &j, 1 | (iotstatedoor << 1));
+               alarm_event("button", &j, iotstatedoor);
             } else if (doorexitarm && exit && exit < now)
             {                   // Held (not applicable if not arming allowed, so leaves to do exit stuck fault)
                exit = -1;       // Don't report stuck - this is max value as unsigned
@@ -782,7 +782,7 @@ static void task(void *pvParameters)
                      door_lock(NULL, "button");
                   }
                }
-               revk_event_clients("button", &j, 1 | (iotstatedoor << 1));
+               alarm_event("button", &j, iotstatedoor);
             }
          } else
             exit = 0;

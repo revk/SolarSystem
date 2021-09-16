@@ -159,7 +159,7 @@ void alarm_arm(area_t a, jo_t * jp)
       jo_area(j, "also", a2 & ~a);
    if (smsarm & a2)
       sms_event("Armed", j);
-   revk_event_clients("arm", &j, 1 | (ioteventarm << 1));
+   alarm_event("arm", &j, ioteventarm);
 }
 
 void alarm_strongarm(area_t a, jo_t * jp)
@@ -187,7 +187,7 @@ void alarm_strongarm(area_t a, jo_t * jp)
       jo_area(j, "also", a2 & ~a);
    if (smsarm & a2)
       sms_event("Strong armed", j);
-   revk_event_clients("strongarm", &j, 1 | (ioteventarm << 1));
+   alarm_event("strongarm", &j, ioteventarm);
 }
 
 void alarm_disarm(area_t a, jo_t * jp)
@@ -216,7 +216,7 @@ void alarm_disarm(area_t a, jo_t * jp)
       jo_area(j, "also", a2 & ~a);
    if (smsdisarm & a2)
       sms_event("Disarmed", j);
-   revk_event_clients("disarm", &j, 1 | (ioteventarm << 1));
+   alarm_event("disarm", &j, ioteventarm);
 }
 
 void alarm_boot(void)
@@ -346,7 +346,7 @@ const char *mesh_make_report(jo_t j)
                i(access);
                i(tamper);
 #undef i
-               revk_event_clients("inhibit", &e, 1 | (ioteventarm << 1));
+               alarm_event("inhibit", &e, ioteventarm);
             }
          }
          // TODO how to address existing state when alarm started...
@@ -361,13 +361,13 @@ const char *mesh_make_report(jo_t j)
                i(access);
                i(tamper);
 #undef i
-               revk_event_clients("trigger", &e, 1 | (ioteventarm << 1));
+               alarm_event("trigger", &e, ioteventarm);
             }
             presence |= inputtamper[i];
             presence |= inputaccess[i];
             if ((latch | input_stable) & (1ULL << i))
             {                   // Event reporting regardless
-#define i(x) if(input##x[i]){jo_t e = jo_make(NULL);jo_string(e, "input", inputname[i]);jo_area(e,#x,input##x[i]);revk_event_clients(#x, &e, 1);}
+#define i(x) if(input##x[i]){jo_t e = jo_make(NULL);jo_string(e, "input", inputname[i]);jo_area(e,#x,input##x[i]);alarm_event(#x, &e, 0);}
                i(warning);
                i(tamper);
                i(fault);
@@ -641,7 +641,7 @@ static void mesh_handle_summary(const char *target, jo_t j)
          jo_t j = jo_make(NULL);
          jo_area(j, "areas", control_arm);
          sms_event("Arm failed", j);
-         revk_event_clients("armfail", &j, 1 | (ioteventarm << 1));
+         alarm_event("armfail", &j, ioteventarm);
       }
       control_arm = 0;
       door_check();
@@ -679,7 +679,7 @@ static void mesh_handle_summary(const char *target, jo_t j)
          jo_area(j, "areas", state_alarm & ~lastalarm);
          if (smsalarm & (state_alarm & ~lastalarm))
             sms_event("Alarm!", j);
-         revk_event_clients("alarm", &j, 1 | (ioteventarm << 1));
+         alarm_event("alarm", &j, ioteventarm);
          jo_free(&j);
       }
       lastalarm = state_alarm;
@@ -693,7 +693,7 @@ static void mesh_handle_summary(const char *target, jo_t j)
          jo_area(j, "areas", state_panic & ~lastpanic);
          if (smspanic & (state_panic & ~lastpanic))
             sms_event("Panic", j);
-         revk_event_clients("panic", &j, 1 | (ioteventarm << 1));
+         alarm_event("panic", &j, ioteventarm);
          jo_free(&j);
 
       }
@@ -708,7 +708,7 @@ static void mesh_handle_summary(const char *target, jo_t j)
          jo_area(j, "areas", state_fire & ~lastfire);
          if (smsfire & (state_fire & ~lastfire))
             sms_event("Fire", j);
-         revk_event_clients("fire", &j, 1 | (ioteventarm << 1));
+         alarm_event("fire", &j, ioteventarm);
          jo_free(&j);
 
       }
@@ -860,10 +860,17 @@ static void task(void *pvParameters)
    }
 }
 
+void alarm_event(const char *event, jo_t * jp, char copy)
+{                               // Send an event - goes to root which sends on to control and copy to IoT if required, consumes j
+
+   revk_event_clients(event, jp, 1 | (copy ? 2 : 0));
+}
+
 void mesh_handle_event(jo_t j)
 {
    if (!esp_mesh_is_root())
       return;
+   char copy = !jo_strcmp(j, "event+");
    if (jo_next(j) != JO_STRING)
       return;
    // Send event to control
@@ -880,7 +887,7 @@ void alarm_rx(const char *target, jo_t j)
    jo_next(j);
    if (jo_here(j) != JO_TAG)
       return;
-   if (!jo_strcmp(j, "event"))
+   if (!jo_strcmp(j, "event") || !jo_strcmp(j, "event+"))
    {
       mesh_handle_event(j);
       return;

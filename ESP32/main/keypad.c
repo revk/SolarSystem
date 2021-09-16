@@ -394,9 +394,12 @@ static void task(void *pvParameters)
                   {
                      if (keyhold < now)
                      {
-                        jo_t j = jo_object_alloc();
-                        jo_stringf(j, "key", "%.1s", keymap + (lastkey & 0x0F));
-                        revk_event_clients("gone", &j, debug | (iotkeypad << 1));
+                        if (debug)
+                        {
+                           jo_t j = jo_object_alloc();
+                           jo_stringf(j, "key", "%.1s", keymap + (lastkey & 0x0F));
+                           alarm_event("gone", &j, iotkeypad);
+                        }
                         lastkey = 0x7F;
                      }
                   } else
@@ -416,9 +419,12 @@ static void task(void *pvParameters)
                      {
                         if (keyhold < now)
                         {
-                           jo_t j = jo_object_alloc();
-                           jo_stringf(j, "key", "%.1s", keymap + (lastkey & 0x0F));
-                           revk_event_clients("gone", &j, debug | (iotkeypad << 1));
+                           if (debug)
+                           {
+                              jo_t j = jo_object_alloc();
+                              jo_stringf(j, "key", "%.1s", keymap + (lastkey & 0x0F));
+                              alarm_event("gone", &j, iotkeypad);
+                           }
                            lastkey = 0x7F;
                         }
                      } else
@@ -429,15 +435,21 @@ static void task(void *pvParameters)
                      ui.keyconfirm = 1;
                      if ((lastkey & 0x80) && buf[2] != lastkey)
                      {
-                        jo_t j = jo_object_alloc();
-                        jo_stringf(j, "key", "%.1s", keymap + (lastkey & 0x0F));
-                        revk_event_clients("gone", &j, debug | (iotkeypad << 1));
+                        if (debug)
+                        {
+                           jo_t j = jo_object_alloc();
+                           jo_stringf(j, "key", "%.1s", keymap + (lastkey & 0x0F));
+                           alarm_event("gone", &j, iotkeypad);
+                        }
                      }
                      if (!(buf[2] & 0x80) || buf[2] != lastkey)
                      {
-                        jo_t j = jo_object_alloc();
-                        jo_stringf(j, "key", "%.1s", keymap + (buf[2] & 0x0F));
-                        revk_event_clients((buf[2] & 0x80) ? "hold" : "key", &j, debug | (iotkeypad << 1));
+                        if (debug)
+                        {
+                           jo_t j = jo_object_alloc();
+                           jo_stringf(j, "key", "%.1s", keymap + (buf[2] & 0x0F));
+                           alarm_event((buf[2] & 0x80) ? "hold" : "key", &j, iotkeypad);
+                        }
                         if (!(buf[2] & 0x80))
                            keypad_ui(keymap[buf[2] & 0x0F]);
                      }
@@ -452,7 +464,6 @@ static void task(void *pvParameters)
 
       if (rxwait > now)
          continue;              // Awaiting reply
-
       if (rxwait)
       {
          if (galaxybusfault++ > 5)
@@ -463,7 +474,6 @@ static void task(void *pvParameters)
          rxwait = now + 3000000LL;
       } else
          rxwait = now + 250000LL;
-
       // Tx
       if (force || galaxybusfault || !online)
       {                         // Update all the shit
