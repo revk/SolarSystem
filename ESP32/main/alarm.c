@@ -873,19 +873,17 @@ void mesh_handle_event(jo_t j)
 {
    if (!esp_mesh_is_root())
       return;
-   ESP_LOGI(TAG, "Event handle");       // TODO
    char copy = !jo_strcmp(j, "event+");
    if (jo_next(j) != JO_STRING)
       return;
    char event[20];
    jo_strncpy(j, event, sizeof(event));
    jo_next(j);
-   ESP_LOGI(TAG, "Got event %s (%s)", event, jo_debug(j));      // TODO
-   // Send event to control
-   // TODO remove event header
-   // TODO how to know if to send to IoT as well?
-   jo_t temp = jo_copy(j);      // TODO
-   revk_event_clients(event, &temp, 1 | (copy ? 2 : 0));
+   char *m;
+   asprintf(&m,"{%s",jo_debug(j));
+   jo_t o=jo_parse_str(m);
+   revk_event_clients(event, &o, 1 | (copy ? 2 : 0));
+   free(m);
 }
 
 void alarm_rx(const char *target, jo_t j)
