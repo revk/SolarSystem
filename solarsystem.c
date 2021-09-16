@@ -119,15 +119,15 @@ void notify(SQL * sqlp, SQL_RES * res, const char *target, j_t j)
          if (areas)
             while (*areas)
             {
+               if (!found++)
+                  fprintf(f, "%s:\t", tag);
+               else
+                  fprintf(f, ", ");
                SQL_RES *a = sql_safe_query_store_free(sqlp, sql_printf("SELECT * FROM `area` WHERE `site`=%d AND `tag`=%#c", site, *areas));
                if (sql_fetch_row(a))
-               {
-                  if (!found++)
-                     fprintf(f, "%s:\t", tag);
-                  else
-                     fprintf(f, ", ");
                   fprintf(f, "%s", sql_colz(a, "areaname"));
-               }
+               else
+                  fprintf(f, "%c", *areas);
                sql_free_result(a);
                areas++;
             }
