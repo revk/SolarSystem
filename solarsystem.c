@@ -102,16 +102,15 @@ void notify(SQL * sqlp, SQL_RES * res, const char *target, j_t j)
    if (!target || !j || j_isnull(j))
       return;
    int site = atoi(sql_colz(res, "site"));
-   const char *event = j_get(j, "event");
-   if (event && !*event)
-      event = NULL;
-   const char *generic(FILE * f, const char *t) {
+   char *event = strdupa(j_get(j, "event")?:"event");
+   *event = toupper(*event);
+   const char *format(FILE * f) {       // Prettier format for text/email
       time_t ts = j_time(j_get(j, "ts"));
       if (ts)
       {
          struct tm tm;
          localtime_r(&ts, &tm);
-         fprintf(f, "%04d-%02d-%02d %02d:%02d:%02d %s\n", tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec, event ? : "");
+         fprintf(f, "%04d-%02d-%02d %02d:%02d:%02d %s\n", tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec, event);
       }
       fprintf(f, "Site:\t%s\n", sql_colz(res, "sitename"));
       const char *areas = j_get(j, "areas");
@@ -138,16 +137,10 @@ void notify(SQL * sqlp, SQL_RES * res, const char *target, j_t j)
       for (e = j_first(j); e; e = j_next(e))
       {
          const char *tag = j_name(e);
-         if (strcmp(tag, "event") && strcmp(tag, "node") && strcmp(tag, "areas") && strcmp(tag, "ts") && strcmp(tag, "also"))
+         if (strcmp(tag, "event") && strcmp(tag, "areas") && strcmp(tag, "ts") && strcmp(tag, "also"))
             fprintf(f, "%s:\t%s\n", tag, j_val(e));
       }
-      return t;
-   }
-   const char *format(FILE * f) {
-      if (event && (!strcasecmp(event, "arm") || !strcasecmp(event, "disarm") || !strcasecmp(event, "strongarm") || !strcasecmp(event, "alarm") || !strcasecmp(event, "fire") || !strcasecmp(event, "panic")))
-         return generic(f, event);
-      j_err(j_write_pretty(j, f));      // Default is simple JSON dump
-      return event ? : "";
+      return event;
    }
    char *ud = NULL;             // SMS content
    char *t = strdupa(target);
@@ -1395,10 +1388,10 @@ int main(int argc, const char *argv[])
             }
          } else if (prefix && !strcmp(prefix, "event"))
          {
-            j_store_string(j, "event", suffix);
             char *data = j_write_str(j);
             sql_safe_query_free(&sql, sql_printf("INSERT INTO `event` SET `logged`=NOW(),`device`=%#s,`suffix`=%#s,`data`=%#s", deviceid, suffix, data));
             free(data);
+            j_store_string(j, "event", suffix);
             if (suffix && *suffix && checkdevice())
             {                   // Event hooks
                SQL_RES *res = sql_safe_query_store_free(&sql, sql_printf("SELECT * FROM `site` WHERE `site`=%#s", sql_col(device, "site")));

@@ -155,8 +155,11 @@ void input_boot(void)
                status(input_fault = e);
             } else
             {
-               c.pin_bit_mask |= (1ULL << p);
-               REVK_ERR_CHECK(gpio_hold_dis(p));
+               if (p < MAX_PORT)
+               {
+                  c.pin_bit_mask |= (1ULL << p);
+                  REVK_ERR_CHECK(gpio_hold_dis(p));
+               }
                if (input[i] & PORT_INV)
                   input_invert |= (1ULL << i);
             }
