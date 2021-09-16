@@ -130,8 +130,9 @@ xmlsql -C -d "$DB" head.html - foot.html << END
 <th>PCB</th>
 <th>Flash</th>
 <th>Notes</th></tr>
+<sql table="site" where="site=$USER_SITE"><set root="\$root"></sql>
 <sql table="device" where="site=$USER_SITE" select="max(version) AS V,max(build) AS B"><set V="\$V"><set B="\$B"></sql>
-<sql table="device LEFT JOIN pcb USING (pcb) LEFT JOIN device AS device2 ON (device.via=device2.device) LEFT JOIN device AS device3 ON (conv(device.bssid,16,10)=conv(device3.device,16,10)+1)" order="device.outofservice,device.devicename" WHERE="device.site=\$USER_SITE" select="device.*,pcb.pcbname,device2.devicename AS VIA,device3.devicename AS PARENT"><set found=1>
+<sql table="device LEFT JOIN pcb USING (pcb) LEFT JOIN device AS device2 ON (device.via=device2.device) LEFT JOIN device AS device3 ON (conv(device.bssid,16,10)=conv(device3.device,16,10)+1)" order="if(device.device='\$root',0,1),device.outofservice,device.devicename" WHERE="device.site=\$USER_SITE" select="device.*,pcb.pcbname,device2.devicename AS VIA,device3.devicename AS PARENT"><set found=1>
 <set s="">
 <if outofservice=false><if lastonline><set s="background:green;"><if not via><set s="background:lightgreen;"></if></if><if not online><set s="background:yellow;"></if></if>
 <if outofservice=true><if lastonline><set s="background:lightblue;"></if><if not online><set s="background:blue;"></if></if>
