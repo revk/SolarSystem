@@ -77,8 +77,6 @@ uint32_t last_summary = 0;      // When last summary (uptime)
 	area(smsfire)		\
 	arean(mixand,MAX_MIX)	\
 	arean(mixset,MAX_MIX)	\
-	sn(mixarm,MAX_MIX)	\
-	sn(mixdisarm,MAX_MIX)	\
 
 #define area(n) area_t n;
 #define arean(n,q) area_t n[q];
@@ -663,14 +661,6 @@ static void mesh_handle_summary(const char *target, jo_t j)
          ESP_LOGE(TAG, "Setting error %s (%s)", er, jo_debug(j));
       jo_free(&j);
       door_check();
-      if (esp_mesh_is_root())
-      {
-         for (int s = 0; s < MAX_MIX; s++)
-            if (*mixarm[s] && !(mixand[s] & ~state_armed) && (mixand[s] & ~lastarmed))
-               revk_mqtt_send_str_clients(mixarm[s], 0, 2);
-            else if (*mixdisarm[s] && (mixand[s] & ~state_armed) && !(mixand[s] & ~lastarmed))
-               revk_mqtt_send_str_clients(mixdisarm[s], 0, 2);
-      }
       lastarmed = state_armed;
    }
    static area_t lastalarm = -1;
