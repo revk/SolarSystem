@@ -877,28 +877,7 @@ void mesh_handle_event(jo_t j)
    jo_t o = jo_parse_str(m);
    revk_event_clients(event, &o, 1 | (copy ? 2 : 0));
    free(m);
-   // Handle events that may need display...
-   // "display": is the main clue - uses \n to separate lines
-   // "displayareas": is areas for display
-   // "displayarmed": is areas for display, but only if armed and not disarming
-   jo_rewind(j);
-   jo_type_t t;
-   while ((t = jo_next(j)))
-      if (t == JO_TAG)
-      {
-         if (!jo_strcmp(j, "ts"))
-         {
-         }
-         if (!jo_strcmp(j, "display"))
-         {
-         }
-         if (!jo_strcmp(j, "displayarmed"))
-         {
-         }
-         if (!jo_strcmp(j, "displayareas"))
-         {
-         }
-      }
+   // We can, at this point, pick up some types of event if we need
 }
 
 void alarm_rx(const char *target, jo_t j)
