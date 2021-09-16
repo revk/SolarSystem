@@ -862,20 +862,35 @@ static void task(void *pvParameters)
 
 void alarm_event(const char *event, jo_t * jp, char copy)
 {                               // Send an event - goes to root which sends on to control and copy to IoT if required, consumes j
-
-   revk_event_clients(event, jp, 1 | (copy ? 2 : 0));
+   char *a = jo_finisha(jp);
+   if (!a)
+      return;
+   char *m = NULL;
+   asprintf(&m, "{\"%s\":\"%s\",%s", copy ? "event+" : "event", event, a + 1);  // Assumes event is JSON string safe, which is pretty sensible
+   free(a);
+   ESP_LOGI(TAG, "Sending %s", m);      // TODO
+   jo_t o = jo_parse_str(m);
+   free(m);
+   revk_mesh_send_json(NULL, &o);
 }
 
 void mesh_handle_event(jo_t j)
 {
    if (!esp_mesh_is_root())
       return;
+   ESP_LOGI(TAG,"Event handle"); // TODO
    char copy = !jo_strcmp(j, "event+");
    if (jo_next(j) != JO_STRING)
       return;
+   char event[20];
+   jo_strncpy(j, event, sizeof(event));
+   jo_next(j);
+   ESP_LOGI(TAG,"Got event %s (%s)",event,jo_debug(j));// TODO
    // Send event to control
    // TODO remove event header
    // TODO how to know if to send to IoT as well?
+   jo_t temp = jo_copy(j);      // TODO
+   revk_event_clients(event, &temp, 1 | (copy ? 2 : 0));
 }
 
 void alarm_rx(const char *target, jo_t j)
