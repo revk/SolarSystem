@@ -34,9 +34,6 @@ static const char __attribute__((unused)) TAG[] = "SS";
 #error	CONFIG_REVK_MESH requried
 #endif
 
-// Common
-static const char *port_inuse[MAX_PORT];
-
 // Output first to minimise startup
 #define modules		\
 	m(output)	\
@@ -164,16 +161,16 @@ const char *port_check(int p, const char *module, int in)
          return "Bad GPIO for output";
       }
    }
-   if (port_inuse[p])
+   static uint64_t port_inuse = 0;
+   if (port_inuse & (1ULL << p))
    {
       jo_t j = jo_object_alloc();
       jo_string(j, "description", "Port clash");
       jo_string(j, "module", module);
-      jo_string(j, "clash", port_inuse[p]);
       revk_error_clients("port", &j, 1);
       return "GPIO clash";
    }
-   port_inuse[p] = module;
+   port_inuse |= (1ULL << p);
    return NULL;                 // OK
 }
 
