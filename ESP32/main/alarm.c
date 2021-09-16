@@ -864,7 +864,7 @@ void alarm_event(const char *event, jo_t * jp, char copy)
 {                               // Send an event - goes to root which sends on to control and copy to IoT if required, consumes *jp
    jo_t o = jo_object_alloc();
    jo_string(o, copy ? "event+" : "event", event);
-   jo_json(o, NULL, *jp); // Add object content in line
+   jo_json(o, NULL, *jp);       // Add object content in line
    jo_free(jp);
    revk_mesh_send_json(NULL, &o);
 }
@@ -880,10 +880,32 @@ void mesh_handle_event(jo_t j)
    jo_strncpy(j, event, sizeof(event));
    jo_next(j);
    char *m;
-   asprintf(&m,"{%s",jo_debug(j));
-   jo_t o=jo_parse_str(m);
+   asprintf(&m, "{%s", jo_debug(j));    // Slightly message usage of jo_debug...
+   jo_t o = jo_parse_str(m);
    revk_event_clients(event, &o, 1 | (copy ? 2 : 0));
    free(m);
+   // Handle events that may need display...
+   // "display": is the main clue - uses \n to separate lines
+   // "displayareas": is areas for display
+   // "displayarmed": is areas for display, but only if armed and not disarming
+   jo_rewind(j);
+   jo_type_t t;
+   while ((t = jo_next(j)))
+      if (t == JO_TAG)
+      {
+         if (!jo_strcmp(j, "ts"))
+         {
+         }
+         if (!jo_strcmp(j, "display"))
+         {
+         }
+         if (!jo_strcmp(j, "displayarmed"))
+         {
+         }
+         if (!jo_strcmp(j, "displayareas"))
+         {
+         }
+      }
 }
 
 void alarm_rx(const char *target, jo_t j)
