@@ -104,7 +104,10 @@ void notify(SQL * sqlp, SQL_RES * res, const char *target, j_t j)
    int site = atoi(sql_colz(res, "site"));
    char *event = strdupa(j_get(j, "event") ? : "event");
    *event = toupper(*event);
-   const char *format(FILE * f) {       // Prettier format for text/email
+   char *ud = NULL;             // SMS content
+   void makeud(void) {
+      size_t l = 0;
+      FILE *f = open_memstream(&ud, &l);
       time_t ts = j_time(j_get(j, "ts"));
       if (ts)
       {
@@ -153,9 +156,8 @@ void notify(SQL * sqlp, SQL_RES * res, const char *target, j_t j)
              )
             fprintf(f, "%s:\t%s\n", tag, j_val(e));
       }
-      return event;
+      fclose(f);
    }
-   char *ud = NULL;             // SMS content
    char *t = strdupa(target);
    while (*t)
    {
@@ -177,14 +179,17 @@ void notify(SQL * sqlp, SQL_RES * res, const char *target, j_t j)
          }
       } else if (strchr(t, '@'))
       {
+         if (!ud)
+            makeud();
          if (!fork())
          {
             FILE *f = NULL;
             email_t e = email_new(&f);
+            fprintf(f, "%s", ud);
             const char *from = sql_col(res, "emailfrom");
             if (!from || !*from)
                from = "alarm@access.me.uk";
-            email_subject(e, "Alarm message:%s", format(f));
+            email_subject(e, "Alarm message:%s", event);
             email_address(e, "To", t, NULL);
             email_address(e, "From", from, sql_col(res, "sitename"));
             FILE *a = NULL;     // JSON attachment
@@ -199,12 +204,7 @@ void notify(SQL * sqlp, SQL_RES * res, const char *target, j_t j)
       else if (*t == '+' || isdigit(*t))
       {                         // Let's assume it is a number to SMS
          if (!ud)
-         {                      // Note, would be nice to identify and format some events better for SMS
-            size_t l;
-            FILE *f = open_memstream(&ud, &l);
-            format(f);
-            fclose(f);
-         }
+            makeud();
          send_message(res, ud, t);
       } else
          warnx("Unknown notify %s", t);

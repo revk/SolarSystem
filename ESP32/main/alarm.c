@@ -855,14 +855,18 @@ static void task(void *pvParameters)
 }
 
 void alarm_event(const char *event, jo_t * jp, char copy)
-{                               // Send an event - goes to root which sends on to control and copy to IoT if required, consumes *jp
+{ // Send an event
+ revk_event_clients(event,jp,1|(copy?2:0));
+#if 0
    jo_t o = jo_object_alloc();
    jo_string(o, copy ? "event+" : "event", event);
    jo_json(o, NULL, *jp);       // Add object content in line
    jo_free(jp);
    revk_mesh_send_json(NULL, &o);
+#endif
 }
 
+#if 0 // Sending via root loses the sender ID in topic. Maybe work out how to send from right sender later
 void mesh_handle_event(jo_t j)
 {
    if (!esp_mesh_is_root())
@@ -880,6 +884,7 @@ void mesh_handle_event(jo_t j)
    free(m);
    // We can, at this point, pick up some types of event if we need
 }
+#endif
 
 void alarm_rx(const char *target, jo_t j)
 {
@@ -890,11 +895,13 @@ void alarm_rx(const char *target, jo_t j)
    jo_next(j);
    if (jo_here(j) != JO_TAG)
       return;
+#if 0
    if (!jo_strcmp(j, "event") || !jo_strcmp(j, "event+"))
    {
       mesh_handle_event(j);
       return;
    }
+#endif
    if (!jo_strcmp(j, "report"))
    {
       mesh_handle_report(target, j);
