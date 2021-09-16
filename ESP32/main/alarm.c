@@ -657,7 +657,9 @@ static void mesh_handle_summary(const char *target, jo_t j)
          jo_area(j, "armed", state_armed);
       else
          jo_null(j, "armed");
-      revk_setting(j);
+      const char *er = revk_setting(j);
+      if (er&&*er)
+         ESP_LOGE(TAG, "Setting error %s (%s)", er, jo_debug(j));
       jo_free(&j);
       door_check();
       if (esp_mesh_is_root())
