@@ -91,11 +91,9 @@ settings
 #undef sn
 #undef u16
 #undef u8
-
 #define c(x) static area_t report_##x=0;        // The collated reports
 #define i(x,l) c(x)
 #include "states.m"
-
 static void task(void *pvParameters);
 static void node_online(const mac_t mac);
 static void sms_event(const char *tag, jo_t);
@@ -352,19 +350,22 @@ const char *mesh_make_report(jo_t j)
                alarm_event("inhibit", &e, ioteventarm);
             }
          }
-         // TODO how to address existing state when alarm started...
          if (flip & (1ULL << i))
          {                      // State has changed, so causes presence and event logging
             if (trigger & state_armed)
             {                   // Event log
-               jo_t e = jo_make(NULL);
-               jo_string(e, "input", inputname[i]);
+               if (trigger & (state_alarm | state_prealarm))
+               {                // Event while alarmed as well
+                  jo_t e = jo_make(NULL);
+                  jo_string(e, "input", inputname[i]);
 #define i(x) if(input##x[i]&state_armed)jo_area(e,#x,input##x[i]&(state_armed|state_prearm));
-               i(presence);     // Only these relate to alarm/trigger
-               i(access);
-               i(tamper);
+                  i(presence);  // Only these relate to alarm/trigger
+                  i(access);
+                  i(tamper);
 #undef i
-               alarm_event("trigger", &e, ioteventarm);
+                  alarm_event("trigger", &e, ioteventarm);
+               } else
+                  input_flip |= (1ULL << i);    // Defer trigger, maintain that there is an input to trip
             }
             presence |= inputtamper[i];
             presence |= inputaccess[i];
@@ -657,7 +658,7 @@ static void mesh_handle_summary(const char *target, jo_t j)
       else
          jo_null(j, "armed");
       const char *er = revk_setting(j);
-      if (er&&*er)
+      if (er && *er)
          ESP_LOGE(TAG, "Setting error %s (%s)", er, jo_debug(j));
       jo_free(&j);
       door_check();
