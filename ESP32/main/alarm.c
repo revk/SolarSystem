@@ -656,7 +656,7 @@ static void mesh_handle_summary(const char *target, jo_t j)
       if (state_armed)
          jo_area(j, "armed", state_armed);
       else
-         jo_string(j, "armed", "");
+         jo_null(j, "armed");
       revk_setting(j);
       jo_free(&j);
       door_check();
