@@ -33,10 +33,12 @@ area_t live_presence = 0;       // System settings from other modules
 static SemaphoreHandle_t node_mutex = NULL;
 
 typedef struct node_s {
-   mac_t mac;
+   mac_t mac;                   // Node MAC
    uint8_t online:1;            // Is on line
    uint8_t missed:2;            // Missed report count
    uint8_t reported:1;          // Has reported
+   uint8_t bigflash:1;          // Has more than 4MiB flash
+   area_t display;              // Areas for which this is a display
 } node_t;
 static node_t *node = NULL;
 static int nodes = 0;
@@ -527,7 +529,6 @@ static void mesh_handle_report(const char *target, jo_t j)
    jo_rewind(j);
    jo_type_t t;
    while ((t = jo_next(j)))
-   {
       if (t == JO_TAG)
       {
 #define c(x) if(!jo_strcmp(j,#x)){jo_next(j);report_##x|=jo_read_area(j);} else
@@ -536,7 +537,6 @@ static void mesh_handle_report(const char *target, jo_t j)
          {                      // Unknown?
          }
       }
-   }
 }
 
 static void set_outputs(void)
@@ -583,7 +583,6 @@ static void mesh_handle_summary(const char *target, jo_t j)
       jo_rewind(j);
       jo_type_t t;
       while ((t = jo_next(j)))
-      {
          if (t == JO_TAG)
          {
             if (!jo_strcmp(j, "summary"))
@@ -622,7 +621,6 @@ static void mesh_handle_summary(const char *target, jo_t j)
             {                   // Unknown?
             }
          }
-      }
 #define i(x,c) state_##x=x;
 #define s(x,c) i(x,c)
 #include "states.m"
@@ -855,8 +853,8 @@ static void task(void *pvParameters)
 }
 
 void alarm_event(const char *event, jo_t * jp, char copy)
-{ // Send an event
- revk_event_clients(event,jp,1|(copy?2:0));
+{                               // Send an event
+   revk_event_clients(event, jp, 1 | (copy ? 2 : 0));
 #if 0
    jo_t o = jo_object_alloc();
    jo_string(o, copy ? "event+" : "event", event);
@@ -866,7 +864,7 @@ void alarm_event(const char *event, jo_t * jp, char copy)
 #endif
 }
 
-#if 0 // Sending via root loses the sender ID in topic. Maybe work out how to send from right sender later
+#if 0                           // Sending via root loses the sender ID in topic. Maybe work out how to send from right sender later
 void mesh_handle_event(jo_t j)
 {
    if (!esp_mesh_is_root())
@@ -886,6 +884,35 @@ void mesh_handle_event(jo_t j)
 }
 #endif
 
+void mesh_handle_capability(const char *target, jo_t j)
+{
+   int child = check_online(target);
+   if (child < 0)
+      return;
+   area_t display = 0;
+   uint8_t bigflash = 0;
+   jo_type_t t;
+   while ((t = jo_next(j)))
+      if (t == JO_TAG)
+      {
+         if (!jo_strcmp(j, "display"))
+         {
+            jo_next(j);
+            display = jo_read_area(j);
+            continue;
+         }
+         if (!jo_strcmp(j, "flash"))
+         {
+            jo_next(j);
+            if (jo_read_int(j) > 4 * 1024 * 1024)
+               bigflash = 1;
+            continue;
+         }
+      }
+   node[child].display = display;
+   node[child].bigflash = bigflash;
+}
+
 void alarm_rx(const char *target, jo_t j)
 {
    ESP_LOGD(TAG, "Rx JSON %s %s", target, jo_rewind(j) ? : "?");
@@ -902,6 +929,12 @@ void alarm_rx(const char *target, jo_t j)
       return;
    }
 #endif
+   if (!jo_strcmp(j, "capability"))
+   {
+      if (esp_mesh_is_root())
+         mesh_handle_capability(target, j);
+      return;
+   }
    if (!jo_strcmp(j, "report"))
    {
       mesh_handle_report(target, j);
@@ -916,6 +949,13 @@ void alarm_rx(const char *target, jo_t j)
    {
       revk_command("status", NULL);     // For up message
       app_callback(0, prefixcommand, NULL, "connect", j);
+      // Send capability
+      jo_t j = jo_object_alloc();
+      jo_null(j, "capability");
+      if (areakeypad)
+         jo_area(j, "display", areakeypad);
+      jo_int(j, "flash", spi_flash_get_chip_size());
+      revk_mesh_send_json(NULL, &j);
       return;
    }
 }
