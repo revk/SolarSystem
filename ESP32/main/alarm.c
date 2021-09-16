@@ -93,6 +93,11 @@ settings
 #undef sn
 #undef u16
 #undef u8
+
+#define c(x) static area_t report_##x=0;        // The collated reports
+#define i(x,l) c(x)
+#include "states.m"
+
 static void task(void *pvParameters);
 static void node_online(const mac_t mac);
 static void sms_event(const char *tag, jo_t);
@@ -400,10 +405,6 @@ const char *mesh_make_report(jo_t j)
 #include "states.m"
    return NULL;
 }
-
-#define c(x) static area_t report_##x=0;        // The collated reports
-#define i(x,l) c(x)
-#include "states.m"
 
 static void node_offline(const mac_t mac)
 {
