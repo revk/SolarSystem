@@ -860,6 +860,16 @@ static void task(void *pvParameters)
    }
 }
 
+void mesh_handle_event(jo_t j)
+{
+   if (!esp_mesh_is_root())
+      return;
+   if(jo_next(j)!=JO_STRING)return;
+   // Send event to control
+   // TODO remove event header
+   // TODO how to know if to send to IoT as well?
+}
+
 void alarm_rx(const char *target, jo_t j)
 {
    ESP_LOGD(TAG, "Rx JSON %s %s", target, jo_rewind(j) ? : "?");
@@ -869,6 +879,11 @@ void alarm_rx(const char *target, jo_t j)
    jo_next(j);
    if (jo_here(j) != JO_TAG)
       return;
+   if (!jo_strcmp(j, "event"))
+   {
+      mesh_handle_event(j);
+      return;
+   }
    if (!jo_strcmp(j, "report"))
    {
       mesh_handle_report(target, j);

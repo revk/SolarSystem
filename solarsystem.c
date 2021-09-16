@@ -102,7 +102,7 @@ void notify(SQL * sqlp, SQL_RES * res, const char *target, j_t j)
    if (!target || !j || j_isnull(j))
       return;
    int site = atoi(sql_colz(res, "site"));
-   char *event = strdupa(j_get(j, "event")?:"event");
+   char *event = strdupa(j_get(j, "event") ? : "event");
    *event = toupper(*event);
    const char *format(FILE * f) {       // Prettier format for text/email
       time_t ts = j_time(j_get(j, "ts"));
@@ -113,31 +113,44 @@ void notify(SQL * sqlp, SQL_RES * res, const char *target, j_t j)
          fprintf(f, "%04d-%02d-%02d %02d:%02d:%02d %s\n", tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec, event);
       }
       fprintf(f, "Site:\t%s\n", sql_colz(res, "sitename"));
-      const char *areas = j_get(j, "areas");
-      if (areas)
-         while (*areas)
-         {
-            SQL_RES *a = sql_safe_query_store_free(sqlp, sql_printf("SELECT * FROM `area` WHERE `site`=%d AND `tag`=%#c", site, *areas));
-            if (sql_fetch_row(a))
-               fprintf(f, "Area:\t%s\n", sql_colz(a, "areaname"));
-            sql_free_result(a);
-            areas++;
-         }
-      areas = j_get(j, "also");
-      if (areas)
-         while (*areas)
-         {
-            SQL_RES *a = sql_safe_query_store_free(sqlp, sql_printf("SELECT * FROM `area` WHERE `site`=%d AND `tag`=%#c", site, *areas));
-            if (sql_fetch_row(a))
-               fprintf(f, "Also:\t%s\n", sql_colz(a, "areaname"));
-            sql_free_result(a);
-            areas++;
-         }
+      void areas(const char *tag) {
+         char found = 0;
+         const char *areas = j_get(j, tag);
+         if (areas)
+            while (*areas)
+            {
+               SQL_RES *a = sql_safe_query_store_free(sqlp, sql_printf("SELECT * FROM `area` WHERE `site`=%d AND `tag`=%#c", site, *areas));
+               if (sql_fetch_row(a))
+               {
+                  if (!found++)
+                     fprintf(f, "%s:\t", tag);
+                  else
+                     fprintf(f, ", ");
+                  fprintf(f, "%s", sql_colz(a, "areaname"));
+               }
+               sql_free_result(a);
+               areas++;
+            }
+         if (found)
+            fprintf(f, "\n");
+      }
+#define extras c(areas)c(also)c(disarmok)c(armok)c(strongarmok)
+#define s(x,l) areas(#x);
+#define i(x,l) areas(#x);
+#define c(x) areas(#x);
+      extras;
+#include "ESP32/main/states.m"
       j_t e;
       for (e = j_first(j); e; e = j_next(e))
       {
          const char *tag = j_name(e);
-         if (strcmp(tag, "event") && strcmp(tag, "areas") && strcmp(tag, "ts") && strcmp(tag, "also"))
+         if (strcmp(tag, "event") && strcmp(tag, "areas") && strcmp(tag, "ts") && strcmp(tag, "also")
+#define s(x,l) &&strcmp(tag,#x)
+#define i(x,l) &&strcmp(tag,#x)
+#define c(x) &&strcmp(tag,#x)
+             extras
+#include "ESP32/main/states.m"
+             )
             fprintf(f, "%s:\t%s\n", tag, j_val(e));
       }
       return event;
