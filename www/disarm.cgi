@@ -16,6 +16,7 @@ endif
 
 done:
 source ../types
+setenv XMLSQLDEBUG
 xmlsql -C -d "$DB" head.html - foot.html << END
 <sql table=site where='site=$site'>
 <h1>🔕 Disarming for <output name=sitename></h1>
@@ -25,14 +26,16 @@ xmlsql -C -d "$DB" head.html - foot.html << END
 <th></th><th>Disarm</th>
 <th>Areas</th>
 </tr>
-<sql table=area where="site=$site">
-<set s='background:green;'><if armed=*\$tag><set s='background:yellow;'></if><if alarm=*\$tag><set s='background:red;'></if>
+<for space A="$AREALIST"><set areaname><sql table=area where="tag='\$A' AND site=\$site"><set areaname="\$areaname"></sql><if not areaname armed=*\$A><set areaname="?"></if>
+<if areaname>
+<set s='background:green;'><if armed=*\$A><set s='background:yellow;'></if><if alarm=*\$A><set s='background:red;'></if>
 <tr style="\$s">
-<th><label for=\$tag><output name=tag></label></th>
-<td><input type=checkbox value=\$tag name=disarm id=\$tag></td>
-<td><label for=\$tag><output name=areaname></label></td>
+<th><label for=\$A><output name=A></label></th>
+<td><input type=checkbox value=\$A name=disarm id=\$A></td>
+<td><label for=\$A><output name=areaname></label></td>
 </tr>
-</sql>
+</if>
+</for>
 </table>
 <input type=submit value="Disarm" name=DISARM>
 </form>
