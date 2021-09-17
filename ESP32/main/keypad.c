@@ -151,7 +151,6 @@ void keypad_ui(char key)
    {
       state = PIN;
       pos = 0;
-      shh = 0;
    }
    void fail(const char *m) {
       displayprint("%s", m);
@@ -167,6 +166,11 @@ void keypad_ui(char key)
          if (messages)
             state = MESSAGE;
          pos = 0;
+      }
+      if (key)
+      {
+         shh = 1;
+         timeout = now + 10;
       }
       break;
    case MESSAGE:
@@ -214,40 +218,57 @@ void keypad_ui(char key)
       }
       break;
    }
-   {                            // Backlight
+   const char *idle = keypadidle;
+   if (!*idle)
+      idle = revk_id;
+   {                            // Beep, idle, and backlight
       uint8_t bl = 0;
-      if (state != IDLE)
-         bl = 1;
-      if (ui.backlight != bl)
-      {
-         ui.sendbacklight = 1;
-         ESP_LOGD(TAG, "Backlight %d", bl);
-      }
-      ui.backlight = bl;
-   }
-   {                            // Beep
       uint8_t on = 0,
           off = 0;
-      if (!shh)
+      if (state_alarm & areakeypad)
       {
-         if (state_alarm & areakeypad)
-         {
-            on = 10;
-            off = 1;
-         } else if (state_prearm & areakeypad)
-         {
-            on = off = 1;
-         } else if (state_tamper & areakeypad)
-         {
-            on = 1;
-            off = 63;
-         }
+         on = 10;
+         off = 1;
+         idle = "ALARM! ALARM!";
+         bl = 1;
+      } else if (state_prealarm & areakeypad)
+      {
+         on = 10;
+         off = 1;
+         idle = "Pre-alarm!";
+      } else if (state_prearm & areakeypad)
+      {
+         on = off = 1;
+         if (!messages)
+            off = 20;           // Not a problem (yet)
+         idle = "Pre-arm";
+      } else if (now & 1)
+      {
+         if (state_armed & areakeypad)
+            idle = "Armed...";
+         else if (state_alarmed & areakeypad)
+            idle = "Check alarms";
+         else if (state_tampered & areakeypad)
+            idle = "Check tampers";
+         else if (state_faulted & areakeypad)
+            idle = "Check faults";
       }
+      if (!on && !off)
+         shh = 0;
+      if (shh)
+         on = off = 0;
       if (ui.on != on || ui.off != off)
       {
          ui.sendsounder = 1;
          ui.on = on;
          ui.off = off;
+      }
+      if (state != IDLE)
+         bl = 1;
+      if (ui.backlight != bl)
+      {
+         ui.sendbacklight = 1;
+         ui.backlight = bl;
       }
    }
    {                            // LED blink
@@ -257,15 +278,14 @@ void keypad_ui(char key)
       if (ui.blink != bl)
       {
          ui.sendblink = 1;
-         ESP_LOGD(TAG, "LED Blink %d", bl);
+         ui.blink = bl;
       }
-      ui.blink = bl;
    }
    switch (state)
    {
    case IDLE:                  // Idle display
       if (now > timeout)
-         displayprint("%-16s\n", *keypadidle ? keypadidle : revk_id);
+         displayprint("%-16s\n", idle);
       break;
    case MESSAGE:
       {

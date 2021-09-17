@@ -599,7 +599,7 @@ static void mesh_send_summary(void)
             jo_int(j, "missing", meshmax - nodes);
          char set[sizeof(area_t) * 8 + 1] = "";
          if (display)
-            jo_stringf(j, "status", "%s %s %s", state_name[display->priority], area_list(set, display->area), display->text);
+            jo_stringf(j, "status", "%c%s %s %s", toupper(*state_name[display->priority]), state_name[display->priority] + 1, area_list(set, display->area), display->text);
 #define i(t,x,c) if(strcmp(#x,"access")&&strcmp(#x,"presence"))jo_area(j,#x,state_##x); // Using full name to control
 #define s(t,x,c) jo_area(j,#x,state_##x);
 #include "states.m"
@@ -634,7 +634,7 @@ static void mesh_send_display(void)
          char set[sizeof(area_t) * 8 + 1] = "";
          for (display_t * d = display; d; d = d->next)
             if ((d->area & node[i].display) && count++ < MAX_LEAF_DISPLAY)
-               jo_stringf(j, NULL, "%s: %s\n%s", state_name[d->priority], area_list(set, d->area & node[i].display), d->text);
+               jo_stringf(j, NULL, "%c%s: %s\n%s", toupper(*state_name[d->priority]), state_name[d->priority] + 1, area_list(set, d->area & node[i].display), d->text);
          revk_mesh_send_json(node[i].mac, &j);
       }
    xSemaphoreGive(node_mutex);
