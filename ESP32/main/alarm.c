@@ -672,6 +672,10 @@ static void mesh_handle_report(const char *target, jo_t j)
             if (t == JO_TAG)
             {                   // fields in report
                void add_display(priority_t p, area_t a) {
+                  // Some filtering
+                  if ((p == priority_access || p == priority_presence) && !(a & (state_armed | state_prearm)))
+                     return;
+                  // Add display
                   char text[35];
                   snprintf(text, sizeof(text), "%s: %s", dev, id);
                   text[16] = 0; // Truncate to fit display...
@@ -681,7 +685,7 @@ static void mesh_handle_report(const char *target, jo_t j)
                   while (dp)
                   {
                      display_t *d = *dp;
-                     if (d && d->priority == p && d->area == a && !memcpy(d->mac, target, sizeof(d->mac)) && !strcmp(d->text, text))
+                     if (d && d->priority == p && d->area == a && !memcmp(d->mac, target, sizeof(d->mac)) && !strcmp(d->text, text))
                      {          // Match/update
                         d->seen = 1;
                         break;
