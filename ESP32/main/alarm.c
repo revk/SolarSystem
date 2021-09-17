@@ -863,6 +863,7 @@ static void mesh_handle_summary(const char *target, jo_t j)
       {
          jo_t j = jo_make("");
          jo_area(j, "areas", state_panic & ~lastpanic);
+         jo_array(j, "triggers");
          xSemaphoreTake(display_mutex, portMAX_DELAY);
          for (display_t * d = display; d; d = d->next)
             if (d->seen && d->priority == priority_panic && (d->area & (state_panic & ~lastpanic)))
@@ -883,6 +884,7 @@ static void mesh_handle_summary(const char *target, jo_t j)
       {
          jo_t j = jo_make("");
          jo_area(j, "areas", state_fire & ~lastfire);
+         jo_array(j, "triggers");
          xSemaphoreTake(display_mutex, portMAX_DELAY);
          for (display_t * d = display; d; d = d->next)
             if (d->seen && d->priority == priority_fire && (d->area & (state_fire & ~lastfire)))
