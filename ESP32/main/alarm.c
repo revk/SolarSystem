@@ -52,7 +52,7 @@ uint32_t last_summary = 0;      // When last summary (uptime)
 	area(areadisarm)	\
 	area(areadeadlock)	\
 	area(arealed)		\
-	area(areakeypad)	\
+	areanl(areakeypad)	\
 	area(engineer)		\
 	area(armed)		\
 	u16(armcancel)		\
@@ -73,6 +73,7 @@ uint32_t last_summary = 0;      // When last summary (uptime)
 	arean(mixset,MAX_MIX)	\
 
 #define area(n) area_t n;
+#define areanl(n) area_t n;
 #define arean(n,q) area_t n[q];
 #define s(n,d) char *n;
 #define sn(n,q) char *n[q];
@@ -80,6 +81,7 @@ uint32_t last_summary = 0;      // When last summary (uptime)
 #define u8(n,d) uint16_t n;
 settings
 #undef area
+#undef areanl
 #undef arean
 #undef s
 #undef sn
@@ -222,6 +224,7 @@ void alarm_boot(void)
    revk_register("sms", 0, sizeof(smsalarm), &smsalarm, AREAS, SETTING_BITFIELD | SETTING_LIVE | SETTING_SECRET);
    revk_register("mix", sizeof(mixand) / sizeof(*mixand), sizeof(*mixand), &mixand, AREAS, SETTING_BITFIELD | SETTING_LIVE | SETTING_SECRET);
 #define area(n) revk_register(#n,0,sizeof(n),&n,AREAS,SETTING_BITFIELD|SETTING_LIVE);
+#define areanl(n) revk_register(#n,0,sizeof(n),&n,AREAS,SETTING_BITFIELD);
 #define arean(n,q) revk_register(#n,q,sizeof(*n),&n,AREAS,SETTING_BITFIELD|SETTING_LIVE);
 #define s(n,d) revk_register(#n,0,0,&n,#d,SETTING_LIVE);
 #define sn(n,q) revk_register(#n,q,0,&n,NULL,SETTING_LIVE);
@@ -229,6 +232,7 @@ void alarm_boot(void)
 #define u8(n,d) revk_register(#n,0,sizeof(n),&n,#d,SETTING_LIVE);
    settings;
 #undef area
+#undef areanl
 #undef arean
 #undef s
 #undef sn
