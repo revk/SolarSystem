@@ -110,6 +110,7 @@ settings
 #define c(t,x) static area_t report_##x=0;      // The collated reports
 #define i(t,x,l) static area_t report_##x=0;    // The collated reports
 #include "states.m"
+static area_t held_prearm = 0;
 static void task(void *pvParameters);
 static void node_online(const mac_t mac);
 static void sms_event(const char *tag, jo_t);
@@ -539,6 +540,12 @@ static void mesh_send_summary(void)
       state_armed = andset((state_armed | report_strongarm) & ~report_disarm);  // Apply strongarm anyway
    } else if (!armdelay || (timer1 += meshcycle) > armdelay)
       state_armed = andset((state_armed | state_prearm | report_strongarm) & ~report_disarm);   // Prearm is clean and ready to apply
+   static uint16_t timer2 = 0;  // Pre arm hold
+   held_prearm = ((held_prearm | state_prearm) & ~state_armed); // Hold pre arm so we can see on display
+   if (!state_prearm)
+      timer2 = 0;
+   else if ((timer2 += meshcycle) > armcancel)
+      held_prearm = 0;
    // What changed
    area_t new_armed = (state_armed & ~was_armed);
    // Arming clears latched states
@@ -547,16 +554,16 @@ static void mesh_send_summary(void)
    state_alarmed = ((state_alarmed & ~new_armed) | state_alarm);
    // Alarm based only on presence, but change of tamper or access trips presence anyway. Basically you can force arm with tamper and access
    state_prealarm = (((state_prealarm | state_presence) & state_armed) & ~state_alarm);
-   static uint16_t timer2 = 0;  // Pre alarm timer - ideally per area, but this will be fine
+   static uint16_t timer3 = 0;  // Pre alarm timer - ideally per area, but this will be fine
    if (!state_prealarm)
-      timer2 = 0;
-   else if (!alarmdelay || (timer2 += meshcycle) > alarmdelay)
+      timer3 = 0;
+   else if (!alarmdelay || (timer3 += meshcycle) > alarmdelay)
       state_alarm = ((state_alarm | state_prealarm) & state_armed);
    state_alarm &= state_armed;
-   static uint16_t timer3 = 0;  // Post alarm timer - ideally per area, but this will be fine
+   static uint16_t timer4 = 0;  // Post alarm timer - ideally per area, but this will be fine
    if (state_prealarm)
-      timer3 = 0;
-   else if (alarmhold && (timer3 += meshcycle) > alarmhold)
+      timer4 = 0;
+   else if (alarmhold && (timer4 += meshcycle) > alarmhold)
       state_alarm = 0;
    // Fixed
    state_engineer = engineer;   // From flash - could be changed live though, so set here
@@ -626,8 +633,8 @@ static void mesh_send_display(void)
          int count = 0;
          char set[sizeof(area_t) * 8 + 1] = "";
          for (display_t * d = display; d; d = d->next)
-            if (d->area & node[i].display && count++ < MAX_LEAF_DISPLAY)
-               jo_stringf(j, NULL, "%s: %s\n%s", state_name[d->priority], area_list(set, d->area), d->text);
+            if ((d->area & node[i].display) && count++ < MAX_LEAF_DISPLAY)
+               jo_stringf(j, NULL, "%s: %s\n%s", state_name[d->priority], area_list(set, d->area & node[i].display), d->text);
          revk_mesh_send_json(node[i].mac, &j);
       }
    xSemaphoreGive(node_mutex);
@@ -671,7 +678,7 @@ static void mesh_handle_report(const char *target, jo_t j)
             {                   // fields in report
                void add_display(priority_t p, area_t a) {
                   // Some filtering
-                  if ((p == priority_access || p == priority_presence) && !(a & (state_armed | state_prearm)))
+                  if ((p == priority_access || p == priority_presence) && !(a & (state_armed | state_prearm | held_prearm)))
                      return;
                   // Add display
                   char text[35];
@@ -837,10 +844,15 @@ static void mesh_handle_summary(const char *target, jo_t j)
       {
          jo_t j = jo_make("");
          jo_area(j, "areas", state_alarm & ~lastalarm);
+         jo_array(j, "triggers");
+         xSemaphoreTake(display_mutex, portMAX_DELAY);
+         for (display_t * d = display; d; d = d->next)
+            if (d->seen && d->priority == priority_presence && (d->area & (state_alarm & ~lastalarm)))
+               jo_string(j, NULL, d->text);
+         xSemaphoreGive(display_mutex);
          if (smsalarm & (state_alarm & ~lastalarm))
             sms_event("Alarm!", j);
          alarm_event("alarm", &j, ioteventarm);
-         jo_free(&j);
       }
       lastalarm = state_alarm;
    }
@@ -851,6 +863,11 @@ static void mesh_handle_summary(const char *target, jo_t j)
       {
          jo_t j = jo_make("");
          jo_area(j, "areas", state_panic & ~lastpanic);
+         xSemaphoreTake(display_mutex, portMAX_DELAY);
+         for (display_t * d = display; d; d = d->next)
+            if (d->seen && d->priority == priority_panic && (d->area & (state_panic & ~lastpanic)))
+               jo_string(j, NULL, d->text);
+         xSemaphoreGive(display_mutex);
          if (smspanic & (state_panic & ~lastpanic))
             sms_event("Panic", j);
          alarm_event("panic", &j, ioteventarm);
@@ -866,6 +883,11 @@ static void mesh_handle_summary(const char *target, jo_t j)
       {
          jo_t j = jo_make("");
          jo_area(j, "areas", state_fire & ~lastfire);
+         xSemaphoreTake(display_mutex, portMAX_DELAY);
+         for (display_t * d = display; d; d = d->next)
+            if (d->seen && d->priority == priority_fire && (d->area & (state_fire & ~lastfire)))
+               jo_string(j, NULL, d->text);
+         xSemaphoreGive(display_mutex);
          if (smsfire & (state_fire & ~lastfire))
             sms_event("Fire", j);
          alarm_event("fire", &j, ioteventarm);
