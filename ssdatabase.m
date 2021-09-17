@@ -279,6 +279,7 @@ bool (doorsilent);              // Silent (no beep output)
 bool (doordebug);               // Lock state debug
 bool (doorcatch);               // Main lock catch logic (re-engage on opening)
 bool (keypad);                  // Keypad
+text(status,0);			// Summary status from device
 text(version, 0);               // S/w version
 text(build, 0);                 // S/w build
 num(chan);                      // WiFi channel
