@@ -17,9 +17,9 @@ static const char __attribute__((unused)) TAG[] = "alarm";
 
 // Alarm control
 
-#define i(t,x,c) area_t state_##x;        // system wide aggregated input states
-#define s(t,x,c) area_t state_##x;        // system wide calculated states
-#define c(t,x) area_t control_##x;        // local control flags
+#define i(t,x,c) area_t state_##x;      // system wide aggregated input states
+#define s(t,x,c) area_t state_##x;      // system wide calculated states
+#define c(t,x) area_t control_##x;      // local control flags
 #include "states.m"
 
 static SemaphoreHandle_t node_mutex = NULL;
@@ -87,8 +87,8 @@ settings
 #undef sn
 #undef u16
 #undef u8
-#define c(t,x) static area_t report_##x=0;        // The collated reports
-#define i(t,x,l) static area_t report_##x=0;        // The collated reports
+#define c(t,x) static area_t report_##x=0;      // The collated reports
+#define i(t,x,l) static area_t report_##x=0;    // The collated reports
 #include "states.m"
 static void task(void *pvParameters);
 static void node_online(const mac_t mac);
@@ -319,10 +319,12 @@ static int mesh_find_child(const mac_t mac, char insert)
    return m;
 }
 
-const char *mesh_make_report(jo_t j)
+void mesh_send_report(void)
 {                               // Make the report from leaf to root for out states...
-#define i(t,x,c) area_t x=0;      // what we are going to send
+#define i(t,x,c) area_t x=0;    // what we are going to send
 #include "states.m"
+   jo_t j = jo_object_alloc();  // TODO old report
+   jo_datetime(j, "report", time(0));
    static area_t was_prearm = 0;
    {                            // Inputs
       input_t latch = input_latch;
@@ -380,15 +382,11 @@ const char *mesh_make_report(jo_t j)
       }
    }
    was_prearm = state_prearm;
-   // Extras
-   char bell = bell_latch;
-   bell_latch = 0;
-   if (bell)
-      doorbell |= areabell;
 #define i(t,x,c) jo_area(j,#x,x);
 #define c(t,x) jo_area(j,#x,control_##x);
 #include "states.m"
-   return NULL;
+
+   revk_mesh_send_json(NULL, &j);
 }
 
 static void node_offline(const mac_t mac)
@@ -456,7 +454,7 @@ static void mesh_make_summary(jo_t j)
       jo_int(j, "offline", nodes - nodes_online);
    if (nodes < meshmax)
       jo_int(j, "missing", meshmax - nodes);
-#define i(t,x,c) state_##x=report_##x;    // Set aggregate states anyway (done by summary anyway)
+#define i(t,x,c) state_##x=report_##x;  // Set aggregate states anyway (done by summary anyway)
 #include "states.m"
    // Make system states
    // simple latched states - cleared by re-arming
@@ -542,11 +540,11 @@ static void mesh_handle_summary(const char *target, jo_t j)
    check_online(target);
    if (esp_mesh_is_root())
    {                            // We are root, so we have updated anyway, but let's report to IoT
-	   // TODO move reporting to control at send summary maybe
+      // TODO move reporting to control at send summary maybe
       const char *json = jo_rewind(j);
       if (json)
       {
-	      // TODO - more selective sending to control - actual change in non transient states, or status
+         // TODO - more selective sending to control - actual change in non transient states, or status
          uint32_t now = uptime();
          static uint32_t periodic = 0;
          static unsigned int last_crc = 0;      // using a CRC is a lot less memory than a copy of this or of the states
@@ -563,8 +561,8 @@ static void mesh_handle_summary(const char *target, jo_t j)
       }
    } else
    {                            // We are leaf, get the data
-#define i(t,x,c) area_t x=0;      // Zero if not specified
-#define s(t,x,c) area_t x=0;      // Zero if not specified
+#define i(t,x,c) area_t x=0;    // Zero if not specified
+#define s(t,x,c) area_t x=0;    // Zero if not specified
 #include "states.m"
       jo_rewind(j);
       jo_type_t t;
@@ -787,10 +785,7 @@ static void task(void *pvParameters)
       if (report_next <= now)
       {                         // Periodic send to root - even to self
          report_next = now + 1000000LL * meshcycle;
-         jo_t j = jo_object_alloc();
-         jo_datetime(j, "report", time(0));
-         mesh_make_report(j);
-         revk_mesh_send_json(NULL, &j);
+         mesh_send_report();
          if (meshdied && last_summary + meshdied < uptime())
             revk_restart("No summaries", 0);
       }

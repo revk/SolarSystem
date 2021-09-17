@@ -72,7 +72,6 @@ uint8_t nfcmask = 0,
     nfcinvert = 0;
 df_t df;
 SemaphoreHandle_t nfc_mutex = NULL;     // PN532 has low level message mutex, but this is needed for DESFire level.
-char bell_latch = 0;
 
 static uint8_t ledpattern[20] = "";
 
