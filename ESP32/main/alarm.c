@@ -681,9 +681,8 @@ static void mesh_handle_report(const char *target, jo_t j)
                   while (dp)
                   {
                      display_t *d = *dp;
-                     if (d && d->priority == p && !memcpy(d->mac, target, sizeof(d->mac)) && !strcmp(d->text, text))
+                     if (d && d->priority == p && d->area == a && !memcpy(d->mac, target, sizeof(d->mac)) && !strcmp(d->text, text))
                      {          // Match/update
-                        d->area = a;
                         d->seen = 1;
                         break;
                      }
