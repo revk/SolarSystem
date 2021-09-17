@@ -9,7 +9,9 @@ typedef enum {
 #define i(t,x,c) priority_##x,
 #define s(t,x,c) priority_##x,
 #include "states.m"
-} priority;
+   priorities
+} priority_t;
+extern const char *state_name[priorities];
 
 #define	MAX_MIX 5
 
@@ -29,6 +31,7 @@ extern area_t live_warning;
 extern area_t latch_presence;
 extern area_t live_presence;
 
+char *area_list(char set[sizeof(area_t) * 8 + 1], area_t area);
 void jo_area(jo_t j, const char *tag, area_t area);     // Store area
 area_t jo_read_area(jo_t);      // Read area
 void alarm_rx(const char *target, jo_t j);

@@ -8,6 +8,7 @@ static const char __attribute__((unused)) TAG[] = "alarm";
 #include "door.h"
 #include "input.h"
 #include "output.h"
+#include "keypad.h"
 #include <esp_mesh.h>
 #include <esp_http_client.h>
 #ifdef  CONFIG_MBEDTLS_CERTIFICATE_BUNDLE
@@ -21,8 +22,13 @@ static const char __attribute__((unused)) TAG[] = "alarm";
 #define s(t,x,c) area_t state_##x;      // system wide calculated states
 #define c(t,x) area_t control_##x;      // local control flags
 #include "states.m"
+const char *state_name[] = {
+#define i(t,x,c) #x,
+#define s(t,x,c) #x,
+#include "states.m"
+};
 
-static SemaphoreHandle_t node_mutex = NULL;
+static SemaphoreHandle_t node_mutex = NULL;     // protect changes to node list
 
 typedef struct node_s {
    mac_t mac;                   // Node MAC
@@ -41,6 +47,18 @@ int64_t report_next = 0;        // Send report cycle
 uint32_t last_summary = 0;      // When last summary (uptime)
 uint32_t control_summary = 0;   // When next send control summary
 
+static SemaphoreHandle_t display_mutex = NULL;
+typedef struct display_s display_t;     // Display message list
+struct display_s {
+   display_t *next;
+   mac_t mac;                   // Source MAC
+   area_t area;                 // Impacted area
+   uint8_t priority:4;          // Impacted priority 
+   uint8_t seen:1;              // Has been seen in this report cycle
+   char text[];                 // The display text (malloc)
+};
+static display_t *display = NULL;
+#define MAX_ROOT_DISPLAY (MAX_LEAF_DISPLAY*2)
 
 #define settings		\
 	area(areawarning)	\
@@ -225,6 +243,8 @@ void alarm_boot(void)
 {
    node_mutex = xSemaphoreCreateBinary();
    xSemaphoreGive(node_mutex);
+   display_mutex = xSemaphoreCreateBinary();
+   xSemaphoreGive(display_mutex);
    revk_register("area", 0, sizeof(areafault), &areafault, AREAS, SETTING_BITFIELD | SETTING_LIVE | SETTING_SECRET);    // Will control if shown in dump!
    revk_register("sms", 0, sizeof(smsalarm), &smsalarm, AREAS, SETTING_BITFIELD | SETTING_LIVE | SETTING_SECRET);
    revk_register("mix", sizeof(mixand) / sizeof(*mixand), sizeof(*mixand), &mixand, AREAS, SETTING_BITFIELD | SETTING_LIVE | SETTING_SECRET);
@@ -255,16 +275,21 @@ void alarm_start(void)
 }
 
 // JSON functions
-void jo_area(jo_t j, const char *tag, area_t area)
-{                               // Store area
-   char set[sizeof(area_t) * 8 + 1] = "",
-       *p = set;
+char *area_list(char set[sizeof(area_t) * 8 + 1], area_t area)
+{
+   char *p = set;
    for (int b = 0; AREAS[b]; b++)
       if (area & (1ULL << (sizeof(area_t) * 8 - b - 1)))
          *p++ = AREAS[b];
    *p = 0;
-   if (p > set)
-      jo_string(j, tag, set);
+   return set;
+}
+
+void jo_area(jo_t j, const char *tag, area_t area)
+{                               // Store area
+   char set[sizeof(area_t) * 8 + 1] = "";
+   if (area)
+      jo_string(j, tag, area_list(set, area));
 }
 
 area_t jo_read_area(jo_t j)
@@ -563,13 +588,45 @@ static void mesh_send_summary(void)
             jo_int(j, "offline", nodes - nodes_online);
          if (nodes < meshmax)
             jo_int(j, "missing", meshmax - nodes);
-         jo_string(j, "status", "");    // TODO
+         jo_string(j, "status", display ? display->text : "");  // Simplified for now
 #define i(t,x,c) if(strcmp(#x,"access")&&strcmp(#x,"presence"))jo_area(j,#x,state_##x); // Using full name to control
 #define s(t,x,c) jo_area(j,#x,state_##x);
 #include "states.m"
          revk_state_clients("system", &j, 1 | (iotstatesystem << 1));
       }
    }
+}
+
+static void mesh_send_display(void)
+{                               // Update display devices
+   // Cleanup
+   xSemaphoreTake(display_mutex, portMAX_DELAY);
+   display_t **dp = &display;
+   while (*dp)
+   {
+      display_t *d = *dp;
+      if (!d->seen)
+      {                         // Gone!
+         *dp = d->next;
+         free(d);
+      } else
+         dp = &d->next;
+   }
+   xSemaphoreGive(display_mutex);
+   xSemaphoreTake(node_mutex, portMAX_DELAY);
+   for (int i = 0; i < nodes; i++)
+      if (node[i].display)
+      {
+         jo_t j = jo_object_alloc();
+         jo_array(j, "display");
+         int count = 0;
+         char set[sizeof(area_t) * 8 + 1] = "";
+         for (display_t * d = display; d; d = d->next)
+            if (d->area & node[i].display && count++ < MAX_LEAF_DISPLAY)
+               jo_stringf(j, NULL, "%s: %s\n%s", state_name[d->priority], area_list(set, d->area), d->text);
+         revk_mesh_send_json(node[i].mac, &j);
+      }
+   xSemaphoreGive(node_mutex);
 }
 
 static void mesh_handle_report(const char *target, jo_t j)
@@ -583,7 +640,7 @@ static void mesh_handle_report(const char *target, jo_t j)
       node[child].reported = 1;
       nodes_reported++;
    }
-   char node[17] = "";
+   char dev[17] = "";
    jo_type_t t;
    jo_rewind(j);
    for (jo_next(j); (t = jo_here(j)) > JO_CLOSE; jo_skip(j))
@@ -594,7 +651,7 @@ static void mesh_handle_report(const char *target, jo_t j)
          if (!jo_strcmp(j, "i"))
          {
             jo_next(j);
-            jo_strncpy(j, node, sizeof(node));
+            jo_strncpy(j, dev, sizeof(dev));
             continue;
          }
       }
@@ -608,7 +665,48 @@ static void mesh_handle_report(const char *target, jo_t j)
          while ((t = jo_next(j)) && t != JO_CLOSE)
             if (t == JO_TAG)
             {                   // fields in report
-#define i(t,x,l) if(!jo_strcmp(j,#t)){jo_next(j);report_##x|=jo_read_area(j);continue;} else
+               void add_display(priority_t p, area_t a) {
+                  char text[35];
+                  snprintf(text, sizeof(text), "%s: %s", dev, id);
+                  text[16] = 0; // Truncate to fit display...
+                  xSemaphoreTake(display_mutex, portMAX_DELAY);
+                  display_t **dp = &display;
+		  int count=0;
+                  while (dp)
+                  {
+                     display_t *d = *dp;
+                     if (d && d->priority == p && !memcpy(d->mac, target, sizeof(d->mac)) && !strcmp(d->text, text))
+                     {          // Match/update
+                        d->area = a;
+                        d->seen = 1;
+                        break;
+                     }
+                     if (!d || d->priority < p)
+                     {          // New
+                        display_t *n = malloc(sizeof(*n) + strlen(text) + 1);
+                        memset(n, 0, sizeof(*n));
+                        memcpy(n->mac, target, sizeof(n->mac));
+                        n->priority = p;
+                        n->area = a;
+                        n->seen = 1;
+                        strcpy(n->text, text);
+                        n->next = d;
+                        *dp = n;
+                        break;
+                     }
+                     dp = &d->next;
+		     count++;
+                  }
+		  while(dp&&count++<MAX_ROOT_DISPLAY)dp=&(*dp)->next;
+		  while(dp&&*dp)
+		  { // Too many
+			  display_t *d=*dp;
+			  *dp=d->next;
+			  free(d);
+		  }
+                  xSemaphoreGive(display_mutex);
+               }
+#define i(t,x,l) if(!jo_strcmp(j,#t)){jo_next(j);area_t a=jo_read_area(j);report_##x|=a;add_display(priority_##x,a);continue;} else
 #include "states.m"
                if (!jo_strcmp(j, "i"))
                {                // ID
@@ -617,7 +715,6 @@ static void mesh_handle_report(const char *target, jo_t j)
                   continue;
                }
             }
-	 // TODO generate display messages
       }
    }
 }
@@ -847,12 +944,18 @@ static void task(void *pvParameters)
          static char missed = 0;
          if (nodes_reported >= nodes_online)
          {                      // We have a full set, make a report - the off line logic means we may miss a report if a device goes off line
+            mesh_send_summary();
+            mesh_send_display();
+            missed = 0;
             // Clear reports
             for (int n = 0; n < nodes; n++)
                node[n].reported = 0;
             nodes_reported = 0;
-            mesh_send_summary();
-            missed = 0;
+            // Clear display
+            xSemaphoreTake(display_mutex, portMAX_DELAY);
+            for (display_t * d = display; d; d = d->next)
+               d->seen = 0;
+            xSemaphoreGive(display_mutex);
          } else
             missed += nodes_online - nodes_reported;
       }
@@ -1002,6 +1105,11 @@ void alarm_rx(const char *target, jo_t j)
    if (!jo_strcmp(j, "summary"))
    {
       mesh_handle_summary(target, j);
+      return;
+   }
+   if (!jo_strcmp(j, "display"))
+   {
+      keypad_display_update(j);
       return;
    }
    if (!jo_strcmp(j, "connect"))

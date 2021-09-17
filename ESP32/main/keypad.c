@@ -6,6 +6,7 @@ static const char TAG[] = "keypad";
 #include "galaxybus.h"
 #include <driver/gpio.h>
 #include "alarm.h"
+#include "keypad.h"
 
 #define port_mask(p) ((p)&127)
 
@@ -75,18 +76,10 @@ const char *keypad_command(const char *tag, jo_t j)
    return NULL;
 }
 
-enum { IDLE, STATE, PIN };
-area_t const *states[] = {
-#define s(t,x,c) &state_##x,
-#include "states.m"
-};
+enum { IDLE, MESSAGE, PIN };
 
-const char *statename[] = {
-#define s(t,x,c) #x,
-#include "states.m"
-};
-
-#define STATES (sizeof(states)/sizeof(*states))
+int messages = 0;
+char **message = NULL;
 
 static void displayprint(const char *fmt, ...)
 {
@@ -171,19 +164,12 @@ void keypad_ui(char key)
    case IDLE:
       if (now > timeout)
       {
-         int q = 0,
-             b = -1;
-         for (q = 0; q < STATES; q++)
-            if (*states[q] & areakeypad)
-               b = q;
-         if (b >= 0)
-         {                      // Active state (last one)
-            state = STATE;
-            pos = b;
-         }
+         if (messages)
+            state = MESSAGE;
+         pos = 0;
       }
       break;
-   case STATE:
+   case MESSAGE:
       if (key)
       {
          shh = 1;
@@ -191,34 +177,20 @@ void keypad_ui(char key)
       }
       if (key == 'A')
       {                         // next
-         do
+         if (pos >= messages)
+            pos = 0;
+         else
             pos++;
-         while (pos < STATES && !(*states[pos] & areakeypad));
-         if (pos >= STATES)
-         {
-            pos = -1;
-            do
-               pos++;
-            while (pos < STATES && !(*states[pos] & areakeypad));
-            if (pos >= STATES)
-               fail("No more");
-         }
       }
       if (key == 'B')
       {                         // prev
-         do
+         if (pos)
             pos--;
-         while (pos >= 0 && !(*states[pos] & areakeypad));
-         if (pos < 0)
-         {
-            pos = STATES;
-            do
-               pos--;
-            while (pos >= 0 && !(*states[pos] & areakeypad));
-            if (pos < 0)
-               fail("No more");
-         }
+         else
+            pos = messages - 1;
       }
+      if (pos >= messages)
+         state = IDLE;
       break;
    case PIN:
       {
@@ -274,7 +246,6 @@ void keypad_ui(char key)
       if (ui.on != on || ui.off != off)
       {
          ui.sendsounder = 1;
-         ESP_LOGD(TAG, "Sounder %d %d", on, off);
          ui.on = on;
          ui.off = off;
       }
@@ -296,16 +267,11 @@ void keypad_ui(char key)
       if (now > timeout)
          displayprint("%-16s\n", *keypadidle ? keypadidle : revk_id);
       break;
-   case STATE:
+   case MESSAGE:
       {
-         area_t area = (*states[pos] & areakeypad);
-         char areas[sizeof(area_t) * 8 + 1],
-         *p = areas;
-         for (int z = 0; AREAS[z]; z++)
-            if (area & (1ULL << (sizeof(area_t) * 8 - z - 1)))
-               *p++ = AREAS[z];
-         *p = 0;
-         displayprint("%s: %s\n", statename[pos], areas);
+         if (pos >= messages)
+            pos = 0;
+         displayprint("%s", message[pos]);
       }
       break;
    case PIN:
@@ -545,6 +511,7 @@ static void task(void *pvParameters)
          buf[++p] = 0;
       } else if (ui.sendsounder)
       {                         // Beeper
+         ESP_LOGI(TAG, "Sounder %d %d", ui.on, ui.off);
          ui.sendsounder = 0;
          buf[++p] = 0x0C;
          buf[++p] = ((ui.on && ui.off) ? 3 : ui.on ? 1 : 0);
@@ -589,6 +556,8 @@ void keypad_boot(void)
 #undef sl
    if (keypadtx && keypadrx && keypadde && keypadre)
    {
+      message = malloc(MAX_LEAF_DISPLAY * sizeof(*message));
+      memset(message, 0, MAX_LEAF_DISPLAY * sizeof(*message));
       const char *err = port_check(port_mask(keypadtx), TAG, 0);
       if (!err && keypadtx != keypadrx)
          err = port_check(port_mask(keypadrx), TAG, 1);
@@ -606,4 +575,34 @@ void keypad_boot(void)
 
 void keypad_start(void)
 {
+}
+
+void keypad_display_update(jo_t j)
+{
+   if (!message)
+      return;
+   if (jo_next(j) != JO_ARRAY)
+   {
+      messages = 0;
+      return;
+   }
+   int count = 0;
+   while (jo_next(j) == JO_STRING && count < MAX_LEAF_DISPLAY)
+   {
+      int l = jo_strlen(j);
+      char *t = malloc(l + 1);
+      jo_strncpy(j, t, l + 1);
+      char *o = message[count];
+      message[count] = t;
+      free(o);
+      count++;
+   }
+   messages = count;
+   while (count < MAX_LEAF_DISPLAY)
+   {
+      char *o = message[count];
+      message[count] = NULL;
+      free(o);
+      count++;
+   }
 }
