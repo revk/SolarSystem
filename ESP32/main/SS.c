@@ -76,8 +76,7 @@ settings
 #define port_mask(p) ((p)&63)
 #define BITFIELDS "-"
 #define PORT_INV 0x40
-
-uint16_t logical_gpio = 0;      // Logical GPIO (from GPIO 48, covers NFC, keypad...)
+    uint16_t logical_gpio = 0;  // Logical GPIO (from GPIO 48, covers NFC, keypad...)
 
 // External
 const char *port_check(int p, const char *module, int in)

@@ -1,12 +1,11 @@
 // Alarm state
 // Copyright © 2019-21 Adrian Kennard, Andrews & Arnold Ltd. See LICENCE file for details. GPL 3.0
 
-#define i(t,x,c) extern area_t state_##x; // system wide aggregated input states
-#define s(t,x,c) extern area_t state_##x; // system wide calculated states
-#define	c(t,x) extern area_t control_##x; // local control flags
+#define i(t,x,c) extern area_t state_##x;       // system wide aggregated input states
+#define s(t,x,c) extern area_t state_##x;       // system wide calculated states
+#define	c(t,x) extern area_t control_##x;       // local control flags
 #include "states.m"
-typedef enum
-{
+typedef enum {
 #define i(t,x,c) priority_##x,
 #define s(t,x,c) priority_##x,
 #include "states.m"
@@ -38,5 +37,5 @@ void alarm_strongarm(area_t a, jo_t *);
 void alarm_disarm(area_t a, jo_t *);
 void send_sms(const char *fmt, ...);
 area_t alarm_armed(void);       // What areas are, in effect, armed
-area_t andset(area_t a);	// Do and/set logic
+area_t andset(area_t a);        // Do and/set logic
 void alarm_event(const char *event, jo_t * jp, char copy);

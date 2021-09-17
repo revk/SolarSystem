@@ -386,6 +386,7 @@ text(aidname, 0);
 
 table(event, 0);                // Logging
 link(device);
+link(fob);
 datetime(logged);
 text(suffix, 0);
 text(data, 0);

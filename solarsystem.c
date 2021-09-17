@@ -1346,7 +1346,7 @@ int main(int argc, const char *argv[])
                   if (!a)
                      return "";
                   char *o = temp;
-                  while (*a && o < temp + sizeof(temp) - 1 && *a != '-')
+                  while (*a && o < temp + sizeof(temp) - 1 && strchr(AREAS,*a))
                   {
                      if (o > temp)
                         *o++ = ',';

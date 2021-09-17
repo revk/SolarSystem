@@ -39,6 +39,8 @@ static int nodes_reported = 0;
 int64_t summary_next = 0;       // Send summary cycle
 int64_t report_next = 0;        // Send report cycle
 uint32_t last_summary = 0;      // When last summary (uptime)
+uint32_t control_summary = 0;   // When next send control summary
+
 
 #define settings		\
 	area(areawarning)	\
@@ -100,9 +102,12 @@ const char *alarm_command(const char *tag, jo_t j)
    if (!strcmp(tag, "connect"))
    {
       if (esp_mesh_is_root())
+      {
+         control_summary = 0;
          for (int i = 0; i < nodes; i++)
             if (node[i].online)
                node_online(node[i].mac);
+      }
       return NULL;
    }
    if (!strcmp(tag, "arm"))
@@ -446,8 +451,10 @@ area_t andset(area_t a)
    return a;
 }
 
-static void mesh_make_summary(jo_t j)
+static void mesh_send_summary(void)
 {                               // Process reports received, and make summary
+   jo_t j = jo_object_alloc();
+   jo_datetime(j, "summary", time(0));
    jo_string(j, "root", nodename);
    jo_int(j, "nodes", nodes);
    if (nodes_online < nodes)
@@ -456,10 +463,12 @@ static void mesh_make_summary(jo_t j)
       jo_int(j, "missing", meshmax - nodes);
 #define i(t,x,c) state_##x=report_##x;  // Set aggregate states anyway (done by summary anyway)
 #include "states.m"
+#define i(t,x,c) area_t was_##x=state_##x;
+#define s(t,x,c) area_t was_##x=state_##x;
+#include "states.m"
    // Make system states
    // simple latched states - cleared by re-arming
    // arming normally holds off for presence (obviously) but also tamper and access - forcing armed is possible
-   area_t was_armed = state_armed;
    // prearm if any not armed yet
    state_prearm = (andset(report_arm | state_armed) & ~state_armed & ~report_disarm);   // and/set to ensure we see implied arming areas
    static uint16_t timer1 = 0;
@@ -495,6 +504,29 @@ static void mesh_make_summary(jo_t j)
 #define s(t,x,c) jo_area(j,#x,state_##x);
 #define c(t,x) report_##x=0;
 #include "states.m"
+   const mac_t addr = { 255, 255, 255, 255, 255, 255 };
+   revk_mesh_send_json(addr, &j);
+   if (esp_mesh_is_root() && !revk_link_down())
+   {                            // Report to control
+      uint32_t now = uptime();
+      was_presence = state_presence;    // Not doing these
+      was_access = state_access;        // Not doing these
+      if (now > control_summary
+#define i(t,x,c) ||was_##x!=state_##x
+#define s(t,x,c) ||was_##x!=state_##x
+#include "states.m"
+          )
+      {
+         j = jo_make("");
+         jo_string(j, "root", nodename);
+         control_summary = now + 3600;
+#define i(t,x,c) if(strcmp(#x,"access")&&strcmp(#x,"presence"))jo_area(j,#x,state_##x);
+#define s(t,x,c) jo_area(j,#x,state_##x);
+#include "states.m"
+	 jo_string(j,"status",""); // TODO
+         revk_state_clients("system", &j, 1 | (iotstatesystem << 1));
+      }
+   }
 }
 
 static void mesh_handle_report(const char *target, jo_t j)
@@ -538,28 +570,7 @@ static void mesh_handle_summary(const char *target, jo_t j)
    last_summary = uptime();
    report_next = esp_timer_get_time() + 1000000LL * meshcycle / 4 + 1000000LL * meshcycle * esp_random() / (1ULL << 32) / 2;    // Fit in reports random slots
    check_online(target);
-   if (esp_mesh_is_root())
-   {                            // We are root, so we have updated anyway, but let's report to IoT
-      // TODO move reporting to control at send summary maybe
-      const char *json = jo_rewind(j);
-      if (json)
-      {
-         // TODO - more selective sending to control - actual change in non transient states, or status
-         uint32_t now = uptime();
-         static uint32_t periodic = 0;
-         static unsigned int last_crc = 0;      // using a CRC is a lot less memory than a copy of this or of the states
-         unsigned int crc = 0;
-         char *comma = strchr(json, ',');       // Skip time as that changes every time, duh
-         if (comma)
-            crc = df_crc(strlen(comma), (void *) comma);
-         if (last_crc != crc || now > periodic)
-         {                      // Changed
-            periodic = now + 3600;
-            last_crc = crc;
-            revk_mqtt_send_payload_clients("state", 1, "system", json, 1 | (iotstatesystem << 1));
-         }
-      }
-   } else
+   if (!esp_mesh_is_root())
    {                            // We are leaf, get the data
 #define i(t,x,c) area_t x=0;    // Zero if not specified
 #define s(t,x,c) area_t x=0;    // Zero if not specified
@@ -771,13 +782,7 @@ static void task(void *pvParameters)
             for (int n = 0; n < nodes; n++)
                node[n].reported = 0;
             nodes_reported = 0;
-            jo_t j = jo_object_alloc();
-            jo_datetime(j, "summary", time(0));
-            mesh_make_summary(j);
-            if (missed)
-               jo_int(j, "missed-reports", missed);
-            const mac_t addr = { 255, 255, 255, 255, 255, 255 };
-            revk_mesh_send_json(addr, &j);
+            mesh_send_summary();
             missed = 0;
          } else
             missed += nodes_online - nodes_reported;

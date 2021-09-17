@@ -19,7 +19,7 @@ extern uint8_t debug;
 
 #define	MAX_PORT	40
 #define	LOGIC_PORT	48
-extern uint16_t logical_gpio;	// Logical GPIO (from GPIO 48, covers NFC, keypad...)
+extern uint16_t logical_gpio;   // Logical GPIO (from GPIO 48, covers NFC, keypad...)
 #define l(t,g)	static const uint16_t logical_##t=(1<<((g)-LOGIC_PORT));
 #include "logicalgpio.m"
 
