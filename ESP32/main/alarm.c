@@ -326,10 +326,30 @@ static int mesh_find_child(const mac_t mac, char insert)
 
 void mesh_send_report(void)
 {                               // Make the report from leaf to root for out states...
-#define i(t,x,c) area_t x=0;    // what we are going to send
-#include "states.m"
-   jo_t j = jo_object_alloc();  // TODO old report
-   jo_datetime(j, "report", time(0));
+#define MAX (MESH_MPS-MESH_PAD)
+   jo_t report = NULL;
+   uint8_t count = 0;
+   void start(void) {
+      if (report)
+         return;
+      report = jo_object_alloc();
+      jo_array(report, "report");
+      count = 0;
+   }
+   void stop(void) {
+      if (!report)
+         return;
+      jo_close(report);
+      if (!count)
+         return;
+      jo_string(report, "i", nodename);
+   }
+   void send(void) {
+      if (!report)
+         return;
+      stop();
+      revk_mesh_send_json(NULL, &report);       // Split
+   }
    static area_t was_prearm = 0;
    {                            // Inputs
       input_t latch = input_latch;
@@ -338,6 +358,8 @@ void mesh_send_report(void)
       input_flip = 0;
       for (int i = 0; i < MAXINPUT; i++)
       {
+#define i(t,x,c) area_t x=0;    // what we are going to send
+#include "states.m"
          area_t trigger = (inputpresence[i] | inputaccess[i] | (inputtamper[i] & ~state_engineer));
          if ((latch | input_stable) & (1ULL << i))
          {                      // State is active (or has been, even if briefly)
@@ -384,14 +406,34 @@ void mesh_send_report(void)
 #undef i
             }
          }
+         if (
+#define i(t,x,c) x||
+#include "states.m"
+               0)
+         {                      // Report for input
+            jo_t j = jo_object_alloc();
+            jo_string(j, "i", inputname[i]);
+#define i(t,x,c) if(#x)jo_area(j,#t,x);
+#include "states.m"
+            if (jo_len(j) + jo_len(report) > MAX - 25)
+               send();
+            if (!report)
+               start();
+            jo_json(report, NULL, j);
+            jo_free(&j);
+            count++;
+         }
       }
    }
    was_prearm = state_prearm;
-#define i(t,x,c) jo_area(j,#x,x);
-#define c(t,x) jo_area(j,#x,control_##x);
+   if (jo_len(report) > MAX - 120 - 25)
+      send();
+   if (!report)
+      start();
+   stop();
+#define c(t,x) jo_area(report,#t,control_##x);
 #include "states.m"
-
-   revk_mesh_send_json(NULL, &j);
+   revk_mesh_send_json(NULL, &report);
 }
 
 static void node_offline(const mac_t mac)
@@ -455,10 +497,10 @@ static void mesh_send_summary(void)
 {                               // Process reports received, and make summary
    jo_t j = jo_object_alloc();
    jo_datetime(j, "summary", time(0));
-#define i(t,x,c) state_##x=report_##x;  // Set aggregate states anyway (done by summary anyway)
-#include "states.m"
 #define i(t,x,c) area_t was_##x=state_##x;
 #define s(t,x,c) area_t was_##x=state_##x;
+#include "states.m"
+#define i(t,x,c) state_##x=report_##x;  // Set aggregate states anyway (done by summary anyway)
 #include "states.m"
    // Make system states
    // simple latched states - cleared by re-arming
@@ -541,17 +583,43 @@ static void mesh_handle_report(const char *target, jo_t j)
       node[child].reported = 1;
       nodes_reported++;
    }
-   jo_rewind(j);
+   char node[17] = "";
    jo_type_t t;
-   while ((t = jo_next(j)))
+   jo_rewind(j);
+   for (jo_next(j); (t = jo_here(j)) > JO_CLOSE; jo_skip(j))
       if (t == JO_TAG)
       {
-#define c(t,x) if(!jo_strcmp(j,#x)||!jo_strcmp(j,#t)){jo_next(j);report_##x|=jo_read_area(j);} else
-#define i(t,x,l) if(!jo_strcmp(j,#x)||!jo_strcmp(j,#t)){jo_next(j);report_##x|=jo_read_area(j);} else
+#define c(t,x) if(!jo_strcmp(j,#x)||!jo_strcmp(j,#t)){jo_next(j);report_##x|=jo_read_area(j);continue;} else
 #include "states.m"
-         {                      // Unknown?
+         if (!jo_strcmp(j, "i"))
+         {
+            jo_next(j);
+            jo_strncpy(j, node, sizeof(node));
+            continue;
          }
       }
+   jo_rewind(j);
+   jo_next(j);                  // report tag
+   if (jo_next(j) == JO_ARRAY)
+   {                            // Handle report inputs
+      while ((t = jo_next(j)) == JO_OBJECT)
+      {
+         char id[16] = "";
+         while ((t = jo_next(j)) && t != JO_CLOSE)
+            if (t == JO_TAG)
+            {                   // fields in report
+#define i(t,x,l) if(!jo_strcmp(j,#t)){jo_next(j);report_##x|=jo_read_area(j);continue;} else
+#include "states.m"
+               if (!jo_strcmp(j, "i"))
+               {                // ID
+                  jo_next(j);
+                  jo_strncpy(j, id, sizeof(id));
+                  continue;
+               }
+            }
+         ESP_LOGI(TAG, "ID %s:%s bell %X", node, id, report_doorbell);      // TODO
+      }
+   }
 }
 
 static void set_outputs(void)
@@ -598,7 +666,7 @@ static void mesh_handle_summary(const char *target, jo_t j)
                            struct tm tm;
                            gmtime_r(&new, &tm);
                            ESP_LOGE(TAG, "Replay attack? diff=%d new=%04d-%02d-%02dT%02d:%02d:%02dZ", (int) diff, tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);
-                           // return; // TODO we are seeing this in normal working, so something is amiss... Investigate
+                           // return; // Note we are seeing this in normal working, so something is amiss... Investigate
                         }
                         struct timeval tv = { new, 0 };
                         if (settimeofday(&tv, NULL))

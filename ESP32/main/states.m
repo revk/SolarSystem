@@ -12,6 +12,7 @@
 #define s(t,n,c)	// Internal states
 #endif
 
+// Don't use tag "i"
 s(e,engineer,GY) // In order or importance
 s(f,faulted,)
 s(t,tampered,)
