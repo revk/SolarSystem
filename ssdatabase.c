@@ -88,8 +88,6 @@ void sstypes(const char *fn)
 #include "types.m"
 #define n(g,t) out("-"#t,"NFC"#g" (active low)");
 #include "types.m"
-#define l(g,t) out("-"#t,#g" (active low)");
-#include "ESP32/main/logicalgpio.m"
    start("GPIONUMPICK");
    pick("-", "-- GPIO --");
 #define g(g) pick(#g,#g);
@@ -102,8 +100,6 @@ void sstypes(const char *fn)
 #include "types.m"
 #define n(g,t) pick("-"#t,"NFC"#g" (active low)");
 #include "types.m"
-#define l(g,t) pick("-"#t,#g" (active low)");
-#include "ESP32/main/logicalgpio.m"
    start("GPIONFCLIST");
 #define n(g,t) list(#g);
 #include "types.m"
@@ -380,7 +376,7 @@ void ssdatabase(SQL * sqlp)
 #define	date(n)		field(#n,"date","NULL");
 #define	time0000(n)	field(#n,"time","'00:00:00'");
 #define	time2359(n)	field(#n,"time","'23:59:00'");
-#define	gpio(n)		field(#n,"enum('-','2','4','5','12','13','14','15','16','17','18','19','21','22','23','25','26','27','32','33','34','35','36','39','48','49','50','51','52','53','54','55','56','-2','-4','-5','-12','-13','-14','-15','-16','-17','-18','-19','-21','-22','-23','-25','-26','-27','-32','-33','-34','-35','-36','-39','-48','-49','-50','-51','-52','-53','-54','-55','-56')","'-'");
+#define	gpio(n)		field(#n,"enum('-','2','4','5','12','13','14','15','16','17','18','19','21','22','23','25','26','27','32','33','34','35','36','39','48','49','50','51','52','53','54','55','56','57','58','59','60','61','62','63','-2','-4','-5','-12','-13','-14','-15','-16','-17','-18','-19','-21','-22','-23','-25','-26','-27','-32','-33','-34','-35','-36','-39','-48','-49','-50','-51','-52','-53','-54','-55')","'-'");
 #define	gpionfc(n)	field(#n,"enum('-','30','31','32','33','34','35','71','72','-30','-31','-32','-33','-34','-35','-71','-72')","'-'");
 #define	gpiotype(n)	field(#n,"enum('-','I','O','P','I1','I2','I3','I4','I8','O1','O2','O3','O4')","'-'");
 #define	gpiopcb(n)	field(#n,"enum('-','IO','I','O')","'-'");

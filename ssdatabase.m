@@ -292,8 +292,6 @@ areas(areaenter);               // Areas allowed enter by fob
 areas(areaarm);                 // Areas allowed arm by fob
 areas(areastrongarm);           // Areas allowed arm by fob
 areas(areadisarm);              // Areas allowed disarm by fob
-areas(areawarning);             // Areas set by warning
-areas(areafault);               // Areas set by fault
 areas(areadeadlock);            // Areas for deadlock input
 areas(arealed);                 // LED area
 areas(areakeypad);              // Keypad area

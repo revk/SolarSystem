@@ -103,7 +103,7 @@ if($?devicename) then # save
 	if(! $?iotstatetamper) setenv iotstatetamper false
 	if(! $?iotkeypad) setenv iotkeypad false
 	if(! $?ioteventfob) setenv ioteventfob false
-	setenv allow "devicename areawarning areafault areaenter areastrongarm areadeadlock areaarm areadisarm areabell arealed areakeypad nfc rgb nfcadmin door doorexitarm doorexitdisarm aid site iotstatedoor iotstateinput iotstateoutput iotstatefault iotstatewarning iotstatetamper ioteventfob iotkeypad doorunlock doorlock dooropen doorclose doorprop doorexit keypadidle keypad pcb dooriotunlock dooriotdead dooriotundead outofservice doorsilent doordebug doorcatch"
+	setenv allow "devicename areaenter areastrongarm areadeadlock areaarm areadisarm areabell arealed areakeypad nfc rgb nfcadmin door doorexitarm doorexitdisarm aid site iotstatedoor iotstateinput iotstateoutput iotstatefault iotstatewarning iotstatetamper ioteventfob iotkeypad doorunlock doorlock dooropen doorclose doorprop doorexit keypadidle keypad pcb dooriotunlock dooriotdead dooriotundead outofservice doorsilent doordebug doorcatch"
 	if("$USER_ADMIN" == "true") setenv allow "$allow nfctrusted"
 	sqlwrite -qon "$DB" device $allow
 	sql "$DB" 'UPDATE device SET poke=NOW() WHERE site=$site'
@@ -210,23 +210,24 @@ xmlsql -C -d "$DB" head.html - foot.html << END
 </tr>
 </sql>
 </table>
-<table border=1>
-<set tags="warning fault">
 <if rgb=true><set tags="\$tags led"></if>
 <if keypad=true><set tags="\$tags keypad"></if>
 <if nfc=true><set tags="\$tags deadlock enter arm strongarm disarm"></if>
+<if tags>
+<table border=1>
 <tr><th></th>
-<for SPACE T="\$tags"><th><output name=T></th></for>
+<for SPACE T="\$tags"><if not T=""><th><output name=T></th></if></for>
 <th>Areas</th>
 </tr>
 <sql table=area where="site=$USER_SITE">
 <tr>
 <th><output name=tag></th>
-<for SPACE T="\$tags"><td><input name="area\$T" type=checkbox value="\$tag"></td></for>
+<for SPACE T="\$tags"><if not T=""><td><input name="area\$T" type=checkbox value="\$tag"></td></if></for>
 <td><output name=areaname></td>
 </tr>
 </sql>
 </table>
+</if>
 <input type=submit value="Update">
 <if online><input type=submit value="Restart" name=RESTART></if>
 <if not upgrade><input type=submit value="Upgrade" name=UPGRADE></if>
