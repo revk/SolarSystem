@@ -6,6 +6,7 @@ endif
 can --redirect --device='$device' editdevice
 if($status) exit 0
 source ../types
+source ../setcan
 
 if($?type) then
 	if(! $?invert) setenv invert false
