@@ -387,7 +387,7 @@ static void task(void *pvParameters)
                force = 1;       // Error?
             else if (buf[1] == 0xFE)
             {                   // Idle, no tamper, no key
-               logical_gpio &= ~0x100;
+               logical_gpio &= ~logical_KeyTamper;
                if (!ui.keyconfirm)
                {
                   if (lastkey & 0x80)
@@ -408,9 +408,9 @@ static void task(void *pvParameters)
             } else if (cmd == 0x06 && buf[1] == 0xF4 && p >= 3)
             {                   // Status
                if (keypadtamper && (buf[2] & 0x40))
-                  logical_gpio |= 0x100;
+                  logical_gpio |= logical_KeyTamper;
                else
-                  logical_gpio &= ~0x100;
+                  logical_gpio &= ~logical_KeyTamper;
                if (!ui.keyconfirm)
                {                // Key
                   if (buf[2] == 0x7F)

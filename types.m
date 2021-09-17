@@ -20,10 +20,6 @@
 #define io(g,t)
 #endif
 
-#ifndef x
-#define x(g,t)
-#endif
-
 i(I,Input);
 i(I1,Exit button);
 i(I2,Door open contact);
@@ -73,11 +69,8 @@ n(35,53);
 n(71,54);
 n(72,55);
 
-x(Keytamper,56)
-
 #undef i
 #undef o
 #undef g
 #undef n
 #undef io
-#undef x

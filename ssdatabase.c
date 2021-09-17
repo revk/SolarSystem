@@ -74,36 +74,36 @@ void sstypes(const char *fn)
 #include "types.m"
 #define n(g,t) list(#t);
 #include "types.m"
-#define x(g,t) list(#t);
-#include "types.m"
+#define l(g,t) list(#t);
+#include "ESP32/main/logicalgpio.m"
    start("GPIONUMOUT");
    out("-", "Unused");
 #define g(g) out(#g,#g);
 #include "types.m"
 #define n(g,t) out(#t,"NFC"#g);
 #include "types.m"
-#define x(g,t) out(#t,#g);
-#include "types.m"
+#define l(g,t) out(#t,#g);
+#include "ESP32/main/logicalgpio.m"
 #define g(g) out("-"#g,#g" (active low)");
 #include "types.m"
 #define n(g,t) out("-"#t,"NFC"#g" (active low)");
 #include "types.m"
-#define x(g,t) out("-"#t,#g" (active low)");
-#include "types.m"
+#define l(g,t) out("-"#t,#g" (active low)");
+#include "ESP32/main/logicalgpio.m"
    start("GPIONUMPICK");
    pick("-", "-- GPIO --");
 #define g(g) pick(#g,#g);
 #include "types.m"
 #define n(g,t) pick(#t,"NFC"#g);
 #include "types.m"
-#define x(g,t) pick(#t,#g);
-#include "types.m"
+#define l(g,t) pick(#t,#g);
+#include "ESP32/main/logicalgpio.m"
 #define g(g) pick("-"#g,#g" (active low)");
 #include "types.m"
 #define n(g,t) pick("-"#t,"NFC"#g" (active low)");
 #include "types.m"
-#define x(g,t) pick("-"#t,#g" (active low)");
-#include "types.m"
+#define l(g,t) pick("-"#t,#g" (active low)");
+#include "ESP32/main/logicalgpio.m"
    start("GPIONFCLIST");
 #define n(g,t) list(#g);
 #include "types.m"

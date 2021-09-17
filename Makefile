@@ -85,7 +85,7 @@ login.conf: login/Kconfig
 login/redirect.o: login/redirect.c
 	make -C login redirect.o
 
-ssdatabase.o: ssdatabase.c ssdatabase.m ssdatabase.h config.h types.m Makefile ESP32/main/states.m
+ssdatabase.o: ssdatabase.c ssdatabase.m ssdatabase.h config.h types.m Makefile ESP32/main/states.m ESP32/main/logicalgpio.m
 	gcc -g -Wall -Wextra -O -c -o $@ $< ${SQLINC} -DLIB
 
 ssmqtt.o: ssmqtt.c ssmqtt.h Makefile config.h
