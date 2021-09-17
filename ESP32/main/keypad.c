@@ -158,6 +158,11 @@ void keypad_ui(char key)
       pos = 0;
       timeout = now + 5;
    }
+   if (key)
+   {
+      shh = 1;
+      timeout = now + 10;
+   }
    switch (state)
    {                            // Pre display
    case IDLE:
@@ -167,18 +172,8 @@ void keypad_ui(char key)
             state = MESSAGE;
          pos = 0;
       }
-      if (key)
-      {
-         shh = 1;
-         timeout = now + 10;
-      }
       break;
    case MESSAGE:
-      if (key)
-      {
-         shh = 1;
-         timeout = now + 10;
-      }
       if (key == 'A')
       {                         // next
          if (pos >= messages)
@@ -199,11 +194,6 @@ void keypad_ui(char key)
    case PIN:
       {
          static char code[16];
-         if (key)
-         {
-            timeout = now + 10;
-            shh = 1;
-         }
          if ((key >= '0' && key <= '9') || key == '*' || key == '#')
          {                      // PIN for full 12 keys
             if (pos < sizeof(code))
