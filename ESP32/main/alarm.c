@@ -678,7 +678,6 @@ static void mesh_handle_report(const char *target, jo_t j)
                   // Add display
                   char text[35];
                   snprintf(text, sizeof(text), "%s: %s", dev, id);
-                  text[16] = 0; // Truncate to fit display...
                   xSemaphoreTake(display_mutex, portMAX_DELAY);
                   display_t **dp = &display;
                   int count = 0;
