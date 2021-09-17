@@ -617,7 +617,7 @@ static void mesh_handle_report(const char *target, jo_t j)
                   continue;
                }
             }
-         ESP_LOGI(TAG, "ID %s:%s bell %X", node, id, report_doorbell);      // TODO
+	 // TODO generate display messages
       }
    }
 }
