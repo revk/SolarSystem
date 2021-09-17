@@ -1,10 +1,16 @@
 // Alarm state
 // Copyright © 2019-21 Adrian Kennard, Andrews & Arnold Ltd. See LICENCE file for details. GPL 3.0
 
-#define i(x,c) extern area_t state_##x; // system wide aggregated input states
-#define	c(x) extern area_t control_##x; // local control flags
-#define s(x,c) extern area_t state_##x; // system wide calculated states
+#define i(t,x,c) extern area_t state_##x; // system wide aggregated input states
+#define s(t,x,c) extern area_t state_##x; // system wide calculated states
+#define	c(t,x) extern area_t control_##x; // local control flags
 #include "states.m"
+typedef enum
+{
+#define i(t,x,c) priority_##x,
+#define s(t,x,c) priority_##x,
+#include "states.m"
+} priority;
 
 #define	MAX_MIX 5
 

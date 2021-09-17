@@ -1,39 +1,38 @@
 // States
 
 #ifndef i
-#define i(n,c)	// Input states
+#define i(t,n,c)	// Input states
 #endif
 
 #ifndef c
-#define c(n)	// Control states
+#define c(t,n)		// Control states
 #endif
 
 #ifndef s
-#define s(n,c)	// Internal states
+#define s(t,n,c)	// Internal states
 #endif
 
-s(engineer,GY) // In order or importance
-s(faulted,)
-s(tampered,)
-s(alarmed,)
-s(armed,C)
-s(prearm,)
-s(prealarm,)
-s(alarm,RB)
+s(e,engineer,GY) // In order or importance
+s(f,faulted,)
+s(t,tampered,)
+s(a,alarmed,)
+s(S,armed,C)
+s(s,prearm,)
+s(p,prealarm,)
+s(A,alarm,RB)
 
-i(doorbell,W)
-i(warning,Y)
-i(fault,M)
-i(access,B)
-i(presence,)
-i(tamper,R)
-i(fire,RY)
-i(panic,RM)
+i(D,doorbell,W)
+i(W,warning,Y)
+i(E,fault,M)
+i(O,access,B)
+i(I,presence,)
+i(T,tamper,R)
+i(F,fire,RY)
+i(P,panic,RM)
 
-c(arm)
-c(strongarm)
-c(disarm)
-
+c(aa,arm)
+c(sa,strongarm)
+c(da,disarm)
 
 #undef i
 #undef s

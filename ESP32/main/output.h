@@ -5,8 +5,8 @@
 typedef uint8_t output_t;       // Enough for number of outputs
 
 extern output_t output_forced;  // Output forced externally
-#define i(x,c) extern area_t output##x[MAXOUTPUT];
-#define s(x,c) i(x,c)
+#define i(t,x,c) extern area_t output##x[MAXOUTPUT];
+#define s(t,x,c) extern area_t output##x[MAXOUTPUT];
 #include "states.m"
 
 void output_set(int p, int v);

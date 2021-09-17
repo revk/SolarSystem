@@ -12,7 +12,7 @@ static const char TAG[] = "input";
 #define	port_mask(p) ((p)&63)
 static uint8_t input[MAXINPUT];
 static uint8_t inputhold[MAXINPUT];
-#define i(x,c) area_t input##x[MAXINPUT];
+#define i(t,x,c) area_t input##x[MAXINPUT];
 #include "states.m"
 char *inputname[MAXINPUT];
 
@@ -135,7 +135,7 @@ void input_boot(void)
    revk_register("inputgpio", MAXINPUT, sizeof(*input), &input, BITFIELDS, SETTING_BITFIELD | SETTING_SET);
    revk_register("inputhold", MAXINPUT, sizeof(*inputhold), &inputhold, NULL, 0);
    revk_register("inputname", MAXINPUT, 0, &inputname, NULL, 0);
-#define i(x,c) revk_register("input"#x, MAXINPUT, sizeof(*input##x), &input##x, AREAS, SETTING_BITFIELD);
+#define i(t,x,c) revk_register("input"#x, MAXINPUT, sizeof(*input##x), &input##x, AREAS, SETTING_BITFIELD);
 #include "states.m"
 #define u8(n,v) revk_register(#n,0,sizeof(n),&n,#v,0);
    settings

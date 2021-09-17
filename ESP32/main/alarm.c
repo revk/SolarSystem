@@ -17,9 +17,9 @@ static const char __attribute__((unused)) TAG[] = "alarm";
 
 // Alarm control
 
-#define i(x,c) area_t state_##x;        // system wide aggregated input states
-#define c(x) area_t control_##x;        // local control flags
-#define s(x,c) area_t state_##x;        // system wide calculated states
+#define i(t,x,c) area_t state_##x;        // system wide aggregated input states
+#define s(t,x,c) area_t state_##x;        // system wide calculated states
+#define c(t,x) area_t control_##x;        // local control flags
 #include "states.m"
 
 static SemaphoreHandle_t node_mutex = NULL;
@@ -85,8 +85,8 @@ settings
 #undef sn
 #undef u16
 #undef u8
-#define c(x) static area_t report_##x=0;        // The collated reports
-#define i(x,l) c(x)
+#define c(t,x) static area_t report_##x=0;        // The collated reports
+#define i(t,x,l) static area_t report_##x=0;        // The collated reports
 #include "states.m"
 static void task(void *pvParameters);
 static void node_online(const mac_t mac);
@@ -317,7 +317,7 @@ static int mesh_find_child(const mac_t mac, char insert)
 
 const char *mesh_make_report(jo_t j)
 {                               // Make the report from leaf to root for out states...
-#define i(x,c) area_t x=0;      // what we are going to send
+#define i(t,x,c) area_t x=0;      // what we are going to send
 #include "states.m"
    static area_t was_prearm = 0;
    {                            // Inputs
@@ -330,7 +330,7 @@ const char *mesh_make_report(jo_t j)
          area_t trigger = (inputpresence[i] | inputaccess[i] | (inputtamper[i] & ~state_engineer));
          if ((latch | input_stable) & (1ULL << i))
          {                      // State is active (or has been, even if briefly)
-#define i(x,c) x|=input##x[i];
+#define i(t,x,c) x|=input##x[i];
 #include "states.m"
             if ((trigger & state_prearm) && !(trigger & was_prearm))
             {
@@ -381,8 +381,8 @@ const char *mesh_make_report(jo_t j)
    bell_latch = 0;
    if (bell)
       doorbell |= areabell;
-#define i(x,c) jo_area(j,#x,x);
-#define c(x) jo_area(j,#x,control_##x);
+#define i(t,x,c) jo_area(j,#x,x);
+#define c(t,x) jo_area(j,#x,control_##x);
 #include "states.m"
    return NULL;
 }
@@ -452,7 +452,7 @@ static void mesh_make_summary(jo_t j)
       jo_int(j, "offline", nodes - nodes_online);
    if (nodes < meshmax)
       jo_int(j, "missing", meshmax - nodes);
-#define i(x,c) state_##x=report_##x;    // Set aggregate states anyway (done by summary anyway)
+#define i(t,x,c) state_##x=report_##x;    // Set aggregate states anyway (done by summary anyway)
 #include "states.m"
    // Make system states
    // simple latched states - cleared by re-arming
@@ -489,9 +489,9 @@ static void mesh_make_summary(jo_t j)
    // Fixed
    state_engineer = engineer;   // From flash - could be changed live though, so set here
    // Send summary
-#define i(x,c) jo_area(j,#x,state_##x);report_##x=0;
-#define c(x) report_##x=0;
-#define s(x,c) jo_area(j,#x,state_##x);
+#define i(t,x,c) jo_area(j,#x,state_##x);report_##x=0;
+#define s(t,x,c) jo_area(j,#x,state_##x);
+#define c(t,x) report_##x=0;
 #include "states.m"
 }
 
@@ -511,8 +511,8 @@ static void mesh_handle_report(const char *target, jo_t j)
    while ((t = jo_next(j)))
       if (t == JO_TAG)
       {
-#define c(x) if(!jo_strcmp(j,#x)){jo_next(j);report_##x|=jo_read_area(j);} else
-#define i(x,l) c(x)
+#define c(t,x) if(!jo_strcmp(j,#x)||!jo_strcmp(j,#t)){jo_next(j);report_##x|=jo_read_area(j);} else
+#define i(t,x,l) if(!jo_strcmp(j,#x)||!jo_strcmp(j,#t)){jo_next(j);report_##x|=jo_read_area(j);} else
 #include "states.m"
          {                      // Unknown?
          }
@@ -524,8 +524,8 @@ static void set_outputs(void)
    output_t forced = 0;
    for (int i = 0; i < MAXOUTPUT; i++)
    {
-#define i(x,c) if(output##x[i]&state_##x)forced|=(1ULL<<i);
-#define s(x,c) i(x,c)
+#define i(t,x,c) if(output##x[i]&state_##x)forced|=(1ULL<<i);
+#define s(t,x,c) if(output##x[i]&state_##x)forced|=(1ULL<<i);
 #include "states.m"
    }
    output_forced = forced;
@@ -557,8 +557,8 @@ static void mesh_handle_summary(const char *target, jo_t j)
       }
    } else
    {                            // We are leaf, get the data
-#define i(x,c) area_t x=0;      // Zero if not specified
-#define s(x,c) i(x,c)
+#define i(t,x,c) area_t x=0;      // Zero if not specified
+#define s(t,x,c) area_t x=0;      // Zero if not specified
 #include "states.m"
       jo_rewind(j);
       jo_type_t t;
@@ -595,14 +595,14 @@ static void mesh_handle_summary(const char *target, jo_t j)
                   }
                }
             } else
-#define i(x,c) if(!jo_strcmp(j,#x)){jo_next(j);x=jo_read_area(j);} else
-#define s(x,c) i(x,c)
+#define i(t,x,c) if(!jo_strcmp(j,#x)||!jo_strcmp(j,#t)){jo_next(j);x=jo_read_area(j);} else
+#define s(t,x,c) if(!jo_strcmp(j,#x)||!jo_strcmp(j,#t)){jo_next(j);x=jo_read_area(j);} else
 #include "states.m"
             {                   // Unknown?
             }
          }
-#define i(x,c) state_##x=x;
-#define s(x,c) i(x,c)
+#define i(t,x,c) state_##x=x;
+#define s(t,x,c) state_##x=x;
 #include "states.m"
    }
    // Clear control bits when actioned
@@ -707,8 +707,8 @@ static void task(void *pvParameters)
          if ((isroot && !revk_link_down() && nodes_online == meshmax) || (!isroot && esp_mesh_is_device_active()))
             r = 3;
          const char *led = "G";
-#define i(x,c) if((state_##x&(arealed?:(area_t)-1))&&*#c)led=#c;
-#define s(x,c) i(x,c)
+#define i(t,x,c) if((state_##x&(arealed?:(area_t)-1))&&*#c)led=#c;
+#define s(t,x,c) if((state_##x&(arealed?:(area_t)-1))&&*#c)led=#c;
 #include "states.m"
          revk_blink(r, r, led);
       }

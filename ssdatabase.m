@@ -175,7 +175,7 @@ num(alarmdelay);                // Pre alarm time
 num(alarmhold);                 // Hold alarm state time
 bool (ioteventarm);             // Copy stuff to IoT
 bool (iotstatesystem);          // Copy stuff to IoT
-#define s(state,c) areas(state)
+#define s(t,state,c) areas(state)
 #include "ESP32/main/states.m"  // Related areas
 text(smsnumber, 20);            // Number to SMS
 text(smsfrom, 10);              // From, where settable by carrier
@@ -328,8 +328,8 @@ bool (invert);                  // Invert normal polarity for pin
 text(name, 16);                 // Port name, default to pin name
 num(hold);                      // Port hold time
 num(pulse);                     // Port output time
-#define i(state,c) areas(state)
-#define s(state,c) areas(state)
+#define i(t,state,c) areas(state)
+#define s(t,state,c) areas(state)
 #include "ESP32/main/states.m"  // Related areas
 
 table(pending, 12);

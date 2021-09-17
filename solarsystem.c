@@ -137,10 +137,10 @@ void notify(SQL * sqlp, SQL_RES * res, const char *target, j_t j)
          if (found)
             fprintf(f, "\n");
       }
-#define extras c(areas)c(also)c(disarmok)c(armok)c(strongarmok)
-#define s(x,l) areas(#x);
-#define i(x,l) areas(#x);
-#define c(x) areas(#x);
+#define extras c(,areas)c(,also)c(,disarmok)c(,armok)c(,strongarmok)
+#define s(t,x,l) areas(#x);
+#define i(t,x,l) areas(#x);
+#define c(t,x) areas(#x);
       extras;
 #include "ESP32/main/states.m"
       j_t e;
@@ -148,9 +148,9 @@ void notify(SQL * sqlp, SQL_RES * res, const char *target, j_t j)
       {
          const char *tag = j_name(e);
          if (strcmp(tag, "event") && strcmp(tag, "areas") && strcmp(tag, "ts") && strcmp(tag, "also")
-#define s(x,l) &&strcmp(tag,#x)
-#define i(x,l) &&strcmp(tag,#x)
-#define c(x) &&strcmp(tag,#x)
+#define s(t,x,l) &&strcmp(tag,#x)
+#define i(t,x,l) &&strcmp(tag,#x)
+#define c(t,x) &&strcmp(tag,#x)
              extras
 #include "ESP32/main/states.m"
              )
@@ -440,8 +440,8 @@ static const char *settings(SQL * sqlp, SQL * sqlkeyp, SQL_RES * res, slot_t id)
                }
                if (*type != 'P')
                {
-#define i(n,c) addarea(gpio,#n,sql_col(g,#n),0);
-#define s(n,c) i(n,c)
+#define i(t,n,c) addarea(gpio,#n,sql_col(g,#n),0);
+#define s(t,n,c) addarea(gpio,#n,sql_col(g,#n),0);
 #include "ESP32/main/states.m"
                }
             }
@@ -1360,7 +1360,7 @@ int main(int argc, const char *argv[])
                   sql_sprintf(&s, "`nodes`=%d,", n);
                if ((n = atoi(j_get(j, "missing") ? : "")) != atoi(sql_col(res, "missing") ? : "-1"))
                   sql_sprintf(&s, "`missing`=%d,", n);
-#define s(n,c) if(strcmp(#n,"engineer")){const char *v=commalist(j_get(j,#n));if(strcmp(sql_colz(res,#n),v))sql_sprintf(&s,"`%#S`=%#s,",#n,v);}
+#define s(t,n,c) if(strcmp(#n,"engineer")){const char *v=commalist(j_get(j,#n));if(strcmp(sql_colz(res,#n),v))sql_sprintf(&s,"`%#S`=%#s,",#n,v);}
 #include "ESP32/main/states.m"
                if (sql_back_s(&s) == ',' && deviceid)
                {

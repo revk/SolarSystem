@@ -77,12 +77,12 @@ const char *keypad_command(const char *tag, jo_t j)
 
 enum { IDLE, STATE, PIN };
 area_t const *states[] = {
-#define s(x,c) &state_##x,
+#define s(t,x,c) &state_##x,
 #include "states.m"
 };
 
 const char *statename[] = {
-#define s(x,c) #x,
+#define s(t,x,c) #x,
 #include "states.m"
 };
 
