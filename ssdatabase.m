@@ -160,6 +160,7 @@ text(hookdisarm, 0);            // Disarm event web hook
 text(hookarmfail, 0);               // Arm fail event web hook
 text(hooknotopen, 0);            // Not open event web hook
 text(hookopen, 0);            // Open event web hook
+text(status,0);			// Site level status
 areas(faulted);                 // Site wide states from mesh
 areas(tampered);
 areas(alarmed);

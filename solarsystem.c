@@ -1356,12 +1356,15 @@ int main(int argc, const char *argv[])
                   return temp;
                }
                int n;
+               const char *v;
                if ((n = atoi(j_get(j, "nodes") ? : "")) != atoi(sql_col(res, "nodes") ? : "-1"))
                   sql_sprintf(&s, "`nodes`=%d,", n);
                if ((n = atoi(j_get(j, "missing") ? : "")) != atoi(sql_col(res, "missing") ? : "-1"))
                   sql_sprintf(&s, "`missing`=%d,", n);
-#define s(t,n,c) if(strcmp(#n,"engineer")){const char *v=commalist(j_get(j,#n));if(strcmp(sql_colz(res,#n),v))sql_sprintf(&s,"`%#S`=%#s,",#n,v);}
+#define s(t,n,c) if(strcmp(#n,"engineer")){if(strcmp(sql_colz(res,#n),v=commalist(j_get(j,#n))))sql_sprintf(&s,"`%#S`=%#s,",#n,v);}
 #include "ESP32/main/states.m"
+               if (strcmp(sql_colz(res, "status"), v = (j_get(j, "status") ? : "")))
+                  sql_printf(&s, "`status`=%#s", v);
                if (sql_back_s(&s) == ',' && deviceid)
                {
                   sql_sprintf(&s, " WHERE `site`=%#s", sql_col(device, "site"));
@@ -1388,18 +1391,7 @@ int main(int argc, const char *argv[])
                sql_safe_query_free(&sql, sql_printf("DELETE FROM `pending` WHERE `id`=%lld", id));
             return NULL;
          }
-         if (prefix && !strcmp(prefix, "state"))
-         {                      // State
-            if (suffix && !strcmp(suffix, "status") && checkdevice())
-            {
-               char *buf;
-               size_t len;
-               j_err(j_write_mem(j, &buf, &len));
-               if (strcmp(buf, sql_colz(device, suffix)))
-                  sql_safe_query_free(&sql, sql_printf("UPDATE `device` SET `%#S`=%#s WHERE `device`=%#s", suffix, buf, deviceid));
-               free(buf);
-            }
-         } else if (prefix && !strcmp(prefix, "event"))
+         if (prefix && !strcmp(prefix, "event"))
          {
             char *data = j_write_str(j);
             sql_safe_query_free(&sql, sql_printf("INSERT INTO `event` SET `logged`=NOW(),`device`=%#s,`suffix`=%#s,`data`=%#s", deviceid, suffix, data));

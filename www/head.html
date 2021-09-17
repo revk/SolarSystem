@@ -48,6 +48,7 @@
 <sql table=site WHERE="site=$USER_SITE">
 <set s=""><if not missing=0><set s='background:red;'></if><span style="$s">Nodes <output name=nodes><if not missing=0> (missing <output name=missing>)</if></span>
 <table>
+<if status not status=""><tr><td>Status</td><td><output name=status></td></tr></if>
 <if not alarm=""><tr style='background:red;'><td>Alarm</td><td><output name=alarm></td></tr></if>
 <if else not alarmed=""><tr style='background:yellow;'><td>Alarmed</td><td><output name=alarmed></td></tr></if>
 <if not armed=""><tr><td>Armed</td><td><output name=armed></td></tr></if>

@@ -148,7 +148,6 @@ xmlsql -C -d "$DB" head.html - foot.html << END
 <if else>
 <if online door=true CANUNLOCK><form style="display:inline;" method=post><input type=hidden name=device><input type=submit name=UNLOCK value="Unlock"></form></if>
 <if door=true>Door </if><if nfc=true>NFC reader </if><if nfcadmin=true> (admin)</if><if nfctrusted=true><b> (trusted)</b></if><br>
-<if status not status=""><br><b><output name=status></b></if>
 </if>
 </td>
 </tr>
