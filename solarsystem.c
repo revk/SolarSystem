@@ -154,7 +154,23 @@ void notify(SQL * sqlp, SQL_RES * res, const char *target, j_t j)
              extras
 #include "ESP32/main/states.m"
              )
-            fprintf(f, "%s:\t%s\n", tag, j_val(e));
+         {
+            fprintf(f, "%s:\t", tag);
+            if (j_isstring(e))
+               fprintf(f, "%s", j_val(e));
+            else if (j_isarray(e))
+            {
+               char found = 0;
+               j_t s;
+               for (s = j_first(e); s; s = j_next(s))
+               {
+                  if (found++)
+                     fprintf(f, ", ");
+                  fprintf(f, "%s", j_val(s));
+               }
+            }
+            fprintf(f, "\n");
+         }
       }
       fclose(f);
    }
@@ -1346,7 +1362,7 @@ int main(int argc, const char *argv[])
                   if (!a)
                      return "";
                   char *o = temp;
-                  while (*a && o < temp + sizeof(temp) - 1 && strchr(AREAS,*a))
+                  while (*a && o < temp + sizeof(temp) - 1 && strchr(AREAS, *a))
                   {
                      if (o > temp)
                         *o++ = ',';
