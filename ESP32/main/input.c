@@ -76,14 +76,28 @@ static void task(void *pvParameters)
    pvParameters = pvParameters;
    int poll = (inputpoll ? : 1);
    static uint8_t input_hold[MAXINPUT] = { };
+   // Init state
+   for (int i = 0; i < MAXINPUT; i++)
+      if (input[i])
+      {
+         int p = port_mask(input[i]),
+             v;
+         if (p >= LOGIC_PORT)
+            v = ((logical_gpio >> (p - LOGIC_PORT)) & 1);       // Logical GPIO, e.g. NFC ports, etc.
+         else
+            v = gpio_get_level(port_mask(input[i]));
+         if ((1ULL << i) & input_invert)
+            v = 1 - v;
+         input_raw = ((input_raw & ~(1ULL << i)) | ((input_t) v << i));
+      }
+   input_stable = input_raw;
    // Scan inputs
    while (1)
    {
       esp_task_wdt_reset();
       // Check inputs
-      int i;
       input_t was = input_stable;
-      for (i = 0; i < MAXINPUT; i++)
+      for (int i = 0; i < MAXINPUT; i++)
          if (input[i])
          {
             int p = port_mask(input[i]),
@@ -119,7 +133,7 @@ static void task(void *pvParameters)
          int t = MAXINPUT;
          while (t && !input[t - 1])
             t--;
-         for (i = 0; i < t; i++)
+         for (int i = 0; i < t; i++)
             if (*inputname[i])
                jo_bool(j, inputname[i], (input_stable >> i) & 1);
          revk_state_clients("input", &j, debug | (iotstateinput << 1));
