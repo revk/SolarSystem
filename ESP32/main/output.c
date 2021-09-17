@@ -3,7 +3,6 @@
 static const char TAG[] = "output";
 #include "SS.h"
 #include "output.h"
-const char *output_fault = NULL;
 
 #include <driver/gpio.h>
 
@@ -214,10 +213,8 @@ void output_boot(void)
          {
             const char *e = port_check(p = port_mask(output[i]), TAG, 0);
             if (e)
-            {
-               status(output_fault = e);
                output[i] = 0;
-            } else
+            else
             {                   // Set up output pin
                c.pin_bit_mask |= (1ULL << p);
                REVK_ERR_CHECK(gpio_set_level(p, (output[i] & PORT_INV) ? 1 : 0));
@@ -227,10 +224,8 @@ void output_boot(void)
          {
             const char *e = port_check(p = port_mask(power[i]), TAG, 0);
             if (e)
-            {
-               status(output_fault = e);
                power[i] = 0;
-            } else
+            else
             {                   // Set up power output pin
                c.pin_bit_mask |= (1ULL << p);
                REVK_ERR_CHECK(gpio_hold_dis(p));

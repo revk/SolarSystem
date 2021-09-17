@@ -2,7 +2,6 @@
 // Copyright © 2019-21 Adrian Kennard, Andrews & Arnold Ltd. See LICENCE file for details. GPL 3.0
 static const char TAG[] = "nfc";
 #include "SS.h"
-const char *nfc_fault = NULL;
 
 #include "desfireaes.h"
 #include "alarm.h"
@@ -215,7 +214,7 @@ static void task(void *pvParameters)
                if (retry++ >= 10)
                {                // We don't expect this in normal operation, but some flash operations seem to stall serial a bit
                   pn532 = pn532_end(pn532);
-                  status(nfc_fault = "Failed");
+                  logical_gpio |= logical_NFCFault;
                }
             }
          }
@@ -237,7 +236,7 @@ static void task(void *pvParameters)
                {                // All good!
                   df_init(&df, pn532, pn532_dx);
                   ledlast = 0xFF;
-                  status(nfc_fault = NULL);
+                  logical_gpio &= ~logical_NFCFault;
                } else
                {                // Failed
                   on = 0;
@@ -643,18 +642,18 @@ void nfc_boot(void)
       if (!e)
          e = port_check(port_mask(nfcrx), TAG, 1);
       if (e)
-         status(nfc_fault = e);
+         logical_gpio |= logical_NFCFault;
       else
       {
          nfc_mutex = xSemaphoreCreateBinary();
          xSemaphoreGive(nfc_mutex);
          pn532 = pn532_init(nfcuart, port_mask(nfctx), port_mask(nfcrx), nfcmask);
          if (!pn532)
-            status(nfc_fault = "Failed to start PN532");
+            logical_gpio |= logical_NFCFault;
          df_init(&df, pn532, pn532_dx); // Start anyway, er re-try init
       }
    } else if (nfcrx || nfctx)
-      status(nfc_fault = "Set nfctx, and nfcrx");
+      logical_gpio |= logical_NFCFault;
 }
 
 void nfc_start(void)

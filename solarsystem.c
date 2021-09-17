@@ -1388,18 +1388,7 @@ int main(int argc, const char *argv[])
                sql_safe_query_free(&sql, sql_printf("DELETE FROM `pending` WHERE `id`=%lld", id));
             return NULL;
          }
-         if (prefix && !strcmp(prefix, "state"))
-         {                      // State
-            if (suffix && !strcmp(suffix, "fault") && checkdevice())
-            {
-               char *buf;
-               size_t len;
-               j_err(j_write_mem(j, &buf, &len));
-               if (strcmp(buf, sql_colz(device, suffix)))
-                  sql_safe_query_free(&sql, sql_printf("UPDATE `device` SET `%#S`=%#s WHERE `device`=%#s", suffix, buf, deviceid));
-               free(buf);
-            }
-         } else if (prefix && !strcmp(prefix, "event"))
+         if (prefix && !strcmp(prefix, "event"))
          {
             char *data = j_write_str(j);
             sql_safe_query_free(&sql, sql_printf("INSERT INTO `event` SET `logged`=NOW(),`device`=%#s,`suffix`=%#s,`data`=%#s", deviceid, suffix, data));

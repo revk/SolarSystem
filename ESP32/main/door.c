@@ -4,7 +4,6 @@ static const char TAG[] = "door";
 #include "SS.h"
 #include "alarm.h"
 #include "desfireaes.h"
-const char *door_fault = NULL;
 
 // Autonomous door control
 // Door mode set by door setting
@@ -786,22 +785,34 @@ static void task(void *pvParameters)
             }
          } else
             exit = 0;
+
          // Check faults
+         const char *fault = NULL;
          if (lock[0].state == LOCK_UNLOCKFAIL)
-            status(door_fault = "Lock stuck");
+            fault = "Lock stuck";
          else if (lock[1].state == LOCK_UNLOCKFAIL)
-            status(door_fault = "Deadlock stuck");
+            fault = "Deadlock stuck";
          else if (lock[0].state == LOCK_FAULT)
-            status(door_fault = "Lock fault");
+            fault = "Lock fault";
          else if (lock[1].state == LOCK_FAULT)
-            status(door_fault = "Deadlock fault");
+            fault = "Deadlock fault";
          else if (exit && exit < now)
-            status(door_fault = "Exit stuck");
-         else
-            status(door_fault = NULL);
+            fault = "Exit stuck";
+         if (fault)
+         {
+            if (!(logical_gpio & logical_LockFault))
+            {
+               jo_t j = jo_make(NULL);
+               jo_string(j, "lock", fault);
+               alarm_event("fault", &j, iotstatedoor);
+            }
+            logical_gpio |= logical_LockFault;
+         } else
+            logical_gpio &= ~logical_LockFault;
+
          // Note that forced are not logged as tampers, and picked up directly for alarm from open/disengaged inputs showing as access
          // Beep
-         if (doorauto >= 2 && (door_fault || doorstate == DOOR_AJAR || doorstate == DOOR_NOTCLOSED))
+         if (doorauto >= 2 && (fault || doorstate == DOOR_AJAR || doorstate == DOOR_NOTCLOSED))
             output_set(OBEEP, ((now - doortimeout) & (512 * 1024)) ? 1 : 0);
          if (force || doorstate != lastdoorstate)
          {
@@ -816,7 +827,7 @@ static void task(void *pvParameters)
             lastdoorstate = doorstate;
          }
          if (doorauto >= 2)
-            output_set(OERROR, door_fault ? 1 : 0);
+            output_set(OERROR, fault ? 1 : 0);
       }
    }
 }

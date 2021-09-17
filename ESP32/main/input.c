@@ -3,7 +3,6 @@
 static const char TAG[] = "input";
 #include "SS.h"
 #include "input.h"
-const char *input_fault = NULL;
 
 #include <driver/gpio.h>
 
@@ -150,10 +149,8 @@ void input_boot(void)
          {
             const char *e = port_check(p = port_mask(input[i]), TAG, 1);
             if (e)
-            {
                input[i] = 0;
-               status(input_fault = e);
-            } else
+            else
             {
                if (p < MAX_PORT)
                {

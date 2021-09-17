@@ -311,7 +311,6 @@ ip(address);                    // IP address when last online
 num(id);                        // Instance for communications when on line
 datetime(poke);                 // Poke settings
 index(poke);
-text(fault, 0);                 // Latest fault state
 num(doorunlock);                // Door timer
 num(doorlock);                  // Door timer
 num(dooropen);                  // Door timer

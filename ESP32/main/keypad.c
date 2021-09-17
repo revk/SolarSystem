@@ -2,7 +2,6 @@
 // Copyright © 2019-21 Adrian Kennard, Andrews & Arnold Ltd. See LICENCE file for details. GPL 3.0
 static const char TAG[] = "keypad";
 #include "SS.h"
-const char *keypad_fault = NULL;
 
 #include "galaxybus.h"
 #include <driver/gpio.h>
@@ -367,20 +366,20 @@ static void task(void *pvParameters)
             ESP_LOGD(TAG, "Rx fail %s", galaxybus_err_to_name(p));
             if (galaxybusfault++ > 5)
             {
-               status(keypad_fault = galaxybus_err_to_name(p));
                online = 0;
+               logical_gpio |= logical_KeyFault;
             }
             usleep(100000);
          } else
          {
             galaxybusfault = 0;
-            status(keypad_fault = NULL);
             static int64_t keyhold = 0;
             if (cmd == 0x00 && buf[1] == 0xFF && p >= 5)
             {                   // Set up response
                if (!online)
                {
                   online = 1;
+                  logical_gpio &= ~logical_KeyFault;
                   ui.displaybit = 1;
                }
             } else if (buf[1] == 0xF2)
@@ -468,8 +467,8 @@ static void task(void *pvParameters)
       {
          if (galaxybusfault++ > 5)
          {
-            status(keypad_fault = "No response");
             online = 0;
+            logical_gpio |= logical_KeyFault;
          }
          rxwait = now + 3000000LL;
       } else
@@ -565,8 +564,8 @@ static void task(void *pvParameters)
       int l = galaxybus_tx(g, p, buf);
       if (l < 0)
       {
-         status(keypad_fault = galaxybus_err_to_name(l));
          online = 0;
+         logical_gpio |= logical_KeyFault;
          ESP_LOGD(TAG, "Tx fail %s", galaxybus_err_to_name(l));
          usleep(500000);
          rxwait = 0;
@@ -598,11 +597,11 @@ void keypad_boot(void)
       if (!err && keypadde != keypadre)
          err = port_check(port_mask(keypadre), TAG, 0);
       gpio_set_pull_mode(port_mask(keypadrx), GPIO_PULLUP_ONLY);
-      status(keypad_fault = err);
+      logical_gpio |= logical_KeyFault;
       // Done early because it beeps a lot!
       revk_task(TAG, task, NULL);
    } else if (keypadtx || keypadrx || keypadde)
-      status(keypad_fault = "Set keypadtx, keypadrx, keypadde and keypadre");
+      logical_gpio |= logical_KeyFault;
 }
 
 void keypad_start(void)

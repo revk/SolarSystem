@@ -14,7 +14,6 @@ static const char __attribute__((unused)) TAG[] = "alarm";
 #include "esp_crt_bundle.h"
 #endif
 #include "freertos/semphr.h"
-const char *alarm_fault = NULL;
 
 // Alarm control
 
@@ -22,13 +21,6 @@ const char *alarm_fault = NULL;
 #define c(x) area_t control_##x;        // local control flags
 #define s(x,c) area_t state_##x;        // system wide calculated states
 #include "states.m"
-
-area_t latch_fault = 0;         // System settings from other modules
-area_t live_fault = 0;          // System settings from other modules
-area_t latch_warning = 0;       // System settings from other modules
-area_t live_warning = 0;        // System settings from other modules
-area_t latch_presence = 0;      // System settings from other modules
-area_t live_presence = 0;       // System settings from other modules
 
 static SemaphoreHandle_t node_mutex = NULL;
 
@@ -389,18 +381,6 @@ const char *mesh_make_report(jo_t j)
    bell_latch = 0;
    if (bell)
       doorbell |= areabell;
-   // Latched from local fault or tamper
-   area_t latch = latch_warning;
-   latch_warning = 0;
-   warning |= latch | live_warning;
-
-   latch = latch_fault;
-   latch_fault = 0;
-   fault |= latch | live_fault;
-
-   latch = latch_presence;
-   latch_presence = 0;
-   presence |= latch | live_presence;;
 #define i(x,c) jo_area(j,#x,x);
 #define c(x) jo_area(j,#x,control_##x);
 #include "states.m"
@@ -835,7 +815,11 @@ static void task(void *pvParameters)
                if (wasonline != nodes_online)
                {                // Change to mesh
                   wasonline = nodes_online;
-                  status(alarm_fault = ((nodes_online == 1 && meshmax > 1) ? "Lonely" : (nodes_online < meshmax) ? "Missing nodes" : NULL));
+                  // Simple missing nodes picked up by control
+                  if (nodes_online == 1 && meshmax > 1)
+                     logical_gpio |= logical_MeshFault; // Lonely
+                  else
+                     logical_gpio &= ~logical_MeshFault;
                }
             }
          }

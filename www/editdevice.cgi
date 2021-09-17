@@ -143,13 +143,11 @@ xmlsql -C -d "$DB" head.html - foot.html << END
 <td><if upgrade><if online OR outofservice=false><i style='background:cyan;'>Upgrade <output name=progress 0=Started missing=Scheduled></i><br></if></if><set s="background:red;"><if version="\$V"><set s="background:green;"></if><tt style="\$s"><output name=version></tt></td>
 <td><output name=pcbname></td>
 <td align=right><output name=flash type=mebi replace .00="" .0Mi="Mi">B</td>
-<set s><if not fault="{}" and not areafault=""><set s="background:yellow;"></if>
-<td style="\$s">
+<td>
 <if outofservice=true>Out of service</if>
 <if else>
 <if online door=true CANUNLOCK><form style="display:inline;" method=post><input type=hidden name=device><input type=submit name=UNLOCK value="Unlock"></form></if>
 <if door=true>Door </if><if nfc=true>NFC reader </if><if nfcadmin=true> (admin)</if><if nfctrusted=true><b> (trusted)</b></if><br>
-<if not fault="{}">Fault:<b><output name=fault></b><br></if>
 </if>
 </td>
 </tr>

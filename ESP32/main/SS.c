@@ -76,64 +76,8 @@ settings
 #define port_mask(p) ((p)&63)
 #define BITFIELDS "-"
 #define PORT_INV 0x40
-static int8_t reason = -1;      // Restart reason
 
 uint16_t logical_gpio = 0;      // Logical GPIO (from GPIO 48, covers NFC, keypad...)
-
-const char *controller_fault = NULL;
-
-const char *last_fault = NULL;
-
-static void status_report(int force)
-{                               // Report status change (force is assumed to just be an update of status, not a change)
-   int faults = 0;
-   {                            // Faults
-      jo_t j = jo_object_alloc();
-#define m(n) extern const char *n##_fault;if(n##_fault){jo_string(j,#n,n##_fault);faults++;}
-      modules m(controller)
-#undef m
-      if (!faults && force && reason >= 0)
-      {
-         const char *r = NULL;
-         if (reason == ESP_RST_POWERON)
-            r = "Power on";
-         else if (reason == ESP_RST_INT_WDT)
-            r = "Int watchdog";
-         else if (reason == ESP_RST_TASK_WDT)
-            r = "Watchdog";
-         else if (reason == ESP_RST_PANIC)
-            r = "Panic";
-         else if (reason == ESP_RST_BROWNOUT)
-            r = "Brownout";
-         else
-            r = "Restart";
-         if (r)
-         {
-            jo_t j = jo_object_alloc();
-            jo_string(j, "controller", r);
-            revk_info_clients("warning", &j, 1 | (iotstatewarning << 1));
-            latch_warning |= areawarning;
-            // Transient so no live_warning
-         }
-         reason = -1;           // Just once
-      }
-      const char *fault = jo_rewind(j);
-      if (fault && (strcmp(fault ? : "", last_fault ? : "") || force))
-      {
-         free((void *) last_fault);
-         last_fault = strdup(fault);
-         revk_state_clients("fault", &j, 1 | (iotstatefault << 1));
-         if (!force)
-         {
-            if (faults)
-               latch_fault |= (live_fault = areafault);
-            else
-               live_fault = 0;;
-         }
-      }
-      jo_free(&j);              // safe to call even if freed by revk_state
-   }
-}
 
 // External
 const char *port_check(int p, const char *module, int in)
@@ -187,15 +131,12 @@ const char *app_callback(int client, const char *prefix, const char *target, con
 #define m(x) extern const char * x##_command(const char *,jo_t); jo_rewind(j);if(!e)e=x##_command(suffix,j);
    modules;
 #undef m
-   if (!strcmp(suffix, "connect"))
-      status_report(1);
    return e;
 }
 
 uint8_t iotcopy;                // group heading
 void app_main()
 {
-   reason = esp_reset_reason();
    revk_boot(&app_callback);
    revk_register("iot", 0, 0, &iotcopy, "true", SETTING_BOOLEAN | SETTING_SECRET);      // iot group
 #define io(n) revk_register(#n,0,sizeof(n),&n,BITFIELDS,SETTING_SET|SETTING_BITFIELD);
@@ -225,12 +166,6 @@ void app_main()
    modules;
 #undef m
    // Main loop, if needed
-}
-
-void status(const char *ignored)
-{
-   ignored = ignored;
-   status_report(0);
 }
 
 uint8_t bcdutctime(time_t now, uint8_t datetime[7])
