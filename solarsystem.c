@@ -1364,7 +1364,7 @@ int main(int argc, const char *argv[])
 #define s(t,n,c) if(strcmp(#n,"engineer")){if(strcmp(sql_colz(res,#n),v=commalist(j_get(j,#n))))sql_sprintf(&s,"`%#S`=%#s,",#n,v);}
 #include "ESP32/main/states.m"
                if (strcmp(sql_colz(res, "status"), v = (j_get(j, "status") ? : "")))
-                  sql_sprintf(&s, "`status`=%#s", v);
+                  sql_sprintf(&s, "`status`=%#s,", v);
                if (sql_back_s(&s) == ',' && deviceid)
                {
                   sql_sprintf(&s, " WHERE `site`=%#s", sql_col(device, "site"));
