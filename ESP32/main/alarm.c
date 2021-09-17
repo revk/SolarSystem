@@ -542,9 +542,11 @@ static void mesh_handle_summary(const char *target, jo_t j)
    check_online(target);
    if (esp_mesh_is_root())
    {                            // We are root, so we have updated anyway, but let's report to IoT
+	   // TODO move reporting to control at send summary maybe
       const char *json = jo_rewind(j);
       if (json)
       {
+	      // TODO - more selective sending to control - actual change in non transient states, or status
          uint32_t now = uptime();
          static uint32_t periodic = 0;
          static unsigned int last_crc = 0;      // using a CRC is a lot less memory than a copy of this or of the states
