@@ -351,7 +351,7 @@ void ssdatabase(SQL * sqlp)
       FILE *f = open_memstream(&a, &l);
       char *p;
       for (p = AREAS; *p; p++)
-         if (*p != '-')
+         if (*p != p[1])
             fprintf(f, ",'%c'", *p);
       fclose(f);
       if (asprintf(&areatype, "enum(%s)", a + 1) < 0)
