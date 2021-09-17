@@ -1486,8 +1486,7 @@ int main(int argc, const char *argv[])
                } else if (j_find(j, "size"))    // making progress
                   sql_safe_query_free(&sql, sql_printf("UPDATE `device` SET `progress`=%d WHERE `device`=%#s", atoi(j_get(j, "progress") ? : ""), deviceid));
             }
-         } else
-            return "Unknown message";
+         }
          if (j)
          {
             slot_t l = slot_linked(id);
