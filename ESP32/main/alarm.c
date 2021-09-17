@@ -455,12 +455,6 @@ static void mesh_send_summary(void)
 {                               // Process reports received, and make summary
    jo_t j = jo_object_alloc();
    jo_datetime(j, "summary", time(0));
-   jo_string(j, "root", nodename);
-   jo_int(j, "nodes", nodes);
-   if (nodes_online < nodes)
-      jo_int(j, "offline", nodes - nodes_online);
-   if (nodes < meshmax)
-      jo_int(j, "missing", meshmax - nodes);
 #define i(t,x,c) state_##x=report_##x;  // Set aggregate states anyway (done by summary anyway)
 #include "states.m"
 #define i(t,x,c) area_t was_##x=state_##x;
@@ -511,19 +505,26 @@ static void mesh_send_summary(void)
       uint32_t now = uptime();
       was_presence = state_presence;    // Not doing these
       was_access = state_access;        // Not doing these
-      if (now > control_summary
+      static uint8_t lastnodes = 0;
+      if (now > control_summary || nodes != lastnodes
 #define i(t,x,c) ||was_##x!=state_##x
 #define s(t,x,c) ||was_##x!=state_##x
 #include "states.m"
           )
       {
+         lastnodes = nodes;
+         control_summary = now + 3600;
          j = jo_make("");
          jo_string(j, "root", nodename);
-         control_summary = now + 3600;
+         jo_int(j, "nodes", nodes);
+         if (nodes_online < nodes)
+            jo_int(j, "offline", nodes - nodes_online);
+         if (nodes < meshmax)
+            jo_int(j, "missing", meshmax - nodes);
+         jo_string(j, "status", "");    // TODO
 #define i(t,x,c) if(strcmp(#x,"access")&&strcmp(#x,"presence"))jo_area(j,#x,state_##x);
 #define s(t,x,c) jo_area(j,#x,state_##x);
 #include "states.m"
-	 jo_string(j,"status",""); // TODO
          revk_state_clients("system", &j, 1 | (iotstatesystem << 1));
       }
    }
