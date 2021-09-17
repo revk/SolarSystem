@@ -329,7 +329,7 @@ static void task(void *pvParameters)
          static const char keymap[] = "0123456789BAEX*#";
          if (p < 2)
          {
-            ESP_LOGD(TAG, "Rx fail %s", galaxybus_err_to_name(p));
+            ESP_LOGI(TAG, "Rx fail %s", galaxybus_err_to_name(p));
             if (galaxybusfault++ > 5)
             {
                online = 0;
@@ -447,9 +447,10 @@ static void task(void *pvParameters)
          ui.sendcursor = 1;
          ui.sendblink = 1;
          ui.keyconfirm = 1;
-         ui.sendsounder = 1;
          ui.sendbacklight = 1;
          ui.sendkeyclick = 1;
+         if (force || !online)
+            ui.sendsounder = 1; // Resending this a lot is a bad idea
       }
       p = 0;
       if (!online)
@@ -511,7 +512,6 @@ static void task(void *pvParameters)
          buf[++p] = 0;
       } else if (ui.sendsounder)
       {                         // Beeper
-         ESP_LOGI(TAG, "Sounder %d %d", ui.on, ui.off);
          ui.sendsounder = 0;
          buf[++p] = 0x0C;
          buf[++p] = ((ui.on && ui.off) ? 3 : ui.on ? 1 : 0);

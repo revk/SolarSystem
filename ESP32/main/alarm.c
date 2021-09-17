@@ -671,7 +671,7 @@ static void mesh_handle_report(const char *target, jo_t j)
                   text[16] = 0; // Truncate to fit display...
                   xSemaphoreTake(display_mutex, portMAX_DELAY);
                   display_t **dp = &display;
-		  int count=0;
+                  int count = 0;
                   while (dp)
                   {
                      display_t *d = *dp;
@@ -695,15 +695,16 @@ static void mesh_handle_report(const char *target, jo_t j)
                         break;
                      }
                      dp = &d->next;
-		     count++;
+                     count++;
                   }
-		  while(dp&&count++<MAX_ROOT_DISPLAY)dp=&(*dp)->next;
-		  while(dp&&*dp)
-		  { // Too many
-			  display_t *d=*dp;
-			  *dp=d->next;
-			  free(d);
-		  }
+                  while (dp && count++ < MAX_ROOT_DISPLAY)
+                     dp = &(*dp)->next;
+                  while (dp && *dp)
+                  {             // Too many
+                     display_t *d = *dp;
+                     *dp = d->next;
+                     free(d);
+                  }
                   xSemaphoreGive(display_mutex);
                }
 #define i(t,x,l) if(!jo_strcmp(j,#t)){jo_next(j);area_t a=jo_read_area(j);report_##x|=a;add_display(priority_##x,a);continue;} else
