@@ -593,8 +593,6 @@ static void mesh_send_summary(void)
          char set[sizeof(area_t) * 8 + 1] = "";
          if (display)
             jo_stringf(j, "status", "%s %s %s", state_name[display->priority], area_list(set, display->area), display->text);
-         else
-            jo_string(j, "status", "");
 #define i(t,x,c) if(strcmp(#x,"access")&&strcmp(#x,"presence"))jo_area(j,#x,state_##x); // Using full name to control
 #define s(t,x,c) jo_area(j,#x,state_##x);
 #include "states.m"
