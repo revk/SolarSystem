@@ -536,8 +536,8 @@ static void mesh_send_summary(void)
    // Fixed
    state_engineer = engineer;   // From flash - could be changed live though, so set here
    // Send summary
-#define i(t,x,c) jo_area(j,#x,state_##x);report_##x=0;
-#define s(t,x,c) jo_area(j,#x,state_##x);
+#define i(t,x,c) jo_area(j,#t,state_##x);report_##x=0;
+#define s(t,x,c) jo_area(j,#t,state_##x);
 #define c(t,x) report_##x=0;
 #include "states.m"
    const mac_t addr = { 255, 255, 255, 255, 255, 255 };
@@ -564,7 +564,7 @@ static void mesh_send_summary(void)
          if (nodes < meshmax)
             jo_int(j, "missing", meshmax - nodes);
          jo_string(j, "status", "");    // TODO
-#define i(t,x,c) if(strcmp(#x,"access")&&strcmp(#x,"presence"))jo_area(j,#x,state_##x);
+#define i(t,x,c) if(strcmp(#x,"access")&&strcmp(#x,"presence"))jo_area(j,#x,state_##x); // Using full name to control
 #define s(t,x,c) jo_area(j,#x,state_##x);
 #include "states.m"
          revk_state_clients("system", &j, 1 | (iotstatesystem << 1));
