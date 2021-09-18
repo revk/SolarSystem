@@ -315,7 +315,6 @@ static const char *settings(SQL * sqlp, SQL * sqlkeyp, SQL_RES * res, slot_t id)
          j_store_string(door, "iotundead", t);
    }
    j_t area = j_store_object(j, "area");
-   addarea(area, "fault", sql_colz(res, "areafault"), 0);
    addarea(area, "enter", sql_colz(res, "areaenter"), 0);
    addarea(area, "arm", sql_colz(res, "areaarm"), 0);
    addarea(area, "strongarm", sql_colz(res, "areastrongarm"), 0);

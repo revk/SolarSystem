@@ -61,17 +61,12 @@ static display_t *display = NULL;
 #define MAX_ROOT_DISPLAY (MAX_LEAF_DISPLAY*2)
 
 #define settings		\
-	area(areawarning)	\
-	area(areafault)		\
-	area(areatamper)	\
+	area(arealed)		\
 	area(areaenter)		\
-	area(deadlock)		\
 	area(areaarm)		\
 	area(areastrongarm)	\
-	area(areabell)		\
 	area(areadisarm)	\
 	area(areadeadlock)	\
-	area(arealed)		\
 	areanl(areakeypad)	\
 	area(engineer)		\
 	area(armed)		\
@@ -246,7 +241,7 @@ void alarm_boot(void)
    xSemaphoreGive(node_mutex);
    display_mutex = xSemaphoreCreateBinary();
    xSemaphoreGive(display_mutex);
-   revk_register("area", 0, sizeof(areafault), &areafault, AREAS, SETTING_BITFIELD | SETTING_LIVE | SETTING_SECRET);    // Will control if shown in dump!
+   revk_register("area", 0, sizeof(arealed), &arealed, AREAS, SETTING_BITFIELD | SETTING_LIVE | SETTING_SECRET);    // Will control if shown in dump!
    revk_register("sms", 0, sizeof(smsalarm), &smsalarm, AREAS, SETTING_BITFIELD | SETTING_LIVE | SETTING_SECRET);
    revk_register("mix", sizeof(mixand) / sizeof(*mixand), sizeof(*mixand), &mixand, AREAS, SETTING_BITFIELD | SETTING_LIVE | SETTING_SECRET);
 #define area(n) revk_register(#n,0,sizeof(n),&n,AREAS,SETTING_BITFIELD|SETTING_LIVE);
