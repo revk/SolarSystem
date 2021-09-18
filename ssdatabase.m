@@ -126,7 +126,7 @@ text(organisationname, 0);
 
 table(site, 0);                 // Site
 link(organisation);
-text(sitename, 16);
+text(sitename, 0);
 text(wifissid, 32);             // Site WiFi setting
 text(wifibssid, 12);            // Site WiFi setting
 text(wifipass, 32);             // Site WiFi setting
