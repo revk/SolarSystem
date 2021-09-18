@@ -668,7 +668,6 @@ void dooffline(SQL * sqlp, int site)
             time_t now = time(0);
             localtime_r(&now, &tm);
             j_store_stringf(j, "ts", "%04d-%02d-%02d %02d:%02d\n", tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min);
-            j_store_string(j, "site", sql_colz(res, "sitename"));
             l = j_store_array(j, "devices");
          }
          j_append_string(l, sql_colz(device, "devicename"));
