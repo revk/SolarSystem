@@ -79,6 +79,7 @@ if("$OK" == 0 || "$OK" == "" || "$OK" == NULL) then
 endif
 xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <h1>🔑 Fob <output name=fob></h1>
+<if fob CANVIEWLOG><p><a href="/log.cgi/$fob">View logs</a></p></if>
 <form method=post action=/editfob.cgi><input name=fob type=hidden>
 <sql table="foborganisation LEFT JOIN fob using (fob)" where="fob='$fob' AND organisation=$USER_ORGANISATION">
 <table>
