@@ -1409,8 +1409,11 @@ int main(int argc, const char *argv[])
          }
          if (prefix && !strcmp(prefix, "event"))
          {
+            const char *fob = NULL;
+            if (!strcmp(suffix ? : "", "fob"))
+               fob = j_get(j, "id");
             char *data = j_write_str(j);
-            sql_safe_query_free(&sql, sql_printf("INSERT INTO `event` SET `logged`=NOW(),`device`=%#s,`suffix`=%#s,`data`=%#s", deviceid, suffix, data));
+            sql_safe_query_free(&sql, sql_printf("INSERT INTO `event` SET `logged`=NOW(),`device`=%#s,`fob`=%#s,`suffix`=%#s,`data`=%#s", deviceid, fob, suffix, data));
             free(data);
             j_store_string(j, "event", suffix);
             if (suffix && *suffix && checkdevice())
