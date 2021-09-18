@@ -301,7 +301,8 @@ datetime(online);               // When online, if online
 datetime(boot);                 // Boot time
 index(online);
 datetime(lastonline);           // When last went offline
-index(lastonline) datetime(offlinereport);      // When reported offline
+index(lastonline);
+datetime(offlinereport);      // When reported offline
 index(offlinereport);
 text(offlinereason, 0);         // If sent offline reason, what was it
 datetime(upgrade);              // When to do upgrade

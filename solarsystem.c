@@ -662,7 +662,7 @@ void dooffline(SQL * sqlp, int site)
       SQL_RES *device = sql_safe_query_store_free(sqlp, sql_printf("SELECT * FROM `device` WHERE `site`=%d AND `offlinereport` IS NULL AND `online` IS NULL AND `outofservice`='false'", site));
       while (sql_fetch_row(device))
       {
-         if (l)
+         if (!l)
          {
             j_store_string(j, "event", "offline");
             struct tm tm;
