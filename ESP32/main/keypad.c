@@ -83,12 +83,34 @@ char **message = NULL;
 
 static void displayprint(const char *fmt, ...)
 {
+   static int8_t s[2] = { };    // scroll
    char *out = NULL;
    va_list ap;
    va_start(ap, fmt);
    vasprintf(&out, fmt, ap);
    va_end(ap);
-   char *v = out;
+   int8_t len[2] = { };
+   char *v = out,
+       *l2;
+   while (*v && *v != '\n')
+      v++;
+   while (v > out && v[-1] == ' ')
+      v--;
+   l2 = v;
+   len[0] = v - out;
+   if (*l2)
+      l2++;
+   v = l2;
+   while (*v && *v != '\n')
+      v++;
+   while (v > out && v[-1] == ' ')
+      v--;
+   len[1] = v - l2;
+   if (s[0] > len[0] - 16)
+      s[0] = 0;
+   if (s[1] > len[1] - 16)
+      s[1] = 0;
+   v = out + s[0];
    int x = 0;
    while (*v && *v != '\n')
    {
@@ -118,6 +140,7 @@ static void displayprint(const char *fmt, ...)
          }
       } else
       {                         // Second line
+         v += s[1];
          while (*v && *v != '\n')
          {
             if (x < 32)
@@ -129,6 +152,8 @@ static void displayprint(const char *fmt, ...)
    while (x < 32)
       ui.display[x++] = ' ';
    free(out);
+   s[0]++;
+   s[1]++;
    ui.senddisplay = 1;
    if (ui.cursor)
       ui.sendcursor = 1;
@@ -209,24 +234,25 @@ void keypad_ui(char key)
       break;
    }
    const char *idle = keypadidle;
+   area_t area = 0;
    if (!*idle)
       idle = revk_id;
    {                            // Beep, idle, and backlight
       uint8_t bl = 0;
       uint8_t on = 0,
           off = 0;
-      if (state_alarm & areakeypad)
+      if ((area = (state_alarm & areakeypad)))
       {
          on = 10;
          off = 1;
-         idle = "ALARM! ALARM!";
+         idle = "ALARM!";
          bl = 1;
-      } else if (state_prealarm & areakeypad)
+      } else if ((area = (state_prealarm & areakeypad)))
       {
          on = 10;
          off = 1;
          idle = "Pre-alarm!";
-      } else if (state_prearm & areakeypad)
+      } else if ((area = (state_prearm & areakeypad)))
       {
          on = off = 1;
          if (!messages)
@@ -234,13 +260,13 @@ void keypad_ui(char key)
          idle = "Pre-arm";
       } else if (now & 1)
       {
-         if (state_armed & areakeypad)
-            idle = "Armed...";
-         else if (state_alarmed & areakeypad)
+         if ((area = (state_armed & areakeypad)))
+            idle = "Armed";
+         else if ((area = (state_alarmed & areakeypad)))
             idle = "Check alarms";
-         else if (state_tampered & areakeypad)
+         else if ((area = (state_tampered & areakeypad)))
             idle = "Check tampers";
-         else if (state_faulted & areakeypad)
+         else if ((area = (state_faulted & areakeypad)))
             idle = "Check faults";
       }
       if (!on && !off)
@@ -275,7 +301,10 @@ void keypad_ui(char key)
    {
    case IDLE:                  // Idle display
       if (now > timeout)
-         displayprint("%-16s\n", idle);
+      {
+         char set[sizeof(area_t) * 8 + 1] = "";
+         displayprint("%s %s\n", idle, area_list(set, area));
+      }
       break;
    case MESSAGE:
       {
