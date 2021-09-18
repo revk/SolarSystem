@@ -102,6 +102,7 @@ void notify(SQL * sqlp, SQL_RES * res, const char *target, j_t j)
    if (!target || !j || j_isnull(j))
       return;
    int site = atoi(sql_colz(res, "site"));
+   j_store_string(j, "site", sql_colz(res, "sitename"));
    char *event = strdupa(j_get(j, "event") ? : "event");
    *event = toupper(*event);
    char *ud = NULL;             // SMS content
@@ -115,7 +116,6 @@ void notify(SQL * sqlp, SQL_RES * res, const char *target, j_t j)
          localtime_r(&ts, &tm);
          fprintf(f, "%04d-%02d-%02d %02d:%02d:%02d %s\n", tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec, event);
       }
-      fprintf(f, "Site:\t%s\n", sql_colz(res, "sitename"));
       void areas(const char *tag) {
          char found = 0;
          const char *areas = j_get(j, tag);
