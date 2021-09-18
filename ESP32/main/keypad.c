@@ -251,13 +251,13 @@ void keypad_ui(char key)
       {
          on = 10;
          off = 1;
-         idle = "Pre-alarm!";
+         idle = "Alarm!";
       } else if ((area = (state_prearm & areakeypad)))
       {
          on = off = 1;
          if (!messages)
             off = 20;           // Not a problem (yet)
-         idle = "Pre-arm";
+         idle = "Arming";
       } else if (now & 1)
       {
          if ((area = (state_armed & areakeypad)))
