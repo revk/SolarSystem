@@ -15,21 +15,13 @@ extern const char *state_name[priorities];
 
 #define	MAX_MIX 5
 
+extern area_t arealed;
 extern area_t areaenter;
 extern area_t areaarm;
 extern area_t areastrongarm;
 extern area_t areadisarm;
-extern area_t areawarning;
-extern area_t areafault;
-extern area_t areatamper;
 extern area_t areadeadlock;
 extern area_t areakeypad;
-extern area_t latch_fault;
-extern area_t live_fault;
-extern area_t latch_warning;
-extern area_t live_warning;
-extern area_t latch_presence;
-extern area_t live_presence;
 
 char *area_list(char set[sizeof(area_t) * 8 + 1], area_t area);
 void jo_area(jo_t j, const char *tag, area_t area);     // Store area
