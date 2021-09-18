@@ -317,13 +317,28 @@ void ssdatabase(SQL * sqlp)
 
    void text(const char *name, int l) {
       addfield(name);
-      if (sql_colnum(res, name) >= 0)
-         return;                // Exists - we are not updating type for now
-      warnx("Creating field %s/%s", tablename, name);
+      char *def;
       if (l)
-         sql_safe_query_free(sqlp, sql_printf("ALTER TABLE `%#S` ADD `%#S` char(%d) DEFAULT NULL", tablename, name, l));
-      else
-         sql_safe_query_free(sqlp, sql_printf("ALTER TABLE `%#S` ADD `%#S` text DEFAULT NULL", tablename, name));
+      {
+         if (asprintf(&def, "`%s` char(%d) DEFAULT NULL", name, l) < 0)
+            errx(1, "malloc");
+      } else
+      {
+         if (asprintf(&def, "`%s` text DEFAULT NULL", name) < 0)
+            errx(1, "malloc");
+      }
+
+      if (sql_colnum(res, name) < 0)
+      {
+         warnx("Creating field %s/%s", tablename, name);
+         sql_safe_query_free(sqlp, sql_printf("ALTER TABLE `%#S` ADD %s", tablename, def));
+      } else if (!strcasestr(tabledef, def))
+      {
+         warnx("Updating field %s/%s", tablename, name);
+         sql_safe_query_free(sqlp, sql_printf("ALTER TABLE `%#S` MODIFY %s", tablename, def));
+      }
+      free(def);
+
    }
 
    void field(const char *name, const char *type, const char *deflt) {
