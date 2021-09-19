@@ -255,7 +255,7 @@ void keypad_ui(char key)
          bl = 1;
       } else if ((area = (state_prealarm & areakeypad)))
       {
-         on = 10;
+         on = 5;
          off = 1;
          idle = "Alarm!";
       } else if ((area = (state_prearm & areakeypad)))
