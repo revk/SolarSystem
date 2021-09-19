@@ -608,6 +608,40 @@ static void mesh_send_summary(void)
          revk_state_clients("system", &j, 1 | (iotstatesystem << 1));
       }
    }
+
+   void new_event(priority_t p, area_t mask, area_t sms) {
+      if (!mask)
+         return;
+      jo_t j = jo_make("");
+      jo_area(j, "areas", mask);
+      jo_array(j, "triggers");
+      xSemaphoreTake(display_mutex, portMAX_DELAY);
+      for (display_t * d = display; d; d = d->next)
+         if (d->priority == p && (d->area & mask))
+            jo_string(j, NULL, d->text);
+      xSemaphoreGive(display_mutex);
+      if (sms & mask)
+         sms_event(state_name[p], j);
+      alarm_event(state_name[p], &j, ioteventarm);
+   }
+   static area_t lastalarm = -1;
+   if (lastalarm != state_alarm)
+   {
+      new_event(priority_alarm, state_alarm & ~lastalarm, smsalarm);
+      lastalarm = state_alarm;
+   }
+   static area_t lastpanic = -1;
+   if (lastpanic != state_panic)
+   {
+      new_event(priority_panic, state_panic & ~lastpanic, smspanic);
+      lastpanic = state_panic;
+   }
+   static area_t lastfire = -1;
+   if (lastfire != state_fire)
+   {
+      new_event(priority_fire, state_fire & ~lastfire, smsfire);
+      lastfire = state_fire;
+   }
 }
 
 static void mesh_send_display(void)
@@ -845,40 +879,6 @@ static void mesh_handle_summary(const char *target, jo_t j)
       jo_free(&j);
       door_check();
       lastarmed = state_armed;
-   }
-   void new_event(priority_t p, area_t mask, area_t sms) {
-      jo_t j = jo_make("");
-      jo_area(j, "areas", mask);
-      jo_array(j, "triggers");
-      xSemaphoreTake(display_mutex, portMAX_DELAY);
-      for (display_t * d = display; d; d = d->next)
-         if (d->priority == p && (d->area & mask))
-            jo_string(j, NULL, d->text);
-      xSemaphoreGive(display_mutex);
-      if (sms & mask)
-         sms_event(state_name[p], j);
-      alarm_event(state_name[p], &j, ioteventarm);
-   }
-   static area_t lastalarm = -1;
-   if (lastalarm != state_alarm)
-   {
-      if (esp_mesh_is_root() && (state_alarm & ~lastalarm))
-         new_event(priority_alarm, state_alarm & ~lastalarm, smsalarm);
-      lastalarm = state_alarm;
-   }
-   static area_t lastpanic = -1;
-   if (lastpanic != state_panic)
-   {
-      if (esp_mesh_is_root() && (state_panic & ~lastpanic))
-         new_event(priority_panic, state_panic & ~lastpanic, smspanic);
-      lastpanic = state_panic;
-   }
-   static area_t lastfire = -1;
-   if (lastfire != state_fire)
-   {
-      if (esp_mesh_is_root() && (state_fire & ~lastfire))
-         new_event(priority_fire, state_fire & ~lastfire, smsfire);
-      lastfire = state_fire;
    }
 }
 
