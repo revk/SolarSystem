@@ -241,7 +241,13 @@ void keypad_ui(char key)
       uint8_t bl = 0;
       uint8_t on = 0,
           off = 0;
-      if ((area = (state_alarm & areakeypad)))
+      if ((area = (state_fire & areakeypad)))
+      {
+         on = 2;
+         off = 1;
+         idle = "FIRE!";
+         bl = 1;
+      } else if ((area = (state_alarm & areakeypad)))
       {
          on = 10;
          off = 1;
