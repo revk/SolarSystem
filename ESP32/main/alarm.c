@@ -609,7 +609,7 @@ static void mesh_send_summary(void)
       }
    }
 
-   void new_event(priority_t p, area_t mask, area_t sms) {
+   void new_event(const char *event, priority_t p, area_t mask, area_t sms) {
       if (!mask)
          return;
       jo_t j = jo_make("");
@@ -621,25 +621,25 @@ static void mesh_send_summary(void)
             jo_string(j, NULL, d->text);
       xSemaphoreGive(display_mutex);
       if (sms & mask)
-         sms_event(state_name[p], j);
-      alarm_event(state_name[p], &j, ioteventarm);
+         sms_event(event, j);
+      alarm_event(event, &j, ioteventarm);
    }
    static area_t lastalarm = -1;
    if (lastalarm != state_alarm)
    {
-      new_event(priority_alarm, state_alarm & ~lastalarm, smsalarm);
+      new_event("alarm", priority_presence, state_alarm & ~lastalarm, smsalarm);
       lastalarm = state_alarm;
    }
    static area_t lastpanic = -1;
    if (lastpanic != state_panic)
    {
-      new_event(priority_panic, state_panic & ~lastpanic, smspanic);
+      new_event("panic", priority_panic, state_panic & ~lastpanic, smspanic);
       lastpanic = state_panic;
    }
    static area_t lastfire = -1;
    if (lastfire != state_fire)
    {
-      new_event(priority_fire, state_fire & ~lastfire, smsfire);
+      new_event("fire", priority_fire, state_fire & ~lastfire, smsfire);
       lastfire = state_fire;
    }
 }
@@ -721,7 +721,7 @@ static void mesh_handle_report(const char *target, jo_t j)
             {                   // fields in report
                void add_display(priority_t p, area_t a) {
                   // Some filtering
-                  if ((p == priority_access || p == priority_presence) && !(a & (state_armed | state_prearm | held_prearm)))
+                  if ((p == priority_access || p == priority_presence) && !(a & (state_armed | state_prearm | held_prearm | state_prealarm)))
                      return;
                   // Add display
                   char text[35];
