@@ -618,8 +618,8 @@ static void mesh_send_display(void)
    while (*dp)
    {
       display_t *d = *dp;
-      if (!d->seen)
-      {                         // Gone!
+      if (!d->seen && (d->priority != priority_presence || !(d->area & ~state_prealarm)))
+      {                         // Gone - but we retain presence in prealarm state so shown on alarm event
          *dp = d->next;
          free(d);
       } else
@@ -635,7 +635,7 @@ static void mesh_send_display(void)
          int count = 0;
          char set[sizeof(area_t) * 8 + 1] = "";
          for (display_t * d = display; d; d = d->next)
-            if ((d->area & node[i].display) && count++ < MAX_LEAF_DISPLAY)
+            if (d->seen && (d->area & node[i].display) && count++ < MAX_LEAF_DISPLAY)
                jo_stringf(j, NULL, "%c%s: %s\n%s", toupper(*state_name[d->priority]), state_name[d->priority] + 1, area_list(set, d->area & node[i].display), d->text);
          revk_mesh_send_json(node[i].mac, &j);
       }
@@ -846,65 +846,38 @@ static void mesh_handle_summary(const char *target, jo_t j)
       door_check();
       lastarmed = state_armed;
    }
+   void new_event(priority_t p, area_t mask, area_t sms) {
+      jo_t j = jo_make("");
+      jo_area(j, "areas", mask);
+      jo_array(j, "triggers");
+      xSemaphoreTake(display_mutex, portMAX_DELAY);
+      for (display_t * d = display; d; d = d->next)
+         if (d->priority == p && (d->area & mask))
+            jo_string(j, NULL, d->text);
+      xSemaphoreGive(display_mutex);
+      if (sms & mask)
+         sms_event(state_name[p], j);
+      alarm_event(state_name[p], &j, ioteventarm);
+   }
    static area_t lastalarm = -1;
    if (lastalarm != state_alarm)
    {
       if (esp_mesh_is_root() && (state_alarm & ~lastalarm))
-      {
-         jo_t j = jo_make("");
-         jo_area(j, "areas", state_alarm & ~lastalarm);
-         jo_array(j, "triggers");
-         xSemaphoreTake(display_mutex, portMAX_DELAY);
-         for (display_t * d = display; d; d = d->next)
-            if (d->seen && d->priority == priority_presence && (d->area & (state_alarm & ~lastalarm)))
-               jo_string(j, NULL, d->text);
-         xSemaphoreGive(display_mutex);
-         if (smsalarm & (state_alarm & ~lastalarm))
-            sms_event("Alarm!", j);
-         alarm_event("alarm", &j, ioteventarm);
-      }
+         new_event(priority_alarm, state_alarm & ~lastalarm, smsalarm);
       lastalarm = state_alarm;
    }
    static area_t lastpanic = -1;
    if (lastpanic != state_panic)
    {
       if (esp_mesh_is_root() && (state_panic & ~lastpanic))
-      {
-         jo_t j = jo_make("");
-         jo_area(j, "areas", state_panic & ~lastpanic);
-         jo_array(j, "triggers");
-         xSemaphoreTake(display_mutex, portMAX_DELAY);
-         for (display_t * d = display; d; d = d->next)
-            if (d->seen && d->priority == priority_panic && (d->area & (state_panic & ~lastpanic)))
-               jo_string(j, NULL, d->text);
-         xSemaphoreGive(display_mutex);
-         if (smspanic & (state_panic & ~lastpanic))
-            sms_event("Panic", j);
-         alarm_event("panic", &j, ioteventarm);
-         jo_free(&j);
-
-      }
+         new_event(priority_panic, state_panic & ~lastpanic, smspanic);
       lastpanic = state_panic;
    }
    static area_t lastfire = -1;
    if (lastfire != state_fire)
    {
       if (esp_mesh_is_root() && (state_fire & ~lastfire))
-      {
-         jo_t j = jo_make("");
-         jo_area(j, "areas", state_fire & ~lastfire);
-         jo_array(j, "triggers");
-         xSemaphoreTake(display_mutex, portMAX_DELAY);
-         for (display_t * d = display; d; d = d->next)
-            if (d->seen && d->priority == priority_fire && (d->area & (state_fire & ~lastfire)))
-               jo_string(j, NULL, d->text);
-         xSemaphoreGive(display_mutex);
-         if (smsfire & (state_fire & ~lastfire))
-            sms_event("Fire", j);
-         alarm_event("fire", &j, ioteventarm);
-         jo_free(&j);
-
-      }
+         new_event(priority_fire, state_fire & ~lastfire, smsfire);
       lastfire = state_fire;
    }
 }
