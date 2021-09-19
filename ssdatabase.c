@@ -127,7 +127,7 @@ void sstypes(const char *fn)
    start("AREALIST");
    int n = 0;
    for (char *a = AREAS; *a; a++)
-      if (*a != '-')
+      if (*a != a[1])
       {
          const char area[2] = { *a };
          list(area);
