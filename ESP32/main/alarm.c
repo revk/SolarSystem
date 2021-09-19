@@ -36,6 +36,7 @@ typedef struct node_s {
    uint8_t missed:2;            // Missed report count
    uint8_t reported:1;          // Has reported
    uint8_t bigflash:1;          // Has more than 4MiB flash
+   uint8_t part:3;              // Received parts
    area_t display;              // Areas for which this is a display
 } node_t;
 static node_t *node = NULL;
@@ -167,7 +168,8 @@ void alarm_arm(area_t a, jo_t * jp)
    if (!j)
       j = jo_make(NULL);
    ESP_LOGD(TAG, "Arm %X", a);
-   control_arm |= a;
+   control_arm |= a;            // Each area only in one control
+   control_strongarm &= ~a;
    control_disarm &= ~a;
    door_check();
    jo_area(j, "areas", a);
@@ -195,7 +197,8 @@ void alarm_strongarm(area_t a, jo_t * jp)
    if (!j)
       j = jo_make(NULL);
    ESP_LOGD(TAG, "Strong arm %X", a);
-   control_strongarm |= a;
+   control_strongarm |= a;      // Each area only in one control
+   control_arm &= ~a;
    control_disarm &= ~a;
    door_check();
    jo_area(j, "areas", a);
@@ -223,9 +226,9 @@ void alarm_disarm(area_t a, jo_t * jp)
    if (!j)
       j = jo_make(NULL);
    ESP_LOGD(TAG, "Disarm %X", a);
+   control_disarm |= a;         // Each area only in one control
    control_arm &= ~a;
    control_strongarm &= ~a;
-   control_disarm |= a;
    door_check();
    jo_area(j, "areas", a);
    if (a2 & ~a)
@@ -241,7 +244,7 @@ void alarm_boot(void)
    xSemaphoreGive(node_mutex);
    display_mutex = xSemaphoreCreateBinary();
    xSemaphoreGive(display_mutex);
-   revk_register("area", 0, sizeof(arealed), &arealed, AREAS, SETTING_BITFIELD | SETTING_LIVE | SETTING_SECRET);    // Will control if shown in dump!
+   revk_register("area", 0, sizeof(arealed), &arealed, AREAS, SETTING_BITFIELD | SETTING_LIVE | SETTING_SECRET);        // Will control if shown in dump!
    revk_register("sms", 0, sizeof(smsalarm), &smsalarm, AREAS, SETTING_BITFIELD | SETTING_LIVE | SETTING_SECRET);
    revk_register("mix", sizeof(mixand) / sizeof(*mixand), sizeof(*mixand), &mixand, AREAS, SETTING_BITFIELD | SETTING_LIVE | SETTING_SECRET);
 #define area(n) revk_register(#n,0,sizeof(n),&n,AREAS,SETTING_BITFIELD|SETTING_LIVE);
@@ -350,12 +353,14 @@ void mesh_send_report(void)
 #define MAX (MESH_MPS-MESH_PAD)
    jo_t report = NULL;
    uint8_t count = 0;
+   uint8_t parts = 0;
    void start(void) {
       if (report)
          return;
       report = jo_object_alloc();
       jo_array(report, "report");
       count = 0;
+      parts++;
    }
    void stop(void) {
       if (!report)
@@ -363,7 +368,7 @@ void mesh_send_report(void)
       jo_close(report);
       if (!count)
          return;
-      jo_string(report, "i", nodename);
+      jo_string(report, "@", nodename);
    }
    void send(void) {
       if (!report)
@@ -433,7 +438,7 @@ void mesh_send_report(void)
                0)
          {                      // Report for input
             jo_t j = jo_object_alloc();
-            jo_string(j, "i", inputname[i]);
+            jo_string(j, "@", inputname[i]);
 #define i(t,x,c) if(#x)jo_area(j,#t,x);
 #include "states.m"
             if (jo_len(j) + jo_len(report) > MAX - 25)
@@ -447,13 +452,15 @@ void mesh_send_report(void)
       }
    }
    was_prearm = state_prearm;
-   if (jo_len(report) > MAX - 120 - 25)
+   if (jo_len(report) > MAX - 60 - 25)
       send();
    if (!report)
       start();
    stop();
+   // Control (not area only in one control)
 #define c(t,x) jo_area(report,#t,control_##x);
 #include "states.m"
+   jo_int(report, "#", parts);
    revk_mesh_send_json(NULL, &report);
 }
 
@@ -621,7 +628,7 @@ static void mesh_send_display(void)
    xSemaphoreGive(display_mutex);
    xSemaphoreTake(node_mutex, portMAX_DELAY);
    for (int i = 0; i < nodes; i++)
-      if (node[i].display)
+      if (node[i].display && node[i].online)
       {
          jo_t j = jo_object_alloc();
          jo_array(j, "display");
@@ -640,25 +647,33 @@ static void mesh_handle_report(const char *target, jo_t j)
    int child = check_online(target);
    if (child < 0)
       return;
-   node[child].missed = 0;
-   if (!node[child].reported)
-   {
-      node[child].reported = 1;
-      nodes_reported++;
-   }
+   node[child].part++;
    char dev[17] = "";
    jo_type_t t;
    jo_rewind(j);
+   ESP_LOGI(TAG, "Report(%d): %s", node[child].part, jo_debug(j));
    for (jo_next(j); (t = jo_here(j)) > JO_CLOSE; jo_skip(j))
       if (t == JO_TAG)
       {
-#define c(t,x) if(!jo_strcmp(j,#x)||!jo_strcmp(j,#t)){jo_next(j);report_##x|=jo_read_area(j);continue;} else
+#define c(t,x) if(!jo_strcmp(j,#x)||!jo_strcmp(j,#t)){jo_next(j);report_##x|=jo_read_area(j);} else
 #include "states.m"
-         if (!jo_strcmp(j, "i"))
+         if (!jo_strcmp(j, "@"))
          {
             jo_next(j);
             jo_strncpy(j, dev, sizeof(dev));
-            continue;
+         } else if (!jo_strcmp(j, "#"))
+         {                      // Last part of report
+            jo_next(j);
+            if (node[child].part == jo_read_int(j))
+            {                   // Got all parts
+               node[child].missed = 0;
+               if (!node[child].reported)
+               {
+                  node[child].reported = 1;
+                  nodes_reported++;
+               }
+            }
+            node[child].part = 0;
          }
       }
    jo_rewind(j);
@@ -717,7 +732,7 @@ static void mesh_handle_report(const char *target, jo_t j)
                }
 #define i(t,x,l) if(!jo_strcmp(j,#t)){jo_next(j);area_t a=jo_read_area(j);report_##x|=a;add_display(priority_##x,a);continue;} else
 #include "states.m"
-               if (!jo_strcmp(j, "i"))
+               if (!jo_strcmp(j, "@"))
                {                // ID
                   jo_next(j);
                   jo_strncpy(j, id, sizeof(id));

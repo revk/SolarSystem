@@ -12,7 +12,6 @@
 #define s(t,n,c)	// Internal states
 #endif
 
-// Don't use tag "i"
 s(e,engineer,GY) // In order or importance
 s(f,faulted,)
 s(t,tampered,)
@@ -24,16 +23,19 @@ s(A,alarm,RB)
 
 i(D,doorbell,W)
 i(W,warning,Y)
-i(E,fault,M)
+i(F,fault,M)
 i(O,access,B)
 i(I,presence,)
 i(T,tamper,R)
-i(F,fire,RY)
+i(X,fire,RY)
 i(P,panic,RM)
 
-c(aa,arm)
-c(sa,strongarm)
-c(da,disarm)
+c(+,arm)
+c(*,strongarm)
+c(-,disarm)
+
+// @ used for name
+// # used for count
 
 #undef i
 #undef s
