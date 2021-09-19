@@ -651,7 +651,6 @@ static void mesh_handle_report(const char *target, jo_t j)
    char dev[17] = "";
    jo_type_t t;
    jo_rewind(j);
-   ESP_LOGI(TAG, "Report(%d): %s", node[child].part, jo_debug(j));
    for (jo_next(j); (t = jo_here(j)) > JO_CLOSE; jo_skip(j))
       if (t == JO_TAG)
       {
