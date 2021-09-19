@@ -618,7 +618,7 @@ static void mesh_send_display(void)
    while (*dp)
    {
       display_t *d = *dp;
-      if (!d->seen && (d->priority != priority_presence || !(d->area & ~state_prealarm)))
+      if (!d->seen && (d->priority != priority_presence || !(d->area & state_prealarm)))
       {                         // Gone - but we retain presence in prealarm state so shown on alarm event
          *dp = d->next;
          free(d);
