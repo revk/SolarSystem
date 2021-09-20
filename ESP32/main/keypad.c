@@ -494,8 +494,8 @@ static void task(void *pvParameters)
          ui.keyconfirm = 1;
          ui.sendbacklight = 1;
          ui.sendkeyclick = 1;
-         if (force || !online)
-            ui.sendsounder = 1; // Resending this a lot is a bad idea
+         if (force || !online || !ui.on || !ui.off)
+            ui.sendsounder = 1; // Resending this a lot is a bad idea if making an on/off sound as it breaks it
       }
       p = 0;
       if (!online)
