@@ -919,7 +919,7 @@ int main(int argc, const char *argv[])
          if (now / 60 != tick || poke)
          {
             tick = now / 60;
-            SQL_RES *res = sql_safe_query_store(&sql, "SELECT `site` FROM `device` WHERE `online` IS NULL AND `offlinereport` IS NULL AND `outofservice`='false' AND `lastonline`<DATE_SUB(NOW(),INTERVAL 5 MINUTE) GROUP BY `site`");
+            SQL_RES *res = sql_safe_query_store(&sql, "SELECT `site` FROM `device` WHERE `online` IS NULL AND `offlinereport` IS NULL AND `outofservice`='false' AND `lastonline`<DATE_SUB(NOW(),INTERVAL 11 MINUTE) GROUP BY `site`");
             while (sql_fetch_row(res))
                dooffline(&sql, atoi(sql_colz(res, "site")));
             sql_free_result(res);
