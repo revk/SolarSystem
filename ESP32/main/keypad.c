@@ -168,7 +168,13 @@ void keypad_ui(char key)
    static uint8_t state = IDLE,
        shh = 0;
    static int8_t pos = 0;
-   if (key == 'X' || (!key && now > timeout))
+   void fail(const char *m) {
+      displayprint("%s", m);
+      state = IDLE;
+      pos = 0;
+      timeout = now + 5;
+   }
+   if (!key && now > timeout)
    {
       timeout = 0;
       state = IDLE;
@@ -178,11 +184,19 @@ void keypad_ui(char key)
       state = PIN;
       pos = 0;
    }
-   void fail(const char *m) {
-      displayprint("%s", m);
-      state = IDLE;
-      pos = 0;
-      timeout = now + 5;
+   // ESC key to cancel arming regardless of state
+   if (key == 'X' && areakeystrong && !(state_armed & areakeystrong) && (control_strongarm & areakeystrong))
+   {                            // Strongarm cancel as not yet armed (very small window of time on this one)
+      jo_t e = jo_make(NULL);
+      jo_string(e, "reason", "Keypad ESC");
+      alarm_disarm(areakeystrong, &e);
+      fail("Cancelling");
+   } else if (key == 'X' && areakeyarm && !(state_armed & areakeyarm) && (control_arm & areakeyarm))
+   {                            // Arm cancel as not yet armed
+      jo_t e = jo_make(NULL);
+      jo_string(e, "reason", "Keypad ESC");
+      alarm_disarm(areakeyarm, &e);
+      fail("Cancelling");
    }
    if (key)
    {
@@ -212,22 +226,6 @@ void keypad_ui(char key)
          jo_string(e, "reason", "Keypad B");
          alarm_strongarm(areakeystrong, &e);
          fail("Arming forced");
-         break;
-      }
-      if (key == 'X' && areakeystrong && !(state_armed & areakeystrong) && (control_strongarm & areakeystrong))
-      {                         // Strongarm cancel as not yet armed (very small window of time on this one)
-         jo_t e = jo_make(NULL);
-         jo_string(e, "reason", "Keypad ESC");
-         alarm_disarm(areakeystrong, &e);
-         fail("Cancelling");
-         break;
-      }
-      if (key == 'X' && areakeyarm && !(state_armed & areakeyarm) && (control_arm & areakeyarm))
-      {                         // Arm cancel as not yet armed
-         jo_t e = jo_make(NULL);
-         jo_string(e, "reason", "Keypad ESC");
-         alarm_disarm(areakeyarm, &e);
-         fail("Cancelling");
          break;
       }
       break;
@@ -274,6 +272,11 @@ void keypad_ui(char key)
                fail("Arming");
             } else
                fail("Wrong PIN");
+         }
+         if (key == 'X')
+         {
+            state = IDLE;
+            pos = 0;
          }
       }
       break;

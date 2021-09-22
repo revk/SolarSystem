@@ -109,7 +109,6 @@ settings
 #define c(t,x) static area_t report_##x=0;      // The collated reports
 #define i(t,x,l) static area_t report_##x=0;    // The collated reports
 #include "states.m"
-static area_t held_prearm = 0;
 static void task(void *pvParameters);
 static void node_online(const mac_t mac);
 static void sms_event(const char *tag, jo_t);
@@ -545,12 +544,6 @@ static void mesh_send_summary(void)
       state_armed = andset((state_armed | report_strongarm) & ~report_disarm);  // Apply strongarm anyway
    } else if (!armdelay || (timer1 += meshcycle) > armdelay)
       state_armed = andset((state_armed | state_prearm | report_strongarm) & ~report_disarm);   // Prearm is clean and ready to apply
-   static uint16_t timer2 = 0;  // Pre arm hold
-   held_prearm = ((held_prearm | state_prearm) & ~state_armed); // Hold pre arm so we can see on display
-   if (!state_prearm)
-      timer2 = 0;
-   else if ((timer2 += meshcycle) > armcancel)
-      held_prearm = 0;
    // What changed
    area_t new_armed = (state_armed & ~was_armed);
    // Arming clears latched states
@@ -723,9 +716,6 @@ static void mesh_handle_report(const char *target, jo_t j)
             if (t == JO_TAG)
             {                   // fields in report
                void add_display(priority_t p, area_t a) {
-                  // Some filtering
-                  if ((p == priority_access || p == priority_presence) && !(a & (state_armed | state_prearm | held_prearm | state_prealarm)))
-                     return;
                   // Add display
                   char text[35];
                   snprintf(text, sizeof(text), "%s: %s", dev, id);
@@ -742,6 +732,10 @@ static void mesh_handle_report(const char *target, jo_t j)
                      }
                      if (!d || d->priority < p)
                      {          // New
+                        // Don't add presence and access unless trigger or inhibit
+                        if ((p == priority_access || p == priority_presence) && !(a & (state_armed | state_prearm | state_prealarm)))
+                           break;
+                        // Add entry
                         display_t *n = malloc(sizeof(*n) + strlen(text) + 1);
                         memset(n, 0, sizeof(*n));
                         memcpy(n->mac, target, sizeof(n->mac));
