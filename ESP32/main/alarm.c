@@ -69,6 +69,8 @@ static display_t *display = NULL;
 	area(areadisarm)	\
 	area(areadeadlock)	\
 	areanl(areakeypad)	\
+	area(areakeydisarm)	\
+	area(areakeyarm)	\
 	area(engineer)		\
 	area(armed)		\
 	u16(armcancel)		\

@@ -22,6 +22,8 @@ extern area_t areastrongarm;
 extern area_t areadisarm;
 extern area_t areadeadlock;
 extern area_t areakeypad;
+extern area_t areakeydisarm;
+extern area_t areakeyarm;
 
 char *area_list(char set[sizeof(area_t) * 8 + 1], area_t area);
 void jo_area(jo_t j, const char *tag, area_t area);     // Store area

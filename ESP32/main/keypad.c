@@ -24,6 +24,7 @@ static const char TAG[] = "keypad";
   u8(keypadrxpre,50)	\
   u8(keypadrxpost,10)	\
   sl(keypadidle)	\
+  sl(keypadpin)	\
 
 // TODO keypad tamper in web UI?
 struct {
@@ -191,6 +192,20 @@ void keypad_ui(char key)
    switch (state)
    {                            // Pre display
    case IDLE:
+      if (key == 'A' && areakeyarm)
+      {                         // Arm set
+         jo_t e = jo_make(NULL);
+         jo_string(e, "reason", "Keypad");
+         alarm_arm(areakeyarm, &e);
+	 fail("Arming");
+      }
+      if (key == 'B' && areakeyarm && !(state_armed & areakeyarm))
+      {                         // Arm cancel as not yet armed
+         jo_t e = jo_make(NULL);
+         jo_string(e, "reason", "Keypad cancel");
+         alarm_disarm(areakeyarm, &e);
+	 fail("Cancelling");
+      }
       if (now > timeout)
       {
          if (messages)
@@ -227,8 +242,14 @@ void keypad_ui(char key)
             pos--;              // Delete
          else if (key == 'E')
          {                      // ENT
-            // TODO check code?
-            fail("Wrong PIN");
+            if (*keypadpin && areakeydisarm && !strcmp(code, keypadpin))
+            {
+               jo_t e = jo_make(NULL);
+               jo_string(e, "reason", "Keypad PIN entry");
+               alarm_disarm(areakeydisarm, &e);
+	       fail("Disarming");
+            } else
+               fail("Wrong PIN");
          }
       }
       break;

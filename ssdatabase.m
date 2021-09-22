@@ -257,6 +257,7 @@ table(device, 12);
 link2(device, via);             // Via another device using mesh
 text(devicename, 16);           // Device name
 text(keypadidle, 16);           // Keypad display name
+text(keypadpin,16);		// Keypad disarm pin
 link(organisation);             // Yes, can get from site, but useful to reference quickly
 link(site);                     // The site the device is on
 link(pcb);                      // What type of device this is
@@ -297,6 +298,8 @@ areas(areadisarm);              // Areas allowed disarm by fob
 areas(areadeadlock);            // Areas for deadlock input
 areas(arealed);                 // LED area
 areas(areakeypad);              // Keypad area
+areas(areakeyarm);		// Keypad arm using A
+areas(areakeydisarm);		// Keypad disarm using PIN
 datetime(online);               // When online, if online
 datetime(boot);                 // Boot time
 index(online);

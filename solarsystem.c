@@ -276,7 +276,7 @@ static const char *settings(SQL * sqlp, SQL * sqlkeyp, SQL_RES * res, slot_t id)
    char isdoor = 0;
    j_t door = j_store_object(j, "door");
    if (*sql_colz(res, "door") == 't')
-   {
+   {                            // Door specific
       isdoor = 1;
       j_store_int(door, "auto", 5);
       if (*sql_colz(res, "doorexitarm") == 't')
@@ -320,7 +320,6 @@ static const char *settings(SQL * sqlp, SQL * sqlkeyp, SQL_RES * res, slot_t id)
    addarea(area, "strongarm", sql_colz(res, "areastrongarm"), 0);
    addarea(area, "disarm", sql_colz(res, "areadisarm"), 0);
    addarea(area, "led", sql_colz(res, "arealed"), 0);
-   addarea(area, "keypad", sql_colz(res, "areakeypad"), 0);
    addarea(area, "deadlock", sql_colz(res, "areadeadlock"), 0);
    int site = atoi(sql_colz(res, "site"));
    {                            // site
@@ -368,8 +367,16 @@ static const char *settings(SQL * sqlp, SQL * sqlkeyp, SQL_RES * res, slot_t id)
          set(keypad, rx);
          set(keypad, re);
          set(keypad, de);
-         if (j_len(o) && (v = (outofservice ? "Out of service" : sql_colz(res, "keypadidle"))) && *v)
-            j_store_string(o, "idle", v);
+         if (j_len(o))
+         {                      // Keypad specific
+            if ((v = (outofservice ? "Out of service" : sql_colz(res, "keypadidle"))) && *v)
+               j_store_string(o, "idle", v);
+            if ((v = sql_colz(res, "keypadpin")) && *v)
+               j_store_string(o, "pin", v);
+            addarea(area, "keypad", sql_colz(res, "areakeypad"), 0);
+            addarea(area, "keyarm", sql_colz(res, "areakeyarm"), 0);
+            addarea(area, "keydisarm", sql_colz(res, "areakeydisarm"), 0);
+         }
          o = j_store_object(j, "nfc");
          set(nfc, tx);
          set(nfc, rx);

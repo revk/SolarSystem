@@ -103,7 +103,7 @@ if($?devicename) then # save
 	if(! $?iotstatetamper) setenv iotstatetamper false
 	if(! $?iotkeypad) setenv iotkeypad false
 	if(! $?ioteventfob) setenv ioteventfob false
-	setenv allow "devicename areaenter areastrongarm areadeadlock areaarm areadisarm areabell arealed areakeypad nfc rgb nfcadmin door doorexitarm doorexitdisarm aid site iotstatedoor iotstateinput iotstateoutput iotstatefault iotstatewarning iotstatetamper ioteventfob iotkeypad doorunlock doorlock dooropen doorclose doorprop doorexit keypadidle keypad pcb dooriotunlock dooriotdead dooriotundead outofservice doorsilent doordebug doorcatch"
+	setenv allow "devicename areaenter areastrongarm areadeadlock areaarm areadisarm areabell arealed areakeypad areakeyarm areakeydisarm nfc rgb nfcadmin door doorexitarm doorexitdisarm aid site iotstatedoor iotstateinput iotstateoutput iotstatefault iotstatewarning iotstatetamper ioteventfob iotkeypad doorunlock doorlock dooropen doorclose doorprop doorexit keypadidle keypadpin keypad pcb dooriotunlock dooriotdead dooriotundead outofservice doorsilent doordebug doorcatch"
 	if("$USER_ADMIN" == "true") setenv allow "$allow nfctrusted"
 	sqlwrite -qon "$DB" device $allow
 	sql "$DB" 'UPDATE device SET poke=NOW() WHERE site=$site'
@@ -166,6 +166,7 @@ xmlsql -C -d "$DB" head.html - foot.html << END
 <tr><td>PCB</td><td colspan=2><select name=pcb><sql table=pcb order=pcbname><option value="\$pcb"><output name=pcbname></option></sql></select></td></tr>
 <tr><td>Name</td><td colspan=2><input name=devicename size=20 maxlength=20 autofocus></td></tr>
 <if keypad=true><tr><td>Keypad</td><td colspan=2><input name=keypadidle size=16 maxlength=16 autofocus></td></tr></if>
+<if keypad=true><tr><td>Keypad PIN</td><td colspan=2><input name=keypadpin size=16 maxlength=16 autofocus> (for disarm)</td></tr></if>
 <tr><td>Site</td><td colspan=2><select name=site><sql table=site where="organisation=$USER_ORGANISATION"><option value='\$site'><output name=sitename></option></sql></select></td></tr>
 <sql table=site where="site=\$site">
 <if not iothost="">
@@ -211,7 +212,7 @@ xmlsql -C -d "$DB" head.html - foot.html << END
 </sql>
 </table>
 <if rgb=true><set tags="\$tags led"></if>
-<if keypad=true><set tags="\$tags keypad"></if>
+<if keypad=true><set tags="\$tags keypad keyarm keydisarm"></if>
 <if nfc=true><set tags="\$tags deadlock enter arm strongarm disarm"></if>
 <if tags>
 <table border=1>
