@@ -4,14 +4,14 @@
 #define	l(n,g)
 #endif
 
-l(KeyTamper,56)
-l(KeyFault,57)
-l(NFCFault,58)
-l(LockFault,59)
-l(DoorForce,60)
-l(DoorProp,61)
+l(KeyTamper,56)	// Keypad tamper input
+l(KeyFault,57)	// Keypad fault deteched
+l(NFCFault,58)	// NFC fault detected
+l(LockFault,59)	// Lock fault detected
+l(DoorForce,60) // Open by force or lock force
+l(DoorProp,61) // Unauthorised propped (i.e. NOTCLOSED state)
 
-l(MeshFault,63)
+l(MeshFault,63)	// Lonely on mesh
 
 #undef l
 

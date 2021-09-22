@@ -706,10 +706,10 @@ static void task(void *pvParameters)
          }
          if (doorstate != lastdoorstate)
          {                      // State change - iot and set timeout
-            if (doorstate == DOOR_PROPPED)
-               logical_gpio |= logical_DoorProp;        // Always a change of state
-            else if (lastdoorstate == DOOR_PROPPED)
-               logical_gpio &= ~logical_DoorProp;       // Always a change of state
+            if (doorstate == DOOR_NOTCLOSED)
+               logical_gpio |= logical_DoorProp;        // Always a change of state - unauthorised propped
+            else if (lastdoorstate == DOOR_NOTCLOSED)
+               logical_gpio &= ~logical_DoorProp;       // Always a change of state - unauthorised propped
             if (doorstate == DOOR_UNLOCKED && *dooriotunlock)
                revk_mqtt_send_str_clients(dooriotunlock, 0, 2);
             if (doorstate == DOOR_DEADLOCKED && *dooriotdead)
