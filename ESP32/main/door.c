@@ -675,11 +675,15 @@ static void task(void *pvParameters)
                   output_set(OUNLOCK + 0, 1);   // Cancel lock
                   output_set(OUNLOCK + 1, 1);   // Cancel deadlock
                }
+               if (forced && !(logical_gpio & logical_DoorForce))
+                  logical_gpio |= logical_DoorForce;
             }
             if (doorauto >= 2 && doorcatch)
                output_set(OUNLOCK + 0, 0);      // Door lock ready for when it closes
          } else
          {                      // Closed
+            if (logical_gpio & logical_DoorForce)
+               logical_gpio &= ~logical_DoorForce;
             if (lock[1].state == LOCK_LOCKED && lock[0].state == LOCK_LOCKED)
                doorstate = DOOR_DEADLOCKED;
             else if (lock[0].state == LOCK_LOCKED && lock[1].state == LOCK_UNLOCKED)
@@ -702,6 +706,10 @@ static void task(void *pvParameters)
          }
          if (doorstate != lastdoorstate)
          {                      // State change - iot and set timeout
+            if (doorstate == DOOR_PROPPED)
+               logical_gpio |= logical_DoorProp;        // Always a change of state
+            else if (lastdoorstate == DOOR_PROPPED)
+               logical_gpio &= ~logical_DoorProp;       // Always a change of state
             if (doorstate == DOOR_UNLOCKED && *dooriotunlock)
                revk_mqtt_send_str_clients(dooriotunlock, 0, 2);
             if (doorstate == DOOR_DEADLOCKED && *dooriotdead)
@@ -803,13 +811,13 @@ static void task(void *pvParameters)
          if (fault)
          {
             if (!(logical_gpio & logical_LockFault))
-            {
+            {                   // new fault
                jo_t j = jo_make(NULL);
                jo_string(j, "lock", fault);
                alarm_event("fault", &j, iotstatedoor);
+               logical_gpio |= logical_LockFault;
             }
-            logical_gpio |= logical_LockFault;
-         } else
+         } else if (logical_gpio & logical_LockFault)
             logical_gpio &= ~logical_LockFault;
 
          // Note that forced are not logged as tampers, and picked up directly for alarm from open/disengaged inputs showing as access
