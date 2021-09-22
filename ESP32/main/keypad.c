@@ -192,7 +192,13 @@ void keypad_ui(char key)
    switch (state)
    {                            // Pre display
    case IDLE:
-      if (!messages && key == 'A' && areakeyarm)
+      if (messages)
+      {
+         state = MESSAGE;
+         pos = 0;
+         break;
+      }
+      if (key == 'A' && areakeyarm && (areakeyarm & ~state_armed))
       {                         // Arm set
          jo_t e = jo_make(NULL);
          jo_string(e, "reason", "Keypad A");
@@ -200,7 +206,7 @@ void keypad_ui(char key)
          fail("Arming");
          break;
       }
-      if (!messages && key == 'B' && areakeystrong)
+      if (key == 'B' && areakeystrong && (areakeystrong & ~state_armed))
       {                         // Arm set
          jo_t e = jo_make(NULL);
          jo_string(e, "reason", "Keypad B");
@@ -208,7 +214,7 @@ void keypad_ui(char key)
          fail("Arming forced");
          break;
       }
-      if (!messages && key == 'X' && areakeystrong && !(state_armed & areakeystrong) && (control_strongarm & areakeystrong))
+      if (key == 'X' && areakeystrong && !(state_armed & areakeystrong) && (control_strongarm & areakeystrong))
       {                         // Strongarm cancel as not yet armed (very small window of time on this one)
          jo_t e = jo_make(NULL);
          jo_string(e, "reason", "Keypad ESC");
@@ -216,19 +222,13 @@ void keypad_ui(char key)
          fail("Cancelling");
          break;
       }
-      if (!messages && key == 'X' && areakeyarm && !(state_armed & areakeyarm) && (control_arm & areakeyarm))
+      if (key == 'X' && areakeyarm && !(state_armed & areakeyarm) && (control_arm & areakeyarm))
       {                         // Arm cancel as not yet armed
          jo_t e = jo_make(NULL);
          jo_string(e, "reason", "Keypad ESC");
          alarm_disarm(areakeyarm, &e);
          fail("Cancelling");
          break;
-      }
-      if (now > timeout)
-      {
-         if (messages)
-            state = MESSAGE;
-         pos = 0;
       }
       break;
    case MESSAGE:
@@ -266,6 +266,12 @@ void keypad_ui(char key)
                jo_string(e, "reason", "Keypad PIN entry");
                alarm_disarm(areakeydisarm, &e);
                fail("Disarming");
+            } else if (!strcmp(code, "*") && areakeyarm && (areakeyarm & ~state_armed))
+            {                   // Alternative arming, e.g. if in messages state
+               jo_t e = jo_make(NULL);
+               jo_string(e, "reason", "Keypad *");
+               alarm_arm(areakeyarm, &e);
+               fail("Arming");
             } else
                fail("Wrong PIN");
          }
