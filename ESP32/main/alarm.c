@@ -70,6 +70,7 @@ static display_t *display = NULL;
 	area(areadeadlock)	\
 	areanl(areakeypad)	\
 	area(areakeydisarm)	\
+	area(areakeystrong)	\
 	area(areakeyarm)	\
 	area(engineer)		\
 	area(armed)		\

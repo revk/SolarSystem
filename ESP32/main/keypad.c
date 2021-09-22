@@ -195,15 +195,25 @@ void keypad_ui(char key)
       if (key == 'A' && areakeyarm)
       {                         // Arm set
          jo_t e = jo_make(NULL);
-         jo_string(e, "reason", "Keypad");
+         jo_string(e, "reason", "Keypad A");
          alarm_arm(areakeyarm, &e);
          fail("Arming");
       }
-      if (key == 'B' && areakeyarm && !(state_armed & areakeyarm))
+      if (key == 'B' && areakeystrong)
+      {                         // Arm set
+         jo_t e = jo_make(NULL);
+         jo_string(e, "reason", "Keypad B");
+         alarm_strongarm(areakeystrong, &e);
+         fail("Arming forced");
+      }
+      if (key == 'X' && areakeyarm && !(state_armed & areakeyarm) && ((control_arm & areakeyarm) || (control_strongarm & areakeystrong)))
       {                         // Arm cancel as not yet armed
          jo_t e = jo_make(NULL);
-         jo_string(e, "reason", "Keypad cancel");
-         alarm_disarm(areakeyarm, &e);
+         jo_string(e, "reason", "Keypad ESC");
+         if (control_arm & areakeyarm)
+            alarm_disarm(areakeyarm, &e);
+         if (control_strongarm & areakeystrong)
+            alarm_disarm(areakeystrong, &e);
          fail("Cancelling");
       }
       if (now > timeout)

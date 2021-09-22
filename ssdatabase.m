@@ -301,6 +301,7 @@ areas(areadeadlock);            // Areas for deadlock input
 areas(arealed);                 // LED area
 areas(areakeypad);              // Keypad area
 areas(areakeyarm);              // Keypad arm using A
+areas(areakeystring);           // Keypad strongarm using B
 areas(areakeydisarm);           // Keypad disarm using PIN
 datetime(online);               // When online, if online
 datetime(boot);                 // Boot time
