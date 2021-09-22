@@ -192,7 +192,7 @@ void keypad_ui(char key)
    switch (state)
    {                            // Pre display
    case IDLE:
-      if (key == 'A' && areakeyarm)
+      if (!messages && key == 'A' && areakeyarm)
       {                         // Arm set
          jo_t e = jo_make(NULL);
          jo_string(e, "reason", "Keypad A");
@@ -200,7 +200,7 @@ void keypad_ui(char key)
          fail("Arming");
          break;
       }
-      if (key == 'B' && areakeystrong)
+      if (!messages && key == 'B' && areakeystrong)
       {                         // Arm set
          jo_t e = jo_make(NULL);
          jo_string(e, "reason", "Keypad B");
@@ -208,7 +208,7 @@ void keypad_ui(char key)
          fail("Arming forced");
          break;
       }
-      if (key == 'X' && areakeystrong && !(state_armed & areakeystrong) && (control_strongarm & areakeystrong))
+      if (!messages && key == 'X' && areakeystrong && !(state_armed & areakeystrong) && (control_strongarm & areakeystrong))
       {                         // Strongarm cancel as not yet armed (very small window of time on this one)
          jo_t e = jo_make(NULL);
          jo_string(e, "reason", "Keypad ESC");
@@ -216,7 +216,7 @@ void keypad_ui(char key)
          fail("Cancelling");
          break;
       }
-      if (key == 'X' && areakeyarm && !(state_armed & areakeyarm) && (control_arm & areakeyarm))
+      if (!messages && key == 'X' && areakeyarm && !(state_armed & areakeyarm) && (control_arm & areakeyarm))
       {                         // Arm cancel as not yet armed
          jo_t e = jo_make(NULL);
          jo_string(e, "reason", "Keypad ESC");
