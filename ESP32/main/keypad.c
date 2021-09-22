@@ -198,6 +198,7 @@ void keypad_ui(char key)
          jo_string(e, "reason", "Keypad A");
          alarm_arm(areakeyarm, &e);
          fail("Arming");
+         break;
       }
       if (key == 'B' && areakeystrong)
       {                         // Arm set
@@ -205,16 +206,23 @@ void keypad_ui(char key)
          jo_string(e, "reason", "Keypad B");
          alarm_strongarm(areakeystrong, &e);
          fail("Arming forced");
+         break;
       }
-      if (key == 'X' && areakeyarm && !(state_armed & areakeyarm) && ((control_arm & areakeyarm) || (control_strongarm & areakeystrong)))
+      if (key == 'X' && areakeystrong && !(state_armed & areakeystrong) && (control_strongarm & areakeystrong))
+      {                         // Strongarm cancel as not yet armed (very small window of time on this one)
+         jo_t e = jo_make(NULL);
+         jo_string(e, "reason", "Keypad ESC");
+         alarm_disarm(areakeystrong, &e);
+         fail("Cancelling");
+         break;
+      }
+      if (key == 'X' && areakeyarm && !(state_armed & areakeyarm) && (control_arm & areakeyarm))
       {                         // Arm cancel as not yet armed
          jo_t e = jo_make(NULL);
          jo_string(e, "reason", "Keypad ESC");
-         if (control_arm & areakeyarm)
-            alarm_disarm(areakeyarm, &e);
-         if (control_strongarm & areakeystrong)
-            alarm_disarm(areakeystrong, &e);
+         alarm_disarm(areakeyarm, &e);
          fail("Cancelling");
+         break;
       }
       if (now > timeout)
       {
