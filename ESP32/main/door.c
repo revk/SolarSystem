@@ -705,17 +705,7 @@ static void task(void *pvParameters)
             }
          }
          if (doorstate != lastdoorstate)
-         {                      // State change - iot and set timeout
-            if (doorstate == DOOR_NOTCLOSED)
-               logical_gpio |= logical_DoorProp;        // Always a change of state - unauthorised propped
-            else if (lastdoorstate == DOOR_NOTCLOSED)
-               logical_gpio &= ~logical_DoorProp;       // Always a change of state - unauthorised propped
-            if (doorstate == DOOR_UNLOCKED && *dooriotunlock)
-               revk_mqtt_send_str_clients(dooriotunlock, 0, 2);
-            if (doorstate == DOOR_DEADLOCKED && *dooriotdead)
-               revk_mqtt_send_str_clients(dooriotdead, 0, 2);
-            if (lastdoorstate == DOOR_DEADLOCKED && *dooriotundead)
-               revk_mqtt_send_str_clients(dooriotundead, 0, 2);
+         {                      // State change - set timeout
             if (doorstate == DOOR_OPEN)
                doortimeout = now + (int64_t) doorprop *1000LL;
             else if (doorstate == DOOR_CLOSED)
@@ -724,10 +714,8 @@ static void task(void *pvParameters)
                doortimeout = now + (int64_t) dooropen *1000LL;
             else
                doortimeout = 0;
-            if (doorauto >= 2)
-               output_set(OBEEP, doorstate == DOOR_UNLOCKED && !doorsilent ? 1 : 0);
          } else if (doortimeout && doortimeout < now)
-         {                      // timeout
+         {                      // Timeout happened
             if (doorauto >= 2)
                output_set(OBEEP, 0);
             if (doorstate == DOOR_OPEN)
@@ -747,6 +735,21 @@ static void task(void *pvParameters)
                door_lock(NULL, NULL);
                doorwhy = NULL;
             }
+         }
+         if (doorstate != lastdoorstate)
+         {                      // Actions on state change
+            if (doorstate == DOOR_NOTCLOSED)
+               logical_gpio |= logical_DoorProp;        // Always a change of state - unauthorised propped
+            else if (lastdoorstate == DOOR_NOTCLOSED)
+               logical_gpio &= ~logical_DoorProp;       // Always a change of state - unauthorised propped
+            if (doorstate == DOOR_UNLOCKED && *dooriotunlock)
+               revk_mqtt_send_str_clients(dooriotunlock, 0, 2);
+            if (doorstate == DOOR_DEADLOCKED && *dooriotdead)
+               revk_mqtt_send_str_clients(dooriotdead, 0, 2);
+            if (lastdoorstate == DOOR_DEADLOCKED && *dooriotundead)
+               revk_mqtt_send_str_clients(dooriotundead, 0, 2);
+            if (doorauto >= 2)
+               output_set(OBEEP, doorstate == DOOR_UNLOCKED && !doorsilent ? 1 : 0);
          }
          static uint64_t exit = 0;      // Main exit button
          if (input_get(IEXIT1))
