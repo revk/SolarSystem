@@ -1,4 +1,7 @@
-body {background: #8cf;}
+body {
+	background: #7bf;
+	background-image: linear-gradient(to bottom right, #8cf, #48f);
+}
 .error {
 	color:red;
 	white-space:nowrap;
