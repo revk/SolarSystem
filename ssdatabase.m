@@ -161,6 +161,7 @@ text(hookarmfail, 0);           // Arm fail event web hook
 text(hooknotopen, 0);           // Not open event web hook
 text(hookopen, 0);              // Open event web hook
 text(hookforced, 0);            // Forced event web hook
+text(hookproped, 0);            // Propped event web hook
 text(status, 0);                // Site level status
 areas(faulted);                 // Site wide states from mesh
 areas(tampered);
