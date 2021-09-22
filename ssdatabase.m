@@ -157,10 +157,11 @@ text(hookinhibit, 0);           // Inhibit event web hook
 text(hookarm, 0);               // Arm event web hook
 text(hookstrongarm, 0);         // Strongarm event web hook
 text(hookdisarm, 0);            // Disarm event web hook
-text(hookarmfail, 0);               // Arm fail event web hook
-text(hooknotopen, 0);            // Not open event web hook
-text(hookopen, 0);            // Open event web hook
-text(status,0);			// Site level status
+text(hookarmfail, 0);           // Arm fail event web hook
+text(hooknotopen, 0);           // Not open event web hook
+text(hookopen, 0);              // Open event web hook
+text(hookforced, 0);            // Forced event web hook
+text(status, 0);                // Site level status
 areas(faulted);                 // Site wide states from mesh
 areas(tampered);
 areas(alarmed);
@@ -257,7 +258,7 @@ table(device, 12);
 link2(device, via);             // Via another device using mesh
 text(devicename, 16);           // Device name
 text(keypadidle, 16);           // Keypad display name
-text(keypadpin,16);		// Keypad disarm pin
+text(keypadpin, 16);            // Keypad disarm pin
 link(organisation);             // Yes, can get from site, but useful to reference quickly
 link(site);                     // The site the device is on
 link(pcb);                      // What type of device this is
@@ -281,7 +282,7 @@ bool (doorsilent);              // Silent (no beep output)
 bool (doordebug);               // Lock state debug
 bool (doorcatch);               // Main lock catch logic (re-engage on opening)
 bool (keypad);                  // Keypad
-text(status,0);			// Summary status from device
+text(status, 0);                // Summary status from device
 text(version, 0);               // S/w version
 text(build, 0);                 // S/w build
 num(chan);                      // WiFi channel
@@ -298,14 +299,14 @@ areas(areadisarm);              // Areas allowed disarm by fob
 areas(areadeadlock);            // Areas for deadlock input
 areas(arealed);                 // LED area
 areas(areakeypad);              // Keypad area
-areas(areakeyarm);		// Keypad arm using A
-areas(areakeydisarm);		// Keypad disarm using PIN
+areas(areakeyarm);              // Keypad arm using A
+areas(areakeydisarm);           // Keypad disarm using PIN
 datetime(online);               // When online, if online
 datetime(boot);                 // Boot time
 index(online);
 datetime(lastonline);           // When last went offline
 index(lastonline);
-datetime(offlinereport);      // When reported offline
+datetime(offlinereport);        // When reported offline
 index(offlinereport);
 text(offlinereason, 0);         // If sent offline reason, what was it
 datetime(upgrade);              // When to do upgrade

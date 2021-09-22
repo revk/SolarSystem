@@ -34,7 +34,7 @@ if($?sitename) then
 	if(! $?meshlr) setenv meshlr false
 	if(! $?debug) setenv debug false
 	if("$root" == "") unsetenv root
-	sqlwrite -qon "$DB" site sitename wifissid wifipass wifichan iothost nomesh smsuser smspass armcancel armdelay alarmdelay alarmhold debug iotstatesystem ioteventarm smsarm smsarmfail smsdisarm smsalarm smspanic smsfire engineer smsnumber smsfrom hookbearer hookfob hookalarm hookfire hookpanic hooktrigger hookinhibit hookfobdeny meshlr wifibssid root hookoffline emailfrom hookarm hookstrongarm hookdisarm hooknotopen hookopen hookarmfail
+	sqlwrite -qon "$DB" site sitename wifissid wifipass wifichan iothost nomesh smsuser smspass armcancel armdelay alarmdelay alarmhold debug iotstatesystem ioteventarm smsarm smsarmfail smsdisarm smsalarm smspanic smsfire engineer smsnumber smsfrom hookbearer hookfob hookalarm hookfire hookpanic hooktrigger hookinhibit hookfobdeny meshlr wifibssid root hookoffline emailfrom hookarm hookstrongarm hookdisarm hooknotopen hookopen hookarmfail hookforced
 	sql "$DB" 'UPDATE device SET poke=NOW() WHERE site=$site'
 	message --poke
 	redirect /
@@ -93,6 +93,7 @@ Root:<select name=root><option value=''>None</option><sql table=device where="si
 <tr><td>Disarm event</td><td><input name=hookdisarm size=80 placeholder="https://... / email / number"></td></tr>
 <tr><td>Arm fail event</td><td><input name=hookarmfail size=80 placeholder="https://... / email / number"></td></tr>
 <tr><td>Open event</td><td><input name=hookopen size=80 placeholder="https://... / email / number"></td></tr>
+<tr><td>Forced event</td><td><input name=hookforced size=80 placeholder="https://... / email / number"></td></tr>
 <tr><td>Not open event</td><td><input name=hooknotopen size=80 placeholder="https://... / email / number"></td></tr>
 </table>
 <p>Area settings</p>

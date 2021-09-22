@@ -656,13 +656,15 @@ static void task(void *pvParameters)
          {                      // Open
             if (doorstate != DOOR_NOTCLOSED && doorstate != DOOR_PROPPED && doorstate != DOOR_OPEN)
             {                   // We have moved to open state, this can cancel the locking operation
+               char forced = ((output_active(OUNLOCK) && (lock[0].state == LOCK_LOCKED || lock[0].state == LOCK_FORCED)) ||     //
+                              (output_active(OUNLOCK + 1) && (lock[1].state == LOCK_LOCKED || lock[1].state == LOCK_FORCED)));
                if (!doorwhy)
-                  doorwhy = (((output_active(OUNLOCK) && lock[0].state == LOCK_LOCKED) || (output_active(OUNLOCK + 1) && lock[1].state == LOCK_LOCKED)) ? "forced" : "manual");
+                  doorwhy = (forced ? "forced" : "manual");
                if (doorwhy)
                {
                   jo_t j = jo_make(NULL);
                   jo_string(j, "trigger", doorwhy);
-                  alarm_event("open", &j, iotstatedoor);
+                  alarm_event(forced ? "forced" : "open", &j, iotstatedoor);
                   doorwhy = NULL;
                }
                if (doorstate != DOOR_UNLOCKING && *dooriotunlock)
