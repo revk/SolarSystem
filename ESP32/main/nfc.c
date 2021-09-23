@@ -562,7 +562,6 @@ const char *nfc_command(const char *tag, jo_t j)
       int len = jo_strncpy16(j, (char *) buf, sizeof(buf));
       if (len < 0 || len > sizeof(buf))
          return "Too big";
-      ESP_LOGI(TAG,"Dx %d bytes",len);
       const char *err = NULL;
       xSemaphoreTake(nfc_mutex, portMAX_DELAY);
       len = pn532_dx(pn532, len, buf, sizeof(buf), &err);
