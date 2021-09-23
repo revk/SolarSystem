@@ -1416,7 +1416,13 @@ int main(int argc, const char *argv[])
          {
             const char *fob = NULL;
             if (!strcmp(suffix ? : "", "fob"))
+            {
                fob = j_get(j, "id");
+               SQL_RES *res = sql_safe_query_store_free(&sql, sql_printf("SELECT * FROM `fob` WHERE `fob`=%#s", fob));
+               if (!sql_fetch_row(res))
+                  fob = NULL;
+               sql_free_result(res);
+            }
             char *data = j_write_str(j);
             sql_safe_query_free(&sql, sql_printf("INSERT INTO `event` SET `logged`=NOW(),`device`=%#s,`fob`=%#s,`suffix`=%#s,`data`=%#s", deviceid, fob, suffix, data));
             free(data);
