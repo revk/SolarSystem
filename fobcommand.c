@@ -275,11 +275,14 @@ void *fobcommand(void *arg)
                status(j_base16(sizeof(uid), uid));
                if (hardformat)
                {
+                  status("Hard format fob - will need provisioning again");
                   df(change_key(&d, 0x80, 0, masterkey + 1, NULL));     // Hard reset to zero AES
                   df(authenticate(&d, 0, NULL));
+               } else
+               {
+                  df(change_key_settings(&d, 0x09));
+                  df(set_configuration(&d, 0));
                }
-               df(change_key_settings(&d, 0x09));
-               df(set_configuration(&d, 0));
                unsigned int mem;
                df(free_memory(&d, &mem));
                {                // Tell system formatted

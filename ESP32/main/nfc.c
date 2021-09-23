@@ -396,6 +396,7 @@ static void task(void *pvParameters)
                   // Authenticate
                   if (!e)
                   {
+			  ESP_LOGI(TAG,"Authenticate"); // TODo
                      e = df_authenticate(&df, 1, aes[fob.aesid] + 1);
                      if (e)
                      {          // Log key version as auth failed
@@ -561,6 +562,7 @@ const char *nfc_command(const char *tag, jo_t j)
       int len = jo_strncpy16(j, (char *) buf, sizeof(buf));
       if (len < 0 || len > sizeof(buf))
          return "Too big";
+      ESP_LOGI(TAG,"Dx %d bytes",len);
       const char *err = NULL;
       xSemaphoreTake(nfc_mutex, portMAX_DELAY);
       len = pn532_dx(pn532, len, buf, sizeof(buf), &err);

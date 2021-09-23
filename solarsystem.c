@@ -1099,7 +1099,7 @@ int main(int argc, const char *argv[])
             {
                if (!fobid)
                   return "Fob needed";
-               j_store_true(init, "format");
+               j_store_true(init, "hardformat");
             }
             if (organisation)
                j_store_int(init, "organisation", organisation);
