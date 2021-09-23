@@ -168,7 +168,7 @@ void keypad_ui(char key)
    static uint8_t state = IDLE,
        shh = 0;
    static int8_t pos = 0;
-   uint8_t bl = 0;              // Back light
+   uint8_t bl = ui.backlight;   // Back light
    uint8_t bk = 0;              // Blink
    void fail(const char *m) {
       displayprint("%s", m);
@@ -313,6 +313,7 @@ void keypad_ui(char key)
          idle = "Arming";
       } else if (now & 1)
       {
+         bl = 0;
          if ((area = (state_armed & areakeypad)))
             idle = "Armed";
          else if ((area = (state_alarmed & areakeypad)))
