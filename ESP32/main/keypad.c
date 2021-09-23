@@ -173,6 +173,8 @@ void keypad_ui(char key)
       state = IDLE;
       pos = 0;
       timeout = now + 5;
+      ui.sendbacklight = 1;
+      ui.backlight = 1;
    }
    if (!key && now > timeout)
    {
