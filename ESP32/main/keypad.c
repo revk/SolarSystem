@@ -168,7 +168,8 @@ void keypad_ui(char key)
    static uint8_t state = IDLE,
        shh = 0;
    static int8_t pos = 0;
-   uint8_t bl = 0;
+   uint8_t bl = 0;              // Back light
+   uint8_t bk = 0;              // Blink
    void fail(const char *m) {
       displayprint("%s", m);
       state = IDLE;
@@ -201,10 +202,7 @@ void keypad_ui(char key)
       fail("Cancelling");
    }
    if (key)
-   {
       shh = 1;
-      timeout = now + 10;
-   }
    switch (state)
    {                            // Pre display
    case IDLE:
@@ -334,24 +332,9 @@ void keypad_ui(char key)
          ui.on = on;
          ui.off = off;
       }
-      if (state != IDLE)
-         bl = 1;
-      if (ui.backlight != bl)
-      {
-         ui.sendbacklight = 1;
-         ui.backlight = bl;
-      }
    }
-   {                            // LED blink
-      uint8_t bk = 0;
-      if (state_alarmed & areakeypad)
-         bk = 1;
-      if (ui.blink != bk)
-      {
-         ui.sendblink = 1;
-         ui.blink = bk;
-      }
-   }
+   if (state_alarmed & areakeypad)
+      bk = 1;
    switch (state)
    {
    case IDLE:                  // Idle display
@@ -366,6 +349,7 @@ void keypad_ui(char key)
          if (pos >= messages)
             pos = 0;
          displayprint("%s", message[pos]);
+         bl = 1;
       }
       break;
    case PIN:
@@ -376,10 +360,22 @@ void keypad_ui(char key)
             ui.cursor = pos + 0x10 + 0x40;      // Line 1 underscore at pos
             ui.sendcursor = 1;
          }
+         bl = 1;
       }
       break;
    }
-   // Default one second
+   if (ui.backlight != bl)
+   {
+      ui.sendbacklight = 1;
+      ui.backlight = bl;
+   }
+   if (ui.blink != bk)
+   {
+      ui.sendblink = 1;
+      ui.blink = bk;
+   }
+   if (!timeout)
+      timeout = now + 1;        // default
 }
 
 static void task(void *pvParameters)
