@@ -217,6 +217,7 @@ void *fobcommand(void *arg)
 #define df(x) if(dfcheck(df_##x,#x,__LINE__))return
       if (identify)
       {
+         slot_send(f.device, "command", f.deviceid, "nfcremote", NULL);
          led("R+A-");
          char *id = NULL;
          while (!f.done && !f.connected && !id)

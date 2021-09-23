@@ -396,7 +396,6 @@ static void task(void *pvParameters)
                   // Authenticate
                   if (!e)
                   {
-			  ESP_LOGI(TAG,"Authenticate"); // TODo
                      e = df_authenticate(&df, 1, aes[fob.aesid] + 1);
                      if (e)
                      {          // Log key version as auth failed
@@ -549,7 +548,7 @@ const char *nfc_command(const char *tag, jo_t j)
    if (!strcmp(tag, "nfcremote"))
    {                            // Direct NFC data
       fob.remote = 1;           // Disable normal working
-      ESP_LOGD(TAG, "NFC access remote");
+      ESP_LOGI(TAG, "NFC access remote");
       return "";
    }
    if (!strcmp(tag, "nfc"))
@@ -576,7 +575,7 @@ const char *nfc_command(const char *tag, jo_t j)
    }
    if (!strcmp(tag, "nfcdone"))
    {
-      ESP_LOGD(TAG, "NFC access remote ended");
+      ESP_LOGI(TAG, "NFC access remote ended");
       fob.remote = 0;
       fob.recheck = 1;
       nfc_led(0, NULL);
