@@ -168,13 +168,13 @@ void keypad_ui(char key)
    static uint8_t state = IDLE,
        shh = 0;
    static int8_t pos = 0;
+   uint8_t bl = 0;
    void fail(const char *m) {
       displayprint("%s", m);
       state = IDLE;
       pos = 0;
       timeout = now + 5;
-      ui.sendbacklight = 1;
-      ui.backlight = 1;
+      bl = 1;
    }
    if (!key && now > timeout)
    {
@@ -288,7 +288,6 @@ void keypad_ui(char key)
    if (!*idle)
       idle = revk_id;
    {                            // Beep, idle, and backlight
-      uint8_t bl = 0;
       uint8_t on = 0,
           off = 0;
       if ((area = (state_fire & areakeypad)))
@@ -344,13 +343,13 @@ void keypad_ui(char key)
       }
    }
    {                            // LED blink
-      uint8_t bl = 0;
+      uint8_t bk = 0;
       if (state_alarmed & areakeypad)
-         bl = 1;
-      if (ui.blink != bl)
+         bk = 1;
+      if (ui.blink != bk)
       {
          ui.sendblink = 1;
-         ui.blink = bl;
+         ui.blink = bk;
       }
    }
    switch (state)
