@@ -1155,6 +1155,7 @@ void send_sms(const char *number, const char *fmt, ...)
 {
    if (!number || !*number)
       return;
+   // At some point we need local SMS send, either via an SMS capable module, or local mobile router..
    char *v = NULL;
    va_list ap;
    va_start(ap, fmt);
@@ -1231,7 +1232,7 @@ static void sms_event(const char *tag, jo_t j)
             continue;
          }
       }
-   send_sms(smsnumber, "%s\n%s: %s%s%s\n%s\n%s %s %s", ts, tag, areas, *also ? "+" : "", also, node, reason, id, name);
+   send_sms(smsnumber, "%s: %s%s%s\n%s\n%s %s %s\n%s\n%s", tag, areas, *also ? "+" : "", also, node, reason, id, name, ts, sms);
    if (*sms)
-      send_sms(sms, "%s\n%s: %s%s%s\n%s\n%s %s %s", ts, tag, areas, *also ? "+" : "", also, node, reason, id, name);
+      send_sms(sms, "%s: %s%s%s\n%s\n%s %s %s\n%s", tag, areas, *also ? "+" : "", also, node, reason, id, name, ts);
 }

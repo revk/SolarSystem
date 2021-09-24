@@ -51,6 +51,7 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <th>Free</th>
 <th>Expiry</th>
 <th>Name</th>
+<th>SMS</th>
 <th>Notes</th>
 </tr></if>
 <tr>
