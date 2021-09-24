@@ -127,8 +127,8 @@ static void task(void *pvParameters)
       if (was != input_stable || now > report_next)
       {                         // JSON
          report_next = now + 3600;
-         input_latch |= input_stable;
-         input_flip |= (input_stable ^ was);
+         input_latch |= (input_stable & ~was);  // Latch rising edges
+         input_flip |= (input_stable ^ was);    // Latch any change
          jo_t j = jo_make(NULL);
          int t = MAXINPUT;
          while (t && !input[t - 1])
