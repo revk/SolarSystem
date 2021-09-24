@@ -109,13 +109,7 @@ void notify(SQL * sqlp, SQL_RES * res, const char *target, j_t j)
    void makeud(void) {
       size_t l = 0;
       FILE *f = open_memstream(&ud, &l);
-      time_t ts = j_time(j_get(j, "ts"));
-      if (ts)
-      {
-         struct tm tm;
-         localtime_r(&ts, &tm);
-         fprintf(f, "%04d-%02d-%02d %02d:%02d:%02d %s\n", tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec, event);
-      }
+      fprintf(f,"%s\n",event);
       void areas(const char *tag) {
          char found = 0;
          const char *areas = j_get(j, tag);
@@ -171,6 +165,13 @@ void notify(SQL * sqlp, SQL_RES * res, const char *target, j_t j)
             }
             fprintf(f, "\n");
          }
+      }
+      time_t ts = j_time(j_get(j, "ts"));
+      if (ts)
+      {
+         struct tm tm;
+         localtime_r(&ts, &tm);
+         fprintf(f, "%04d-%02d-%02d %02d:%02d:%02d", tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec );
       }
       fclose(f);
    }
