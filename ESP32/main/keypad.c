@@ -26,7 +26,6 @@ static const char TAG[] = "keypad";
   sl(keypadidle)	\
   sl(keypadpin)	\
 
-// TODO keypad tamper in web UI?
 struct {
    uint8_t display[32];
    uint8_t cursor;              // low 4 bits is x, 0x10 is second row, 0x40 is underline, 0x80 is block
@@ -241,7 +240,7 @@ void keypad_ui(char key)
    case MESSAGE:
       if (key == 'A')
       {                         // next
-         if (pos >= messages)
+         if (pos >= messages - 1)
             pos = 0;
          else
             pos++;
