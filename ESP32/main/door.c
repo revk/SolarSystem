@@ -162,6 +162,19 @@ void door_check(void)
 {
    if (doorauto >= 2)
       output_set(OUNLOCK + 1, door_deadlocked()? 0 : 1);
+   if (areadeadlock)
+   {                            // Work out if deadlock is final - as the normal deadlock state pre-empts actual setting so deadlock engaged can be waited on
+      uint8_t unlock = !(areadeadlock & state_armed & ~control_disarm); // Delay deadlock state until confirmed
+      static uint8_t was = -1;
+      if (unlock != was)
+      {
+         was = unlock;
+         if (!unlock && *dooriotdead)
+            revk_mqtt_send_str_clients(dooriotdead, 0, 2);
+         else if (unlock && *dooriotundead)
+            revk_mqtt_send_str_clients(dooriotundead, 0, 2);
+      }
+   }
 }
 
 const char *door_unlock(const uint8_t * a, const char *why)
@@ -753,10 +766,6 @@ static void task(void *pvParameters)
                logical_gpio &= ~logical_DoorProp;       // Always a change of state - unauthorised propped
             if (doorstate == DOOR_UNLOCKED && *dooriotunlock)
                revk_mqtt_send_str_clients(dooriotunlock, 0, 2);
-            if (doorstate == DOOR_DEADLOCKED && *dooriotdead)
-               revk_mqtt_send_str_clients(dooriotdead, 0, 2);
-            if (lastdoorstate == DOOR_DEADLOCKED && *dooriotundead)
-               revk_mqtt_send_str_clients(dooriotundead, 0, 2);
             if (doorauto >= 2)
                output_set(OBEEP, doorstate == DOOR_UNLOCKED && !doorsilent ? 1 : 0);
          }
@@ -891,7 +900,6 @@ void door_boot(void)
    int64_t now = esp_timer_get_time();
    lock[0].timeout = now + 1000LL;
    lock[1].timeout = now + 1000LL;
-   door_check();                // Deadlock based on alarm state
 }
 
 void door_start(void)

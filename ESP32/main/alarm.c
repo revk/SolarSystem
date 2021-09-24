@@ -265,6 +265,7 @@ void alarm_boot(void)
 void alarm_start(void)
 {
    revk_task(TAG, task, NULL);
+   door_check();
 }
 
 // JSON functions
