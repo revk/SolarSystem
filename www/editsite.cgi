@@ -67,7 +67,6 @@ Root:<select name=root><option value=''>None</option><sql table=device where="si
 <tr><td>Arm-Delay</td><td><input name=armdelay size=3> seconds (timeout before arm happens)</td></tr>
 <tr><td>Alarm-Delay</td><td><input name=alarmdelay size=3> seconds (timeout before alarm triggers)</td></tr>
 <tr><td>Alarm-Hold</td><td><input name=alarmhold size=3> seconds (timeout before alarm cancels after last trigger)</td></tr>
-<tr><td>SMS Target</td><td><input name=smsnumber size=20 maxlength=20> (Send for sms selected areas as listed below)</td></tr>
 <tr><td colspan=2><hr></td></tr>
 <tr><td colspan=2>Event hook settings</td></tr>
 <tr><td>Bearer</td><td><input name=hookbearer size=40 placeholder="To send on web hooks"> (for web hooks)</td></tr>
@@ -97,8 +96,9 @@ Root:<select name=root><option value=''>None</option><sql table=device where="si
 <tr><td>Not open event</td><td><input name=hooknotopen size=80 placeholder="https://... / email / number"> (i.e. unauthorised propped)</td></tr>
 <tr><td>Propped event</td><td><input name=hookpropped size=80 placeholder="https://... / email / number"> (i.e. authorised propped)</td></tr>
 <tr><td>Wrong PIN event</td><td><input name=hookwrongpin size=80 placeholder="https://... / email / number"> (on keypad)</td></tr>
+<tr><td colspan=2><hr></td></tr>
+<tr><td>SMS Target</td><td><input name=smsnumber size=20 maxlength=20> (Send for sms selected areas as listed below)</td></tr>
 </table>
-<p>Area settings</p>
 <table border=1>
 <set tags="engineer smsarm smsarmfail smsdisarm smsalarm smspanic smsfire">
 <tr><th></th>
