@@ -29,6 +29,7 @@ const char *state_name[] = {
 };
 
 static SemaphoreHandle_t node_mutex = NULL;     // protect changes to node list
+static SemaphoreHandle_t control_mutex = NULL;  // protect changes to node list
 
 typedef struct node_s {
    mac_t mac;                   // Node MAC
@@ -163,6 +164,7 @@ void alarm_arm(area_t a, jo_t * jp)
       jo_free(jp);
       return;                   // All armed
    }
+   xSemaphoreTake(control_mutex, portMAX_DELAY);
    if (arm_json)
       jo_free(&arm_json);
    if (jp && *jp)
@@ -174,6 +176,7 @@ void alarm_arm(area_t a, jo_t * jp)
    control_arm |= a;            // Each area only in one control
    control_strongarm &= ~a;
    control_disarm &= ~a;
+   xSemaphoreGive(control_mutex);
    door_check();
 }
 
@@ -185,6 +188,7 @@ void alarm_strongarm(area_t a, jo_t * jp)
       jo_free(jp);
       return;                   // All armed
    }
+   xSemaphoreTake(control_mutex, portMAX_DELAY);
    if (arm_json)
       jo_free(&arm_json);
    if (jp && *jp)
@@ -196,6 +200,7 @@ void alarm_strongarm(area_t a, jo_t * jp)
    control_strongarm |= a;      // Each area only in one control
    control_arm &= ~a;
    control_disarm &= ~a;
+   xSemaphoreGive(control_mutex);
    door_check();
 }
 
@@ -207,6 +212,7 @@ void alarm_disarm(area_t a, jo_t * jp)
       jo_free(jp);
       return;                   // Not armed
    }
+   xSemaphoreTake(control_mutex, portMAX_DELAY);
    if (arm_json)
       jo_free(&arm_json);
    if (jp && *jp)
@@ -218,6 +224,7 @@ void alarm_disarm(area_t a, jo_t * jp)
    control_disarm |= a;         // Each area only in one control
    control_arm &= ~a;
    control_strongarm &= ~a;
+   xSemaphoreGive(control_mutex);
    door_check();
 }
 
@@ -225,6 +232,8 @@ void alarm_boot(void)
 {
    node_mutex = xSemaphoreCreateBinary();
    xSemaphoreGive(node_mutex);
+   control_mutex = xSemaphoreCreateBinary();
+   xSemaphoreGive(control_mutex);
    display_mutex = xSemaphoreCreateBinary();
    xSemaphoreGive(display_mutex);
    revk_register("area", 0, sizeof(arealed), &arealed, AREAS, SETTING_BITFIELD | SETTING_LIVE | SETTING_SECRET);        // Will control if shown in dump!
@@ -822,6 +831,7 @@ static void mesh_handle_summary(const char *target, jo_t j)
    // Clear control bits when actioned
    if (control_arm && (control_arm & state_armed) == control_arm)
    {                            // Arming complete
+      xSemaphoreTake(control_mutex, portMAX_DELAY);
       if (arm_type == 'A' && arm_json)
       {
          jo_area(arm_json, "areas", control_arm);
@@ -830,10 +840,12 @@ static void mesh_handle_summary(const char *target, jo_t j)
          alarm_event("arm", &arm_json, ioteventarm);
       }
       control_arm = 0;
+      xSemaphoreGive(control_mutex);
       door_check();
    }
    if (control_strongarm && (control_strongarm & state_armed) == control_strongarm)
    {                            // Strongarming complete
+      xSemaphoreTake(control_mutex, portMAX_DELAY);
       if (arm_type == 'S' && arm_json)
       {
          jo_area(arm_json, "areas", control_strongarm);
@@ -842,10 +854,12 @@ static void mesh_handle_summary(const char *target, jo_t j)
          alarm_event("strongarm", &arm_json, ioteventarm);
       }
       control_strongarm = 0;
+      xSemaphoreGive(control_mutex);
       door_check();
    }
    if (control_disarm && (control_disarm & ~state_armed) == control_disarm)
    {                            // Disarming complete
+      xSemaphoreTake(control_mutex, portMAX_DELAY);
       if (arm_type == 'D' && arm_json)
       {
          jo_area(arm_json, "areas", control_disarm);
@@ -854,6 +868,7 @@ static void mesh_handle_summary(const char *target, jo_t j)
          alarm_event("disarm", &arm_json, ioteventarm);
       }
       control_disarm = 0;
+      xSemaphoreGive(control_mutex);
       door_check();
    }
    static uint16_t timer = 0;
