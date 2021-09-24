@@ -642,12 +642,6 @@ static void task(void *pvParameters)
                      jo_int(j, "timeout", (lock[l].timeout - now) / 1000);
                   revk_state_clients(l ? "deadlock" : "lock", &j, debug | (iotstatedoor << 1));
                }
-               if (last != lock[l].state && (lock[l].state == LOCK_FORCED))
-               {
-                  jo_t j = jo_make(NULL);
-                  jo_string(j, "lock", l ? "deadlock" : "lock");
-                  alarm_event("force", &j, iotstatedoor);
-               }
             }
          }
          static int64_t doortimeout = 0;
