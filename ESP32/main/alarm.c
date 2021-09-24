@@ -153,8 +153,9 @@ area_t alarm_armed(void)
    return (state_armed | control_arm | control_strongarm) & ~control_disarm;
 }
 
-static jo_t arm_json = NULL;    // The last request
-static char arm_type = 0;
+static jo_t json_arm = NULL;    // Retained reason for arming
+static jo_t json_strongarm = NULL;      // Retained reason for strongarming
+static jo_t json_disarm = NULL; // Retained reason for disarm
 
 void alarm_arm(area_t a, jo_t * jp)
 {                               // Arm
@@ -165,17 +166,18 @@ void alarm_arm(area_t a, jo_t * jp)
       return;                   // All armed
    }
    xSemaphoreTake(control_mutex, portMAX_DELAY);
-   if (arm_json)
-      jo_free(&arm_json);
+   if (json_arm)
+      jo_free(&json_arm);
    if (jp && *jp)
    {
-      arm_type = 'A';
-      arm_json = *jp;
+      json_arm = *jp;
       *jp = NULL;
    }
    control_arm |= a;            // Each area only in one control
-   control_strongarm &= ~a;
-   control_disarm &= ~a;
+   if (!(control_strongarm &= ~a))
+      jo_free(&json_strongarm);
+   if (!(control_disarm &= ~a))
+      jo_free(&json_disarm);
    xSemaphoreGive(control_mutex);
    door_check();
 }
@@ -189,17 +191,18 @@ void alarm_strongarm(area_t a, jo_t * jp)
       return;                   // All armed
    }
    xSemaphoreTake(control_mutex, portMAX_DELAY);
-   if (arm_json)
-      jo_free(&arm_json);
+   if (json_strongarm)
+      jo_free(&json_strongarm);
    if (jp && *jp)
    {
-      arm_type = 'S';
-      arm_json = *jp;
+      json_strongarm = *jp;
       *jp = NULL;
    }
    control_strongarm |= a;      // Each area only in one control
-   control_arm &= ~a;
-   control_disarm &= ~a;
+   if (!(control_arm &= ~a))
+      jo_free(&json_arm);
+   if (!(control_disarm &= ~a))
+      jo_free(&json_disarm);
    xSemaphoreGive(control_mutex);
    door_check();
 }
@@ -213,17 +216,18 @@ void alarm_disarm(area_t a, jo_t * jp)
       return;                   // Not armed
    }
    xSemaphoreTake(control_mutex, portMAX_DELAY);
-   if (arm_json)
-      jo_free(&arm_json);
+   if (json_disarm)
+      jo_free(&json_disarm);
    if (jp && *jp)
    {
-      arm_type = 'D';
-      arm_json = *jp;
+      json_disarm = *jp;
       *jp = NULL;
    }
    control_disarm |= a;         // Each area only in one control
-   control_arm &= ~a;
-   control_strongarm &= ~a;
+   if (!(control_arm &= ~a))
+      jo_free(&json_arm);
+   if (!(control_strongarm &= ~a))
+      jo_free(&json_strongarm);
    xSemaphoreGive(control_mutex);
    door_check();
 }
@@ -832,12 +836,12 @@ static void mesh_handle_summary(const char *target, jo_t j)
    if (control_arm && (control_arm & state_armed) == control_arm)
    {                            // Arming complete
       xSemaphoreTake(control_mutex, portMAX_DELAY);
-      if (arm_type == 'A' && arm_json)
+      if (json_arm)
       {
-         jo_area(arm_json, "areas", control_arm);
+         jo_area(json_arm, "areas", control_arm);
          if (smsarm & control_arm)
-            sms_event("Armed", arm_json);
-         alarm_event("arm", &arm_json, ioteventarm);
+            sms_event("Armed", json_arm);
+         alarm_event("arm", &json_arm, ioteventarm);
       }
       control_arm = 0;
       xSemaphoreGive(control_mutex);
@@ -846,12 +850,12 @@ static void mesh_handle_summary(const char *target, jo_t j)
    if (control_strongarm && (control_strongarm & state_armed) == control_strongarm)
    {                            // Strongarming complete
       xSemaphoreTake(control_mutex, portMAX_DELAY);
-      if (arm_type == 'S' && arm_json)
+      if (json_strongarm)
       {
-         jo_area(arm_json, "areas", control_strongarm);
+         jo_area(json_strongarm, "areas", control_strongarm);
          if (smsarm & control_strongarm)
-            sms_event("Armed", arm_json);
-         alarm_event("strongarm", &arm_json, ioteventarm);
+            sms_event("Armed", json_strongarm);
+         alarm_event("strongarm", &json_strongarm, ioteventarm);
       }
       control_strongarm = 0;
       xSemaphoreGive(control_mutex);
@@ -860,12 +864,12 @@ static void mesh_handle_summary(const char *target, jo_t j)
    if (control_disarm && (control_disarm & ~state_armed) == control_disarm)
    {                            // Disarming complete
       xSemaphoreTake(control_mutex, portMAX_DELAY);
-      if (arm_type == 'D' && arm_json)
+      if (json_disarm)
       {
-         jo_area(arm_json, "areas", control_disarm);
+         jo_area(json_disarm, "areas", control_disarm);
          if (smsdisarm & control_disarm)
-            sms_event("Disarmed", arm_json);
-         alarm_event("disarm", &arm_json, ioteventarm);
+            sms_event("Disarmed", json_disarm);
+         alarm_event("disarm", &json_disarm, ioteventarm);
       }
       control_disarm = 0;
       xSemaphoreGive(control_mutex);
@@ -875,15 +879,13 @@ static void mesh_handle_summary(const char *target, jo_t j)
    if (!control_arm)
       timer = 0;
    else if (armcancel && (timer += meshcycle) > armcancel)
-   {                            // Cancel arming (ideally per area, but this is good enough)
-      if (arm_type == 'A' && arm_json)
+   {                            // Cancel arming (ideally per area, but this is good enough) - no need to cancel strong arm as that will happen
+      if (json_arm)
       {
-         area_t a = (andset(alarm_armed() | control_arm) & ~alarm_armed());
-         jo_area(arm_json, "areas", control_arm);
-         jo_area(arm_json, "also", a & ~control_arm);
-         if (smsarmfail & a)
-            sms_event("Arm failed", arm_json);
-         alarm_event("armfail", &arm_json, ioteventarm);
+         jo_area(json_arm, "areas", control_arm);
+         if (smsarmfail & control_arm)
+            sms_event("Arm failed", json_arm);
+         alarm_event("armfail", &json_arm, ioteventarm);
       }
       control_arm = 0;
       door_check();
