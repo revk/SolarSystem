@@ -103,6 +103,8 @@ static void fobevent(void)
       jo_string(j, "id", fob.id);
       if (fob.nameset)
          jo_string(j, "name", fob.name);
+      if (fob.smsset)
+         jo_string(j, "sms", fob.sms);
       if (fob.verset)
          jo_stringf(j, "ver", "%02X", fob.ver);
       if (fob.keyupdated)

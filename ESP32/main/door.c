@@ -201,16 +201,22 @@ const char *door_prop(const uint8_t * a, const char *why)
 
 void door_act(fob_t * fob)
 {                               // Act on fob (unlock/lock/arm/disarm)
+   jo_t make(void) {            // Create JSON for arm/disarm
+      jo_t e = jo_make(NULL);
+      jo_string(e, "reason", "fob");
+      jo_string(e, "id", fob->id);
+      if (fob->nameset)
+         jo_string(e, "name", fob->name);
+      if (fob->smsset)
+         jo_string(e, "sms", fob->sms);
+      return e;
+   }
    if (fob->strongarmok && fob->longheld && (fob->strongarm & areastrongarm & ~((state_armed | control_strongarm) & ~control_disarm)))
    {                            // Simple, we can arm (Not using alarm_armed as that includes what we are trying, and failing, to control_arm)
       // Allowing if door open, strong arm is an override, so yeh, suffer the consequences
       if (doorauto >= 5)
       {
-         jo_t e = jo_make(NULL);
-         jo_string(e, "reason", "fob");
-         jo_string(e, "id", fob->id);
-         if (fob->nameset)
-            jo_string(e, "name", fob->name);
+         jo_t e = make();
          alarm_strongarm(fob->strongarm & areastrongarm, &e);
          door_lock(NULL, "fob");
          fob->strongarmed = 1;
@@ -222,11 +228,7 @@ void door_act(fob_t * fob)
          return;                // Not if open
       if (doorauto >= 5)
       {
-         jo_t e = jo_make(NULL);
-         jo_string(e, "reason", "fob");
-         jo_string(e, "id", fob->id);
-         if (fob->nameset)
-            jo_string(e, "name", fob->name);
+         jo_t e = make();
          alarm_arm(fob->arm & areaarm, &e);
          door_lock(NULL, "fob");
          fob->armed = 1;
@@ -242,11 +244,7 @@ void door_act(fob_t * fob)
    {
       if (doorauto >= 5)
       {
-         jo_t e = jo_make(NULL);
-         jo_string(e, "reason", "fob");
-         jo_string(e, "id", fob->id);
-         if (fob->nameset)
-            jo_string(e, "name", fob->name);
+         jo_t e = make();
          alarm_disarm(fob->disarm & areadisarm, &e);
          fob->disarmed = 1;
       }
@@ -351,6 +349,23 @@ const char *door_fob(fob_t * fob)
                   memcpy(fob->name, p, l);
                   fob->name[l] = 0;
                   fob->nameset = 1;
+               }
+            } else if (c == 0x9)
+            {                   // Number
+               if (l)
+               {
+                  uint8_t i = 0,
+                      o = 0;
+                  while (i < l && o < sizeof(fob->sms) - 1)
+                  {
+                     if ((p[i] & 0xF0) != 0xF0)
+                        fob->sms[o++] = '0' + (p[i] >> 4);
+                     if ((p[i] & 0x0F) != 0x0F && o < sizeof(fob->sms) - 1)
+                        fob->sms[o++] = '0' + (p[i] & 0xF);
+                     i++;
+                  }
+                  fob->sms[o] = 0;
+                  fob->smsset = 1;
                }
             } else if (c == 0xA)
             {                   // Arm

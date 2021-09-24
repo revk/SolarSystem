@@ -90,20 +90,19 @@ static display_t *display = NULL;
 	area(smsfire)		\
 	arean(mixand,MAX_MIX)	\
 	arean(mixset,MAX_MIX)	\
+	sl(smsnumber)	\
 
 #define area(n) area_t n;
 #define areanl(n) area_t n;
 #define arean(n,q) area_t n[q];
-#define s(n,d) char *n;
-#define sn(n,q) char *n[q];
+#define sl(n) char *n;
 #define u16(n) uint16_t n;
 #define u8(n,d) uint16_t n;
 settings
 #undef area
 #undef areanl
 #undef arean
-#undef s
-#undef sn
+#undef sl
 #undef u16
 #undef u8
 #define c(t,x) static area_t report_##x=0;      // The collated reports
@@ -158,6 +157,7 @@ static char arm_type = 0;
 
 void alarm_arm(area_t a, jo_t * jp)
 {                               // Arm
+   a = andset(alarm_armed() | a);       // extras
    if (!(a & ~alarm_armed()))
    {
       jo_free(jp);
@@ -179,6 +179,7 @@ void alarm_arm(area_t a, jo_t * jp)
 
 void alarm_strongarm(area_t a, jo_t * jp)
 {                               // Strong arm
+   a = andset(alarm_armed() | a);       // extras
    if (!(a & ~((state_armed | control_strongarm) & ~control_disarm)))   // Not using alarm_armed as that includes what we are trying, and failing, to control_arm
    {
       jo_free(jp);
@@ -200,6 +201,7 @@ void alarm_strongarm(area_t a, jo_t * jp)
 
 void alarm_disarm(area_t a, jo_t * jp)
 {                               // Disarm
+   a = (alarm_armed() & ~andset(alarm_armed() & ~a));   // extras
    if (!(a & alarm_armed()))
    {
       jo_free(jp);
@@ -231,16 +233,14 @@ void alarm_boot(void)
 #define area(n) revk_register(#n,0,sizeof(n),&n,AREAS,SETTING_BITFIELD|SETTING_LIVE);
 #define areanl(n) revk_register(#n,0,sizeof(n),&n,AREAS,SETTING_BITFIELD);
 #define arean(n,q) revk_register(#n,q,sizeof(*n),&n,AREAS,SETTING_BITFIELD|SETTING_LIVE);
-#define s(n,d) revk_register(#n,0,0,&n,#d,SETTING_LIVE);
-#define sn(n,q) revk_register(#n,q,0,&n,NULL,SETTING_LIVE);
+#define sl(n) revk_register(#n,0,0,&n,NULL,SETTING_LIVE);
 #define u16(n) revk_register(#n,0,sizeof(n),&n,NULL,SETTING_LIVE);
 #define u8(n,d) revk_register(#n,0,sizeof(n),&n,#d,SETTING_LIVE);
    settings;
 #undef area
 #undef areanl
 #undef arean
-#undef s
-#undef sn
+#undef sl
 #undef u16
 #undef u8
    // Pick up flash stored state to get started
@@ -824,10 +824,8 @@ static void mesh_handle_summary(const char *target, jo_t j)
    {                            // Arming complete
       if (arm_type == 'A' && arm_json)
       {
-         area_t a = (andset(alarm_armed() | control_arm) & ~alarm_armed());
          jo_area(arm_json, "areas", control_arm);
-         jo_area(arm_json, "also", a & ~control_arm);
-         if (smsarm & a)
+         if (smsarm & control_arm)
             sms_event("Armed", arm_json);
          alarm_event("arm", &arm_json, ioteventarm);
       }
@@ -838,10 +836,8 @@ static void mesh_handle_summary(const char *target, jo_t j)
    {                            // Strongarming complete
       if (arm_type == 'S' && arm_json)
       {
-         area_t a = (andset(alarm_armed() | control_strongarm) & ~alarm_armed());
          jo_area(arm_json, "areas", control_strongarm);
-         jo_area(arm_json, "also", a & ~control_strongarm);
-         if (smsarm & a)
+         if (smsarm & control_strongarm)
             sms_event("Armed", arm_json);
          alarm_event("strongarm", &arm_json, ioteventarm);
       }
@@ -852,10 +848,8 @@ static void mesh_handle_summary(const char *target, jo_t j)
    {                            // Disarming complete
       if (arm_type == 'D' && arm_json)
       {
-         area_t a = (alarm_armed() & ~andset(alarm_armed() & ~control_disarm));
          jo_area(arm_json, "areas", control_disarm);
-         jo_area(arm_json, "also", a & ~control_disarm);
-         if (smsdisarm & a)
+         if (smsdisarm & control_disarm)
             sms_event("Disarmed", arm_json);
          alarm_event("disarm", &arm_json, ioteventarm);
       }
@@ -1157,14 +1151,17 @@ void alarm_rx(const char *target, jo_t j)
    }
 }
 
-void send_sms(const char *fmt, ...)
+void send_sms(const char *number, const char *fmt, ...)
 {
+   if (!number || !*number)
+      return;
    char *v = NULL;
    va_list ap;
    va_start(ap, fmt);
    vasprintf(&v, fmt, ap);
    va_end(ap);
    jo_t j = jo_object_alloc();
+   jo_string(j, "number", number);
    jo_string(j, "message", v);
    free(v);
    revk_mqtt_send("sms", 1, NULL, &j);
@@ -1179,6 +1176,7 @@ static void sms_event(const char *tag, jo_t j)
    char node[30] = "";
    char name[30] = "";
    char reason[20] = "";
+   char sms[21] = "";
    jo_rewind(j);
    jo_type_t t;
    while ((t = jo_next(j)))
@@ -1208,6 +1206,12 @@ static void sms_event(const char *tag, jo_t j)
             jo_strncpy(j, name, sizeof(name));
             continue;
          }
+         if (!jo_strcmp(j, "sms"))
+         {
+            jo_next(j);
+            jo_strncpy(j, sms, sizeof(sms));
+            continue;
+         }
          if (!jo_strcmp(j, "id"))
          {
             jo_next(j);
@@ -1227,5 +1231,7 @@ static void sms_event(const char *tag, jo_t j)
             continue;
          }
       }
-   send_sms("%s\n%s: %s%s%s\n%s\n%s %s %s", ts, tag, areas, *also ? "+" : "", also, node, reason, id, name);
+   send_sms(smsnumber, "%s\n%s: %s%s%s\n%s\n%s %s %s", ts, tag, areas, *also ? "+" : "", also, node, reason, id, name);
+   if (*sms)
+      send_sms(sms, "%s\n%s: %s%s%s\n%s\n%s %s %s", ts, tag, areas, *also ? "+" : "", also, node, reason, id, name);
 }

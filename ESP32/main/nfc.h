@@ -12,6 +12,7 @@ extern void nfc_retry(void);
 typedef struct {
    char id[22];                 // Initial card ID (insecure), hex null terminated
    char name[16];               // Name from fob
+   char sms[21];		// Number on fob
    const char *fail;            // NFC fail message
    const char *deny;            // Door system entry deny message
    uint32_t crc;                // Afile CRC
@@ -26,6 +27,7 @@ typedef struct {
    uint8_t enterset:1;          // Afile has enter setting
    uint8_t propset:1;           // Afile has prop setting
    uint8_t nameset:1;           // Afile has name set
+   uint8_t smsset:1;           // Afile has sms set
    uint8_t armset:1;            // Afile has arm setting
    uint8_t strongarmset:1;      // Afile has strongarm setting
    uint8_t disarmset:1;         // Afile has disarm setting

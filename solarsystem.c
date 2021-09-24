@@ -405,7 +405,7 @@ static const char *settings(SQL * sqlp, SQL * sqlkeyp, SQL_RES * res, slot_t id)
       j_t input = j_store_array(j, "input");
       j_t output = j_store_array(j, "output");
       j_t power = j_store_array(j, "power");
-      SQL_RES *g = sql_safe_query_store_free(sqlp, sql_printf("SELECT * FROM `devicegpio` LEFT JOIN `gpio` USING (`gpio`) WHERE `device`=%#s", sql_col(res, "device")));
+      SQL_RES *g = sql_safe_query_store_free(sqlp, sql_printf("SELECT * FROM `devicegpio` LEFT JOIN `gpio` USING (`gpio`) WHERE `device`=%#s AND `pcb`=%d", sql_col(res, "device"), atoi(sql_colz(res, "pcb"))));
       while (sql_fetch_row(g))
       {
          const char *type = sql_colz(g, "type");
@@ -552,6 +552,8 @@ static void addsitedata(SQL * sqlp, j_t j, SQL_RES * site, const char *deviceid,
    addarea(sms, "alarm", sql_col(site, "smsalarm"), 0);
    addarea(sms, "panic", sql_col(site, "smspanic"), 0);
    addarea(sms, "fire", sql_col(site, "smsfire"), 0);
+   if (j_len(sms) && (v = sql_colz(site, "smsnumber")) && *v)
+      j_store_string(sms, "number", v);
 #ifdef	CONFIG_REVK_MESH
    j_t mesh = j_store_object(j, "mesh");
    j_store_int(mesh, "cycle", 2);
@@ -1400,7 +1402,7 @@ int main(int argc, const char *argv[])
          {
             SQL_RES *res = sql_safe_query_store_free(&sql, sql_printf("SELECT * FROM `site` WHERE `site`=%#s", sql_col(device, "site")));
             if (sql_fetch_row(res))
-               send_message(res, j_get(j, "message"), sql_colz(res, "smsnumber"));
+               send_message(res, j_get(j, "message"), j_get(j, "number") ? : sql_colz(res, "smsnumber"));
             sql_free_result(res);
             return NULL;
          }

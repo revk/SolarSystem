@@ -51,6 +51,20 @@ unsigned int makeafile(SQL_RES * res, unsigned char *afile)
       for (int i = 0; i < l; i++)
          add(name[i]);
    }
+   const char *sms = sql_colz(res, "fobsms");
+   if (*sms == '+')
+      sms++;
+   if (*sms)
+   {
+      int l = strlen(sms);
+      if (l > 30)
+         l = 30;
+      if (l & 1)
+         l++;
+      add(0x90 + l / 2);
+      for (int i = 0; i < l; i += 2)
+         add(((sms[i] - '0') << 4) + ((sms[i + 1] ? : '?') - '0'));
+   }
    if (!res || !sql_col(res, "access") || sql_col(res, "blocked"))
       add(0xFB);
    else
