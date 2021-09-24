@@ -123,7 +123,7 @@ void notify(SQL * sqlp, SQL_RES * res, const char *target, j_t j)
             while (*areas)
             {
                if (!found++)
-                  fprintf(f, "%s:\t", tag);
+                  fprintf(f, "%s: ", tag);
                else
                   fprintf(f, ", ");
                SQL_RES *a = sql_safe_query_store_free(sqlp, sql_printf("SELECT * FROM `area` WHERE `site`=%d AND `tag`=%#c", site, *areas));
@@ -155,7 +155,7 @@ void notify(SQL * sqlp, SQL_RES * res, const char *target, j_t j)
 #include "ESP32/main/states.m"
              )
          {
-            fprintf(f, "%s:\t", tag);
+            fprintf(f, "%s: ", tag);
             if (j_isstring(e))
                fprintf(f, "%s", j_val(e));
             else if (j_isarray(e))
