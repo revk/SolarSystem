@@ -841,7 +841,25 @@ static void mesh_handle_summary(const char *target, jo_t j)
 #include "states.m"
    }
    // Clear control bits when actioned
+#if 0
+   if (control_arm & state_armed)
+   {                            // Final arm OK
+      // Note, would be nice to pick up the details from the (last) arm request and include them
+      jo_t j = jo_make(NULL);
+      jo_area(j, "areas", control_arm & state_armed);
+      alarm_event("armok", &j, ioteventarm);
+   }
+#endif
    control_arm &= ~state_armed;
+#if 0
+   if (control_strongarm & state_armed)
+   {                            // Final arm OK
+      // Note, would be nice to pick up the details from the (last) strongarm request and include them
+      jo_t j = jo_make(NULL);
+      jo_area(j, "areas", control_strongarm & state_armed);
+      alarm_event("armok", &j, ioteventarm);
+   }
+#endif
    control_strongarm &= ~state_armed;
    control_disarm &= state_armed;
    static uint16_t timer = 0;
@@ -849,13 +867,12 @@ static void mesh_handle_summary(const char *target, jo_t j)
       timer = 0;
    else if (armcancel && (timer += meshcycle) > armcancel)
    {                            // Cancel arming (ideally per area, but this is good enough)
+      // Note, would be nice to pick up the details from the (last) arm request and include them
+      jo_t j = jo_make(NULL);
+      jo_area(j, "areas", control_arm);
       if (smsarmfail & control_arm)
-      {
-         jo_t j = jo_make(NULL);
-         jo_area(j, "areas", control_arm);
          sms_event("Arm failed", j);
-         alarm_event("armfail", &j, ioteventarm);
-      }
+      alarm_event("armfail", &j, ioteventarm);
       control_arm = 0;
       door_check();
    }
