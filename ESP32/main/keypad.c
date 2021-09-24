@@ -18,11 +18,10 @@ static const char TAG[] = "keypad";
   p(keypadclk) \
   u8(keypadtimer,0) \
   u8h(keypadaddress,10)	\
-  b(keypadtamper)	\
   u8(keypadtxpre,50)	\
-  u8(keypadtxpost,40)	\
+  u8(keypadtxpost,50)	\
   u8(keypadrxpre,50)	\
-  u8(keypadrxpost,10)	\
+  u8(keypadrxpost,20)	\
   sl(keypadidle)	\
   sl(keypadpin)	\
 
@@ -489,7 +488,7 @@ static void task(void *pvParameters)
                }
             } else if (cmd == 0x06 && buf[1] == 0xF4 && p >= 3)
             {                   // Status
-               if (keypadtamper && (buf[2] & 0x40))
+               if ((buf[2] & 0x40))
                   logical_gpio |= logical_KeyTamper;
                else
                   logical_gpio &= ~logical_KeyTamper;
@@ -650,7 +649,7 @@ static void task(void *pvParameters)
       {
          online = 0;
          logical_gpio |= logical_KeyFault;
-         ESP_LOGD(TAG, "Tx fail %s", galaxybus_err_to_name(l));
+         ESP_LOGI(TAG, "Tx fail %s", galaxybus_err_to_name(l));
          usleep(500000);
          rxwait = 0;
       }
@@ -682,7 +681,6 @@ void keypad_boot(void)
          err = port_check(port_mask(keypadde), TAG, 0);
       if (!err && keypadde != keypadre)
          err = port_check(port_mask(keypadre), TAG, 0);
-      gpio_set_pull_mode(port_mask(keypadrx), GPIO_PULLUP_ONLY);
       logical_gpio |= logical_KeyFault;
       // Done early because it beeps a lot!
       revk_task(TAG, task, NULL);
