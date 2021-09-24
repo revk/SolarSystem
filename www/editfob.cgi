@@ -25,7 +25,7 @@ if($?expires) then
 		endif
 	end
 	setenv organisation "$USER_ORGANISATION"
-	setenv allow "fobname expires"
+	setenv allow "fobname fobsms expires"
 	if($?BLOCK) setenv blocked "`date +'%F %T'`"
 	if($?BLOCK) setenv allow "$allow confirmed"
 	if($?UNBLOCK||$?BLOCK) then
@@ -58,6 +58,7 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <td align=right><if mem><output name=mem></if></td>
 <td><output name=expires></td>
 <td><output name=fobname></td>
+<td><output name=fobsms></td>
 <td>
 <if not N=1><output name=N 0=No> AIDs</if><if N=1><sql table=site where="site=$site"><output name=sitename></sql>: <output name=aidname> (<output name=accessname>)</if>
 <if blocked><b>Blocked</b></if>
@@ -84,6 +85,7 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <sql table="foborganisation LEFT JOIN fob using (fob)" where="fob='$fob' AND organisation=$USER_ORGANISATION">
 <table>
 <tr><td>Name</td><td colspan=2><input name=fobname size=15 maxlength=15 autofocus></td></tr>
+<tr><td>Mobile</td><td colspan=2><input name=fobsms size=15 maxlength=15 autofocus></td></tr>
 <tr><td>Expiry</td><td colspan=2><input name=expires id=expires type=datetime-local><input type=button onclick='document.getElementById("expires").value="";' value="No expiry"></td></tr>
 <if capacity><tr><td>Capacity</td><td><output name=capacity> bytes</td></tr></if>
 <if mem><tr><td>Free</td><td><output name=mem> bytes</td></tr></if>

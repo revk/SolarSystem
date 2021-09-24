@@ -153,6 +153,9 @@ area_t alarm_armed(void)
    return (state_armed | control_arm | control_strongarm) & ~control_disarm;
 }
 
+static jo_t arm_json = NULL;    // The last request
+static char arm_type = 0;
+
 void alarm_arm(area_t a, jo_t * jp)
 {                               // Arm
    if (!(a & ~alarm_armed()))
@@ -160,26 +163,18 @@ void alarm_arm(area_t a, jo_t * jp)
       jo_free(jp);
       return;                   // All armed
    }
-   area_t a2 = (andset(alarm_armed() | a) & ~alarm_armed());
-   jo_t j = NULL;
-   if (jp)
+   if (arm_json)
+      jo_free(&arm_json);
+   if (jp && *jp)
    {
-      j = *jp;
+      arm_type = 'A';
+      arm_json = *jp;
       *jp = NULL;
    }
-   if (!j)
-      j = jo_make(NULL);
-   ESP_LOGD(TAG, "Arm %X", a);
    control_arm |= a;            // Each area only in one control
    control_strongarm &= ~a;
    control_disarm &= ~a;
    door_check();
-   jo_area(j, "areas", a);
-   if (a2 & ~a)
-      jo_area(j, "also", a2 & ~a);
-   if (smsarm & a2)
-      sms_event("Armed", j);
-   alarm_event("arm", &j, ioteventarm);
 }
 
 void alarm_strongarm(area_t a, jo_t * jp)
@@ -189,26 +184,18 @@ void alarm_strongarm(area_t a, jo_t * jp)
       jo_free(jp);
       return;                   // All armed
    }
-   area_t a2 = (andset(alarm_armed() | a) & ~alarm_armed());
-   jo_t j = NULL;
-   if (jp)
+   if (arm_json)
+      jo_free(&arm_json);
+   if (jp && *jp)
    {
-      j = *jp;
+      arm_type = 'S';
+      arm_json = *jp;
       *jp = NULL;
    }
-   if (!j)
-      j = jo_make(NULL);
-   ESP_LOGD(TAG, "Strong arm %X", a);
    control_strongarm |= a;      // Each area only in one control
    control_arm &= ~a;
    control_disarm &= ~a;
    door_check();
-   jo_area(j, "areas", a);
-   if (a2 & ~a)
-      jo_area(j, "also", a2 & ~a);
-   if (smsarm & a2)
-      sms_event("Strong armed", j);
-   alarm_event("strongarm", &j, ioteventarm);
 }
 
 void alarm_disarm(area_t a, jo_t * jp)
@@ -218,26 +205,18 @@ void alarm_disarm(area_t a, jo_t * jp)
       jo_free(jp);
       return;                   // Not armed
    }
-   area_t a2 = (alarm_armed() & ~andset(alarm_armed() & ~a));
-   jo_t j = NULL;
-   if (jp)
+   if (arm_json)
+      jo_free(&arm_json);
+   if (jp && *jp)
    {
-      j = *jp;
+      arm_type = 'D';
+      arm_json = *jp;
       *jp = NULL;
    }
-   if (!j)
-      j = jo_make(NULL);
-   ESP_LOGD(TAG, "Disarm %X", a);
    control_disarm |= a;         // Each area only in one control
    control_arm &= ~a;
    control_strongarm &= ~a;
    door_check();
-   jo_area(j, "areas", a);
-   if (a2 & ~a)
-      jo_area(j, "also", a2 & ~a);
-   if (smsdisarm & a2)
-      sms_event("Disarmed", j);
-   alarm_event("disarm", &j, ioteventarm);
 }
 
 void alarm_boot(void)
@@ -841,38 +820,62 @@ static void mesh_handle_summary(const char *target, jo_t j)
 #include "states.m"
    }
    // Clear control bits when actioned
-#if 0
-   if (control_arm & state_armed)
-   {                            // Final arm OK
-      // Note, would be nice to pick up the details from the (last) arm request and include them
-      jo_t j = jo_make(NULL);
-      jo_area(j, "areas", control_arm & state_armed);
-      alarm_event("armok", &j, ioteventarm);
+   if (control_arm && (control_arm & state_armed) == control_arm)
+   {                            // Arming complete
+      if (arm_type == 'A' && arm_json)
+      {
+         area_t a = (andset(alarm_armed() | control_arm) & ~alarm_armed());
+         jo_area(arm_json, "areas", control_arm);
+         jo_area(arm_json, "also", a & ~control_arm);
+         if (smsarm & a)
+            sms_event("Armed", arm_json);
+         alarm_event("arm", &arm_json, ioteventarm);
+      }
+      control_arm = 0;
+      door_check();
    }
-#endif
-   control_arm &= ~state_armed;
-#if 0
-   if (control_strongarm & state_armed)
-   {                            // Final arm OK
-      // Note, would be nice to pick up the details from the (last) strongarm request and include them
-      jo_t j = jo_make(NULL);
-      jo_area(j, "areas", control_strongarm & state_armed);
-      alarm_event("armok", &j, ioteventarm);
+   if (control_strongarm && (control_strongarm & state_armed) == control_strongarm)
+   {                            // Strongarming complete
+      if (arm_type == 'S' && arm_json)
+      {
+         area_t a = (andset(alarm_armed() | control_strongarm) & ~alarm_armed());
+         jo_area(arm_json, "areas", control_strongarm);
+         jo_area(arm_json, "also", a & ~control_strongarm);
+         if (smsarm & a)
+            sms_event("Armed", arm_json);
+         alarm_event("strongarm", &arm_json, ioteventarm);
+      }
+      control_strongarm = 0;
+      door_check();
    }
-#endif
-   control_strongarm &= ~state_armed;
-   control_disarm &= state_armed;
+   if (control_disarm && (control_disarm & ~state_armed) == control_disarm)
+   {                            // Disarming complete
+      if (arm_type == 'D' && arm_json)
+      {
+         area_t a = (alarm_armed() & ~andset(alarm_armed() & ~control_disarm));
+         jo_area(arm_json, "areas", control_disarm);
+         jo_area(arm_json, "also", a & ~control_disarm);
+         if (smsdisarm & a)
+            sms_event("Disarmed", arm_json);
+         alarm_event("disarm", &arm_json, ioteventarm);
+      }
+      control_disarm = 0;
+      door_check();
+   }
    static uint16_t timer = 0;
    if (!control_arm)
       timer = 0;
    else if (armcancel && (timer += meshcycle) > armcancel)
    {                            // Cancel arming (ideally per area, but this is good enough)
-      // Note, would be nice to pick up the details from the (last) arm request and include them
-      jo_t j = jo_make(NULL);
-      jo_area(j, "areas", control_arm);
-      if (smsarmfail & control_arm)
-         sms_event("Arm failed", j);
-      alarm_event("armfail", &j, ioteventarm);
+      if (arm_type == 'A' && arm_json)
+      {
+         area_t a = (andset(alarm_armed() | control_arm) & ~alarm_armed());
+         jo_area(arm_json, "areas", control_arm);
+         jo_area(arm_json, "also", a & ~control_arm);
+         if (smsarmfail & a)
+            sms_event("Arm failed", arm_json);
+         alarm_event("armfail", &arm_json, ioteventarm);
+      }
       control_arm = 0;
       door_check();
    }

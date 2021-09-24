@@ -254,6 +254,7 @@ join(fob, organisation);        // Yes, per org, for security reasons
 datetime(blocked);              // Block card (when blocked)
 datetime(confirmed);            // When confirmed blocked
 text(fobname, 15);              // Name of fob user
+text(fobsms,20);		// SMS of the fob user
 datetime(expires);              // Fixed expiry (local time on server)
 
 table(device, 12);
