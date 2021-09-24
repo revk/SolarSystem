@@ -446,7 +446,7 @@ static void task(void *pvParameters)
          if (p < 2)
          {
             ESP_LOGI(TAG, "Rx fail %s", galaxybus_err_to_name(p));
-            if (galaxybusfault++ > 5)
+            if (galaxybusfault++ > 10)
             {
                online = 0;
                logical_gpio |= logical_KeyFault;
@@ -547,7 +547,7 @@ static void task(void *pvParameters)
          continue;              // Awaiting reply
       if (rxwait)
       {
-         if (galaxybusfault++ > 5)
+         if (galaxybusfault++ > 10)
          {
             online = 0;
             logical_gpio |= logical_KeyFault;
