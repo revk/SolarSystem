@@ -733,6 +733,7 @@ const char *slot_send(slot_t id, const char *prefix, const char *deviceid, const
          } else
          {                      // Did not fit, so have to send anyway
             warnx("Setting too long");
+	    j_err(j_write(j, stderr));
             j_delete(&n);
             break;
          }
