@@ -1438,11 +1438,14 @@ int main(int argc, const char *argv[])
                   char *tag;
                   if (asprintf(&tag, "hook%s", suffix) < 0)
                      errx(1, "malloc");
-                  const char *hook = sql_col(res, tag);
-                  if (hook && *hook)
-                     notify(&sql, res, hook, j);
-                  if (!strcmp(suffix, "fob") && j_find(j, "deny") && (hook = sql_col(res, "hookfobdeny")) && *hook)
-                     notify(&sql, res, hook, j);
+                  if ((!j_find(j, "deny") && !j_find(j, "fail")) || j_find(j, "gone"))
+                  {             // fail/deny are sent twice - one read and on gone, and we only log these on gone event as otherwise we log fixed issues like expiry
+                     const char *hook = sql_col(res, tag);
+                     if (hook && *hook)
+                        notify(&sql, res, hook, j);
+                     if (!strcmp(suffix, "fob") && j_find(j, "deny") && (hook = sql_col(res, "hookfobdeny")) && *hook)
+                        notify(&sql, res, hook, j);
+                  }
                }
                sql_free_result(res);
             }
