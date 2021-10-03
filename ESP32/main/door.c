@@ -39,7 +39,7 @@ uint8_t afile[256];             // Access file saved
   u32(doorprop,60000); \
   u32(doorexit,3000); \
   u32(doorpoll,100); \
-  u32(doordebounce,100); \
+  u32(doordebounce,200); \
   b(doordebug); \
   b(doorsilent); \
   b(doorexitarm); \
