@@ -188,13 +188,13 @@ xmlsql -C -d "$DB" head.html - foot.html << END
 <tr><td>Version</td><td colspan=2><output name=version></td></tr>
 <sql table=pcb where="pcb=\$pcb">
 <if nfc=true><tr><td><input type=checkbox id=door name=door value=true></td><td colspan=2><label for=door>Door control</label></td></tr></if>
-<if door=true><tr><td><input size=5 id=doorunlock name=doorunlock>ms</td><td colspan=2><label for=doorunlock>Door unlock timer</label></td></tr></if>
-<if door=true><tr><td><input size=5 id=doorlock name=doorlock>ms</td><td colspan=2><label for=doorlock>Door lock timer</label></td></tr></if>
-<if door=true><tr><td><input size=5 id=dooropen name=dooropen>ms</td><td colspan=2><label for=dooropen>Door open timer</label></td></tr></if>
-<if door=true><tr><td><input size=5 id=doorclose name=doorclose>ms</td><td colspan=2><label for=doorclose>Door close timer</label></td></tr></if>
-<if door=true><tr><td><input size=5 id=doorprop name=doorprop>ms</td><td colspan=2><label for=doorprop>Door prop timer</label></td></tr></if>
+<if door=true><tr><td><input size=5 id=doorunlock name=doorunlock>ms</td><td colspan=2><label for=doorunlock>Lock disengage timer</label></td></tr></if>
+<if door=true><tr><td><input size=5 id=doorlock name=doorlock>ms</td><td colspan=2><label for=doorlock>Lock engage timer</label></td></tr></if>
+<if door=true><tr><td><input size=5 id=doordebounce name=doordebounce>ms</td><td colspan=2><label for=doordebounce>Lock engaged debounce timer</label></td></tr></if>
+<if door=true><tr><td><input size=5 id=dooropen name=dooropen>ms</td><td colspan=2><label for=dooropen>Door waiting to open timer</label></td></tr></if>
+<if door=true><tr><td><input size=5 id=doorclose name=doorclose>ms</td><td colspan=2><label for=doorclose>Door waiting to close timer</label></td></tr></if>
+<if door=true><tr><td><input size=5 id=doorprop name=doorprop>ms</td><td colspan=2><label for=doorprop>Door unauthorised prop timer</label></td></tr></if>
 <if door=true><tr><td><input size=5 id=doorexit name=doorexit>ms</td><td colspan=2><label for=doorexit>Door exit button hold timer</label></td></tr></if>
-<if door=true><tr><td><input size=5 id=doordebounce name=doordebounce>ms</td><td colspan=2><label for=doordebounce>Door lock debounce timer</label></td></tr></if>
 <if door=true><tr><td><input type=checkbox id=doorexitdisarm name=doorexitdisarm value=true></td><td colspan=2><label for=doorexitdisarm>Door exit button disarm</label></td></tr></if>
 <if door=true><tr><td><input type=checkbox id=doorexitarm name=doorexitarm value=true></td><td colspan=2><label for=doorexitarm>Door exit button arm on hold</label></td></tr></if>
 <if door=true><tr><td><input type=checkbox id=doorsilent name=doorsilent value=true></td><td colspan=2><label for=doorsilent>Door silence working (no beep)</label></td></tr></if>
