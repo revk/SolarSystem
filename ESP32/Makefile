@@ -17,6 +17,9 @@ monitor:
 clean:
 	idf.py clean
 
+menuconfig:
+	idf.py menuconfig
+
 #include $(IDF_PATH)/make/project.mk
 
 pull:
