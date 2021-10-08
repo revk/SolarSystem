@@ -50,8 +50,7 @@ static void *server(void *arg)
       j_delete(&j);
    }
 
-   if (sqldebug)
-      warnx("Connect from %s", address);
+   warnx("Connect from %s", address);
 
    int relaysock = -1;          // The socket we listen to for tx messages to other side
    slot_t us = slot_create(&relaysock, address);
@@ -312,7 +311,7 @@ static void *server(void *arg)
                }
                break;
             case 14:           // disconnect
-               return "Disconnected";
+               return "*Clean disconnect";
             default:
                return "Unexpected MQTT message code";
             }
@@ -346,9 +345,9 @@ static void *server(void *arg)
    if (linked)
       slot_close(linked);       // tell linked to close (e.g. fobcommand task)
    slot_destroy(us);
-   if (fail && mqttdump)
+   if (fail && *fail != '*')
       warnx("Fail from %s (%s)", address, fail);
-   if (mqttdump)
+   else
       warnx("Closed from %s", address);
    SSL_shutdown(ssl);
    SSL_free(ssl);
@@ -733,6 +732,7 @@ const char *slot_send(slot_t id, const char *prefix, const char *deviceid, const
          } else
          {                      // Did not fit, so have to send anyway
             warnx("Setting too long");
+            j_err(j_write(j, stderr));
             j_delete(&n);
             break;
          }

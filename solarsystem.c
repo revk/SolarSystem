@@ -109,7 +109,7 @@ void notify(SQL * sqlp, SQL_RES * res, const char *target, j_t j)
    void makeud(void) {
       size_t l = 0;
       FILE *f = open_memstream(&ud, &l);
-      fprintf(f,"%s\n",event);
+      fprintf(f, "%s\n", event);
       void areas(const char *tag) {
          char found = 0;
          const char *areas = j_get(j, tag);
@@ -150,7 +150,7 @@ void notify(SQL * sqlp, SQL_RES * res, const char *target, j_t j)
              )
          {
             fprintf(f, "%s: ", tag);
-            if (j_isstring(e))
+            if (j_isstring(e) || j_isbool(e))
                fprintf(f, "%s", j_val(e));
             else if (j_isarray(e))
             {
@@ -171,7 +171,7 @@ void notify(SQL * sqlp, SQL_RES * res, const char *target, j_t j)
       {
          struct tm tm;
          localtime_r(&ts, &tm);
-         fprintf(f, "%04d-%02d-%02d %02d:%02d:%02d", tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec );
+         fprintf(f, "%04d-%02d-%02d %02d:%02d:%02d", tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);
       }
       fclose(f);
    }
@@ -1438,11 +1438,14 @@ int main(int argc, const char *argv[])
                   char *tag;
                   if (asprintf(&tag, "hook%s", suffix) < 0)
                      errx(1, "malloc");
-                  const char *hook = sql_col(res, tag);
-                  if (hook && *hook)
-                     notify(&sql, res, hook, j);
-                  if (!strcmp(suffix, "fob") && j_find(j, "deny") && (hook = sql_col(res, "hookfobdeny")) && *hook)
-                     notify(&sql, res, hook, j);
+                  if ((!j_find(j, "deny") && !j_find(j, "fail")) || j_find(j, "gone"))
+                  {             // fail/deny are sent twice - one read and on gone, and we only log these on gone event as otherwise we log fixed issues like expiry
+                     const char *hook = sql_col(res, tag);
+                     if (hook && *hook)
+                        notify(&sql, res, hook, j);
+                     if (!strcmp(suffix, "fob") && j_find(j, "deny") && (hook = sql_col(res, "hookfobdeny")) && *hook)
+                        notify(&sql, res, hook, j);
+                  }
                }
                sql_free_result(res);
             }
