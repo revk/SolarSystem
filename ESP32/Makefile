@@ -5,7 +5,19 @@
 
 PROJECT_NAME := SS
 
-include $(IDF_PATH)/make/project.mk
+all:
+	idf.py build
+
+flash:
+	idf.py flash
+
+monitor:
+	idf.py monitor
+
+clean:
+	idf.py clean
+
+#include $(IDF_PATH)/make/project.mk
 
 pull:
 	git pull
