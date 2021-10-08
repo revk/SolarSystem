@@ -118,9 +118,6 @@ message: message.c config.h Makefile sscert.o mqttmsg.o
 makeaid: makeaid.c config.h Makefile
 	gcc -g -Wall -Wextra -O -o $@ $< -lpopt SQLlib/sqllib.o ${SQLINC} ${SQLLIB}
 
-clean:
-	rm -f *.o alarmpanel
-
 menuconfig:
 	login/makek ${KCONFIG_CONFIG} config.h
 
