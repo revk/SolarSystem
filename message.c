@@ -36,7 +36,7 @@ int main(int argc, const char *argv[])
    const char *aid = NULL;
    const char *status = NULL;
    const char *arm = NULL;
-   const char *strongarm = NULL;
+   const char *strong = NULL;
    const char *disarm = NULL;
    const char *fobname = NULL;
    const char *api = NULL;
@@ -67,7 +67,7 @@ int main(int argc, const char *argv[])
          { "site", 's', POPT_ARG_INT, &site, 0, "Site", "N" },
          { "organisation", 's', POPT_ARG_INT, &organisation, 0, "Organisation", "N" },
          { "arm", 0, POPT_ARG_STRING, &arm, 0, "Arm", "A...Z" },
-         { "strongarm", 0, POPT_ARG_STRING, &strongarm, 0, "Strongarm", "A...Z" },
+         { "strong", 0, POPT_ARG_STRING, &strong, 0, "Strong", "A...Z" },
          { "disarm", 0, POPT_ARG_STRING, &disarm, 0, "Disarm", "A...Z" },
          { "api", 0, POPT_ARG_STRING, &api, 0, "API", "User (needs JSON also)" },
          { "pending", 'p', POPT_ARG_STRING, &pending, 0, "Pending device", "XXXXXXXXXXXX" },
@@ -171,11 +171,11 @@ int main(int argc, const char *argv[])
       j_store_string(meta, "prefix", "command");
       j_store_string(meta, "suffix", "arm");
       j_store_string(j, "_data", arm);
-   } else if (strongarm && *strongarm)
+   } else if (strong && *strong)
    {
       j_store_string(meta, "prefix", "command");
-      j_store_string(meta, "suffix", "strongarm");
-      j_store_string(j, "_data", strongarm);
+      j_store_string(meta, "suffix", "strong");
+      j_store_string(j, "_data", strong);
    } else if (disarm && *disarm)
    {
       j_store_string(meta, "prefix", "command");

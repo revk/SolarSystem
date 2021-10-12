@@ -14,11 +14,11 @@ if($?ARM) then
 	exit 0
 endif
 
-if($?STRONGARM) then
-	can --redirect --site='$site' strongarm
+if($?STRONG) then
+	can --redirect --site='$site' strong
 	if($status) exit 0
 	if($?arm) then
-		setenv MSG `message --site="$site" --strongarm="$arm"`
+		setenv MSG `message --site="$site" --strong="$arm"`
 		if("$MSG" != "") goto done
 	endif
 	redirect /
@@ -46,7 +46,7 @@ xmlsql -C -d "$DB" head.html - foot.html << END
 </sql>
 </table>
 <input type=submit value="Arm" name=ARM>
-<IF CANSTRONGARM><input type=submit value="Force" name=STRONGARM></if>
+<IF CANSTRONG><input type=submit value="Force" name=STRONG></if>
 </form>
 </sql>
 END

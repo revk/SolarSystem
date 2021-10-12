@@ -185,7 +185,7 @@ void keypad_ui(char key)
       pos = 0;
    }
    // ESC key to cancel arming regardless of state
-   if (key == 'X' && areakeystrong && !(state_armed & areakeystrong) && (control_strongarm & areakeystrong))
+   if (key == 'X' && areakeystrong && !(state_armed & areakeystrong) && (control_strong & areakeystrong))
    {                            // Strongarm cancel as not yet armed (very small window of time on this one)
       jo_t e = jo_make(NULL);
       jo_string(e, "reason", "Keypad ESC");
@@ -221,7 +221,7 @@ void keypad_ui(char key)
       {                         // Arm set
          jo_t e = jo_make(NULL);
          jo_string(e, "reason", "Keypad B");
-         alarm_strongarm(areakeystrong, &e);
+         alarm_strong(areakeystrong, &e);
          fail("Arming forced", 2);
          break;
       }
@@ -287,7 +287,7 @@ void keypad_ui(char key)
                {                // Alternative arming, e.g. if in message state
                   jo_t e = jo_make(NULL);
                   jo_string(e, "reason", "Keypad #");
-                  alarm_strongarm(areakeystrong, &e);
+                  alarm_strong(areakeystrong, &e);
                   fail("Arming forced", 2);
                }
             } else

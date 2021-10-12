@@ -139,8 +139,8 @@ static void fobevent(void)
          jo_bool(j, "disarmed", fob.disarmed);
       if (fob.armed)
          jo_bool(j, "armed", fob.armed);
-      if (fob.strongarmed)
-         jo_bool(j, "strongarmed", fob.strongarmed);
+      if (fob.stronged)
+         jo_bool(j, "stronged", fob.stronged);
       if (fob.unlockok)
          jo_bool(j, "unlockok", fob.unlockok);
       if (fob.enterok)
@@ -153,8 +153,8 @@ static void fobevent(void)
          jo_area(j, "disarmok", fob.disarm & areadisarm);
       if (fob.armok)
          jo_area(j, "armok", fob.arm & areaarm);
-      if (fob.strongarmok)
-         jo_area(j, "strongarmok", fob.strongarm & areaarm);
+      if (fob.strongok)
+         jo_area(j, "strongok", fob.strong & areaarm);
       if (fob.armlate)
          jo_bool(j, "armlate", fob.armlate);
       if (fob.afile)

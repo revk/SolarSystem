@@ -66,7 +66,7 @@ static display_t *display = NULL;
 	area(arealed)		\
 	area(areaenter)		\
 	area(areaarm)		\
-	area(areastrongarm)	\
+	area(areastrong)	\
 	area(areadisarm)	\
 	area(areadeadlock)	\
 	areanl(areakeypad)	\
@@ -133,10 +133,10 @@ const char *alarm_command(const char *tag, jo_t j)
       alarm_arm(jo_read_area(j), &e);
       return "";
    }
-   if (!strcmp(tag, "strongarm"))
+   if (!strcmp(tag, "strong"))
    {
       jo_t e = jo_make("Remote");
-      alarm_strongarm(jo_read_area(j), &e);
+      alarm_strong(jo_read_area(j), &e);
       return "";
    }
    if (!strcmp(tag, "disarm"))
@@ -150,11 +150,11 @@ const char *alarm_command(const char *tag, jo_t j)
 
 area_t alarm_armed(void)
 {                               // What areas are, in effect, armed
-   return (state_armed | control_arm | control_strongarm) & ~control_disarm;
+   return (state_armed | control_arm | control_strong) & ~control_disarm;
 }
 
 static jo_t json_arm = NULL;    // Retained reason for arming
-static jo_t json_strongarm = NULL;      // Retained reason for strongarming
+static jo_t json_strong = NULL; // Retained reason for strong
 static jo_t json_disarm = NULL; // Retained reason for disarm
 
 void alarm_arm(area_t a, jo_t * jp)
@@ -174,31 +174,31 @@ void alarm_arm(area_t a, jo_t * jp)
       *jp = NULL;
    }
    control_arm |= a;            // Each area only in one control
-   if (!(control_strongarm &= ~a))
-      jo_free(&json_strongarm);
+   if (!(control_strong &= ~a))
+      jo_free(&json_strong);
    if (!(control_disarm &= ~a))
       jo_free(&json_disarm);
    xSemaphoreGive(control_mutex);
    door_check();
 }
 
-void alarm_strongarm(area_t a, jo_t * jp)
+void alarm_strong(area_t a, jo_t * jp)
 {                               // Strong arm
    a = andset(alarm_armed() | a);       // extras
-   if (!(a & ~((state_armed | control_strongarm) & ~control_disarm)))   // Not using alarm_armed as that includes what we are trying, and failing, to control_arm
+   if (!(a & ~((state_armed | control_strong) & ~control_disarm)))      // Not using alarm_armed as that includes what we are trying, and failing, to control_arm
    {
       jo_free(jp);
       return;                   // All armed
    }
    xSemaphoreTake(control_mutex, portMAX_DELAY);
-   if (json_strongarm)
-      jo_free(&json_strongarm);
+   if (json_strong)
+      jo_free(&json_strong);
    if (jp && *jp)
    {
-      json_strongarm = *jp;
+      json_strong = *jp;
       *jp = NULL;
    }
-   control_strongarm |= a;      // Each area only in one control
+   control_strong |= a;         // Each area only in one control
    if (!(control_arm &= ~a))
       jo_free(&json_arm);
    if (!(control_disarm &= ~a))
@@ -226,8 +226,8 @@ void alarm_disarm(area_t a, jo_t * jp)
    control_disarm |= a;         // Each area only in one control
    if (!(control_arm &= ~a))
       jo_free(&json_arm);
-   if (!(control_strongarm &= ~a))
-      jo_free(&json_strongarm);
+   if (!(control_strong &= ~a))
+      jo_free(&json_strong);
    xSemaphoreGive(control_mutex);
    door_check();
 }
@@ -534,9 +534,9 @@ static void mesh_send_summary(void)
    if (!state_prearm || (state_prearm & (state_presence | (state_tamper & ~engineer) | state_access)))
    {                            // No prearm, or prearm waiting - restart timer
       timer1 = 0;
-      state_armed = andset((state_armed | report_strongarm) & ~report_disarm);  // Apply strongarm anyway
+      state_armed = andset((state_armed | report_strong) & ~report_disarm);     // Apply strong anyway
    } else if (!armdelay || (timer1 += meshcycle) > armdelay)
-      state_armed = andset((state_armed | state_prearm | report_strongarm) & ~report_disarm);   // Prearm is clean and ready to apply
+      state_armed = andset((state_armed | state_prearm | report_strong) & ~report_disarm);      // Prearm is clean and ready to apply
    // What changed
    area_t new_armed = (state_armed & ~was_armed);
    // Arming clears latched states
@@ -848,17 +848,17 @@ static void mesh_handle_summary(const char *target, jo_t j)
       xSemaphoreGive(control_mutex);
       door_check();
    }
-   if (control_strongarm && (control_strongarm & state_armed) == control_strongarm)
+   if (control_strong && (control_strong & state_armed) == control_strong)
    {                            // Strongarming complete
       xSemaphoreTake(control_mutex, portMAX_DELAY);
-      if (json_strongarm)
+      if (json_strong)
       {
-         jo_area(json_strongarm, "areas", control_strongarm);
-         if (smsarm & control_strongarm)
-            sms_event("Armed", json_strongarm);
-         alarm_event("strongarm", &json_strongarm, ioteventarm);
+         jo_area(json_strong, "areas", control_strong);
+         if (smsarm & control_strong)
+            sms_event("Armed", json_strong);
+         alarm_event("strong", &json_strong, ioteventarm);
       }
-      control_strongarm = 0;
+      control_strong = 0;
       xSemaphoreGive(control_mutex);
       door_check();
    }

@@ -18,7 +18,7 @@ extern const char *state_name[priorities];
 extern area_t arealed;
 extern area_t areaenter;
 extern area_t areaarm;
-extern area_t areastrongarm;
+extern area_t areastrong;
 extern area_t areadisarm;
 extern area_t areadeadlock;
 extern area_t areakeypad;
@@ -31,7 +31,7 @@ void jo_area(jo_t j, const char *tag, area_t area);     // Store area
 area_t jo_read_area(jo_t);      // Read area
 void alarm_rx(const char *target, jo_t j);
 void alarm_arm(area_t a, jo_t *);
-void alarm_strongarm(area_t a, jo_t *);
+void alarm_strong(area_t a, jo_t *);
 void alarm_disarm(area_t a, jo_t *);
 void send_sms(const char *number,const char *fmt, ...);
 area_t alarm_armed(void);       // What areas are, in effect, armed

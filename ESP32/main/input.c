@@ -3,6 +3,7 @@
 static const char TAG[] = "input";
 #include "SS.h"
 #include "input.h"
+#include "alarm.h"
 
 #include <driver/gpio.h>
 
@@ -13,6 +14,7 @@ static const char TAG[] = "input";
 static uint8_t input[MAXINPUT];
 static uint8_t inputhold[MAXINPUT];
 #define i(t,x,c) area_t input##x[MAXINPUT];
+#define c(t,x) area_t input##x[MAXINPUT];
 #include "states.m"
 char *inputname[MAXINPUT];
 
@@ -120,7 +122,33 @@ static void task(void *pvParameters)
                else
                   input_hold[i] -= poll;
                if (!input_hold[i])      // hold done
+               {
                   input_stable = ((input_stable & ~(1ULL << i)) | ((input_t) v << i));
+                  if (v)
+                  {
+                     jo_t make(void) {
+                        jo_t e = jo_make(NULL);
+                        jo_string(e, "reason", "input");
+                        jo_string(e, "input", inputname[i]);
+                        return e;
+                     }
+                     if (inputarm[i])
+                     {
+                        jo_t e = make();
+                        alarm_arm(inputarm[i], &e);
+                     }
+                     if (inputstrong[i])
+                     {
+                        jo_t e = make();
+                        alarm_strong(inputstrong[i], &e);
+                     }
+                     if (inputdisarm[i])
+                     {
+                        jo_t e = make();
+                        alarm_disarm(inputdisarm[i], &e);
+                     }
+                  }
+               }
             }
          }
       uint32_t now = uptime();
@@ -147,9 +175,10 @@ void input_boot(void)
 {
    revk_register("input", MAXINPUT, sizeof(*input), &input, BITFIELDS, SETTING_BITFIELD | SETTING_SET | SETTING_SECRET);
    revk_register("inputgpio", MAXINPUT, sizeof(*input), &input, BITFIELDS, SETTING_BITFIELD | SETTING_SET);
-   revk_register("inputhold", MAXINPUT, sizeof(*inputhold), &inputhold, NULL, 0);
-   revk_register("inputname", MAXINPUT, 0, &inputname, NULL, 0);
-#define i(t,x,c) revk_register("input"#x, MAXINPUT, sizeof(*input##x), &input##x, AREAS, SETTING_BITFIELD);
+   revk_register("inputhold", MAXINPUT, sizeof(*inputhold), &inputhold, NULL, SETTING_LIVE);
+   revk_register("inputname", MAXINPUT, 0, &inputname, NULL, SETTING_LIVE);
+#define i(t,x,c) revk_register("input"#x, MAXINPUT, sizeof(*input##x), &input##x, AREAS, SETTING_BITFIELD|SETTING_LIVE);
+#define c(t,x) revk_register("input"#x, MAXINPUT, sizeof(*input##x), &input##x, AREAS, SETTING_BITFIELD|SETTING_LIVE);
 #include "states.m"
 #define u8(n,v) revk_register(#n,0,sizeof(n),&n,#v,0);
    settings

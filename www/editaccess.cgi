@@ -26,7 +26,7 @@ if($?access) then
 	endif
 	can --redirect --access="$access" editaccess
 	if($status) exit 0
-	setenv allow "accessname clock log count armlate commit enter arm disarm strongarm prop expiry"
+	setenv allow "accessname clock log count armlate commit enter arm disarm strong prop expiry"
 	foreach day ($days)
 		setenv allow "$allow ${day}from ${day}to"
 	end
@@ -65,7 +65,7 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 </for>
 <td><output name=enter></td>
 <td><output name=arm></td>
-<td><output name=strongarm></td>
+<td><output name=strong></td>
 <td><output name=disarm></td>
 <td><output name=prop></td>
 </tr>
@@ -96,7 +96,7 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 </for>
 </table>
 <table border=1>
-<set tags="enter arm strongarm disarm prop">
+<set tags="enter arm strong disarm prop">
 <tr><th></th>
 <for SPACE T="$tags"><th><output name=T></th></for>
 <th>Areas</th>

@@ -135,10 +135,16 @@ void sstypes(const char *fn)
       }
    start("STATELIST");
 #define i(t,n,c) list(#n);
+#define c(t,n) list(#n);
+#define s(t,n,c) list(#n);
+#include "ESP32/main/states.m"
+   start("STATELISTO");
+#define i(t,n,c) list(#n);
 #define s(t,n,c) list(#n);
 #include "ESP32/main/states.m"
    start("STATELISTI");
 #define i(t,n,c) list(#n);
+#define c(t,n) list(#n);
 #include "ESP32/main/states.m"
    done();
    fprintf(f, "setenv AREACOUNT %d\n", n);

@@ -224,15 +224,15 @@ void door_act(fob_t * fob)
          jo_string(e, "sms", fob->sms);
       return e;
    }
-   if (fob->strongarmok && fob->longheld && (fob->strongarm & areastrongarm & ~((state_armed | control_strongarm) & ~control_disarm)))
+   if (fob->strongok && fob->longheld && (fob->strong & areastrong & ~((state_armed | control_strong) & ~control_disarm)))
    {                            // Simple, we can arm (Not using alarm_armed as that includes what we are trying, and failing, to control_arm)
       // Allowing if door open, strong arm is an override, so yeh, suffer the consequences
       if (doorauto >= 5)
       {
          jo_t e = make();
-         alarm_strongarm(fob->strongarm & areastrongarm, &e);
+         alarm_strong(fob->strong & areastrong, &e);
          door_lock(NULL, "fob");
-         fob->strongarmed = 1;
+         fob->stronged = 1;
       }
    }
    if (fob->armok && fob->held && (fob->arm & areaarm & ~alarm_armed()))
@@ -387,10 +387,10 @@ const char *door_fob(fob_t * fob)
                fob->armset = 1;
             } else if (c == 0xB)
             {                   // Force arm
-               fob->strongarm = 0;
+               fob->strong = 0;
                for (int q = 0; q < l; q++)
-                  fob->strongarm |= (p[q] << (24 - q * 8));
-               fob->strongarmset = 1;
+                  fob->strong |= (p[q] << (24 - q * 8));
+               fob->strongset = 1;
             } else if (c == 0xC)
             {                   // Prop
                fob->prop = 0;
@@ -497,8 +497,8 @@ const char *door_fob(fob_t * fob)
       // We are OK and in time...
       if (areaarm & fob->arm)
          fob->armok = 1;        // Can arm if any areas can be armed
-      if (areastrongarm & fob->strongarm)
-         fob->strongarmok = 1;  // Can arm is any areas can be armed
+      if (areastrong & fob->strong)
+         fob->strongok = 1;     // Can arm is any areas can be armed
       if (areadisarm & fob->disarm)
          fob->disarmok = 1;     // Can disarm if any areas can be disarmed, but will only do so if can enter when disarmed
       if (!(areaenter & ~fob->enter))
@@ -532,7 +532,7 @@ const char *door_fob(fob_t * fob)
             fob->propok = 0;
             fob->disarmok = 0;
             fob->armok = 0;
-            fob->strongarmok = 0;
+            fob->strongok = 0;
             if (!fob->deny)
                fob->deny = "Blacklist";
             if (fob->secure && df.keylen)

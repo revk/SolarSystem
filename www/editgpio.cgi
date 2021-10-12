@@ -38,7 +38,7 @@ xmlsql -C -d "$DB" head.html - foot.html << END
 <If not type=-*><tr><td><label for=invert>Invert</label></td><td><input id=invert name=invert type=checkbox value=true> (off is <i><output name=value0></i> and on is <i><output name=value1></i> unless inverted)</td></tr></if>
 </table>
 <if not type=*P not type=*->
-<if type=*O><set SL="$STATELIST"></if><if else><set SL="$STATELISTI"></if>
+<if type=*O><set SL="$STATELISTO"></if><if else><set SL="$STATELISTI"></if>
 <table border=1>
 <tr><th></th><for space STATE="\$SL"><th><output name=STATE></th></for><th>Areas</th></tr>
 <sql table=area where="site=$USER_SITE" order=tag>

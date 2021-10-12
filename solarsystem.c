@@ -131,7 +131,7 @@ void notify(SQL * sqlp, SQL_RES * res, const char *target, j_t j)
          if (found)
             fprintf(f, "\n");
       }
-#define extras c(,areas)c(,also)c(,disarmok)c(,armok)c(,strongarmok)
+#define extras c(,areas)c(,also)c(,disarmok)c(,armok)c(,strongok)
 #define s(t,x,l) areas(#x);
 #define i(t,x,l) areas(#x);
 #define c(t,x) areas(#x);
@@ -318,7 +318,7 @@ static const char *settings(SQL * sqlp, SQL * sqlkeyp, SQL_RES * res, slot_t id)
    j_t area = j_store_object(j, "area");
    addarea(area, "enter", sql_colz(res, "areaenter"), 0);
    addarea(area, "arm", sql_colz(res, "areaarm"), 0);
-   addarea(area, "strongarm", sql_colz(res, "areastrongarm"), 0);
+   addarea(area, "strong", sql_colz(res, "areastrong"), 0);
    addarea(area, "disarm", sql_colz(res, "areadisarm"), 0);
    addarea(area, "led", sql_colz(res, "arealed"), 0);
    addarea(area, "deadlock", sql_colz(res, "areadeadlock"), 0);
@@ -464,6 +464,7 @@ static const char *settings(SQL * sqlp, SQL * sqlkeyp, SQL_RES * res, slot_t id)
                if (*type != 'P')
                {
 #define i(t,n,c) addarea(gpio,#n,sql_col(g,#n),0);
+#define c(t,n) addarea(gpio,#n,sql_col(g,#n),0);
 #define s(t,n,c) addarea(gpio,#n,sql_col(g,#n),0);
 #include "ESP32/main/states.m"
                }

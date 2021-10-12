@@ -114,7 +114,7 @@ bool (canadoptfob);             // Can adopt fobs
 bool (caneditfob);              // Can edit fobs
 bool (caneditarea);             // Can edit areas
 bool (canarm);                  // Can arm
-bool (canstrongarm);            // Can strong arm
+bool (canstrong);            // Can strong arm
 bool (candisarm);               // Can disarm
 bool (canunlock);               // Can unlock doors
 bool (canviewlog);              // Can view logs
@@ -155,7 +155,7 @@ text(hookfault, 0);             // Fault event web hook
 text(hooktrigger, 0);           // Trigger event web hook
 text(hookinhibit, 0);           // Inhibit event web hook
 text(hookarm, 0);               // Arm event web hook
-text(hookstrongarm, 0);         // Strongarm event web hook
+text(hookstrong, 0);         // Strongarm event web hook
 text(hookdisarm, 0);            // Disarm event web hook
 text(hookarmfail, 0);           // Arm fail event web hook
 text(hooknotopen, 0);           // Not open event web hook
@@ -215,7 +215,7 @@ link(site);
 text(accessname, 0);
 areas(enter);                   // Allow enter
 areas(arm);                     // Allow arm
-areas(strongarm);               // Allow strong arm
+areas(strong);               // Allow strong arm
 areas(prop);                    // Allow prop
 areas(disarm);                  // Allow disarm
 num(expiry);                    // Auto expiry (days)
@@ -297,13 +297,13 @@ num(flash);                     // Flash size
 link(aid);                      // The AID for door access (defines what site it is)
 areas(areaenter);               // Areas allowed enter by fob
 areas(areaarm);                 // Areas allowed arm by fob
-areas(areastrongarm);           // Areas allowed arm by fob
+areas(areastrong);           // Areas allowed arm by fob
 areas(areadisarm);              // Areas allowed disarm by fob
 areas(areadeadlock);            // Areas for deadlock input
 areas(arealed);                 // LED area
 areas(areakeypad);              // Keypad area
 areas(areakeyarm);              // Keypad arm using A
-areas(areakeystring);           // Keypad strongarm using B
+areas(areakeystring);           // Keypad strong using B
 areas(areakeydisarm);           // Keypad disarm using PIN
 datetime(online);               // When online, if online
 datetime(boot);                 // Boot time
@@ -340,6 +340,7 @@ text(name, 16);                 // Port name, default to pin name
 num(hold);                      // Port hold time
 num(pulse);                     // Port output time
 #define i(t,state,c) areas(state)
+#define c(t,state) areas(state)
 #define s(t,state,c) areas(state)
 #include "ESP32/main/states.m"  // Related areas
 

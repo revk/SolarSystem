@@ -31,7 +31,7 @@ i(X,fire,RY)
 i(P,panic,RM)
 
 c(+,arm)
-c(*,strongarm)
+c(*,strong)
 c(-,disarm)
 
 // @ used for name
