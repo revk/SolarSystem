@@ -315,7 +315,7 @@ static void task(void *pvParameters)
             ESP_LOGI(TAG, "gone %s", fob.id);
             fob.gone = 1;
             if (fob.remote || (fob.held && nfchold) || (fob.longheld && nfclonghold) || fob.deny || fob.fail)
-               fobevent(); // Report as was help, or was still failed
+               fobevent();      // Report as was help, or was still failed
             memset(&fob, 0, sizeof(fob));
             found = 0;
             holdpolls = 0;
@@ -495,7 +495,7 @@ static void task(void *pvParameters)
                   blink(0, 1, 0);
                if (!e)
                   door_act(&fob);
-               fobevent();   // Report - as may need updating
+               fobevent();      // Report - as may need updating
                if (!e && df.keylen && !fob.commit)
                {
                   log();        // Can log after reporting / opening

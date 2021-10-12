@@ -302,8 +302,7 @@ const char *door_fob(fob_t * fob)
          e = df_read_data(&df, 0x0A, DF_MODE_CMAC, MINAFILE, *afile + 1 - MINAFILE, afile + MINAFILE);  // More data
       if (e)
       {
-         if (!strstr(e, "TIMEOUT"))
-            fob->fail = e;
+         fob->fail = e;
          return "Cannot access Afile";
       }
       fob->afile = 1;
