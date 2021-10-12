@@ -1443,8 +1443,8 @@ int main(int argc, const char *argv[])
                      const char *hook = sql_col(res, tag);
                      if (hook && *hook)
                         notify(&sql, res, hook, j);
-                     if (!strcmp(suffix, "fob") && j_find(j, "deny") && (hook = sql_col(res, "hookfobdeny")) && *hook)
-                        notify(&sql, res, hook, j);
+                     if (!strcmp(suffix, "fob") && j_find(j, "deny") && strcmp(j_get(j, "fail") ? : "", "PN532_ERR_STATUS_TIMEOUT") && (hook = sql_col(res, "hookfobdeny")) && *hook)
+                        notify(&sql, res, hook, j);     // Failed other than simple timeout (i.e. too quick)
                   }
                }
                sql_free_result(res);
