@@ -1,7 +1,8 @@
 #!../login/loggedin --insecure-post --http-auth /bin/csh -f
 echo "Content-Type: text/plain"
 echo ""
-printenv
+echo "sorry, withdrawn for now"
+exit 0
 
 if(! $?PATH_INFO) then
 	echo "Status: 404"	# Organisation after API
