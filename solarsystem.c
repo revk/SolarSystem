@@ -1002,6 +1002,9 @@ int main(int argc, const char *argv[])
                   return "Device not on line";
             }
          }
+         // Note, API is first as called with user supplied data, so meta could have something else as well.
+         if (j_find(meta, "api"))
+            return doapi(&sql, &sqlkey, local, meta, j);
          if (j_find(meta, "provision") && deviceid)
          {                      // JSON is rest of settings to send
             char *key = makekey();
@@ -1030,7 +1033,8 @@ int main(int argc, const char *argv[])
             if (!fail)
                sql_safe_query_free(&sql, sql_printf("UPDATE `pending` SET `online`=%#T WHERE `pending`=%#s", time(0) + 60, deviceid));
             return fail;
-         } else if ((v = j_get(meta, "deport")))
+         }
+         if ((v = j_get(meta, "deport")))
          {
             j_store_object(j, "client");        // Clear client
             j_t mqtt = j_store_object(j, "mqtt");
@@ -1041,7 +1045,8 @@ int main(int argc, const char *argv[])
             if (!fail)
                sql_safe_query_free(&sql, sql_printf("UPDATE `pending` SET `online`=%#T WHERE `pending`=%#s", time(0) + 60, deviceid));
             return fail;
-         } else if ((v = j_get(meta, "print")))
+         }
+         if ((v = j_get(meta, "print")))
          {                      // Card printing - record allocated key
             const char *fob = j_get(j, "_ID");
             const char *ver = j_get(j, "_KEYVER");
@@ -1058,7 +1063,8 @@ int main(int argc, const char *argv[])
             sql_safe_query_free(&sqlkey, sql_printf("INSERT INTO `AES` SET `fob`=%#s,`ver`=%#s,`key`=%#s,`aid`=''", fob, ver, key));
             sql_safe_query_free(&sql, sql_printf("INSERT INTO `fob` SET `fob`=%#s,`provisioned`=NOW()", fob));
             return NULL;
-         } else if ((v = j_get(meta, "prefix")))
+         }
+         if ((v = j_get(meta, "prefix")))
          {                      // Send to device
             const char *suffix = j_get(meta, "suffix");
             if (!id)
@@ -1072,7 +1078,8 @@ int main(int argc, const char *argv[])
             else
                slot_send(id, v, deviceid, suffix, NULL);
             return fail;
-         } else if (j_find(meta, "fobidentify"))
+         }
+         if (j_find(meta, "fobidentify"))
          {                      // Identify a fob
             j_t init = j_create();
             j_store_true(init, "identify");
@@ -1080,7 +1087,8 @@ int main(int argc, const char *argv[])
             j_store_string(init, "deviceid", deviceid);
             forked = 1;
             return forkcommand(&init, id, local);
-         } else if (j_find(meta, "fobprovision") || j_find(meta, "fobadopt") || j_find(meta, "fobformat"))
+         }
+         if (j_find(meta, "fobprovision") || j_find(meta, "fobadopt") || j_find(meta, "fobformat"))
          {                      // Fob specific
             j_t init = j_create();
             char key[AES_STRING_LEN] = "";
@@ -1126,11 +1134,8 @@ int main(int argc, const char *argv[])
             j_store_string(init, "deviceid", deviceid);
             forked = 1;
             return forkcommand(&init, id, local);
-         } else if (j_find(meta, "api"))
-            return doapi(&sql, &sqlkey, local, meta, j);
-         else
-            return "Unknown local request";
-         return NULL;
+         }
+         return "Unknown local request";
       }
       const char *loopback(void) {      // From linked
          const char *v;
