@@ -1313,8 +1313,7 @@ int main(int argc, const char *argv[])
                deviceid = j_get(j, "id");
                sql_sprintf(&s, "`id`=%lld,", id);
                sql_sprintf(&s, "`pending`=%#s,", deviceid);
-               if (secureid && deviceid && strcmp(secureid, deviceid))
-                  sql_sprintf(&s, "`authenticated`=%#s,", "true");
+               // makes no sense if (secureid && deviceid && strcmp(secureid, deviceid)) sql_sprintf(&s, "`authenticated`=%#s,", "true");
             }
             if (!device || !sql_col(device, "online"))
             {
