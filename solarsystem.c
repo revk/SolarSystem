@@ -1066,9 +1066,9 @@ int main(int argc, const char *argv[])
          }
          if ((v = j_get(meta, "prefix")))
          {                      // Send to device
-            const char *suffix = j_get(meta, "suffix");
             if (!id)
-               return "No suffix";
+               return "No id";
+            const char *suffix = j_get(meta, "suffix");
             const char *fail = NULL;
             j_t data = j_find(j, "_data");
             if (data)
