@@ -747,6 +747,9 @@ const char *doapi(SQL * sqlp, SQL * sqlkeyp, slot_t local, j_t meta, j_t j)
    }
    int canapi = (*sql_colz(res, "canapi") == 't');
    int apiexpires = (*sql_colz(res, "apiexpires") == 't');
+   int apiarm = (*sql_colz(res, "apiarm") == 't');
+   int apistrong = (*sql_colz(res, "apistrong") == 't');
+   int apidisarm = (*sql_colz(res, "apidisarm") == 't');
    sql_free_result(res);
    if (!canapi)
       return "No API access";
@@ -765,6 +768,50 @@ const char *doapi(SQL * sqlp, SQL * sqlkeyp, slot_t local, j_t meta, j_t j)
          sql_safe_query_free(sqlp, sql_printf("UPDATE `foborganisation` SET `expires`=%#T WHERE `fob`=%#s AND `organisation`=%d", expires, fob, organisation));
       else
          sql_safe_query_free(sqlp, sql_printf("UPDATE `foborganisation` SET `expires`=NULL WHERE `fob`=%#s AND `organisation`=%d", fob, organisation));
+      return NULL;
+   }
+
+   if (!strcmp(api, "arm") || !strcmp(api, "strong") || !strcmp(api, "disarm"))
+   {
+      if ((!strcmp(api, "arm") && !apiarm) || (!strcmp(api, "strong") && !apistrong) || (!strcmp(api, "disarm") && !apidisarm))
+         return "Not allowed";
+
+      int site = atoi(j_get(j, "site") ? : "");
+      if (!site)
+         return "No site";
+      res = sql_safe_query_store_free(sqlp, sql_printf("SELECT * FROM `site` WHERE `site`=%d", site));
+      int siteorg = 0;
+      if (sql_fetch_row(res))
+      {
+         siteorg = atoi(sql_colz(res, "organisation"));
+      }
+      sql_free_result(res);
+      if (!siteorg || siteorg != organisation)
+         return "Invalid site";
+
+      j_t areas = j_find(j, "areas");
+      if (!areas)
+         return "No areas";
+
+      slot_t id = 0;
+      const char *deviceid = NULL;
+      res = sql_safe_query_store_free(sqlp, sql_printf("SELECT `id`,`device` FROM `device` WHERE `site`=%d AND `id` IS NOT NULL AND `via` IS NULL AND `outofservice`='false' LIMIT 1", site));
+      if (sql_fetch_row(res))
+      {
+         id = strtoll(sql_colz(res, "id") ? : "", NULL, 10);
+         deviceid = strdupa(sql_colz(res, "device"));
+      }
+      sql_free_result(res);
+      if (!id)
+         return "Device not on line";
+
+      if (!strcmp(api, "arm"))
+         slot_send(id, "command", deviceid, "arm", &areas);
+      else if (!strcmp(api, "strong"))
+         slot_send(id, "command", deviceid, "strong", &areas);
+      else if (!strcmp(api, "disarm"))
+         slot_send(id, "command", deviceid, "disarm", &areas);
+
       return NULL;
    }
    return "Unknown API";
