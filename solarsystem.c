@@ -996,8 +996,8 @@ int main(int argc, const char *argv[])
                {
                   id = strtoll(sql_colz(res, "id") ? : "", NULL, 10);
                   deviceid = strdupa(sql_colz(res, "device"));
-               } else
-                  sql_free_result(res);
+               }
+               sql_free_result(res);
                if (!id)
                   return "Device not on line";
             }
