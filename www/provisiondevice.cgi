@@ -56,7 +56,7 @@ Deport:<input name=deport size=20 placeholder='MQTT server' autofocus><br>
 <td><output name=version></td>
 <td><output name=flash></td>
 <td>
-<if authenticated><b>Device is authenticated.</b><br></if>
+<if authenticated=true><b>Device is authenticated.</b><br></if>
 <if secureboot=false><b>Not secure boot.</b><br></if>
 <if encryptednvs=false><b>Not encrypted NVS.</b><br></if>
 <if O><b>DEVICE IS ON LINE AS AUTHENTICATED DEVICE</b><br></if>
