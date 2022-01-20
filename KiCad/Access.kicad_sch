@@ -3675,7 +3675,7 @@
     (uuid 00000000-0000-0000-0000-00006043326c)
     (property "Reference" "U1" (id 0) (at 46.99 22.7076 0))
     (property "Value" "ESP32-WROOM-32" (id 1) (at 46.99 25.019 0))
-    (property "Footprint" "RF_Module:ESP32-WROOM-32" (id 2) (at 46.99 100.965 0)
+    (property "Footprint" "RevK:ESP32-WROOM-32" (id 2) (at 46.99 100.965 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Datasheet" "https://www.espressif.com/sites/default/files/documentation/esp32-wroom-32_datasheet_en.pdf" (id 3) (at 39.37 61.595 0)
@@ -6305,7 +6305,7 @@
       (reference "SW1") (unit 1) (value "Tamper") (footprint "RevK:SW_PUSH_6mm_SMD")
     )
     (path "/00000000-0000-0000-0000-00006043326c"
-      (reference "U1") (unit 1) (value "ESP32-WROOM-32") (footprint "RF_Module:ESP32-WROOM-32")
+      (reference "U1") (unit 1) (value "ESP32-WROOM-32") (footprint "RevK:ESP32-WROOM-32")
     )
     (path "/00000000-0000-0000-0000-00006084108b"
       (reference "U2") (unit 1) (value "FT231XQ") (footprint "RevK:QFN-20-1EP_4x4mm_P0.5mm_EP2.5x2.5mm")
