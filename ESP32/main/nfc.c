@@ -93,7 +93,7 @@ const char *nfc_led(int len, const void *value)
    return "";
 }
 
-static void fobevent(void)
+static void fobevent(const uint8_t * ats, const uint8_t ver[28])
 {
    jo_t j = jo_make(NULL);
    if (*fob.id)
@@ -101,6 +101,10 @@ static void fobevent(void)
       if (fob.secureset)
          jo_bool(j, "secure", fob.secure);
       jo_string(j, "id", fob.id);
+      if (!fob.secure && ats && *ats)
+         jo_base16(j, "ats", ats, *ats);
+      if (ver)
+         jo_base16(j, "mifare-version", ver, 28);
       if (fob.nameset)
          jo_string(j, "name", fob.name);
       if (fob.smsset)
@@ -315,7 +319,7 @@ static void task(void *pvParameters)
             ESP_LOGI(TAG, "gone %s", fob.id);
             fob.gone = 1;
             if (fob.remote || (fob.held && nfchold) || (fob.longheld && nfclonghold) || fob.deny || fob.fail)
-               fobevent();      // Report as was help, or was still failed
+               fobevent(NULL, NULL);    // Report as was help, or was still failed
             memset(&fob, 0, sizeof(fob));
             found = 0;
             holdpolls = 0;
@@ -331,7 +335,7 @@ static void task(void *pvParameters)
                fob.deny = NULL; // Re-evaluate as held
                door_fob(&fob);
                door_act(&fob);  // Action from held
-               fobevent();
+               fobevent(NULL, NULL);
             }
             if (!fob.remote && !fob.longheld && nfclonghold && holdpolls >= nfclonghold)
             {                   // Card has been held for a while, report
@@ -339,7 +343,7 @@ static void task(void *pvParameters)
                fob.deny = NULL; // Re-evaluate as long held
                door_fob(&fob);
                door_act(&fob);  // Action from long held
-               fobevent();
+               fobevent(NULL, NULL);
             }
             continue;           // Waiting for card to go
          }
@@ -495,7 +499,8 @@ static void task(void *pvParameters)
                   blink(0, 1, 0);
                if (!e)
                   door_act(&fob);
-               fobevent();      // Report - as may need updating
+               uint8_t ver[28];
+               fobevent(ats, fob.secureset && !df_get_version(&df, ver) ? ver : NULL);  // Report - as may need updating
                if (!e && df.keylen && !fob.commit)
                {
                   log();        // Can log after reporting / opening
