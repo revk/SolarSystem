@@ -120,6 +120,9 @@ bool (canunlock);               // Can unlock doors
 bool (canviewlog);              // Can view logs
 bool (canapi);                  // Can access API
 bool (apiexpires);              // Can set fob expiries via API
+bool (apiarm);                  // Can arm sites via API
+bool (apistrong);               // Can strong arm sites via API
+bool (apidisarm);               // Can disarm sites via API
 
 table(organisation, 0);         // Customer (may be more than one site)
 text(organisationname, 0);
