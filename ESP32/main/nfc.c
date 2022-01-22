@@ -500,7 +500,7 @@ static void task(void *pvParameters)
                if (!e)
                   door_act(&fob);
                uint8_t ver[28];
-               fobevent(ats, fob.secureset && !df_get_version(&df, ver) ? ver : NULL);  // Report - as may need updating
+               fobevent(ats, fob.secureset && !fob.secure && !df_get_version(&df, ver) ? ver : NULL);   // Report - as may need updating
                if (!e && df.keylen && !fob.commit)
                {
                   log();        // Can log after reporting / opening

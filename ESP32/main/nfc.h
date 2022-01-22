@@ -10,7 +10,7 @@ extern const char *nfc_led(int len, const void *value);
 extern void nfc_retry(void);
 
 typedef struct {
-   char id[22];                 // Initial card ID (insecure), hex null terminated
+   char id[21];                 // Initial card ID (insecure), hex null terminated
    char name[16];               // Name from fob
    char sms[21];		// Number on fob
    const char *fail;            // NFC fail message

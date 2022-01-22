@@ -136,10 +136,12 @@ static area_t door_deadlocked(void)
    return areadeadlock & alarm_armed();
 }
 
-const char *door_access(const uint8_t * a)
+const char *door_access(const char *id, const uint8_t * a)
 {                               // Confirm access
    if (!a)
       return "";                // No action
+   // TODO check id if set
+   // TODO store cached id/afile if not on line
    if (*a == *afile && !memcmp(a + 1, afile + 1, *afile))
       return "";                // Same
    if (!df.keylen)
@@ -177,7 +179,7 @@ void door_check(void)
    }
 }
 
-const char *door_unlock(const uint8_t * a, const char *why)
+const char *door_unlock(const char *id, const uint8_t * a, const char *why)
 {                               // Unlock the door - i.e. exit button, entry allowed, etc.
    if (doorauto >= 2)
    {
@@ -187,20 +189,20 @@ const char *door_unlock(const uint8_t * a, const char *why)
       output_set(OUNLOCK + 0, 1);
       output_set(OUNLOCK + 1, 1);
    }
-   return door_access(a);
+   return door_access(id, a);
 }
 
-const char *door_lock(const uint8_t * a, const char *why)
+const char *door_lock(const char *id, const uint8_t * a, const char *why)
 {                               // Lock the door - i.e. move to normal locked operation
    if (doorauto >= 2)
    {
       ESP_LOGD(TAG, "Lock %s", why ? : "?");
       output_set(OUNLOCK + 0, 0);
    }
-   return door_access(a);
+   return door_access(id, a);
 }
 
-const char *door_prop(const uint8_t * a, const char *why)
+const char *door_prop(const char *id, const uint8_t * a, const char *why)
 {                               // Allow door propping
    if (doorstate != DOOR_OPEN && doorstate != DOOR_NOTCLOSED && doorstate != DOOR_PROPPED)
       return false;
@@ -209,7 +211,7 @@ const char *door_prop(const uint8_t * a, const char *why)
       jo_string(j, "trigger", why);
    alarm_event("propped", &j, iotstatedoor);
    doorstate = DOOR_PROPPED;
-   return door_access(a);
+   return door_access(id, a);
 }
 
 void door_act(fob_t * fob)
@@ -231,7 +233,7 @@ void door_act(fob_t * fob)
       {
          jo_t e = make();
          alarm_strong(fob->strong & areastrong, &e);
-         door_lock(NULL, "fob");
+         door_lock(fob->id, NULL, "fob");
          fob->stronged = 1;
       }
    }
@@ -243,7 +245,7 @@ void door_act(fob_t * fob)
       {
          jo_t e = make();
          alarm_arm(fob->arm & areaarm, &e);
-         door_lock(NULL, "fob");
+         door_lock(fob->id, NULL, "fob");
          fob->armed = 1;
       }
    }
@@ -266,7 +268,7 @@ void door_act(fob_t * fob)
    {
       if (doorauto >= 4)
       {
-         door_prop(NULL, "fob");
+         door_prop(fob->id, NULL, "fob");
          fob->propped = 1;
       }
    }
@@ -274,14 +276,14 @@ void door_act(fob_t * fob)
    {
       if (doorauto >= 4)
       {
-         door_unlock(NULL, "fob");
+         door_unlock(fob->id, NULL, "fob");
          fob->unlocked = 1;
       } else
          fob->unlockok = 1;
    } else if (fob->deny)
    {
       if (doorauto >= 4)
-         door_lock(NULL, "fob");
+         door_lock(fob->id, NULL, "fob");
    }
 }
 
@@ -575,12 +577,39 @@ const char *door_command(const char *tag, jo_t j)
    if (!doorauto)
       return false;             // No door control in operation
    const char *e = NULL;
-   char temp[256];
+   char temp[256],
+    tempid[22];
    const uint8_t *afile = NULL;
+   const char *id = NULL;
    if (j)
    {
-      if (jo_here(j) == JO_STRING)
-      {
+      if (jo_here(j) == JO_OBJECT)
+      {                         // New format with id and afile
+         while (jo_here(j))
+         {
+            jo_next(j);
+            if (jo_here(j) == JO_TAG)
+            {
+               if (!jo_strcmp(j, "id"))
+               {
+                  int len = jo_strncpy(j, tempid, sizeof(tempid));
+                  if (len > 0 && len < sizeof(tempid))
+                     id = tempid;
+
+               } else if (!jo_strcmp(j, "afile"))
+               {
+                  int len = jo_strncpy16(j, temp, sizeof(temp));
+                  if (len < 0)
+                     e = "Bad hex";
+                  else if (len > 0 && *temp == len - 1)
+                     afile = (uint8_t *) temp;
+                  else
+                     e = "Bad afile";
+               }
+            }
+         }
+      } else if (jo_here(j) == JO_STRING)
+      {                         // Afile only
          int len = jo_strncpy16(j, temp, sizeof(temp));
          if (len < 0)
             e = "Bad hex";
@@ -589,18 +618,18 @@ const char *door_command(const char *tag, jo_t j)
          else
             e = "Bad afile";
       } else
-         e = "Expecting JSON string";
+         e = "Expecting JSON";
       if (!e)
          e = jo_error(j, NULL);
    }
    if (!strcasecmp(tag, "lock"))
-      return e ? : door_lock(afile, "remote");
+      return e ? : door_lock(id, afile, "remote");
    if (!strcasecmp(tag, "unlock"))
-      return e ? : door_unlock(afile, "remote");
+      return e ? : door_unlock(id, afile, "remote");
    if (!strcasecmp(tag, "prop"))
-      return e ? : door_prop(afile, "remote");
+      return e ? : door_prop(id, afile, "remote");
    if (!strcasecmp(tag, "access"))
-      return e ? : door_access(afile);
+      return e ? : door_access(id, afile);
    if (!strcasecmp(tag, "connect"))
       resend = 1;
    return NULL;
@@ -753,7 +782,7 @@ static void task(void *pvParameters)
                   jo_string(j, "trigger", doorwhy);
                   alarm_event("notopen", &j, iotstatedoor);
                }
-               door_lock(NULL, NULL);
+               door_lock(NULL, NULL, NULL);
                doorwhy = NULL;
             }
          }
@@ -787,7 +816,7 @@ static void task(void *pvParameters)
                {
                   if (doorauto >= 2)
                   {
-                     door_unlock(NULL, "button");
+                     door_unlock(NULL, NULL, "button");
                      jo_bool(j, "unlocked", 1);
                   } else
                      jo_bool(j, "unlockok", 1);
@@ -808,7 +837,7 @@ static void task(void *pvParameters)
                      jo_string(e, "reason", "exit button");
                      alarm_arm(areadeadlock & areaarm, &e);
                      jo_bool(j, "armed", 1);
-                     door_lock(NULL, "button");
+                     door_lock(NULL, NULL, "button");
                   }
                }
                alarm_event("button", &j, iotstatedoor);
