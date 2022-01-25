@@ -1,0 +1,9 @@
+### Module positions - created on 2022-01-25 08:04
+### Printed by pcb_positions plugin
+## Unit = mm, Angle = deg.
+## Pcb Height 29.100mm, Pcb Width 19.100mm [based on Edge bounding box]
+## Side : bottom
+## Board Aux Origin: 0.000mm ,0.000mm
+# Ref         Val                 Package                       PosX       PosY       Pin1_PosX  Pin1_PosY    Rot     Side      Type
+U1            ESP32-WROOM-32      ESP32-WROOM-32                129.4000   -104.1500  137.9000   -95.8950    180.0    bottom    SMD
+## End
