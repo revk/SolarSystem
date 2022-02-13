@@ -1,17 +1,14 @@
-### Module positions - created on 2022-01-25 08:04
+### Module positions - created on 2022-02-13 13:55
 ### Printed by pcb_positions plugin
 ## Unit = mm, Angle = deg.
 ## Pcb Height 29.100mm, Pcb Width 19.100mm [based on Edge bounding box]
 ## Side : ALL
 ## Board Aux Origin: 0.000mm ,0.000mm
 # Ref         Val                 Package                       PosX       PosY       Pin1_PosX  Pin1_PosY    Rot     Side      Type
-U2            SP3485              SOIC-8_3.9x4.9mm_P1.27mm      135.4500   -119.0500  137.3550   -116.5750   -90.0    top       SMD
-U4            LMR16006+FB         RegulatorBlockFB              123.1900   -112.8000  124.5400   -113.7500    90.0    top       SMD
-R7            3M 1% or NF         R_0603                        136.0000   -112.8000  135.1750   -112.8000     0.0    top       SMD
-R6            10M 1% or 0R        R_0603                        138.2000   -113.6000  138.2000   -114.4250    90.0    top       SMD
 R1            5K1                 R_0603                        130.5000   -109.5000  130.5000   -108.6750   -90.0    top       SMD
 J3            USB-C               USC16-TR-Round                138.9000   -107.1000  0.0000     0.0000       90.0    top       SMD
 J1            SPOX                Molex_MiniSPOX_H4RA           126.1000   -117.0000  122.3500   -117.0000     0.0    top       THD
+U2            SP3485              SOIC-8_3.9x4.9mm_P1.27mm      135.4500   -119.0500  137.3550   -116.5750   -90.0    top       SMD
 U3            FT231XQ             QFN-20-1EP_4x4mm_P0.5mm_EP2.. 124.8000   -103.5500  123.8000   -105.4500    90.0    top       SMD
 R2            5K1                 R_0603                        130.5000   -104.7500  130.5000   -103.9250   -90.0    top       SMD
 R3            732R                R_0603                        136.8500   -100.9500  137.6750   -100.9500   180.0    top       SMD
@@ -25,6 +22,9 @@ C3            2.2uF               Hidden                        126.7400   -113.
 C4            10uF                Hidden                        126.7400   -107.4000  0.0000     0.0000        0.0    top       SMD
 D3            Schottky            Hidden                        126.3600   -110.5200  0.0000     0.0000       90.0    top       SMD
 L1            6.8uH               Hidden                        123.1900   -108.9000  0.0000     0.0000       90.0    top       SMD
+R7            3M 1% or NF         R_0603                        136.0000   -112.8000  135.1750   -112.8000     0.0    top       SMD
+U4            LMR16006+FB         RegulatorBlockFB              123.1900   -112.8000  124.5400   -113.7500    90.0    top       SMD
+R6            10M 1% or 0R        R_0603                        138.2000   -113.6000  138.2000   -114.4250    90.0    top       SMD
 J2            Molex               PinHeader_1x04_P2.54mm_Vert.. 121.7000   -121.8000  121.7000   -121.8000   -90.0    bottom    THD
 Logo1         AA                  AA                            135.0000   -122.0000  135.0000   -122.0000   180.0    bottom    THD
 U1            ESP32-WROOM-32      ESP32-WROOM-32                129.4000   -104.1500  137.9000   -95.8950    180.0    bottom    SMD
