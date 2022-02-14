@@ -256,16 +256,17 @@ void keypad_ui(char key)
       break;
    case PIN:
       {
-         static char code[16];
+         static char code[17];
          if ((key >= '0' && key <= '9') || key == '*' || key == '#')
          {                      // PIN for full 12 keys
-            if (pos < sizeof(code))
+            if (pos < sizeof(code) - 1)
                code[pos++] = key;
             timeout = now + 10;
          } else if (key == 'B' && pos)
             pos--;              // Delete
          else if (key == 'E')
          {                      // ENT
+            code[pos] = 0;      // Terminate input code
             if (*keypadpin && areakeydisarm && !strcmp(code, keypadpin))
             {
                jo_t e = jo_make(NULL);
@@ -294,6 +295,11 @@ void keypad_ui(char key)
             {
                jo_t j = jo_object_alloc();
                jo_stringf(j, "reason", !*keypadpin ? "No PIN set" : !areakeydisarm ? "No PIN disarm" : "Wrong PIN");
+               if (debug)
+               {
+                  jo_string(j, "pin", keypadpin);
+                  jo_string(j, "entered", code);
+               }
                alarm_event("wrongpin", &j, iotkeypad);
                fail("Wrong PIN!\n[Attempt logged]", 10);
             }
@@ -434,15 +440,32 @@ static void task(void *pvParameters)
        p = 0;
       static uint8_t cmd = 0;
       static uint8_t online = 0;
-      static uint8_t lastkey = 0x7F;
       static unsigned int galaxybusfault = 0;
       static int64_t rxwait = 0;
+
+      void keystatus(uint8_t key) {
+         static const char keymap[] = "0123456789BAEX*#";
+         if (ui.keyconfirm)
+            return;             // Pending confirmation
+         if (key == 0x7F)
+            return;             // Idle
+         ui.keybit = !ui.keybit;	// Send confirmation
+         ui.keyconfirm = 1;
+         if (debug)
+         { // Debug logging
+            jo_t j = jo_object_alloc();
+            jo_stringf(j, "key", "%.1s", keymap + (key & 0x0F));
+            if (key & 0x80)
+               jo_bool(j, "held", 1);
+            alarm_event("key", &j, iotkeypad);
+         }
+         keypad_ui(keymap[key & 0x0F]); // Process key
+      }
 
       if (galaxybus_ready(g))
       {                         // Receiving
          rxwait = 0;
          int p = galaxybus_rx(g, sizeof(buf), buf);
-         static const char keymap[] = "0123456789BAEX*#";
          if (p < 2)
          {
             ESP_LOGI(TAG, "Rx fail %s", galaxybus_err_to_name(p));
@@ -455,7 +478,6 @@ static void task(void *pvParameters)
          } else
          {
             galaxybusfault = 0;
-            static int64_t keyhold = 0;
             if (cmd == 0x00 && buf[1] == 0xFF && p >= 5)
             {                   // Set up response
                if (!online)
@@ -469,76 +491,14 @@ static void task(void *pvParameters)
             else if (buf[1] == 0xFE)
             {                   // Idle, no tamper, no key
                logical_gpio &= ~logical_KeyTamper;
-               if (!ui.keyconfirm)
-               {
-                  if (lastkey & 0x80)
-                  {
-                     if (keyhold < now)
-                     {
-                        if (debug)
-                        {
-                           jo_t j = jo_object_alloc();
-                           jo_stringf(j, "key", "%.1s", keymap + (lastkey & 0x0F));
-                           alarm_event("gone", &j, iotkeypad);
-                        }
-                        lastkey = 0x7F;
-                     }
-                  } else
-                     lastkey = 0x7F;
-               }
+               keystatus(0x7F); // No key
             } else if (cmd == 0x06 && buf[1] == 0xF4 && p >= 3)
             {                   // Status
                if ((buf[2] & 0x40))
                   logical_gpio |= logical_KeyTamper;
                else
                   logical_gpio &= ~logical_KeyTamper;
-               if (!ui.keyconfirm)
-               {                // Key
-                  if (buf[2] == 0x7F)
-                  {             // No key
-                     if (lastkey & 0x80)
-                     {
-                        if (keyhold < now)
-                        {
-                           if (debug)
-                           {
-                              jo_t j = jo_object_alloc();
-                              jo_stringf(j, "key", "%.1s", keymap + (lastkey & 0x0F));
-                              alarm_event("gone", &j, iotkeypad);
-                           }
-                           lastkey = 0x7F;
-                        }
-                     } else
-                        lastkey = 0x7F;
-                  } else
-                  {             // key
-                     ui.keybit = !ui.keybit;
-                     ui.keyconfirm = 1;
-                     if ((lastkey & 0x80) && buf[2] != lastkey)
-                     {
-                        if (debug)
-                        {
-                           jo_t j = jo_object_alloc();
-                           jo_stringf(j, "key", "%.1s", keymap + (lastkey & 0x0F));
-                           alarm_event("gone", &j, iotkeypad);
-                        }
-                     }
-                     if (!(buf[2] & 0x80) || buf[2] != lastkey)
-                     {
-                        if (debug)
-                        {
-                           jo_t j = jo_object_alloc();
-                           jo_stringf(j, "key", "%.1s", keymap + (buf[2] & 0x0F));
-                           alarm_event((buf[2] & 0x80) ? "hold" : "key", &j, iotkeypad);
-                        }
-                        if (!(buf[2] & 0x80))
-                           keypad_ui(keymap[buf[2] & 0x0F]);
-                     }
-                     if (buf[2] & 0x80)
-                        keyhold = now + 2000000LL;
-                     lastkey = buf[2];
-                  }
-               }
+               keystatus(buf[2]);
             }
          }
       }
@@ -578,7 +538,7 @@ static void task(void *pvParameters)
          ui.keyconfirm = 0;
          buf[++p] = 0x0B;
          buf[++p] = ui.keybit ? 2 : 0;
-      } else if (lastkey >= 0x7F && (ui.senddisplay || ui.sendcursor || ui.sendblink || ui.resenddisplay))
+      } else if (ui.senddisplay || ui.sendcursor || ui.sendblink || ui.resenddisplay)
       {                         // Text
          buf[++p] = 0x07;
          buf[++p] = 0x01 | (ui.blink ? 0x08 : 0x00) | (ui.displaybit ? 0x80 : 0);

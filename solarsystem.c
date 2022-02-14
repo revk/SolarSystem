@@ -349,7 +349,7 @@ static const char *settings(SQL * sqlp, SQL * sqlkeyp, SQL_RES * res, slot_t id)
                j_store_true(iot, "eventfob");
             if (*sql_colz(s, "ioteventarm") == 't')
                j_store_true(iot, "eventarm");
-            if (*sql_colz(s, "iotkeypad") == 't')
+            if (*sql_colz(res, "iotkeypad") == 't')
                j_store_true(iot, "keypad");
          }
       }
