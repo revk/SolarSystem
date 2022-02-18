@@ -1,0 +1,28 @@
+### Module positions - created on 2022-02-18 15:30
+### Printed by pcb_positions plugin
+## Unit = mm, Angle = deg.
+## Pcb Height 24.600mm, Pcb Width 36.100mm [based on Edge bounding box]
+## Side : top
+## Board Aux Origin: 0.000mm ,0.000mm
+# Ref         Val                 Package                       PosX       PosY       Pin1_PosX  Pin1_PosY    Rot     Side      Type
+R1            5K1                 R_0603                        107.0000   -114.6750  107.0000   -113.8500   -90.0    top       SMD
+J3            USB-C               USC16-TR-Round                97.0500    -142.3000  0.0000     0.0000        0.0    top       SMD
+U3            FT231XQ             QFN-20-1EP_4x4mm_P0.5mm_EP2.. 104.7500   -130.0000  103.7500   -131.9000    90.0    top       SMD
+R2            5K1                 R_0603                        98.5000    -115.7500  98.5000    -114.9250   -90.0    top       SMD
+R6            732R                R_0603                        114.2000   -132.6500  114.2000   -133.4750    90.0    top       SMD
+R7            2K                  R_0603                        116.5000   -132.6500  116.5000   -133.4750    90.0    top       SMD
+R8            324R                R_0603                        115.3500   -132.6500  115.3500   -133.4750    90.0    top       SMD
+D1            D                   D_1206_3216Metric_Pad1.42x1.. 112.3000   -114.7500  110.8125   -114.7500     0.0    top       SMD
+C1            0.1uF               C_0603                        95.2500    -115.4750  95.2500    -116.2500    90.0    top       SMD
+C2            0.1uF               Hidden                        123.4400   -114.9000  0.0000     0.0000        0.0    top       SMD
+C3            2.2uF               Hidden                        126.7400   -113.6500  0.0000     0.0000        0.0    top       SMD
+C4            10uF                Hidden                        126.7400   -107.4000  0.0000     0.0000        0.0    top       SMD
+D3            Schottky            Hidden                        126.3600   -110.5200  0.0000     0.0000       90.0    top       SMD
+L1            6.8uH               Hidden                        123.1900   -108.9000  0.0000     0.0000       90.0    top       SMD
+U1            ESP32-PICO-MINI-02  ESP32-PICO-MINI-02            114.4567   -124.3500  118.4567   -118.4500   -90.0    top       SMD
+R9            3M 1% or NF         R_0603                        115.8000   -113.4500  114.9750   -113.4500     0.0    top       SMD
+U4            LMR16006+FB         RegulatorBlockFB              101.7500   -123.7500  103.1000   -124.7000    90.0    top       SMD
+R3            500K                R_0603                        91.7500    -116.2500  90.9250    -116.2500     0.0    top       SMD
+R5            10M 1% or 0R        R_0603                        118.0000   -114.2500  118.0000   -115.0750    90.0    top       SMD
+R4            100K                R_0603                        87.0000    -116.0000  86.1750    -116.0000     0.0    top       SMD
+## End
