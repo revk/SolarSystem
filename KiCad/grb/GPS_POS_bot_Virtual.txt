@@ -1,4 +1,4 @@
-### Module positions - created on 2022-02-19 13:48
+### Module positions - created on 2022-02-19 14:19
 ### Printed by pcb_positions plugin
 ## Unit = mm, Angle = deg.
 ## Pcb Height 24.600mm, Pcb Width 36.100mm [based on Edge bounding box]
@@ -6,11 +6,11 @@
 ## Board Aux Origin: 0.000mm ,0.000mm
 # Ref         Val                 Package                       PosX       PosY       Pin1_PosX  Pin1_PosY    Rot     Side      Type
 U5            QR                  QR-SS                         97.0500    -139.4000  0.0000     0.0000        0.0    bottom    VIRTUAL
-JP2           IO3                 Pad_1206_0805_Bridged         110.1000   -139.0500  110.1000   -138.1375   -90.0    bottom    VIRTUAL
-JP6           IO1                 Pad_1206_0805_Open            105.1000   -139.0500  105.1000   -139.9625    90.0    bottom    VIRTUAL
-JP3           IO3                 Pad_1206_0805_Open            107.6000   -139.0500  107.6000   -139.9625    90.0    bottom    VIRTUAL
+JP2           IO3                 Pad_1206_0805_Bridged         110.1000   -139.0500  110.1000   -137.5875   -90.0    bottom    VIRTUAL
+JP6           IO1                 Pad_1206_0805_Open            105.1000   -139.0500  105.1000   -140.5125    90.0    bottom    VIRTUAL
+JP3           IO3                 Pad_1206_0805_Open            107.6000   -139.0500  107.6000   -140.5125    90.0    bottom    VIRTUAL
 JP5           IO4                 Pad_1206_0805_Open            112.6000   -139.0500  112.6000   -139.9625    90.0    bottom    VIRTUAL
 Logo2         AJK                 AJK                           115.7000   -123.3000  0.0000     0.0000      180.0    bottom    VIRTUAL
 JP4           IO6                 Pad_1206_0805_Open            115.1000   -139.0500  115.1000   -139.9625    90.0    bottom    VIRTUAL
-JP1           IO6                 Pad_1206_0805_Bridged         117.6000   -139.0500  117.6000   -138.1375   -90.0    bottom    VIRTUAL
+JP1           IO6                 Pad_1206_0805_Bridged         117.6000   -139.0500  117.6000   -137.5875   -90.0    bottom    VIRTUAL
 ## End
