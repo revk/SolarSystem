@@ -1,12 +1,10 @@
-### Module positions - created on 2022-02-18 15:30
+### Module positions - created on 2022-02-18 16:19
 ### Printed by pcb_positions plugin
 ## Unit = mm, Angle = deg.
 ## Pcb Height 24.600mm, Pcb Width 36.100mm [based on Edge bounding box]
 ## Side : top
 ## Board Aux Origin: 0.000mm ,0.000mm
 # Ref         Val                 Package                       PosX       PosY       Pin1_PosX  Pin1_PosY    Rot     Side      Type
-D2            LED_RGBA            LED-RGB-1.6x1.6               118.7500   -132.6500  119.2500   -131.7750    90.0    top       THD
-U2            L96-M33             L96-M33                       91.0000    -125.5000  95.8000    -131.2000     0.0    top       THD
 J2            I/O                 Molex_MiniSPOX_H6RA           111.3500   -135.6500  105.1000   -135.6500     0.0    top       THD
 J1            DC                  Molex_MiniSPOX_H2RA           87.7500    -135.6500  86.5000    -135.6500     0.0    top       THD
 ## End
