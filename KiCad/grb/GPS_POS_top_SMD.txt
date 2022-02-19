@@ -1,4 +1,4 @@
-### Module positions - created on 2022-02-19 11:28
+### Module positions - created on 2022-02-19 12:38
 ### Printed by pcb_positions plugin
 ## Unit = mm, Angle = deg.
 ## Pcb Height 24.600mm, Pcb Width 36.100mm [based on Edge bounding box]
@@ -13,7 +13,7 @@ R6            732R                R_0603                        114.2000   -132.
 R7            2K                  R_0603                        116.5000   -132.6500  116.5000   -133.4750    90.0    top       SMD
 R8            324R                R_0603                        115.3500   -132.6500  115.3500   -133.4750    90.0    top       SMD
 D2            LED_RGBA            LED-RGB-1.6x1.6               118.7500   -132.6500  119.2500   -131.7750    90.0    top       SMD
-D1            D                   D_1206_3216Metric_Pad1.42x1.. 99.2000    -130.7000  99.2000    -129.2125   -90.0    top       SMD
+D1            D                   D_1206_3216Metric             99.6000    -130.2000  99.6000    -128.8000   -90.0    top       SMD
 C1            0.1uF               C_0603                        110.4500   -133.1500  109.6750   -133.1500     0.0    top       SMD
 C2            0.1uF               Hidden                        100.0000   -121.0500  0.0000     0.0000       90.0    top       SMD
 C3            2.2uF               Hidden                        101.2500   -124.3500  0.0000     0.0000       90.0    top       SMD
