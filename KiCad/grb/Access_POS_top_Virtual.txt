@@ -1,9 +1,9 @@
-### Module positions - created on 2022-02-07 15:17
+### Module positions - created on 2022-02-20 16:44
 ### Printed by pcb_positions plugin
 ## Unit = mm, Angle = deg.
 ## Pcb Height 34.100mm, Pcb Width 50.100mm [based on Edge bounding box]
 ## Side : top
 ## Board Aux Origin: 0.000mm ,0.000mm
 # Ref         Val                 Package                       PosX       PosY       Pin1_PosX  Pin1_PosY    Rot     Side      Type
-H1            MountingHole        ISO7380-M3-Pad                129.5000   -83.5000   127.2500   -83.5000      0.0    top       VIRTUAL
+H1            MountingHole        ISO7380-M3-Pad                129.5000   -83.5000   129.5000   -83.5000      0.0    top       VIRTUAL
 ## End

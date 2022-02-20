@@ -3161,7 +3161,7 @@
     (in_bom yes) (on_board yes)
     (uuid 44fc2331-a491-4caa-bfe3-446626627399)
     (property "Reference" "R6" (id 0) (at 229.87 109.22 90))
-    (property "Value" "500K" (id 1) (at 231.775 109.22 90))
+    (property "Value" "470K" (id 1) (at 231.775 109.22 90))
     (property "Footprint" "RevK:R_0603" (id 2) (at 233.553 109.22 90)
       (effects (font (size 1.27 1.27)) hide)
     )
@@ -3796,7 +3796,7 @@
       (reference "R5") (unit 1) (value "10k") (footprint "RevK:R_0603")
     )
     (path "/44fc2331-a491-4caa-bfe3-446626627399"
-      (reference "R6") (unit 1) (value "500K") (footprint "RevK:R_0603")
+      (reference "R6") (unit 1) (value "470K") (footprint "RevK:R_0603")
     )
     (path "/2ad870e8-b762-47ec-ab02-a3ca2603f2d2"
       (reference "R7") (unit 1) (value "100K") (footprint "RevK:R_0603")
