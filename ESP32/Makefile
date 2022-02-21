@@ -6,7 +6,7 @@
 PROJECT_NAME := SS
 SUFFIX := $(shell components/ESP32-RevK/suffix)
 
-build/$(PROJECT_NAME)$(SUFFIX).bin:
+all:
 	idf.py build
 	cp build/$(PROJECT_NAME).bin build/$(PROJECT_NAME)$(SUFFIX).bin
 
