@@ -2667,7 +2667,7 @@
     (in_bom yes) (on_board yes)
     (uuid 00000000-0000-0000-0000-000060819c12)
     (property "Reference" "R10" (id 0) (at 191.77 102.235 90))
-    (property "Value" "324R" (id 1) (at 191.77 104.775 90))
+    (property "Value" "220R" (id 1) (at 191.77 104.775 90))
     (property "Footprint" "RevK:R_0603" (id 2) (at 191.77 102.997 90)
       (effects (font (size 1.27 1.27)) hide)
     )
@@ -3401,7 +3401,7 @@
     (in_bom yes) (on_board yes)
     (uuid 00000000-0000-0000-0000-000060ce4fe8)
     (property "Reference" "R8" (id 0) (at 191.77 92.075 90))
-    (property "Value" "732R" (id 1) (at 191.77 94.615 90))
+    (property "Value" "680R" (id 1) (at 191.77 94.615 90))
     (property "Footprint" "RevK:R_0603" (id 2) (at 191.77 92.837 90)
       (effects (font (size 1.27 1.27)) hide)
     )
@@ -4078,13 +4078,13 @@
       (reference "R7") (unit 1) (value "100R") (footprint "RevK:R_0603")
     )
     (path "/00000000-0000-0000-0000-000060ce4fe8"
-      (reference "R8") (unit 1) (value "732R") (footprint "RevK:R_0603")
+      (reference "R8") (unit 1) (value "680R") (footprint "RevK:R_0603")
     )
     (path "/00000000-0000-0000-0000-000060ce4750"
       (reference "R9") (unit 1) (value "2K") (footprint "RevK:R_0603")
     )
     (path "/00000000-0000-0000-0000-000060819c12"
-      (reference "R10") (unit 1) (value "324R") (footprint "RevK:R_0603")
+      (reference "R10") (unit 1) (value "220R") (footprint "RevK:R_0603")
     )
     (path "/c1897ab9-a710-4f2b-b18b-f2f520d0a247"
       (reference "R11") (unit 1) (value "10M 1% or 0R") (footprint "RevK:R_0603")
