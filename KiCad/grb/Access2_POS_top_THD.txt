@@ -1,0 +1,13 @@
+### Module positions - created on 2022-02-22 10:49
+### Printed by pcb_positions plugin
+## Unit = mm, Angle = deg.
+## Pcb Height 26.600mm, Pcb Width 50.100mm [based on Edge bounding box]
+## Side : top
+## Board Aux Origin: 0.000mm ,0.000mm
+# Ref         Val                 Package                       PosX       PosY       Pin1_PosX  Pin1_PosY    Rot     Side      Type
+J5            POWER               Molex_MiniSPOX_H2RA           145.7500   -72.6500   147.0000   -72.6500    180.0    top       THD
+J6            DOOR                Molex_MiniSPOX_H3RA           136.5000   -72.6500   139.0000   -72.6500    180.0    top       THD
+J2            RFID                Molex_MiniSPOX_H4RA           124.7500   -72.6500   128.5000   -72.6500    180.0    top       THD
+J3            INPUTS              Molex_MiniSPOX_H6RA           109.2500   -72.6500   115.5000   -72.6500    180.0    top       THD
+JP1           12V                 PinHeader_1x02_P1.27mm_Vert.. 142.0000   -76.7500   142.0000   -76.7500    180.0    top       THD
+## End

@@ -1,0 +1,19 @@
+### Module positions - created on 2022-02-22 10:49
+### Printed by pcb_positions plugin
+## Unit = mm, Angle = deg.
+## Pcb Height 26.600mm, Pcb Width 50.100mm [based on Edge bounding box]
+## Side : bottom
+## Board Aux Origin: 0.000mm ,0.000mm
+# Ref         Val                 Package                       PosX       PosY       Pin1_PosX  Pin1_PosY    Rot     Side      Type
+C3            33pF                C_0603                        115.0000   -67.5000   115.0000   -68.2750     90.0    bottom    SMD
+C5            33pF                C_0603                        111.0000   -67.5000   111.0000   -68.2750     90.0    bottom    SMD
+C7            33pF                C_0603                        107.0000   -67.5000   107.0000   -68.2750     90.0    bottom    SMD
+D1            BAV99S              SOT-363_SC-70-6               118.0000   -70.0000   117.0500   -70.6500      0.0    bottom    SMD
+D4            BAV99S              SOT-363_SC-70-6               106.0000   -70.0000   105.0500   -70.6500      0.0    bottom    SMD
+C2            33pF                C_0603                        117.0000   -67.5250   117.0000   -68.3000     90.0    bottom    SMD
+D3            BAV99S              SOT-363_SC-70-6               110.0000   -70.0000   109.0500   -70.6500      0.0    bottom    SMD
+C8            33pF                C_0603                        105.0000   -67.5000   105.0000   -68.2750     90.0    bottom    SMD
+C6            33pF                C_0603                        109.0000   -67.5000   109.0000   -68.2750     90.0    bottom    SMD
+D2            BAV99S              SOT-363_SC-70-6               114.0000   -70.0000   113.0500   -70.6500      0.0    bottom    SMD
+C4            33pF                C_0603                        113.0000   -67.5000   113.0000   -68.2750     90.0    bottom    SMD
+## End
