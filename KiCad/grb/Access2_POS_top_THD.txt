@@ -1,4 +1,4 @@
-### Module positions - created on 2022-02-22 18:10
+### Module positions - created on 2022-02-23 17:23
 ### Printed by pcb_positions plugin
 ## Unit = mm, Angle = deg.
 ## Pcb Height 26.600mm, Pcb Width 50.100mm [based on Edge bounding box]
@@ -9,5 +9,5 @@ J5            POWER               Molex_MiniSPOX_H2RA           145.7500   -72.6
 J6            DOOR                Molex_MiniSPOX_H3RA           136.5000   -72.6500   139.0000   -72.6500    180.0    top       THD
 J2            RFID                Molex_MiniSPOX_H4RA           124.7500   -72.6500   128.5000   -72.6500    180.0    top       THD
 J3            INPUTS              Molex_MiniSPOX_H6RA           109.2500   -72.6500   115.5000   -72.6500    180.0    top       THD
-JP1           12V                 PinHeader_1x02_P1.27mm_Vert.. 142.0000   -76.7500   142.0000   -76.7500    180.0    top       THD
+JP1           12V                 PinHeader_1x02_P1.27mm_Vert.. 142.7000   -75.8000   142.7000   -75.8000    -90.0    top       THD
 ## End

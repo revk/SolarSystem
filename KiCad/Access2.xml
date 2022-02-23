@@ -2,7 +2,7 @@
 <export version="E">
   <design>
     <source>/Users/adrian/git/SolarSystem/KiCad/Access2.kicad_sch</source>
-    <date>Tuesday, 22 February 2022 at 10:40:09</date>
+    <date>Wednesday, 23 February 2022 at 17:25:06</date>
     <tool>Eeschema (6.0.2-0)</tool>
     <textvar name="DATE">2022-02-18</textvar>
     <sheet number="1" name="/" tstamps="/">
@@ -116,7 +116,7 @@
       <fields>
         <field name="Note">X7R or X5R 0603</field>
       </fields>
-      <libsource lib="" part="Hidden_3" description=""/>
+      <libsource lib="RevK" part="Hidden" description=""/>
       <property name="Note" value="X7R or X5R 0603"/>
       <property name="Part No" value=""/>
       <property name="Sheetname" value=""/>
@@ -130,7 +130,7 @@
       <fields>
         <field name="Note">0603 or 0805</field>
       </fields>
-      <libsource lib="" part="Hidden_4" description=""/>
+      <libsource lib="RevK" part="Hidden" description=""/>
       <property name="Note" value="0603 or 0805"/>
       <property name="Part No" value=""/>
       <property name="Sheetname" value=""/>
@@ -144,7 +144,7 @@
       <fields>
         <field name="Note">0603 or 0805</field>
       </fields>
-      <libsource lib="" part="Hidden_1" description=""/>
+      <libsource lib="RevK" part="Hidden" description=""/>
       <property name="Note" value="0603 or 0805"/>
       <property name="Part No" value=""/>
       <property name="Sheetname" value=""/>
@@ -158,7 +158,7 @@
       <fields>
         <field name="Note">X7R or X5R 0603</field>
       </fields>
-      <libsource lib="" part="Hidden_7" description=""/>
+      <libsource lib="RevK" part="Hidden" description=""/>
       <property name="Note" value="X7R or X5R 0603"/>
       <property name="Part No" value=""/>
       <property name="Sheetname" value=""/>
@@ -172,7 +172,7 @@
       <fields>
         <field name="Note">0603 or 0805</field>
       </fields>
-      <libsource lib="" part="Hidden_8" description=""/>
+      <libsource lib="RevK" part="Hidden" description=""/>
       <property name="Note" value="0603 or 0805"/>
       <property name="Part No" value=""/>
       <property name="Sheetname" value=""/>
@@ -186,7 +186,7 @@
       <fields>
         <field name="Note">0603 or 0805</field>
       </fields>
-      <libsource lib="" part="Hidden_6" description=""/>
+      <libsource lib="RevK" part="Hidden" description=""/>
       <property name="Note" value="0603 or 0805"/>
       <property name="Part No" value=""/>
       <property name="Sheetname" value=""/>
@@ -257,7 +257,7 @@
         <field name="Manufacturer">Bourns</field>
         <field name="Part No">CD1206-B2100</field>
       </fields>
-      <libsource lib="" part="Hidden_5" description=""/>
+      <libsource lib="RevK" part="Hidden" description=""/>
       <property name="Manufacturer" value="Bourns"/>
       <property name="Part No" value="CD1206-B2100"/>
       <property name="Note" value=""/>
@@ -274,7 +274,7 @@
         <field name="Manufacturer">Bourns</field>
         <field name="Part No">CD1206-B2100</field>
       </fields>
-      <libsource lib="" part="Hidden_10" description=""/>
+      <libsource lib="RevK" part="Hidden" description=""/>
       <property name="Manufacturer" value="Bourns"/>
       <property name="Part No" value="CD1206-B2100"/>
       <property name="Note" value=""/>
@@ -296,7 +296,7 @@
       <value>USB-C</value>
       <footprint>RevK:USC16-TR-Round</footprint>
       <datasheet>https://www.usb.org/sites/default/files/documents/usb_type-c.zip</datasheet>
-      <libsource lib="Connector" part="USB_C_Receptacle_USB2.0" description="USB 2.0-only Type-C Receptacle connector"/>
+      <libsource lib="RevK" part="USB-C" description="USB 2.0-only Type-C Receptacle connector"/>
       <property name="Sheetname" value=""/>
       <property name="Sheetfile" value="Access2.kicad_sch"/>
       <sheetpath names="/" tstamps="/"/>
@@ -364,7 +364,7 @@
         <field name="Manufacturer">Laird</field>
         <field name="Part No">TYA4020</field>
       </fields>
-      <libsource lib="" part="Hidden_2" description=""/>
+      <libsource lib="RevK" part="Hidden" description=""/>
       <property name="Manufacturer" value="Laird"/>
       <property name="Part No" value="TYA4020"/>
       <property name="Note" value=""/>
@@ -381,7 +381,7 @@
         <field name="Manufacturer">Laird</field>
         <field name="Part No">TYA4020</field>
       </fields>
-      <libsource lib="" part="Hidden_9" description=""/>
+      <libsource lib="RevK" part="Hidden" description=""/>
       <property name="Manufacturer" value="Laird"/>
       <property name="Part No" value="TYA4020"/>
       <property name="Note" value=""/>
@@ -550,7 +550,7 @@
       <tstamps>00000000-0000-0000-0000-00006076eca1</tstamps>
     </comp>
     <comp ref="R17">
-      <value>732R</value>
+      <value>680R</value>
       <footprint>RevK:R_0603</footprint>
       <libsource lib="Device" part="R" description="Resistor"/>
       <property name="Sheetname" value=""/>
@@ -568,7 +568,7 @@
       <tstamps>00000000-0000-0000-0000-000060cfbfaf</tstamps>
     </comp>
     <comp ref="R19">
-      <value>324R</value>
+      <value>220R</value>
       <footprint>RevK:R_0603</footprint>
       <libsource lib="Device" part="R" description="Resistor"/>
       <property name="Sheetname" value=""/>
@@ -621,15 +621,6 @@
       <sheetpath names="/" tstamps="/"/>
       <tstamps>8271dfba-3962-4c80-a371-fd4d42efa2fe</tstamps>
     </comp>
-    <comp ref="SW1">
-      <value>Tamper</value>
-      <footprint>RevK:SW_PUSH_6mm_SMD</footprint>
-      <libsource lib="Switch" part="SW_Push" description="Push button switch, generic, two pins"/>
-      <property name="Sheetname" value=""/>
-      <property name="Sheetfile" value="Access2.kicad_sch"/>
-      <sheetpath names="/" tstamps="/"/>
-      <tstamps>00000000-0000-0000-0000-00006093be97</tstamps>
-    </comp>
     <comp ref="U1">
       <value>ESP32-PICO-MINI-02</value>
       <footprint>RevK:ESP32-PICO-MINI-02</footprint>
@@ -653,11 +644,11 @@
       <value>FT231XQ</value>
       <footprint>RevK:QFN-20-1EP_4x4mm_P0.5mm_EP2.5x2.5mm</footprint>
       <datasheet>https://www.ftdichip.com/Support/Documents/DataSheets/ICs/DS_FT231X.pdf</datasheet>
-      <libsource lib="Interface_USB" part="FT231XQ" description="Full Speed USB to Full Handshake UART, QFN-20"/>
+      <libsource lib="RevK" part="FT231XQ" description="Full Speed USB to Full Handshake UART, QFN-20"/>
       <property name="Sheetname" value=""/>
       <property name="Sheetfile" value="Access2.kicad_sch"/>
       <sheetpath names="/" tstamps="/"/>
-      <tstamps>00000000-0000-0000-0000-00006084108b</tstamps>
+      <tstamps>ce0183bd-126a-4a79-9acb-8b4bfe630f86</tstamps>
     </comp>
     <comp ref="U3">
       <value>G3VM-41GR8</value>
@@ -727,137 +718,6 @@
     </comp>
   </components>
   <libparts>
-    <libpart lib="" part="Hidden_1">
-      <fields>
-        <field name="Reference">Z</field>
-        <field name="Value">Hidden_1</field>
-        <field name="Footprint">RevK:Hidden</field>
-      </fields>
-      <pins>
-        <pin num="~" name="" type="no_connect"/>
-      </pins>
-    </libpart>
-    <libpart lib="" part="Hidden_10">
-      <fields>
-        <field name="Reference">Z</field>
-        <field name="Value">Hidden_10</field>
-        <field name="Footprint">RevK:Hidden</field>
-      </fields>
-      <pins>
-        <pin num="~" name="" type="no_connect"/>
-      </pins>
-    </libpart>
-    <libpart lib="" part="Hidden_2">
-      <fields>
-        <field name="Reference">Z</field>
-        <field name="Value">Hidden_2</field>
-        <field name="Footprint">RevK:Hidden</field>
-      </fields>
-      <pins>
-        <pin num="~" name="" type="no_connect"/>
-      </pins>
-    </libpart>
-    <libpart lib="" part="Hidden_3">
-      <fields>
-        <field name="Reference">Z</field>
-        <field name="Value">Hidden_3</field>
-        <field name="Footprint">RevK:Hidden</field>
-      </fields>
-      <pins>
-        <pin num="~" name="" type="no_connect"/>
-      </pins>
-    </libpart>
-    <libpart lib="" part="Hidden_4">
-      <fields>
-        <field name="Reference">Z</field>
-        <field name="Value">Hidden_4</field>
-        <field name="Footprint">RevK:Hidden</field>
-      </fields>
-      <pins>
-        <pin num="~" name="" type="no_connect"/>
-      </pins>
-    </libpart>
-    <libpart lib="" part="Hidden_5">
-      <fields>
-        <field name="Reference">Z</field>
-        <field name="Value">Hidden_5</field>
-        <field name="Footprint">RevK:Hidden</field>
-      </fields>
-      <pins>
-        <pin num="~" name="" type="no_connect"/>
-      </pins>
-    </libpart>
-    <libpart lib="" part="Hidden_6">
-      <fields>
-        <field name="Reference">Z</field>
-        <field name="Value">Hidden_6</field>
-        <field name="Footprint">RevK:Hidden</field>
-      </fields>
-      <pins>
-        <pin num="~" name="" type="no_connect"/>
-      </pins>
-    </libpart>
-    <libpart lib="" part="Hidden_7">
-      <fields>
-        <field name="Reference">Z</field>
-        <field name="Value">Hidden_7</field>
-        <field name="Footprint">RevK:Hidden</field>
-      </fields>
-      <pins>
-        <pin num="~" name="" type="no_connect"/>
-      </pins>
-    </libpart>
-    <libpart lib="" part="Hidden_8">
-      <fields>
-        <field name="Reference">Z</field>
-        <field name="Value">Hidden_8</field>
-        <field name="Footprint">RevK:Hidden</field>
-      </fields>
-      <pins>
-        <pin num="~" name="" type="no_connect"/>
-      </pins>
-    </libpart>
-    <libpart lib="" part="Hidden_9">
-      <fields>
-        <field name="Reference">Z</field>
-        <field name="Value">Hidden_9</field>
-        <field name="Footprint">RevK:Hidden</field>
-      </fields>
-      <pins>
-        <pin num="~" name="" type="no_connect"/>
-      </pins>
-    </libpart>
-    <libpart lib="Connector" part="USB_C_Receptacle_USB2.0">
-      <description>USB 2.0-only Type-C Receptacle connector</description>
-      <docs>https://www.usb.org/sites/default/files/documents/usb_type-c.zip</docs>
-      <footprints>
-        <fp>USB*C*Receptacle*</fp>
-      </footprints>
-      <fields>
-        <field name="Reference">J</field>
-        <field name="Value">USB_C_Receptacle_USB2.0</field>
-        <field name="Datasheet">https://www.usb.org/sites/default/files/documents/usb_type-c.zip</field>
-      </fields>
-      <pins>
-        <pin num="A1" name="GND" type="passive"/>
-        <pin num="A4" name="VBUS" type="passive"/>
-        <pin num="A5" name="CC1" type="bidirectional"/>
-        <pin num="A6" name="D+" type="bidirectional"/>
-        <pin num="A7" name="D-" type="bidirectional"/>
-        <pin num="A8" name="SBU1" type="bidirectional"/>
-        <pin num="A9" name="VBUS" type="passive"/>
-        <pin num="A12" name="GND" type="passive"/>
-        <pin num="B1" name="GND" type="passive"/>
-        <pin num="B4" name="VBUS" type="passive"/>
-        <pin num="B5" name="CC2" type="bidirectional"/>
-        <pin num="B6" name="D+" type="bidirectional"/>
-        <pin num="B7" name="D-" type="bidirectional"/>
-        <pin num="B8" name="SBU2" type="bidirectional"/>
-        <pin num="B9" name="VBUS" type="passive"/>
-        <pin num="B12" name="GND" type="passive"/>
-        <pin num="S1" name="SHIELD" type="passive"/>
-      </pins>
-    </libpart>
     <libpart lib="Connector_Generic" part="Conn_01x02">
       <description>Generic connector, single row, 01x02, script generated (kicad-library-utils/schlib/autogen/connector/)</description>
       <docs>~</docs>
@@ -1035,42 +895,6 @@
         <pin num="6" name="K3A4" type="passive"/>
       </pins>
     </libpart>
-    <libpart lib="Interface_USB" part="FT231XQ">
-      <description>Full Speed USB to Full Handshake UART, QFN-20</description>
-      <docs>https://www.ftdichip.com/Support/Documents/DataSheets/ICs/DS_FT231X.pdf</docs>
-      <footprints>
-        <fp>QFN*4x4mm*P0.5mm*</fp>
-      </footprints>
-      <fields>
-        <field name="Reference">U</field>
-        <field name="Value">FT231XQ</field>
-        <field name="Footprint">Package_DFN_QFN:QFN-20-1EP_4x4mm_P0.5mm_EP2.5x2.5mm</field>
-        <field name="Datasheet">https://www.ftdichip.com/Support/Documents/DataSheets/ICs/DS_FT231X.pdf</field>
-      </fields>
-      <pins>
-        <pin num="1" name="RXD" type="input"/>
-        <pin num="2" name="~{RI}" type="input"/>
-        <pin num="3" name="GND" type="power_in"/>
-        <pin num="4" name="~{DSR}" type="input"/>
-        <pin num="5" name="~{DCD}" type="input"/>
-        <pin num="6" name="~{CTS}" type="input"/>
-        <pin num="7" name="CBUS2" type="bidirectional"/>
-        <pin num="8" name="USBDP" type="bidirectional"/>
-        <pin num="9" name="USBDM" type="bidirectional"/>
-        <pin num="10" name="3V3OUT" type="power_out"/>
-        <pin num="11" name="~{RESET}" type="input"/>
-        <pin num="12" name="VCC" type="power_in"/>
-        <pin num="13" name="GND" type="power_in"/>
-        <pin num="14" name="CBUS1" type="bidirectional"/>
-        <pin num="15" name="CBUS0" type="bidirectional"/>
-        <pin num="16" name="CBUS3" type="bidirectional"/>
-        <pin num="17" name="TXD" type="output"/>
-        <pin num="18" name="~{DTR}" type="output"/>
-        <pin num="19" name="~{RTS}" type="output"/>
-        <pin num="20" name="VCCIO" type="power_in"/>
-        <pin num="21" name="GND" type="power_in"/>
-      </pins>
-    </libpart>
     <libpart lib="Jumper" part="Jumper_2_Open">
       <description>Jumper, 2-pole, open</description>
       <docs>~</docs>
@@ -1170,14 +994,42 @@
         <pin num="51" name="GND" type="power_in"/>
         <pin num="52" name="GND" type="power_in"/>
         <pin num="53" name="GND" type="power_in"/>
-        <pin num="54" name="GND" type="power_in"/>
-        <pin num="55" name="GND" type="power_in"/>
-        <pin num="56" name="GND" type="power_in"/>
-        <pin num="57" name="GND" type="power_in"/>
-        <pin num="58" name="GND" type="power_in"/>
-        <pin num="59" name="GND" type="power_in"/>
-        <pin num="60" name="GND" type="power_in"/>
-        <pin num="61" name="GND" type="power_in"/>
+      </pins>
+    </libpart>
+    <libpart lib="RevK" part="FT231XQ">
+      <description>Full Speed USB to Full Handshake UART, QFN-20</description>
+      <docs>https://www.ftdichip.com/Support/Documents/DataSheets/ICs/DS_FT231X.pdf</docs>
+      <footprints>
+        <fp>QFN*4x4mm*P0.5mm*</fp>
+      </footprints>
+      <fields>
+        <field name="Reference">U</field>
+        <field name="Value">FT231XQ</field>
+        <field name="Footprint">RevK:QFN-20-1EP_4x4mm_P0.5mm_EP2.5x2.5mm</field>
+        <field name="Datasheet">https://www.ftdichip.com/Support/Documents/DataSheets/ICs/DS_FT231X.pdf</field>
+      </fields>
+      <pins>
+        <pin num="1" name="RXD" type="input"/>
+        <pin num="2" name="~{RI}" type="input"/>
+        <pin num="3" name="GND" type="power_in"/>
+        <pin num="4" name="~{DSR}" type="input"/>
+        <pin num="5" name="~{DCD}" type="input"/>
+        <pin num="6" name="~{CTS}" type="input"/>
+        <pin num="7" name="CBUS2" type="bidirectional"/>
+        <pin num="8" name="USBDP" type="bidirectional"/>
+        <pin num="9" name="USBDM" type="bidirectional"/>
+        <pin num="10" name="3V3OUT" type="passive"/>
+        <pin num="11" name="~{RESET}" type="input"/>
+        <pin num="12" name="VCC" type="power_in"/>
+        <pin num="13" name="GND" type="power_in"/>
+        <pin num="14" name="CBUS1" type="bidirectional"/>
+        <pin num="15" name="CBUS0" type="bidirectional"/>
+        <pin num="16" name="CBUS3" type="bidirectional"/>
+        <pin num="17" name="TXD" type="output"/>
+        <pin num="18" name="~{DTR}" type="output"/>
+        <pin num="19" name="~{RTS}" type="output"/>
+        <pin num="20" name="VCCIO" type="power_in"/>
+        <pin num="21" name="GND" type="power_in"/>
       </pins>
     </libpart>
     <libpart lib="RevK" part="G3VM-41GR8">
@@ -1194,6 +1046,16 @@
         <pin num="2" name="" type="passive"/>
         <pin num="3" name="" type="passive"/>
         <pin num="4" name="" type="passive"/>
+      </pins>
+    </libpart>
+    <libpart lib="RevK" part="Hidden">
+      <fields>
+        <field name="Reference">Z</field>
+        <field name="Value">Hidden</field>
+        <field name="Footprint">RevK:Hidden</field>
+      </fields>
+      <pins>
+        <pin num="~" name="" type="no_connect"/>
       </pins>
     </libpart>
     <libpart lib="RevK" part="LMR16006+FB">
@@ -1219,10 +1081,11 @@
       <fields>
         <field name="Reference">J</field>
         <field name="Value">PowerIn</field>
+        <field name="Footprint">RevK:Molex_MiniSPOX_H2RA</field>
       </fields>
       <pins>
-        <pin num="1" name="Pin_1" type="power_out"/>
-        <pin num="2" name="Pin_2" type="power_out"/>
+        <pin num="1" name="GND" type="power_in"/>
+        <pin num="2" name="DC" type="power_out"/>
       </pins>
     </libpart>
     <libpart lib="RevK" part="QR">
@@ -1231,6 +1094,38 @@
         <field name="Value">QR</field>
         <field name="Note">Non part, PCB printed</field>
       </fields>
+    </libpart>
+    <libpart lib="RevK" part="USB-C">
+      <description>USB 2.0-only Type-C Receptacle connector</description>
+      <docs>https://www.usb.org/sites/default/files/documents/usb_type-c.zip</docs>
+      <footprints>
+        <fp>USB*C*Receptacle*</fp>
+      </footprints>
+      <fields>
+        <field name="Reference">J</field>
+        <field name="Value">USB-C</field>
+        <field name="Footprint">RevK:USC16-TR-Round</field>
+        <field name="Datasheet">https://www.usb.org/sites/default/files/documents/usb_type-c.zip</field>
+      </fields>
+      <pins>
+        <pin num="A1" name="GND" type="power_out"/>
+        <pin num="A4" name="VBUS" type="passive"/>
+        <pin num="A5" name="CC1" type="bidirectional"/>
+        <pin num="A6" name="D+" type="bidirectional"/>
+        <pin num="A7" name="D-" type="bidirectional"/>
+        <pin num="A8" name="SBU1" type="no_connect"/>
+        <pin num="A9" name="VBUS" type="power_out"/>
+        <pin num="A12" name="GND" type="passive"/>
+        <pin num="B1" name="GND" type="passive"/>
+        <pin num="B4" name="VBUS" type="passive"/>
+        <pin num="B5" name="CC2" type="bidirectional"/>
+        <pin num="B6" name="D+" type="bidirectional"/>
+        <pin num="B7" name="D-" type="bidirectional"/>
+        <pin num="B8" name="SBU2" type="no_connect"/>
+        <pin num="B9" name="VBUS" type="passive"/>
+        <pin num="B12" name="GND" type="passive"/>
+        <pin num="S1" name="SHIELD" type="passive"/>
+      </pins>
     </libpart>
     <libpart lib="Switch" part="SW_Push">
       <description>Push button switch, generic, two pins</description>
@@ -1247,9 +1142,6 @@
     </libpart>
   </libparts>
   <libraries>
-    <library logical="Connector">
-      <uri>/Applications/KiCad/KiCad.app/Contents/SharedSupport/symbols//Connector.kicad_sym</uri>
-    </library>
     <library logical="Connector_Generic">
       <uri>/Applications/KiCad/KiCad.app/Contents/SharedSupport/symbols//Connector_Generic.kicad_sym</uri>
     </library>
@@ -1258,9 +1150,6 @@
     </library>
     <library logical="Diode">
       <uri>/Applications/KiCad/KiCad.app/Contents/SharedSupport/symbols//Diode.kicad_sym</uri>
-    </library>
-    <library logical="Interface_USB">
-      <uri>/Applications/KiCad/KiCad.app/Contents/SharedSupport/symbols//Interface_USB.kicad_sym</uri>
     </library>
     <library logical="Jumper">
       <uri>/Applications/KiCad/KiCad.app/Contents/SharedSupport/symbols//Jumper.kicad_sym</uri>
@@ -1287,7 +1176,7 @@
       <node ref="R1" pin="1" pintype="passive"/>
       <node ref="R22" pin="1" pintype="passive"/>
       <node ref="U1" pin="3" pinfunction="3V3" pintype="power_in"/>
-      <node ref="U2" pin="10" pinfunction="3V3OUT" pintype="power_out"/>
+      <node ref="U2" pin="10" pinfunction="3V3OUT" pintype="passive"/>
       <node ref="U2" pin="11" pinfunction="~{RESET}" pintype="input"/>
       <node ref="U2" pin="12" pinfunction="VCC" pintype="power_in"/>
       <node ref="U2" pin="20" pinfunction="VCCIO" pintype="power_in"/>
@@ -1300,7 +1189,7 @@
     </net>
     <net code="3" name="+12V">
       <node ref="D8" pin="1" pinfunction="K" pintype="passive"/>
-      <node ref="J5" pin="2" pinfunction="Pin_2" pintype="power_out"/>
+      <node ref="J5" pin="2" pinfunction="DC" pintype="power_out"/>
       <node ref="JP1" pin="1" pinfunction="A" pintype="passive"/>
       <node ref="R20" pin="2" pintype="passive"/>
       <node ref="U4" pin="2" pinfunction="VIN" pintype="power_in"/>
@@ -1349,14 +1238,14 @@
       <node ref="D3" pin="4" pinfunction="A3" pintype="passive"/>
       <node ref="D4" pin="1" pinfunction="A1" pintype="passive"/>
       <node ref="D4" pin="4" pinfunction="A3" pintype="passive"/>
-      <node ref="J1" pin="A1" pinfunction="GND" pintype="passive"/>
+      <node ref="J1" pin="A1" pinfunction="GND" pintype="power_out"/>
       <node ref="J1" pin="A12" pinfunction="GND" pintype="passive"/>
       <node ref="J1" pin="B1" pinfunction="GND" pintype="passive"/>
       <node ref="J1" pin="B12" pinfunction="GND" pintype="passive"/>
       <node ref="J1" pin="S1" pinfunction="SHIELD" pintype="passive"/>
       <node ref="J2" pin="1" pinfunction="Pin_1" pintype="passive"/>
       <node ref="J4" pin="1" pinfunction="Pin_1" pintype="passive"/>
-      <node ref="J5" pin="1" pinfunction="Pin_1" pintype="power_out"/>
+      <node ref="J5" pin="1" pinfunction="GND" pintype="power_in"/>
       <node ref="J6" pin="1" pinfunction="Pin_1" pintype="passive"/>
       <node ref="Q1" pin="2" pinfunction="S" pintype="passive"/>
       <node ref="R23" pin="1" pintype="passive"/>
@@ -1364,7 +1253,6 @@
       <node ref="R3" pin="2" pintype="passive"/>
       <node ref="R4" pin="2" pintype="passive"/>
       <node ref="R5" pin="1" pintype="passive"/>
-      <node ref="SW1" pin="1" pinfunction="1" pintype="passive"/>
       <node ref="U1" pin="1" pinfunction="GND" pintype="power_in"/>
       <node ref="U1" pin="11" pinfunction="GND" pintype="power_in"/>
       <node ref="U1" pin="14" pinfunction="GND" pintype="power_in"/>
@@ -1387,14 +1275,6 @@
       <node ref="U1" pin="51" pinfunction="GND" pintype="power_in"/>
       <node ref="U1" pin="52" pinfunction="GND" pintype="power_in"/>
       <node ref="U1" pin="53" pinfunction="GND" pintype="power_in"/>
-      <node ref="U1" pin="54" pinfunction="GND" pintype="power_in"/>
-      <node ref="U1" pin="55" pinfunction="GND" pintype="power_in"/>
-      <node ref="U1" pin="56" pinfunction="GND" pintype="power_in"/>
-      <node ref="U1" pin="57" pinfunction="GND" pintype="power_in"/>
-      <node ref="U1" pin="58" pinfunction="GND" pintype="power_in"/>
-      <node ref="U1" pin="59" pinfunction="GND" pintype="power_in"/>
-      <node ref="U1" pin="60" pinfunction="GND" pintype="power_in"/>
-      <node ref="U1" pin="61" pinfunction="GND" pintype="power_in"/>
       <node ref="U2" pin="13" pinfunction="GND" pintype="power_in"/>
       <node ref="U2" pin="2" pinfunction="~{RI}" pintype="input"/>
       <node ref="U2" pin="21" pinfunction="GND" pintype="power_in"/>
@@ -1566,17 +1446,16 @@
     </net>
     <net code="45" name="SHDN">
       <node ref="Q1" pin="1" pinfunction="G" pintype="input"/>
-      <node ref="U1" pin="19" pinfunction="IO12" pintype="bidirectional"/>
+      <node ref="U1" pin="20" pinfunction="IO13" pintype="bidirectional"/>
     </net>
     <net code="46" name="TAMPER">
       <node ref="J4" pin="2" pinfunction="Pin_2" pintype="passive"/>
-      <node ref="SW1" pin="2" pinfunction="2" pintype="passive"/>
       <node ref="U1" pin="16" pinfunction="IO26" pintype="bidirectional"/>
     </net>
     <net code="47" name="VBUS">
       <node ref="D8" pin="2" pinfunction="A" pintype="passive"/>
       <node ref="J1" pin="A4" pinfunction="VBUS" pintype="passive"/>
-      <node ref="J1" pin="A9" pinfunction="VBUS" pintype="passive"/>
+      <node ref="J1" pin="A9" pinfunction="VBUS" pintype="power_out"/>
       <node ref="J1" pin="B4" pinfunction="VBUS" pintype="passive"/>
       <node ref="J1" pin="B9" pinfunction="VBUS" pintype="passive"/>
       <node ref="R2" pin="1" pintype="passive"/>
@@ -1606,10 +1485,10 @@
       <node ref="D7" pin="" pintype="no_connect"/>
     </net>
     <net code="56" name="unconnected-(J1-PadA8)">
-      <node ref="J1" pin="A8" pinfunction="SBU1" pintype="bidirectional+no_connect"/>
+      <node ref="J1" pin="A8" pinfunction="SBU1" pintype="no_connect"/>
     </net>
     <net code="57" name="unconnected-(J1-PadB8)">
-      <node ref="J1" pin="B8" pinfunction="SBU2" pintype="bidirectional+no_connect"/>
+      <node ref="J1" pin="B8" pinfunction="SBU2" pintype="no_connect"/>
     </net>
     <net code="58" name="unconnected-(L1-Pad~)">
       <node ref="L1" pin="" pintype="no_connect"/>
@@ -1618,37 +1497,37 @@
       <node ref="L2" pin="" pintype="no_connect"/>
     </net>
     <net code="60" name="unconnected-(U1-Pad4)">
-      <node ref="U1" pin="4" pinfunction="I36" pintype="input"/>
+      <node ref="U1" pin="4" pinfunction="I36" pintype="input+no_connect"/>
     </net>
     <net code="61" name="unconnected-(U1-Pad5)">
-      <node ref="U1" pin="5" pinfunction="I37" pintype="input"/>
+      <node ref="U1" pin="5" pinfunction="I37" pintype="input+no_connect"/>
     </net>
     <net code="62" name="unconnected-(U1-Pad6)">
-      <node ref="U1" pin="6" pinfunction="I38" pintype="input"/>
+      <node ref="U1" pin="6" pinfunction="I38" pintype="input+no_connect"/>
     </net>
     <net code="63" name="unconnected-(U1-Pad7)">
-      <node ref="U1" pin="7" pinfunction="I39" pintype="input"/>
+      <node ref="U1" pin="7" pinfunction="I39" pintype="input+no_connect"/>
     </net>
     <net code="64" name="unconnected-(U1-Pad9)">
-      <node ref="U1" pin="9" pinfunction="I34" pintype="input"/>
+      <node ref="U1" pin="9" pinfunction="I34" pintype="input+no_connect"/>
     </net>
     <net code="65" name="unconnected-(U1-Pad10)">
-      <node ref="U1" pin="10" pinfunction="I35" pintype="input"/>
+      <node ref="U1" pin="10" pinfunction="I35" pintype="input+no_connect"/>
     </net>
     <net code="66" name="unconnected-(U1-Pad17)">
-      <node ref="U1" pin="17" pinfunction="IO27" pintype="bidirectional"/>
+      <node ref="U1" pin="17" pinfunction="IO27" pintype="bidirectional+no_connect"/>
     </net>
-    <net code="67" name="unconnected-(U1-Pad20)">
-      <node ref="U1" pin="20" pinfunction="IO13" pintype="bidirectional"/>
+    <net code="67" name="unconnected-(U1-Pad19)">
+      <node ref="U1" pin="19" pinfunction="IO12" pintype="bidirectional+no_connect"/>
     </net>
     <net code="68" name="unconnected-(U1-Pad22)">
-      <node ref="U1" pin="22" pinfunction="IO2" pintype="bidirectional"/>
+      <node ref="U1" pin="22" pinfunction="IO2" pintype="bidirectional+no_connect"/>
     </net>
     <net code="69" name="unconnected-(U1-Pad25)">
       <node ref="U1" pin="25" pinfunction="NC" pintype="no_connect"/>
     </net>
     <net code="70" name="unconnected-(U1-Pad29)">
-      <node ref="U1" pin="29" pinfunction="IO5" pintype="bidirectional"/>
+      <node ref="U1" pin="29" pinfunction="IO5" pintype="bidirectional+no_connect"/>
     </net>
     <net code="71" name="unconnected-(U1-Pad32)">
       <node ref="U1" pin="32" pinfunction="NC" pintype="no_connect"/>
