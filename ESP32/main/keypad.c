@@ -449,7 +449,6 @@ static void task(void *pvParameters)
             return;             // Pending confirmation
          if (key == 0x7F)
             return;             // Idle
-         ui.keybit = !ui.keybit;	// Send confirmation
          ui.keyconfirm = 1;
          if (debug)
          { // Debug logging
@@ -536,6 +535,7 @@ static void task(void *pvParameters)
       } else if (ui.keyconfirm)
       {                         // key confirm
          ui.keyconfirm = 0;
+         ui.keybit = !ui.keybit;	// Send confirmation
          buf[++p] = 0x0B;
          buf[++p] = ui.keybit ? 2 : 0;
       } else if (ui.senddisplay || ui.sendcursor || ui.sendblink || ui.resenddisplay)
