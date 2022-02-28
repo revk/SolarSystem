@@ -534,8 +534,8 @@ static void task(void *pvParameters)
          buf[++p] = 0x0E;
       } else if (ui.keyconfirm)
       {                         // key confirm
-         ui.keyconfirm = 0;
          ui.keybit = !ui.keybit;	// Send confirmation
+	 if(ui.keybit) ui.keyconfirm = 0;
          buf[++p] = 0x0B;
          buf[++p] = ui.keybit ? 2 : 0;
       } else if (ui.senddisplay || ui.sendcursor || ui.sendblink || ui.resenddisplay)
