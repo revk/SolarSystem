@@ -21,7 +21,6 @@
 #include <ctype.h>
 #include <err.h>
 #include <unistd.h>
-#include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <signal.h>
@@ -386,6 +385,10 @@ static const char *settings(SQL * sqlp, SQL * sqlkeyp, SQL_RES * res, slot_t id)
          set(nfc, amber);
          set(nfc, green);
          set(nfc, card);
+         o = j_store_object(j, "gps");
+	 set(gps,tx);
+	 set(gps,rx);
+	 set(gps,tick);
 #undef set
          j_t blink = j_store_array(j, "blink");
 #define led(n) {const char *v=sql_colz(p,#n);if(!*v||!strcmp(v,"-"))j_append_string(blink,""); else j_append_literal(blink,v);}

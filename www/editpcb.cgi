@@ -128,6 +128,11 @@ xmlsql -C -d "$DB" head.html - foot.html << END
 <tr><td><select name=nfcgreen>$GPIONFCPICK</select></td><td>PN532 NFC green LED</td></tr>
 <tr><td><select name=nfccard>$GPIONFCPICK</select></td><td>PN532 NFC LED to blink for card</td></tr>
 </if>
+<tr><td><select name=gpstx onchange='F.submit();'>$GPIONUMPICK</select></td><td>GPIO GPS Tx</td></tr>
+<if not gpstx=='-'>
+<tr><td><select name=gpsrx>$GPIONUMPICK</select></td><td>GPIO GPS Rx</td></tr>
+<tr><td><select name=gpstick>$GPIONUMPICK</select></td><td>GPIO GPS Tick</td></tr>
+</if>
 <sql table=gpio where="pcb=\$pcb" order=io,inittype,initname><set initinvert\$gpio="\$initinvert">
 <tr><td><input name=gpio type=hidden><select name=pin>$GPIONUMPICK</select></td><td><input name="initinvert\$gpio" type=checkbox value=true title="Invert"> <input name="value0\$gpio" size=5 value="\$value0" placeholder="0 name"><input name="value1\$gpio" size=5 value="\$value1" placeholder="1 name"> <select name=io>$GPIOIOPICK</select><select name=inittype>$GPIOTYPEPICK</select> <input name="initname\$gpio" value="\$initname" size=10> <input name="inithold\$gpio" size=3 value="\$inithold">ms <input name="initpulse\$gpio" size=5 value="\$initpulse">s/10</td></tr></td>
 </sql>

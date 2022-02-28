@@ -278,6 +278,7 @@ bool (iotstatetamper);          // Copy stuff to IoT
 bool (ioteventfob);             // Copy stuff to IoT
 bool (iotkeypad);               // Copy stuff to IoT
 bool (nfc);                     // Yes, can get from pcb, but useful to reference quickly
+bool (gps);                     // Yes, can get from pcb, but useful to reference quickly
 bool (rgb);                     // Yes, can get from pcb, but useful to reference quickly
 bool (nfcadmin);                // NFC reader for admin use, e.g. on a desk
 bool (nfctrusted);              // Trusted device for fob provisioning
@@ -374,6 +375,9 @@ gpio(keypadre);
 gpio(nfctx);
 gpio(nfcrx);
 gpio(nfcpower);
+gpio(gpstx);
+gpio(gpsrx);
+gpio(gpstick);
 gpionfc(nfcred);                // NFC GPIO (actually NFC PCB specific, but set here, so PCB for PCB+NFC combination)
 gpionfc(nfcamber);
 gpionfc(nfcgreen);

@@ -42,6 +42,7 @@ static const char __attribute__((unused)) TAG[] = "SS";
 	m(door)		\
 	m(nfc)		\
 	m(alarm)	\
+	m(gps)		\
 
 // Other settings
 #define settings  	\
