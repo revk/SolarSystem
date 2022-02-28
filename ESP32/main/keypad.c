@@ -450,6 +450,7 @@ static void task(void *pvParameters)
          if (key == 0x7F)
             return;             // Idle
          ui.keyconfirm = 1;
+         ui.keybit = !ui.keybit;	// Send confirmation
          if (debug)
          { // Debug logging
             jo_t j = jo_object_alloc();
@@ -521,7 +522,7 @@ static void task(void *pvParameters)
          ui.senddisplay = 1;
          ui.sendcursor = 1;
          ui.sendblink = 1;
-         ui.keyconfirm = 1;
+         //ui.keyconfirm = 1;
          ui.sendbacklight = 1;
          ui.sendkeyclick = 1;
          if (force || !online || !ui.on || !ui.off)
@@ -534,9 +535,7 @@ static void task(void *pvParameters)
          buf[++p] = 0x0E;
       } else if (ui.keyconfirm)
       {                         // key confirm
-         ui.keybit = !ui.keybit;	// Send confirmation
-	 //if(ui.keybit)
-		 ui.keyconfirm = 0;
+	 ui.keyconfirm = 0;
          buf[++p] = 0x0B;
          buf[++p] = ui.keybit ? 2 : 0;
       } else if (ui.senddisplay || ui.sendcursor || ui.sendblink || ui.resenddisplay)
