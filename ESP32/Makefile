@@ -39,6 +39,15 @@ zap:    bootmode flash
 	./ftdizap/ftdizap --cbus=1 --reset
 
 # Program the FTDI
+ftdiGPS: ftdizap/ftdizap
+	./ftdizap/ftdizap --serial="RevK" --description="SolarSystem" --cbus3-mode=17 --self-powered
+
+ftdiAccess: ftdizap/ftdizap
+	./ftdizap/ftdizap --serial="RevK" --description="SolarSystem" --cbus3-mode=17 --self-powered
+
+ftdiBell: ftdizap/ftdizap
+	./ftdizap/ftdizap --serial="RevK" --description="SolarSystem" --cbus3-mode=17 --self-powered
+
 ftdi: ftdizap/ftdizap
 	./ftdizap/ftdizap --serial="RevK" --description="SolarSystem" --cbus0-mode=8 --cbus1-mode=4 --cbus2-mode=13 --cbus3-mode=5
 
