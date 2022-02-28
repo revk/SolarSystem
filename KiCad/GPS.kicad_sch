@@ -2473,7 +2473,7 @@
   )
 
   (symbol (lib_id "RevK:AA") (at 266.7 172.72 0) (unit 1)
-    (in_bom yes) (on_board yes)
+    (in_bom no) (on_board yes)
     (uuid 00000000-0000-0000-0000-000060b9351c)
     (property "Reference" "Logo1" (id 0) (at 266.7 172.72 0)
       (effects (font (size 1.27 1.27)) hide)
@@ -2621,7 +2621,7 @@
     (in_bom yes) (on_board yes)
     (uuid 00000000-0000-0000-0000-000060ce4fe8)
     (property "Reference" "R9" (id 0) (at 236.855 65.405 90))
-    (property "Value" "732R" (id 1) (at 236.855 67.945 90))
+    (property "Value" "680R" (id 1) (at 236.855 67.945 90))
     (property "Footprint" "RevK:R_0603" (id 2) (at 236.855 66.167 90)
       (effects (font (size 1.27 1.27)) hide)
     )
@@ -2667,7 +2667,7 @@
     (in_bom yes) (on_board yes)
     (uuid 00000000-0000-0000-0000-000060fbba7f)
     (property "Reference" "R11" (id 0) (at 236.855 75.565 90))
-    (property "Value" "324R" (id 1) (at 236.855 78.105 90))
+    (property "Value" "220R" (id 1) (at 236.855 78.105 90))
     (property "Footprint" "RevK:R_0603" (id 2) (at 236.855 76.327 90)
       (effects (font (size 1.27 1.27)) hide)
     )
@@ -2904,7 +2904,7 @@
   )
 
   (symbol (lib_id "Jumper:Jumper_2_Open") (at 122.555 153.67 0) (unit 1)
-    (in_bom yes) (on_board yes)
+    (in_bom no) (on_board yes)
     (uuid 0212d464-25d7-41c4-8551-b7cf439aef22)
     (property "Reference" "JP1" (id 0) (at 118.364 151.765 0))
     (property "Value" "IO6" (id 1) (at 122.555 154.305 0))
@@ -2954,7 +2954,7 @@
   )
 
   (symbol (lib_id "Jumper:Jumper_2_Open") (at 122.555 158.75 0) (unit 1)
-    (in_bom yes) (on_board yes)
+    (in_bom no) (on_board yes)
     (uuid 1e44720b-d014-4bd9-bc7c-8c9d5fa9082e)
     (property "Reference" "JP2" (id 0) (at 118.491 156.845 0))
     (property "Value" "IO4" (id 1) (at 122.555 159.385 0))
@@ -3267,7 +3267,7 @@
   )
 
   (symbol (lib_id "Jumper:Jumper_2_Open") (at 122.555 164.465 0) (unit 1)
-    (in_bom yes) (on_board yes)
+    (in_bom no) (on_board yes)
     (uuid 6942edd1-0ba6-453d-957e-b3b7fa528bf9)
     (property "Reference" "JP3" (id 0) (at 118.364 162.56 0))
     (property "Value" "IO3" (id 1) (at 122.555 165.1 0))
@@ -3302,7 +3302,7 @@
   )
 
   (symbol (lib_id "Jumper:Jumper_2_Open") (at 122.555 169.545 0) (unit 1)
-    (in_bom yes) (on_board yes)
+    (in_bom no) (on_board yes)
     (uuid 9b84c80e-aa5a-48a5-b167-ef8325c54366)
     (property "Reference" "JP4" (id 0) (at 118.745 167.767 0))
     (property "Value" "IO1" (id 1) (at 122.555 170.18 0))
@@ -3317,7 +3317,7 @@
   )
 
   (symbol (lib_id "Jumper:Jumper_2_Bridged") (at 154.94 161.29 0) (unit 1)
-    (in_bom yes) (on_board yes)
+    (in_bom no) (on_board yes)
     (uuid a0415e38-91a0-403e-b4f8-743eb910d07e)
     (property "Reference" "JP6" (id 0) (at 149.86 160.02 0))
     (property "Value" "IO3" (id 1) (at 154.94 162.56 0))
@@ -3332,7 +3332,7 @@
   )
 
   (symbol (lib_id "Jumper:Jumper_2_Bridged") (at 154.94 153.67 0) (unit 1)
-    (in_bom yes) (on_board yes)
+    (in_bom no) (on_board yes)
     (uuid a10f9f16-a7ad-468f-b672-0288065d903c)
     (property "Reference" "JP5" (id 0) (at 150.495 152.4 0))
     (property "Value" "IO6" (id 1) (at 154.94 154.94 0))
@@ -3769,13 +3769,13 @@
       (reference "R8") (unit 1) (value "10M 1% or 0R") (footprint "RevK:R_0603")
     )
     (path "/00000000-0000-0000-0000-000060ce4fe8"
-      (reference "R9") (unit 1) (value "732R") (footprint "RevK:R_0603")
+      (reference "R9") (unit 1) (value "680R") (footprint "RevK:R_0603")
     )
     (path "/00000000-0000-0000-0000-000060ce4750"
       (reference "R10") (unit 1) (value "2K") (footprint "RevK:R_0603")
     )
     (path "/00000000-0000-0000-0000-000060fbba7f"
-      (reference "R11") (unit 1) (value "324R") (footprint "RevK:R_0603")
+      (reference "R11") (unit 1) (value "220R") (footprint "RevK:R_0603")
     )
     (path "/fe9fc355-72ea-4cb8-a08f-1748e53389a5"
       (reference "R12") (unit 1) (value "3M 1% or NF") (footprint "RevK:R_0603")

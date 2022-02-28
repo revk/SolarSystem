@@ -2,7 +2,7 @@
 <export version="E">
   <design>
     <source>/Users/adrian/git/SolarSystem/KiCad/GPS.kicad_sch</source>
-    <date>Sunday, 20 February 2022 at 12:38:48</date>
+    <date>Monday, 28 February 2022 at 11:06:04</date>
     <tool>Eeschema (6.0.2-0)</tool>
     <textvar name="DATE">2022-02-19</textvar>
     <sheet number="1" name="/" tstamps="/">
@@ -136,60 +136,6 @@
       <sheetpath names="/" tstamps="/"/>
       <tstamps>00000000-0000-0000-0000-000060cc7ad1</tstamps>
     </comp>
-    <comp ref="JP1">
-      <value>IO6</value>
-      <footprint>RevK:Pad_1206_0805_Open</footprint>
-      <libsource lib="Jumper" part="Jumper_2_Open" description="Jumper, 2-pole, open"/>
-      <property name="Sheetname" value=""/>
-      <property name="Sheetfile" value="GPS.kicad_sch"/>
-      <sheetpath names="/" tstamps="/"/>
-      <tstamps>0212d464-25d7-41c4-8551-b7cf439aef22</tstamps>
-    </comp>
-    <comp ref="JP2">
-      <value>IO4</value>
-      <footprint>RevK:Pad_1206_0805_Open</footprint>
-      <libsource lib="Jumper" part="Jumper_2_Open" description="Jumper, 2-pole, open"/>
-      <property name="Sheetname" value=""/>
-      <property name="Sheetfile" value="GPS.kicad_sch"/>
-      <sheetpath names="/" tstamps="/"/>
-      <tstamps>1e44720b-d014-4bd9-bc7c-8c9d5fa9082e</tstamps>
-    </comp>
-    <comp ref="JP3">
-      <value>IO3</value>
-      <footprint>RevK:Pad_1206_0805_Open</footprint>
-      <libsource lib="Jumper" part="Jumper_2_Open" description="Jumper, 2-pole, open"/>
-      <property name="Sheetname" value=""/>
-      <property name="Sheetfile" value="GPS.kicad_sch"/>
-      <sheetpath names="/" tstamps="/"/>
-      <tstamps>6942edd1-0ba6-453d-957e-b3b7fa528bf9</tstamps>
-    </comp>
-    <comp ref="JP4">
-      <value>IO1</value>
-      <footprint>RevK:Pad_1206_0805_Open</footprint>
-      <libsource lib="Jumper" part="Jumper_2_Open" description="Jumper, 2-pole, open"/>
-      <property name="Sheetname" value=""/>
-      <property name="Sheetfile" value="GPS.kicad_sch"/>
-      <sheetpath names="/" tstamps="/"/>
-      <tstamps>9b84c80e-aa5a-48a5-b167-ef8325c54366</tstamps>
-    </comp>
-    <comp ref="JP5">
-      <value>IO6</value>
-      <footprint>RevK:Pad_1206_0805_Bridged</footprint>
-      <libsource lib="Jumper" part="Jumper_2_Bridged" description="Jumper, 2-pole, closed/bridged"/>
-      <property name="Sheetname" value=""/>
-      <property name="Sheetfile" value="GPS.kicad_sch"/>
-      <sheetpath names="/" tstamps="/"/>
-      <tstamps>a10f9f16-a7ad-468f-b672-0288065d903c</tstamps>
-    </comp>
-    <comp ref="JP6">
-      <value>IO3</value>
-      <footprint>RevK:Pad_1206_0805_Bridged</footprint>
-      <libsource lib="Jumper" part="Jumper_2_Bridged" description="Jumper, 2-pole, closed/bridged"/>
-      <property name="Sheetname" value=""/>
-      <property name="Sheetfile" value="GPS.kicad_sch"/>
-      <sheetpath names="/" tstamps="/"/>
-      <tstamps>a0415e38-91a0-403e-b4f8-743eb910d07e</tstamps>
-    </comp>
     <comp ref="L1">
       <value>6.8uH</value>
       <footprint>RevK:Hidden</footprint>
@@ -206,19 +152,6 @@
       <property name="Sheetfile" value="GPS.kicad_sch"/>
       <sheetpath names="/" tstamps="/"/>
       <tstamps>00000000-0000-0000-0000-0000610fe01a</tstamps>
-    </comp>
-    <comp ref="Logo1">
-      <value>AA</value>
-      <footprint>RevK:AA</footprint>
-      <fields>
-        <field name="Note">Non part, PCB printed</field>
-      </fields>
-      <libsource lib="RevK" part="AA" description="A&amp;A Logo"/>
-      <property name="Note" value="Non part, PCB printed"/>
-      <property name="Sheetname" value=""/>
-      <property name="Sheetfile" value="GPS.kicad_sch"/>
-      <sheetpath names="/" tstamps="/"/>
-      <tstamps>00000000-0000-0000-0000-000060b9351c</tstamps>
     </comp>
     <comp ref="R1">
       <value>10k</value>
@@ -266,7 +199,7 @@
       <tstamps>3d1cc92b-d081-4f42-b8be-de2b995d0a9f</tstamps>
     </comp>
     <comp ref="R6">
-      <value>500K</value>
+      <value>470K</value>
       <footprint>RevK:R_0603</footprint>
       <libsource lib="Device" part="R" description="Resistor"/>
       <property name="Sheetname" value=""/>
@@ -293,7 +226,7 @@
       <tstamps>0d35df78-0847-478b-9bf1-f88652133e2f</tstamps>
     </comp>
     <comp ref="R9">
-      <value>732R</value>
+      <value>680R</value>
       <footprint>RevK:R_0603</footprint>
       <libsource lib="Device" part="R" description="Resistor"/>
       <property name="Sheetname" value=""/>
@@ -311,7 +244,7 @@
       <tstamps>00000000-0000-0000-0000-000060ce4750</tstamps>
     </comp>
     <comp ref="R11">
-      <value>324R</value>
+      <value>220R</value>
       <footprint>RevK:R_0603</footprint>
       <libsource lib="Device" part="R" description="Resistor"/>
       <property name="Sheetname" value=""/>
@@ -372,13 +305,13 @@
     </comp>
     <comp ref="U3">
       <value>FT231XQ</value>
-      <footprint>Package_DFN_QFN:QFN-20-1EP_4x4mm_P0.5mm_EP2.5x2.5mm</footprint>
+      <footprint>RevK:QFN-20-1EP_4x4mm_P0.5mm_EP2.5x2.5mm</footprint>
       <datasheet>https://www.ftdichip.com/Support/Documents/DataSheets/ICs/DS_FT231X.pdf</datasheet>
-      <libsource lib="Interface_USB" part="FT231XQ" description="Full Speed USB to Full Handshake UART, QFN-20"/>
+      <libsource lib="RevK" part="FT231XQ" description="Full Speed USB to Full Handshake UART, QFN-20"/>
       <property name="Sheetname" value=""/>
       <property name="Sheetfile" value="GPS.kicad_sch"/>
       <sheetpath names="/" tstamps="/"/>
-      <tstamps>00000000-0000-0000-0000-00006084108b</tstamps>
+      <tstamps>fd9ccf93-4cef-42c2-8169-e32f473bbfa4</tstamps>
     </comp>
     <comp ref="U4">
       <value>LMR16006+FB</value>
@@ -535,42 +468,6 @@
         <pin num="2" name="" type="passive"/>
       </pins>
     </libpart>
-    <libpart lib="Interface_USB" part="FT231XQ">
-      <description>Full Speed USB to Full Handshake UART, QFN-20</description>
-      <docs>https://www.ftdichip.com/Support/Documents/DataSheets/ICs/DS_FT231X.pdf</docs>
-      <footprints>
-        <fp>QFN*4x4mm*P0.5mm*</fp>
-      </footprints>
-      <fields>
-        <field name="Reference">U</field>
-        <field name="Value">FT231XQ</field>
-        <field name="Footprint">Package_DFN_QFN:QFN-20-1EP_4x4mm_P0.5mm_EP2.5x2.5mm</field>
-        <field name="Datasheet">https://www.ftdichip.com/Support/Documents/DataSheets/ICs/DS_FT231X.pdf</field>
-      </fields>
-      <pins>
-        <pin num="1" name="RXD" type="input"/>
-        <pin num="2" name="~{RI}" type="input"/>
-        <pin num="3" name="GND" type="power_in"/>
-        <pin num="4" name="~{DSR}" type="input"/>
-        <pin num="5" name="~{DCD}" type="input"/>
-        <pin num="6" name="~{CTS}" type="input"/>
-        <pin num="7" name="CBUS2" type="bidirectional"/>
-        <pin num="8" name="USBDP" type="bidirectional"/>
-        <pin num="9" name="USBDM" type="bidirectional"/>
-        <pin num="10" name="3V3OUT" type="power_out"/>
-        <pin num="11" name="~{RESET}" type="input"/>
-        <pin num="12" name="VCC" type="power_in"/>
-        <pin num="13" name="GND" type="power_in"/>
-        <pin num="14" name="CBUS1" type="bidirectional"/>
-        <pin num="15" name="CBUS0" type="bidirectional"/>
-        <pin num="16" name="CBUS3" type="bidirectional"/>
-        <pin num="17" name="TXD" type="output"/>
-        <pin num="18" name="~{DTR}" type="output"/>
-        <pin num="19" name="~{RTS}" type="output"/>
-        <pin num="20" name="VCCIO" type="power_in"/>
-        <pin num="21" name="GND" type="power_in"/>
-      </pins>
-    </libpart>
     <libpart lib="Jumper" part="Jumper_2_Bridged">
       <description>Jumper, 2-pole, closed/bridged</description>
       <docs>~</docs>
@@ -688,14 +585,42 @@
         <pin num="51" name="GND" type="power_in"/>
         <pin num="52" name="GND" type="power_in"/>
         <pin num="53" name="GND" type="power_in"/>
-        <pin num="54" name="GND" type="power_in"/>
-        <pin num="55" name="GND" type="power_in"/>
-        <pin num="56" name="GND" type="power_in"/>
-        <pin num="57" name="GND" type="power_in"/>
-        <pin num="58" name="GND" type="power_in"/>
-        <pin num="59" name="GND" type="power_in"/>
-        <pin num="60" name="GND" type="power_in"/>
-        <pin num="61" name="GND" type="power_in"/>
+      </pins>
+    </libpart>
+    <libpart lib="RevK" part="FT231XQ">
+      <description>Full Speed USB to Full Handshake UART, QFN-20</description>
+      <docs>https://www.ftdichip.com/Support/Documents/DataSheets/ICs/DS_FT231X.pdf</docs>
+      <footprints>
+        <fp>QFN*4x4mm*P0.5mm*</fp>
+      </footprints>
+      <fields>
+        <field name="Reference">U</field>
+        <field name="Value">FT231XQ</field>
+        <field name="Footprint">RevK:QFN-20-1EP_4x4mm_P0.5mm_EP2.5x2.5mm</field>
+        <field name="Datasheet">https://www.ftdichip.com/Support/Documents/DataSheets/ICs/DS_FT231X.pdf</field>
+      </fields>
+      <pins>
+        <pin num="1" name="RXD" type="input"/>
+        <pin num="2" name="~{RI}" type="input"/>
+        <pin num="3" name="GND" type="power_in"/>
+        <pin num="4" name="~{DSR}" type="input"/>
+        <pin num="5" name="~{DCD}" type="input"/>
+        <pin num="6" name="~{CTS}" type="input"/>
+        <pin num="7" name="CBUS2" type="bidirectional"/>
+        <pin num="8" name="USBDP" type="bidirectional"/>
+        <pin num="9" name="USBDM" type="bidirectional"/>
+        <pin num="10" name="3V3OUT" type="power_out"/>
+        <pin num="11" name="~{RESET}" type="input"/>
+        <pin num="12" name="VCC" type="power_in"/>
+        <pin num="13" name="GND" type="power_in"/>
+        <pin num="14" name="CBUS1" type="bidirectional"/>
+        <pin num="15" name="CBUS0" type="bidirectional"/>
+        <pin num="16" name="CBUS3" type="bidirectional"/>
+        <pin num="17" name="TXD" type="output"/>
+        <pin num="18" name="~{DTR}" type="output"/>
+        <pin num="19" name="~{RTS}" type="output"/>
+        <pin num="20" name="VCCIO" type="power_in"/>
+        <pin num="21" name="GND" type="power_in"/>
       </pins>
     </libpart>
     <libpart lib="RevK" part="Hidden">
@@ -787,9 +712,6 @@
     <library logical="Device">
       <uri>/Applications/KiCad/KiCad.app/Contents/SharedSupport/symbols//Device.kicad_sym</uri>
     </library>
-    <library logical="Interface_USB">
-      <uri>/Applications/KiCad/KiCad.app/Contents/SharedSupport/symbols//Interface_USB.kicad_sym</uri>
-    </library>
     <library logical="Jumper">
       <uri>/Applications/KiCad/KiCad.app/Contents/SharedSupport/symbols//Jumper.kicad_sym</uri>
     </library>
@@ -837,8 +759,6 @@
     <net code="7" name="DC">
       <node ref="D1" pin="1" pinfunction="K" pintype="passive"/>
       <node ref="J1" pin="2" pinfunction="Pin_2" pintype="passive"/>
-      <node ref="JP1" pin="1" pinfunction="A" pintype="passive"/>
-      <node ref="JP3" pin="1" pinfunction="A" pintype="passive"/>
       <node ref="R6" pin="2" pintype="passive"/>
       <node ref="U4" pin="1" pinfunction="SHDN" pintype="input"/>
       <node ref="U4" pin="2" pinfunction="VIN" pintype="power_in"/>
@@ -860,8 +780,6 @@
       <node ref="J3" pin="B1" pinfunction="GND" pintype="passive"/>
       <node ref="J3" pin="B12" pinfunction="GND" pintype="passive"/>
       <node ref="J3" pin="S1" pinfunction="SHIELD" pintype="passive"/>
-      <node ref="JP2" pin="1" pinfunction="A" pintype="passive"/>
-      <node ref="JP4" pin="1" pinfunction="A" pintype="passive"/>
       <node ref="R12" pin="1" pintype="passive"/>
       <node ref="R2" pin="2" pintype="passive"/>
       <node ref="R3" pin="1" pintype="passive"/>
@@ -889,14 +807,6 @@
       <node ref="U1" pin="51" pinfunction="GND" pintype="power_in"/>
       <node ref="U1" pin="52" pinfunction="GND" pintype="power_in"/>
       <node ref="U1" pin="53" pinfunction="GND" pintype="power_in"/>
-      <node ref="U1" pin="54" pinfunction="GND" pintype="power_in"/>
-      <node ref="U1" pin="55" pinfunction="GND" pintype="power_in"/>
-      <node ref="U1" pin="56" pinfunction="GND" pintype="power_in"/>
-      <node ref="U1" pin="57" pinfunction="GND" pintype="power_in"/>
-      <node ref="U1" pin="58" pinfunction="GND" pintype="power_in"/>
-      <node ref="U1" pin="59" pinfunction="GND" pintype="power_in"/>
-      <node ref="U1" pin="60" pinfunction="GND" pintype="power_in"/>
-      <node ref="U1" pin="61" pinfunction="GND" pintype="power_in"/>
       <node ref="U2" pin="10" pinfunction="GND" pintype="power_in"/>
       <node ref="U2" pin="11" pinfunction="GND" pintype="power_in"/>
       <node ref="U2" pin="12" pinfunction="GND" pintype="power_in"/>
@@ -942,7 +852,6 @@
     </net>
     <net code="16" name="IO1">
       <node ref="J2" pin="1" pinfunction="Pin_1" pintype="passive"/>
-      <node ref="JP4" pin="2" pinfunction="B" pintype="passive"/>
       <node ref="U1" pin="21" pinfunction="IO15" pintype="bidirectional"/>
     </net>
     <net code="17" name="IO2">
@@ -950,12 +859,10 @@
       <node ref="U1" pin="26" pinfunction="IO20" pintype="bidirectional"/>
     </net>
     <net code="18" name="IO3">
-      <node ref="JP6" pin="2" pinfunction="B" pintype="passive"/>
       <node ref="U1" pin="24" pinfunction="IO4" pintype="bidirectional"/>
     </net>
     <net code="19" name="IO4">
       <node ref="J2" pin="4" pinfunction="Pin_4" pintype="passive"/>
-      <node ref="JP2" pin="2" pinfunction="B" pintype="passive"/>
       <node ref="U1" pin="27" pinfunction="IO7" pintype="bidirectional"/>
     </net>
     <net code="20" name="IO5">
@@ -963,7 +870,6 @@
       <node ref="U1" pin="28" pinfunction="IO8" pintype="bidirectional"/>
     </net>
     <net code="21" name="IO6">
-      <node ref="JP5" pin="2" pinfunction="B" pintype="passive"/>
       <node ref="U1" pin="20" pinfunction="IO13" pintype="bidirectional"/>
     </net>
     <net code="22" name="Net-(D2-Pad2)">
@@ -980,13 +886,9 @@
     </net>
     <net code="25" name="Net-(J2-Pad3)">
       <node ref="J2" pin="3" pinfunction="Pin_3" pintype="passive"/>
-      <node ref="JP3" pin="2" pinfunction="B" pintype="passive"/>
-      <node ref="JP6" pin="1" pinfunction="A" pintype="passive"/>
     </net>
     <net code="26" name="Net-(J2-Pad6)">
       <node ref="J2" pin="6" pinfunction="Pin_6" pintype="passive"/>
-      <node ref="JP1" pin="2" pinfunction="B" pintype="passive"/>
-      <node ref="JP5" pin="1" pinfunction="A" pintype="passive"/>
     </net>
     <net code="27" name="Net-(J3-PadA5)">
       <node ref="J3" pin="A5" pinfunction="CC1" pintype="bidirectional"/>
@@ -1085,28 +987,28 @@
       <node ref="U1" pin="32" pinfunction="NC" pintype="no_connect"/>
     </net>
     <net code="54" name="unconnected-(U2-Pad2)">
-      <node ref="U2" pin="2" pinfunction="3D_FIX" pintype="output"/>
+      <node ref="U2" pin="2" pinfunction="3D_FIX" pintype="output+no_connect"/>
     </net>
     <net code="55" name="unconnected-(U2-Pad3)">
-      <node ref="U2" pin="3" pinfunction="I2C_SDA" pintype="bidirectional"/>
+      <node ref="U2" pin="3" pinfunction="I2C_SDA" pintype="bidirectional+no_connect"/>
     </net>
     <net code="56" name="unconnected-(U2-Pad6)">
-      <node ref="U2" pin="6" pinfunction="I2C_SCL" pintype="bidirectional"/>
+      <node ref="U2" pin="6" pinfunction="I2C_SCL" pintype="bidirectional+no_connect"/>
     </net>
     <net code="57" name="unconnected-(U2-Pad7)">
-      <node ref="U2" pin="7" pinfunction="EXTINT0" pintype="input"/>
+      <node ref="U2" pin="7" pinfunction="EXTINT0" pintype="input+no_connect"/>
     </net>
     <net code="58" name="unconnected-(U2-Pad8)">
       <node ref="U2" pin="8" pinfunction="V_BCKP" pintype="power_in+no_connect"/>
     </net>
     <net code="59" name="unconnected-(U2-Pad20)">
-      <node ref="U2" pin="20" pinfunction="JAM_DET" pintype="output"/>
+      <node ref="U2" pin="20" pinfunction="JAM_DET" pintype="output+no_connect"/>
     </net>
     <net code="60" name="unconnected-(U2-Pad24)">
-      <node ref="U2" pin="24" pinfunction="GEO_FENCE" pintype="output"/>
+      <node ref="U2" pin="24" pinfunction="GEO_FENCE" pintype="output+no_connect"/>
     </net>
     <net code="61" name="unconnected-(U2-Pad30)">
-      <node ref="U2" pin="30" pinfunction="ANTON" pintype="output"/>
+      <node ref="U2" pin="30" pinfunction="ANTON" pintype="output+no_connect"/>
     </net>
     <net code="62" name="unconnected-(U3-Pad7)">
       <node ref="U3" pin="7" pinfunction="CBUS2" pintype="bidirectional+no_connect"/>
