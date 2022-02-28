@@ -228,7 +228,8 @@ void output_boot(void)
             else
             {                   // Set up power output pin
                c.pin_bit_mask |= (1ULL << p);
-               REVK_ERR_CHECK(gpio_hold_dis(p));
+               if (p != 20)
+                  REVK_ERR_CHECK(gpio_hold_dis(p));
                REVK_ERR_CHECK(gpio_set_level(p, (power[i] & PORT_INV) ? 0 : 1));
                REVK_ERR_CHECK(gpio_set_drive_capability(p, GPIO_DRIVE_CAP_3));
             }

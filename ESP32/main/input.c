@@ -198,7 +198,8 @@ void input_boot(void)
                if (p < MAX_PORT)
                {
                   c.pin_bit_mask |= (1ULL << p);
-                  REVK_ERR_CHECK(gpio_hold_dis(p));
+		  if(p==7||p==8)gpio_reset_pin(p);
+                  if(p!=20)REVK_ERR_CHECK(gpio_hold_dis(p));
                }
                if (input[i] & PORT_INV)
                {

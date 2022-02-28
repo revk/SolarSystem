@@ -6,6 +6,7 @@ static const char TAG[] = "gps";
 #include "desfireaes.h"
 #include "alarm.h"
 #include "gps.h"
+#include <driver/uart.h>
 #include <driver/gpio.h>
 
 #define port_mask(p) ((p)&0x3F)
@@ -18,6 +19,7 @@ static const char TAG[] = "gps";
   io(gpstx) \
   io(gpsrx) \
   io(gpstick) \
+  u8(gpsuart,2) \
 
 #define i8(n,d) int8_t n;
 #define io(n) uint8_t n;
@@ -45,6 +47,10 @@ static void task(void *pvParameters)
    {
       esp_task_wdt_reset();
       usleep(1000000);
+      char buf[256];
+      int l = uart_read_bytes(gpsuart, buf, sizeof(buf), 100 / portTICK_PERIOD_MS);
+      if (l>0)
+         ESP_LOGI(TAG, "Rx %.*s", l, buf);
    }
 }
 
@@ -82,11 +88,31 @@ void gps_boot(void)
       const char *e = port_check(port_mask(gpstx), TAG, 0);
       if (!e)
          e = port_check(port_mask(gpsrx), TAG, 1);
+      if (!e)
+         e = port_check(port_mask(gpstick), TAG, 1);
       if (e)
          logical_gpio |= logical_GPSFault;
       else
       {
-
+         esp_err_t err = 0;
+         uart_config_t uart_config = {
+            .baud_rate = 9600,
+            .data_bits = UART_DATA_8_BITS,
+            .parity = UART_PARITY_DISABLE,
+            .stop_bits = UART_STOP_BITS_1,
+            .flow_ctrl = UART_HW_FLOWCTRL_DISABLE,
+         };
+         if (!err)
+            err = uart_param_config(gpsuart, &uart_config);
+         if (!err)
+            err = uart_set_pin(gpsuart, port_mask(gpstx), port_mask(gpsrx), -1, -1);
+         if (!err && !uart_is_driver_installed(gpsuart))
+         {
+            ESP_LOGI(TAG, "Installing GPS UART driver %d", gpsuart);
+            err = uart_driver_install(gpsuart, 256, 0, 0, NULL, 0);
+         }
+         if (err)
+            ESP_LOGE(TAG, "GPS UART fail %s", esp_err_to_name(err));
       }
    } else if (gpsrx || gpstx)
       logical_gpio |= logical_GPSFault;
