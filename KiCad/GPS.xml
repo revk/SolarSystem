@@ -2,15 +2,15 @@
 <export version="E">
   <design>
     <source>/Users/adrian/git/SolarSystem/KiCad/GPS.kicad_sch</source>
-    <date>Monday, 28 February 2022 at 11:06:04</date>
+    <date>Tuesday, 01 March 2022 at 14:22:57</date>
     <tool>Eeschema (6.0.2-0)</tool>
-    <textvar name="DATE">2022-02-19</textvar>
+    <textvar name="DATE">2022-03-01</textvar>
     <sheet number="1" name="/" tstamps="/">
       <title_block>
         <title>GPS reference</title>
         <company>Adrian Kennard Andrews &amp; Arnold Ltd</company>
         <rev>1</rev>
-        <date>2022-02-19</date>
+        <date>2022-03-01</date>
         <source>GPS.kicad_sch</source>
         <comment number="1" value="@TheRealRevK"/>
         <comment number="2" value="www.me.uk"/>
@@ -856,10 +856,10 @@
     </net>
     <net code="17" name="IO2">
       <node ref="J2" pin="2" pinfunction="Pin_2" pintype="passive"/>
-      <node ref="U1" pin="26" pinfunction="IO20" pintype="bidirectional"/>
+      <node ref="U1" pin="24" pinfunction="IO4" pintype="bidirectional"/>
     </net>
     <net code="18" name="IO3">
-      <node ref="U1" pin="24" pinfunction="IO4" pintype="bidirectional"/>
+      <node ref="U1" pin="26" pinfunction="IO20" pintype="bidirectional"/>
     </net>
     <net code="19" name="IO4">
       <node ref="J2" pin="4" pinfunction="Pin_4" pintype="passive"/>
