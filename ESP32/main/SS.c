@@ -86,6 +86,7 @@ const char *port_check(int p, const char *module, int in)
    {
       if (p < 0 || p >= MAX_PORT || !GPIO_IS_VALID_GPIO(p))
       {
+         ESP_LOGE(TAG, "Port %d not valid (%s)", p, module);
          jo_t j = jo_object_alloc();
          jo_string(j, "description", "Port not valid");
          jo_string(j, "module", module);
@@ -97,6 +98,7 @@ const char *port_check(int p, const char *module, int in)
       }
       if (!in && !GPIO_IS_VALID_OUTPUT_GPIO(p))
       {
+         ESP_LOGE(TAG, "Port %d not output (%s)", p, module);
          jo_t j = jo_object_alloc();
          jo_string(j, "description", "Port not valid for output");
          jo_string(j, "module", module);
@@ -108,6 +110,7 @@ const char *port_check(int p, const char *module, int in)
    static uint64_t port_inuse = 0;
    if (port_inuse & (1ULL << p))
    {
+      ESP_LOGE(TAG, "Port %d clash (%s)", p, module);
       jo_t j = jo_object_alloc();
       jo_string(j, "description", "Port clash");
       jo_string(j, "module", module);
@@ -155,8 +158,10 @@ void app_main()
 #undef b
 #undef bl
    int p;
-   for (p = 6; p <= 11; p++)
-      port_check(p, "Flash", 0);        // Flash chip uses 6-11
+   port_check(6,"Flash",0);	// Flash pins, we allow 7/8 as used in ESP32-PICO-V3-02
+   port_check(9,"Flash",0);
+   port_check(10,"Flash",0);
+   port_check(11,"Flash",0);
 #define m(x) extern void x##_boot(void); ESP_LOGI(TAG,"Boot "#x); x##_boot();
    modules;
 #undef m
