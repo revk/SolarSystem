@@ -158,7 +158,14 @@ void app_main()
 #undef b
 #undef bl
    int p;
-   port_check(6,"Flash",0);	// Flash pins, we allow 7/8 as used in ESP32-PICO-V3-02
+   port_check(6,"Flash",0);	// Flash pins
+#if defined(CONFIG_ESPTOOLPY_FLASHSIZE_8MB) && defined(CONFIG_ESP32_SPIRAM_SUPPORT)
+   // PICO allows 7, 8 and 20
+#else
+   port_check(7,"Flash",0);
+   port_check(8,"Flash",0);
+   port_check(20,"Non GPIO",0);
+#endif
    port_check(9,"Flash",0);
    port_check(10,"Flash",0);
    port_check(11,"Flash",0);
