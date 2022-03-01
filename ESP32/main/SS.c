@@ -157,7 +157,6 @@ void app_main()
 #undef bd
 #undef b
 #undef bl
-   int p;
    port_check(6,"Flash",0);	// Flash pins
 #if defined(CONFIG_ESPTOOLPY_FLASHSIZE_8MB) && defined(CONFIG_ESP32_SPIRAM_SUPPORT)
    // PICO allows 7, 8 and 20
