@@ -56,14 +56,18 @@ PCBCase/case: PCBCase/case.c
 
 scad: KiCad/Bell.scad
 
-stl: KiCad/Access.stl KiCad/Bell.stl
+stl: KiCad/Access.stl KiCad/Bell.stl KiCad/Access2.stl KiCad/Bell2.stl KiCad/GPS.stl
 
 %.stl: %.scad
 	echo "Making $@"
 	/Applications/OpenSCAD.app/Contents/MacOS/OpenSCAD $< -o $@
 	echo "Made $@"
 
+KiCad/GPS.scad: KiCad/GPS.kicad_pcb PCBCase/case Makefile
+	PCBCase/case -o $@ $< --base=3 --top=5.2
 KiCad/Bell.scad: KiCad/Bell.kicad_pcb PCBCase/case Makefile
+	PCBCase/case -o $@ $< --base=3 --top=5.2
+KiCad/Bell2.scad: KiCad/Bell2.kicad_pcb PCBCase/case Makefile
 	PCBCase/case -o $@ $< --base=3 --top=5.2
 xmlsql/xmlsql: xmlsql/xmlsql.c
 	make -C xmlsql

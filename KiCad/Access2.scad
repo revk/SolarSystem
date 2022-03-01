@@ -1,7 +1,7 @@
 // Access controller case
 $fn=120;
 w=50;
-h=34;
+h=26.5;
 
 module top()
 {
