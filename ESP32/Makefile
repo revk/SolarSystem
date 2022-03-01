@@ -7,10 +7,10 @@ PROJECT_NAME := SS
 SUFFIX := $(shell components/ESP32-RevK/suffix)
 
 all:
-	@echo Make: build/$(PROJECT_NAME)$(SUFFIX).bin
+	@echo Make: $(PROJECT_NAME)$(SUFFIX).bin
 	@idf.py build
-	@cp build/$(PROJECT_NAME).bin build/$(PROJECT_NAME)$(SUFFIX).bin
-	@echo Done: build/$(PROJECT_NAME)$(SUFFIX).bin
+	@cp build/$(PROJECT_NAME).bin ../www/$(PROJECT_NAME)$(SUFFIX).bin
+	@echo Done: $(PROJECT_NAME)$(SUFFIX).bin
 
 flash:
 	idf.py flash
