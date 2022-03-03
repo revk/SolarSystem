@@ -64,11 +64,11 @@ stl: KiCad/Access.stl KiCad/Bell.stl KiCad/Access2.stl KiCad/Bell2.stl KiCad/GPS
 	echo "Made $@"
 
 KiCad/GPS.scad: KiCad/GPS.kicad_pcb PCBCase/case Makefile
-	PCBCase/case -o $@ $< --base=3 --top=5.2
+	PCBCase/case -o $@ $< --base=2 --top=5.2
 KiCad/Bell.scad: KiCad/Bell.kicad_pcb PCBCase/case Makefile
-	PCBCase/case -o $@ $< --base=3 --top=5.2
+	PCBCase/case -o $@ $< --base=2 --top=5.2
 KiCad/Bell2.scad: KiCad/Bell2.kicad_pcb PCBCase/case Makefile
-	PCBCase/case -o $@ $< --base=3 --top=5.2
+	PCBCase/case -o $@ $< --base=2 --top=5.2
 xmlsql/xmlsql: xmlsql/xmlsql.c
 	make -C xmlsql
 AXL/axl.o: AXL/axl.c

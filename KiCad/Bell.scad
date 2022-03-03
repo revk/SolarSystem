@@ -1,6 +1,6 @@
 // Generated case design for KiCad/Bell.kicad_pcb
 // By https://github.com/revk/PCBCase
-// Generated 2022-03-03 15:52:14
+// Generated 2022-03-03 17:40:11
 // title:	Bell box controller
 // date:	${DATE}
 // rev:	2
@@ -10,7 +10,7 @@
 // Globals
 margin=0.500000;
 overlap=2.000000;
-casebase=3.000000;
+casebase=2.000000;
 casetop=5.200000;
 casewall=3.000000;
 fit=0.000000;
@@ -120,7 +120,7 @@ translate([-A/2,-2.94,-2.5])
 		cube([A,7.4,1]);
 		cube([A,7.9,0.5]);
 	}
-	translate([1,6,-3.5])cube([A-2,1.2,6]);
+	translate([1,6,-2])cube([A-2,1.2,4.5]); // Assumes cropped pins
 	// Plug
 	translate([0.5,-20,0.6])cube([A-1,21,4.1]);
 	translate([0,-23,0])cube([A,20,4.9]);
@@ -149,7 +149,7 @@ module m8(pushed=false)
 b(0,0,0,1.6,0.8,0.25);
 b(0,0,0,1.2,0.8,0.55);
 b(0,0,0,0.8,0.8,0.95);
-b(0,0,0,1,1,20);
+if(pushed)b(0,0,0,1,1,20);
 }
 
 module m9(pushed=false)
@@ -166,7 +166,7 @@ translate([-A/2,-2.94,-2.5])
 		cube([A,7.4,1]);
 		cube([A,7.9,0.5]);
 	}
-	translate([1,6,-3.5])cube([A-2,1.2,6]);
+	translate([1,6,-2])cube([A-2,1.2,4.5]); // Assumes cropped pins
 	// Plug
 	translate([0.5,-20,0.6])cube([A-1,21,4.1]);
 	translate([0,-23,0])cube([A,20,4.9]);

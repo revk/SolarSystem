@@ -1,6 +1,6 @@
 // Generated case design for KiCad/GPS.kicad_pcb
 // By https://github.com/revk/PCBCase
-// Generated 2022-03-03 15:48:20
+// Generated 2022-03-03 17:43:16
 // title:	GPS reference
 // date:	${DATE}
 // rev:	5
@@ -12,12 +12,12 @@
 // Globals
 margin=0.500000;
 overlap=2.000000;
-casebase=3.000000;
+casebase=2.000000;
 casetop=5.200000;
 casewall=3.000000;
 fit=0.000000;
 edge=1.000000;
-pcbthickness=1.600000;
+pcbthickness=0.800000;
 pcbwidth=36.000000;
 pcblength=24.500000;
 spacing=52.000000;
@@ -28,34 +28,34 @@ module pcb(h=pcbthickness){linear_extrude(height=h)polygon([[0.000000,24.500000]
 // Populated PCB
 module board(pushed=false){
 	pcb();
-translate([10.600000,8.100000,1.600000])rotate([0,0,180.000000])m0(pushed); // RevK:R_0603 R_0603_1608Metric
-translate([13.000000,-0.050000,1.600000])translate([0.000000,3.385000,0.000000])rotate([-90.000000,0.000000,0.000000])m1(pushed); // RevK:USC16-TR-Round CSP-USC16-TR
-translate([15.400000,8.100000,1.600000])rotate([0,0,180.000000])m0(pushed); // RevK:R_0603 R_0603_1608Metric
-translate([30.150000,9.600000,1.600000])rotate([0,0,90.000000])m0(pushed); // RevK:R_0603 R_0603_1608Metric
-translate([32.450000,9.600000,1.600000])rotate([0,0,90.000000])m0(pushed); // RevK:R_0603 R_0603_1608Metric
-translate([31.300000,9.600000,1.600000])rotate([0,0,90.000000])m0(pushed); // RevK:R_0603 R_0603_1608Metric
-translate([34.700000,9.600000,1.600000])rotate([0,0,90.000000])translate([0.000000,-0.400000,0.000000])m2(pushed); // RevK:LED-RGB-1.6x1.6 LED_0603_1608Metric
-translate([34.700000,9.600000,1.600000])rotate([0,0,90.000000])translate([0.000000,0.400000,0.000000])m2(pushed); // RevK:LED-RGB-1.6x1.6 LED_0603_1608Metric
-translate([15.550000,12.050000,1.600000])rotate([0,0,-90.000000])m3(pushed); // Diode_SMD:D_1206_3216Metric D_1206_3216Metric
-translate([17.350000,8.950000,1.600000])rotate([0,0,-90.000000])m4(pushed); // RevK:C_0603 C_0603_1608Metric
-translate([5.550000,17.400000,1.600000])translate([0.000000,0.150000,0.000000])rotate([-90.000000,0.000000,180.000000])m5(pushed); // RevK:L96-M33 L96-M33
-translate([24.020000,15.000000,1.600000])rotate([0,0,-90.000000])m0(pushed); // RevK:R_0603 R_0603_1608Metric
-translate([20.550000,8.850000,1.600000])m0(pushed); // RevK:R_0603 R_0603_1608Metric
-translate([27.300000,6.600000,1.600000])translate([0.000000,-3.600000,2.500000])rotate([0.000000,0.000000,180.000000])m6(pushed); // RevK:Molex_MiniSPOX_H6RA 22057065
-translate([30.406750,17.900000,1.600000])rotate([0,0,-90.000000])translate([0.000000,2.700000,0.000000])rotate([-90.000000,0.000000,0.000000])m7(pushed); // RevK:ESP32-PICO-MINI-02 ESP32-PICO-MINI-02
-translate([15.125000,23.750000,1.600000])rotate([0,0,180.000000])m0(pushed); // RevK:R_0603 R_0603_1608Metric
-translate([3.700000,6.600000,1.600000])translate([0.000000,-3.600000,2.500000])rotate([0.000000,0.000000,180.000000])m8(pushed); // RevK:Molex_MiniSPOX_H2RA 22057025
-translate([20.700000,12.250000,1.600000])rotate([0,0,-90.000000])m9(pushed); // RevK:QFN-20-1EP_4x4mm_P0.5mm_EP2.5x2.5mm QFN-20-1EP_4x4mm_P0.5mm_EP2.5x2.5mm
-translate([18.050000,21.450000,1.600000])rotate([0.000000,0.000000,90.000000])m10(pushed); // RevK:RegulatorBlockFB SOT-23-6
-translate([18.050000,21.450000,1.600000])translate([-2.100000,-0.250000,0.000000])rotate([0.000000,0.000000,90.000000])m4(pushed); // RevK:C_0603 C_0603_1608Metric
-translate([18.050000,21.450000,1.600000])translate([-0.800000,-3.550000,0.000000])rotate([0.000000,0.000000,90.000000])m11(pushed); // RevK:RegulatorBlockFB C_0805_2012Metric
-translate([18.050000,21.450000,1.600000])translate([5.400000,-3.550000,0.000000])rotate([0.000000,0.000000,90.000000])m11(pushed); // RevK:RegulatorBlockFB C_0805_2012Metric
-translate([18.050000,21.450000,1.600000])translate([3.900000,0.000000,0.000000])rotate([0.000000,0.000000,90.000000])m12(pushed); // RevK:RegulatorBlockFB TYA4020
-translate([18.050000,21.450000,1.600000])translate([2.275000,-3.200000,0.000000])m3(pushed); // Diode_SMD:D_1206_3216Metric D_1206_3216Metric
-translate([23.350000,8.850000,1.600000])m0(pushed); // RevK:R_0603 R_0603_1608Metric
-translate([2.600000,8.950000,1.600000])rotate([0,0,180.000000])m0(pushed); // RevK:R_0603 R_0603_1608Metric
-translate([14.300000,21.750000,1.600000])rotate([0,0,90.000000])m0(pushed); // RevK:R_0603 R_0603_1608Metric
-translate([5.250000,8.950000,1.600000])rotate([0,0,180.000000])m0(pushed); // RevK:R_0603 R_0603_1608Metric
+translate([10.600000,8.100000,0.800000])rotate([0,0,180.000000])m0(pushed); // RevK:R_0603 R_0603_1608Metric
+translate([13.000000,-0.050000,0.800000])translate([0.000000,3.385000,0.000000])rotate([-90.000000,0.000000,0.000000])m1(pushed); // RevK:USC16-TR-Round CSP-USC16-TR
+translate([15.400000,8.100000,0.800000])rotate([0,0,180.000000])m0(pushed); // RevK:R_0603 R_0603_1608Metric
+translate([30.150000,9.600000,0.800000])rotate([0,0,90.000000])m0(pushed); // RevK:R_0603 R_0603_1608Metric
+translate([32.450000,9.600000,0.800000])rotate([0,0,90.000000])m0(pushed); // RevK:R_0603 R_0603_1608Metric
+translate([31.300000,9.600000,0.800000])rotate([0,0,90.000000])m0(pushed); // RevK:R_0603 R_0603_1608Metric
+translate([34.700000,9.600000,0.800000])rotate([0,0,90.000000])translate([0.000000,-0.400000,0.000000])m2(pushed); // RevK:LED-RGB-1.6x1.6 LED_0603_1608Metric
+translate([34.700000,9.600000,0.800000])rotate([0,0,90.000000])translate([0.000000,0.400000,0.000000])m2(pushed); // RevK:LED-RGB-1.6x1.6 LED_0603_1608Metric
+translate([15.550000,12.050000,0.800000])rotate([0,0,-90.000000])m3(pushed); // Diode_SMD:D_1206_3216Metric D_1206_3216Metric
+translate([17.350000,8.950000,0.800000])rotate([0,0,-90.000000])m4(pushed); // RevK:C_0603 C_0603_1608Metric
+translate([5.550000,17.400000,0.800000])translate([0.000000,0.150000,0.000000])rotate([-90.000000,0.000000,180.000000])m5(pushed); // RevK:L96-M33 L96-M33
+translate([24.020000,15.000000,0.800000])rotate([0,0,-90.000000])m0(pushed); // RevK:R_0603 R_0603_1608Metric
+translate([20.550000,8.850000,0.800000])m0(pushed); // RevK:R_0603 R_0603_1608Metric
+translate([27.300000,6.600000,0.800000])translate([0.000000,-3.600000,2.500000])rotate([0.000000,0.000000,180.000000])m6(pushed); // RevK:Molex_MiniSPOX_H6RA 22057065
+translate([30.406750,17.900000,0.800000])rotate([0,0,-90.000000])translate([0.000000,2.700000,0.000000])rotate([-90.000000,0.000000,0.000000])m7(pushed); // RevK:ESP32-PICO-MINI-02 ESP32-PICO-MINI-02
+translate([15.125000,23.750000,0.800000])rotate([0,0,180.000000])m0(pushed); // RevK:R_0603 R_0603_1608Metric
+translate([3.700000,6.600000,0.800000])translate([0.000000,-3.600000,2.500000])rotate([0.000000,0.000000,180.000000])m8(pushed); // RevK:Molex_MiniSPOX_H2RA 22057025
+translate([20.700000,12.250000,0.800000])rotate([0,0,-90.000000])m9(pushed); // RevK:QFN-20-1EP_4x4mm_P0.5mm_EP2.5x2.5mm QFN-20-1EP_4x4mm_P0.5mm_EP2.5x2.5mm
+translate([18.050000,21.450000,0.800000])rotate([0.000000,0.000000,90.000000])m10(pushed); // RevK:RegulatorBlockFB SOT-23-6
+translate([18.050000,21.450000,0.800000])translate([-2.100000,-0.250000,0.000000])rotate([0.000000,0.000000,90.000000])m4(pushed); // RevK:C_0603 C_0603_1608Metric
+translate([18.050000,21.450000,0.800000])translate([-0.800000,-3.550000,0.000000])rotate([0.000000,0.000000,90.000000])m11(pushed); // RevK:RegulatorBlockFB C_0805_2012Metric
+translate([18.050000,21.450000,0.800000])translate([5.400000,-3.550000,0.000000])rotate([0.000000,0.000000,90.000000])m11(pushed); // RevK:RegulatorBlockFB C_0805_2012Metric
+translate([18.050000,21.450000,0.800000])translate([3.900000,0.000000,0.000000])rotate([0.000000,0.000000,90.000000])m12(pushed); // RevK:RegulatorBlockFB TYA4020
+translate([18.050000,21.450000,0.800000])translate([2.275000,-3.200000,0.000000])m3(pushed); // Diode_SMD:D_1206_3216Metric D_1206_3216Metric
+translate([23.350000,8.850000,0.800000])m0(pushed); // RevK:R_0603 R_0603_1608Metric
+translate([2.600000,8.950000,0.800000])rotate([0,0,180.000000])m0(pushed); // RevK:R_0603 R_0603_1608Metric
+translate([14.300000,21.750000,0.800000])rotate([0,0,90.000000])m0(pushed); // RevK:R_0603 R_0603_1608Metric
+translate([5.250000,8.950000,0.800000])rotate([0,0,180.000000])m0(pushed); // RevK:R_0603 R_0603_1608Metric
 }
 
 module b(cx,cy,z,w,l,h){translate([cx-w/2,cy-l/2,z])cube([w,l,h]);}
@@ -104,7 +104,7 @@ module m2(pushed=false)
 b(0,0,0,1.6,0.8,0.25);
 b(0,0,0,1.2,0.8,0.55);
 b(0,0,0,0.8,0.8,0.95);
-b(0,0,0,1,1,20);
+if(pushed)b(0,0,0,1,1,20);
 }
 
 module m3(pushed=false)
@@ -120,7 +120,7 @@ b(0,0,0,2.8,0.95,1); // Pad size
 module m5(pushed=false)
 { // RevK:L96-M33 L96-M33
 rotate([90,0,0])
-translate([9.6/2,-14/2-0.15,0])
+translate([-9.6/2,-14/2,0])
 {
 	cube([9.6,14,2]);
 }
@@ -140,7 +140,7 @@ translate([-A/2,-2.94,-2.5])
 		cube([A,7.4,1]);
 		cube([A,7.9,0.5]);
 	}
-	translate([1,6,-3.5])cube([A-2,1.2,6]);
+	translate([1,6,-2])cube([A-2,1.2,4.5]); // Assumes cropped pins
 	// Plug
 	translate([0.5,-20,0.6])cube([A-1,21,4.1]);
 	translate([0,-23,0])cube([A,20,4.9]);
@@ -172,7 +172,7 @@ translate([-A/2,-2.94,-2.5])
 		cube([A,7.4,1]);
 		cube([A,7.9,0.5]);
 	}
-	translate([1,6,-3.5])cube([A-2,1.2,6]);
+	translate([1,6,-2])cube([A-2,1.2,4.5]); // Assumes cropped pins
 	// Plug
 	translate([0.5,-20,0.6])cube([A-1,21,4.1]);
 	translate([0,-23,0])cube([A,20,4.9]);
