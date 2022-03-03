@@ -1,6 +1,6 @@
 // Generated case design for KiCad/GPS.kicad_pcb
 // By https://github.com/revk/PCBCase
-// Generated 2022-03-03 15:44:34
+// Generated 2022-03-03 15:48:20
 // title:	GPS reference
 // date:	${DATE}
 // rev:	5
@@ -38,7 +38,7 @@ translate([34.700000,9.600000,1.600000])rotate([0,0,90.000000])translate([0.0000
 translate([34.700000,9.600000,1.600000])rotate([0,0,90.000000])translate([0.000000,0.400000,0.000000])m2(pushed); // RevK:LED-RGB-1.6x1.6 LED_0603_1608Metric
 translate([15.550000,12.050000,1.600000])rotate([0,0,-90.000000])m3(pushed); // Diode_SMD:D_1206_3216Metric D_1206_3216Metric
 translate([17.350000,8.950000,1.600000])rotate([0,0,-90.000000])m4(pushed); // RevK:C_0603 C_0603_1608Metric
-// Missing RevK:L96-M33 L96-M33
+translate([5.550000,17.400000,1.600000])translate([0.000000,0.150000,0.000000])rotate([-90.000000,0.000000,180.000000])m5(pushed); // RevK:L96-M33 L96-M33
 translate([24.020000,15.000000,1.600000])rotate([0,0,-90.000000])m0(pushed); // RevK:R_0603 R_0603_1608Metric
 translate([20.550000,8.850000,1.600000])m0(pushed); // RevK:R_0603 R_0603_1608Metric
 translate([27.300000,6.600000,1.600000])translate([0.000000,-3.600000,2.500000])rotate([0.000000,0.000000,180.000000])m6(pushed); // RevK:Molex_MiniSPOX_H6RA 22057065
@@ -115,6 +115,15 @@ b(0,0,0,4.4,1.75,1.2); // Pad size
 module m4(pushed=false)
 { // RevK:C_0603 C_0603_1608Metric
 b(0,0,0,2.8,0.95,1); // Pad size
+}
+
+module m5(pushed=false)
+{ // RevK:L96-M33 L96-M33
+rotate([90,0,0])
+translate([9.6/2,-14/2-0.15,0])
+{
+	cube([9.6,14,2]);
+}
 }
 
 module m6(pushed=false)
