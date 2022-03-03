@@ -48,7 +48,7 @@
       (layer "B.Mask" (type "Bottom Solder Mask") (thickness 0.01))
       (layer "B.Paste" (type "Bottom Solder Paste"))
       (layer "B.SilkS" (type "Bottom Silk Screen"))
-      (copper_finish "None")
+      (copper_finish "ENIG")
       (dielectric_constraints no)
     )
     (pad_to_mask_clearance 0)
