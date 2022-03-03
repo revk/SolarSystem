@@ -9,6 +9,7 @@ static const char __attribute__((unused)) TAG[] = "alarm";
 #include "input.h"
 #include "output.h"
 #include "keypad.h"
+#include "gps.h"
 #include <esp_mesh.h>
 #include <esp_http_client.h>
 #ifdef  CONFIG_MBEDTLS_CERTIFICATE_BUNDLE
@@ -436,7 +437,7 @@ void mesh_send_report(void)
             jo_string(j, "@", inputname[i]);
 #define i(t,x,c) if(#x)jo_area(j,#t,x);
 #include "states.m"
-            if (jo_len(j) + jo_len(report) > MAX - 25)
+            if (jo_len(j) + jo_len(report) > MAX - 25 - (gpslocked ? 25 : 0))
                send();
             if (!report)
                start();
@@ -456,6 +457,12 @@ void mesh_send_report(void)
 #define c(t,x) jo_area(report,#t,control_##x);
 #include "states.m"
    jo_int(report, "#", parts);
+   if (gpslocked)
+   {
+      struct timeval t;
+      if (!gettimeofday(&t, NULL))
+         jo_int(report, "^", (uint64_t) t.tv_sec * 1000000ULL + t.tv_usec);
+   }
    revk_mesh_send_json(NULL, &report);
 }
 
@@ -697,7 +704,15 @@ static void mesh_handle_report(const char *target, jo_t j)
             }
             node[child].part = 0;
          }
+      } else if (!jo_strcmp(j, "^"))
+      {                         // GPS time
+         jo_next(j);
+         uint64_t now = jo_read_int(j);
+         struct timeval t = { now / 1000000ULL, now % 1000000ULL };
+         if (settimeofday(&t, NULL))
+            ESP_LOGE(TAG, "Time set %llu failed", now);
       }
+
    jo_rewind(j);
    jo_next(j);                  // report tag
    if (jo_next(j) == JO_ARRAY)
@@ -799,7 +814,7 @@ static void mesh_handle_summary(const char *target, jo_t j)
                if (jo_here(j) == JO_STRING)
                {
                   time_t new = jo_read_datetime(j);
-                  if (new > 1000000000)
+                  if (!gpslocked && new > 1000000000)
                   {
                      time_t now = time(0);
                      time_t diff = new - now;

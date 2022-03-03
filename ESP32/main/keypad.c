@@ -450,9 +450,9 @@ static void task(void *pvParameters)
          if (key == 0x7F)
             return;             // Idle
          ui.keyconfirm = 1;
-         ui.keybit = !ui.keybit;	// Send confirmation
+         ui.keybit = !ui.keybit;        // Send confirmation
          if (debug)
-         { // Debug logging
+         {                      // Debug logging
             jo_t j = jo_object_alloc();
             jo_stringf(j, "key", "%.1s", keymap + (key & 0x0F));
             if (key & 0x80)
@@ -535,7 +535,7 @@ static void task(void *pvParameters)
          buf[++p] = 0x0E;
       } else if (ui.keyconfirm)
       {                         // key confirm
-	 ui.keyconfirm = 0;
+         ui.keyconfirm = 0;
          buf[++p] = 0x0B;
          buf[++p] = ui.keybit ? 2 : 0;
       } else if (ui.senddisplay || ui.sendcursor || ui.sendblink || ui.resenddisplay)

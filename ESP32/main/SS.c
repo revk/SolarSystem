@@ -157,17 +157,17 @@ void app_main()
 #undef bd
 #undef b
 #undef bl
-   port_check(6,"Flash",0);	// Flash pins
+       port_check(6, "Flash", 0);       // Flash pins
 #if defined(CONFIG_ESPTOOLPY_FLASHSIZE_8MB) && defined(CONFIG_ESP32_SPIRAM_SUPPORT)
    // PICO allows 7, 8 and 20
 #else
-   port_check(7,"Flash",0);
-   port_check(8,"Flash",0);
-   port_check(20,"Non GPIO",0);
+   port_check(7, "Flash", 0);
+   port_check(8, "Flash", 0);
+   port_check(20, "Non GPIO", 0);
 #endif
-   port_check(9,"Flash",0);
-   port_check(10,"Flash",0);
-   port_check(11,"Flash",0);
+   port_check(9, "Flash", 0);
+   port_check(10, "Flash", 0);
+   port_check(11, "Flash", 0);
 #define m(x) extern void x##_boot(void); ESP_LOGI(TAG,"Boot "#x); x##_boot();
    modules;
 #undef m
