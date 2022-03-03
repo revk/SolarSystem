@@ -1,6 +1,6 @@
 // Generated case design for KiCad/GPS.kicad_pcb
 // By https://github.com/revk/PCBCase
-// Generated 2022-03-01 16:32:28
+// Generated 2022-03-03 15:44:34
 // title:	GPS reference
 // date:	${DATE}
 // rev:	5
@@ -42,7 +42,7 @@ translate([17.350000,8.950000,1.600000])rotate([0,0,-90.000000])m4(pushed); // R
 translate([24.020000,15.000000,1.600000])rotate([0,0,-90.000000])m0(pushed); // RevK:R_0603 R_0603_1608Metric
 translate([20.550000,8.850000,1.600000])m0(pushed); // RevK:R_0603 R_0603_1608Metric
 translate([27.300000,6.600000,1.600000])translate([0.000000,-3.600000,2.500000])rotate([0.000000,0.000000,180.000000])m6(pushed); // RevK:Molex_MiniSPOX_H6RA 22057065
-// Missing RevK:ESP32-PICO-MINI-02 ESP32-PICO-MINI-02
+translate([30.406750,17.900000,1.600000])rotate([0,0,-90.000000])translate([0.000000,2.700000,0.000000])rotate([-90.000000,0.000000,0.000000])m7(pushed); // RevK:ESP32-PICO-MINI-02 ESP32-PICO-MINI-02
 translate([15.125000,23.750000,1.600000])rotate([0,0,180.000000])m0(pushed); // RevK:R_0603 R_0603_1608Metric
 translate([3.700000,6.600000,1.600000])translate([0.000000,-3.600000,2.500000])rotate([0.000000,0.000000,180.000000])m8(pushed); // RevK:Molex_MiniSPOX_H2RA 22057025
 translate([20.700000,12.250000,1.600000])rotate([0,0,-90.000000])m9(pushed); // RevK:QFN-20-1EP_4x4mm_P0.5mm_EP2.5x2.5mm QFN-20-1EP_4x4mm_P0.5mm_EP2.5x2.5mm
@@ -137,6 +137,16 @@ translate([-A/2,-2.94,-2.5])
 	translate([0,-23,0])cube([A,20,4.9]);
 }
 
+}
+
+module m7(pushed=false)
+{ // RevK:ESP32-PICO-MINI-02 ESP32-PICO-MINI-02
+rotate([90,0,0])
+translate([-13.2/2,-16.6/2,0])
+{
+	cube([13.2,16.6,0.8]);
+	cube([13.2,11.2,2.4]);
+}
 }
 
 module m8(pushed=false)
