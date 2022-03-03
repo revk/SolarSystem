@@ -1,4 +1,4 @@
-### Module positions - created on 2022-02-23 17:23
+### Module positions - created on 2022-03-03 12:33
 ### Printed by pcb_positions plugin
 ## Unit = mm, Angle = deg.
 ## Pcb Height 26.600mm, Pcb Width 50.100mm [based on Edge bounding box]
@@ -6,7 +6,6 @@
 ## Board Aux Origin: 0.000mm ,0.000mm
 # Ref         Val                 Package                       PosX       PosY       Pin1_PosX  Pin1_PosY    Rot     Side      Type
 R16           1K                  R_0603                        138.2500   -79.0000   139.0750   -79.0000    180.0    top       SMD
-SW1           Tamper              SW_PUSH_6mm_SMD               136.5000   -89.2500   140.7000   -87.0000      0.0    top       SMD
 R10           100R                R_0603                        113.5000   -75.5000   113.5000   -74.6750    -90.0    top       SMD
 R18           2K                  R_0603                        146.2500   -90.1250   146.2500   -90.9500     90.0    top       SMD
 R24           1.8M 1% or NF       R_0603                        129.5000   -83.0000   129.5000   -83.8250     90.0    top       SMD
