@@ -41,6 +41,23 @@ settings
 #undef bap
 #undef u1
 unsigned char gpslocked = 0;    // Do we have a current time lock
+unsigned char gpsfixed = 0;     // Do we have a location lock
+double gpslat = 0,
+    gpslon = 0;
+
+void gps_send_status(void)
+{
+   if (!gpslocked && !gpsfixed)
+      return;
+   jo_t j = jo_make("gps");
+   jo_bool(j, "gps", gpslocked);
+   if (gpsfixed)
+   {
+      jo_litf(j, "lat", "%lf", gpslat);
+      jo_litf(j, "lon", "%lf", gpslon);
+   }
+   alarm_event("fix", &j, -1);
+}
 
 static void nmea(char *data)
 {
@@ -66,13 +83,31 @@ static void nmea(char *data)
       ESP_LOGE(TAG, "NMEA fields %d", n);
       return;
    }
-
    if (*f[1] != 'A')
    {
       ESP_LOGI(TAG, "NMEA not yet valid yet");
       return;
    }
-   ESP_LOGI(TAG, "Fix %s", data);
+   char status = 0;
+   if (*f[11] != 'N' && strlen(f[2]) > 5 && strlen(f[4]) > 6)
+   {
+      double lat = (f[2][0] - '0') * 10 + (f[2][1] - '0') + strtod(f[2] + 2, NULL) / 60.0;
+      if (*f[3] == 'S')
+         lat = 0 - lat;
+      double lon = (f[4][0] - '0') * 100 + (f[4][1] - '0') * 10 + (f[4][2] - '0') + strtod(f[4] + 3, NULL) / 60.0;
+      if (*f[5] == 'W')
+         lon = 0 - lon;
+      if (lat - gpslat > 1 || gpslat - lat > 1 || lon - gpslon > 1 || gpslon - lon > 1)
+         gpsfixed = 0;
+      if (!gpsfixed)
+      {
+         gpslat = lat;
+         gpslon = lon;
+         gpsfixed = 1;
+         status = 1;
+      }
+      //ESP_LOGI(TAG, "Fix %lf %lf %s", lat, lon, data);
+   }                            //else ESP_LOGI(TAG, "Time fix %s", data);
    if (strlen(f[0]) >= 6 && strlen(f[8]) == 6)
    {                            // Time
       struct tm tm = { };
@@ -93,17 +128,26 @@ static void nmea(char *data)
             m /= 10;
          }
       }
-      time_t new;
+      time_t new,
+       was = time(0);
       gmtime_r(&new, &tm);
+      if (new - was > 10 || was - new > 10)
+         gpslocked = 0;
       struct timeval tv = { new, usec };
       if (settimeofday(&tv, NULL))
          ESP_LOGE(TAG, "Time set %d failed", (int) new);
-      else
+      else if (!gpslocked)
+      {
+         status = 1;
          gpslocked = 1;
+      }
    }
+   if (status)
+      gps_send_status();
 }
 
-static void task(void *pvParameters) {
+static void task(void *pvParameters)
+{
    pvParameters = pvParameters;
    uint8_t buf[200],
    *p = buf;
@@ -113,14 +157,17 @@ static void task(void *pvParameters) {
       esp_task_wdt_reset();
       int l = 0;
       if (p < buf + sizeof(buf))
-          l = uart_read_bytes(gpsuart, p, buf + sizeof(buf) - p, 100 / portTICK_PERIOD_MS);
+         l = uart_read_bytes(gpsuart, p, buf + sizeof(buf) - p, 100 / portTICK_PERIOD_MS);
       if (l <= 0)
       {                         // Timeout
          p = buf;               // Start of line again
          if (timeout < esp_timer_get_time())
+         {
+            ESP_LOGE(TAG, "GPS timeout");
             logical_gpio |= logical_GPSFault;   // Timeout
-         gpslocked = 0;
-         // TODO timeout handling
+            gpslocked = 0;
+            gpsfixed = 0;
+         }
          continue;
       }
       uint8_t *e = p + l;
@@ -163,11 +210,15 @@ static void task(void *pvParameters) {
    }
 }
 
-const char *gps_command(const char *tag, jo_t j) {
+const char *gps_command(const char *tag, jo_t j)
+{
    if (!gpstx || !gpsrx)
       return NULL;              // Not running
    return NULL;
-} void gps_boot(void) {
+}
+
+void gps_boot(void)
+{
    revk_register("gps", 0, sizeof(gpstx), &gpstx, BITFIELDS, SETTING_SET | SETTING_BITFIELD | SETTING_SECRET);  // parent setting
 #define i8(n,d) revk_register(#n,0,sizeof(n),&n,#d,SETTING_SIGNED);
 #define io(n) revk_register(#n,0,sizeof(n),&n,BITFIELDS,SETTING_SET|SETTING_BITFIELD);
@@ -188,16 +239,17 @@ const char *gps_command(const char *tag, jo_t j) {
 #undef b
 #undef bap
 #undef u1
-   if (gpstx && gpsrx)
+       if (gpstx && gpsrx)
    {
       const char *e = port_check(port_mask(gpstx), TAG, 0);
       if (!e)
-          e = port_check(port_mask(gpsrx), TAG, 1);
+         e = port_check(port_mask(gpsrx), TAG, 1);
       if (!e)
-          e = port_check(port_mask(gpstick), TAG, 1);
+         e = port_check(port_mask(gpstick), TAG, 1);
       if (e)
-          logical_gpio |= logical_GPSFault;
-      else {
+         logical_gpio |= logical_GPSFault;
+      else
+      {
          esp_err_t err = 0;
          uart_config_t uart_config = {
             .baud_rate = 9600,
@@ -222,7 +274,8 @@ const char *gps_command(const char *tag, jo_t j) {
       logical_gpio |= logical_GPSFault;
 }
 
-void gps_start(void) {
+void gps_start(void)
+{
    if (gpstx && gpsrx)
       revk_task(TAG, task, NULL);
 }
