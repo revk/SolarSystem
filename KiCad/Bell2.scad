@@ -1,6 +1,6 @@
 // Generated case design for KiCad/Bell2.kicad_pcb
 // By https://github.com/revk/PCBCase
-// Generated 2022-03-01 16:30:59
+// Generated 2022-03-03 15:53:44
 // title:	Bell box controller
 // date:	${DATE}
 // rev:	2
@@ -52,7 +52,7 @@ translate([4.250000,2.800000,1.600000])rotate([0,0,90.000000])translate([2.27500
 translate([15.750000,16.500000,1.600000])rotate([0,0,180.000000])m1(pushed); // RevK:R_0603 R_0603_1608Metric
 translate([15.875000,20.750000,1.600000])rotate([0,0,180.000000])translate([0.000000,-0.400000,0.000000])m9(pushed); // RevK:LED-RGB-1.6x1.6 LED_0603_1608Metric
 translate([15.875000,20.750000,1.600000])rotate([0,0,180.000000])translate([0.000000,0.400000,0.000000])m9(pushed); // RevK:LED-RGB-1.6x1.6 LED_0603_1608Metric
-// Missing RevK:ESP32-PICO-MINI-02 ESP32-PICO-MINI-02
+translate([6.550000,16.400000,1.600000])translate([0.000000,2.500000,0.000000])rotate([-90.000000,0.000000,0.000000])m10(pushed); // RevK:ESP32-PICO-MINI-02 ESP32-PICO-MINI-02
 translate([14.250000,0.000000,1.600000])translate([0.000000,3.385000,0.000000])rotate([-90.000000,0.000000,0.000000])m11(pushed); // RevK:USC16-TR-Round CSP-USC16-TR
 translate([21.850000,22.500000,1.600000])m12(pushed); // RevK:QFN-20-1EP_4x4mm_P0.5mm_EP2.5x2.5mm QFN-20-1EP_4x4mm_P0.5mm_EP2.5x2.5mm
 translate([31.750000,17.500000,0.000000])rotate([180,0,0])m3(pushed); // RevK:C_0603 C_0603_1608Metric
@@ -142,6 +142,16 @@ b(0,0,0,1.6,0.8,0.25);
 b(0,0,0,1.2,0.8,0.55);
 b(0,0,0,0.8,0.8,0.95);
 b(0,0,0,1,1,20);
+}
+
+module m10(pushed=false)
+{ // RevK:ESP32-PICO-MINI-02 ESP32-PICO-MINI-02
+rotate([90,0,0])
+translate([-13.2/2,-16.6/2,0])
+{
+	cube([13.2,16.6,0.8]);
+	cube([13.2,11.2,2.4]);
+}
 }
 
 module m11(pushed=false)
