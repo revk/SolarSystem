@@ -18,7 +18,7 @@ if($?PROVISION) then
 		endif
 		setenv authenticated `sql "$DB" 'SELECT authenticated FROM pending WHERE pending="$PROVISION"'`
 		setenv nfc `sql "$DB" 'SELECT IF(nfctx="-","false","true") FROM pcb WHERE pcb=$pcb'`
-		setenv gpsc `sql "$DB" 'SELECT IF(gpsctx="-","false","true") FROM pcb WHERE pcb=$pcb'`
+		setenv gps `sql "$DB" 'SELECT IF(gpsctx="-","false","true") FROM pcb WHERE pcb=$pcb'`
 		sql "$DB" 'INSERT INTO device SET device="$PROVISION",pcb="$pcb",organisation="$USER_ORGANISATION",site="$USER_SITE",aid="$aid",nfc="$nfc",gps="$gps" ON DUPLICATE KEY UPDATE pcb="$pcb",organisation="$USER_ORGANISATION",site="$USER_SITE",aid="$aid",nfc="$nfc",gps="$gps"'
 		sql "$DB" 'DELETE FROM devicegpio WHERE device="$PROVISION"'
 		sql "$DB" 'INSERT INTO devicegpio (device,gpio,type,name,hold,pulse,invert) SELECT "$PROVISION",gpio,inittype,initname,inithold,initpulse,initinvert FROM gpio WHERE pcb=$pcb'
