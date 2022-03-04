@@ -125,6 +125,8 @@ const char *alarm_command(const char *tag, jo_t j)
          for (int i = 0; i < nodes; i++)
             if (node[i].online)
                node_online(node[i].mac);
+         if (gpslocked || gpsfixed)
+            gps_send_status();
       }
       return NULL;
    }
