@@ -3741,7 +3741,7 @@
   (gr_text "Power" (at 145.55 68.5) (layer "B.SilkS") (tstamp 00000000-0000-0000-0000-000060907e0c)
     (effects (font (size 0.8 0.8) (thickness 0.1)) (justify mirror))
   )
-  (gr_text "Solar System\nAccess Control" (at 123.5 87.4) (layer "B.SilkS") (tstamp 39349f81-a647-4568-a49b-eb371290ec0d)
+  (gr_text "Solar System\nAccess2" (at 123.5 87.4) (layer "B.SilkS") (tstamp 39349f81-a647-4568-a49b-eb371290ec0d)
     (effects (font (size 1 1) (thickness 0.15)) (justify mirror))
   )
   (gr_text "Inputs 1-6" (at 101 70 90) (layer "B.SilkS") (tstamp c9bae45c-c22f-46fd-bd5b-eed62f9bc99a)

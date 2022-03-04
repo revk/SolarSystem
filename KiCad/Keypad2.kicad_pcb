@@ -1385,7 +1385,7 @@
   (gr_line (start 161 123) (end 174.2 123) (layer "Edge.Cuts") (width 0.1) (tstamp 6c471c9b-f243-4107-8be1-1cc06a3c6ae5))
   (gr_line (start 174.2 94) (end 161 94) (layer "Edge.Cuts") (width 0.1) (tstamp 88458104-221e-4e6f-b559-be99b5c2913b))
   (gr_line (start 174.2 123) (end 174.2 94) (layer "Edge.Cuts") (width 0.1) (tstamp eaa1c3fc-c981-4ca0-856b-27b3aedc77ea))
-  (gr_text "Solar System\nKeypad" (at 167.75 115.25) (layer "B.SilkS") (tstamp 4e7a230a-c1a4-4455-81ee-277835acf4a2)
+  (gr_text "Solar System\nKeypad2" (at 167.75 115.25) (layer "B.SilkS") (tstamp 4e7a230a-c1a4-4455-81ee-277835acf4a2)
     (effects (font (size 1 1) (thickness 0.15)) (justify mirror))
   )
   (dimension (type aligned) (layer "Dwgs.User") (tstamp 927607c8-a380-4088-a683-897e818ef8c6)

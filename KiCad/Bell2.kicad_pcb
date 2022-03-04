@@ -2262,7 +2262,7 @@
   (gr_line (start 91.5 38.5) (end 91.5 33) (layer "Edge.Cuts") (width 0.1) (tstamp 99000d6c-394b-49a3-b8df-fcb1ba01523f))
   (gr_line (start 73.25 38.5) (end 91.5 38.5) (layer "Edge.Cuts") (width 0.1) (tstamp be48c4ca-3b76-4222-b496-54fccfc47e92))
   (gr_line (start 108 33) (end 108 60.5) (layer "Edge.Cuts") (width 0.1) (tstamp e1f47bc1-cdc1-4c5f-917d-d1fcc302dbe5))
-  (gr_text "Solar System\nBell Box" (at 75 57) (layer "B.SilkS") (tstamp 4829bee0-faa8-43f7-b2d7-8a6e5d1b3050)
+  (gr_text "Solar System\nBell2" (at 75 57) (layer "B.SilkS") (tstamp 4829bee0-faa8-43f7-b2d7-8a6e5d1b3050)
     (effects (font (size 1 1) (thickness 0.15)) (justify right mirror))
   )
   (gr_text "BELL" (at 105 53) (layer "F.SilkS") (tstamp 0ec134c3-f4b9-4651-acea-3dcc09cfac68)
