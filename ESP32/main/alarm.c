@@ -1180,7 +1180,8 @@ void alarm_rx(const char *target, jo_t j)
          jo_area(j, "display", areakeypad);
       jo_int(j, "flash", spi_flash_get_chip_size());
       revk_mesh_send_json(NULL, &j);
-      gps_send_status();
+      if (gpslocked || gpsfixed)
+         gps_send_status();
       return;
    }
 }

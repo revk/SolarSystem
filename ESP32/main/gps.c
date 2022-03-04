@@ -47,8 +47,6 @@ double gpslat = 0,
 
 void gps_send_status(void)
 {
-   if (!gpslocked && !gpsfixed)
-      return;
    jo_t j = jo_make("gps");
    jo_bool(j, "gps", gpslocked);
    if (gpsfixed)
@@ -61,11 +59,8 @@ void gps_send_status(void)
 
 static void nmea(char *data)
 {
-   if (strncmp(data, "$GNRMC", 6))
-   {                            // Recommended Minimum Position Data
-      //ESP_LOGI(TAG, "NMEA %s", data);
-      return;
-   }
+   if (*data != '$' || data[1] != 'G' || !data[2] || strncmp(data + 3, "RMC", 3))
+      return;                   // Recommended Minimum Position Data
    logical_gpio &= ~logical_GPSFault;   // No fault, does not mean locked though
    char *f[13];
    int n = 0;
@@ -80,12 +75,12 @@ static void nmea(char *data)
    }
    if (n < 13)
    {
-      ESP_LOGE(TAG, "NMEA fields %d", n);
+      ESP_LOGE(TAG, "NMEA fields %d: %s", n, data);
       return;
    }
    if (*f[1] != 'A')
    {
-      ESP_LOGI(TAG, "NMEA not yet valid yet");
+      ESP_LOGI(TAG, "NMEA not yet valid yet: %s", data);
       return;
    }
    char status = 0;
@@ -106,7 +101,7 @@ static void nmea(char *data)
          gpsfixed = 1;
          status = 1;
       }
-      //ESP_LOGI(TAG, "Fix %lf %lf %s", lat, lon, data);
+     // ESP_LOGI(TAG, "Fix %lf %lf %s", lat, lon, data);
    }                            //else ESP_LOGI(TAG, "Time fix %s", data);
    if (strlen(f[0]) >= 6 && strlen(f[8]) == 6)
    {                            // Time
@@ -165,8 +160,12 @@ static void task(void *pvParameters)
          {
             ESP_LOGE(TAG, "GPS timeout");
             logical_gpio |= logical_GPSFault;   // Timeout
-            gpslocked = 0;
-            gpsfixed = 0;
+            if (gpslocked || gpsfixed)
+            {
+               gpslocked = 0;
+               gpsfixed = 0;
+               gps_send_status();
+            }
          }
          continue;
       }
