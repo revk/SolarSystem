@@ -47,7 +47,7 @@ double gpslat = 0,
 
 void gps_send_status(void)
 {
-   jo_t j = jo_make("gps");
+   jo_t j = jo_make(NULL);
    if (gpsfixed)
    {
       jo_litf(j, "lat", "%lf", gpslat);
