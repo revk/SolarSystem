@@ -47,25 +47,20 @@ double gpslat = 0,
 
 void gps_send_status(void)
 {
-   if (!gpslocked && !gpsfixed)
-      return;
-   jo_t j = jo_make("gps");
-   jo_bool(j, "gps", gpslocked);
+   jo_t j = jo_make(NULL);
    if (gpsfixed)
    {
       jo_litf(j, "lat", "%lf", gpslat);
       jo_litf(j, "lon", "%lf", gpslon);
    }
-   alarm_event("fix", &j, -1);
+   alarm_event(gpsfixed ? "fix" : gpslocked ? "clock" : "lost", &j, -1);
 }
 
 static void nmea(char *data)
 {
-   if (strncmp(data, "$GNRMC", 6))
-   {                            // Recommended Minimum Position Data
-      //ESP_LOGI(TAG, "NMEA %s", data);
-      return;
-   }
+   if (*data != '$' || data[1] != 'G' || !data[2] || strncmp(data + 3, "RMC", 3))
+      return;                   // Recommended Minimum Position Data
+   //ESP_LOGI(TAG, "%s", data);
    logical_gpio &= ~logical_GPSFault;   // No fault, does not mean locked though
    char *f[13];
    int n = 0;
@@ -76,16 +71,12 @@ static void nmea(char *data)
          p++;
       if (*p != ',')
          break;
-      f[n++] = ++p;
+      *p++ = 0;
+      f[n++] = p;
    }
    if (n < 13)
    {
       ESP_LOGE(TAG, "NMEA fields %d", n);
-      return;
-   }
-   if (*f[1] != 'A')
-   {
-      ESP_LOGI(TAG, "NMEA not yet valid yet");
       return;
    }
    char status = 0;
@@ -106,9 +97,9 @@ static void nmea(char *data)
          gpsfixed = 1;
          status = 1;
       }
-      //ESP_LOGI(TAG, "Fix %lf %lf %s", lat, lon, data);
-   }                            //else ESP_LOGI(TAG, "Time fix %s", data);
-   if (strlen(f[0]) >= 6 && strlen(f[8]) == 6)
+      //ESP_LOGI(TAG, "Fix %lf %lf", lat, lon);
+   }
+   if (strlen(f[0]) >= 6 && strlen(f[8]) == 6 && (*f[1] == 'A' || f[8][4] != '8'))      // 1980 is no good
    {                            // Time
       struct tm tm = { };
       tm.tm_year = 100 + (f[8][4] - '0') * 10 + (f[8][5] - '0');
@@ -128,9 +119,9 @@ static void nmea(char *data)
             m /= 10;
          }
       }
-      time_t new,
-       was = time(0);
-      gmtime_r(&new, &tm);
+      // TODO needs to be timegm but not seeing that in the ESP IDF
+      time_t new = mktime(&tm),
+          was = time(0);
       if (new - was > 10 || was - new > 10)
          gpslocked = 0;
       struct timeval tv = { new, usec };
@@ -141,6 +132,7 @@ static void nmea(char *data)
          status = 1;
          gpslocked = 1;
       }
+      //ESP_LOGI(TAG, "Clock %04d-%02d-%02d %02d:%02d:%02d.%06d", tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec, usec);
    }
    if (status)
       gps_send_status();
@@ -165,8 +157,12 @@ static void task(void *pvParameters)
          {
             ESP_LOGE(TAG, "GPS timeout");
             logical_gpio |= logical_GPSFault;   // Timeout
-            gpslocked = 0;
-            gpsfixed = 0;
+            if (gpslocked || gpsfixed)
+            {
+               gpslocked = 0;
+               gpsfixed = 0;
+               gps_send_status();
+            }
          }
          continue;
       }

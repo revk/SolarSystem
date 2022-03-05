@@ -125,6 +125,8 @@ const char *alarm_command(const char *tag, jo_t j)
          for (int i = 0; i < nodes; i++)
             if (node[i].online)
                node_online(node[i].mac);
+         if (gpslocked || gpsfixed)
+            gps_send_status();
       }
       return NULL;
    }
@@ -1180,7 +1182,8 @@ void alarm_rx(const char *target, jo_t j)
          jo_area(j, "display", areakeypad);
       jo_int(j, "flash", spi_flash_get_chip_size());
       revk_mesh_send_json(NULL, &j);
-      gps_send_status();
+      if (gpslocked || gpsfixed)
+         gps_send_status();
       return;
    }
 }
