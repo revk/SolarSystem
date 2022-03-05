@@ -69,6 +69,8 @@ KiCad/Bell.scad: KiCad/Bell.kicad_pcb PCBCase/case Makefile
 	PCBCase/case -o $@ $< --base=2 --top=5.2
 KiCad/Bell2.scad: KiCad/Bell2.kicad_pcb PCBCase/case Makefile
 	PCBCase/case -o $@ $< --base=2 --top=5.2
+KiCad/Access2.scad: KiCad/Access2.kicad_pcb PCBCase/case Makefile
+	PCBCase/case -o $@ $< --base=2 --top=5.2
 xmlsql/xmlsql: xmlsql/xmlsql.c
 	make -C xmlsql
 AXL/axl.o: AXL/axl.c
