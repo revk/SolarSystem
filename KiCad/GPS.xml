@@ -2,15 +2,15 @@
 <export version="E">
   <design>
     <source>/Users/adrian/git/SolarSystem/KiCad/GPS.kicad_sch</source>
-    <date>Tuesday, 01 March 2022 at 14:22:57</date>
+    <date>Sunday, 06 March 2022 at 13:21:19</date>
     <tool>Eeschema (6.0.2-0)</tool>
-    <textvar name="DATE">2022-03-01</textvar>
+    <textvar name="DATE">2022-03-06</textvar>
     <sheet number="1" name="/" tstamps="/">
       <title_block>
         <title>GPS reference</title>
         <company>Adrian Kennard Andrews &amp; Arnold Ltd</company>
         <rev>1</rev>
-        <date>2022-03-01</date>
+        <date>2022-03-06</date>
         <source>GPS.kicad_sch</source>
         <comment number="1" value="@TheRealRevK"/>
         <comment number="2" value="www.me.uk"/>
@@ -25,6 +25,15 @@
     </sheet>
   </design>
   <components>
+    <comp ref="BT1">
+      <value>Battery_Cell</value>
+      <footprint>Battery:BatteryHolder_Keystone_3002_1x2032</footprint>
+      <libsource lib="Device" part="Battery_Cell" description="Single-cell battery"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="GPS.kicad_sch"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>d2acb68c-44d4-4480-8eda-51e505a3f6f6</tstamps>
+    </comp>
     <comp ref="C1">
       <value>0.1uF</value>
       <footprint>RevK:C_0603</footprint>
@@ -111,26 +120,17 @@
     <comp ref="J1">
       <value>DC</value>
       <footprint>RevK:Molex_MiniSPOX_H2RA</footprint>
-      <libsource lib="Connector_Generic" part="Conn_01x02" description="Generic connector, single row, 01x02, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
+      <libsource lib="RevK" part="DC" description=""/>
       <property name="Sheetname" value=""/>
       <property name="Sheetfile" value="GPS.kicad_sch"/>
       <sheetpath names="/" tstamps="/"/>
       <tstamps>6632bf4c-766d-4d12-b7a8-80288e5f09e3</tstamps>
     </comp>
     <comp ref="J2">
-      <value>I/O</value>
-      <footprint>RevK:Molex_MiniSPOX_H6RA</footprint>
-      <libsource lib="Connector_Generic" part="Conn_01x06" description="Generic connector, single row, 01x06, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
-      <property name="Sheetname" value=""/>
-      <property name="Sheetfile" value="GPS.kicad_sch"/>
-      <sheetpath names="/" tstamps="/"/>
-      <tstamps>c9bc2f7f-7889-4db9-965d-47383be269eb</tstamps>
-    </comp>
-    <comp ref="J3">
       <value>USB-C</value>
       <footprint>RevK:USC16-TR-Round</footprint>
       <datasheet>https://www.usb.org/sites/default/files/documents/usb_type-c.zip</datasheet>
-      <libsource lib="Connector" part="USB_C_Receptacle_USB2.0" description="USB 2.0-only Type-C Receptacle connector"/>
+      <libsource lib="RevK" part="USB-C" description="USB 2.0-only Type-C Receptacle connector"/>
       <property name="Sheetname" value=""/>
       <property name="Sheetfile" value="GPS.kicad_sch"/>
       <sheetpath names="/" tstamps="/"/>
@@ -181,6 +181,24 @@
       <tstamps>00000000-0000-0000-0000-000060fbba7d</tstamps>
     </comp>
     <comp ref="R4">
+      <value>27R</value>
+      <footprint>RevK:R_0603</footprint>
+      <libsource lib="Device" part="R" description="Resistor"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="GPS.kicad_sch"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>ad24965c-c37f-4eef-a0e6-df0d62631eea</tstamps>
+    </comp>
+    <comp ref="R5">
+      <value>27R</value>
+      <footprint>RevK:R_0603</footprint>
+      <libsource lib="Device" part="R" description="Resistor"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="GPS.kicad_sch"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>62a6a152-7e76-46ab-a82c-900fbac3a51c</tstamps>
+    </comp>
+    <comp ref="R6">
       <value>4k7</value>
       <footprint>RevK:R_0603</footprint>
       <libsource lib="Device" part="R" description="Resistor"/>
@@ -189,7 +207,7 @@
       <sheetpath names="/" tstamps="/"/>
       <tstamps>39b6d60a-31a9-4d7c-ac44-b08039071920</tstamps>
     </comp>
-    <comp ref="R5">
+    <comp ref="R7">
       <value>10k</value>
       <footprint>RevK:R_0603</footprint>
       <libsource lib="Device" part="R" description="Resistor"/>
@@ -197,24 +215,6 @@
       <property name="Sheetfile" value="GPS.kicad_sch"/>
       <sheetpath names="/" tstamps="/"/>
       <tstamps>3d1cc92b-d081-4f42-b8be-de2b995d0a9f</tstamps>
-    </comp>
-    <comp ref="R6">
-      <value>470K</value>
-      <footprint>RevK:R_0603</footprint>
-      <libsource lib="Device" part="R" description="Resistor"/>
-      <property name="Sheetname" value=""/>
-      <property name="Sheetfile" value="GPS.kicad_sch"/>
-      <sheetpath names="/" tstamps="/"/>
-      <tstamps>44fc2331-a491-4caa-bfe3-446626627399</tstamps>
-    </comp>
-    <comp ref="R7">
-      <value>100K</value>
-      <footprint>RevK:R_0603</footprint>
-      <libsource lib="Device" part="R" description="Resistor"/>
-      <property name="Sheetname" value=""/>
-      <property name="Sheetfile" value="GPS.kicad_sch"/>
-      <sheetpath names="/" tstamps="/"/>
-      <tstamps>2ad870e8-b762-47ec-ab02-a3ca2603f2d2</tstamps>
     </comp>
     <comp ref="R8">
       <value>10M 1% or 0R</value>
@@ -262,6 +262,15 @@
       <tstamps>fe9fc355-72ea-4cb8-a08f-1748e53389a5</tstamps>
     </comp>
     <comp ref="U1">
+      <value>L86-M33</value>
+      <footprint>RevK:L86-M33</footprint>
+      <libsource lib="RevK" part="L86-M33" description=""/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="GPS.kicad_sch"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>9edd2f4d-ab17-4d21-be4a-64fba361cb20</tstamps>
+    </comp>
+    <comp ref="U2">
       <value>ESP32-PICO-MINI-02</value>
       <footprint>RevK:ESP32-PICO-MINI-02</footprint>
       <fields>
@@ -279,29 +288,6 @@
       <property name="Sheetfile" value="GPS.kicad_sch"/>
       <sheetpath names="/" tstamps="/"/>
       <tstamps>a68666c5-d248-40dd-b132-5bb6a20a9cf7</tstamps>
-    </comp>
-    <comp ref="U2">
-      <value>L96-M33</value>
-      <footprint>RevK:L96-M33</footprint>
-      <fields>
-        <field name="AVAILABILITY">Unavailable</field>
-        <field name="DESCRIPTION">L96 is a concurrent multi-GNSS receiver module with embedded chip antenna. With 33 tracking channels, 99 acquisition channels and 210 PRN channels, L96 supports concurrent reception of up to three GNSS systems _GPS+GLONASS+Galileo_</field>
-        <field name="MF">Quectel Wireless Solutions Co., Ltd</field>
-        <field name="MP">L96</field>
-        <field name="PACKAGE">SOIC-8 Quectel Wireless Solutions Co., Ltd</field>
-        <field name="PRICE">None</field>
-      </fields>
-      <libsource lib="RevK" part="L96-M33" description=""/>
-      <property name="AVAILABILITY" value="Unavailable"/>
-      <property name="PRICE" value="None"/>
-      <property name="DESCRIPTION" value="L96 is a concurrent multi-GNSS receiver module with embedded chip antenna. With 33 tracking channels, 99 acquisition channels and 210 PRN channels, L96 supports concurrent reception of up to three GNSS systems _GPS+GLONASS+Galileo_"/>
-      <property name="MP" value="L96"/>
-      <property name="MF" value="Quectel Wireless Solutions Co., Ltd"/>
-      <property name="PACKAGE" value="SOIC-8 Quectel Wireless Solutions Co., Ltd"/>
-      <property name="Sheetname" value=""/>
-      <property name="Sheetfile" value="GPS.kicad_sch"/>
-      <sheetpath names="/" tstamps="/"/>
-      <tstamps>5ceb76f2-0e77-4ded-b2f1-59d9ea394e0f</tstamps>
     </comp>
     <comp ref="U3">
       <value>FT231XQ</value>
@@ -330,71 +316,17 @@
     </comp>
   </components>
   <libparts>
-    <libpart lib="Connector" part="USB_C_Receptacle_USB2.0">
-      <description>USB 2.0-only Type-C Receptacle connector</description>
-      <docs>https://www.usb.org/sites/default/files/documents/usb_type-c.zip</docs>
-      <footprints>
-        <fp>USB*C*Receptacle*</fp>
-      </footprints>
-      <fields>
-        <field name="Reference">J</field>
-        <field name="Value">USB_C_Receptacle_USB2.0</field>
-        <field name="Datasheet">https://www.usb.org/sites/default/files/documents/usb_type-c.zip</field>
-      </fields>
-      <pins>
-        <pin num="A1" name="GND" type="passive"/>
-        <pin num="A4" name="VBUS" type="passive"/>
-        <pin num="A5" name="CC1" type="bidirectional"/>
-        <pin num="A6" name="D+" type="bidirectional"/>
-        <pin num="A7" name="D-" type="bidirectional"/>
-        <pin num="A8" name="SBU1" type="bidirectional"/>
-        <pin num="A9" name="VBUS" type="passive"/>
-        <pin num="A12" name="GND" type="passive"/>
-        <pin num="B1" name="GND" type="passive"/>
-        <pin num="B4" name="VBUS" type="passive"/>
-        <pin num="B5" name="CC2" type="bidirectional"/>
-        <pin num="B6" name="D+" type="bidirectional"/>
-        <pin num="B7" name="D-" type="bidirectional"/>
-        <pin num="B8" name="SBU2" type="bidirectional"/>
-        <pin num="B9" name="VBUS" type="passive"/>
-        <pin num="B12" name="GND" type="passive"/>
-        <pin num="S1" name="SHIELD" type="passive"/>
-      </pins>
-    </libpart>
-    <libpart lib="Connector_Generic" part="Conn_01x02">
-      <description>Generic connector, single row, 01x02, script generated (kicad-library-utils/schlib/autogen/connector/)</description>
+    <libpart lib="Device" part="Battery_Cell">
+      <description>Single-cell battery</description>
       <docs>~</docs>
-      <footprints>
-        <fp>Connector*:*_1x??_*</fp>
-      </footprints>
       <fields>
-        <field name="Reference">J</field>
-        <field name="Value">Conn_01x02</field>
+        <field name="Reference">BT</field>
+        <field name="Value">Battery_Cell</field>
         <field name="Datasheet">~</field>
       </fields>
       <pins>
-        <pin num="1" name="Pin_1" type="passive"/>
-        <pin num="2" name="Pin_2" type="passive"/>
-      </pins>
-    </libpart>
-    <libpart lib="Connector_Generic" part="Conn_01x06">
-      <description>Generic connector, single row, 01x06, script generated (kicad-library-utils/schlib/autogen/connector/)</description>
-      <docs>~</docs>
-      <footprints>
-        <fp>Connector*:*_1x??_*</fp>
-      </footprints>
-      <fields>
-        <field name="Reference">J</field>
-        <field name="Value">Conn_01x06</field>
-        <field name="Datasheet">~</field>
-      </fields>
-      <pins>
-        <pin num="1" name="Pin_1" type="passive"/>
-        <pin num="2" name="Pin_2" type="passive"/>
-        <pin num="3" name="Pin_3" type="passive"/>
-        <pin num="4" name="Pin_4" type="passive"/>
-        <pin num="5" name="Pin_5" type="passive"/>
-        <pin num="6" name="Pin_6" type="passive"/>
+        <pin num="1" name="+" type="passive"/>
+        <pin num="2" name="-" type="passive"/>
       </pins>
     </libpart>
     <libpart lib="Device" part="C">
@@ -468,42 +400,6 @@
         <pin num="2" name="" type="passive"/>
       </pins>
     </libpart>
-    <libpart lib="Jumper" part="Jumper_2_Bridged">
-      <description>Jumper, 2-pole, closed/bridged</description>
-      <docs>~</docs>
-      <footprints>
-        <fp>Jumper*</fp>
-        <fp>TestPoint*2Pads*</fp>
-        <fp>TestPoint*Bridge*</fp>
-      </footprints>
-      <fields>
-        <field name="Reference">JP</field>
-        <field name="Value">Jumper_2_Bridged</field>
-        <field name="Datasheet">~</field>
-      </fields>
-      <pins>
-        <pin num="1" name="A" type="passive"/>
-        <pin num="2" name="B" type="passive"/>
-      </pins>
-    </libpart>
-    <libpart lib="Jumper" part="Jumper_2_Open">
-      <description>Jumper, 2-pole, open</description>
-      <docs>~</docs>
-      <footprints>
-        <fp>Jumper*</fp>
-        <fp>TestPoint*2Pads*</fp>
-        <fp>TestPoint*Bridge*</fp>
-      </footprints>
-      <fields>
-        <field name="Reference">JP</field>
-        <field name="Value">Jumper_2_Open</field>
-        <field name="Datasheet">~</field>
-      </fields>
-      <pins>
-        <pin num="1" name="A" type="passive"/>
-        <pin num="2" name="B" type="passive"/>
-      </pins>
-    </libpart>
     <libpart lib="RevK" part="AA">
       <description>A&amp;A Logo</description>
       <fields>
@@ -520,6 +416,17 @@
         <field name="Footprint">RevK:AJK</field>
         <field name="Note">Non part, PCB printed</field>
       </fields>
+    </libpart>
+    <libpart lib="RevK" part="DC">
+      <fields>
+        <field name="Reference">J</field>
+        <field name="Value">DC</field>
+        <field name="Footprint">RevK:DC</field>
+      </fields>
+      <pins>
+        <pin num="1" name="GND" type="power_out"/>
+        <pin num="2" name="DC" type="power_out"/>
+      </pins>
     </libpart>
     <libpart lib="RevK" part="ESP32-PICO-MINI-02">
       <fields>
@@ -609,7 +516,7 @@
         <pin num="7" name="CBUS2" type="bidirectional"/>
         <pin num="8" name="USBDP" type="bidirectional"/>
         <pin num="9" name="USBDM" type="bidirectional"/>
-        <pin num="10" name="3V3OUT" type="power_out"/>
+        <pin num="10" name="3V3OUT" type="passive"/>
         <pin num="11" name="~{RESET}" type="input"/>
         <pin num="12" name="VCC" type="power_in"/>
         <pin num="13" name="GND" type="power_in"/>
@@ -633,49 +540,25 @@
         <pin num="~" name="" type="no_connect"/>
       </pins>
     </libpart>
-    <libpart lib="RevK" part="L96-M33">
+    <libpart lib="RevK" part="L86-M33">
       <fields>
         <field name="Reference">U</field>
-        <field name="Value">L96-M33</field>
-        <field name="Footprint">RevK:L96-M33</field>
-        <field name="AVAILABILITY">Unavailable</field>
-        <field name="PRICE">None</field>
-        <field name="DESCRIPTION">L96 is a concurrent multi-GNSS receiver module with embedded chip antenna. With 33 tracking channels, 99 acquisition channels and 210 PRN channels, L96 supports concurrent reception of up to three GNSS systems _GPS+GLONASS+Galileo_</field>
-        <field name="MP">L96</field>
-        <field name="MF">Quectel Wireless Solutions Co., Ltd</field>
-        <field name="PACKAGE">SOIC-8 Quectel Wireless Solutions Co., Ltd</field>
+        <field name="Value">L86-M33</field>
+        <field name="Footprint">RevK:L86-M33</field>
       </fields>
       <pins>
-        <pin num="2" name="3D_FIX" type="output"/>
-        <pin num="3" name="I2C_SDA" type="bidirectional"/>
-        <pin num="4" name="GND" type="power_in"/>
-        <pin num="5" name="GND" type="power_in"/>
-        <pin num="6" name="I2C_SCL" type="bidirectional"/>
-        <pin num="7" name="EXTINT0" type="input"/>
-        <pin num="8" name="V_BCKP" type="power_in"/>
-        <pin num="9" name="VCC" type="power_in"/>
-        <pin num="10" name="GND" type="power_in"/>
-        <pin num="11" name="GND" type="power_in"/>
+        <pin num="1" name="RXD1" type="input"/>
+        <pin num="2" name="TXD1" type="output"/>
+        <pin num="3" name="GND" type="power_in"/>
+        <pin num="4" name="VCC" type="power_in"/>
+        <pin num="5" name="V_BKCP" type="power_in"/>
+        <pin num="6" name="1PPS" type="output"/>
+        <pin num="7" name="FORCE_ON" type="input"/>
+        <pin num="8" name="AADET_N" type="passive"/>
+        <pin num="9" name="NC" type="no_connect"/>
+        <pin num="10" name="RESET" type="input"/>
+        <pin num="11" name="EX_ANT" type="passive"/>
         <pin num="12" name="GND" type="power_in"/>
-        <pin num="13" name="GND" type="power_in"/>
-        <pin num="14" name="GND" type="power_in"/>
-        <pin num="15" name="GND" type="power_in"/>
-        <pin num="16" name="RF_OUT" type="output"/>
-        <pin num="17" name="RF_IN" type="input"/>
-        <pin num="18" name="GND" type="power_in"/>
-        <pin num="19" name="GND" type="power_in"/>
-        <pin num="20" name="JAM_DET" type="output"/>
-        <pin num="21" name="GND" type="power_in"/>
-        <pin num="22" name="GND" type="power_in"/>
-        <pin num="23" name="~{RESET}" type="input"/>
-        <pin num="24" name="GEO_FENCE" type="output"/>
-        <pin num="25" name="TXD1" type="output"/>
-        <pin num="26" name="RXD1" type="input"/>
-        <pin num="27" name="GND" type="power_in"/>
-        <pin num="28" name="FORCE_ON" type="input"/>
-        <pin num="29" name="TIMEPULSE" type="output"/>
-        <pin num="30" name="ANTON" type="output"/>
-        <pin num="31" name="GND" type="power_in"/>
       </pins>
     </libpart>
     <libpart lib="RevK" part="LMR16006+FB">
@@ -701,19 +584,42 @@
         <field name="Note">Non part, PCB printed</field>
       </fields>
     </libpart>
+    <libpart lib="RevK" part="USB-C">
+      <description>USB 2.0-only Type-C Receptacle connector</description>
+      <docs>https://www.usb.org/sites/default/files/documents/usb_type-c.zip</docs>
+      <footprints>
+        <fp>USB*C*Receptacle*</fp>
+      </footprints>
+      <fields>
+        <field name="Reference">J</field>
+        <field name="Value">USB-C</field>
+        <field name="Footprint">RevK:USC16-TR-Round</field>
+        <field name="Datasheet">https://www.usb.org/sites/default/files/documents/usb_type-c.zip</field>
+      </fields>
+      <pins>
+        <pin num="A1" name="GND" type="power_out"/>
+        <pin num="A4" name="VBUS" type="power_out"/>
+        <pin num="A5" name="CC1" type="bidirectional"/>
+        <pin num="A6" name="D+" type="bidirectional"/>
+        <pin num="A7" name="D-" type="bidirectional"/>
+        <pin num="A8" name="SBU1" type="no_connect"/>
+        <pin num="A9" name="VBUS" type="passive"/>
+        <pin num="A12" name="GND" type="passive"/>
+        <pin num="B1" name="GND" type="passive"/>
+        <pin num="B4" name="VBUS" type="passive"/>
+        <pin num="B5" name="CC2" type="bidirectional"/>
+        <pin num="B6" name="D+" type="bidirectional"/>
+        <pin num="B7" name="D-" type="bidirectional"/>
+        <pin num="B8" name="SBU2" type="no_connect"/>
+        <pin num="B9" name="VBUS" type="passive"/>
+        <pin num="B12" name="GND" type="passive"/>
+        <pin num="S1" name="SHIELD" type="passive"/>
+      </pins>
+    </libpart>
   </libparts>
   <libraries>
-    <library logical="Connector">
-      <uri>/Applications/KiCad/KiCad.app/Contents/SharedSupport/symbols//Connector.kicad_sym</uri>
-    </library>
-    <library logical="Connector_Generic">
-      <uri>/Applications/KiCad/KiCad.app/Contents/SharedSupport/symbols//Connector_Generic.kicad_sym</uri>
-    </library>
     <library logical="Device">
       <uri>/Applications/KiCad/KiCad.app/Contents/SharedSupport/symbols//Device.kicad_sym</uri>
-    </library>
-    <library logical="Jumper">
-      <uri>/Applications/KiCad/KiCad.app/Contents/SharedSupport/symbols//Jumper.kicad_sym</uri>
     </library>
     <library logical="RevK">
       <uri>/Users/adrian/Documents/KiCad/6.0/symbols/RevK.kicad_sym</uri>
@@ -725,9 +631,9 @@
       <node ref="D2" pin="1" pinfunction="A" pintype="passive"/>
       <node ref="R1" pin="1" pintype="passive"/>
       <node ref="R8" pin="1" pintype="passive"/>
-      <node ref="U1" pin="3" pinfunction="3V3" pintype="power_in"/>
-      <node ref="U2" pin="9" pinfunction="VCC" pintype="power_in"/>
-      <node ref="U3" pin="10" pinfunction="3V3OUT" pintype="power_out"/>
+      <node ref="U1" pin="4" pinfunction="VCC" pintype="power_in"/>
+      <node ref="U2" pin="3" pinfunction="3V3" pintype="power_in"/>
+      <node ref="U3" pin="10" pinfunction="3V3OUT" pintype="passive"/>
       <node ref="U3" pin="11" pinfunction="~{RESET}" pintype="input"/>
       <node ref="U3" pin="12" pinfunction="VCC" pintype="power_in"/>
       <node ref="U3" pin="20" pinfunction="VCCIO" pintype="power_in"/>
@@ -735,92 +641,72 @@
     </net>
     <net code="2" name="B">
       <node ref="R11" pin="2" pintype="passive"/>
-      <node ref="U1" pin="33" pinfunction="IO19" pintype="bidirectional"/>
+      <node ref="U2" pin="35" pinfunction="IO21" pintype="bidirectional"/>
     </net>
-    <net code="3" name="BAT">
-      <node ref="R6" pin="1" pintype="passive"/>
-      <node ref="R7" pin="2" pintype="passive"/>
-      <node ref="U1" pin="9" pinfunction="I34" pintype="input"/>
-    </net>
-    <net code="4" name="BOOT">
-      <node ref="U1" pin="23" pinfunction="IO0" pintype="bidirectional"/>
+    <net code="3" name="BOOT">
+      <node ref="U2" pin="23" pinfunction="IO0" pintype="bidirectional"/>
       <node ref="U3" pin="18" pinfunction="~{DTR}" pintype="output"/>
     </net>
-    <net code="5" name="D+">
-      <node ref="J3" pin="A6" pinfunction="D+" pintype="bidirectional"/>
-      <node ref="J3" pin="B6" pinfunction="D+" pintype="bidirectional"/>
+    <net code="4" name="D+">
+      <node ref="R5" pin="2" pintype="passive"/>
       <node ref="U3" pin="8" pinfunction="USBDP" pintype="bidirectional"/>
     </net>
-    <net code="6" name="D-">
-      <node ref="J3" pin="A7" pinfunction="D-" pintype="bidirectional"/>
-      <node ref="J3" pin="B7" pinfunction="D-" pintype="bidirectional"/>
+    <net code="5" name="D-">
+      <node ref="R4" pin="2" pintype="passive"/>
       <node ref="U3" pin="9" pinfunction="USBDM" pintype="bidirectional"/>
     </net>
-    <net code="7" name="DC">
+    <net code="6" name="DC">
       <node ref="D1" pin="1" pinfunction="K" pintype="passive"/>
-      <node ref="J1" pin="2" pinfunction="Pin_2" pintype="passive"/>
-      <node ref="R6" pin="2" pintype="passive"/>
+      <node ref="J1" pin="2" pinfunction="DC" pintype="power_out"/>
       <node ref="U4" pin="1" pinfunction="SHDN" pintype="input"/>
       <node ref="U4" pin="2" pinfunction="VIN" pintype="power_in"/>
     </net>
-    <net code="8" name="EN">
+    <net code="7" name="EN">
       <node ref="R1" pin="2" pintype="passive"/>
-      <node ref="U1" pin="8" pinfunction="EN" pintype="input"/>
+      <node ref="U2" pin="8" pinfunction="EN" pintype="input"/>
       <node ref="U3" pin="19" pinfunction="~{RTS}" pintype="output"/>
     </net>
-    <net code="9" name="G">
+    <net code="8" name="G">
       <node ref="R10" pin="2" pintype="passive"/>
-      <node ref="U1" pin="34" pinfunction="IO22" pintype="bidirectional"/>
+      <node ref="U2" pin="33" pinfunction="IO19" pintype="bidirectional"/>
     </net>
-    <net code="10" name="GND">
+    <net code="9" name="GND">
+      <node ref="BT1" pin="2" pinfunction="-" pintype="passive"/>
       <node ref="C1" pin="2" pintype="passive"/>
-      <node ref="J1" pin="1" pinfunction="Pin_1" pintype="passive"/>
-      <node ref="J3" pin="A1" pinfunction="GND" pintype="passive"/>
-      <node ref="J3" pin="A12" pinfunction="GND" pintype="passive"/>
-      <node ref="J3" pin="B1" pinfunction="GND" pintype="passive"/>
-      <node ref="J3" pin="B12" pinfunction="GND" pintype="passive"/>
-      <node ref="J3" pin="S1" pinfunction="SHIELD" pintype="passive"/>
+      <node ref="J1" pin="1" pinfunction="GND" pintype="power_out"/>
+      <node ref="J2" pin="A1" pinfunction="GND" pintype="power_out"/>
+      <node ref="J2" pin="A12" pinfunction="GND" pintype="passive"/>
+      <node ref="J2" pin="B1" pinfunction="GND" pintype="passive"/>
+      <node ref="J2" pin="B12" pinfunction="GND" pintype="passive"/>
+      <node ref="J2" pin="S1" pinfunction="SHIELD" pintype="passive"/>
       <node ref="R12" pin="1" pintype="passive"/>
       <node ref="R2" pin="2" pintype="passive"/>
       <node ref="R3" pin="1" pintype="passive"/>
-      <node ref="R5" pin="2" pintype="passive"/>
-      <node ref="R7" pin="1" pintype="passive"/>
-      <node ref="U1" pin="1" pinfunction="GND" pintype="power_in"/>
-      <node ref="U1" pin="11" pinfunction="GND" pintype="power_in"/>
-      <node ref="U1" pin="14" pinfunction="GND" pintype="power_in"/>
-      <node ref="U1" pin="2" pinfunction="GND" pintype="power_in"/>
-      <node ref="U1" pin="36" pinfunction="GND" pintype="power_in"/>
-      <node ref="U1" pin="37" pinfunction="GND" pintype="power_in"/>
-      <node ref="U1" pin="38" pinfunction="GND" pintype="power_in"/>
-      <node ref="U1" pin="39" pinfunction="GND" pintype="power_in"/>
-      <node ref="U1" pin="40" pinfunction="GND" pintype="power_in"/>
-      <node ref="U1" pin="41" pinfunction="GND" pintype="power_in"/>
-      <node ref="U1" pin="42" pinfunction="GND" pintype="power_in"/>
-      <node ref="U1" pin="43" pinfunction="GND" pintype="power_in"/>
-      <node ref="U1" pin="44" pinfunction="GND" pintype="power_in"/>
-      <node ref="U1" pin="45" pinfunction="GND" pintype="power_in"/>
-      <node ref="U1" pin="46" pinfunction="GND" pintype="power_in"/>
-      <node ref="U1" pin="47" pinfunction="GND" pintype="power_in"/>
-      <node ref="U1" pin="48" pinfunction="GND" pintype="power_in"/>
-      <node ref="U1" pin="49" pinfunction="GND" pintype="power_in"/>
-      <node ref="U1" pin="50" pinfunction="GND" pintype="power_in"/>
-      <node ref="U1" pin="51" pinfunction="GND" pintype="power_in"/>
-      <node ref="U1" pin="52" pinfunction="GND" pintype="power_in"/>
-      <node ref="U1" pin="53" pinfunction="GND" pintype="power_in"/>
-      <node ref="U2" pin="10" pinfunction="GND" pintype="power_in"/>
+      <node ref="R7" pin="2" pintype="passive"/>
+      <node ref="U1" pin="12" pinfunction="GND" pintype="power_in"/>
+      <node ref="U1" pin="3" pinfunction="GND" pintype="power_in"/>
+      <node ref="U2" pin="1" pinfunction="GND" pintype="power_in"/>
       <node ref="U2" pin="11" pinfunction="GND" pintype="power_in"/>
-      <node ref="U2" pin="12" pinfunction="GND" pintype="power_in"/>
-      <node ref="U2" pin="13" pinfunction="GND" pintype="power_in"/>
       <node ref="U2" pin="14" pinfunction="GND" pintype="power_in"/>
-      <node ref="U2" pin="15" pinfunction="GND" pintype="power_in"/>
-      <node ref="U2" pin="18" pinfunction="GND" pintype="power_in"/>
-      <node ref="U2" pin="19" pinfunction="GND" pintype="power_in"/>
-      <node ref="U2" pin="21" pinfunction="GND" pintype="power_in"/>
-      <node ref="U2" pin="22" pinfunction="GND" pintype="power_in"/>
-      <node ref="U2" pin="27" pinfunction="GND" pintype="power_in"/>
-      <node ref="U2" pin="31" pinfunction="GND" pintype="power_in"/>
-      <node ref="U2" pin="4" pinfunction="GND" pintype="power_in"/>
-      <node ref="U2" pin="5" pinfunction="GND" pintype="power_in"/>
+      <node ref="U2" pin="2" pinfunction="GND" pintype="power_in"/>
+      <node ref="U2" pin="36" pinfunction="GND" pintype="power_in"/>
+      <node ref="U2" pin="37" pinfunction="GND" pintype="power_in"/>
+      <node ref="U2" pin="38" pinfunction="GND" pintype="power_in"/>
+      <node ref="U2" pin="39" pinfunction="GND" pintype="power_in"/>
+      <node ref="U2" pin="40" pinfunction="GND" pintype="power_in"/>
+      <node ref="U2" pin="41" pinfunction="GND" pintype="power_in"/>
+      <node ref="U2" pin="42" pinfunction="GND" pintype="power_in"/>
+      <node ref="U2" pin="43" pinfunction="GND" pintype="power_in"/>
+      <node ref="U2" pin="44" pinfunction="GND" pintype="power_in"/>
+      <node ref="U2" pin="45" pinfunction="GND" pintype="power_in"/>
+      <node ref="U2" pin="46" pinfunction="GND" pintype="power_in"/>
+      <node ref="U2" pin="47" pinfunction="GND" pintype="power_in"/>
+      <node ref="U2" pin="48" pinfunction="GND" pintype="power_in"/>
+      <node ref="U2" pin="49" pinfunction="GND" pintype="power_in"/>
+      <node ref="U2" pin="50" pinfunction="GND" pintype="power_in"/>
+      <node ref="U2" pin="51" pinfunction="GND" pintype="power_in"/>
+      <node ref="U2" pin="52" pinfunction="GND" pintype="power_in"/>
+      <node ref="U2" pin="53" pinfunction="GND" pintype="power_in"/>
       <node ref="U3" pin="13" pinfunction="GND" pintype="power_in"/>
       <node ref="U3" pin="2" pinfunction="~{RI}" pintype="input"/>
       <node ref="U3" pin="21" pinfunction="GND" pintype="power_in"/>
@@ -830,193 +716,185 @@
       <node ref="U3" pin="6" pinfunction="~{CTS}" pintype="input"/>
       <node ref="U4" pin="3" pinfunction="GND" pintype="power_in"/>
     </net>
-    <net code="11" name="GPSON">
-      <node ref="U1" pin="17" pinfunction="IO27" pintype="bidirectional"/>
-      <node ref="U2" pin="28" pinfunction="FORCE_ON" pintype="input"/>
+    <net code="10" name="GPSRX">
+      <node ref="U1" pin="1" pinfunction="RXD1" pintype="input"/>
+      <node ref="U2" pin="12" pinfunction="IO32" pintype="bidirectional"/>
     </net>
-    <net code="12" name="GPSRST">
-      <node ref="U1" pin="13" pinfunction="IO33" pintype="bidirectional"/>
-      <node ref="U2" pin="23" pinfunction="~{RESET}" pintype="input"/>
+    <net code="11" name="GPSTX">
+      <node ref="U1" pin="2" pinfunction="TXD1" pintype="output"/>
+      <node ref="U2" pin="15" pinfunction="IO25" pintype="bidirectional"/>
     </net>
-    <net code="13" name="GPSRX">
-      <node ref="U1" pin="16" pinfunction="IO26" pintype="bidirectional"/>
-      <node ref="U2" pin="26" pinfunction="RXD1" pintype="input"/>
-    </net>
-    <net code="14" name="GPSTX">
-      <node ref="U1" pin="15" pinfunction="IO25" pintype="bidirectional"/>
-      <node ref="U2" pin="25" pinfunction="TXD1" pintype="output"/>
-    </net>
-    <net code="15" name="I">
-      <node ref="U1" pin="30" pinfunction="RXD0" pintype="bidirectional"/>
+    <net code="12" name="I">
+      <node ref="U2" pin="30" pinfunction="RXD0" pintype="bidirectional"/>
       <node ref="U3" pin="17" pinfunction="TXD" pintype="output"/>
     </net>
-    <net code="16" name="IO1">
-      <node ref="J2" pin="1" pinfunction="Pin_1" pintype="passive"/>
-      <node ref="U1" pin="21" pinfunction="IO15" pintype="bidirectional"/>
+    <net code="13" name="Net-(BT1-Pad1)">
+      <node ref="BT1" pin="1" pinfunction="+" pintype="passive"/>
+      <node ref="U1" pin="5" pinfunction="V_BKCP" pintype="power_in"/>
     </net>
-    <net code="17" name="IO2">
-      <node ref="J2" pin="2" pinfunction="Pin_2" pintype="passive"/>
-      <node ref="U1" pin="24" pinfunction="IO4" pintype="bidirectional"/>
-    </net>
-    <net code="18" name="IO3">
-      <node ref="U1" pin="26" pinfunction="IO20" pintype="bidirectional"/>
-    </net>
-    <net code="19" name="IO4">
-      <node ref="J2" pin="4" pinfunction="Pin_4" pintype="passive"/>
-      <node ref="U1" pin="27" pinfunction="IO7" pintype="bidirectional"/>
-    </net>
-    <net code="20" name="IO5">
-      <node ref="J2" pin="5" pinfunction="Pin_5" pintype="passive"/>
-      <node ref="U1" pin="28" pinfunction="IO8" pintype="bidirectional"/>
-    </net>
-    <net code="21" name="IO6">
-      <node ref="U1" pin="20" pinfunction="IO13" pintype="bidirectional"/>
-    </net>
-    <net code="22" name="Net-(D2-Pad2)">
+    <net code="14" name="Net-(D2-Pad2)">
       <node ref="D2" pin="2" pinfunction="RK" pintype="passive"/>
       <node ref="R9" pin="1" pintype="passive"/>
     </net>
-    <net code="23" name="Net-(D2-Pad3)">
+    <net code="15" name="Net-(D2-Pad3)">
       <node ref="D2" pin="3" pinfunction="GK" pintype="passive"/>
       <node ref="R10" pin="1" pintype="passive"/>
     </net>
-    <net code="24" name="Net-(D2-Pad4)">
+    <net code="16" name="Net-(D2-Pad4)">
       <node ref="D2" pin="4" pinfunction="BK" pintype="passive"/>
       <node ref="R11" pin="1" pintype="passive"/>
     </net>
-    <net code="25" name="Net-(J2-Pad3)">
-      <node ref="J2" pin="3" pinfunction="Pin_3" pintype="passive"/>
-    </net>
-    <net code="26" name="Net-(J2-Pad6)">
-      <node ref="J2" pin="6" pinfunction="Pin_6" pintype="passive"/>
-    </net>
-    <net code="27" name="Net-(J3-PadA5)">
-      <node ref="J3" pin="A5" pinfunction="CC1" pintype="bidirectional"/>
+    <net code="17" name="Net-(J2-PadA5)">
+      <node ref="J2" pin="A5" pinfunction="CC1" pintype="bidirectional"/>
       <node ref="R2" pin="1" pintype="passive"/>
     </net>
-    <net code="28" name="Net-(J3-PadB5)">
-      <node ref="J3" pin="B5" pinfunction="CC2" pintype="bidirectional"/>
+    <net code="18" name="Net-(J2-PadA6)">
+      <node ref="J2" pin="A6" pinfunction="D+" pintype="bidirectional"/>
+      <node ref="J2" pin="B6" pinfunction="D+" pintype="bidirectional"/>
+      <node ref="R5" pin="1" pintype="passive"/>
+    </net>
+    <net code="19" name="Net-(J2-PadA7)">
+      <node ref="J2" pin="A7" pinfunction="D-" pintype="bidirectional"/>
+      <node ref="J2" pin="B7" pinfunction="D-" pintype="bidirectional"/>
+      <node ref="R4" pin="1" pintype="passive"/>
+    </net>
+    <net code="20" name="Net-(J2-PadB5)">
+      <node ref="J2" pin="B5" pinfunction="CC2" pintype="bidirectional"/>
       <node ref="R3" pin="2" pintype="passive"/>
     </net>
-    <net code="29" name="Net-(R4-Pad2)">
-      <node ref="R4" pin="2" pintype="passive"/>
-      <node ref="R5" pin="1" pintype="passive"/>
+    <net code="21" name="Net-(R6-Pad2)">
+      <node ref="R6" pin="2" pintype="passive"/>
+      <node ref="R7" pin="1" pintype="passive"/>
       <node ref="U3" pin="16" pinfunction="CBUS3" pintype="bidirectional"/>
     </net>
-    <net code="30" name="Net-(R12-Pad2)">
+    <net code="22" name="Net-(R12-Pad2)">
       <node ref="R12" pin="2" pintype="passive"/>
       <node ref="R8" pin="2" pintype="passive"/>
       <node ref="U4" pin="5" pinfunction="FB" pintype="passive"/>
     </net>
-    <net code="31" name="Net-(U2-Pad16)">
-      <node ref="U2" pin="16" pinfunction="RF_OUT" pintype="output"/>
-      <node ref="U2" pin="17" pinfunction="RF_IN" pintype="input"/>
-    </net>
-    <net code="32" name="O">
-      <node ref="U1" pin="31" pinfunction="TXD0" pintype="bidirectional"/>
+    <net code="23" name="O">
+      <node ref="U2" pin="31" pinfunction="TXD0" pintype="bidirectional"/>
       <node ref="U3" pin="1" pinfunction="RXD" pintype="input"/>
     </net>
-    <net code="33" name="R">
+    <net code="24" name="R">
       <node ref="R9" pin="2" pintype="passive"/>
-      <node ref="U1" pin="35" pinfunction="IO21" pintype="bidirectional"/>
+      <node ref="U2" pin="34" pinfunction="IO22" pintype="bidirectional"/>
     </net>
-    <net code="34" name="TICK">
-      <node ref="U1" pin="18" pinfunction="IO14" pintype="bidirectional"/>
-      <node ref="U2" pin="29" pinfunction="TIMEPULSE" pintype="output"/>
+    <net code="25" name="TICK">
+      <node ref="U1" pin="6" pinfunction="1PPS" pintype="output"/>
+      <node ref="U2" pin="13" pinfunction="IO33" pintype="bidirectional"/>
     </net>
-    <net code="35" name="VBUS">
+    <net code="26" name="VBUS">
       <node ref="D1" pin="2" pinfunction="A" pintype="passive"/>
-      <node ref="J3" pin="A4" pinfunction="VBUS" pintype="passive"/>
-      <node ref="J3" pin="A9" pinfunction="VBUS" pintype="passive"/>
-      <node ref="J3" pin="B4" pinfunction="VBUS" pintype="passive"/>
-      <node ref="J3" pin="B9" pinfunction="VBUS" pintype="passive"/>
-      <node ref="R4" pin="1" pintype="passive"/>
+      <node ref="J2" pin="A4" pinfunction="VBUS" pintype="power_out"/>
+      <node ref="J2" pin="A9" pinfunction="VBUS" pintype="passive"/>
+      <node ref="J2" pin="B4" pinfunction="VBUS" pintype="passive"/>
+      <node ref="J2" pin="B9" pinfunction="VBUS" pintype="passive"/>
+      <node ref="R6" pin="1" pintype="passive"/>
     </net>
-    <net code="36" name="unconnected-(C2-Pad~)">
+    <net code="27" name="unconnected-(C2-Pad~)">
       <node ref="C2" pin="" pintype="no_connect"/>
     </net>
-    <net code="37" name="unconnected-(C3-Pad~)">
+    <net code="28" name="unconnected-(C3-Pad~)">
       <node ref="C3" pin="" pintype="no_connect"/>
     </net>
-    <net code="38" name="unconnected-(C4-Pad~)">
+    <net code="29" name="unconnected-(C4-Pad~)">
       <node ref="C4" pin="" pintype="no_connect"/>
     </net>
-    <net code="39" name="unconnected-(D3-Pad~)">
+    <net code="30" name="unconnected-(D3-Pad~)">
       <node ref="D3" pin="" pintype="no_connect"/>
     </net>
-    <net code="40" name="unconnected-(J3-PadA8)">
-      <node ref="J3" pin="A8" pinfunction="SBU1" pintype="bidirectional+no_connect"/>
+    <net code="31" name="unconnected-(J2-PadA8)">
+      <node ref="J2" pin="A8" pinfunction="SBU1" pintype="no_connect"/>
     </net>
-    <net code="41" name="unconnected-(J3-PadB8)">
-      <node ref="J3" pin="B8" pinfunction="SBU2" pintype="bidirectional+no_connect"/>
+    <net code="32" name="unconnected-(J2-PadB8)">
+      <node ref="J2" pin="B8" pinfunction="SBU2" pintype="no_connect"/>
     </net>
-    <net code="42" name="unconnected-(L1-Pad~)">
+    <net code="33" name="unconnected-(L1-Pad~)">
       <node ref="L1" pin="" pintype="no_connect"/>
     </net>
-    <net code="43" name="unconnected-(U1-Pad4)">
-      <node ref="U1" pin="4" pinfunction="I36" pintype="input+no_connect"/>
+    <net code="34" name="unconnected-(U1-Pad7)">
+      <node ref="U1" pin="7" pinfunction="FORCE_ON" pintype="input+no_connect"/>
     </net>
-    <net code="44" name="unconnected-(U1-Pad5)">
-      <node ref="U1" pin="5" pinfunction="I37" pintype="input+no_connect"/>
+    <net code="35" name="unconnected-(U1-Pad8)">
+      <node ref="U1" pin="8" pinfunction="AADET_N" pintype="passive+no_connect"/>
     </net>
-    <net code="45" name="unconnected-(U1-Pad6)">
-      <node ref="U1" pin="6" pinfunction="I38" pintype="input+no_connect"/>
+    <net code="36" name="unconnected-(U1-Pad9)">
+      <node ref="U1" pin="9" pinfunction="NC" pintype="no_connect"/>
     </net>
-    <net code="46" name="unconnected-(U1-Pad7)">
-      <node ref="U1" pin="7" pinfunction="I39" pintype="input+no_connect"/>
+    <net code="37" name="unconnected-(U1-Pad10)">
+      <node ref="U1" pin="10" pinfunction="RESET" pintype="input+no_connect"/>
     </net>
-    <net code="47" name="unconnected-(U1-Pad10)">
-      <node ref="U1" pin="10" pinfunction="I35" pintype="input+no_connect"/>
+    <net code="38" name="unconnected-(U1-Pad11)">
+      <node ref="U1" pin="11" pinfunction="EX_ANT" pintype="passive+no_connect"/>
     </net>
-    <net code="48" name="unconnected-(U1-Pad12)">
-      <node ref="U1" pin="12" pinfunction="IO32" pintype="bidirectional+no_connect"/>
+    <net code="39" name="unconnected-(U2-Pad4)">
+      <node ref="U2" pin="4" pinfunction="I36" pintype="input+no_connect"/>
     </net>
-    <net code="49" name="unconnected-(U1-Pad19)">
-      <node ref="U1" pin="19" pinfunction="IO12" pintype="bidirectional+no_connect"/>
+    <net code="40" name="unconnected-(U2-Pad5)">
+      <node ref="U2" pin="5" pinfunction="I37" pintype="input+no_connect"/>
     </net>
-    <net code="50" name="unconnected-(U1-Pad22)">
-      <node ref="U1" pin="22" pinfunction="IO2" pintype="bidirectional+no_connect"/>
+    <net code="41" name="unconnected-(U2-Pad6)">
+      <node ref="U2" pin="6" pinfunction="I38" pintype="input+no_connect"/>
     </net>
-    <net code="51" name="unconnected-(U1-Pad25)">
-      <node ref="U1" pin="25" pinfunction="NC" pintype="no_connect"/>
+    <net code="42" name="unconnected-(U2-Pad7)">
+      <node ref="U2" pin="7" pinfunction="I39" pintype="input+no_connect"/>
     </net>
-    <net code="52" name="unconnected-(U1-Pad29)">
-      <node ref="U1" pin="29" pinfunction="IO5" pintype="bidirectional+no_connect"/>
+    <net code="43" name="unconnected-(U2-Pad9)">
+      <node ref="U2" pin="9" pinfunction="I34" pintype="input+no_connect"/>
     </net>
-    <net code="53" name="unconnected-(U1-Pad32)">
-      <node ref="U1" pin="32" pinfunction="NC" pintype="no_connect"/>
+    <net code="44" name="unconnected-(U2-Pad10)">
+      <node ref="U2" pin="10" pinfunction="I35" pintype="input+no_connect"/>
     </net>
-    <net code="54" name="unconnected-(U2-Pad2)">
-      <node ref="U2" pin="2" pinfunction="3D_FIX" pintype="output+no_connect"/>
+    <net code="45" name="unconnected-(U2-Pad16)">
+      <node ref="U2" pin="16" pinfunction="IO26" pintype="bidirectional+no_connect"/>
     </net>
-    <net code="55" name="unconnected-(U2-Pad3)">
-      <node ref="U2" pin="3" pinfunction="I2C_SDA" pintype="bidirectional+no_connect"/>
+    <net code="46" name="unconnected-(U2-Pad17)">
+      <node ref="U2" pin="17" pinfunction="IO27" pintype="bidirectional+no_connect"/>
     </net>
-    <net code="56" name="unconnected-(U2-Pad6)">
-      <node ref="U2" pin="6" pinfunction="I2C_SCL" pintype="bidirectional+no_connect"/>
+    <net code="47" name="unconnected-(U2-Pad18)">
+      <node ref="U2" pin="18" pinfunction="IO14" pintype="bidirectional+no_connect"/>
     </net>
-    <net code="57" name="unconnected-(U2-Pad7)">
-      <node ref="U2" pin="7" pinfunction="EXTINT0" pintype="input+no_connect"/>
+    <net code="48" name="unconnected-(U2-Pad19)">
+      <node ref="U2" pin="19" pinfunction="IO12" pintype="bidirectional+no_connect"/>
     </net>
-    <net code="58" name="unconnected-(U2-Pad8)">
-      <node ref="U2" pin="8" pinfunction="V_BCKP" pintype="power_in+no_connect"/>
+    <net code="49" name="unconnected-(U2-Pad20)">
+      <node ref="U2" pin="20" pinfunction="IO13" pintype="bidirectional+no_connect"/>
     </net>
-    <net code="59" name="unconnected-(U2-Pad20)">
-      <node ref="U2" pin="20" pinfunction="JAM_DET" pintype="output+no_connect"/>
+    <net code="50" name="unconnected-(U2-Pad21)">
+      <node ref="U2" pin="21" pinfunction="IO15" pintype="bidirectional+no_connect"/>
     </net>
-    <net code="60" name="unconnected-(U2-Pad24)">
-      <node ref="U2" pin="24" pinfunction="GEO_FENCE" pintype="output+no_connect"/>
+    <net code="51" name="unconnected-(U2-Pad22)">
+      <node ref="U2" pin="22" pinfunction="IO2" pintype="bidirectional+no_connect"/>
     </net>
-    <net code="61" name="unconnected-(U2-Pad30)">
-      <node ref="U2" pin="30" pinfunction="ANTON" pintype="output+no_connect"/>
+    <net code="52" name="unconnected-(U2-Pad24)">
+      <node ref="U2" pin="24" pinfunction="IO4" pintype="bidirectional+no_connect"/>
     </net>
-    <net code="62" name="unconnected-(U3-Pad7)">
+    <net code="53" name="unconnected-(U2-Pad25)">
+      <node ref="U2" pin="25" pinfunction="NC" pintype="no_connect"/>
+    </net>
+    <net code="54" name="unconnected-(U2-Pad26)">
+      <node ref="U2" pin="26" pinfunction="IO20" pintype="bidirectional+no_connect"/>
+    </net>
+    <net code="55" name="unconnected-(U2-Pad27)">
+      <node ref="U2" pin="27" pinfunction="IO7" pintype="bidirectional+no_connect"/>
+    </net>
+    <net code="56" name="unconnected-(U2-Pad28)">
+      <node ref="U2" pin="28" pinfunction="IO8" pintype="bidirectional+no_connect"/>
+    </net>
+    <net code="57" name="unconnected-(U2-Pad29)">
+      <node ref="U2" pin="29" pinfunction="IO5" pintype="bidirectional+no_connect"/>
+    </net>
+    <net code="58" name="unconnected-(U2-Pad32)">
+      <node ref="U2" pin="32" pinfunction="NC" pintype="no_connect"/>
+    </net>
+    <net code="59" name="unconnected-(U3-Pad7)">
       <node ref="U3" pin="7" pinfunction="CBUS2" pintype="bidirectional+no_connect"/>
     </net>
-    <net code="63" name="unconnected-(U3-Pad14)">
+    <net code="60" name="unconnected-(U3-Pad14)">
       <node ref="U3" pin="14" pinfunction="CBUS1" pintype="bidirectional+no_connect"/>
     </net>
-    <net code="64" name="unconnected-(U3-Pad15)">
+    <net code="61" name="unconnected-(U3-Pad15)">
       <node ref="U3" pin="15" pinfunction="CBUS0" pintype="bidirectional+no_connect"/>
     </net>
   </nets>
