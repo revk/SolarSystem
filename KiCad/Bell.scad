@@ -1,6 +1,6 @@
 // Generated case design for KiCad/Bell.kicad_pcb
 // By https://github.com/revk/PCBCase
-// Generated 2022-03-03 17:40:11
+// Generated 2022-03-07 10:41:14
 // title:	Bell box controller
 // date:	${DATE}
 // rev:	2
@@ -16,13 +16,13 @@ casewall=3.000000;
 fit=0.000000;
 edge=1.000000;
 pcbthickness=1.600000;
+
+module pcb(h=pcbthickness){linear_extrude(height=h)polygon(points=[[36.000000,35.000000],[36.000000,0.500000],[35.500000,0.000000],[0.000000,0.000000],[0.000000,28.500000],[0.500000,29.000000],[24.000000,29.000000],[24.000000,34.500000],[24.500000,35.000000]],paths=[[0,1,2,3,4,5,6,7,8,0]]);}
+
+module outline(h=pcbthickness){linear_extrude(height=h)polygon(points=[[36.000000,35.000000],[36.000000,0.500000],[35.500000,0.000000],[0.000000,0.000000],[0.000000,28.500000],[0.500000,29.000000],[24.000000,29.000000],[24.000000,34.500000],[24.500000,35.000000]],paths=[[0,1,2,3,4,5,6,7,8,0]]);}
+spacing=52.000000;
 pcbwidth=36.000000;
 pcblength=35.000000;
-spacing=52.000000;
-
-// PCB
-module pcb(h=pcbthickness){linear_extrude(height=h)polygon([[36.000000,0.500000],[35.500000,0.000000],[0.000000,0.000000],[0.000000,28.500000],[0.500000,29.000000],[24.000000,29.000000],[24.000000,34.500000],[24.500000,35.000000],[36.000000,35.000000]]);}
-
 // Populated PCB
 module board(pushed=false){
 	pcb();
@@ -256,7 +256,7 @@ module boardm()
 
 module pcbh()
 { // PCB shape for case
-	hull()pcb();
+	hull()outline();
 }
 
 module pyramid()
@@ -418,18 +418,19 @@ module top()
 module test()
 {
 	translate([0*spacing,0,0])pcb();
-	translate([1*spacing,0,0])wall();
-	translate([2*spacing,0,0])board();
-	translate([3*spacing,0,0])board(true);
-	translate([4*spacing,0,0])boardf();
-	translate([5*spacing,0,0])boardb();
-	translate([6*spacing,0,0])cutpf();
-	translate([7*spacing,0,0])cutpb();
-	translate([8*spacing,0,0])cutf();
-	translate([9*spacing,0,0])cutb();
-	translate([10*spacing,0,0])case();
-	translate([11*spacing,0,0])base();
-	translate([12*spacing,0,0])top();
+	translate([1*spacing,0,0])outline();
+	translate([2*spacing,0,0])wall();
+	translate([3*spacing,0,0])board();
+	translate([4*spacing,0,0])board(true);
+	translate([5*spacing,0,0])boardf();
+	translate([6*spacing,0,0])boardb();
+	translate([7*spacing,0,0])cutpf();
+	translate([8*spacing,0,0])cutpb();
+	translate([9*spacing,0,0])cutf();
+	translate([10*spacing,0,0])cutb();
+	translate([11*spacing,0,0])case();
+	translate([12*spacing,0,0])base();
+	translate([13*spacing,0,0])top();
 }
 
 module parts()
