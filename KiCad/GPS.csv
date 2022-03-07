@@ -1,5 +1,5 @@
 "Source:","/Users/adrian/git/SolarSystem/KiCad/GPS.kicad_sch"
-"Date:","Sunday, 06 March 2022 at 13:21:19"
+"Date:","Monday, 07 March 2022 at 07:28:00"
 "Tool:","Eeschema (6.0.2-0)"
 "Generator:","/Applications/KiCad/KiCad.app/Contents/SharedSupport/plugins/bom_csv_grouped_by_value.py"
 "Component Count:","27"
@@ -7,7 +7,7 @@
 "Individual Components:"
 
 "Item","Qty","Reference(s)","Value","LibPart","Footprint","Datasheet","MANUFACTURER","MAXIMUM_PACKAGE_HEIGHT","Manufacturer","Note","PARTREV","Part No","STANDARD"
-"","","BT1","Battery_Cell","Device:Battery_Cell","Battery:BatteryHolder_Keystone_3002_1x2032","~","","","","","","",""
+"","","BT1","Battery_Cell","Device:Battery_Cell","RevK:Battery-Holder-2032","~","","","","","","",""
 "","","C1","0.1uF","Device:C","RevK:C_0603","~","","","","","","",""
 "","","C2","0.1uF","RevK:Hidden","RevK:Hidden","","","","","","","",""
 "","","C3","2.2uF","RevK:Hidden","RevK:Hidden","","","","","0805","","",""
@@ -40,7 +40,7 @@
 "Collated Components:"
 
 "Item","Qty","Reference(s)","Value","LibPart","Footprint","Datasheet","MANUFACTURER","MAXIMUM_PACKAGE_HEIGHT","Manufacturer","Note","PARTREV","Part No","STANDARD"
-"1","1","BT1","Battery_Cell","Device:Battery_Cell","Battery:BatteryHolder_Keystone_3002_1x2032","~","","","","","","",""
+"1","1","BT1","Battery_Cell","Device:Battery_Cell","RevK:Battery-Holder-2032","~","","","","","","",""
 "2","1","C1","0.1uF","Device:C","RevK:C_0603","~","","","","","","",""
 "3","1","C2","0.1uF","RevK:Hidden","RevK:Hidden","","","","","","","",""
 "4","1","C3","2.2uF","RevK:Hidden","RevK:Hidden","","","","","0805","","",""

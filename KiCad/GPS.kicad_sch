@@ -2854,7 +2854,7 @@
     (property "Value" "Battery_Cell" (id 1) (at 101.981 146.9902 0)
       (effects (font (size 1.27 1.27)) (justify left))
     )
-    (property "Footprint" "Battery:BatteryHolder_Keystone_3002_1x2032" (id 2) (at 99.06 145.796 90)
+    (property "Footprint" "RevK:Battery-Holder-2032" (id 2) (at 99.06 145.796 90)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Datasheet" "~" (id 3) (at 99.06 145.796 90)
@@ -3053,7 +3053,7 @@
       (reference "#PWR024") (unit 1) (value "+3.3V") (footprint "")
     )
     (path "/d2acb68c-44d4-4480-8eda-51e505a3f6f6"
-      (reference "BT1") (unit 1) (value "Battery_Cell") (footprint "Battery:BatteryHolder_Keystone_3002_1x2032")
+      (reference "BT1") (unit 1) (value "Battery_Cell") (footprint "RevK:Battery-Holder-2032")
     )
     (path "/00000000-0000-0000-0000-000060910a6c"
       (reference "C1") (unit 1) (value "0.1uF") (footprint "RevK:C_0603")

@@ -2,7 +2,7 @@
 <export version="E">
   <design>
     <source>/Users/adrian/git/SolarSystem/KiCad/GPS.kicad_sch</source>
-    <date>Sunday, 06 March 2022 at 13:21:19</date>
+    <date>Monday, 07 March 2022 at 07:28:00</date>
     <tool>Eeschema (6.0.2-0)</tool>
     <textvar name="DATE">2022-03-06</textvar>
     <sheet number="1" name="/" tstamps="/">
@@ -27,7 +27,7 @@
   <components>
     <comp ref="BT1">
       <value>Battery_Cell</value>
-      <footprint>Battery:BatteryHolder_Keystone_3002_1x2032</footprint>
+      <footprint>RevK:Battery-Holder-2032</footprint>
       <libsource lib="Device" part="Battery_Cell" description="Single-cell battery"/>
       <property name="Sheetname" value=""/>
       <property name="Sheetfile" value="GPS.kicad_sch"/>

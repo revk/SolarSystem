@@ -1,10 +1,11 @@
-### Module positions - created on 2022-03-06 15:27
+### Module positions - created on 2022-03-07 07:27
 ### Printed by pcb_positions plugin
 ## Unit = mm, Angle = deg.
 ## Pcb Height 43.350mm, Pcb Width 30.100mm [based on Edge bounding box]
 ## Side : ALL
 ## Board Aux Origin: 0.000mm ,0.000mm
 # Ref         Val                 Package                       PosX       PosY       Pin1_PosX  Pin1_PosY    Rot     Side      Type
+BT1           Battery_Cell        Battery-Holder-2032           100.0000   -95.7500   111.4500   -95.7500    180.0    bottom    SMD
 J2            USB-C               USC16-TR-Round                108.7500   -128.2500  0.0000     0.0000        0.0    top       SMD
 U2            ESP32-PICO-MINI-02  ESP32-PICO-MINI-02            90.5000    -121.7500  86.5000    -127.6500    90.0    top       SMD
 J1            DC                  Molex_MiniSPOX_H2RA           100.2500   -121.6500  99.0000    -121.6500     0.0    top       THD
@@ -30,7 +31,6 @@ C4            10uF                Hidden                        112.5500   -119.
 R6            4k7                 R_0603                        97.2500    -125.2500  97.2500    -126.0750    90.0    bottom    SMD
 R11           220R                R_0603                        86.2500    -119.5000  86.2500    -120.3250    90.0    bottom    SMD
 Logo1         AA                  AA                            100.0000   -111.0000  0.0000     0.0000      180.0    bottom    VIRTUAL
-BT1           Battery_Cell        BatteryHolder_Keystone_3002.. 100.0000   -95.7500   112.8000   -95.7500    180.0    bottom    SMD
 C1            0.1uF               C_0603                        94.0000    -122.0000  94.7750    -122.0000   180.0    bottom    SMD
 R2            5K1                 R_0603                        100.9250   -120.0000  101.7500   -120.0000   180.0    bottom    SMD
 Logo2         AJK                 AJK                           88.0000    -107.0000  0.0000     0.0000      180.0    bottom    VIRTUAL
