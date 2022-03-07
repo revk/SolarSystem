@@ -1,6 +1,6 @@
 // Generated case design for KiCad/GPS.kicad_pcb
 // By https://github.com/revk/PCBCase
-// Generated 2022-03-07 09:42:43
+// Generated 2022-03-07 09:53:20
 // title:	GPS reference
 // date:	${DATE}
 // rev:	5
@@ -12,7 +12,7 @@
 // Globals
 margin=0.500000;
 overlap=2.000000;
-casebase=2.000000;
+casebase=5.000000;
 casetop=5.200000;
 casewall=3.000000;
 fit=0.000000;
@@ -52,7 +52,7 @@ translate([26.700000,12.000000,0.000000])rotate([0,0,180.000000])rotate([180,0,0
 translate([27.750000,15.475000,0.000000])rotate([0,0,180.000000])rotate([180,0,0])m5(pushed); // RevK:R_0603 R_0603_1608Metric
 translate([12.250000,3.000000,0.000000])rotate([0,0,90.000000])rotate([180,0,0])m5(pushed); // RevK:R_0603 R_0603_1608Metric
 translate([1.250000,8.750000,0.000000])rotate([0,0,90.000000])rotate([180,0,0])m5(pushed); // RevK:R_0603 R_0603_1608Metric
-// Missing RevK:Battery-Holder-2032 BatteryHolder_Keystone_3034_1x20mm
+translate([15.000000,32.500000,0.000000])rotate([0,0,180.000000])rotate([180,0,0])rotate([0.000000,0.000000,180.000000])m12(pushed); // RevK:Battery-Holder-2032 BatteryHolder_Keystone_3034_1x20mm
 translate([9.000000,6.250000,0.000000])rotate([0,0,180.000000])rotate([180,0,0])m9(pushed); // RevK:RegulatorBlockFB C_0603_1608Metric
 translate([15.925000,8.250000,0.000000])rotate([0,0,180.000000])rotate([180,0,0])m5(pushed); // RevK:R_0603 R_0603_1608Metric
 translate([25.075000,15.475000,0.000000])rotate([180,0,0])m5(pushed); // RevK:R_0603 R_0603_1608Metric
@@ -173,6 +173,12 @@ b(0,0,0,3.2,1.45,1); // Pad size
 module m11(pushed=false)
 { // RevK:RegulatorBlockFB TYA4020
 b(0,0,0,4,4,2.1);
+}
+
+module m12(pushed=false)
+{ // RevK:Battery-Holder-2032 BatteryHolder_Keystone_3034_1x20mm
+b(0,-0.2,0,22.9,15.5,4.2);
+cylinder(d=20,h=3.2);
 }
 
 height=casebase+pcbthickness+casetop;
