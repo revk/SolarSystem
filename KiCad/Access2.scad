@@ -1,6 +1,6 @@
 // Generated case design for KiCad/Access2.kicad_pcb
 // By https://github.com/revk/PCBCase
-// Generated 2022-03-05 14:46:18
+// Generated 2022-03-07 09:29:01
 // title:	Access Control
 // date:	${DATE}
 // rev:	3
@@ -17,13 +17,13 @@ casewall=3.000000;
 fit=0.000000;
 edge=1.000000;
 pcbthickness=1.600000;
+
+module pcb(h=pcbthickness){linear_extrude(height=h)polygon(points=[[50.000000,26.500000],[0.000000,26.500000],[0.000000,18.250000],[6.500000,18.250000],[6.500000,0.000000],[50.000000,0.000000]],paths=[[0,1,2,3,4,5,0]]);}
+
+module outline(h=pcbthickness){linear_extrude(height=h)polygon(points=[[50.000000,26.500000],[0.000000,26.500000],[0.000000,18.250000],[6.500000,18.250000],[6.500000,0.000000],[50.000000,0.000000]],paths=[[0,1,2,3,4,5,0]]);}
+spacing=66.000000;
 pcbwidth=50.000000;
 pcblength=26.500000;
-spacing=66.000000;
-
-// PCB
-module pcb(h=pcbthickness){linear_extrude(height=h)polygon([[0.000000,26.500000],[0.000000,18.250000],[6.500000,18.250000],[6.500000,0.000000],[50.000000,0.000000],[50.000000,26.500000]]);}
-
 // Populated PCB
 module board(pushed=false){
 	pcb();
@@ -353,7 +353,7 @@ module boardm()
 
 module pcbh()
 { // PCB shape for case
-	hull()pcb();
+	hull()outline();
 }
 
 module pyramid()
@@ -515,18 +515,19 @@ module top()
 module test()
 {
 	translate([0*spacing,0,0])pcb();
-	translate([1*spacing,0,0])wall();
-	translate([2*spacing,0,0])board();
-	translate([3*spacing,0,0])board(true);
-	translate([4*spacing,0,0])boardf();
-	translate([5*spacing,0,0])boardb();
-	translate([6*spacing,0,0])cutpf();
-	translate([7*spacing,0,0])cutpb();
-	translate([8*spacing,0,0])cutf();
-	translate([9*spacing,0,0])cutb();
-	translate([10*spacing,0,0])case();
-	translate([11*spacing,0,0])base();
-	translate([12*spacing,0,0])top();
+	translate([1*spacing,0,0])outline();
+	translate([2*spacing,0,0])wall();
+	translate([3*spacing,0,0])board();
+	translate([4*spacing,0,0])board(true);
+	translate([5*spacing,0,0])boardf();
+	translate([6*spacing,0,0])boardb();
+	translate([7*spacing,0,0])cutpf();
+	translate([8*spacing,0,0])cutpb();
+	translate([9*spacing,0,0])cutf();
+	translate([10*spacing,0,0])cutb();
+	translate([11*spacing,0,0])case();
+	translate([12*spacing,0,0])base();
+	translate([13*spacing,0,0])top();
 }
 
 module parts()

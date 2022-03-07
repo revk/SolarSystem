@@ -1,6 +1,6 @@
 // Generated case design for KiCad/GPS.kicad_pcb
 // By https://github.com/revk/PCBCase
-// Generated 2022-03-06 13:38:49
+// Generated 2022-03-07 09:37:21
 // title:	GPS reference
 // date:	${DATE}
 // rev:	5
@@ -18,20 +18,20 @@ casewall=3.000000;
 fit=0.000000;
 edge=1.000000;
 pcbthickness=0.800000;
+
+module pcb(h=pcbthickness){linear_extrude(height=h)polygon(points=[[28.000000,43.250000],[2.000000,43.250000],[0.000000,41.250000],[0.000000,0.000000],[28.000000,0.000000],[30.000000,2.000000],[30.000000,41.250000]],paths=[[0,1,2,3,4,5,6,0]]);}
+
+module outline(h=pcbthickness){linear_extrude(height=h)polygon(points=[[28.000000,43.250000],[2.000000,43.250000],[0.000000,41.250000],[0.000000,0.000000],[28.000000,0.000000],[30.000000,2.000000],[30.000000,41.250000]],paths=[[0,1,2,3,4,5,6,0]]);}
+spacing=46.000000;
 pcbwidth=30.000000;
 pcblength=43.250000;
-spacing=46.000000;
-
-// PCB
-module pcb(h=pcbthickness){linear_extrude(height=h)polygon([[2.000000,43.250000],[0.000000,41.250000],[0.000000,0.000000],[28.000000,0.000000],[30.000000,2.000000],[30.000000,41.250000],[28.000000,43.250000]]);}
-
 // Populated PCB
 module board(pushed=false){
 	pcb();
 translate([23.750000,0.000000,0.800000])translate([0.000000,3.385000,0.000000])rotate([-90.000000,0.000000,0.000000])m0(pushed); // RevK:USC16-TR-Round CSP-USC16-TR
 translate([5.500000,6.500000,0.800000])rotate([0,0,90.000000])translate([0.000000,2.700000,0.000000])rotate([-90.000000,0.000000,0.000000])m1(pushed); // RevK:ESP32-PICO-MINI-02 ESP32-PICO-MINI-02
 translate([15.250000,6.600000,0.800000])translate([0.000000,-3.600000,2.500000])rotate([0.000000,0.000000,180.000000])m2(pushed); // RevK:Molex_MiniSPOX_H2RA 22057025
-// Missing RevK:L86-M33 L86-M33
+translate([15.000000,28.250000,0.800000])rotate([0,0,-90.000000])rotate([-90.000000,0.000000,0.000000])m3(pushed); // RevK:L86-M33 L86-M33
 translate([9.000000,9.750000,0.000000])rotate([0,0,-90.000000])rotate([180,0,0])m4(pushed); // RevK:QFN-20-1EP_4x4mm_P0.5mm_EP2.5x2.5mm QFN-20-1EP_4x4mm_P0.5mm_EP2.5x2.5mm
 translate([5.500000,1.750000,0.000000])rotate([180,0,0])m5(pushed); // RevK:R_0603 R_0603_1608Metric
 translate([15.925000,10.750000,0.000000])rotate([0,0,180.000000])rotate([180,0,0])m5(pushed); // RevK:R_0603 R_0603_1608Metric
@@ -52,7 +52,7 @@ translate([26.700000,12.000000,0.000000])rotate([0,0,180.000000])rotate([180,0,0
 translate([27.750000,15.475000,0.000000])rotate([0,0,180.000000])rotate([180,0,0])m5(pushed); // RevK:R_0603 R_0603_1608Metric
 translate([12.250000,3.000000,0.000000])rotate([0,0,90.000000])rotate([180,0,0])m5(pushed); // RevK:R_0603 R_0603_1608Metric
 translate([1.250000,8.750000,0.000000])rotate([0,0,90.000000])rotate([180,0,0])m5(pushed); // RevK:R_0603 R_0603_1608Metric
-// Missing Battery:BatteryHolder_Keystone_3002_1x2032 BatteryHolder_Keystone_3002_1x2032
+// Missing RevK:Battery-Holder-2032 BatteryHolder_Keystone_3002_1x2032
 translate([9.000000,6.250000,0.000000])rotate([0,0,180.000000])rotate([180,0,0])m9(pushed); // RevK:RegulatorBlockFB C_0603_1608Metric
 translate([15.925000,8.250000,0.000000])rotate([0,0,180.000000])rotate([180,0,0])m5(pushed); // RevK:R_0603 R_0603_1608Metric
 translate([25.075000,15.475000,0.000000])rotate([180,0,0])m5(pushed); // RevK:R_0603 R_0603_1608Metric
@@ -124,6 +124,11 @@ translate([-A/2,-2.94,-2.5])
 	translate([0,-23,0])cube([A,20,4.9]);
 }
 
+}
+
+module m3(pushed=false)
+{ // RevK:L86-M33 L86-M33
+rotate([90,0,0])b(0,0,18.4,18.4,6.95);
 }
 
 module m4(pushed=false)
@@ -224,7 +229,7 @@ module boardm()
 
 module pcbh()
 { // PCB shape for case
-	hull()pcb();
+	hull()outline();
 }
 
 module pyramid()
@@ -386,18 +391,19 @@ module top()
 module test()
 {
 	translate([0*spacing,0,0])pcb();
-	translate([1*spacing,0,0])wall();
-	translate([2*spacing,0,0])board();
-	translate([3*spacing,0,0])board(true);
-	translate([4*spacing,0,0])boardf();
-	translate([5*spacing,0,0])boardb();
-	translate([6*spacing,0,0])cutpf();
-	translate([7*spacing,0,0])cutpb();
-	translate([8*spacing,0,0])cutf();
-	translate([9*spacing,0,0])cutb();
-	translate([10*spacing,0,0])case();
-	translate([11*spacing,0,0])base();
-	translate([12*spacing,0,0])top();
+	translate([1*spacing,0,0])outline();
+	translate([2*spacing,0,0])wall();
+	translate([3*spacing,0,0])board();
+	translate([4*spacing,0,0])board(true);
+	translate([5*spacing,0,0])boardf();
+	translate([6*spacing,0,0])boardb();
+	translate([7*spacing,0,0])cutpf();
+	translate([8*spacing,0,0])cutpb();
+	translate([9*spacing,0,0])cutf();
+	translate([10*spacing,0,0])cutb();
+	translate([11*spacing,0,0])case();
+	translate([12*spacing,0,0])base();
+	translate([13*spacing,0,0])top();
 }
 
 module parts()
