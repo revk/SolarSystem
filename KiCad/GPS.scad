@@ -1,6 +1,6 @@
-// Generated case design for ../SolarSystem/KiCad/GPS.kicad_pcb
+// Generated case design for KiCad/GPS.kicad_pcb
 // By https://github.com/revk/PCBCase
-// Generated 2022-03-09 12:29:27
+// Generated 2022-03-09 12:40:18
 // title:	GPS reference
 // date:	${DATE}
 // rev:	5
@@ -18,7 +18,7 @@ casewall=3.000000;
 fit=0.000000;
 edge=1.000000;
 pcbthickness=0.800000;
-nohull=true;
+nohull=false;
 hullcap=0.400000;
 useredge=false;
 
@@ -437,4 +437,4 @@ module parts()
 	base();
 	translate([spacing,0,0])top();
 }
-test();
+base(); translate([spacing,0,0])top();

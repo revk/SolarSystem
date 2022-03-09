@@ -1,6 +1,6 @@
 // Generated case design for KiCad/Bell.kicad_pcb
 // By https://github.com/revk/PCBCase
-// Generated 2022-03-09 12:05:01
+// Generated 2022-03-09 12:31:23
 // title:	Bell box controller
 // date:	${DATE}
 // rev:	2
@@ -17,6 +17,7 @@ fit=0.000000;
 edge=1.000000;
 pcbthickness=1.600000;
 nohull=false;
+hullcap=0.400000;
 useredge=false;
 
 module pcb(h=pcbthickness){linear_extrude(height=h)polygon(points=[[36.000000,35.000000],[36.000000,0.500000],[35.961939,0.308658],[35.853553,0.146447],[35.691342,0.038061],[35.500000,0.000000],[0.000000,0.000000],[0.000000,28.500000],[0.038061,28.691342],[0.146447,28.853553],[0.308658,28.961939],[0.500000,29.000000],[24.000000,29.000000],[24.000000,34.500000],[24.038061,34.691342],[24.146447,34.853553],[24.308658,34.961939],[24.500000,35.000000]],paths=[[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,0]]);}
@@ -209,13 +210,13 @@ module boardh(pushed=false)
 { // Board with hulled parts
 	union()
 	{
-		pcb();
-		board(pushed,false);
 		if(!nohull)intersection()
 		{
-			translate([0,0,-casebase])outline(casebase+pcbthickness+casetop);
+			translate([0,0,hullcap-casebase])outline(casebase+pcbthickness+casetop-hullcap*2);
 			hull()board(pushed,true);
 		}
+		board(pushed,false);
+		pcb();
 	}
 }
 

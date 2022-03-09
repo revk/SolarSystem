@@ -1,6 +1,6 @@
 // Generated case design for KiCad/Bell2.kicad_pcb
 // By https://github.com/revk/PCBCase
-// Generated 2022-03-09 12:12:02
+// Generated 2022-03-09 12:37:50
 // title:	Bell box controller
 // date:	${DATE}
 // rev:	2
@@ -17,6 +17,7 @@ fit=0.000000;
 edge=1.000000;
 pcbthickness=1.600000;
 nohull=false;
+hullcap=0.400000;
 useredge=false;
 
 module pcb(h=pcbthickness){linear_extrude(height=h)polygon(points=[[18.250000,13.000000],[18.250000,22.000000],[36.500000,22.000000],[36.500000,27.500000],[53.000000,27.500000],[53.000000,0.000000],[18.250000,0.000000],[18.250000,9.000000],[18.201057,9.309017],[18.059017,9.587785],[17.837785,9.809017],[17.559017,9.951057],[17.250000,10.000000],[16.940983,9.951057],[16.662215,9.809017],[16.440983,9.587785],[16.298943,9.309017],[16.250000,9.000000],[16.250000,0.000000],[0.000000,0.000000],[0.000000,22.000000],[16.250000,22.000000],[16.250000,13.000000],[16.298943,12.690983],[16.440983,12.412215],[16.662215,12.190983],[16.940983,12.048943],[17.250000,12.000000],[17.559017,12.048943],[17.837785,12.190983],[18.059017,12.412215],[18.201057,12.690983]],paths=[[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,0]]);}
@@ -217,13 +218,13 @@ module boardh(pushed=false)
 { // Board with hulled parts
 	union()
 	{
-		pcb();
-		board(pushed,false);
 		if(!nohull)intersection()
 		{
-			translate([0,0,-casebase])outline(casebase+pcbthickness+casetop);
+			translate([0,0,hullcap-casebase])outline(casebase+pcbthickness+casetop-hullcap*2);
 			hull()board(pushed,true);
 		}
+		board(pushed,false);
+		pcb();
 	}
 }
 

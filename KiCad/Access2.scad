@@ -1,6 +1,6 @@
 // Generated case design for KiCad/Access2.kicad_pcb
 // By https://github.com/revk/PCBCase
-// Generated 2022-03-09 12:06:42
+// Generated 2022-03-09 12:32:52
 // title:	Access Control
 // date:	${DATE}
 // rev:	3
@@ -18,6 +18,7 @@ fit=0.000000;
 edge=1.000000;
 pcbthickness=1.600000;
 nohull=false;
+hullcap=0.400000;
 useredge=false;
 
 module pcb(h=pcbthickness){linear_extrude(height=h)polygon(points=[[50.000000,26.500000],[0.000000,26.500000],[0.000000,18.250000],[6.500000,18.250000],[6.500000,0.000000],[50.000000,0.000000]],paths=[[0,1,2,3,4,5,0]]);}
@@ -306,13 +307,13 @@ module boardh(pushed=false)
 { // Board with hulled parts
 	union()
 	{
-		pcb();
-		board(pushed,false);
 		if(!nohull)intersection()
 		{
-			translate([0,0,-casebase])outline(casebase+pcbthickness+casetop);
+			translate([0,0,hullcap-casebase])outline(casebase+pcbthickness+casetop-hullcap*2);
 			hull()board(pushed,true);
 		}
+		board(pushed,false);
+		pcb();
 	}
 }
 
