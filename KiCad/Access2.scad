@@ -1,6 +1,6 @@
 // Generated case design for KiCad/Access2.kicad_pcb
 // By https://github.com/revk/PCBCase
-// Generated 2022-03-09 11:56:53
+// Generated 2022-03-09 12:06:42
 // title:	Access Control
 // date:	${DATE}
 // rev:	3
@@ -308,10 +308,10 @@ module boardh(pushed=false)
 	{
 		pcb();
 		board(pushed,false);
-		if(!nohull)hull()intersection()
+		if(!nohull)intersection()
 		{
 			translate([0,0,-casebase])outline(casebase+pcbthickness+casetop);
-			board(pushed,true);
+			hull()board(pushed,true);
 		}
 	}
 }

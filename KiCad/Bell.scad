@@ -1,6 +1,6 @@
 // Generated case design for KiCad/Bell.kicad_pcb
 // By https://github.com/revk/PCBCase
-// Generated 2022-03-09 11:54:05
+// Generated 2022-03-09 12:05:01
 // title:	Bell box controller
 // date:	${DATE}
 // rev:	2
@@ -211,10 +211,10 @@ module boardh(pushed=false)
 	{
 		pcb();
 		board(pushed,false);
-		if(!nohull)hull()intersection()
+		if(!nohull)intersection()
 		{
 			translate([0,0,-casebase])outline(casebase+pcbthickness+casetop);
-			board(pushed,true);
+			hull()board(pushed,true);
 		}
 	}
 }
