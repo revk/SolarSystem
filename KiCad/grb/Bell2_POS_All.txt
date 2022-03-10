@@ -1,15 +1,16 @@
-### Module positions - created on 2022-03-10 13:05
+### Module positions - created on 2022-03-10 13:14
 ### Printed by pcb_positions plugin
 ## Unit = mm, Angle = deg.
 ## Pcb Height 27.600mm, Pcb Width 53.100mm [based on Edge bounding box]
 ## Side : ALL
 ## Board Aux Origin: 0.000mm ,0.000mm
 # Ref         Val                 Package                       PosX       PosY       Pin1_PosX  Pin1_PosY    Rot     Side      Type
+D3            D                   D_1206_3216Metric_Pad1.42x1.. 89.0000    -47.5000   90.4875    -47.5000    180.0    top       SMD
 U1            ESP32-PICO-MINI-02  ESP32-PICO-MINI-02            79.8000    -44.1000   73.9000    -40.1000      0.0    top       SMD
+J2            POWER               Molex_MiniSPOX_H2RA           96.2500    -53.9000   95.0000    -53.9000      0.0    top       THD
 J3            Conn_01x10          Molex_MiniSPOX_H10RA          101.4000   -46.7000   101.4000   -57.9500     90.0    top       THD
 R3            10k                 R_0603                        91.2500    -50.7500   90.4250    -50.7500      0.0    top       SMD
 R2            4k7                 R_0603                        91.3250    -49.2500   90.5000    -49.2500      0.0    top       SMD
-J2            POWER               Molex_MiniSPOX_H2RA           96.2500    -53.9000   95.0000    -53.9000      0.0    top       THD
 R10           220R                R_0603                        89.0000    -42.7500   89.8250    -42.7500    180.0    top       SMD
 C4            0.1uF               Hidden                        77.7500    -59.8000   0.0000     0.0000        0.0    top       SMD
 C6            10uF                Hidden                        81.0500    -52.3000   0.0000     0.0000        0.0    top       SMD
@@ -25,7 +26,6 @@ U5            L96-M33             L96-M33                       62.5000    -49.5
 R12           3M 1% or NF         R_0603                        74.0000    -56.0000   74.0000    -55.1750    -90.0    top       SMD
 C5            2.2uF               Hidden                        81.0500    -58.5500   0.0000     0.0000        0.0    top       SMD
 R6            5K1                 R_0603                        90.0000    -52.2500   90.8250    -52.2500    180.0    top       SMD
-D3            D                   D_1206_3216Metric_Pad1.42x1.. 89.0000    -47.5000   90.4875    -47.5000    180.0    top       SMD
 R11           10M 1% or 0R        R_0603                        74.0000    -58.7500   74.0000    -59.5750     90.0    top       SMD
 U6            LMR16006+FB         RegulatorBlockFB              77.5000    -57.6500   78.8500    -58.6000     90.0    top       SMD
 R8            680R                R_0603                        89.0000    -44.0000   89.8250    -44.0000    180.0    top       SMD
