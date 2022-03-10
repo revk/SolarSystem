@@ -1,6 +1,6 @@
 // Generated case design for KiCad/GPS.kicad_pcb
 // By https://github.com/revk/PCBCase
-// Generated 2022-03-10 10:52:46
+// Generated 2022-03-10 14:17:41
 // title:	GPS reference
 // date:	${DATE}
 // rev:	5
@@ -32,7 +32,7 @@ pcblength=43.250000;
 // Populated PCB
 module board(pushed=false,hulled=false){
 translate([23.750000,0.000000,0.800000])translate([0.000000,3.385000,0.000000])rotate([-90.000000,0.000000,0.000000])m0(pushed,hulled); // RevK:USC16-TR-Round CSP-USC16-TR
-translate([5.500000,6.500000,0.800000])rotate([0,0,90.000000])translate([0.000000,2.700000,0.000000])rotate([-90.000000,0.000000,0.000000])m1(pushed,hulled); // RevK:ESP32-PICO-MINI-02 ESP32-PICO-MINI-02
+translate([5.550000,6.550000,0.800000])rotate([0,0,90.000000])translate([0.000000,2.700000,0.000000])rotate([-90.000000,0.000000,0.000000])m1(pushed,hulled); // RevK:ESP32-PICO-MINI-02 ESP32-PICO-MINI-02
 translate([15.250000,6.600000,0.800000])translate([0.000000,-3.600000,2.500000])rotate([0.000000,0.000000,180.000000])m2(pushed,hulled); // RevK:Molex_MiniSPOX_H2RA 22057025
 translate([15.000000,28.250000,0.800000])rotate([0,0,-90.000000])rotate([-90.000000,0.000000,0.000000])m3(pushed,hulled); // RevK:L86-M33 L86-M33
 translate([9.000000,9.750000,0.000000])rotate([0,0,-90.000000])rotate([180,0,0])m4(pushed,hulled); // RevK:QFN-20-1EP_4x4mm_P0.5mm_EP2.5x2.5mm QFN-20-1EP_4x4mm_P0.5mm_EP2.5x2.5mm
@@ -348,7 +348,7 @@ module case()
 
 module cut(d=0)
 { // The cut point in the wall
-	translate([casewall,casewall,casebase])pcbh(casetop+pcbthickness+1,casewall/2+d/2+margin/4);
+	translate([casewall,casewall,casebase+pcbthickness/2])pcbh(casetop+pcbthickness/2+1,casewall/2+d/2+margin/4);
 }
 
 module base()

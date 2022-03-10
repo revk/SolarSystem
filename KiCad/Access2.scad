@@ -1,6 +1,6 @@
 // Generated case design for KiCad/Access2.kicad_pcb
 // By https://github.com/revk/PCBCase
-// Generated 2022-03-10 10:41:43
+// Generated 2022-03-10 14:06:50
 // title:	Access Control
 // date:	${DATE}
 // rev:	3
@@ -22,9 +22,9 @@ hullcap=1.000000;
 hulledge=1.000000;
 useredge=false;
 
-module pcb(h=pcbthickness,r=0){linear_extrude(height=h)offset(r=r)polygon(points=[[50.000000,26.500000],[0.000000,26.500000],[0.000000,18.250000],[6.500000,18.250000],[6.500000,0.000000],[50.000000,0.000000]],paths=[[0,1,2,3,4,5,0]]);}
+module pcb(h=pcbthickness,r=0){linear_extrude(height=h)offset(r=r)polygon(points=[[50.000000,26.500000],[0.000000,26.500000],[0.000000,18.100000],[6.400000,18.100000],[6.400000,0.000000],[50.000000,0.000000]],paths=[[0,1,2,3,4,5,0]]);}
 
-module outline(h=pcbthickness,r=0){linear_extrude(height=h)offset(r=r)polygon(points=[[50.000000,26.500000],[0.000000,26.500000],[0.000000,18.250000],[6.500000,18.250000],[6.500000,0.000000],[50.000000,0.000000]],paths=[[0,1,2,3,4,5,0]]);}
+module outline(h=pcbthickness,r=0){linear_extrude(height=h)offset(r=r)polygon(points=[[50.000000,26.500000],[0.000000,26.500000],[0.000000,18.100000],[6.400000,18.100000],[6.400000,0.000000],[50.000000,0.000000]],paths=[[0,1,2,3,4,5,0]]);}
 spacing=66.000000;
 pcbwidth=50.000000;
 pcblength=26.500000;
@@ -35,7 +35,7 @@ translate([36.500000,19.850000,1.600000])rotate([0,0,180.000000])translate([0.00
 translate([24.750000,19.850000,1.600000])rotate([0,0,180.000000])translate([0.000000,-3.600000,2.500000])rotate([0.000000,0.000000,180.000000])m2(pushed,hulled); // RevK:Molex_MiniSPOX_H4RA 22057045
 translate([9.250000,19.850000,1.600000])rotate([0,0,180.000000])translate([0.000000,-3.600000,2.500000])rotate([0.000000,0.000000,180.000000])m3(pushed,hulled); // RevK:Molex_MiniSPOX_H6RA 22057065
 translate([38.250000,13.500000,1.600000])rotate([0,0,180.000000])m4(pushed,hulled); // RevK:R_0603 R_0603_1608Metric
-translate([36.500000,3.250000,1.600000])m5(pushed,hulled); // RevK:SW_PUSH_6mm_SMD SW_SPST_PTS645
+translate([36.500000,3.400000,1.600000])m5(pushed,hulled); // RevK:SW_PUSH_6mm_SMD SW_SPST_PTS645
 translate([13.500000,17.000000,1.600000])rotate([0,0,-90.000000])m4(pushed,hulled); // RevK:R_0603 R_0603_1608Metric
 translate([46.250000,2.375000,1.600000])rotate([0,0,90.000000])m4(pushed,hulled); // RevK:R_0603 R_0603_1608Metric
 translate([29.500000,9.500000,1.600000])rotate([0,0,90.000000])m4(pushed,hulled); // RevK:R_0603 R_0603_1608Metric
@@ -50,9 +50,9 @@ translate([22.500000,13.100000,1.600000])translate([5.400000,-3.550000,0.000000]
 translate([22.500000,13.100000,1.600000])translate([3.900000,0.000000,0.000000])rotate([0.000000,0.000000,90.000000])m11(pushed,hulled); // RevK:RegulatorBlockFB TYA4020
 translate([22.500000,13.100000,1.600000])translate([2.275000,-3.200000,0.000000])m12(pushed,hulled); // RevK:RegulatorBlockFB D_1206_3216Metric
 translate([49.250000,16.000000,1.600000])rotate([0,0,-90.000000])m4(pushed,hulled); // RevK:R_0603 R_0603_1608Metric
-translate([12.000000,6.750000,1.600000])rotate([0,0,90.000000])translate([0.000000,2.500000,0.000000])rotate([-90.000000,0.000000,0.000000])m13(pushed,hulled); // RevK:ESP32-PICO-MINI-02 ESP32-PICO-MINI-02
+translate([12.000000,6.750000,1.600000])rotate([0,0,90.000000])translate([0.000000,2.700000,0.000000])rotate([-90.000000,0.000000,0.000000])m13(pushed,hulled); // RevK:ESP32-PICO-MINI-02 ESP32-PICO-MINI-02
 translate([17.500000,17.000000,1.600000])rotate([0,0,-90.000000])m4(pushed,hulled); // RevK:R_0603 R_0603_1608Metric
-translate([19.950000,1.850000,1.600000])rotate([0,0,-90.000000])m4(pushed,hulled); // RevK:R_0603 R_0603_1608Metric
+translate([19.950000,2.150000,1.600000])rotate([0,0,-90.000000])m4(pushed,hulled); // RevK:R_0603 R_0603_1608Metric
 translate([38.250000,11.000000,1.600000])m4(pushed,hulled); // RevK:R_0603 R_0603_1608Metric
 translate([15.500000,17.000000,1.600000])rotate([0,0,-90.000000])m4(pushed,hulled); // RevK:R_0603 R_0603_1608Metric
 translate([42.700000,16.700000,1.600000])rotate([0,0,-90.000000])m14(pushed,hulled); // Connector_PinHeader_1.27mm:PinHeader_1x02_P1.27mm_Vertical PinHeader_1x02_P1.27mm_Vertical
@@ -60,7 +60,7 @@ translate([29.500000,13.600000,1.600000])rotate([0,0,-90.000000])m4(pushed,hulle
 translate([43.250000,2.375000,1.600000])rotate([0,0,90.000000])m4(pushed,hulled); // RevK:R_0603 R_0603_1608Metric
 translate([41.750000,12.000000,1.600000])rotate([0,0,-90.000000])m4(pushed,hulled); // RevK:R_0603 R_0603_1608Metric
 translate([9.500000,17.000000,1.600000])rotate([0,0,-90.000000])m4(pushed,hulled); // RevK:R_0603 R_0603_1608Metric
-translate([35.750000,7.750000,1.600000])rotate([0,0,-90.000000])m4(pushed,hulled); // RevK:R_0603 R_0603_1608Metric
+translate([36.000000,7.800000,1.600000])m4(pushed,hulled); // RevK:R_0603 R_0603_1608Metric
 translate([30.250000,4.000000,1.600000])rotate([0,0,180.000000])m4(pushed,hulled); // RevK:R_0603 R_0603_1608Metric
 translate([41.750000,7.400000,1.600000])rotate([0,0,-90.000000])m4(pushed,hulled); // RevK:R_0603 R_0603_1608Metric
 translate([21.500000,17.000000,1.600000])rotate([0,0,-90.000000])m4(pushed,hulled); // RevK:R_0603 R_0603_1608Metric
@@ -77,10 +77,10 @@ translate([22.500000,5.350000,1.600000])translate([5.400000,-3.550000,0.000000])
 translate([22.500000,5.350000,1.600000])translate([3.900000,0.000000,0.000000])rotate([0.000000,0.000000,90.000000])m11(pushed,hulled); // RevK:RegulatorBlockFB TYA4020
 translate([22.500000,5.350000,1.600000])translate([2.275000,-3.200000,0.000000])m12(pushed,hulled); // RevK:RegulatorBlockFB D_1206_3216Metric
 translate([11.500000,17.000000,1.600000])rotate([0,0,-90.000000])m4(pushed,hulled); // RevK:R_0603 R_0603_1608Metric
-translate([31.750000,7.750000,1.600000])rotate([0,0,-90.000000])m9(pushed,hulled); // RevK:RegulatorBlockFB C_0603_1608Metric
+translate([32.050000,7.800000,1.600000])rotate([0,0,180.000000])m9(pushed,hulled); // RevK:RegulatorBlockFB C_0603_1608Metric
 translate([7.500000,17.000000,1.600000])rotate([0,0,-90.000000])m4(pushed,hulled); // RevK:R_0603 R_0603_1608Metric
 translate([38.250000,12.250000,1.600000])m4(pushed,hulled); // RevK:R_0603 R_0603_1608Metric
-translate([44.750000,2.375000,1.600000])rotate([0,0,90.000000])m4(pushed,hulled); // RevK:R_0603 R_0603_1608Metric
+translate([44.950000,2.375000,1.600000])rotate([0,0,90.000000])m4(pushed,hulled); // RevK:R_0603 R_0603_1608Metric
 translate([15.000000,25.000000,0.000000])rotate([0,0,90.000000])rotate([180,0,0])m9(pushed,hulled); // RevK:RegulatorBlockFB C_0603_1608Metric
 translate([11.000000,25.000000,0.000000])rotate([0,0,90.000000])rotate([180,0,0])m9(pushed,hulled); // RevK:RegulatorBlockFB C_0603_1608Metric
 translate([7.000000,25.000000,0.000000])rotate([0,0,90.000000])rotate([180,0,0])m9(pushed,hulled); // RevK:RegulatorBlockFB C_0603_1608Metric
@@ -466,7 +466,7 @@ module case()
 
 module cut(d=0)
 { // The cut point in the wall
-	translate([casewall,casewall,casebase])pcbh(casetop+pcbthickness+1,casewall/2+d/2+margin/4);
+	translate([casewall,casewall,casebase+pcbthickness/2])pcbh(casetop+pcbthickness/2+1,casewall/2+d/2+margin/4);
 }
 
 module base()
