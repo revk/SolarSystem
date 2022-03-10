@@ -1,6 +1,6 @@
 // Generated case design for KiCad/Bell.kicad_pcb
 // By https://github.com/revk/PCBCase
-// Generated 2022-03-09 13:09:05
+// Generated 2022-03-10 10:36:19
 // title:	Bell box controller
 // date:	${DATE}
 // rev:	2
@@ -17,12 +17,13 @@ fit=0.000000;
 edge=1.000000;
 pcbthickness=1.600000;
 nohull=false;
-hullcap=0.600000;
+hullcap=1.000000;
+hulledge=1.000000;
 useredge=false;
 
-module pcb(h=pcbthickness){linear_extrude(height=h)polygon(points=[[36.000000,35.000000],[36.000000,0.500000],[35.961939,0.308658],[35.853553,0.146447],[35.691342,0.038061],[35.500000,0.000000],[0.000000,0.000000],[0.000000,28.500000],[0.038061,28.691342],[0.146447,28.853553],[0.308658,28.961939],[0.500000,29.000000],[24.000000,29.000000],[24.000000,34.500000],[24.038061,34.691342],[24.146447,34.853553],[24.308658,34.961939],[24.500000,35.000000]],paths=[[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,0]]);}
+module pcb(h=pcbthickness,r=0){linear_extrude(height=h)offset(r=r)polygon(points=[[36.000000,35.000000],[36.000000,0.500000],[35.961939,0.308658],[35.853553,0.146447],[35.691342,0.038061],[35.500000,0.000000],[0.000000,0.000000],[0.000000,28.500000],[0.038061,28.691342],[0.146447,28.853553],[0.308658,28.961939],[0.500000,29.000000],[24.000000,29.000000],[24.000000,34.500000],[24.038061,34.691342],[24.146447,34.853553],[24.308658,34.961939],[24.500000,35.000000]],paths=[[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,0]]);}
 
-module outline(h=pcbthickness){linear_extrude(height=h)polygon(points=[[36.000000,35.000000],[36.000000,0.500000],[35.961939,0.308658],[35.853553,0.146447],[35.691342,0.038061],[35.500000,0.000000],[0.000000,0.000000],[0.000000,28.500000],[0.038061,28.691342],[0.146447,28.853553],[0.308658,28.961939],[0.500000,29.000000],[24.000000,29.000000],[24.000000,34.500000],[24.038061,34.691342],[24.146447,34.853553],[24.308658,34.961939],[24.500000,35.000000]],paths=[[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,0]]);}
+module outline(h=pcbthickness,r=0){linear_extrude(height=h)offset(r=r)polygon(points=[[36.000000,35.000000],[36.000000,0.500000],[35.961939,0.308658],[35.853553,0.146447],[35.691342,0.038061],[35.500000,0.000000],[0.000000,0.000000],[0.000000,28.500000],[0.038061,28.691342],[0.146447,28.853553],[0.308658,28.961939],[0.500000,29.000000],[24.000000,29.000000],[24.000000,34.500000],[24.038061,34.691342],[24.146447,34.853553],[24.308658,34.961939],[24.500000,35.000000]],paths=[[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,0]]);}
 spacing=52.000000;
 pcbwidth=36.000000;
 pcblength=35.000000;
@@ -205,6 +206,7 @@ b(0,0,0,4,4,2.1);
 }
 
 height=casebase+pcbthickness+casetop;
+$fn=12;
 
 module boardh(pushed=false)
 { // Board with hulled parts
@@ -212,7 +214,7 @@ module boardh(pushed=false)
 	{
 		if(!nohull)intersection()
 		{
-			translate([0,0,hullcap-casebase])outline(casebase+pcbthickness+casetop-hullcap*2);
+			translate([0,0,hullcap-casebase])outline(casebase+pcbthickness+casetop-hullcap*2,-hulledge);
 			hull()board(pushed,true);
 		}
 		board(pushed,false);
@@ -262,19 +264,19 @@ module boardm()
 			translate([0,0,-margin/2])cylinder(d=margin,h=margin,$fn=8);
  			boardh(false);
 		}
-		intersection()
-    		{
-        		translate([0,0,-(casebase-1)])pcb(pcbthickness+(casebase-1)+(casetop-1));
-        		translate([0,0,-(casebase-1)])outline(pcbthickness+(casebase-1)+(casetop-1));
+		//intersection()
+    		//{
+        		//translate([0,0,-(casebase-hullcap)])pcb(pcbthickness+(casebase-hullcap)+(casetop-hullcap));
+        		//translate([0,0,-(casebase-hullcap)])outline(pcbthickness+(casebase-hullcap)+(casetop-hullcap));
 			boardh(false);
-    		}
+    		//}
  	}
 }
 
-module pcbh()
+module pcbh(h=pcbthickness,r=0)
 { // PCB shape for case
-	if(useredge)outline();
-	else hull()outline();
+	if(useredge)outline(h,r);
+	else hull()outline(h,r);
 }
 
 module pyramid()
@@ -284,12 +286,7 @@ module pyramid()
 
 module wall(d=0)
 { // The case wall
-    	translate([0,0,-casebase-1])
-    	minkowski()
-    	{
-    		pcbh();
-	        cylinder(d=margin+d*2,h=height+2-pcbthickness,$fn=8);
-   	}
+    	translate([0,0,-casebase-d])pcbh(height+d*2,margin/2+d);
 }
 
 module cutf()
@@ -363,34 +360,16 @@ module cutpb()
 
 module case()
 { // The basic case
-        minkowski()
-        {
-            pcbh();
-            hull()
-		{
-			translate([edge,0,edge])
-			cube([casewall*2-edge*2,casewall*2,height-edge*2-pcbthickness]);
-			translate([0,edge,edge])
-			cube([casewall*2,casewall*2-edge*2,height-edge*2-pcbthickness]);
-			translate([edge,edge,0])
-			cube([casewall*2-edge*2,casewall*2-edge*2,height-pcbthickness]);
-		}
-        }
+	hull()
+	{
+		translate([casewall,casewall,0])pcbh(height,casewall-edge);
+		translate([casewall,casewall,edge])pcbh(height-edge*2,casewall);
+	}
 }
 
 module cut(d=0)
 { // The cut point in the wall
-	minkowski()
-	{
-        	pcbh();
-		hull()
-		{
-			translate([casewall/2-d/2-margin/4+casewall/3,casewall/2-d/2-margin/4,casebase])
-				cube([casewall+d+margin/2-2*casewall/3,casewall+d+margin/2,casetop+pcbthickness+1]);
-			translate([casewall/2-d/2-margin/4,casewall/2-d/2-margin/4+casewall/3,casebase])
-				cube([casewall+d+margin/2,casewall+d+margin/2-2*casewall/3,casetop+pcbthickness+1]);
-		}
-	}
+	translate([casewall,casewall,casebase])pcbh(casetop+pcbthickness+1,casewall/2+d/2+margin/4);
 }
 
 module base()

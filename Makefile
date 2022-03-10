@@ -54,9 +54,9 @@ update:
 PCBCase/case: PCBCase/case.c
 	make -C PCBCase
 
-scad: KiCad/Bell.scad
+scad:	KiCad/Access2.scad KiCad/Bell2.scad KiCad/Bell2GPS.scad KiCad/GPS.scad KiCad/Access.scad KiCad/Bell.scad
 
-stl: KiCad/Access.stl KiCad/Bell.stl KiCad/Access2.stl KiCad/Bell2.stl KiCad/Bell2GPS.stl KiCad/GPS.stl
+stl:	KiCad/Access2.stl KiCad/Bell2.stl KiCad/Bell2GPS.stl KiCad/GPS.stl
 
 %.stl: %.scad
 	echo "Making $@"
