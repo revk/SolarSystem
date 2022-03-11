@@ -1,6 +1,6 @@
 // Generated case design for KiCad/Bell.kicad_pcb
 // By https://github.com/revk/PCBCase
-// Generated 2022-03-11 09:23:41
+// Generated 2022-03-11 09:26:27
 // title:	Bell box controller
 // date:	${DATE}
 // rev:	2
@@ -43,8 +43,8 @@ translate([24.200000,25.500000,1.600000])rotate([0,0,180.000000])m6(pushed,hulle
 translate([27.500000,25.500000,1.600000])rotate([0,0,90.000000])m4(pushed,hulled); // RevK:R_0603 R_0603_1608Metric
 translate([22.100000,25.500000,1.600000])rotate([0,0,90.000000])m0(pushed,hulled); // RevK:C_0603 C_0603_1608Metric
 translate([20.900000,25.500000,1.600000])rotate([0,0,-90.000000])m4(pushed,hulled); // RevK:R_0603 R_0603_1608Metric
-// Missing Package_SO:SO-8_3.9x4.9mm_P1.27mm SOIC-8_3.9x4.9mm_P1.27mm
-// Missing Package_SO:SO-8_3.9x4.9mm_P1.27mm SOIC-8_3.9x4.9mm_P1.27mm
+translate([24.100000,15.100000,1.600000])m7(pushed,hulled); // Package_SO:SO-8_3.9x4.9mm_P1.27mm SOIC-8_3.9x4.9mm_P1.27mm
+translate([24.100000,20.700000,1.600000])m7(pushed,hulled); // Package_SO:SO-8_3.9x4.9mm_P1.27mm SOIC-8_3.9x4.9mm_P1.27mm
 translate([26.200000,33.000000,1.600000])translate([0.000000,-0.400000,0.000000])m8(pushed,hulled); // RevK:LED-RGB-1.6x1.6 LED_0603_1608Metric
 translate([26.200000,33.000000,1.600000])translate([0.000000,0.400000,0.000000])m8(pushed,hulled); // RevK:LED-RGB-1.6x1.6 LED_0603_1608Metric
 translate([26.300000,30.100000,1.600000])m4(pushed,hulled); // RevK:R_0603 R_0603_1608Metric
@@ -146,6 +146,12 @@ module m6(pushed=false,hulled=false)
 { // Package_TO_SOT_SMD:SOT-363_SC-70-6 SOT-363_SC-70-6
 b(0,0,0,1.15,2.0,1.1);
 b(0,0,0,2.1,2.0,0.6);
+}
+
+module m7(pushed=false,hulled=false)
+{ // Package_SO:SO-8_3.9x4.9mm_P1.27mm SOIC-8_3.9x4.9mm_P1.27mm
+b(0,0,0,5,4,1);
+b(0,0,0,3.9,4.9,2.1);
 }
 
 module m8(pushed=false,hulled=false)

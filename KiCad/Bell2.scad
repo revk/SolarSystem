@@ -1,6 +1,6 @@
 // Generated case design for KiCad/Bell2.kicad_pcb
 // By https://github.com/revk/PCBCase
-// Generated 2022-03-11 09:23:40
+// Generated 2022-03-11 09:26:27
 // title:	Bell box controller
 // date:	${DATE}
 // rev:	2
@@ -40,8 +40,8 @@ translate([34.000000,19.000000,1.600000])rotate([0,0,180.000000])m1(pushed,hulle
 translate([44.300000,20.750000,1.600000])rotate([0,0,90.000000])m1(pushed,hulled); // RevK:R_0603 R_0603_1608Metric
 translate([38.250000,26.500000,1.600000])rotate([0,0,180.000000])m3(pushed,hulled); // RevK:C_0603 C_0603_1608Metric
 translate([21.800000,9.900000,1.600000])m1(pushed,hulled); // RevK:R_0603 R_0603_1608Metric
-// Missing Package_SO:SO-8_3.9x4.9mm_P1.27mm SOIC-8_3.9x4.9mm_P1.27mm
-// Missing Package_SO:SO-8_3.9x4.9mm_P1.27mm SOIC-8_3.9x4.9mm_P1.27mm
+translate([41.250000,16.500000,1.600000])m4(pushed,hulled); // Package_SO:SO-8_3.9x4.9mm_P1.27mm SOIC-8_3.9x4.9mm_P1.27mm
+translate([41.250000,11.000000,1.600000])m4(pushed,hulled); // Package_SO:SO-8_3.9x4.9mm_P1.27mm SOIC-8_3.9x4.9mm_P1.27mm
 translate([30.000000,8.250000,1.600000])rotate([0,0,180.000000])m1(pushed,hulled); // RevK:R_0603 R_0603_1608Metric
 translate([7.500000,11.000000,1.600000])rotate([0,0,90.000000])translate([0.000000,0.150000,0.000000])rotate([-90.000000,0.000000,180.000000])m5(pushed,hulled); // RevK:L96-M33 L96-M33
 translate([19.000000,4.500000,1.600000])rotate([0,0,-90.000000])m1(pushed,hulled); // RevK:R_0603 R_0603_1608Metric
@@ -118,6 +118,12 @@ translate([-A/2,-2.94,-2.5])
 module m3(pushed=false,hulled=false)
 { // RevK:C_0603 C_0603_1608Metric
 b(0,0,0,2.8,0.95,1); // Pad size
+}
+
+module m4(pushed=false,hulled=false)
+{ // Package_SO:SO-8_3.9x4.9mm_P1.27mm SOIC-8_3.9x4.9mm_P1.27mm
+b(0,0,0,5,4,1);
+b(0,0,0,3.9,4.9,2.1);
 }
 
 module m5(pushed=false,hulled=false)
