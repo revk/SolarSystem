@@ -25,6 +25,8 @@ ifndef KCONFIG_CONFIG
 KCONFIG_CONFIG=solarsystem.conf
 endif
 
+MODELS := Access2 Bell2 Bell2GPS GPS Access Bell
+
 all: solarsystem can message makeaid sscert login.conf SQLlib/sql xmlsql/xmlsql .git/hooks/pre-commit
 
 .git/hooks/pre-commit: pre-commit
@@ -54,9 +56,8 @@ update:
 PCBCase/case: PCBCase/case.c
 	make -C PCBCase
 
-scad:	KiCad/Access2.scad KiCad/Bell2.scad KiCad/Bell2GPS.scad KiCad/GPS.scad KiCad/Access.scad KiCad/Bell.scad
-
-stl:	KiCad/Access2.stl KiCad/Bell2.stl KiCad/Bell2GPS.stl KiCad/GPS.stl
+scad:	$(patsubst %,KiCad/%.scad,$(MODELS))
+stl:	$(patsubst %,KiCad/%.stl,$(MODELS))
 
 %.stl: %.scad
 	echo "Making $@"
