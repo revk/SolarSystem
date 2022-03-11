@@ -1,6 +1,6 @@
 // Generated case design for KiCad/Bell2.kicad_pcb
 // By https://github.com/revk/PCBCase
-// Generated 2022-03-10 14:10:31
+// Generated 2022-03-10 18:06:01
 // title:	Bell box controller
 // date:	${DATE}
 // rev:	2
@@ -10,6 +10,7 @@
 // Globals
 margin=0.500000;
 overlap=2.000000;
+lip=0.000000;
 casebase=2.000000;
 casetop=5.200000;
 casewall=3.000000;
@@ -304,7 +305,7 @@ module cutf()
 		boardf();
 		difference()
 		{
-			translate([-casewall+0.01,-casewall+0.01,-casebase+0.01])cube([pcbwidth+casewall*2-0.02,pcblength+casewall*2-0.02,casebase+overlap]);
+			translate([-casewall+0.01,-casewall+0.01,-casebase+0.01])cube([pcbwidth+casewall*2-0.02,pcblength+casewall*2-0.02,casebase+overlap+lip]);
 			wall();
 			boardb();
 		}
@@ -337,7 +338,7 @@ module cutpf()
 		}
 		difference()
 		{
-			translate([-casewall-0.01,-casewall-0.01,-casebase-0.01])cube([pcbwidth+casewall*2+0.02,pcblength+casewall*2+0.02,casebase+overlap+0.02]);
+			translate([-casewall-0.01,-casewall-0.01,-casebase-0.01])cube([pcbwidth+casewall*2+0.02,pcblength+casewall*2+0.02,casebase+overlap+lip+0.02]);
 			wall();
 			boardh(true);
 		}
@@ -377,7 +378,7 @@ module case()
 
 module cut(d=0)
 { // The cut point in the wall
-	translate([casewall,casewall,casebase+pcbthickness/2])pcbh(casetop+pcbthickness/2+1,casewall/2+d/2+margin/4);
+	translate([casewall,casewall,casebase+lip])pcbh(casetop+pcbthickness-lip+1,casewall/2+d/2+margin/4);
 }
 
 module base()
@@ -389,7 +390,7 @@ module base()
 		{
 			union()
 			{
-				translate([-1,-1,casebase+overlap])cube([pcbwidth+casewall*2+2,pcblength+casewall*2+2,casetop+1]);
+				translate([-1,-1,casebase+overlap+lip])cube([pcbwidth+casewall*2+2,pcblength+casewall*2+2,casetop+1]);
 				cut(fit);
 			}
 		}
@@ -409,7 +410,7 @@ module top()
 			case();
 			difference()
 			{
-				translate([-1,-1,-1])cube([pcbwidth+casewall*2+2,pcblength+casewall*2+2,casebase+overlap-margin+1]);
+				translate([-1,-1,-1])cube([pcbwidth+casewall*2+2,pcblength+casewall*2+2,casebase+overlap+lip-margin+1]);
 				cut(-fit);
 			}
 			translate([casewall,casewall,casebase])boardb();

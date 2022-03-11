@@ -2247,7 +2247,7 @@
     (uuid 00000000-0000-0000-0000-000060fbba89)
     (property "Reference" "D1" (id 0) (at 193.675 24.9682 0))
     (property "Value" "D" (id 1) (at 193.675 27.2796 0))
-    (property "Footprint" "Diode_SMD:D_1206_3216Metric" (id 2) (at 193.675 30.48 0)
+    (property "Footprint" "RevK:D_1206" (id 2) (at 193.675 30.48 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Datasheet" "~" (id 3) (at 193.675 30.48 0)
@@ -3068,7 +3068,7 @@
       (reference "C4") (unit 1) (value "10uF") (footprint "RevK:Hidden")
     )
     (path "/00000000-0000-0000-0000-000060fbba89"
-      (reference "D1") (unit 1) (value "D") (footprint "Diode_SMD:D_1206_3216Metric")
+      (reference "D1") (unit 1) (value "D") (footprint "RevK:D_1206")
     )
     (path "/00000000-0000-0000-0000-000060ce13c1"
       (reference "D2") (unit 1) (value "LED_RGBA") (footprint "RevK:LED-RGB-1.6x1.6")
