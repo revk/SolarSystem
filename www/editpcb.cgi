@@ -93,13 +93,13 @@ unsetenv pin
 unsetenv inittype
 unsetenv io
 unsetenv initname
-xmlsql -C -d "$DB" head.html - foot.html << END
+xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <h1>🔬 PCB template</h1>
 <if not pcb>
 <table>
 <sql table=pcb order=pcbname>
 <tr>
-<td><output name=pcbname blank="Unspecified" missing="Unnamed"  href="/editpcb.cgi/\$pcb"></td>
+<td><output name=pcbname blank="Unspecified" missing="Unnamed"  href="/editpcb.cgi/$pcb"></td>
 </tr>
 </sql>
 </table>
@@ -133,8 +133,8 @@ xmlsql -C -d "$DB" head.html - foot.html << END
 <tr><td><select name=gpsrx>$GPIONUMPICK</select></td><td>GPIO GPS Rx</td></tr>
 <tr><td><select name=gpstick>$GPIONUMPICK</select></td><td>GPIO GPS Tick</td></tr>
 </if>
-<sql table=gpio where="pcb=\$pcb" order=io,inittype,initname><set initinvert\$gpio="\$initinvert">
-<tr><td><input name=gpio type=hidden><select name=pin>$GPIONUMPICK</select></td><td><input name="initinvert\$gpio" type=checkbox value=true title="Invert"> <input name="value0\$gpio" size=5 value="\$value0" placeholder="0 name"><input name="value1\$gpio" size=5 value="\$value1" placeholder="1 name"> <select name=io>$GPIOIOPICK</select><select name=inittype>$GPIOTYPEPICK</select> <input name="initname\$gpio" value="\$initname" size=10> <input name="inithold\$gpio" size=3 value="\$inithold">ms <input name="initpulse\$gpio" size=5 value="\$initpulse">s/10</td></tr></td>
+<sql table=gpio where="pcb=$pcb" order=io,inittype,initname><set initinvert$gpio="$initinvert">
+<tr><td><input name=gpio type=hidden><select name=pin>$GPIONUMPICK</select></td><td><input name="initinvert$gpio" type=checkbox value=true title="Invert"> <input name="value0$gpio" size=5 value="$value0" placeholder="0 name"><input name="value1$gpio" size=5 value="$value1" placeholder="1 name"> <select name=io>$GPIOIOPICK</select><select name=inittype>$GPIOTYPEPICK</select> <input name="initname$gpio" value="$initname" size=10> <input name="inithold$gpio" size=3 value="$inithold">ms <input name="initpulse$gpio" size=5 value="$initpulse">s/10</td></tr></td>
 </sql>
 <tr><td><input name=gpio type=hidden value=0><select name=pin>$GPIONUMPICK</select></td><td><input name=initinvert type=checkbox value=true title="Invert"> <input name="value0" size=5 value="" placeholder="0 name"><input name="value1" size=5 value="" placeholder="1 name"> <select name=io>$GPIOIOPICK</select><select name=inittype>$GPIOTYPEPICK</select> <input name=initname size=10 placeholder='New pin'> <input name=inithold size=3 placeholder="Hold">ms <input name=initpulse size=5 placeholder="Pulse">s/10</td></tr></td>
 </table>
@@ -145,4 +145,4 @@ xmlsql -C -d "$DB" head.html - foot.html << END
 </form>
 </if>
 </sql>
-END
+'END'
