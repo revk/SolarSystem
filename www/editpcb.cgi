@@ -109,34 +109,34 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <sql table=pcb key=pcb>
 <table>
 <tr><td>Name</td><td><input name=pcbname size=40 autofocus></td></tr>
-<if ledr=='-' ledg=='-' ledb=='-'><tr><td><select name=leda>$GPIONUMPICK</select></td><td>GPIO Controller LED (amber)</td></tr></if>
-<if leda=='-'><tr><td><select name=ledr>$GPIONUMPICK</select></td><td>GPIO Controller LED (red)</td></tr></if>
-<if leda=='-'><tr><td><select name=ledg>$GPIONUMPICK</select></td><td>GPIO Controller LED (green)</td></tr></if>
-<if leda=='-'><tr><td><select name=ledb>$GPIONUMPICK</select></td><td>GPIO Controller LED (blue)</td></tr></if>
-<tr><td><select name=keypadtx onchange='F.submit();'>$GPIONUMPICK</select></td><td>GPIO Keypad Tx</td></tr>
+<if ledr=='-' ledg=='-' ledb=='-'><tr><td><select name=leda><include var=GPIONUMPICK></select></td><td>GPIO Controller LED (amber)</td></tr></if>
+<if leda=='-'><tr><td><select name=ledr><include var=GPIONUMPICK></select></td><td>GPIO Controller LED (red)</td></tr></if>
+<if leda=='-'><tr><td><select name=ledg><include var=GPIONUMPICK></select></td><td>GPIO Controller LED (green)</td></tr></if>
+<if leda=='-'><tr><td><select name=ledb><include var=GPIONUMPICK></select></td><td>GPIO Controller LED (blue)</td></tr></if>
+<tr><td><select name=keypadtx onchange='F.submit();'><include var=GPIONUMPICK></select></td><td>GPIO Keypad Tx</td></tr>
 <if not keypadtx=='-'>
-<tr><td><select name=keypadrx>$GPIONUMPICK</select></td><td>GPIO Keypad Rx</td></tr>
-<tr><td><select name=keypadde>$GPIONUMPICK</select></td><td>GPIO Keypad DE</td></tr>
-<tr><td><select name=keypadre>$GPIONUMPICK</select></td><td>GPIO Keypad RE</td></tr>
+<tr><td><select name=keypadrx><include var=GPIONUMPICK></select></td><td>GPIO Keypad Rx</td></tr>
+<tr><td><select name=keypadde><include var=GPIONUMPICK></select></td><td>GPIO Keypad DE</td></tr>
+<tr><td><select name=keypadre><include var=GPIONUMPICK></select></td><td>GPIO Keypad RE</td></tr>
 </if>
-<tr><td><select name=nfctx onchange='F.submit();'>$GPIONUMPICK</select></td><td>GPIO NFC Tx</td></tr>
+<tr><td><select name=nfctx onchange='F.submit();'><include var=GPIONUMPICK></select></td><td>GPIO NFC Tx</td></tr>
 <if not nfctx=='-'>
-<tr><td><select name=nfcrx>$GPIONUMPICK</select></td><td>GPIO NFC Rx</td></tr>
-<tr><td><select name=nfcpower>$GPIONUMPICK</select></td><td>GPIO NFC Power</td></tr>
-<tr><td><select name=nfcred>$GPIONFCPICK</select></td><td>PN532 NFC red LED</td></tr>
-<tr><td><select name=nfcamber>$GPIONFCPICK</select></td><td>PN532 NFC amber LED</td></tr>
-<tr><td><select name=nfcgreen>$GPIONFCPICK</select></td><td>PN532 NFC green LED</td></tr>
-<tr><td><select name=nfccard>$GPIONFCPICK</select></td><td>PN532 NFC LED to blink for card</td></tr>
+<tr><td><select name=nfcrx><include var=GPIONUMPICK></select></td><td>GPIO NFC Rx</td></tr>
+<tr><td><select name=nfcpower><include var=GPIONUMPICK></select></td><td>GPIO NFC Power</td></tr>
+<tr><td><select name=nfcred><include var=GPIONFCPICK></select></td><td>PN532 NFC red LED</td></tr>
+<tr><td><select name=nfcamber><include var=GPIONFCPICK></select></td><td>PN532 NFC amber LED</td></tr>
+<tr><td><select name=nfcgreen><include var=GPIONFCPICK></select></td><td>PN532 NFC green LED</td></tr>
+<tr><td><select name=nfccard><include var=GPIONFCPICK></select></td><td>PN532 NFC LED to blink for card</td></tr>
 </if>
-<tr><td><select name=gpstx onchange='F.submit();'>$GPIONUMPICK</select></td><td>GPIO GPS Tx</td></tr>
+<tr><td><select name=gpstx onchange='F.submit();'><include var=GPIONUMPICK></select></td><td>GPIO GPS Tx</td></tr>
 <if not gpstx=='-'>
-<tr><td><select name=gpsrx>$GPIONUMPICK</select></td><td>GPIO GPS Rx</td></tr>
-<tr><td><select name=gpstick>$GPIONUMPICK</select></td><td>GPIO GPS Tick</td></tr>
+<tr><td><select name=gpsrx><include var=GPIONUMPICK></select></td><td>GPIO GPS Rx</td></tr>
+<tr><td><select name=gpstick><include var=GPIONUMPICK></select></td><td>GPIO GPS Tick</td></tr>
 </if>
 <sql table=gpio where="pcb=$pcb" order=io,inittype,initname><set initinvert$gpio="$initinvert">
-<tr><td><input name=gpio type=hidden><select name=pin>$GPIONUMPICK</select></td><td><input name="initinvert$gpio" type=checkbox value=true title="Invert"> <input name="value0$gpio" size=5 value="$value0" placeholder="0 name"><input name="value1$gpio" size=5 value="$value1" placeholder="1 name"> <select name=io>$GPIOIOPICK</select><select name=inittype>$GPIOTYPEPICK</select> <input name="initname$gpio" value="$initname" size=10> <input name="inithold$gpio" size=3 value="$inithold">ms <input name="initpulse$gpio" size=5 value="$initpulse">s/10</td></tr></td>
+<tr><td><input name=gpio type=hidden><select name=pin><include var=GPIONUMPICK></select></td><td><input name="initinvert$gpio" type=checkbox value=true title="Invert"> <input name="value0$gpio" size=5 value="$value0" placeholder="0 name"><input name="value1$gpio" size=5 value="$value1" placeholder="1 name"> <select name=io><include var=GPIOIOPICK></select><select name=inittype><include var=GPIOTYPEPICK></select> <input name="initname$gpio" value="$initname" size=10> <input name="inithold$gpio" size=3 value="$inithold">ms <input name="initpulse$gpio" size=5 value="$initpulse">s/10</td></tr></td>
 </sql>
-<tr><td><input name=gpio type=hidden value=0><select name=pin>$GPIONUMPICK</select></td><td><input name=initinvert type=checkbox value=true title="Invert"> <input name="value0" size=5 value="" placeholder="0 name"><input name="value1" size=5 value="" placeholder="1 name"> <select name=io>$GPIOIOPICK</select><select name=inittype>$GPIOTYPEPICK</select> <input name=initname size=10 placeholder='New pin'> <input name=inithold size=3 placeholder="Hold">ms <input name=initpulse size=5 placeholder="Pulse">s/10</td></tr></td>
+<tr><td><input name=gpio type=hidden value=0><select name=pin><include var=GPIONUMPICK></select></td><td><input name=initinvert type=checkbox value=true title="Invert"> <input name="value0" size=5 value="" placeholder="0 name"><input name="value1" size=5 value="" placeholder="1 name"> <select name=io><include var=GPIOIOPICK></select><select name=inittype><include var=GPIOTYPEPICK></select> <input name=initname size=10 placeholder='New pin'> <input name=inithold size=3 placeholder="Hold">ms <input name=initpulse size=5 placeholder="Pulse">s/10</td></tr></td>
 </table>
 </sql>
 <input type=submit value="Update">

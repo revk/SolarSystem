@@ -105,9 +105,9 @@ void sstypes(const char *fn)
 #include "types.m"
    start("GPIONFCOUT");
    out("-", "Unused");
-#define n(g,t) pick(#g,#g);
+#define n(g,t) out(#g,#g);
 #include "types.m"
-#define n(g,t) pick("-"#g,#g" (active low)");
+#define n(g,t) out("-"#g,#g" (active low)");
 #include "types.m"
    start("GPIONFCPICK");
    pick("-", "-- NFC GPIO --");
