@@ -14,7 +14,7 @@ if($?NEWPASSWORD) then
 	unsetenv NEWPASSWORD
 endif
 setenv NEWPASSWORD `password`
-xmlsql -C -d "$DB" head.html - foot.html << END
+xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <p>We suggest a new password for you, but you can enter one of your choice if you prefer.</p>
 <form method=post action=changepassword.cgi>
 	<table>
@@ -23,4 +23,4 @@ xmlsql -C -d "$DB" head.html - foot.html << END
 	</table>
 	<input type=submit value="Change" name=CHANGE>
 </form>
-END
+'END'

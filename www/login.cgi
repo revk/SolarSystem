@@ -30,7 +30,7 @@ if($?PASSWORD) then
 	exit 0
 endif
 done:
-xmlsql -C -d "$DB" head.html - foot.html << END
+xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <form method=post action=login.cgi>
 	<table>
 		<tr><td>Email</td><td><input autocomplete="username" size=40 type=email name=USERNAME autofocus></td></tr>
@@ -40,4 +40,4 @@ xmlsql -C -d "$DB" head.html - foot.html << END
 	<input type=submit value="Forgotten password" name=FORGOT>
 	<input type=submit value="Register as new user" name=NEW>
 </form>
-END
+'END'

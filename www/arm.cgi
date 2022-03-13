@@ -27,7 +27,7 @@ endif
 
 done:
 source ../types
-xmlsql -C -d "$DB" head.html - foot.html << END
+xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <sql table=site where='site=$site'>
 <h1>🔔 Arming for <output name=sitename></h1>
 <form method=post>
@@ -37,11 +37,11 @@ xmlsql -C -d "$DB" head.html - foot.html << END
 <th>Areas</th>
 </tr>
 <sql table=area where="site=$site">
-<set s='background:green;'><if armed=*\$tag><set s='background:yellow;'></if><if alarm=*\$tag><set s='background:red;'></if>
-<tr style="\$s">
-<th><label for=\$tag><output name=tag></label></th>
-<td><input type=checkbox value=\$tag name=arm id=\$tag></td>
-<td><label for=\$tag><output name=areaname></label></td>
+<set s='background:green;'><if armed=*$tag><set s='background:yellow;'></if><if alarm=*$tag><set s='background:red;'></if>
+<tr style="$s">
+<th><label for=$tag><output name=tag></label></th>
+<td><input type=checkbox value=$tag name=arm id=$tag></td>
+<td><label for=$tag><output name=areaname></label></td>
 </tr>
 </sql>
 </table>
@@ -49,4 +49,4 @@ xmlsql -C -d "$DB" head.html - foot.html << END
 <IF CANSTRONG><input type=submit value="Force" name=STRONG></if>
 </form>
 </sql>
-END
+'END'

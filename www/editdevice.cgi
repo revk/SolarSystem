@@ -118,9 +118,9 @@ endif
 done:
 source ../types
 source ../setcan
-xmlsql -C -d "$DB" head.html - foot.html << END
+xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <h1>🪛 Manage devices <output name=VERSION></h1>
-<if device CANVIEWLOG><p><a href="/log.cgi/\$device">View logs</a></p></if>
+<if device CANVIEWLOG><p><a href="/log.cgi/$device">View logs</a></p></if>
 <if not device CANVIEWDEVICE>
 <table border=1>
 <tr>
@@ -131,17 +131,17 @@ xmlsql -C -d "$DB" head.html - foot.html << END
 <th>PCB</th>
 <th>Flash</th>
 <th>Notes</th></tr>
-<sql table="site" where="site=$USER_SITE"><set root="\$root"></sql>
-<sql table="device" where="site=$USER_SITE" select="max(version) AS V,max(build) AS B"><set V="\$V"><set B="\$B"></sql>
-<sql table="device LEFT JOIN pcb USING (pcb) LEFT JOIN device AS device2 ON (device.via=device2.device) LEFT JOIN device AS device3 ON (conv(device.bssid,16,10)=conv(device3.device,16,10)+1)" order="if(device.device='\$root',0,1),device.outofservice,device.devicename" WHERE="device.site=\$USER_SITE" select="device.*,pcb.pcbname,device2.devicename AS VIA,device3.devicename AS PARENT"><set found=1>
+<sql table="site" where="site=$USER_SITE"><set root="$root"></sql>
+<sql table="device" where="site=$USER_SITE" select="max(version) AS V,max(build) AS B"><set V="$V"><set B="$B"></sql>
+<sql table="device LEFT JOIN pcb USING (pcb) LEFT JOIN device AS device2 ON (device.via=device2.device) LEFT JOIN device AS device3 ON (conv(device.bssid,16,10)=conv(device3.device,16,10)+1)" order="if(device.device='$root',0,1),device.outofservice,device.devicename" WHERE="device.site=$USER_SITE" select="device.*,pcb.pcbname,device2.devicename AS VIA,device3.devicename AS PARENT"><set found=1>
 <set s="">
 <if outofservice=false><if lastonline><set s="background:green;"><if not via><set s="background:lightgreen;"></if></if><if not online><set s="background:yellow;"></if></if>
 <if outofservice=true><if lastonline><set s="background:lightblue;"></if><if not online><set s="background:blue;"></if></if>
-<tr style="\$s">
-<td title="\$device"><IF CANEDITDEVICE><output href="/editdevice.cgi/\$device" name=devicename blank="Unnamed" missing="Unnamed"></if><if else><output name=devicename></if></td>
+<tr style="$s">
+<td title="$device"><IF CANEDITDEVICE><output href="/editdevice.cgi/$device" name=devicename blank="Unnamed" missing="Unnamed"></if><if else><output name=devicename></if></td>
 <td><if online><tt title="When online"><output name=boot missing="Just now"></if><if else><tt title="Last online"><output name=lastonline missing="never"></tt></if></td>
-<td><if online><if via><i>via</i> <if PARENT NOT PARENT="\$VIA"><output name=PARENT> &amp; </if><output name=VIA></if><if else><tt title="BSSID#channel"><output name=bssid>#<output name=chan></tt> <i title="SSID"><output name=ssid></i></if></if><if else><i title="Why offline"><output name=offlinereason></i></if></td>
-<td><if upgrade><if online OR outofservice=false><i style='background:cyan;'>Upgrade <output name=progress 0=Started missing=Scheduled></i><br></if></if><set s="background:red;"><if version="\$V"><set s="background:green;"></if><tt style="\$s"><output name=version></tt></td>
+<td><if online><if via><i>via</i> <if PARENT NOT PARENT="$VIA"><output name=PARENT> &amp; </if><output name=VIA></if><if else><tt title="BSSID#channel"><output name=bssid>#<output name=chan></tt> <i title="SSID"><output name=ssid></i></if></if><if else><i title="Why offline"><output name=offlinereason></i></if></td>
+<td><if upgrade><if online OR outofservice=false><i style='background:cyan;'>Upgrade <output name=progress 0=Started missing=Scheduled></i><br></if></if><set s="background:red;"><if version="$V"><set s="background:green;"></if><tt style="$s"><output name=version></tt></td>
 <td><output name=pcbname></td>
 <td align=right><output name=flash type=mebi replace .00="" .0Mi="Mi">B</td>
 <td>
@@ -164,12 +164,12 @@ xmlsql -C -d "$DB" head.html - foot.html << END
 <sql table="device LEFT JOIN pcb USING (pcb)" KEY=device>
 <table>
 <tr><td><input type=checkbox id=outofservice name=outofservice value=true></td><td colspan=2><label for=outofservice>Out of service</label></td></tr>
-<tr><td>PCB</td><td colspan=2><select name=pcb><sql table=pcb order=pcbname><option value="\$pcb"><output name=pcbname></option></sql></select></td></tr>
+<tr><td>PCB</td><td colspan=2><select name=pcb><sql table=pcb order=pcbname><option value="$pcb"><output name=pcbname></option></sql></select></td></tr>
 <tr><td>Name</td><td colspan=2><input name=devicename size=20 maxlength=20 autofocus></td></tr>
 <if keypad=true><tr><td>Keypad</td><td colspan=2><input name=keypadidle size=16 maxlength=16 autofocus></td></tr></if>
 <if keypad=true><tr><td>Keypad PIN</td><td colspan=2><input name=keypadpin size=16 maxlength=16 autofocus> (for disarm)</td></tr></if>
-<tr><td>Site</td><td colspan=2><select name=site><sql table=site where="organisation=$USER_ORGANISATION"><option value='\$site'><output name=sitename></option></sql></select></td></tr>
-<sql table=site where="site=\$site">
+<tr><td>Site</td><td colspan=2><select name=site><sql table=site where="organisation=$USER_ORGANISATION"><option value='$site'><output name=sitename></option></sql></select></td></tr>
+<sql table=site where="site=$site">
 <if not iothost="">
 <tr><td>IoT (<output name=iothost>)</td><td colspan=2>
 <input id=iotstateinput name=iotstateinput value=true type=checkbox><label for=iotstateinput>Input</label>
@@ -184,10 +184,10 @@ xmlsql -C -d "$DB" head.html - foot.html << END
 </td>
 </if>
 </sql>
-<if nfc=true><tr><td>AID</td><td colspan=2><select name=aid><sql table=aid where="site=\$site"><option value="\$aid"><output name=aidname></option></sql></select></td></tr></if>
+<if nfc=true><tr><td>AID</td><td colspan=2><select name=aid><sql table=aid where="site=$site"><option value="$aid"><output name=aidname></option></sql></select></td></tr></if>
 <tr><td>Online</td><td colspan=2><if online><output name=online></if><if else>Last online <output name=lastonline missing="never"></if><if upgrade> (upgrade scheduled)</if></td></tr>
 <tr><td>Version</td><td colspan=2><output name=version></td></tr>
-<sql table=pcb where="pcb=\$pcb">
+<sql table=pcb where="pcb=$pcb">
 <if nfc=true><tr><td><input type=checkbox id=door name=door value=true></td><td colspan=2><label for=door>Door control</label></td></tr></if>
 <if door=true><tr><td><input size=5 id=doorunlock name=doorunlock>ms</td><td colspan=2><label for=doorunlock>Lock disengage timer</label></td></tr></if>
 <if door=true><tr><td><input size=5 id=doorlock name=doorlock>ms</td><td colspan=2><label for=doorlock>Lock engage timer</label></td></tr></if>
@@ -206,26 +206,26 @@ xmlsql -C -d "$DB" head.html - foot.html << END
 <if nfc=true><tr><td><input type=checkbox id=nfcadmin name=nfcadmin value=true></td><td colspan=2><label for=nfcadmin>Admin NFC reader</label></td></tr></if>
 <if USER_ADMIN=true nfc=true><tr><td><input type=checkbox id=nfctrusted name=nfctrusted value=true></td><td colspan=2><label for=nfctrusted>Trusted NFC reader</label></td></tr></if>
 </sql>
-<sql select="device.device,gpio.*,devicegpio.*" table="device JOIN gpio USING (pcb) LEFT JOIN devicegpio ON (devicegpio.device=device.device AND devicegpio.gpio=gpio.gpio)" WHERE="device.device='\$device'">
-<tr><td><output name=name href="/editgpio.cgi/\$device/\$gpio" blank="GPIO" missing="GPIO"></td>
-<if type><td><if type=*-><i>Unused</i></if><if else><b><output name=type $GPIOTYPEOUT> (<output name=invert false="\$value1" true="\$value0"><if not pulse=0 AND type=*O> <eval #=1 s="\$pulse/10"><output name=s>s</if><if not hold=0 AND type=*I> <output name=hold>ms</if>)</b></td><td><for space S="$STATELIST"><if not "\$S"=''> <output name=S> (<output name="\$S">)</if></for></if></td></if>
+<sql select="device.device,gpio.*,devicegpio.*" table="device JOIN gpio USING (pcb) LEFT JOIN devicegpio ON (devicegpio.device=device.device AND devicegpio.gpio=gpio.gpio)" WHERE="device.device='$device'">
+<tr><td><output name=name href="/editgpio.cgi/$device/$gpio" blank="GPIO" missing="GPIO"></td>
+<if type><td><if type=*-><i>Unused</i></if><if else><b><output name=type $GPIOTYPEOUT> (<output name=invert false="$value1" true="$value0"><if not pulse=0 AND type=*O> <eval #=1 s="$pulse/10"><output name=s>s</if><if not hold=0 AND type=*I> <output name=hold>ms</if>)</b></td><td><for space S="$STATELIST"><if not "$S"=''> <output name=S> (<output name="$S">)</if></for></if></td></if>
 <if not type><td><b><output name=io $GPIOIOOUT></td><td><i>Undefined</i></td></if>
 </tr>
 </sql>
 </table>
-<if rgb=true><set tags="\$tags led"></if>
-<if keypad=true><set tags="\$tags keypad keyarm keystrong keydisarm"></if>
-<if nfc=true><set tags="\$tags deadlock enter arm strong disarm"></if>
+<if rgb=true><set tags="$tags led"></if>
+<if keypad=true><set tags="$tags keypad keyarm keystrong keydisarm"></if>
+<if nfc=true><set tags="$tags deadlock enter arm strong disarm"></if>
 <if tags>
 <table border=1>
 <tr><th></th>
-<for SPACE T="\$tags"><if not T=""><th><output name=T></th></if></for>
+<for SPACE T="$tags"><if not T=""><th><output name=T></th></if></for>
 <th>Areas</th>
 </tr>
 <sql table=area where="site=$USER_SITE">
 <tr>
 <th><output name=tag></th>
-<for SPACE T="\$tags"><if not T=""><td><input name="area\$T" type=checkbox value="\$tag"></td></if></for>
+<for SPACE T="$tags"><if not T=""><td><input name="area$T" type=checkbox value="$tag"></td></if></for>
 <td><output name=areaname></td>
 </tr>
 </sql>
@@ -240,4 +240,4 @@ xmlsql -C -d "$DB" head.html - foot.html << END
 </sql>
 </form>
 </if>
-END
+'END'
