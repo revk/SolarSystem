@@ -239,7 +239,7 @@ const char *upgrade(SQL_RES * res, slot_t id)
    if (build_suffix && *build_suffix)
    {
       j_t j = j_create();
-      j_store_stringf(j, NULL, "/SS%s.bin", build_suffix);
+      j_stringf(j, "/SS%s.bin", build_suffix);
       slot_send(id, "command", device, "upgrade", &j);  // Use specific file based on build suffix for target device
    } else
       slot_send(id, "command", device, "upgrade", NULL);        // Use pre-set URL
@@ -1385,19 +1385,19 @@ int main(int argc, const char *argv[])
             }
             if (!device || (address && strcmp(sql_colz(device, "address"), address)))
                sql_sprintf(&s, "`address`=%#s,", address);
+            const char *build_suffix = j_get(j, "build-suffix");
+            if (!device || (build_suffix && strcmp(sql_colz(device, "build_suffix"), build_suffix)))
+               sql_sprintf(&s, "`build_suffix`=%#s,", build_suffix);
             const char *version = j_get(j, "version");
             if (!device || (version && strcmp(sql_colz(device, "version"), version)))
             {
                sql_sprintf(&s, "`version`=%#s,", version);
                if (device && secureid)
-                  sql_safe_query_free(&sql, sql_printf("INSERT INTO `event` SET `logged`=NOW(),`device`=%#s,`suffix`='upgrade',`data`='{\"version\":\"%#S\"}'", deviceid, version));
+                  sql_safe_query_free(&sql, sql_printf("INSERT INTO `event` SET `logged`=NOW(),`device`=%#s,`suffix`='upgrade',`data`='{\"version\":\"%#S%#S\"}'", deviceid, version, build_suffix));
             }
             const char *build = j_get(j, "build");
             if (!device || (build && strcmp(sql_colz(device, "build"), build)))
                sql_sprintf(&s, "`build`=%#s,", build);
-            const char *build_suffix = j_get(j, "build-suffix");
-            if (!device || (build_suffix && strcmp(sql_colz(device, "build_suffix"), build_suffix)))
-               sql_sprintf(&s, "`build_suffix`=%#s,", build_suffix);
             const char *secureboot = (j_test(j, "secureboot", 0) ? "true" : "false");
             if (!device || (secureboot && strcmp(sql_colz(device, "secureboot"), secureboot)))
                sql_sprintf(&s, "`secureboot`=%#s,", secureboot);

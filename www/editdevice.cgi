@@ -42,7 +42,8 @@ if($?UPGRADE) then
 	can --redirect --device='$device' editdevice
 	if($status) exit 0
 	sql "$DB" 'UPDATE device SET upgrade=NOW() WHERE device="$device"'
-	setenv MSG `message --device="$device" --command=upgrade`
+	setenv BUILD_SUFFIX `sql "$DB" 'SELECT build_suffix FROM device WHERE device="$device"'`
+	setenv MSG `message --device="$device" --command=upgrade '"'"/SS$BUILD_SUFFIX.bin"'"'`
 	if("$MSG" != "") goto done
 	redirect editdevice.cgi
 	exit 0
