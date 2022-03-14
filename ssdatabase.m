@@ -277,6 +277,7 @@ bool (iotstatewarning);         // Copy stuff to IoT
 bool (iotstatetamper);          // Copy stuff to IoT
 bool (ioteventfob);             // Copy stuff to IoT
 bool (iotkeypad);               // Copy stuff to IoT
+bool (iotgps);                  // Copy stuff to IoT
 bool (nfc);                     // Yes, can get from pcb, but useful to reference quickly
 bool (gps);                     // Yes, can get from pcb, but useful to reference quickly
 bool (rgb);                     // Yes, can get from pcb, but useful to reference quickly

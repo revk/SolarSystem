@@ -103,8 +103,9 @@ if($?devicename) then # save
 	if(! $?iotstatewarning) setenv iotstatewarning false
 	if(! $?iotstatetamper) setenv iotstatetamper false
 	if(! $?iotkeypad) setenv iotkeypad false
+	if(! $?iotgps) setenv iotgps false
 	if(! $?ioteventfob) setenv ioteventfob false
-	setenv allow "devicename areaenter areastrong areadeadlock areaarm areadisarm areabell arealed areakeypad areakeyarm areakeystrong areakeydisarm nfc gps rgb nfcadmin door doorexitarm doorexitdisarm aid site iotstatedoor iotstateinput iotstateoutput iotstatefault iotstatewarning iotstatetamper ioteventfob iotkeypad doorunlock doorlock dooropen doorclose doorprop doorexit doordebounce keypadidle keypadpin keypad pcb dooriotunlock dooriotdead dooriotundead outofservice doorsilent doordebug doorcatch"
+	setenv allow "devicename areaenter areastrong areadeadlock areaarm areadisarm areabell arealed areakeypad areakeyarm areakeystrong areakeydisarm nfc gps rgb nfcadmin door doorexitarm doorexitdisarm aid site iotstatedoor iotstateinput iotstateoutput iotstatefault iotstatewarning iotstatetamper ioteventfob iotkeypad iotgps doorunlock doorlock dooropen doorclose doorprop doorexit doordebounce keypadidle keypadpin keypad pcb dooriotunlock dooriotdead dooriotundead outofservice doorsilent doordebug doorcatch"
 	if("$USER_ADMIN" == "true") setenv allow "$allow nfctrusted"
 	sqlwrite -qon "$DB" device $allow
 	sql "$DB" 'UPDATE device SET poke=NOW() WHERE site=$site'
@@ -181,6 +182,7 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <if door=true><input id=doordebug name=doordebug value=true type=checkbox><label for=doordebug>Door debug</label></if>
 <if nfc=true><input id=ioteventfob name=ioteventfob value=true type=checkbox><label for=ioteventfob>Fob events</label></if>
 <if keypad=true><input id=iotkeypad name=iotkeypad value=true type=checkbox><label for=iotkeypad>Keypad events</label></if>
+<if gps=true><input id=iotgps name=iotgps value=true type=checkbox><label for=iotgps>GPS events</label></if>
 </td>
 </if>
 </sql>

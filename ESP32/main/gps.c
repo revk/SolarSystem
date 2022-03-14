@@ -53,7 +53,7 @@ void gps_send_status(void)
       jo_litf(j, "lat", "%lf", gpslat);
       jo_litf(j, "lon", "%lf", gpslon);
    }
-   alarm_event(gpsfixed ? "fix" : gpslocked ? "clock" : "lost", &j, -1);
+   alarm_event(gpsfixed ? "fix" : gpslocked ? "clock" : "lost", &j, iotkeypad);
 }
 
 static void nmea(char *data)

@@ -350,6 +350,8 @@ static const char *settings(SQL * sqlp, SQL * sqlkeyp, SQL_RES * res, slot_t id)
                j_store_true(iot, "eventarm");
             if (*sql_colz(res, "iotkeypad") == 't')
                j_store_true(iot, "keypad");
+            if (*sql_colz(res, "iotgps") == 't')
+               j_store_true(iot, "gps");
          }
       }
       sql_free_result(s);
