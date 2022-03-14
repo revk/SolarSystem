@@ -61,7 +61,7 @@ static void nmea(char *data)
 {
    if (*data != '$' || data[1] != 'G' || !data[2] || strncmp(data + 3, "RMC", 3))
       return;                   // Recommended Minimum Position Data
-   if (!gpslocked)
+   if (!gpsfixed)
       ESP_LOGI(TAG, "%s", data);
    logical_gpio &= ~logical_GPSFault;   // No fault, does not mean locked though
    char *f[13];
