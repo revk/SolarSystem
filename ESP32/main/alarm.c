@@ -712,6 +712,8 @@ static void mesh_handle_report(const char *target, jo_t j)
             struct timeval t = { now / 1000000ULL, now % 1000000ULL };
             if (settimeofday(&t, NULL))
                ESP_LOGE(TAG, "Time set %llu failed", now);
+            else if (!gpstime)
+               gpstime = 1; // TODO how do we unflag this
          }
       }
    jo_rewind(j);

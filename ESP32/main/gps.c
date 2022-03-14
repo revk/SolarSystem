@@ -42,6 +42,7 @@ settings
 #undef u1
 unsigned char gpslocked = 0;    // Do we have a current time lock
 unsigned char gpsfixed = 0;     // Do we have a location lock
+unsigned char gpstime = 0;      // Remote GPS time
 double gpslat = 0,
     gpslon = 0;
 
