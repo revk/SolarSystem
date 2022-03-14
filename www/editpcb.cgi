@@ -19,9 +19,9 @@ if($?DELETE) then
 endif
 if($?COPY) then
 	setenv C `sql "$DB" 'SELECT column_name FROM INFORMATION_SCHEMA.COLUMNS WHERE table_name="pcb" and column_name<>"pcb" AND column_name<>"pcbname"'|sed '2,$s/^/,/'`
-	setenv N `sql -i "$DB" 'INSERT INTO pcb (pcb,pcbname,'"$C"') SELECT 0,concat(pcbname," copy"),'"$C"' FROM pcb WHERE pcb=$pcb'`
+	setenv N `sql -i "$DB" 'INSERT INTO pcb (pcb,pcbname,$%C) SELECT 0,concat(pcbname," copy"),$%C FROM pcb WHERE pcb=$pcb'`
 	setenv C `sql "$DB" 'SELECT column_name FROM INFORMATION_SCHEMA.COLUMNS WHERE table_name="gpio" and column_name<>"gpio" AND column_name<>"pcb"'|sed '2,$s/^/,/'`
-	sql "$DB" 'INSERT INTO gpio (gpio,pcb,'"$C"') SELECT 0,$N,'"$C"' FROM gpio WHERE pcb=$pcb'
+	sql "$DB" 'INSERT INTO gpio (gpio,pcb,$%C) SELECT 0,$N,$%C FROM gpio WHERE pcb=$pcb'
 	setenv pcb "$N"
 	goto done
 endif
