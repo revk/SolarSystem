@@ -114,7 +114,7 @@ bool (canadoptfob);             // Can adopt fobs
 bool (caneditfob);              // Can edit fobs
 bool (caneditarea);             // Can edit areas
 bool (canarm);                  // Can arm
-bool (canstrong);            // Can strong arm
+bool (canstrong);               // Can strong arm
 bool (candisarm);               // Can disarm
 bool (canunlock);               // Can unlock doors
 bool (canviewlog);              // Can view logs
@@ -158,14 +158,14 @@ text(hookfault, 0);             // Fault event web hook
 text(hooktrigger, 0);           // Trigger event web hook
 text(hookinhibit, 0);           // Inhibit event web hook
 text(hookarm, 0);               // Arm event web hook
-text(hookstrong, 0);         // Strongarm event web hook
+text(hookstrong, 0);            // Strongarm event web hook
 text(hookdisarm, 0);            // Disarm event web hook
 text(hookarmfail, 0);           // Arm fail event web hook
 text(hooknotopen, 0);           // Not open event web hook
 text(hookopen, 0);              // Open event web hook
 text(hookforced, 0);            // Forced event web hook
 text(hookpropped, 0);           // Propped event web hook
-text(hookwrongpin,0);		// Wrong PIN entry
+text(hookwrongpin, 0);          // Wrong PIN entry
 text(status, 0);                // Site level status
 areas(faulted);                 // Site wide states from mesh
 areas(tampered);
@@ -218,7 +218,7 @@ link(site);
 text(accessname, 0);
 areas(enter);                   // Allow enter
 areas(arm);                     // Allow arm
-areas(strong);               // Allow strong arm
+areas(strong);                  // Allow strong arm
 areas(prop);                    // Allow prop
 areas(disarm);                  // Allow disarm
 num(expiry);                    // Auto expiry (days)
@@ -257,7 +257,7 @@ join(fob, organisation);        // Yes, per org, for security reasons
 datetime(blocked);              // Block card (when blocked)
 datetime(confirmed);            // When confirmed blocked
 text(fobname, 15);              // Name of fob user
-text(fobsms,20);		// SMS of the fob user
+text(fobsms, 20);               // SMS of the fob user
 datetime(expires);              // Fixed expiry (local time on server)
 
 table(device, 12);
@@ -293,6 +293,7 @@ bool (keypad);                  // Keypad
 text(status, 0);                // Summary status from device
 text(version, 0);               // S/w version
 text(build, 0);                 // S/w build
+text(build_suffix, 0);          // S/w build suffix
 num(chan);                      // WiFi channel
 text(bssid, 0);                 // WiFi SSID
 text(ssid, 0);                  // WiFi SSID
@@ -302,7 +303,7 @@ num(flash);                     // Flash size
 link(aid);                      // The AID for door access (defines what site it is)
 areas(areaenter);               // Areas allowed enter by fob
 areas(areaarm);                 // Areas allowed arm by fob
-areas(areastrong);           // Areas allowed arm by fob
+areas(areastrong);              // Areas allowed arm by fob
 areas(areadisarm);              // Areas allowed disarm by fob
 areas(areadeadlock);            // Areas for deadlock input
 areas(arealed);                 // LED area

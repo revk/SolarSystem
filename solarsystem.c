@@ -235,7 +235,10 @@ const char *upgrade(SQL_RES * res, slot_t id)
    const char *upgrade = sql_col(res, "upgrade");
    if (!upgrade || j_time(upgrade) > time(0))
       return NULL;
-   slot_send(id, "command", sql_colz(res, "device"), "upgrade", NULL);
+   const char *build_suffix = sql_col(res, "build_suffix");
+   j_t j = j_create();
+   j_store_stringf(j, NULL, "/SS%s.bin", build_suffix);
+   slot_send(id, "command", sql_colz(res, "device"), "upgrade", &j);
    return upgrade;
 }
 
@@ -388,9 +391,9 @@ static const char *settings(SQL * sqlp, SQL * sqlkeyp, SQL_RES * res, slot_t id)
          set(nfc, green);
          set(nfc, card);
          o = j_store_object(j, "gps");
-	 set(gps,tx);
-	 set(gps,rx);
-	 set(gps,tick);
+         set(gps, tx);
+         set(gps, rx);
+         set(gps, tick);
 #undef set
          j_t blink = j_store_array(j, "blink");
 #define led(n) {const char *v=sql_colz(p,#n);if(!*v||!strcmp(v,"-"))j_append_string(blink,""); else j_append_literal(blink,v);}
@@ -1388,6 +1391,9 @@ int main(int argc, const char *argv[])
             const char *build = j_get(j, "build");
             if (!device || (build && strcmp(sql_colz(device, "build"), build)))
                sql_sprintf(&s, "`build`=%#s,", build);
+            const char *build_suffix = j_get(j, "build-suffix");
+            if (!device || (build_suffix && strcmp(sql_colz(device, "build_suffix"), build_suffix)))
+               sql_sprintf(&s, "`build_suffix`=%#s,", build_suffix);
             const char *secureboot = (j_test(j, "secureboot", 0) ? "true" : "false");
             if (!device || (secureboot && strcmp(sql_colz(device, "secureboot"), secureboot)))
                sql_sprintf(&s, "`secureboot`=%#s,", secureboot);
