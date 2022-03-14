@@ -4,7 +4,7 @@
 #
 
 PROJECT_NAME := SS
-SUFFIX := $(shell components/ESP32-RevK/suffix)
+SUFFIX := $(shell components/ESP32-RevK/buildsuffix)
 
 all:
 	@echo Make: $(PROJECT_NAME)$(SUFFIX).bin
@@ -15,15 +15,15 @@ all:
 set:	wroom solo pico
 
 pico:
-	components/ESP32-RevK/switchsuffix PICO
+	components/ESP32-RevK/setbuildsuffix -S1-PICO
 	@make
 
 wroom:
-	components/ESP32-RevK/switchsuffix WROOM
+	components/ESP32-RevK/setbuildsuffix -S1
 	@make
 
 solo:
-	components/ESP32-RevK/switchsuffix SOLO
+	components/ESP32-RevK/setbuildsuffix -S1-SOLO
 	@make
 
 flash:
