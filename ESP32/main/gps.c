@@ -47,6 +47,7 @@ uint8_t gpstime = 0;            // Remote GPS time
 uint8_t gpsp = 0,
     gpsl = 0,
     gpsa = 0;                   // Sats in view
+uint32_t gpslast = 0;           // Last status update
 double gpslat = 0,
     gpslon = 0;
 
@@ -60,6 +61,7 @@ void gps_send_status(void)
    }
    jo_int(j, "sats", gpsp + gpsl + gpsa);
    alarm_event(gpsfixed ? "fix" : gpslocked ? "clock" : "lost", &j, iotgps);
+   gpslast = uptime();
 }
 
 static void nmea(char *data)
@@ -111,7 +113,7 @@ static void nmea(char *data)
       if (data[2] == 'A' && gpsa != n)
          gpsa = n;
       int now = gpsp + gpsl + gpsa;
-      if (now != was && (now > was + 2 || was > now + 2 || !was || !now))
+      if (now != was && (now > was + 2 || was > now + 2 || !was || !now || gpslast + 3600 < uptime()))
       {
          status = 1;
          if (now)
@@ -130,9 +132,7 @@ static void nmea(char *data)
          double lon = (f[4][0] - '0') * 100 + (f[4][1] - '0') * 10 + (f[4][2] - '0') + strtod(f[4] + 3, NULL) / 60.0;
          if (*f[5] == 'W')
             lon = 0 - lon;
-         if (lat - gpslat > 1 || gpslat - lat > 1 || lon - gpslon > 1 || gpslon - lon > 1)
-            gpsfixed = 0;
-         if (!gpsfixed)
+         if (!gpsfixed || ((lat != gpslat || lon != gpslon) && (lat - gpslat > 1 || gpslat - lat > 1 || lon - gpslon > 1 || gpslon - lon > 1 || gpslast + 3600 < uptime())))
          {
             gpslat = lat;
             gpslon = lon;
