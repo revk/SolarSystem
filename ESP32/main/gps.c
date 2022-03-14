@@ -40,9 +40,13 @@ settings
 #undef b
 #undef bap
 #undef u1
-unsigned char gpslocked = 0;    // Do we have a current time lock
-unsigned char gpsfixed = 0;     // Do we have a location lock
-unsigned char gpstime = 0;      // Remote GPS time
+    uint8_t gpsseen = 0;        // Have we seen any data
+uint8_t gpslocked = 0;          // Do we have a current time lock
+uint8_t gpsfixed = 0;           // Do we have a location lock
+uint8_t gpstime = 0;            // Remote GPS time
+uint8_t gpsp = 0,
+    gpsl = 0,
+    gpsa = 0;                   // Sats in view
 double gpslat = 0,
     gpslon = 0;
 
@@ -54,14 +58,34 @@ void gps_send_status(void)
       jo_litf(j, "lat", "%lf", gpslat);
       jo_litf(j, "lon", "%lf", gpslon);
    }
-   alarm_event(gpsfixed ? "fix" : gpslocked ? "clock" : "lost", &j, iotkeypad);
+   jo_int(j, "sats", gpsp + gpsl + gpsa);
+   alarm_event(gpsfixed ? "fix" : gpslocked ? "clock" : "lost", &j, iotgps);
 }
 
 static void nmea(char *data)
 {
-      ESP_LOGI(TAG, "%s", data);
-   if (*data != '$' || data[1] != 'G' || !data[2] || strncmp(data + 3, "RMC", 3))
+   if (*data != '$' || data[1] != 'G' || !data[2] || !data[3] || !data[4] || !data[5])
       return;                   // Recommended Minimum Position Data
+   ESP_LOGI(TAG, "<%s", data);  // Debug
+   if (!gpsseen)
+   {
+      void send(const char *msg) {
+         uint8_t c = 0;
+         for (int i = 1; msg[i]; i++)
+            c ^= msg[i];
+         char csum[6];
+         sprintf(csum, "*%02X\r\n", c);
+         uart_write_bytes(gpsuart, msg, strlen(msg));
+         uart_write_bytes(gpsuart, csum, 6);
+         ESP_LOGI(TAG, ">%s%.3s", msg, csum);
+      }
+      send("$PMTK255,1");       // Enable PPS
+      send("$PMTK256,1");       // Enable timing product mode (PPS accuracy)
+      send("$PMTK286,1");       // Enable AIC (Active interference cancellation)
+      send("$PMTK314,0,1,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,1,0");   // RMC, GSV, ZDA
+      send("$PMTK353,1,1,1,1,0");       // GPS, GLONASS, GALILEO(full)
+      gpsseen = 1;
+   }
    logical_gpio &= ~logical_GPSFault;   // No fault, does not mean locked though
    char *f[13];
    int n = 0;
@@ -75,37 +99,59 @@ static void nmea(char *data)
       *p++ = 0;
       f[n++] = p;
    }
-   if (n < 13)
-   {
-      ESP_LOGE(TAG, "NMEA fields %d", n);
-      return;
-   }
    char status = 0;
-   if (*f[11] != 'N' && strlen(f[2]) > 5 && strlen(f[4]) > 6)
-   {
-      double lat = (f[2][0] - '0') * 10 + (f[2][1] - '0') + strtod(f[2] + 2, NULL) / 60.0;
-      if (*f[3] == 'S')
-         lat = 0 - lat;
-      double lon = (f[4][0] - '0') * 100 + (f[4][1] - '0') * 10 + (f[4][2] - '0') + strtod(f[4] + 3, NULL) / 60.0;
-      if (*f[5] == 'W')
-         lon = 0 - lon;
-      if (lat - gpslat > 1 || gpslat - lat > 1 || lon - gpslon > 1 || gpslon - lon > 1)
-         gpsfixed = 0;
-      if (!gpsfixed)
+   if (!strncmp(data + 3, "GSV", 3) && n >= 3)
+   {                            // $GPGSV,2,1,05,31,63,226,17,26,47,287,,25,38,104,,20,12,057,,0
+      int n = atoi(f[2]);
+      if (data[2] == 'P' && gpsp != n)
       {
-         gpslat = lat;
-         gpslon = lon;
-         gpsfixed = 1;
+         gpsp = n;
          status = 1;
       }
-      //ESP_LOGI(TAG, "Fix %lf %lf", lat, lon);
+      if (data[2] == 'L' && gpsl != n)
+      {
+         gpsl = n;
+         status = 1;
+      }
+      if (data[2] == 'A' && gpsa != n)
+      {
+         gpsa = n;
+         status = 1;
+      }
+      if (gpsp + gpsl + gpsa)
+         logical_gpio |= logical_GPSWarn;       // sats
+      else
+         logical_gpio &= ~logical_GPSWarn;      // No sats
    }
-   if (strlen(f[0]) >= 6 && strlen(f[8]) == 6 && (*f[1] == 'A' || f[8][4] != '8'))      // 1980 is no good
-   {                            // Time
+   if (!strncmp(data + 3, "RMC", 3) && n >= 13)
+   {                            // $GPRMC,140305.832,V,,,,,0.00,0.00,140322,,,N,V
+      if (*f[11] != 'N' && strlen(f[2]) > 5 && strlen(f[4]) > 6)
+      {
+         double lat = (f[2][0] - '0') * 10 + (f[2][1] - '0') + strtod(f[2] + 2, NULL) / 60.0;
+         if (*f[3] == 'S')
+            lat = 0 - lat;
+         double lon = (f[4][0] - '0') * 100 + (f[4][1] - '0') * 10 + (f[4][2] - '0') + strtod(f[4] + 3, NULL) / 60.0;
+         if (*f[5] == 'W')
+            lon = 0 - lon;
+         if (lat - gpslat > 1 || gpslat - lat > 1 || lon - gpslon > 1 || gpslon - lon > 1)
+            gpsfixed = 0;
+         if (!gpsfixed)
+         {
+            gpslat = lat;
+            gpslon = lon;
+            gpsfixed = 1;
+            status = 1;
+            ESP_LOGI(TAG, "Fixed");
+         }
+         //ESP_LOGI(TAG, "Fix %lf %lf", lat, lon);
+      }
+   }
+   if (!strncmp(data + 3, "ZDA", 3) && n >= 4 && strlen(f[0]) >= 6 && *f[3] == '2')
+   {                            // GNZDA,140226.832,14,03,2022,,
       struct tm tm = { };
-      tm.tm_year = 100 + (f[8][4] - '0') * 10 + (f[8][5] - '0');
-      tm.tm_mon = (f[8][2] - '0') * 10 + (f[8][3] - '0') - 1;
-      tm.tm_mday = (f[8][0] - '0') * 10 + (f[8][1] - '0');
+      tm.tm_year = atoi(f[3]) - 1900;
+      tm.tm_mon = atoi(f[2]);
+      tm.tm_mday = atoi(f[1]);
       tm.tm_hour = (f[0][0] - '0') * 10 + (f[0][1] - '0');
       tm.tm_min = (f[0][2] - '0') * 10 + (f[0][3] - '0');
       tm.tm_sec = (f[0][4] - '0') * 10 + (f[0][5] - '0');
@@ -130,10 +176,10 @@ static void nmea(char *data)
          ESP_LOGE(TAG, "Time set %d failed", (int) new);
       else if (!gpslocked)
       {
-         status = 1;
          gpslocked = 1;
+         status = 1;
+         ESP_LOGI(TAG, "Locked");
       }
-      //ESP_LOGI(TAG, "Clock %04d-%02d-%02d %02d:%02d:%02d.%06d", tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec, usec);
    }
    if (status)
       gps_send_status();
@@ -158,8 +204,10 @@ static void task(void *pvParameters)
          {
             ESP_LOGE(TAG, "GPS timeout");
             logical_gpio |= logical_GPSFault;   // Timeout
+            logical_gpio |= logical_GPSWarn;    // Timeout
             if (gpslocked || gpsfixed)
             {
+               gpsseen = 0;
                gpslocked = 0;
                gpsfixed = 0;
                gps_send_status();

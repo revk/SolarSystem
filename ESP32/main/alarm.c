@@ -38,6 +38,8 @@ typedef struct node_s {
    uint8_t missed:2;            // Missed report count
    uint8_t reported:1;          // Has reported
    uint8_t bigflash:1;          // Has more than 4MiB flash
+   uint8_t pico:1;              // ESP32-PICO
+   uint8_t solo:1;              // Single CPU
    uint8_t part:3;              // Received parts
    area_t display;              // Areas for which this is a display
 } node_t;
@@ -713,7 +715,7 @@ static void mesh_handle_report(const char *target, jo_t j)
             if (settimeofday(&t, NULL))
                ESP_LOGE(TAG, "Time set %llu failed", now);
             else if (!gpstime)
-               gpstime = 1; // TODO how do we unflag this
+               gpstime = 1;     // TODO how do we unflag this
          }
       }
    jo_rewind(j);
@@ -1112,7 +1114,9 @@ void mesh_handle_capability(const char *target, jo_t j)
    if (child < 0)
       return;
    area_t display = 0;
-   uint8_t bigflash = 0;
+   uint8_t bigflash = 0,
+       pico = 0,
+       solo = 0;
    jo_type_t t;
    while ((t = jo_next(j)))
       if (t == JO_TAG)
@@ -1130,9 +1134,15 @@ void mesh_handle_capability(const char *target, jo_t j)
                bigflash = 1;
             continue;
          }
+         if (!jo_strcmp(j, "pico"))
+            pico = 1;
+         if (!jo_strcmp(j, "solo"))
+            solo = 1;
       }
    node[child].display = display;
    node[child].bigflash = bigflash;
+   node[child].pico = pico;
+   node[child].solo = solo;
 }
 
 void alarm_rx(const char *target, jo_t j)
@@ -1182,6 +1192,12 @@ void alarm_rx(const char *target, jo_t j)
       if (areakeypad)
          jo_area(j, "display", areakeypad);
       jo_int(j, "flash", spi_flash_get_chip_size());
+#if defined(CONFIG_ESPTOOLPY_FLASHSIZE_8MB) && defined(CONFIG_ESP32_SPIRAM_SUPPORT)
+      jo_bool(j, "pico", 1);
+#endif
+#ifdef CONFIG_FREERTOS_UNICORE
+      jo_bool(j, "solo", 1);
+#endif
       revk_mesh_send_json(NULL, &j);
       if (gpslocked || gpsfixed)
          gps_send_status();

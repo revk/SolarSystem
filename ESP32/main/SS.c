@@ -109,7 +109,7 @@ const char *port_check(int p, const char *module, int in)
       }
    }
    static uint64_t port_inuse = 0;
-   if (port_inuse & (1ULL << p))
+   if ((port_inuse & (1ULL << p)) && p < LOGIC_PORT2)
    {
       ESP_LOGE(TAG, "Port %d clash (%s)", p, module);
       jo_t j = jo_object_alloc();
