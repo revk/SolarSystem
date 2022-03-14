@@ -66,7 +66,7 @@ static void nmea(char *data)
 {
    if (*data != '$' || data[1] != 'G' || !data[2] || !data[3] || !data[4] || !data[5])
       return;                   // Recommended Minimum Position Data
-   ESP_LOGI(TAG, "<%s", data);  // Debug
+   //ESP_LOGI(TAG, "<%s", data);  // Debug
    if (!gpsseen)
    {
       void send(const char *msg) {
@@ -102,26 +102,23 @@ static void nmea(char *data)
    char status = 0;
    if (!strncmp(data + 3, "GSV", 3) && n >= 3)
    {                            // $GPGSV,2,1,05,31,63,226,17,26,47,287,,25,38,104,,20,12,057,,0
+      int was = gpsp + gpsl + gpsa;
       int n = atoi(f[2]);
       if (data[2] == 'P' && gpsp != n)
-      {
          gpsp = n;
-         status = 1;
-      }
       if (data[2] == 'L' && gpsl != n)
-      {
          gpsl = n;
-         status = 1;
-      }
       if (data[2] == 'A' && gpsa != n)
-      {
          gpsa = n;
+      int now = gpsp + gpsl + gpsa;
+      if (now != was && (now > was + 2 || was > now + 2 || !was || !now))
+      {
          status = 1;
+         if (now)
+            logical_gpio |= logical_GPSWarn;    // sats
+         else
+            logical_gpio &= ~logical_GPSWarn;   // No sats
       }
-      if (gpsp + gpsl + gpsa)
-         logical_gpio |= logical_GPSWarn;       // sats
-      else
-         logical_gpio &= ~logical_GPSWarn;      // No sats
    }
    if (!strncmp(data + 3, "RMC", 3) && n >= 13)
    {                            // $GPRMC,140305.832,V,,,,,0.00,0.00,140322,,,N,V
