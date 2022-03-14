@@ -1584,7 +1584,7 @@ int main(int argc, const char *argv[])
             {
                if (j_find(j, "complete"))
                {                // Done
-                  sql_safe_query_free(&sql, sql_printf("UPDATE `device` SET `upgrade`=NULL,`version`=NULL,`progress`=NULL WHERE `device`=%#s", deviceid));
+                  sql_safe_query_free(&sql, sql_printf("UPDATE `device` SET `upgrade`=NULL,`version`=NULL,`build_suffix`=NULL,`progress`=NULL WHERE `device`=%#s", deviceid));
                   poke = 1;
                } else if (j_find(j, "size"))    // making progress
                   sql_safe_query_free(&sql, sql_printf("UPDATE `device` SET `progress`=%d WHERE `device`=%#s", atoi(j_get(j, "progress") ? : ""), deviceid));
