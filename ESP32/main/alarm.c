@@ -705,16 +705,15 @@ static void mesh_handle_report(const char *target, jo_t j)
                }
             }
             node[child].part = 0;
+         } else if (!jo_strcmp(j, "^"))
+         {                      // GPS time
+            jo_next(j);
+            uint64_t now = jo_read_int(j);
+            struct timeval t = { now / 1000000ULL, now % 1000000ULL };
+            if (settimeofday(&t, NULL))
+               ESP_LOGE(TAG, "Time set %llu failed", now);
          }
-      } else if (!jo_strcmp(j, "^"))
-      {                         // GPS time
-         jo_next(j);
-         uint64_t now = jo_read_int(j);
-         struct timeval t = { now / 1000000ULL, now % 1000000ULL };
-         if (settimeofday(&t, NULL))
-            ESP_LOGE(TAG, "Time set %llu failed", now);
       }
-
    jo_rewind(j);
    jo_next(j);                  // report tag
    if (jo_next(j) == JO_ARRAY)
