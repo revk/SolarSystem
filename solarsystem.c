@@ -231,14 +231,18 @@ void notify(SQL * sqlp, SQL_RES * res, const char *target, j_t j)
 
 const char *upgrade(SQL_RES * res, slot_t id)
 {                               // Send upgrade if needed
-   // Maybe check parent is not due upgrade first?
+   const char *device = sql_colz(res, "device");
    const char *upgrade = sql_col(res, "upgrade");
    if (!upgrade || j_time(upgrade) > time(0))
       return NULL;
    const char *build_suffix = sql_col(res, "build_suffix");
-   j_t j = j_create();
-   j_store_stringf(j, NULL, "/SS%s.bin", build_suffix);
-   slot_send(id, "command", sql_colz(res, "device"), "upgrade", &j);
+   if (build_suffix && *build_suffix)
+   {
+      j_t j = j_create();
+      j_store_stringf(j, NULL, "/SS%s.bin", build_suffix);
+      slot_send(id, "command", device, "upgrade", &j);  // Use specific file based on build suffix for target device
+   } else
+      slot_send(id, "command", device, "upgrade", NULL);        // Use pre-set URL
    return upgrade;
 }
 
