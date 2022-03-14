@@ -117,9 +117,9 @@ static void nmea(char *data)
       {
          status = 1;
          if (now)
-            logical_gpio |= logical_GPSWarn;    // sats
+            logical_gpio &= ~logical_GPSWarn;    // sats
          else
-            logical_gpio &= ~logical_GPSWarn;   // No sats
+            logical_gpio |= logical_GPSWarn;   // No sats
       }
    }
    if (!strncmp(data + 3, "RMC", 3) && n >= 13)
