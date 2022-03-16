@@ -86,7 +86,7 @@ static void task(void *pvParameters)
              v;
          if (p < LOGIC_PORT)
             v = gpio_get_level(port_mask(input[i]));
-         else if (p>=LOGIC_PORT2 && input[i] & PORT_INV)
+         else if (p >= LOGIC_PORT2 && (input[i] & PORT_INV))
             v = ((logical_gpio >> (16 + p - LOGIC_PORT)) & 1);  // Non invertable logical GPIO, i.e. extra ones
          else
             v = ((logical_gpio >> (p - LOGIC_PORT)) & 1);       // Logical GPIO, e.g. NFC ports, etc.
@@ -205,8 +205,8 @@ void input_boot(void)
                   if (p != 20)
                      REVK_ERR_CHECK(gpio_hold_dis(p));
                }
-               if (input[i] & PORT_INV)
-               {
+               if (p < LOGIC_PORT2 && (input[i] & PORT_INV))
+               {                // Inverted
                   input_invert |= (1ULL << i);
                   if (p >= LOGIC_PORT)
                      logical_gpio |= (1ULL << (p - LOGIC_PORT));        // Init off
