@@ -85,7 +85,7 @@ static void task(void *pvParameters)
          int p = port_mask(input[i]),
              v;
          if (p < LOGIC_PORT)
-            v = gpio_get_level(port_mask(input[i]));
+            v = gpio_get_level(p);
          else if (p >= LOGIC_PORT2 && (input[i] & PORT_INV))
             v = ((logical_gpio >> (16 + p - LOGIC_PORT)) & 1);  // Non invertable logical GPIO, i.e. extra ones
          else
@@ -106,10 +106,12 @@ static void task(void *pvParameters)
          {
             int p = port_mask(input[i]),
                 v;
-            if (p >= LOGIC_PORT)
-               v = ((logical_gpio >> (p - LOGIC_PORT)) & 1);    // Logical GPIO, e.g. NFC ports, etc.
+            if (p < LOGIC_PORT)
+               v = gpio_get_level(p);
+            else if (p >= LOGIC_PORT2 && (input[i] & PORT_INV))
+               v = ((logical_gpio >> (16 + p - LOGIC_PORT)) & 1);       // Non invertable logical GPIO, i.e. extra ones
             else
-               v = gpio_get_level(port_mask(input[i]));
+               v = ((logical_gpio >> (p - LOGIC_PORT)) & 1);    // Logical GPIO, e.g. NFC ports, etc.
             if ((1ULL << i) & input_invert)
                v = 1 - v;
             if (v != ((input_raw >> i) & 1))
