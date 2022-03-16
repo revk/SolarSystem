@@ -59,7 +59,12 @@ void gps_send_status(void)
       jo_litf(j, "lat", "%lf", gpslat);
       jo_litf(j, "lon", "%lf", gpslon);
    }
-   jo_int(j, "sats", gpsp + gpsl + gpsa);
+   if (gpsp)
+      jo_int(j, "GPS", gpsp);
+   if (gpsa)
+      jo_int(j, "Galileo", gpsa);
+   if (gpsl)
+      jo_int(j, "GLONASS", gpsl);
    alarm_event(gpsfixed ? "fix" : gpslocked ? "clock" : "lost", &j, iotgps);
    gpslast = uptime();
 }
@@ -68,7 +73,8 @@ static void nmea(char *data)
 {
    if (*data != '$' || data[1] != 'G' || !data[2] || !data[3] || !data[4] || !data[5])
       return;                   // Recommended Minimum Position Data
-   //ESP_LOGI(TAG, "<%s", data);  // Debug
+   if (iotgps)
+      ESP_LOGI(TAG, "<%s", data);       // Debug
    if (!gpsseen)
    {
       void send(const char *msg) {
@@ -117,9 +123,9 @@ static void nmea(char *data)
       {
          status = 1;
          if (now)
-            logical_gpio &= ~logical_GPSNoSats;    // sats
+            logical_gpio &= ~logical_GPSNoSats; // sats
          else
-            logical_gpio |= logical_GPSNoSats;   // No sats
+            logical_gpio |= logical_GPSNoSats;  // No sats
       }
    }
    if (!strncmp(data + 3, "RMC", 3) && n >= 13)
@@ -201,7 +207,7 @@ static void task(void *pvParameters)
          {
             ESP_LOGE(TAG, "GPS timeout");
             logical_gpio |= logical_GPSFault;   // Timeout
-            logical_gpio |= logical_GPSNoSats;    // Timeout
+            logical_gpio |= logical_GPSNoSats;  // Timeout
             if (gpslocked || gpsfixed)
             {
                gpsseen = 0;
