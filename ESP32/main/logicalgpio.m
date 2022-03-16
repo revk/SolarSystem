@@ -17,7 +17,7 @@
     l(GPSFault, 62)                 // GPS fault (no serial)
     l(MeshFault, 63)            // Lonely on mesh
 
-    l(GPSNoSats, -62)              // GPS No satsG
+    l(GPSNoSats, -62)              // GPS No sats
 
 // Note max 63 as byte as INV and SET
 // Note we do not use inverted for these, so could extend using -56 to -63 if needed

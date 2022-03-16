@@ -168,6 +168,9 @@ static void task(void *pvParameters)
          for (int i = 0; i < t; i++)
             if (*inputname[i])
                jo_bool(j, inputname[i], (input_stable >> i) & 1);
+	 jo_stringf(j,"logical","%X",logical_gpio); // TODO
+	 jo_stringf(j,"raw","%X",input_raw); // TODO
+	 jo_stringf(j,"logical_GPSNoSats","%X",logical_GPSNoSats); // TODO
          revk_state_clients("input", &j, debug | (iotstateinput << 1));
       }
       // Sleep

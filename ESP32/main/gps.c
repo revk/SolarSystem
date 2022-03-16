@@ -44,7 +44,7 @@ settings
 uint8_t gpslocked = 0;          // Do we have a current time lock
 uint8_t gpsfixed = 0;           // Do we have a location lock
 uint8_t gpstime = 0;            // Remote GPS time
-uint8_t gpsp = 0,
+uint8_t gpsp = 255,             // Counts of sats, 255 so we pick up change to 0 and do NoSats
     gpsl = 0,
     gpsa = 0;                   // Sats in view
 uint32_t gpslast = 0;           // Last status update
