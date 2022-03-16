@@ -355,6 +355,7 @@ datetime(online);
 ip(address);
 num(id);
 text(version, 0);               // S/w version
+text(build_suffix, 0);          // S/w build suffix
 text(build, 0);                 // S/w build
 num(chan);                      // WiFi channel
 text(bssid, 0);                 // WiFi SSID
