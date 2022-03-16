@@ -117,9 +117,9 @@ static void nmea(char *data)
       {
          status = 1;
          if (now)
-            logical_gpio &= ~logical_GPSWarn;    // sats
+            logical_gpio &= ~logical_GPSNoSats;    // sats
          else
-            logical_gpio |= logical_GPSWarn;   // No sats
+            logical_gpio |= logical_GPSNoSats;   // No sats
       }
    }
    if (!strncmp(data + 3, "RMC", 3) && n >= 13)
@@ -201,7 +201,7 @@ static void task(void *pvParameters)
          {
             ESP_LOGE(TAG, "GPS timeout");
             logical_gpio |= logical_GPSFault;   // Timeout
-            logical_gpio |= logical_GPSWarn;    // Timeout
+            logical_gpio |= logical_GPSNoSats;    // Timeout
             if (gpslocked || gpsfixed)
             {
                gpsseen = 0;
