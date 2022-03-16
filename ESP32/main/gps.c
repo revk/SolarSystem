@@ -74,7 +74,7 @@ static void nmea(char *data)
    if (*data != '$' || data[1] != 'G' || !data[2] || !data[3] || !data[4] || !data[5])
       return;                   // Recommended Minimum Position Data
    if (iotgps)
-      ESP_LOGI(TAG, "<%s", data);       // Debug
+      ESP_LOGE(TAG, "<%s", data);       // Debug
    if (!gpsseen)
    {
       void send(const char *msg) {
