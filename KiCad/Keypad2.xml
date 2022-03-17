@@ -2,15 +2,15 @@
 <export version="E">
   <design>
     <source>/Users/adrian/git/SolarSystem/KiCad/Keypad2.kicad_sch</source>
-    <date>Wednesday, 23 February 2022 at 18:19:40</date>
+    <date>Thursday, 17 March 2022 at 07:49:55</date>
     <tool>Eeschema (6.0.2-0)</tool>
-    <textvar name="DATE">2022-02-23</textvar>
+    <textvar name="DATE">2022-03-17</textvar>
     <sheet number="1" name="/" tstamps="/">
       <title_block>
         <title>Galaxy Keypad controller</title>
         <company>Adrian Kennard Andrews &amp; Arnold Ltd</company>
         <rev>5</rev>
-        <date>2022-02-23</date>
+        <date>2022-03-17</date>
         <source>Keypad2.kicad_sch</source>
         <comment number="1" value="@TheRealRevK"/>
         <comment number="2" value="www.me.uk"/>
@@ -63,6 +63,15 @@
       <property name="Sheetfile" value="Keypad2.kicad_sch"/>
       <sheetpath names="/" tstamps="/"/>
       <tstamps>00000000-0000-0000-0000-0000610fd80e</tstamps>
+    </comp>
+    <comp ref="C4">
+      <value>100nF</value>
+      <footprint>RevK:C_0603</footprint>
+      <libsource lib="Device" part="C" description="Unpolarized capacitor"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="Keypad2.kicad_sch"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>1b996752-63bd-4f2e-87ce-599821c5988a</tstamps>
     </comp>
     <comp ref="D1">
       <value>LED_RGBA</value>
@@ -144,7 +153,7 @@
       <tstamps>00000000-0000-0000-0000-000060fbba7f</tstamps>
     </comp>
     <comp ref="R4">
-      <value>10M 1% or 0R</value>
+      <value>100k 1% or 0R</value>
       <footprint>RevK:R_0603</footprint>
       <libsource lib="Device" part="R" description="Resistor"/>
       <property name="Sheetname" value=""/>
@@ -153,7 +162,7 @@
       <tstamps>0d35df78-0847-478b-9bf1-f88652133e2f</tstamps>
     </comp>
     <comp ref="R5">
-      <value>3M 1% or NF</value>
+      <value>30k 1% or NF</value>
       <footprint>RevK:R_0603</footprint>
       <libsource lib="Device" part="R" description="Resistor"/>
       <property name="Sheetname" value=""/>
@@ -243,6 +252,22 @@
         <pin num="3" name="Pin_3" type="power_in"/>
         <pin num="4" name="Pin_4" type="passive"/>
         <pin num="5" name="Pin_5" type="passive"/>
+      </pins>
+    </libpart>
+    <libpart lib="Device" part="C">
+      <description>Unpolarized capacitor</description>
+      <docs>~</docs>
+      <footprints>
+        <fp>C_*</fp>
+      </footprints>
+      <fields>
+        <field name="Reference">C</field>
+        <field name="Value">C</field>
+        <field name="Datasheet">~</field>
+      </fields>
+      <pins>
+        <pin num="1" name="" type="passive"/>
+        <pin num="2" name="" type="passive"/>
       </pins>
     </libpart>
     <libpart lib="Device" part="LED_ARGB">
@@ -419,6 +444,7 @@
   </libraries>
   <nets>
     <net code="1" name="+3V3">
+      <node ref="C4" pin="1" pintype="passive"/>
       <node ref="D1" pin="1" pinfunction="A" pintype="passive"/>
       <node ref="R4" pin="1" pintype="passive"/>
       <node ref="U1" pin="8" pinfunction="Vcc" pintype="power_in"/>
@@ -445,6 +471,7 @@
       <node ref="U2" pin="16" pinfunction="IO26" pintype="bidirectional"/>
     </net>
     <net code="6" name="GND">
+      <node ref="C4" pin="2" pintype="passive"/>
       <node ref="J1" pin="1" pinfunction="Pin_1" pintype="power_out"/>
       <node ref="R5" pin="1" pintype="passive"/>
       <node ref="U1" pin="5" pinfunction="GND" pintype="power_in"/>

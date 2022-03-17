@@ -3597,7 +3597,7 @@
     (property "Reference" "R12" (id 0) (at 240.03 45.085 90)
       (effects (font (size 1.27 1.27)) (justify right))
     )
-    (property "Value" "3M 1% or NF" (id 1) (at 241.935 43.18 0)
+    (property "Value" "30k 1% or NF" (id 1) (at 241.935 43.18 0)
       (effects (font (size 1.27 1.27)) (justify right))
     )
     (property "Footprint" "RevK:R_0603" (id 2) (at 241.808 43.18 90)
@@ -3890,7 +3890,7 @@
     (property "Reference" "R11" (id 0) (at 234.95 39.37 90)
       (effects (font (size 1.27 1.27)) (justify left))
     )
-    (property "Value" "10M 1% or 0R" (id 1) (at 236.855 42.545 90)
+    (property "Value" "100k 1% or 0R" (id 1) (at 236.855 42.545 90)
       (effects (font (size 1.27 1.27)) (justify left))
     )
     (property "Footprint" "RevK:R_0603" (id 2) (at 233.045 41.148 90)
@@ -4174,10 +4174,10 @@
       (reference "R10") (unit 1) (value "220R") (footprint "RevK:R_0603")
     )
     (path "/c1897ab9-a710-4f2b-b18b-f2f520d0a247"
-      (reference "R11") (unit 1) (value "10M 1% or 0R") (footprint "RevK:R_0603")
+      (reference "R11") (unit 1) (value "100k 1% or 0R") (footprint "RevK:R_0603")
     )
     (path "/4c9702ac-39af-41d5-9cb6-89cc85efc703"
-      (reference "R12") (unit 1) (value "3M 1% or NF") (footprint "RevK:R_0603")
+      (reference "R12") (unit 1) (value "30k 1% or NF") (footprint "RevK:R_0603")
     )
     (path "/5de151cb-70ef-4de6-8791-7554d8803ed7"
       (reference "U1") (unit 1) (value "ESP32-PICO-MINI-02") (footprint "RevK:ESP32-PICO-MINI-02")
