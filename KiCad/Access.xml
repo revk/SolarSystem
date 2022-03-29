@@ -2,7 +2,7 @@
 <export version="E">
   <design>
     <source>/Users/adrian/git/SolarSystem/KiCad/Access.kicad_sch</source>
-    <date>Sunday, 20 February 2022 at 16:44:44</date>
+    <date>Thursday, 17 March 2022 at 07:53:55</date>
     <tool>Eeschema (6.0.2-0)</tool>
     <textvar name="DATE">2022-02-18</textvar>
     <sheet number="1" name="/" tstamps="/">
@@ -595,7 +595,7 @@
       <tstamps>00000000-0000-0000-0000-0000609872b4</tstamps>
     </comp>
     <comp ref="R21">
-      <value>10M 1% or 0R</value>
+      <value>100k 1% or 0R</value>
       <footprint>RevK:R_0603</footprint>
       <libsource lib="Device" part="R" description="Resistor"/>
       <property name="Sheetname" value=""/>
@@ -604,7 +604,7 @@
       <tstamps>0a7f75d0-9f86-4caa-a0e4-44ff4b8f6861</tstamps>
     </comp>
     <comp ref="R22">
-      <value>10M 1% or 0R</value>
+      <value>100k 1% or 0R</value>
       <footprint>RevK:R_0603</footprint>
       <libsource lib="Device" part="R" description="Resistor"/>
       <property name="Sheetname" value=""/>
@@ -613,7 +613,7 @@
       <tstamps>0d353d81-a7d7-4ff0-89eb-60271d9c4a01</tstamps>
     </comp>
     <comp ref="R23">
-      <value>3M 1% or NF</value>
+      <value>30k 1% or NF</value>
       <footprint>RevK:R_0603</footprint>
       <libsource lib="Device" part="R" description="Resistor"/>
       <property name="Sheetname" value=""/>
@@ -622,7 +622,7 @@
       <tstamps>d571cde4-c062-4e90-8e0a-c6147d1b6cd4</tstamps>
     </comp>
     <comp ref="R24">
-      <value>1.8M 1% or NF</value>
+      <value>18k 1% or NF</value>
       <footprint>RevK:R_0603</footprint>
       <libsource lib="Device" part="R" description="Resistor"/>
       <property name="Sheetname" value=""/>

@@ -2,7 +2,7 @@
 <export version="E">
   <design>
     <source>/Users/adrian/git/SolarSystem/KiCad/Keypad.kicad_sch</source>
-    <date>Sunday, 20 February 2022 at 17:44:55</date>
+    <date>Thursday, 17 March 2022 at 07:53:14</date>
     <tool>Eeschema (6.0.2-0)</tool>
     <textvar name="DATE">2022-02-19</textvar>
     <sheet number="1" name="/" tstamps="/">
@@ -239,7 +239,7 @@
       <tstamps>00000000-0000-0000-0000-000060fbba7f</tstamps>
     </comp>
     <comp ref="R9">
-      <value>10M 1% or 0R</value>
+      <value>100k 1% or 0R</value>
       <footprint>RevK:R_0603</footprint>
       <libsource lib="Device" part="R" description="Resistor"/>
       <property name="Sheetname" value=""/>
@@ -248,7 +248,7 @@
       <tstamps>0d35df78-0847-478b-9bf1-f88652133e2f</tstamps>
     </comp>
     <comp ref="R10">
-      <value>3M 1% or NF</value>
+      <value>30k 1% or NF</value>
       <footprint>RevK:R_0603</footprint>
       <libsource lib="Device" part="R" description="Resistor"/>
       <property name="Sheetname" value=""/>

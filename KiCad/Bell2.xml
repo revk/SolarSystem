@@ -2,15 +2,15 @@
 <export version="E">
   <design>
     <source>/Users/adrian/git/SolarSystem/KiCad/Bell2.kicad_sch</source>
-    <date>Sunday, 06 March 2022 at 14:45:50</date>
+    <date>Thursday, 17 March 2022 at 07:51:56</date>
     <tool>Eeschema (6.0.2-0)</tool>
-    <textvar name="DATE">2022-03-06</textvar>
+    <textvar name="DATE">2022-03-10</textvar>
     <sheet number="1" name="/" tstamps="/">
       <title_block>
         <title>bell box control</title>
         <company>Adrian Kennard Andrews &amp; Arnold Ltd</company>
         <rev>2</rev>
-        <date>2022-03-06</date>
+        <date>2022-03-10</date>
         <source>Bell2.kicad_sch</source>
         <comment number="1" value="@TheRealRevK"/>
         <comment number="2" value="www.me.uk"/>
@@ -288,7 +288,7 @@
       <tstamps>00000000-0000-0000-0000-000060819c12</tstamps>
     </comp>
     <comp ref="R11">
-      <value>10M 1% or 0R</value>
+      <value>100k 1% or 0R</value>
       <footprint>RevK:R_0603</footprint>
       <libsource lib="Device" part="R" description="Resistor"/>
       <property name="Sheetname" value=""/>
@@ -297,7 +297,7 @@
       <tstamps>c1897ab9-a710-4f2b-b18b-f2f520d0a247</tstamps>
     </comp>
     <comp ref="R12">
-      <value>3M 1% or NF</value>
+      <value>30k 1% or NF</value>
       <footprint>RevK:R_0603</footprint>
       <libsource lib="Device" part="R" description="Resistor"/>
       <property name="Sheetname" value=""/>
