@@ -351,14 +351,14 @@ void keypad_ui(char key)
       {
          if ((area = (state_armed & areakeypad)))
             idle = "Armed";
+         else if (messages)
+            idle = "Msgs: Press ENT";
          else if ((area = (state_alarmed & areakeypad)))
             idle = "Check alarms";
          else if ((area = (state_tampered & areakeypad)))
             idle = "Check tampers";
          else if ((area = (state_faulted & areakeypad)))
             idle = "Check faults";
-         else if (messages)
-            idle = "Msgs: Press ENT";
       }
       if (!on && !off)
          shh = 0;
