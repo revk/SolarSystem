@@ -389,6 +389,7 @@ void keypad_ui(char key)
             pos = 0;
          displayprint("%s", message[pos]);
          bl = 1;
+         timeout = now + 30;
       }
       break;
    case PIN:
