@@ -17,7 +17,7 @@ endif
 if($?OOSALL) then
 	can --redirect --site='$USER_SITE' admin
 	if($status) exit 0
-	sql "$DB" 'UPDATE device SET outofservice="true",poke=NOW() WHERE outofservice="false" AND organisation="$USER_ORGANISATION" AND site="$USER_SITE"'
+	sql "$DB" 'UPDATE device SET outofservice="true",poke=NOW() WHERE outofservice="false" AND organisation="$USER_ORGANISATION" AND site="$USER_SITE" AND excludeall<>"true"'
         message --poke
 	redirect editdevice.cgi
 	exit 0
@@ -25,7 +25,7 @@ endif
 if($?ISALL) then
 	can --redirect --site='$USER_SITE' admin
 	if($status) exit 0
-	sql "$DB" 'UPDATE device SET outofservice="false",poke=NOW() WHERE outofservice="true" AND organisation="$USER_ORGANISATION" AND site="$USER_SITE"'
+	sql "$DB" 'UPDATE device SET outofservice="false",poke=NOW() WHERE outofservice="true" AND organisation="$USER_ORGANISATION" AND site="$USER_SITE" AND excludeall<>"true"'
         message --poke
 	redirect editdevice.cgi
 	exit 0
@@ -33,7 +33,7 @@ endif
 if($?UPGRADEALL) then
 	can --redirect --site='$USER_SITE' editdevice
 	if($status) exit 0
-	sql "$DB" 'UPDATE device SET upgrade=NOW() WHERE upgrade is NULL AND organisation="$USER_ORGANISATION" AND site="$USER_SITE"'
+	sql "$DB" 'UPDATE device SET upgrade=NOW() WHERE upgrade is NULL AND organisation="$USER_ORGANISATION" AND site="$USER_SITE" AND excludeall<>"true"'
         message --poke
 	redirect editdevice.cgi
 	exit 0
@@ -89,6 +89,7 @@ if($?devicename) then # save
 		setenv keypad `sql "$DB" 'SELECT IF(keypadtx="-","false","true") FROM pcb WHERE pcb=$pcb'`
 	endif
 	if(! $?outofservice) setenv outofservice false
+	if(! $?excludeall) setenv excludeall false
 	if(! $?nfcadmin) setenv nfcadmin false
 	if(! $?nfctrusted) setenv nfctrusted false
 	if(! $?door) setenv door false
@@ -106,7 +107,7 @@ if($?devicename) then # save
 	if(! $?iotkeypad) setenv iotkeypad false
 	if(! $?iotgps) setenv iotgps false
 	if(! $?ioteventfob) setenv ioteventfob false
-	setenv allow "devicename areaenter areastrong areadeadlock areaarm areadisarm areabell arealed areakeypad areakeyarm areakeystrong areakeydisarm nfc gps rgb nfcadmin door doorexitarm doorexitdisarm aid site iotstatedoor iotstateinput iotstateoutput iotstatefault iotstatewarning iotstatetamper ioteventfob iotkeypad iotgps doorunlock doorlock dooropen doorclose doorprop doorexit doordebounce keypadidle keypadpin keypad pcb dooriotunlock dooriotdead dooriotundead outofservice doorsilent doordebug doorcatch"
+	setenv allow "devicename areaenter areastrong areadeadlock areaarm areadisarm areabell arealed areakeypad areakeyarm areakeystrong areakeydisarm nfc gps rgb nfcadmin door doorexitarm doorexitdisarm aid site iotstatedoor iotstateinput iotstateoutput iotstatefault iotstatewarning iotstatetamper ioteventfob iotkeypad iotgps doorunlock doorlock dooropen doorclose doorprop doorexit doordebounce keypadidle keypadpin keypad pcb dooriotunlock dooriotdead dooriotundead excludeall outofservice doorsilent doordebug doorcatch"
 	if("$USER_ADMIN" == "true") setenv allow "$allow nfctrusted"
 	sqlwrite -qon "$DB" device $allow
 	sql "$DB" 'UPDATE device SET poke=NOW() WHERE site=$site'
@@ -147,6 +148,7 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <td><output name=pcbname></td>
 <td align=right><output name=flash type=mebi replace .00="" .0Mi="Mi">B</td>
 <td>
+<if excludeall=true>*</if>
 <if outofservice=true>Out of service</if>
 <if else>
 <if online door=true CANUNLOCK><form style="display:inline;" method=post><input type=hidden name=device><input type=submit name=UNLOCK value="Unlock"></form></if>
@@ -166,6 +168,7 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <sql table="device LEFT JOIN pcb USING (pcb)" KEY=device>
 <table>
 <tr><td><input type=checkbox id=outofservice name=outofservice value=true></td><td colspan=2><label for=outofservice>Out of service</label></td></tr>
+<tr><td><input type=checkbox id=excludeall name=excludeall value=true></td><td colspan=2><label for=excludeall>Do not include in "all" buttons</label></td></tr>
 <tr><td>PCB</td><td colspan=2><select name=pcb><sql table=pcb order=pcbname><option value="$pcb"><output name=pcbname></option></sql></select></td></tr>
 <tr><td>Name</td><td colspan=2><input name=devicename size=20 maxlength=20 autofocus></td></tr>
 <if keypad=true><tr><td>Keypad</td><td colspan=2><input name=keypadidle size=16 maxlength=16 autofocus></td></tr></if>
