@@ -203,8 +203,8 @@ void keypad_ui(char key)
    switch (state)
    {                            // Pre display
    case IDLE:
-      if (key == 'E' && messages)
-      {
+      if (messages && (key == 'E' || (!(areakeyarm && (areakeyarm & ~state_armed) && !(areakeystrong && (areakeystrong & ~state_armed))))))
+      {                         // Go direct to messages - if no A/B function, or if ENT pressed
          state = MESSAGE;
          pos = 0;
          break;
