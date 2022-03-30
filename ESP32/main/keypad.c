@@ -203,7 +203,7 @@ void keypad_ui(char key)
    switch (state)
    {                            // Pre display
    case IDLE:
-      if (messages)
+      if (key == 'E' && messages)
       {
          state = MESSAGE;
          pos = 0;
@@ -237,6 +237,11 @@ void keypad_ui(char key)
       }
       break;
    case MESSAGE:
+      if (key == 'X')
+      {                         // Leave messages
+         state = IDLE;
+         break;
+      }
       if (key == 'A')
       {                         // next
          if (pos >= messages - 1)
@@ -252,7 +257,7 @@ void keypad_ui(char key)
             pos = messages - 1;
       }
       if (pos >= messages)
-         state = IDLE;
+         state = IDLE;          // No more messages
       break;
    case PIN:
       {
@@ -352,6 +357,8 @@ void keypad_ui(char key)
             idle = "Check tampers";
          else if ((area = (state_faulted & areakeypad)))
             idle = "Check faults";
+         else if (messages)
+            idle = "Msgs: Press ENT";
       }
       if (!on && !off)
          shh = 0;
