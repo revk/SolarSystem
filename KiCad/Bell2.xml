@@ -2,15 +2,15 @@
 <export version="E">
   <design>
     <source>/Users/adrian/git/SolarSystem/KiCad/Bell2.kicad_sch</source>
-    <date>Thursday, 17 March 2022 at 07:51:56</date>
+    <date>Wednesday, 06 April 2022 at 10:25:29</date>
     <tool>Eeschema (6.0.2-0)</tool>
-    <textvar name="DATE">2022-03-10</textvar>
+    <textvar name="DATE">2022-04-06</textvar>
     <sheet number="1" name="/" tstamps="/">
       <title_block>
         <title>bell box control</title>
         <company>Adrian Kennard Andrews &amp; Arnold Ltd</company>
         <rev>2</rev>
-        <date>2022-03-10</date>
+        <date>2022-04-06</date>
         <source>Bell2.kicad_sch</source>
         <comment number="1" value="@TheRealRevK"/>
         <comment number="2" value="www.me.uk"/>
@@ -128,7 +128,7 @@
     </comp>
     <comp ref="D3">
       <value>D</value>
-      <footprint>Diode_SMD:D_1206_3216Metric_Pad1.42x1.75mm_HandSolder</footprint>
+      <footprint>RevK:D_1206</footprint>
       <libsource lib="Device" part="D" description="Diode"/>
       <property name="Sheetname" value=""/>
       <property name="Sheetfile" value="Bell2.kicad_sch"/>
