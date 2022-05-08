@@ -514,7 +514,7 @@ static void task(void *pvParameters)
       if (rxwait > now)
          continue;              // Awaiting reply
       if (rxwait)
-      {
+      { // Timeout on reply
          if (galaxybusfault++ > 10)
          {
             online = 0;
