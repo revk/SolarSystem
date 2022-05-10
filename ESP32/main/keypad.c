@@ -521,10 +521,11 @@ static void task(void *pvParameters)
          {
             online = 0;
             logical_gpio |= logical_KeyFault;
-         }
-         rxwait = now + 3000000LL;
+            rxwait = now + 3000000LL;
+         } else
+            rxwait = now + 250000LL;
       } else
-         rxwait = now + 250000LL;
+         rxwait = now + 100000LL;
       // Tx
       if (force || galaxybusfault || !online)
       {                         // Update all the shit
@@ -629,7 +630,7 @@ static void task(void *pvParameters)
          online = 0;
          logical_gpio |= logical_KeyFault;
          ESP_LOGI(TAG, "Tx fail %s", galaxybus_err_to_name(l));
-         usleep(500000);
+         usleep(100000);
          rxwait = 0;
       }
    }
