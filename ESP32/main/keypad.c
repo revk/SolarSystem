@@ -34,8 +34,8 @@ struct {
    uint8_t silent:1;            // Key click
    uint8_t backlight:1;         // Backlight
    uint8_t blink:1;             // Blink LED
-   uint8_t refresh:1;           // Display refresh
    // Send
+   uint8_t sendrefresh:1;       // Display refresh
    uint8_t senddisplay:1;       // Send display
    uint8_t sendcursor:1;        // Send cursor
    uint8_t sendkeyclick:1;      // Send quiet/silent
@@ -43,6 +43,7 @@ struct {
    uint8_t sendbacklight:1;     // Send backlight
    uint8_t sendblink:1;         // Send blink
    // Internal
+   uint8_t idle:1;              // Key idle
    uint8_t keyconfirm:1;        // Key confirmation
    uint8_t keybit:1;            // Key confirm toggle bit
    uint8_t displaybit:1;        // Display update toggle bit
@@ -174,7 +175,7 @@ void keypad_ui(char key)
       state = FAILMSG;
       pos = 0;
       timeout = now + delay;
-      ui.refresh = 1;
+      ui.sendrefresh = 1;
    }
    if (!key && now > timeout)
    {
@@ -458,7 +459,11 @@ static void task(void *pvParameters)
          if (ui.keyconfirm)
             return;             // Pending confirmation
          if (key == 0x7F)
+         {
+            ui.idle = 1;
             return;             // Idle
+         }
+         ui.idle = 0;
          ui.keyconfirm = 1;
          ui.keybit = !ui.keybit;        // Send confirmation
          if (debug)
@@ -534,7 +539,7 @@ static void task(void *pvParameters)
          ui.sendcursor = 1;
          ui.sendblink = 1;
          if (!online)
-            ui.refresh = 1;
+            ui.sendrefresh = 1;
          //ui.keyconfirm = 1;
          ui.sendbacklight = 1;
          ui.sendkeyclick = 1;
@@ -551,14 +556,14 @@ static void task(void *pvParameters)
          ui.keyconfirm = 0;
          buf[++p] = 0x0B;
          buf[++p] = ui.keybit ? 2 : 0;
-      } else if (ui.senddisplay || ui.sendcursor || ui.sendblink || ui.resenddisplay || ui.refresh)
+      } else if (ui.idle && (ui.senddisplay || ui.sendcursor || ui.sendblink || ui.resenddisplay || ui.sendrefresh))
       {                         // Text
          buf[++p] = 0x07;
          buf[++p] = 0x01 | (ui.blink ? 0x08 : 0x00) | (ui.displaybit ? 0x80 : 0);
          uint8_t *dis = ui.display;
          if (ui.wascursor)
             buf[++p] = 0x07;    // cursor off while we update
-         if (ui.refresh)
+         if (ui.sendrefresh)
             buf[++p] = 0x17;    // clear
          else
          {
@@ -587,9 +592,9 @@ static void task(void *pvParameters)
                buf[++p] = 0x10; // Underline
             ui.wascursor = (ui.cursor ? 1 : 0);
          }
-         if (ui.refresh)
+         if (ui.sendrefresh)
          {
-            ui.refresh = 0;
+            ui.sendrefresh = 0;
             ui.senddisplay = 1;
          } else
          {
