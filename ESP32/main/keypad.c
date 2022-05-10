@@ -34,6 +34,7 @@ struct {
    uint8_t silent:1;            // Key click
    uint8_t backlight:1;         // Backlight
    uint8_t blink:1;             // Blink LED
+   uint8_t refresh:1;           // Display refresh
    // Send
    uint8_t senddisplay:1;       // Send display
    uint8_t sendcursor:1;        // Send cursor
@@ -173,6 +174,7 @@ void keypad_ui(char key)
       state = FAILMSG;
       pos = 0;
       timeout = now + delay;
+      ui.refresh = 1;
    }
    if (!key && now > timeout)
    {
@@ -514,7 +516,7 @@ static void task(void *pvParameters)
       if (rxwait > now)
          continue;              // Awaiting reply
       if (rxwait)
-      { // Timeout on reply
+      {                         // Timeout on reply
          if (galaxybusfault++ > 10)
          {
             online = 0;
@@ -546,15 +548,16 @@ static void task(void *pvParameters)
          ui.keyconfirm = 0;
          buf[++p] = 0x0B;
          buf[++p] = ui.keybit ? 2 : 0;
-      } else if (ui.senddisplay || ui.sendcursor || ui.sendblink || ui.resenddisplay)
+      } else if (ui.senddisplay || ui.sendcursor || ui.sendblink || ui.resenddisplay || ui.refresh)
       {                         // Text
          buf[++p] = 0x07;
          buf[++p] = 0x01 | (ui.blink ? 0x08 : 0x00) | (ui.displaybit ? 0x80 : 0);
-         uint8_t len = 32;
          uint8_t *dis = ui.display;
          if (ui.wascursor)
             buf[++p] = 0x07;    // cursor off while we update
-         if (len)
+         if (ui.refresh)
+            buf[++p] = 0x17;    // clear
+         else
          {
             buf[++p] = 0x1F;    //  home
             int n;
@@ -565,13 +568,12 @@ static void task(void *pvParameters)
                   buf[++p] = 0x03;      // Cursor
                   buf[++p] = (n ? 0x40 : 0);
                }
-               if (n < len)
+               if (dis[n] >= ' ')
                   buf[++p] = dis[n];
                else
                   buf[++p] = ' ';
             }
-         } else
-            buf[++p] = 0x17;    // clear
+         }
          if ((ui.sendcursor && ui.cursor) || ui.wascursor)
          {                      // cursor
             buf[++p] = 0x03;
@@ -582,12 +584,19 @@ static void task(void *pvParameters)
                buf[++p] = 0x10; // Underline
             ui.wascursor = (ui.cursor ? 1 : 0);
          }
-         ui.displaybit = !ui.displaybit;
-         if (ui.senddisplay)
-            ui.resenddisplay = 1;       // always send twice
-         else
-            ui.sendcursor = ui.sendblink = ui.resenddisplay = 0;        // sent
-         ui.senddisplay = 0;
+         if (ui.refresh)
+         {
+            ui.refresh = 0;
+            ui.senddisplay = 1;
+         } else
+         {
+            ui.displaybit = !ui.displaybit;
+            if (ui.senddisplay)
+               ui.resenddisplay = 1;    // always send twice
+            else
+               ui.sendcursor = ui.sendblink = ui.resenddisplay = 0;     // sent
+            ui.senddisplay = 0;
+         }
       } else if (ui.sendkeyclick)
       {                         // Key keyclicks
          ui.sendkeyclick = 0;
