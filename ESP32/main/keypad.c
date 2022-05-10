@@ -532,6 +532,7 @@ static void task(void *pvParameters)
          ui.senddisplay = 1;
          ui.sendcursor = 1;
          ui.sendblink = 1;
+         ui.refresh = 1;
          //ui.keyconfirm = 1;
          ui.sendbacklight = 1;
          ui.sendkeyclick = 1;
