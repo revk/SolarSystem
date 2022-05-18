@@ -20,7 +20,7 @@ static const char TAG[] = "keypad";
   u8h(keypadaddress,10)	\
   u8(keypadtxpre,50)	\
   u8(keypadtxpost,50)	\
-  u8(keypadrxpre,50)	\
+  u8(keypadrxpre,100)	\
   u8(keypadrxpost,20)	\
   sl(keypadidle)	\
   sl(keypadpin)	\
@@ -181,6 +181,8 @@ void keypad_ui(char key)
       timeout = now + delay;
       ui.sendrefresh = 1;
    }
+   if (key == '!')
+      fail("Online", 2);
    if (!key && now > timeout)
    {
       timeout = 0;
@@ -527,7 +529,10 @@ static void task(void *pvParameters)
                   {
                      online = 1;
                      logical_gpio &= ~logical_KeyFault;
-                     ui.displaybit = 1;
+                     ui.displaybit = 0;
+                     ui.keybit = 0;
+                     ui.sendrefresh = 1;
+                     keypad_ui('!');
                   }
                } else if (rxbuf[1] == 0xF2)
                   force = 1;    // Error?
@@ -554,8 +559,6 @@ static void task(void *pvParameters)
          ui.senddisplay = 1;
          ui.sendcursor = 1;
          ui.sendblink = 1;
-         if (!online)
-            ui.sendrefresh = 1;
          ui.sendbacklight = 1;
          ui.sendkeyclick = 1;
          if (force || !online || !ui.on || !ui.off)
@@ -581,22 +584,19 @@ static void task(void *pvParameters)
             txbuf[++txp] = 0x07;        // cursor off while we update
          if (ui.sendrefresh)
             txbuf[++txp] = 0x17;        // clear
-         else
+         txbuf[++txp] = 0x1F;   //  home
+         int n;
+         for (n = 0; n < 32; n++)
          {
-            txbuf[++txp] = 0x1F;        //  home
-            int n;
-            for (n = 0; n < 32; n++)
+            if (!(n & 0xF))
             {
-               if (!(n & 0xF))
-               {
-                  txbuf[++txp] = 0x03;  // Cursor
-                  txbuf[++txp] = (n ? 0x40 : 0);
-               }
-               if (dis[n] >= ' ')
-                  txbuf[++txp] = dis[n];
-               else
-                  txbuf[++txp] = ' ';
+               txbuf[++txp] = 0x03;     // Cursor
+               txbuf[++txp] = (n ? 0x40 : 0);
             }
+            if (dis[n] >= ' ')
+               txbuf[++txp] = dis[n];
+            else
+               txbuf[++txp] = ' ';
          }
          if ((ui.sendcursor && ui.cursor) || ui.wascursor)
          {                      // cursor
@@ -608,16 +608,10 @@ static void task(void *pvParameters)
                txbuf[++txp] = 0x10;     // Underline
             ui.wascursor = (ui.cursor ? 1 : 0);
          }
-         if (ui.sendrefresh)
-         {
-            ui.sendrefresh = 0;
-            ui.senddisplay = 1;
-         } else
-         {
-            ui.displaybit = !ui.displaybit;
-            ui.sendcursor = ui.sendblink = 0;   // sent
-            ui.senddisplay = 0;
-         }
+         ui.displaybit = !ui.displaybit;
+         ui.sendcursor = ui.sendblink = 0;      // sent
+         ui.senddisplay = 0;
+         ui.sendrefresh = 0;
       } else if (ui.sendkeyclick)
       {                         // Key keyclicks
          ui.sendkeyclick = 0;
