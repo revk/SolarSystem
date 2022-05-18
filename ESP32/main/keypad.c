@@ -155,7 +155,12 @@ static void displayprint(const char *fmt, ...)
    free(out);
    s[0]++;
    s[1]++;
-   ui.senddisplay = 1;
+   static char last[32] = { };
+   if (memcmp(ui.display, last, 32))
+   {
+      ui.senddisplay = 1;
+      memcpy(last, ui.display, 32);
+   }
    if (ui.cursor)
       ui.sendcursor = 1;
    ui.cursor = 0;
@@ -532,7 +537,7 @@ static void task(void *pvParameters)
       } else
          rxwait = now + 100000LL;
       // Tx
-      if (force || galaxybusfault || !online)
+      if (force || galaxybusfault > 5 || !online)
       {                         // Update all the shit
          force = 0;
          ui.senddisplay = 1;
