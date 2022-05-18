@@ -485,7 +485,6 @@ static void task(void *pvParameters)
 
       if (galaxybus_ready(g))
       {                         // Receiving
-         ui.keyconfirming = 0;
          rxwait = 0;
          int p = galaxybus_rx(g, sizeof(buf), buf);
          if (p < 2)
@@ -499,6 +498,7 @@ static void task(void *pvParameters)
             usleep(100000);
          } else
          {
+            ui.keyconfirming = 0;
             galaxybusfault = 0;
             if (cmd == 0x00 && buf[1] == 0xFF && p >= 5)
             {                   // Set up response
