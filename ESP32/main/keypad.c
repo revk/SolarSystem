@@ -503,10 +503,12 @@ static void task(void *pvParameters)
          uint8_t rxbuf[10];
          int rxp = galaxybus_rx(g, sizeof(rxbuf), rxbuf);
 #if 0
-         if (!online || rxp < 2)
+         if (!online || rxp < 2 || rxbuf[1] == 0xF2)
          {
             jo_t j = jo_object_alloc();
             jo_int(j, "rxp", rxp);
+            if (txp > 0)
+               jo_base16(j, "tx", txbuf, txp);
             if (rxp > 0)
                jo_base16(j, "rx", rxbuf, rxp);
             if (rxp < 0)
@@ -516,7 +518,7 @@ static void task(void *pvParameters)
             revk_info_clients("debug", &j, -1);
          }
 #endif
-         if (rxp < 2)
+         if (rxp < 2 || rxbuf[1] == 0xF2)
          {
             ESP_LOGI(TAG, "Rx fail %s", galaxybus_err_to_name(rxp));
             if (galaxybusfault++ > 10)
@@ -529,43 +531,32 @@ static void task(void *pvParameters)
                galaxybus_tx(g, txp, txbuf);
                continue;
             }
-         } else
-         {
-            if (txp)
-            {
-               uint8_t cmd = txbuf[1];
-               galaxybusfault = 0;
-               if (cmd == 0x00 && rxbuf[1] == 0xFF && rxp >= 5)
-               {                // Handle response
-                  if (!online)
-                  {
-                     online = 1;
-                     logical_gpio &= ~logical_KeyFault;
-                     ui.displaybit = 1;
-                     ui.keybit = 0;
-                     ui.sendrefresh = 1;
-                     keypad_ui('!');
-                  }
-               } else if (rxbuf[1] == 0xF2)
-               {                // Error report
-                  if (online && txp)
-                  {
-                     galaxybus_tx(g, txp, txbuf);
-                     continue;
-                  }
-                  force = 1;
-               } else if (rxbuf[1] == 0xFE)
-               {                // Idle, no tamper, no key
-                  logical_gpio &= ~logical_KeyTamper;
-                  keystatus(0x7F);      // No key
-               } else if (cmd == 0x06 && rxbuf[1] == 0xF4 && rxp >= 3)
-               {                // Status
-                  if ((rxbuf[2] & 0x40))
-                     logical_gpio |= logical_KeyTamper;
-                  else
-                     logical_gpio &= ~logical_KeyTamper;
-                  keystatus(rxbuf[2]);
+         } else if (txp)
+         {                      // response to message
+            uint8_t cmd = txbuf[1];
+            galaxybusfault = 0;
+            if (cmd == 0x00 && rxbuf[1] == 0xFF && rxp >= 5)
+            {                   // Handle response
+               if (!online)
+               {
+                  online = 1;
+                  logical_gpio &= ~logical_KeyFault;
+                  ui.displaybit = 1;
+                  ui.keybit = 0;
+                  ui.sendrefresh = 1;
+                  keypad_ui('!');
                }
+            } else if (rxbuf[1] == 0xFE)
+            {                   // Idle, no tamper, no key
+               logical_gpio &= ~logical_KeyTamper;
+               keystatus(0x7F); // No key
+            } else if (cmd == 0x06 && rxbuf[1] == 0xF4 && rxp >= 3)
+            {                   // Status
+               if ((rxbuf[2] & 0x40))
+                  logical_gpio |= logical_KeyTamper;
+               else
+                  logical_gpio &= ~logical_KeyTamper;
+               keystatus(rxbuf[2]);
             }
          }
       }
