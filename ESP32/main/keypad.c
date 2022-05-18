@@ -25,8 +25,7 @@ static const char TAG[] = "keypad";
   sl(keypadidle)	\
   sl(keypadpin)	\
 
-struct
-{
+struct {
    uint8_t display[32];
    uint8_t cursor;              // low 4 bits is x, 0x10 is second row, 0x40 is underline, 0x80 is block
    uint8_t on:6;                // Sounder on
@@ -64,38 +63,35 @@ settings
 #undef sl
 static volatile uint8_t force;
 
-static void displayprint (const char *fmt, ...);
+static void displayprint(const char *fmt, ...);
 
-const char *
-keypad_command (const char *tag, jo_t j)
+const char *keypad_command(const char *tag, jo_t j)
 {
    char val[100];
    int len = 0;
-   if (j && (len = jo_strncpy (j, val, sizeof (val))) < 0)
+   if (j && (len = jo_strncpy(j, val, sizeof(val))) < 0)
       val[len = 0] = 0;
-   if (!strcmp (tag, "connect") || !strcmp (tag, "disconnect") || !strcmp (tag, "change"))
+   if (!strcmp(tag, "connect") || !strcmp(tag, "disconnect") || !strcmp(tag, "change"))
       force = 1;
    return NULL;
 }
 
-enum
-{ IDLE, FAILMSG, MESSAGE, PIN };
+enum { IDLE, FAILMSG, MESSAGE, PIN };
 
 int messages = 0;
 char **message = NULL;
 
-static void
-displayprint (const char *fmt, ...)
+static void displayprint(const char *fmt, ...)
 {
    static int8_t s[2] = { };    // scroll
    char *out = NULL;
    va_list ap;
-   va_start (ap, fmt);
-   vasprintf (&out, fmt, ap);
-   va_end (ap);
+   va_start(ap, fmt);
+   vasprintf(&out, fmt, ap);
+   va_end(ap);
    int8_t len[2] = { };
    char *v = out,
-      *l2;
+       *l2;
    while (*v && *v != '\n')
       v++;
    while (v > out && v[-1] == ' ')
@@ -129,18 +125,17 @@ displayprint (const char *fmt, ...)
       v++;                      // Line 2
       if (!*v)
       {                         // No second line - put date/time if set - print a space if not wanted or just one line with no \n
-         time_t now = time (0);
+         time_t now = time(0);
          if (now > 1000000000)
          {
             struct tm tm;
-            localtime_r (&now, &tm);
+            localtime_r(&now, &tm);
             char t[50];
-            snprintf (t, sizeof (t), "%04d-%02d-%02d %02d:%02d", tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour,
-                      tm.tm_min);
+            snprintf(t, sizeof(t), "%04d-%02d-%02d %02d:%02d", tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min);
             for (char *p = t; *p; p++)
                if (*p == '0')
                   *p = 'O';     // The crossed zeros look crap
-            memcpy (ui.display + x, t, 16);
+            memcpy(ui.display + x, t, 16);
             x += 16;
          }
       } else
@@ -156,40 +151,38 @@ displayprint (const char *fmt, ...)
    }
    while (x < 32)
       ui.display[x++] = ' ';
-   free (out);
+   free(out);
    s[0]++;
    s[1]++;
    static char last[32] = { };
-   if (memcmp (ui.display, last, 32))
+   if (memcmp(ui.display, last, 32))
    {
       ui.senddisplay = 1;
-      memcpy (last, ui.display, 32);
+      memcpy(last, ui.display, 32);
    }
    if (ui.cursor)
       ui.sendcursor = 1;
    ui.cursor = 0;
 }
 
-void
-keypad_ui (char key)
+void keypad_ui(char key)
 {                               // Update display for UI
    static uint32_t timeout = 0;
-   uint32_t now = uptime ();
+   uint32_t now = uptime();
    static uint8_t state = IDLE,
-      shh = 0;
+       shh = 0;
    static int8_t pos = 0;
    uint8_t bl = 0;              // Back light
    uint8_t bk = 0;              // Blink
-   void fail (const char *m, int delay)
-   {
-      displayprint ("%s", m);
+   void fail(const char *m, int delay) {
+      displayprint("%s", m);
       state = FAILMSG;
       pos = 0;
       timeout = now + delay;
       ui.sendrefresh = 1;
    }
    if (key == '!')
-      fail ("Online", 2);
+      fail("Online", 2);
    if (!key && now > timeout)
    {
       timeout = 0;
@@ -203,24 +196,23 @@ keypad_ui (char key)
    // ESC key to cancel arming regardless of state
    if (key == 'X' && areakeystrong && !(state_armed & areakeystrong) && (control_strong & areakeystrong))
    {                            // Strongarm cancel as not yet armed (very small window of time on this one)
-      jo_t e = jo_make (NULL);
-      jo_string (e, "reason", "Keypad ESC");
-      alarm_disarm (areakeystrong, &e);
-      fail ("Cancelling", 2);
+      jo_t e = jo_make(NULL);
+      jo_string(e, "reason", "Keypad ESC");
+      alarm_disarm(areakeystrong, &e);
+      fail("Cancelling", 2);
    } else if (key == 'X' && areakeyarm && !(state_armed & areakeyarm) && (control_arm & areakeyarm))
    {                            // Arm cancel as not yet armed
-      jo_t e = jo_make (NULL);
-      jo_string (e, "reason", "Keypad ESC");
-      alarm_disarm (areakeyarm, &e);
-      fail ("Cancelling", 2);
+      jo_t e = jo_make(NULL);
+      jo_string(e, "reason", "Keypad ESC");
+      alarm_disarm(areakeyarm, &e);
+      fail("Cancelling", 2);
    }
    if (key)
       shh = 1;
    switch (state)
    {                            // Pre display
    case IDLE:
-      if (messages
-          && (key == 'E' || (!(areakeyarm && (areakeyarm & ~state_armed) && !(areakeystrong && (areakeystrong & ~state_armed))))))
+      if (messages && (key == 'E' || (!(areakeyarm && (areakeyarm & ~state_armed) && !(areakeystrong && (areakeystrong & ~state_armed))))))
       {                         // Go direct to messages - if no A/B function, or if ENT pressed
          state = MESSAGE;
          pos = 0;
@@ -228,18 +220,18 @@ keypad_ui (char key)
       }
       if (key == 'A' && areakeyarm && (areakeyarm & ~state_armed))
       {                         // Arm set
-         jo_t e = jo_make (NULL);
-         jo_string (e, "reason", "Keypad A");
-         alarm_arm (areakeyarm, &e);
-         fail ("Arming", 2);
+         jo_t e = jo_make(NULL);
+         jo_string(e, "reason", "Keypad A");
+         alarm_arm(areakeyarm, &e);
+         fail("Arming", 2);
          break;
       }
       if (key == 'B' && areakeystrong && (areakeystrong & ~state_armed))
       {                         // Arm set
-         jo_t e = jo_make (NULL);
-         jo_string (e, "reason", "Keypad B");
-         alarm_strong (areakeystrong, &e);
-         fail ("Arming forced", 2);
+         jo_t e = jo_make(NULL);
+         jo_string(e, "reason", "Keypad B");
+         alarm_strong(areakeystrong, &e);
+         fail("Arming forced", 2);
          break;
       }
       break;
@@ -250,7 +242,6 @@ keypad_ui (char key)
       {
          if (key)
             timeout++;
-         bl = 1;
       }
       break;
    case MESSAGE:
@@ -281,7 +272,7 @@ keypad_ui (char key)
          static char code[17];
          if ((key >= '0' && key <= '9') || key == '*' || key == '#')
          {                      // PIN for full 12 keys
-            if (pos < sizeof (code) - 1)
+            if (pos < sizeof(code) - 1)
                code[pos++] = key;
             timeout = now + 10;
          } else if (key == 'B' && pos)
@@ -289,41 +280,41 @@ keypad_ui (char key)
          else if (key == 'E')
          {                      // ENT
             code[pos] = 0;      // Terminate input code
-            if (*keypadpin && areakeydisarm && !strcmp (code, keypadpin))
+            if (*keypadpin && areakeydisarm && !strcmp(code, keypadpin))
             {
-               jo_t e = jo_make (NULL);
-               jo_string (e, "reason", "Keypad PIN entry");
-               alarm_disarm (areakeydisarm, &e);
-               fail ("Disarming", 2);
-            } else if (!strcmp (code, "*"))
+               jo_t e = jo_make(NULL);
+               jo_string(e, "reason", "Keypad PIN entry");
+               alarm_disarm(areakeydisarm, &e);
+               fail("Disarming", 2);
+            } else if (!strcmp(code, "*"))
             {
                if (areakeyarm && (areakeyarm & ~state_armed))
                {                // Alternative arming, e.g. if in messages state
-                  jo_t e = jo_make (NULL);
-                  jo_string (e, "reason", "Keypad *");
-                  alarm_arm (areakeyarm, &e);
-                  fail ("Arming", 2);
+                  jo_t e = jo_make(NULL);
+                  jo_string(e, "reason", "Keypad *");
+                  alarm_arm(areakeyarm, &e);
+                  fail("Arming", 2);
                }
-            } else if (!strcmp (code, "#"))
+            } else if (!strcmp(code, "#"))
             {
                if (areakeystrong && (areakeystrong & ~state_armed))
                {                // Alternative arming, e.g. if in message state
-                  jo_t e = jo_make (NULL);
-                  jo_string (e, "reason", "Keypad #");
-                  alarm_strong (areakeystrong, &e);
-                  fail ("Arming forced", 2);
+                  jo_t e = jo_make(NULL);
+                  jo_string(e, "reason", "Keypad #");
+                  alarm_strong(areakeystrong, &e);
+                  fail("Arming forced", 2);
                }
             } else
             {
-               jo_t j = jo_object_alloc ();
-               jo_stringf (j, "reason", !*keypadpin ? "No PIN set" : !areakeydisarm ? "No PIN disarm" : "Wrong PIN");
+               jo_t j = jo_object_alloc();
+               jo_stringf(j, "reason", !*keypadpin ? "No PIN set" : !areakeydisarm ? "No PIN disarm" : "Wrong PIN");
                if (debug)
                {
-                  jo_string (j, "pin", keypadpin);
-                  jo_string (j, "entered", code);
+                  jo_string(j, "pin", keypadpin);
+                  jo_string(j, "entered", code);
                }
-               alarm_event ("wrongpin", &j, iotkeypad);
-               fail ("Wrong PIN!\n[Attempt logged]", 10);
+               alarm_event("wrongpin", &j, iotkeypad);
+               fail("** Wrong PIN! **\n[Attempt logged]", 10);
             }
          } else if (key == 'X')
          {
@@ -340,7 +331,7 @@ keypad_ui (char key)
       idle = revk_id;
    {                            // Beep, idle, and backlight
       uint8_t on = 0,
-         off = 0;
+          off = 0;
       if ((area = (state_fire & areakeypad)))
       {
          on = 2;
@@ -381,6 +372,12 @@ keypad_ui (char key)
          shh = 0;
       if (shh)
          on = off = 0;
+      if (state == FAILMSG)
+      {
+         bl = 1;
+         if (*ui.display == '*')
+            on = off = 3;
+      }
       if (ui.on != on || ui.off != off)
       {
          ui.sendsounder = 1;
@@ -394,8 +391,8 @@ keypad_ui (char key)
    {
    case IDLE:                  // Idle display
       {
-         char set[sizeof (area_t) * 8 + 1] = "";
-         displayprint ("%s %s\n", idle, area_list (set, area));
+         char set[sizeof(area_t) * 8 + 1] = "";
+         displayprint("%s %s\n", idle, area_list(set, area));
       }
       break;
    case FAILMSG:
@@ -404,14 +401,14 @@ keypad_ui (char key)
       {
          if (pos >= messages)
             pos = 0;
-         displayprint ("%s", message[pos]);
+         displayprint("%s", message[pos]);
          bl = 1;
          timeout = now + 30;
       }
       break;
    case PIN:
       {
-         displayprint ("PIN Entry:\n%.*s", pos, "****************");
+         displayprint("PIN Entry:\n%.*s", pos, "****************");
          if (pos < 16)
          {
             ui.cursor = pos + 0x10 + 0x40;      // Line 1 underscore at pos
@@ -435,40 +432,38 @@ keypad_ui (char key)
       timeout = now + 1;        // default
 }
 
-static void
-task (void *pvParameters)
+static void task(void *pvParameters)
 {
-   galaxybus_t *g = galaxybus_init (keypadtimer, port_mask (keypadtx), port_mask (keypadrx), port_mask (keypadde),
-                                    keypadre ? port_mask (keypadre) : -1,
-                                    keypadclk ? port_mask (keypadclk) : -1,
-                                    0);
+   galaxybus_t *g = galaxybus_init(keypadtimer, port_mask(keypadtx), port_mask(keypadrx), port_mask(keypadde),
+                                   keypadre ? port_mask(keypadre) : -1,
+                                   keypadclk ? port_mask(keypadclk) : -1,
+                                   0);
    if (!g)
    {
-      vTaskDelete (NULL);
+      vTaskDelete(NULL);
       return;
    }
-   esp_task_wdt_add (NULL);
+   esp_task_wdt_add(NULL);
    int64_t keypad_next = 0;
-   galaxybus_set_timing (g, keypadtxpre, keypadtxpost, keypadrxpre, keypadrxpost);
-   galaxybus_start (g);
+   galaxybus_set_timing(g, keypadtxpre, keypadtxpost, keypadrxpre, keypadrxpost);
+   galaxybus_start(g);
    while (1)
    {
-      esp_task_wdt_reset ();
-      usleep (1000);
-      int64_t now = esp_timer_get_time ();
+      esp_task_wdt_reset();
+      usleep(1000);
+      int64_t now = esp_timer_get_time();
       if (now > keypad_next)
       {
          keypad_next = now + 1000000ULL;
-         keypad_ui (0);
+         keypad_ui(0);
       }
 
       static uint8_t txbuf[100],
-        txp = 0;
+       txp = 0;
       static uint8_t online = 0;
       static unsigned int galaxybusfault = 0;
 
-      void keystatus (uint8_t key)
-      {
+      void keystatus(uint8_t key) {
          static const char keymap[] = "0123456789BAEX*#";
          if (ui.keyconfirm)
             return;             // Pending confirmation
@@ -482,41 +477,41 @@ task (void *pvParameters)
          ui.keybit = !ui.keybit;        // Send confirmation
          if (debug)
          {                      // Debug logging
-            jo_t j = jo_object_alloc ();
-            jo_stringf (j, "key", "%.1s", keymap + (key & 0x0F));
+            jo_t j = jo_object_alloc();
+            jo_stringf(j, "key", "%.1s", keymap + (key & 0x0F));
             if (key & 0x80)
-               jo_bool (j, "held", 1);
-            alarm_event ("key", &j, iotkeypad);
+               jo_bool(j, "held", 1);
+            alarm_event("key", &j, iotkeypad);
          }
-         keypad_ui (keymap[key & 0x0F]);        // Process key
+         keypad_ui(keymap[key & 0x0F]); // Process key
       }
 
       {                         // Wait - note we normally expect a TIMEOUT rather than having to wait, so this is deliberately long
          int try = 0;
-         while (!galaxybus_ready (g) && try++ < 1000)
-            usleep (1000);
+         while (!galaxybus_ready(g) && try++ < 1000)
+            usleep(1000);
       }
 
       {                         // Receiving (not ready returns 0 so processed as any other error)
          uint8_t rxbuf[10];
-         int rxp = galaxybus_rx (g, sizeof (rxbuf), rxbuf);
+         int rxp = galaxybus_rx(g, sizeof(rxbuf), rxbuf);
 #if 0
          if (!online || rxp < 2)
          {
-            jo_t j = jo_object_alloc ();
-            jo_int (j, "rxp", rxp);
+            jo_t j = jo_object_alloc();
+            jo_int(j, "rxp", rxp);
             if (rxp > 0)
-               jo_base16 (j, "rx", rxbuf, rxp);
+               jo_base16(j, "rx", rxbuf, rxp);
             if (rxp < 0)
-               jo_string (j, "err", galaxybus_err_to_name (rxp));
+               jo_string(j, "err", galaxybus_err_to_name(rxp));
             if (galaxybusfault)
-               jo_int (j, "count", galaxybusfault);
-            revk_info_clients ("debug", &j, -1);
+               jo_int(j, "count", galaxybusfault);
+            revk_info_clients("debug", &j, -1);
          }
 #endif
          if (rxp < 2)
          {
-            ESP_LOGI (TAG, "Rx fail %s", galaxybus_err_to_name (rxp));
+            ESP_LOGI(TAG, "Rx fail %s", galaxybus_err_to_name(rxp));
             if (galaxybusfault++ > 10)
             {
                online = 0;
@@ -524,7 +519,7 @@ task (void *pvParameters)
             }
             if (online && txp && rxp != -GALAXYBUS_ERR_MISSED)
             {                   // Resend last
-               galaxybus_tx (g, txp, txbuf);
+               galaxybus_tx(g, txp, txbuf);
                continue;
             }
          } else
@@ -539,32 +534,37 @@ task (void *pvParameters)
                   {
                      online = 1;
                      logical_gpio &= ~logical_KeyFault;
-                     ui.displaybit = 0;
+                     ui.displaybit = 1;
                      ui.keybit = 0;
                      ui.sendrefresh = 1;
-                     keypad_ui ('!');
+                     keypad_ui('!');
                   }
                } else if (rxbuf[1] == 0xF2)
                {                // Error report
                   if (online && txp)
-                     galaxybus_tx (g, txp, txbuf);
-                  else
-                     force = 1;
+                  {
+                     galaxybus_tx(g, txp, txbuf);
+                     continue;
+                  }
+                  force = 1;
                } else if (rxbuf[1] == 0xFE)
                {                // Idle, no tamper, no key
                   logical_gpio &= ~logical_KeyTamper;
-                  keystatus (0x7F);     // No key
+                  keystatus(0x7F);      // No key
                } else if (cmd == 0x06 && rxbuf[1] == 0xF4 && rxp >= 3)
                {                // Status
                   if ((rxbuf[2] & 0x40))
                      logical_gpio |= logical_KeyTamper;
                   else
                      logical_gpio &= ~logical_KeyTamper;
-                  keystatus (rxbuf[2]);
+                  keystatus(rxbuf[2]);
                }
             }
          }
       }
+
+      if (galaxybus_ready(g))
+         continue;              // Out of step
 
       // Tx
       if (force || !online)
@@ -581,7 +581,7 @@ task (void *pvParameters)
       txp = 0;                  // Make new mesage
       if (!online)
       {                         // Init
-         usleep (100000);
+         usleep(100000);
          txbuf[++txp] = 0x00;
          txbuf[++txp] = 0x0E;
       } else if (ui.keyconfirm)
@@ -649,20 +649,19 @@ task (void *pvParameters)
       // Send
       txbuf[0] = keypadaddress; // ID of display
       txp++;
-      int l = galaxybus_tx (g, txp, txbuf);
+      int l = galaxybus_tx(g, txp, txbuf);
       if (l < 0)
       {
          online = 0;
          logical_gpio |= logical_KeyFault;
-         ESP_LOGI (TAG, "Tx fail %s", galaxybus_err_to_name (l));
+         ESP_LOGI(TAG, "Tx fail %s", galaxybus_err_to_name(l));
       }
    }
 }
 
-void
-keypad_boot (void)
+void keypad_boot(void)
 {
-   revk_register ("keypad", 0, sizeof (keypadtx), &keypadtx, NULL, SETTING_SET | SETTING_SECRET);       // Parent
+   revk_register("keypad", 0, sizeof(keypadtx), &keypadtx, NULL, SETTING_SET | SETTING_SECRET); // Parent
 #define u8(n,d) revk_register(#n,0,sizeof(n),&n,#d,0);
 #define u8h(n,d) revk_register(#n,0,sizeof(n),&n,#d,SETTING_HEX);
 #define b(n) revk_register(#n,0,sizeof(n),&n,NULL,SETTING_BOOLEAN|SETTING_LIVE);
@@ -676,46 +675,44 @@ keypad_boot (void)
 #undef sl
    if (keypadtx && keypadrx && keypadde && keypadre)
    {
-      message = malloc (MAX_LEAF_DISPLAY * sizeof (*message));
-      memset (message, 0, MAX_LEAF_DISPLAY * sizeof (*message));
-      const char *err = port_check (port_mask (keypadtx), TAG, 0);
+      message = malloc(MAX_LEAF_DISPLAY * sizeof(*message));
+      memset(message, 0, MAX_LEAF_DISPLAY * sizeof(*message));
+      const char *err = port_check(port_mask(keypadtx), TAG, 0);
       if (!err && keypadtx != keypadrx)
-         err = port_check (port_mask (keypadrx), TAG, 1);
+         err = port_check(port_mask(keypadrx), TAG, 1);
       if (!err)
-         err = port_check (port_mask (keypadde), TAG, 0);
+         err = port_check(port_mask(keypadde), TAG, 0);
       if (!err && keypadde != keypadre)
-         err = port_check (port_mask (keypadre), TAG, 0);
+         err = port_check(port_mask(keypadre), TAG, 0);
       logical_gpio |= logical_KeyFault;
       // Done early because it beeps a lot!
-      revk_task (TAG, task, NULL);
+      revk_task(TAG, task, NULL);
    } else if (keypadtx || keypadrx || keypadde)
       logical_gpio |= logical_KeyFault;
 }
 
-void
-keypad_start (void)
+void keypad_start(void)
 {
 }
 
-void
-keypad_display_update (jo_t j)
+void keypad_display_update(jo_t j)
 {
    if (!message)
       return;
-   if (jo_next (j) != JO_ARRAY)
+   if (jo_next(j) != JO_ARRAY)
    {
       messages = 0;
       return;
    }
    int count = 0;
-   while (jo_next (j) == JO_STRING && count < MAX_LEAF_DISPLAY)
+   while (jo_next(j) == JO_STRING && count < MAX_LEAF_DISPLAY)
    {
-      int l = jo_strlen (j);
-      char *t = malloc (l + 1);
-      jo_strncpy (j, t, l + 1);
+      int l = jo_strlen(j);
+      char *t = malloc(l + 1);
+      jo_strncpy(j, t, l + 1);
       char *o = message[count];
       message[count] = t;
-      free (o);
+      free(o);
       count++;
    }
    messages = count;
@@ -723,7 +720,7 @@ keypad_display_update (jo_t j)
    {
       char *o = message[count];
       message[count] = NULL;
-      free (o);
+      free(o);
       count++;
    }
 }
