@@ -174,6 +174,7 @@ void keypad_ui(char key)
    static int8_t pos = 0;
    uint8_t bl = 0;              // Back light
    uint8_t bk = 0;              // Blink
+   uint8_t kc = 1;              // Key clicks
    void fail(const char *m, int delay) {
       displayprint("%s", m);
       state = FAILMSG;
@@ -374,6 +375,7 @@ void keypad_ui(char key)
          on = off = 0;
       if (state == FAILMSG)
       {
+         kc = 0;
          bl = 1;
          if (*ui.display == '*')
             on = off = 3;
@@ -427,6 +429,11 @@ void keypad_ui(char key)
    {
       ui.sendblink = 1;
       ui.blink = bk;
+   }
+   if (ui.silent != 1 - kc)
+   {
+      ui.silent = 1 - kc;
+      ui.sendkeyclick = 1;
    }
    if (!timeout)
       timeout = now + 1;        // default
