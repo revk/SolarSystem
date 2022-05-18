@@ -45,6 +45,7 @@ struct {
    // Internal
    uint8_t idle:1;              // Key idle
    uint8_t keyconfirm:1;        // Key confirmation
+   uint8_t keyconfirming:1;     // Key confirmation - waiting reply
    uint8_t keybit:1;            // Key confirm toggle bit
    uint8_t displaybit:1;        // Display update toggle bit
    uint8_t wascursor:1;         // Cursor was set
@@ -461,7 +462,7 @@ static void task(void *pvParameters)
 
       void keystatus(uint8_t key) {
          static const char keymap[] = "0123456789BAEX*#";
-         if (ui.keyconfirm)
+         if (ui.keyconfirm || ui.keyconfirming)
             return;             // Pending confirmation
          if (key == 0x7F)
          {
@@ -484,6 +485,7 @@ static void task(void *pvParameters)
 
       if (galaxybus_ready(g))
       {                         // Receiving
+         ui.keyconfirming = 0;
          rxwait = 0;
          int p = galaxybus_rx(g, sizeof(buf), buf);
          if (p < 2)
@@ -534,6 +536,8 @@ static void task(void *pvParameters)
             rxwait = now + 1000000LL;
          } else
             rxwait = now + 250000LL;
+         if (ui.keyconfirming)
+            ui.keyconfirm = 1;  // try again
       } else
          rxwait = now + 100000LL;
       // Tx
@@ -545,7 +549,6 @@ static void task(void *pvParameters)
          ui.sendblink = 1;
          if (!online)
             ui.sendrefresh = 1;
-         //ui.keyconfirm = 1;
          ui.sendbacklight = 1;
          ui.sendkeyclick = 1;
          if (force || !online || !ui.on || !ui.off)
@@ -559,6 +562,7 @@ static void task(void *pvParameters)
       } else if (ui.keyconfirm)
       {                         // key confirm
          ui.keyconfirm = 0;
+         ui.keyconfirming = 1;
          buf[++p] = 0x0B;
          buf[++p] = ui.keybit ? 2 : 0;
       } else if (ui.idle && (ui.senddisplay || ui.sendcursor || ui.sendblink || ui.resenddisplay || ui.sendrefresh))
