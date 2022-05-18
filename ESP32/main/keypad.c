@@ -182,7 +182,7 @@ void keypad_ui(char key)
       ui.sendrefresh = 1;
    }
    if (key == '!')
-      fail("Online", 2);
+      fail(revk_version, 2);
    if (!key && now > timeout)
    {
       timeout = 0;
