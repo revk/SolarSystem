@@ -531,7 +531,7 @@ static void task(void *pvParameters)
          {
             online = 0;
             logical_gpio |= logical_KeyFault;
-            rxwait = now + 3000000LL;
+            rxwait = now + 1000000LL;
          } else
             rxwait = now + 250000LL;
       } else
