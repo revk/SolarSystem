@@ -45,11 +45,9 @@ struct {
    // Internal
    uint8_t idle:1;              // Key idle
    uint8_t keyconfirm:1;        // Key confirmation
-   uint8_t keyconfirming:1;     // Key confirmation - waiting reply
    uint8_t keybit:1;            // Key confirm toggle bit
    uint8_t displaybit:1;        // Display update toggle bit
    uint8_t wascursor:1;         // Cursor was set
-   uint8_t resenddisplay;       // Resend display
 } ui;
 
 #define u8(n,d) uint8_t n;
@@ -453,16 +451,14 @@ static void task(void *pvParameters)
          keypad_ui(0);
       }
 
-      static uint8_t buf[100],
-       p = 0;
-      static uint8_t cmd = 0;
+      static uint8_t txbuf[100],
+       txp = 0;
       static uint8_t online = 0;
       static unsigned int galaxybusfault = 0;
-      static int64_t rxwait = 0;
 
       void keystatus(uint8_t key) {
          static const char keymap[] = "0123456789BAEX*#";
-         if (ui.keyconfirm || ui.keyconfirming)
+         if (ui.keyconfirm)
             return;             // Pending confirmation
          if (key == 0x7F)
          {
@@ -483,65 +479,76 @@ static void task(void *pvParameters)
          keypad_ui(keymap[key & 0x0F]); // Process key
       }
 
-      if (galaxybus_ready(g))
-      {                         // Receiving
-         rxwait = 0;
-         int p = galaxybus_rx(g, sizeof(buf), buf);
-         if (p < 2)
+      {                         // Wait - note we normally expect a TIMEOUT rather than having to wait, so this is deliberately long
+         int try = 0;
+         while (!galaxybus_ready(g) && try++ < 1000)
+            usleep(1000);
+      }
+
+      {                         // Receiving (not ready returns 0 so processed as any other error)
+         uint8_t rxbuf[10];
+         int rxp = galaxybus_rx(g, sizeof(rxbuf), rxbuf);
+#if 0
+         if (!online || rxp < 2)
          {
-            ESP_LOGI(TAG, "Rx fail %s", galaxybus_err_to_name(p));
+            jo_t j = jo_object_alloc();
+            jo_int(j, "rxp", rxp);
+            if (rxp > 0)
+               jo_base16(j, "rx", rxbuf, rxp);
+            if (rxp < 0)
+               jo_string(j, "err", galaxybus_err_to_name(rxp));
+            if (galaxybusfault)
+               jo_int(j, "count", galaxybusfault);
+            revk_info_clients("debug", &j, -1);
+         }
+#endif
+         if (rxp < 2)
+         {
+            ESP_LOGI(TAG, "Rx fail %s", galaxybus_err_to_name(rxp));
             if (galaxybusfault++ > 10)
             {
                online = 0;
                logical_gpio |= logical_KeyFault;
             }
-            usleep(100000);
+            if (online && txp && rxp != -GALAXYBUS_ERR_MISSED)
+            {                   // Resend last
+               galaxybus_tx(g, txp, txbuf);
+               continue;
+            }
          } else
          {
-            ui.keyconfirming = 0;
-            galaxybusfault = 0;
-            if (cmd == 0x00 && buf[1] == 0xFF && p >= 5)
-            {                   // Set up response
-               if (!online)
-               {
-                  online = 1;
-                  logical_gpio &= ~logical_KeyFault;
-                  ui.displaybit = 1;
-               }
-            } else if (buf[1] == 0xF2)
-               force = 1;       // Error?
-            else if (buf[1] == 0xFE)
-            {                   // Idle, no tamper, no key
-               logical_gpio &= ~logical_KeyTamper;
-               keystatus(0x7F); // No key
-            } else if (cmd == 0x06 && buf[1] == 0xF4 && p >= 3)
-            {                   // Status
-               if ((buf[2] & 0x40))
-                  logical_gpio |= logical_KeyTamper;
-               else
+            if (txp)
+            {
+               uint8_t cmd = txbuf[1];
+               galaxybusfault = 0;
+               if (cmd == 0x00 && rxbuf[1] == 0xFF && rxp >= 5)
+               {                // Handle response
+                  if (!online)
+                  {
+                     online = 1;
+                     logical_gpio &= ~logical_KeyFault;
+                     ui.displaybit = 1;
+                  }
+               } else if (rxbuf[1] == 0xF2)
+                  force = 1;    // Error?
+               else if (rxbuf[1] == 0xFE)
+               {                // Idle, no tamper, no key
                   logical_gpio &= ~logical_KeyTamper;
-               keystatus(buf[2]);
+                  keystatus(0x7F);      // No key
+               } else if (cmd == 0x06 && rxbuf[1] == 0xF4 && rxp >= 3)
+               {                // Status
+                  if ((rxbuf[2] & 0x40))
+                     logical_gpio |= logical_KeyTamper;
+                  else
+                     logical_gpio &= ~logical_KeyTamper;
+                  keystatus(rxbuf[2]);
+               }
             }
          }
       }
 
-      if (rxwait > now)
-         continue;              // Awaiting reply
-      if (rxwait)
-      {                         // Timeout on reply
-         if (galaxybusfault++ > 10)
-         {
-            online = 0;
-            logical_gpio |= logical_KeyFault;
-            rxwait = now + 1000000LL;
-         } else
-            rxwait = now + 250000LL;
-         if (ui.keyconfirming)
-            ui.keyconfirm = 1;  // try again
-      } else
-         rxwait = now + 100000LL;
       // Tx
-      if (force || galaxybusfault > 5 || !online)
+      if (force || !online)
       {                         // Update all the shit
          force = 0;
          ui.senddisplay = 1;
@@ -554,51 +561,51 @@ static void task(void *pvParameters)
          if (force || !online || !ui.on || !ui.off)
             ui.sendsounder = 1; // Resending this a lot is a bad idea if making an on/off sound as it breaks it
       }
-      p = 0;
+      txp = 0;                  // Make new mesage
       if (!online)
       {                         // Init
-         buf[++p] = 0x00;
-         buf[++p] = 0x0E;
+         usleep(100000);
+         txbuf[++txp] = 0x00;
+         txbuf[++txp] = 0x0E;
       } else if (ui.keyconfirm)
       {                         // key confirm
          ui.keyconfirm = 0;
-         ui.keyconfirming = 1;
-         buf[++p] = 0x0B;
-         buf[++p] = ui.keybit ? 2 : 0;
-      } else if (ui.idle && (ui.senddisplay || ui.sendcursor || ui.sendblink || ui.resenddisplay || ui.sendrefresh))
+         txbuf[++txp] = 0x0B;
+         txbuf[++txp] = ui.keybit ? 2 : 0;
+      } else if (ui.idle && (ui.senddisplay || ui.sendcursor || ui.sendblink || ui.sendrefresh))
       {                         // Text
-         buf[++p] = 0x07;
-         buf[++p] = 0x01 | (ui.blink ? 0x08 : 0x00) | (ui.displaybit ? 0x80 : 0);
+         txbuf[++txp] = 0x07;
+         txbuf[++txp] = 0x01 | (ui.blink ? 0x08 : 0x00) | (ui.displaybit ? 0x80 : 0);
          uint8_t *dis = ui.display;
          if (ui.wascursor)
-            buf[++p] = 0x07;    // cursor off while we update
+            txbuf[++txp] = 0x07;        // cursor off while we update
          if (ui.sendrefresh)
-            buf[++p] = 0x17;    // clear
+            txbuf[++txp] = 0x17;        // clear
          else
          {
-            buf[++p] = 0x1F;    //  home
+            txbuf[++txp] = 0x1F;        //  home
             int n;
             for (n = 0; n < 32; n++)
             {
                if (!(n & 0xF))
                {
-                  buf[++p] = 0x03;      // Cursor
-                  buf[++p] = (n ? 0x40 : 0);
+                  txbuf[++txp] = 0x03;  // Cursor
+                  txbuf[++txp] = (n ? 0x40 : 0);
                }
                if (dis[n] >= ' ')
-                  buf[++p] = dis[n];
+                  txbuf[++txp] = dis[n];
                else
-                  buf[++p] = ' ';
+                  txbuf[++txp] = ' ';
             }
          }
          if ((ui.sendcursor && ui.cursor) || ui.wascursor)
          {                      // cursor
-            buf[++p] = 0x03;
-            buf[++p] = ((ui.cursor & 0x10) ? 0x40 : 0) + (ui.cursor & 0x0F);
+            txbuf[++txp] = 0x03;
+            txbuf[++txp] = ((ui.cursor & 0x10) ? 0x40 : 0) + (ui.cursor & 0x0F);
             if (ui.cursor & 0x80)
-               buf[++p] = 0x06; // Solid block
+               txbuf[++txp] = 0x06;     // Solid block
             else if (ui.cursor & 0x40)
-               buf[++p] = 0x10; // Underline
+               txbuf[++txp] = 0x10;     // Underline
             ui.wascursor = (ui.cursor ? 1 : 0);
          }
          if (ui.sendrefresh)
@@ -608,44 +615,38 @@ static void task(void *pvParameters)
          } else
          {
             ui.displaybit = !ui.displaybit;
-            if (ui.senddisplay)
-               ui.resenddisplay = 1;    // always send twice
-            else
-               ui.sendcursor = ui.sendblink = ui.resenddisplay = 0;     // sent
+            ui.sendcursor = ui.sendblink = 0;   // sent
             ui.senddisplay = 0;
          }
       } else if (ui.sendkeyclick)
       {                         // Key keyclicks
          ui.sendkeyclick = 0;
-         buf[++p] = 0x19;
-         buf[++p] = (ui.silent ? 3 : ui.quiet ? 5 : 1);
-         buf[++p] = 0;
+         txbuf[++txp] = 0x19;
+         txbuf[++txp] = (ui.silent ? 3 : ui.quiet ? 5 : 1);
+         txbuf[++txp] = 0;
       } else if (ui.sendsounder)
       {                         // Beeper
          ui.sendsounder = 0;
-         buf[++p] = 0x0C;
-         buf[++p] = ((ui.on && ui.off) ? 3 : ui.on ? 1 : 0);
-         buf[++p] = ui.on;
-         buf[++p] = ui.off;
+         txbuf[++txp] = 0x0C;
+         txbuf[++txp] = ((ui.on && ui.off) ? 3 : ui.on ? 1 : 0);
+         txbuf[++txp] = ui.on;
+         txbuf[++txp] = ui.off;
       } else if (ui.sendbacklight)
       {                         // Light change
          ui.sendbacklight = 0;
-         buf[++p] = 0x0D;
-         buf[++p] = ui.backlight;
+         txbuf[++txp] = 0x0D;
+         txbuf[++txp] = ui.backlight;
       } else
-         buf[++p] = 0x06;       // Normal poll
+         txbuf[++txp] = 0x06;   // Normal poll
       // Send
-      buf[0] = keypadaddress;   // ID of display
-      p++;
-      cmd = buf[1];
-      int l = galaxybus_tx(g, p, buf);
+      txbuf[0] = keypadaddress; // ID of display
+      txp++;
+      int l = galaxybus_tx(g, txp, txbuf);
       if (l < 0)
       {
          online = 0;
          logical_gpio |= logical_KeyFault;
          ESP_LOGI(TAG, "Tx fail %s", galaxybus_err_to_name(l));
-         usleep(100000);
-         rxwait = 0;
       }
    }
 }
