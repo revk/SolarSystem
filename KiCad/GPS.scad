@@ -1,6 +1,6 @@
 // Generated case design for KiCad/GPS.kicad_pcb
 // By https://github.com/revk/PCBCase
-// Generated 2022-03-11 09:26:27
+// Generated 2022-05-19 13:04:51
 // title:	GPS reference
 // date:	${DATE}
 // rev:	5
@@ -336,7 +336,6 @@ module cutpb()
 		translate([-casewall,-casewall,-casebase])case();
 	}
 }
-
 
 module case()
 { // The basic case
