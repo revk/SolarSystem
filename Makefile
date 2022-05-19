@@ -25,7 +25,7 @@ ifndef KCONFIG_CONFIG
 KCONFIG_CONFIG=solarsystem.conf
 endif
 
-MODELS := Access2 Bell2 Bell2GPS GPS Access Bell
+MODELS := Access2 Bell2GPS GPS Access Bell
 
 all: solarsystem can message makeaid sscert login.conf SQLlib/sql xmlsql/xmlsql .git/hooks/pre-commit
 
