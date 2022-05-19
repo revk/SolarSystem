@@ -49,7 +49,7 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <tr><td>Name</td><td><input name=sitename size=40 autofocus></td></tr>
 <tr><td>WiFi SSID</td><td><input name=wifissid size=40 value="SolarSystem"></td></tr>
 <tr><td>WIFi pass</td><td><input name=wifipass size=40 value="security"></td></tr>
-<tr><td>WIFi chan</td><td><select name=wifichan><option value=0>Auto</option><FOR SPACE C="1 2 3 4 5 6 7 8 9 10 11"><option value=$C><output name=C></option></FOR></select>
+<tr><td>WIFi chan</td><td><select name=wifichan><option value=0>Auto</option><FOR SPACE C="1 2 3 4 5 6 7 8 9 10 11 12 13"><option value=$C><output name=C></option></FOR></select>
 <input name=wifibssid size=12 maxlength=12 placeholder="HEX BSSID">
 </td></tr>
 <if not nomesh=true><tr><td>Mesh</td><td>
