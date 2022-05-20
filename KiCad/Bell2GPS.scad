@@ -1,6 +1,6 @@
 // Generated case design for KiCad/Bell2.kicad_pcb
 // By https://github.com/revk/PCBCase
-// Generated 2022-05-19 13:00:52
+// Generated 2022-05-20 13:17:38
 // title:	Bell box controller
 // date:	${DATE}
 // rev:	2
