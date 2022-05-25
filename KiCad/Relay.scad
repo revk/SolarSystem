@@ -1,6 +1,6 @@
 // Generated case design for KiCad/Relay.kicad_pcb
 // By https://github.com/revk/PCBCase
-// Generated 2022-05-20 14:43:34
+// Generated 2022-05-25 15:08:15
 // title:	Bell box controller
 // date:	${DATE}
 // rev:	2
@@ -22,9 +22,9 @@ hullcap=1.000000;
 hulledge=1.000000;
 useredge=false;
 
-module pcb(h=pcbthickness,r=0){linear_extrude(height=h)offset(r=r)polygon(points=[[0.000000,30.000000],[0.000000,0.000000],[46.500000,0.000000],[46.500000,30.000000]],paths=[[0,1,2,3,0]]);}
+module pcb(h=pcbthickness,r=0){linear_extrude(height=h)offset(r=r)polygon(points=[[0.000000,30.000000],[0.000000,0.000000],[46.500000,0.000000],[46.500000,30.000000]],paths=[[0,1,2,3]]);}
 
-module outline(h=pcbthickness,r=0){linear_extrude(height=h)offset(r=r)polygon(points=[[0.000000,30.000000],[0.000000,0.000000],[46.500000,0.000000],[46.500000,30.000000]],paths=[[0,1,2,3,0]]);}
+module outline(h=pcbthickness,r=0){linear_extrude(height=h)offset(r=r)polygon(points=[[0.000000,30.000000],[0.000000,0.000000],[46.500000,0.000000],[46.500000,30.000000]],paths=[[0,1,2,3]]);}
 spacing=62.500000;
 pcbwidth=46.500000;
 pcblength=30.000000;
