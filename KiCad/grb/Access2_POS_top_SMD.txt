@@ -1,4 +1,4 @@
-### Module positions - created on 2022-03-17 07:51
+### Module positions - created on 2022-05-25 14:34
 ### Printed by pcb_positions plugin
 ## Unit = mm, Angle = deg.
 ## Pcb Height 26.600mm, Pcb Width 50.100mm [based on Edge bounding box]
@@ -8,10 +8,10 @@
 R16           1K                  R_0603                        138.2500   -79.0000   139.0750   -79.0000    180.0    top       SMD
 R10           100R                R_0603                        113.5000   -75.5000   113.5000   -74.6750    -90.0    top       SMD
 R18           2K                  R_0603                        146.2500   -90.1250   146.2500   -90.9500     90.0    top       SMD
-R24           18k 1% or NF        R_0603                        129.5000   -83.0000   129.5000   -83.8250     90.0    top       SMD
+R24           18k 1% or NF        R_0603                        129.5000   -90.7500   129.5000   -91.5750     90.0    top       SMD
 D5            RGB                 LED-RGB-1.6x1.6               148.0000   -90.1250   148.5000   -89.2500     90.0    top       SMD
 J1            USB-C               USC16-TR-Round                149.9350   -82.7500   0.0000     0.0000       90.0    top       SMD
-R23           30k 1% or NF        R_0603                        129.5000   -90.7500   129.5000   -91.5750     90.0    top       SMD
+R23           30k 1% or NF        R_0603                        129.5000   -83.0000   129.5000   -83.8250     90.0    top       SMD
 U5            LMR16006+FB         RegulatorBlockFB              122.5000   -79.4000   121.5500   -80.7500      0.0    top       SMD
 R2            4k7                 R_0603                        149.2500   -76.5000   149.2500   -75.6750    -90.0    top       SMD
 U1            ESP32-PICO-MINI-02  ESP32-PICO-MINI-02            112.0000   -85.7500   108.0000   -91.6500     90.0    top       SMD
