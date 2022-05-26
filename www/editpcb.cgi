@@ -109,7 +109,7 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <sql table=pcb key=pcb>
 <table>
 <tr><td>Name</td><td><input name=pcbname size=40 autofocus></td></tr>
-<if ledr=='-' ledg=='-' ledb=='-'><tr><td><select name=leda><include var=GPIONUMPICK></select></td><td>GPIO Controller LED (amber)</td></tr></if>
+<if ledr=='-' ledg=='-' ledb=='-' OR NOT leda=='-'><tr><td><select name=leda><include var=GPIONUMPICK></select></td><td>GPIO Controller LED (amber)</td></tr></if>
 <if leda=='-'><tr><td><select name=ledr><include var=GPIONUMPICK></select></td><td>GPIO Controller LED (red)</td></tr></if>
 <if leda=='-'><tr><td><select name=ledg><include var=GPIONUMPICK></select></td><td>GPIO Controller LED (green)</td></tr></if>
 <if leda=='-'><tr><td><select name=ledb><include var=GPIONUMPICK></select></td><td>GPIO Controller LED (blue)</td></tr></if>
