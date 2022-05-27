@@ -10,8 +10,9 @@ Git clone this `--recursive` to get all the submodules, and it should build with
 
 Modules work as a mesh over WiFi, and one connects to a back end cloud management system. PCB designs are included (KiCad) as are 3D printable case designs.
 
-Example of access control PCB.
-![Access](https://user-images.githubusercontent.com/996983/119697498-26a1e900-be48-11eb-8498-32d888ed1305.png)
+Example of access control PCB:
+
+![Access2](https://user-images.githubusercontent.com/996983/170712038-56918a26-39f6-4e2f-869d-362451e7e87e.png)
 
 ## Back end management cloud system
 
