@@ -1,17 +1,18 @@
-### Module positions - created on 2022-04-19 10:39
+### Module positions - created on 2022-05-31 14:48
 ### Printed by pcb_positions plugin
 ## Unit = mm, Angle = deg.
 ## Pcb Height 30.050mm, Pcb Width 46.550mm [based on Edge bounding box]
 ## Side : top
 ## Board Aux Origin: 0.000mm ,0.000mm
 # Ref         Val                 Package                       PosX       PosY       Pin1_PosX  Pin1_PosY    Rot     Side      Type
-J10           O8                  Molex_MiniSPOX_H2RA           121.3500   -34.2500   121.3500   -35.5000     90.0    top       THD
-J9            O7                  Molex_MiniSPOX_H2RA           121.3500   -41.7500   121.3500   -43.0000     90.0    top       THD
-J8            O6                  Molex_MiniSPOX_H2RA           121.3500   -49.2500   121.3500   -50.5000     90.0    top       THD
-J7            O5                  Molex_MiniSPOX_H2RA           121.3500   -56.7500   121.3500   -58.0000     90.0    top       THD
-J6            O4                  Molex_MiniSPOX_H2RA           88.1500    -56.7500   88.1500    -55.5000    -90.0    top       THD
-J5            O3                  Molex_MiniSPOX_H2RA           88.1500    -49.2500   88.1500    -48.0000    -90.0    top       THD
 J4            O2                  Molex_MiniSPOX_H2RA           88.1500    -41.7500   88.1500    -40.5000    -90.0    top       THD
 J3            O1                  Molex_MiniSPOX_H2RA           88.1500    -34.2500   88.1500    -33.0000    -90.0    top       THD
+J10           O8                  Molex_MiniSPOX_H2RA           121.3500   -34.2500   121.3500   -35.5000     90.0    top       THD
+J11           O1                  Molex_MiniSPOX_H2RA           116.2500   -37.1500   117.5000   -37.1500    180.0    top       THD
 J2            POWER               Molex_MiniSPOX_H2RA           93.5000    -53.8500   92.2500    -53.8500      0.0    top       THD
+J6            O4                  Molex_MiniSPOX_H2RA           88.1500    -56.7500   88.1500    -55.5000    -90.0    top       THD
+J7            O5                  Molex_MiniSPOX_H2RA           121.3500   -56.7500   121.3500   -58.0000     90.0    top       THD
+J9            O7                  Molex_MiniSPOX_H2RA           121.3500   -41.7500   121.3500   -43.0000     90.0    top       THD
+J8            O6                  Molex_MiniSPOX_H2RA           121.3500   -49.2500   121.3500   -50.5000     90.0    top       THD
+J5            O3                  Molex_MiniSPOX_H2RA           88.1500    -49.2500   88.1500    -48.0000    -90.0    top       THD
 ## End
