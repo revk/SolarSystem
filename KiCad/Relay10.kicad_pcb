@@ -6,9 +6,9 @@
 
   (paper "A4")
   (title_block
-    (title "Bell box controller")
+    (title "Output board (10)")
     (date "${DATE}")
-    (rev "2")
+    (rev "1")
     (company "Adrian Kennard, Andrews & Arnold Ltd")
   )
 
@@ -39,11 +39,11 @@
     (stackup
       (layer "F.SilkS" (type "Top Silk Screen"))
       (layer "F.Paste" (type "Top Solder Paste"))
-      (layer "F.Mask" (type "Top Solder Mask") (thickness 0.01))
+      (layer "F.Mask" (type "Top Solder Mask") (color "Purple") (thickness 0.01))
       (layer "F.Cu" (type "copper") (thickness 0.035))
       (layer "dielectric 1" (type "core") (thickness 1.51) (material "FR4") (epsilon_r 4.5) (loss_tangent 0.02))
       (layer "B.Cu" (type "copper") (thickness 0.035))
-      (layer "B.Mask" (type "Bottom Solder Mask") (thickness 0.01))
+      (layer "B.Mask" (type "Bottom Solder Mask") (color "Purple") (thickness 0.01))
       (layer "B.Paste" (type "Bottom Solder Paste"))
       (layer "B.SilkS" (type "Bottom Silk Screen"))
       (copper_finish "None")
@@ -2695,7 +2695,7 @@
   (gr_text "RGB: 22/21/19" (at 115 33) (layer "B.SilkS") (tstamp b6024dd2-1025-4010-a66d-b7eb0ea464c9)
     (effects (font (size 0.8 0.8) (thickness 0.1)) (justify mirror))
   )
-  (gr_text "Relay\nBoard" (at 114.75 55.25) (layer "B.SilkS") (tstamp ba869c2f-a2f1-4c87-a09d-12eb1e4ca2e9)
+  (gr_text "Output\nBoard" (at 114.75 55.25) (layer "B.SilkS") (tstamp ba869c2f-a2f1-4c87-a09d-12eb1e4ca2e9)
     (effects (font (size 1 1) (thickness 0.15)) (justify mirror))
   )
   (gr_text "14" (at 85 34.4) (layer "B.SilkS") (tstamp cee1a9dc-65be-46a6-a7e7-d53c639ac167)
@@ -2713,7 +2713,7 @@
   (gr_text "${DATE}" (at 119.25 34.75 90) (layer "F.SilkS") (tstamp 4edc6d88-ee59-49dc-a90d-d8bd660a9e15)
     (effects (font (size 0.75 0.75) (thickness 0.1)))
   )
-  (gr_text "Relay\nBoard" (at 109.25 45.25) (layer "F.SilkS") (tstamp a066ff33-6ad0-49a5-9be7-bcce2d0970c1)
+  (gr_text "Output\nBoard" (at 109.25 45.25) (layer "F.SilkS") (tstamp a066ff33-6ad0-49a5-9be7-bcce2d0970c1)
     (effects (font (size 1 1) (thickness 0.15)))
   )
   (dimension (type aligned) (layer "Dwgs.User") (tstamp 6bbd5193-ab9b-4808-ad00-812d682c17cb)

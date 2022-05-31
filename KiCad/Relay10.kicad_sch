@@ -5,9 +5,9 @@
   (paper "A4")
 
   (title_block
-    (title "bell box control")
+    (title "Output board (10)")
     (date "${DATE}")
-    (rev "2")
+    (rev "1")
     (company "Adrian Kennard Andrews & Arnold Ltd")
     (comment 1 "@TheRealRevK")
     (comment 2 "www.me.uk")
@@ -1560,7 +1560,6 @@
     )
   )
 
-
   (junction (at 111.76 60.96) (diameter 0) (color 0 0 0 0)
     (uuid 275aa44a-b61f-489f-9e2a-819a0fe0d1eb)
   )
@@ -1609,7 +1608,7 @@
   (no_connect (at 81.28 167.64) (uuid cf386a39-fc62-49dd-8ec5-e044f6bd67ce))
   (no_connect (at 66.04 73.66) (uuid e2fd4e7b-ad0d-4c03-b4ca-8e1e90823650))
   (no_connect (at 35.56 81.28) (uuid e37002c9-46c6-4305-b246-32e794bb4a6d))
-  (no_connect (at 63.5 17.78) (uuid e37002c9-46c6-4305-b246-32e794bb4a6d))
+  (no_connect (at 63.5 17.78) (uuid e37002c9-46c6-4305-b246-32e794bb4a6e))
 
   (wire (pts (xy 127 30.48) (xy 129.54 30.48))
     (stroke (width 0) (type default) (color 0 0 0 0))

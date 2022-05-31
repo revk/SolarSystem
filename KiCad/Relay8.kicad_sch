@@ -5,9 +5,9 @@
   (paper "A4")
 
   (title_block
-    (title "bell box control")
+    (title "Output board (8)")
     (date "${DATE}")
-    (rev "2")
+    (rev "1")
     (company "Adrian Kennard Andrews & Arnold Ltd")
     (comment 1 "@TheRealRevK")
     (comment 2 "www.me.uk")
