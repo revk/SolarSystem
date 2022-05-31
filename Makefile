@@ -25,7 +25,7 @@ ifndef KCONFIG_CONFIG
 KCONFIG_CONFIG=solarsystem.conf
 endif
 
-MODELS := Access2 Bell2 Bell2GPS GPS Access Bell Relay
+MODELS := Access2 Bell2 Bell2GPS GPS Access Bell Relay8 Relay10
 
 all: solarsystem can message makeaid sscert login.conf SQLlib/sql xmlsql/xmlsql .git/hooks/pre-commit
 
@@ -74,7 +74,9 @@ KiCad/Bell2.scad: KiCad/Bell2.kicad_pcb PCBCase/case Makefile
 	PCBCase/case -o $@ $< --base=2 --top=5.2 --edge2
 KiCad/Access2.scad: KiCad/Access2.kicad_pcb PCBCase/case Makefile
 	PCBCase/case -o $@ $< --base=2 --top=5.2
-KiCad/Relay.scad: KiCad/Relay.kicad_pcb PCBCase/case Makefile
+KiCad/Relay8.scad: KiCad/Relay8.kicad_pcb PCBCase/case Makefile
+	PCBCase/case -o $@ $< --base=1.4 --top=5.4
+KiCad/Relay10.scad: KiCad/Relay10.kicad_pcb PCBCase/case Makefile
 	PCBCase/case -o $@ $< --base=1.4 --top=5.4
 xmlsql/xmlsql: xmlsql/xmlsql.c
 	make -C xmlsql
