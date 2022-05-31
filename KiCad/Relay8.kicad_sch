@@ -3064,7 +3064,7 @@
     (property "Reference" "J11" (id 0) (at 245.872 135.0553 0)
       (effects (font (size 1.27 1.27)) (justify left))
     )
-    (property "Value" "O1" (id 1) (at 245.872 137.5922 0)
+    (property "Value" "I1" (id 1) (at 245.872 137.5922 0)
       (effects (font (size 1.27 1.27)) (justify left))
     )
     (property "Footprint" "RevK:Molex_MiniSPOX_H2RA" (id 2) (at 243.84 134.62 0)
@@ -3864,7 +3864,7 @@
       (reference "J10") (unit 1) (value "O8") (footprint "RevK:Molex_MiniSPOX_H2RA")
     )
     (path "/515530bd-0566-4c2d-8cd0-a23d5fcc09ed"
-      (reference "J11") (unit 1) (value "O1") (footprint "RevK:Molex_MiniSPOX_H2RA")
+      (reference "J11") (unit 1) (value "I1") (footprint "RevK:Molex_MiniSPOX_H2RA")
     )
     (path "/00000000-0000-0000-0000-0000610fe01a"
       (reference "L1") (unit 1) (value "6.8uH") (footprint "RevK:Hidden")

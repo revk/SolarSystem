@@ -351,7 +351,7 @@
     "pinned_symbol_libs": []
   },
   "meta": {
-    "filename": "Relay.kicad_pro",
+    "filename": "Relay10.kicad_pro",
     "version": 1
   },
   "net_settings": {
@@ -471,6 +471,6 @@
     ]
   ],
   "text_variables": {
-    "DATE": "2022-05-29"
+    "DATE": "2022-05-31"
   }
 }
