@@ -423,7 +423,7 @@ static const char *settings(SQL * sqlp, SQL * sqlkeyp, SQL_RES * res, slot_t id)
       sql_free_result(p);
       int i = 0,
           o = 0;
-      if (isdoor && version <= 10577)
+      if (isdoor)
          i = o = 4;             // Skip fixed controls - TODO remove when obsolete
       j_t input = j_store_array(j, "input");
       j_t output = j_store_array(j, "output");
@@ -520,8 +520,7 @@ static void addset(j_t j, const char *tag, const char *val, char always)
    if (!val)
       val = "";
    char v[65],                  // Allow for big sets, and certainly max area
-   *p = v,
-       *e = v + sizeof(v) - 1;
+   *p = v, *e = v + sizeof(v) - 1;
    while (*val && p < e)
    {
       if (*val != ',')

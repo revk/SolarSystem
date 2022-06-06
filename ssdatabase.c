@@ -41,6 +41,7 @@ void sstypes(const char *fn)
    void pick(const char *n, const char *v) {
       fprintf(f, "<option value=\"%s\">%s</option>", n, v);
    }
+   // TODO I/O FUNC radio and output
    start("GPIOTYPELIST");
 #define i(g,t) list(#g);
 #define o(g,t) list(#g);
