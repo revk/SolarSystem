@@ -41,7 +41,29 @@ void sstypes(const char *fn)
    void pick(const char *n, const char *v) {
       fprintf(f, "<option value=\"%s\">%s</option>", n, v);
    }
-   // TODO I/O FUNC radio and output
+   void check(const char *p, const char *n, const char *v) {
+      fprintf(f, "<input type=checkbox name=\"func\" value=\"%s\" id=\"%s%s\"><label for=\"%s%s\">%s</label>&nbsp;", n, p, n, p, n, v);
+   }
+   start("GPIOFUNCPICKI");
+   pick("-", "No input func");
+#define fi(g,t) pick(#g,#t);
+#include "types.m"
+   start("GPIOFUNCPICKO");
+   pick("-", "No output func");
+#define fo(g,t) pick(#g,#t);
+#include "types.m"
+   start("GPIOFUNCOUTI");
+#define fi(g,t) out(#g,#t);
+#include "types.m"
+   start("GPIOFUNCOUTO");
+#define fo(g,t) out(#g,#t);
+#include "types.m"
+   start("GPIOFUNCSETI");
+#define fi(g,t) check("I",#g,#t);
+#include "types.m"
+   start("GPIOFUNCSETO");
+#define fo(g,t) check("O",#g,#t);
+#include "types.m"
    start("GPIOTYPELIST");
 #define i(g,t) list(#g);
 #define o(g,t) list(#g);
