@@ -248,14 +248,6 @@ const char *upgrade(SQL_RES * res, slot_t id)
 
 static const char *settings(SQL * sqlp, SQL * sqlkeyp, SQL_RES * res, slot_t id)
 {                               // Security and settings
-   int version = 0;             // major and minor(4 digit minor)
-   {
-      const char *v = sql_colz(res, "version");
-      const char *f = strchr(v, '.');
-      version = atoi(v) * 10000;
-      if (f)
-         version += atoi(f + 1);
-   }
    j_t j = j_create();
    j_store_string(j, "nodename", sql_colz(res, "devicename"));
    char outofservice = (*sql_colz(res, "outofservice") == 't');
