@@ -72,6 +72,10 @@
 #define gpiotype(n)             // GPIO assignment field
 #endif
 
+#ifndef gpiofunc
+#define gpiofunc(n)             // GPIO function codes
+#endif
+
 #ifndef bool
 #define bool(n)                 // Boolean field
 #endif
@@ -341,7 +345,8 @@ text(dooriotunlock, 64);        // IoT on unlock
 
 join(device, gpio);
 index(device);
-gpiotype(type);                 // Pin Usage (in/out/power/exit/etc)
+gpiotype(type);                 // Pin Usage (in/out/power)
+gpiofunc(func);			// Pin Function codes (exit/lock/etc)
 bool (invert);                  // Invert normal polarity for pin
 text(name, 16);                 // Port name, default to pin name
 num(hold);                      // Port hold time
@@ -393,6 +398,7 @@ gpio(pin);
 unique(pcb, gpio);
 gpiopcb(io);
 gpiotype(inittype);
+gpiofunc(initfunc);
 text(initname, 16);             // Default port pin name
 num(inithold);                  // Default port hold time
 num(initpulse);                 // Default port pulse time
@@ -430,6 +436,7 @@ text(data, 0);
 #undef gpionfc
 #undef gpiopcb
 #undef gpiotype
+#undef gpiofunc
 #undef bool
 #undef areas
 #undef area
