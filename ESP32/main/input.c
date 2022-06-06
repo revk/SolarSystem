@@ -13,6 +13,8 @@ static const char TAG[] = "input";
 #define	port_mask(p) ((p)&63)
 static uint8_t input[MAXINPUT];
 static uint8_t inputhold[MAXINPUT];
+static uint8_t inputfunc[MAXINPUT];     // Input functions
+static uint8_t inputfuncs;      // Combined input funcs
 #define i(t,x,c) area_t input##x[MAXINPUT];
 #define c(t,x) area_t input##x[MAXINPUT];
 #include "states.m"
@@ -62,6 +64,29 @@ int input_get(int p)
    p--;
    if (input_raw & (1ULL << p))
       return 1;
+   return 0;
+}
+
+int input_func_active(uint8_t f)
+{                               // Does a function exist at all (expected to be one bit set)
+   if (inputfuncs & f)
+      return 1;
+   return 0;
+}
+
+int input_func_all(uint8_t f)
+{                               // Are all inputs for a function set (expected to be one bit set)
+   for (int p = 0; p < MAXINPUT; p++)
+      if ((inputfunc[p] & f) && !input_get(p))
+         return 0;
+   return 1;
+}
+
+int input_func_any(uint8_t f)
+{                               // Are any inputs for a function set (expected to be one bit set)
+   for (int p = 0; p < MAXINPUT; p++)
+      if ((inputfunc[p] & f) && input_get(p))
+         return 1;
    return 0;
 }
 
@@ -187,6 +212,9 @@ void input_boot(void)
 #define u8(n,v) revk_register(#n,0,sizeof(n),&n,#v,0);
    settings
 #undef u8
+       inputfuncs = 0;
+   for (int i = 0; i < MAXINPUT; i++)
+      inputfuncs |= inputfunc[i];
    {                            // GPIO
     gpio_config_t c = { mode: GPIO_MODE_INPUT, pull_up_en:GPIO_PULLUP_ENABLE };
       int i,

@@ -14,6 +14,8 @@ static uint8_t output[MAXOUTPUT];
 static uint8_t power[MAXOUTPUT];        /* fixed outputs */
 static char *outputname[MAXOUTPUT];
 static uint16_t outputpulse[MAXOUTPUT]; // Timeout in s/10
+static uint8_t outputfunc[MAXOUTPUT];   // Output function codes
+static uint8_t outputfuncs;     // Combined outputs of all
 
 #define i(t,x,c) area_t output##x[MAXOUTPUT];
 #define s(t,x,c) area_t output##x[MAXOUTPUT];
@@ -58,6 +60,20 @@ void output_set(int p, int v)
    else
       output_state &= ~(1ULL << p);
    output_write(p);
+}
+
+int output_func_active(uint8_t f)
+{                               // Does a function exist at all (expected to be one bit set)
+   if (outputfuncs & f)
+      return 1;
+   return 0;
+}
+
+void output_func_set(uint8_t f, int v)
+{                               // Set all outputs for a function set (expected to be one bit set)
+   for (int p = 0; p < MAXOUTPUT; p++)
+      if (outputfunc[p] & f)
+         output_set(p, v);
 }
 
 int output_get(int p)
@@ -203,6 +219,9 @@ void output_boot(void)
 #define i(t,x,c) revk_register("output"#x, MAXOUTPUT, sizeof(*output##x), &output##x, AREAS, SETTING_BITFIELD|SETTING_LIVE);
 #define s(t,x,c) revk_register("output"#x, MAXOUTPUT, sizeof(*output##x), &output##x, AREAS, SETTING_BITFIELD|SETTING_LIVE);
 #include "states.m"
+   outputfuncs = 0;
+   for (int i = 0; i < MAXOUTPUT; i++)
+      outputfuncs |= outputfunc[i];
    {                            // GPIO
     gpio_config_t c = { mode:GPIO_MODE_OUTPUT };
       int i,
