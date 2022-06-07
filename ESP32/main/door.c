@@ -686,7 +686,7 @@ static void task(void *pvParameters)
                         lock[l].state = ((i == o || !input_active(IUNLOCK + l)) ? o ? LOCK_UNLOCKED : LOCK_LOCKED : o ? LOCK_UNLOCKFAIL : LOCK_LOCKFAIL);
                      }
                   } else if (lock[l].i != i)    // Input state change
-                     lock[l].state = ((i == o) ? i ? LOCK_UNLOCKED : LOCK_LOCKED : i ? LOCK_FORCED : iopen ? LOCK_FAULT : LOCK_LOCKED);
+                     lock[l].state = ((i == o) ? i ? LOCK_UNLOCKED : LOCK_LOCKED : i ? LOCK_FORCED : LOCK_FAULT);
                }
                lock[l].o = o;
                lock[l].i = i;
@@ -698,6 +698,7 @@ static void task(void *pvParameters)
                      jo_int(j, "timeout", (lock[l].timeout - now) / 1000);
                   revk_state_clients(l ? "deadlock" : "lock", &j, debug | (iotstatedoor << 1));
                }
+	       // TODO we need to handle cases like EL56X where lock does not disengage until door is actually opened, and shows engaged when closed
             }
          }
          static int64_t doortimeout = 0;
