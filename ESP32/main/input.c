@@ -205,7 +205,9 @@ void input_boot(void)
    revk_register("input", MAXINPUT, sizeof(*input), &input, BITFIELDS, SETTING_BITFIELD | SETTING_SET | SETTING_SECRET);
    revk_register("inputgpio", MAXINPUT, sizeof(*input), &input, BITFIELDS, SETTING_BITFIELD | SETTING_SET);
    revk_register("inputhold", MAXINPUT, sizeof(*inputhold), &inputhold, NULL, SETTING_LIVE);
+   revk_register("inputfunc", MAXINPUT, sizeof(*inputfunc), &inputfunc, INPUT_FUNCS, SETTING_LIVE);
    revk_register("inputname", MAXINPUT, 0, &inputname, NULL, SETTING_LIVE);
+   revk_register("inputfunc", MAXINPUT, sizeof(*inputfunc), &inputname, NULL, SETTING_LIVE);
 #define i(t,x,c) revk_register("input"#x, MAXINPUT, sizeof(*input##x), &input##x, AREAS, SETTING_BITFIELD|SETTING_LIVE);
 #define c(t,x) revk_register("input"#x, MAXINPUT, sizeof(*input##x), &input##x, AREAS, SETTING_BITFIELD|SETTING_LIVE);
 #include "states.m"
