@@ -41,7 +41,6 @@ uint8_t afile[256];             // Access file saved
   u32(doorpoll,100); \
   u32(doordebounce,200); \
   b(doordebug); \
-  b(doorsilent); \
   b(doorexitarm); \
   b(doorexitdisarm); \
   b(doorcatch); \
@@ -800,7 +799,7 @@ static void task(void *pvParameters)
             if (doorstate == DOOR_UNLOCKED && *dooriotunlock)
                revk_mqtt_send_str_clients(dooriotunlock, 0, 2);
             if (doorauto >= 2)
-               output_set(OBEEP, doorstate == DOOR_UNLOCKED && !doorsilent ? 1 : 0);
+               output_set(OBEEP, doorstate == DOOR_UNLOCKED ? 1 : 0);
          }
          static uint64_t exit = 0;      // Main exit button
          if (input_get(IEXIT1))

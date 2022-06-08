@@ -291,7 +291,6 @@ bool (nfctrusted);              // Trusted device for fob provisioning
 bool (door);                    // This is a door
 bool (doorexitarm);             // Exit button hold arm
 bool (doorexitdisarm);          // Exit button disarm
-bool (doorsilent);              // Silent (no beep output)
 bool (doordebug);               // Lock state debug
 bool (doorcatch);               // Main lock catch logic (re-engage on opening)
 bool (keypad);                  // Keypad
