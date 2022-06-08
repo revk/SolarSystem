@@ -296,23 +296,23 @@ static const char *settings(SQL * sqlp, SQL * sqlkeyp, SQL_RES * res, slot_t id)
          j_store_boolean(door, "silent", 1);
       if (*sql_colz(res, "doorcatch") == 't')
          j_store_boolean(door, "catch", 1);
-      int v;
+      int v;                    // We don't send 0, so using default, but -ve means we send explicit 0
       if ((v = atoi(sql_colz(res, "doorunlock"))))
-         j_store_int(door, "unlock", v);
+         j_store_int(door, "unlock", v < 0 ? 0 : v);
       if ((v = atoi(sql_colz(res, "doorlock"))))
-         j_store_int(door, "lock", v);
+         j_store_int(door, "lock", v < 0 ? 0 : v);
       if ((v = atoi(sql_colz(res, "dooropen"))))
-         j_store_int(door, "open", v);
+         j_store_int(door, "open", v < 0 ? 0 : v);
       if ((v = atoi(sql_colz(res, "doorclose"))))
-         j_store_int(door, "close", v);
+         j_store_int(door, "close", v < 0 ? 0 : v);
       if ((v = atoi(sql_colz(res, "doorprop"))))
-         j_store_int(door, "prop", v);
+         j_store_int(door, "prop", v < 0 ? 0 : v);
       if ((v = atoi(sql_colz(res, "doorexit"))))
-         j_store_int(door, "exit", v);
+         j_store_int(door, "exit", v < 0 ? 0 : v);
       if ((v = atoi(sql_colz(res, "doorpoll"))))
-         j_store_int(door, "poll", v);
+         j_store_int(door, "poll", v < 0 ? 0 : v);
       if ((v = atoi(sql_colz(res, "doordebounce"))))
-         j_store_int(door, "debounce", v);
+         j_store_int(door, "debounce", v < 0 ? 0 : v);
       const char *t;
       if ((t = sql_colz(res, "dooriotunlock")) && *t)
          j_store_string(door, "iotunlock", t);
@@ -512,7 +512,8 @@ static void addset(j_t j, const char *tag, const char *val, char always)
    if (!val)
       val = "";
    char v[65],                  // Allow for big sets, and certainly max area
-   *p = v, *e = v + sizeof(v) - 1;
+   *p = v,
+       *e = v + sizeof(v) - 1;
    while (*val && p < e)
    {
       if (*val != ',')

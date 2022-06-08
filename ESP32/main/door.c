@@ -669,11 +669,13 @@ static void task(void *pvParameters)
                {                // Lock state tracking
                   if (((iopen && last == LOCK_LOCKING) || lock[l].o) && !o)
                   {             // Change to lock - timer constantly restarted if door is open as it will not actually engage
-                     lock[l].timeout = now + (int64_t) doorlock *1000LL;
+                     if (doorlock)
+                        lock[l].timeout = now + (int64_t) doorlock *1000LL;
                      lock[l].state = LOCK_LOCKING;
                   } else if (o && !lock[l].o)
                   {             // Change to unlock
-                     lock[l].timeout = now + (int64_t) doorunlock *1000LL;
+                     if (doorunlock)
+                        lock[l].timeout = now + (int64_t) doorunlock *1000LL;
                      lock[l].state = LOCK_UNLOCKING;
                   }
                   if (lock[l].timeout)
@@ -685,6 +687,9 @@ static void task(void *pvParameters)
                         lock[l].timeout = 0;
                         lock[l].state = ((i == o || !input_active(IUNLOCK + l)) ? o ? LOCK_UNLOCKED : LOCK_LOCKED : o ? LOCK_UNLOCKFAIL : LOCK_LOCKFAIL);
                      }
+                  } else if (!doorunlock)
+                  {             // Zero timeout means lock input only works when handle, e.g. Abloy EL56X. Treat as following o
+                     lock[l].state = ((!i && iopen) ? LOCK_FAULT : o ? LOCK_UNLOCKED : LOCK_LOCKED);
                   } else if (lock[l].i != i)    // Input state change
                      lock[l].state = ((i == o) ? i ? LOCK_UNLOCKED : LOCK_LOCKED : i ? LOCK_FORCED : LOCK_FAULT);
                }
@@ -698,7 +703,6 @@ static void task(void *pvParameters)
                      jo_int(j, "timeout", (lock[l].timeout - now) / 1000);
                   revk_state_clients(l ? "deadlock" : "lock", &j, debug | (iotstatedoor << 1));
                }
-	       // TODO we need to handle cases like EL56X where lock does not disengage until door is actually opened, and shows engaged when closed
             }
          }
          static int64_t doortimeout = 0;
