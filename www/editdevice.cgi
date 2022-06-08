@@ -195,7 +195,7 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <tr><td>Version</td><td colspan=2><output name=version></td></tr>
 <sql table=pcb where="pcb=$pcb">
 <if nfc=true><tr><td><input type=checkbox id=door name=door value=true></td><td colspan=2><label for=door>Door control (set times 0 for default, -1 to force no timer)</label></td></tr></if>
-<if door=true><tr><td><input size=5 id=doorunlock name=doorunlock>ms</td><td colspan=2><label for=doorunlock>Lock disengage timer</label></td></tr></if>
+<if door=true><tr><td><input size=5 id=doorunlock name=doorunlock>ms</td><td colspan=2><label for=doorunlock>Lock disengage timer (set -1 for EL56X)</label></td></tr></if>
 <if door=true><tr><td><input size=5 id=doorlock name=doorlock>ms</td><td colspan=2><label for=doorlock>Lock engage timer</label></td></tr></if>
 <if door=true><tr><td><input size=5 id=doordebounce name=doordebounce>ms</td><td colspan=2><label for=doordebounce>Lock engaged debounce timer</label></td></tr></if>
 <if door=true><tr><td><input size=5 id=dooropen name=dooropen>ms</td><td colspan=2><label for=dooropen>Door waiting to open timer</label></td></tr></if>
