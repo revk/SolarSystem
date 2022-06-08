@@ -917,29 +917,26 @@ void door_boot(void)
 #undef d
 #undef s
        // Initial states before output starts
+    int64_t now = esp_timer_get_time();
    if (input_get(IOPEN))
    {
       doorstate = DOOR_OPEN;
       if (doorauto >= 2 && !doorcatch)
          output_set(OUNLOCK + 0, 1);    // Start with unlocked doors
-      lock[0].state = LOCK_UNLOCKED;
-      lock[1].state = LOCK_UNLOCKED;
+      lock[0].state = LOCK_UNLOCKING;
+      lock[1].state = LOCK_UNLOCKING;
    } else
    {
       doorstate = DOOR_LOCKING;
       if (doorauto >= 2 && doorcatch)
          output_set(OUNLOCK + 0, 0);    // Start with locked doors
-      lock[0].state = LOCK_LOCKED;
-      lock[1].state = LOCK_LOCKED;
+      lock[0].state = LOCK_LOCKING;
+      lock[1].state = LOCK_LOCKING;
    }
    if (doorauto >= 2 && doorcatch)
       output_set(OUNLOCK + 0, 0);       // Start with locked doors
-   int64_t now = esp_timer_get_time();
-   if (doorunlock)
-   {
-      lock[0].timeout = now + 1000LL;
-      lock[1].timeout = now + 1000LL;
-   }
+   lock[0].timeout = now + 1000LL;
+   lock[1].timeout = now + 1000LL;
 }
 
 void door_start(void)
