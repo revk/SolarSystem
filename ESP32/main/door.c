@@ -710,10 +710,11 @@ static void task(void *pvParameters)
          {                      // Open
             if (doorstate != DOOR_NOTCLOSED && doorstate != DOOR_PROPPED && doorstate != DOOR_OPEN)
             {                   // We have moved to open state, this can cancel the locking operation
-               char forced = ((output_active(OUNLOCK) && (lock[0].state == LOCK_LOCKED || lock[0].state == LOCK_FORCED)) ||     //
-                              (output_active(OUNLOCK + 1) && (lock[1].state == LOCK_LOCKED || lock[1].state == LOCK_FORCED)));
+               const char *manual = input_func_any(INPUT_FUNC_M);       // If a manual input was found (uses input name)
+               char forced = ((output_active(OUNLOCK) && ((!manual && lock[0].state == LOCK_LOCKED) || lock[0].state == LOCK_FORCED)) ||        //
+                              (output_active(OUNLOCK + 1) && ((!manual && lock[1].state == LOCK_LOCKED) || lock[1].state == LOCK_FORCED)));
                if (!doorwhy)
-                  doorwhy = (forced ? "forced" : "manual");
+                  doorwhy = (forced ? "forced" : manual ? : "manual");
                if (doorwhy)
                {
                   jo_t j = jo_make(NULL);
