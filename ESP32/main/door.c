@@ -679,7 +679,7 @@ static void task(void *pvParameters)
                   }
                   if (lock[l].timeout)
                   {             // Timeout running
-                     if (lock[l].i != i)
+                     if (lock[l].i != i && doordebounce)
                         lock[l].timeout = now + (int64_t) doordebounce *1000LL; // Allow some debounce before ending timeout
                      if (lock[l].timeout <= now)
                      {          // End of timeout
@@ -760,11 +760,11 @@ static void task(void *pvParameters)
          }
          if (doorstate != lastdoorstate)
          {                      // State change - set timeout
-            if (doorstate == DOOR_OPEN)
+            if (doorstate == DOOR_OPEN && doorprop)
                doortimeout = now + (int64_t) doorprop *1000LL;
-            else if (doorstate == DOOR_CLOSED)
+            else if (doorstate == DOOR_CLOSED && doorclose)
                doortimeout = now + (int64_t) doorclose *1000LL;
-            else if (doorstate == DOOR_UNLOCKED)
+            else if (doorstate == DOOR_UNLOCKED && dooropen)
                doortimeout = now + (int64_t) dooropen *1000LL;
             else
                doortimeout = 0;
@@ -930,8 +930,11 @@ void door_boot(void)
    if (doorauto >= 2 && doorcatch)
       output_set(OUNLOCK + 0, 0);       // Start with locked doors
    int64_t now = esp_timer_get_time();
-   lock[0].timeout = now + 1000LL;
-   lock[1].timeout = now + 1000LL;
+   if (doorunlock)
+   {
+      lock[0].timeout = now + 1000LL;
+      lock[1].timeout = now + 1000LL;
+   }
 }
 
 void door_start(void)

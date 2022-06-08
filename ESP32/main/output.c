@@ -16,6 +16,7 @@ static char *outputname[MAXOUTPUT];
 static uint16_t outputpulse[MAXOUTPUT]; // Timeout in s/10
 static uint8_t outputfunc[MAXOUTPUT];   // Output function codes
 static uint8_t outputfuncs;     // Combined outputs of all
+static uint8_t outputfuncset;   // Logical state of output funcs
 
 #define i(t,x,c) area_t output##x[MAXOUTPUT];
 #define s(t,x,c) area_t output##x[MAXOUTPUT];
@@ -71,9 +72,18 @@ int output_func_active(uint8_t f)
 
 void output_func_set(uint8_t f, int v)
 {                               // Set all outputs for a function set (expected to be one bit set)
+   if (v)
+      outputfuncs |= f;
+   else
+      outputfuncs &= ~f;
    for (int p = 0; p < MAXOUTPUT; p++)
       if (outputfunc[p] & f)
          output_set(p, v);
+}
+
+int output_func_get(uint8_t f)
+{
+   return (outputfuncset & f) ? 1 : 0;
 }
 
 int output_get(int p)
