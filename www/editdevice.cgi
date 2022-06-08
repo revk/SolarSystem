@@ -95,7 +95,6 @@ if($?devicename) then # save
 	if(! $?door) setenv door false
 	if(! $?doorexitarm) setenv doorexitarm false
 	if(! $?doorexitdisarm) setenv doorexitdisarm false
-	if(! $?doorsilent) setenv doorsilent false
 	if(! $?doordebug) setenv doordebug false
 	if(! $?doorcatch) setenv doorcatch false
 	if(! $?iotstatedoor) setenv iotstatedoor false
@@ -107,7 +106,7 @@ if($?devicename) then # save
 	if(! $?iotkeypad) setenv iotkeypad false
 	if(! $?iotgps) setenv iotgps false
 	if(! $?ioteventfob) setenv ioteventfob false
-	setenv allow "devicename areaenter areastrong areadeadlock areaarm areadisarm areabell arealed areakeypad areakeyarm areakeystrong areakeydisarm nfc gps rgb nfcadmin door doorexitarm doorexitdisarm aid site iotstatedoor iotstateinput iotstateoutput iotstatefault iotstatewarning iotstatetamper ioteventfob iotkeypad iotgps doorunlock doorlock dooropen doorclose doorprop doorexit doordebounce keypadidle keypadpin keypad pcb dooriotunlock dooriotdead dooriotundead excludeall outofservice doorsilent doordebug doorcatch"
+	setenv allow "devicename areaenter areastrong areadeadlock areaarm areadisarm areabell arealed areakeypad areakeyarm areakeystrong areakeydisarm nfc gps rgb nfcadmin door doorexitarm doorexitdisarm aid site iotstatedoor iotstateinput iotstateoutput iotstatefault iotstatewarning iotstatetamper ioteventfob iotkeypad iotgps doorunlock doorlock dooropen doorclose doorprop doorexit doordebounce keypadidle keypadpin keypad pcb dooriotunlock dooriotdead dooriotundead excludeall outofservice doordebug doorcatch"
 	if("$USER_ADMIN" == "true") setenv allow "$allow nfctrusted"
 	sqlwrite -qon "$DB" device $allow
 	sql "$DB" 'UPDATE device SET poke=NOW() WHERE site=$site'
@@ -204,7 +203,6 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <if door=true><tr><td><input size=5 id=doorexit name=doorexit>ms</td><td colspan=2><label for=doorexit>Door exit button hold timer</label></td></tr></if>
 <if door=true><tr><td><input type=checkbox id=doorexitdisarm name=doorexitdisarm value=true></td><td colspan=2><label for=doorexitdisarm>Door exit button disarm</label></td></tr></if>
 <if door=true><tr><td><input type=checkbox id=doorexitarm name=doorexitarm value=true></td><td colspan=2><label for=doorexitarm>Door exit button arm on hold</label></td></tr></if>
-<if door=true><tr><td><input type=checkbox id=doorsilent name=doorsilent value=true></td><td colspan=2><label for=doorsilent>Door silence working (no beep)</label></td></tr></if>
 <if door=true><tr><td><input type=checkbox id=doorcatch name=doorcatch value=true></td><td colspan=2><label for=doorcatch>Door catch mode (re-lock on opening)</label></td></tr></if>
 <if door=true><tr><td>IoT on deadlock</td><td colspan=2><input name=dooriotdead></td></tr></if>
 <if door=true><tr><td>IoT on un-deadlock</td><td colspan=2><input name=dooriotundead></td></tr></if>
