@@ -222,7 +222,7 @@ void output_boot(void)
 {
    revk_register("output", MAXOUTPUT, sizeof(*output), &output, BITFIELDS, SETTING_BITFIELD | SETTING_SET | SETTING_SECRET);
    revk_register("outputgpio", MAXOUTPUT, sizeof(*output), &output, BITFIELDS, SETTING_BITFIELD | SETTING_SET);
-   revk_register("outputfunc", MAXOUTPUT, sizeof(*outputfunc), &outputfunc, OUTPUT_FUNCS, SETTING_LIVE);
+   revk_register("outputfunc", MAXOUTPUT, sizeof(*outputfunc), &outputfunc, OUTPUT_FUNCS, SETTING_BITFIELD | SETTING_LIVE);
    revk_register("outputpulse", MAXOUTPUT, sizeof(*outputpulse), &outputpulse, NULL, SETTING_LIVE);
    revk_register("outputname", MAXOUTPUT, 0, &outputname, NULL, SETTING_LIVE);
    revk_register("power", MAXOUTPUT, sizeof(*power), &power, BITFIELDS, SETTING_BITFIELD | SETTING_SET | SETTING_SECRET);
