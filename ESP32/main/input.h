@@ -17,7 +17,7 @@ int input_active(int p);
 
 int input_func_active(uint8_t);	// Does a function exist at all (expected to be one bit set)
 int input_func_all(uint8_t);	// Are all inputs for a function set (expected to be one bit set)
-int input_func_any(uint8_t);	// Are any inputs for a function set (expected to be one bit set)
+const char *input_func_any(uint8_t);	// Are any inputs for a function set (expected to be one bit set) (returns input name)
 
 #define	INPUT_FUNCS	"EOLDM"
 #define	INPUT_FUNC_E	0x80	// Exit pressed

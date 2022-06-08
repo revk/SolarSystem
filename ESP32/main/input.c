@@ -82,12 +82,12 @@ int input_func_all(uint8_t f)
    return 1;
 }
 
-int input_func_any(uint8_t f)
+const char *input_func_any(uint8_t f)
 {                               // Are any inputs for a function set (expected to be one bit set)
    for (int p = 0; p < MAXINPUT; p++)
       if ((inputfunc[p] & f) && input_get(p))
-         return 1;
-   return 0;
+         return inputname[p];
+   return NULL;
 }
 
 const char *input_command(const char *tag, jo_t j)
