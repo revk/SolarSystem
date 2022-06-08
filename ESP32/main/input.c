@@ -36,7 +36,7 @@ input_t input_flip = 0;         // holds flipped flag for each input, i.e. state
 static uint32_t report_next = 0;
 
 int input_active(int p)
-{
+{ // Port from 1
    if (p < 1 || p > MAXINPUT)
       return 0;
    p--;
@@ -45,20 +45,8 @@ int input_active(int p)
    return 1;
 }
 
-void input_set(int p, int v)
-{                               // For locally set inputs
-
-   if (p < 1 || p > MAXINPUT)
-      return;
-   p--;
-   if (v)
-      input_raw |= (1ULL << p);
-   else
-      input_raw &= ~(1ULL << p);
-}
-
 int input_get(int p)
-{
+{ // Port from 1
    if (p < 1 || p > MAXINPUT)
       return -1;
    p--;
@@ -77,7 +65,7 @@ int input_func_active(uint8_t f)
 int input_func_all(uint8_t f)
 {                               // Are all inputs for a function set (expected to be one bit set)
    for (int p = 0; p < MAXINPUT; p++)
-      if ((inputfunc[p] & f) && !input_get(p))
+      if ((inputfunc[p] & f) && (input_stable & (1ULL << p)))
          return 0;
    return 1;
 }
@@ -85,7 +73,7 @@ int input_func_all(uint8_t f)
 const char *input_func_any(uint8_t f)
 {                               // Are any inputs for a function set (expected to be one bit set)
    for (int p = 0; p < MAXINPUT; p++)
-      if ((inputfunc[p] & f) && input_get(p))
+      if ((inputfunc[p] & f) && (input_stable & (1ULL << p)))
          return inputname[p];
    return NULL;
 }

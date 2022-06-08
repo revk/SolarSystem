@@ -922,11 +922,15 @@ void door_boot(void)
       doorstate = DOOR_OPEN;
       if (doorauto >= 2 && !doorcatch)
          output_set(OUNLOCK + 0, 1);    // Start with unlocked doors
+      lock[0].state = LOCK_UNLOCKED;
+      lock[1].state = LOCK_UNLOCKED;
    } else
    {
       doorstate = DOOR_LOCKING;
       if (doorauto >= 2 && doorcatch)
          output_set(OUNLOCK + 0, 0);    // Start with locked doors
+      lock[0].state = LOCK_LOCKED;
+      lock[1].state = LOCK_LOCKED;
    }
    if (doorauto >= 2 && doorcatch)
       output_set(OUNLOCK + 0, 0);       // Start with locked doors
