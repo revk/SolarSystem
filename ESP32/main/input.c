@@ -149,20 +149,22 @@ static void task(void *pvParameters)
                         jo_string(e, "input", inputname[i]);
                         return e;
                      }
-                     if (inputarm[i])
-                     {
-                        jo_t e = make();
-                        alarm_arm(inputarm[i], &e);
-                     }
-                     if (inputstrong[i])
-                     {
-                        jo_t e = make();
-                        alarm_strong(inputstrong[i], &e);
-                     }
-                     if (inputdisarm[i])
-                     {
+                     if (inputdisarm[i] && (inputdisarm[i] & alarm_armed()))
+                     {          // Disarm
                         jo_t e = make();
                         alarm_disarm(inputdisarm[i], &e);
+                     } else
+                     {          // Arm - i.e. allows for same button to do both
+                        if (inputarm[i])
+                        {
+                           jo_t e = make();
+                           alarm_arm(inputarm[i], &e);
+                        }
+                        if (inputstrong[i])
+                        {
+                           jo_t e = make();
+                           alarm_strong(inputstrong[i], &e);
+                        }
                      }
                   }
                }
