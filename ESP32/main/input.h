@@ -19,9 +19,10 @@ int input_func_active(uint8_t);	// Does a function exist at all (expected to be 
 int input_func_all(uint8_t);	// Are all inputs for a function set (expected to be one bit set)
 const char *input_func_any(uint8_t);	// Are any inputs for a function set (expected to be one bit set) (returns input name)
 
-#define	INPUT_FUNCS	"EOLDM"
+#define	INPUT_FUNCS	"EOLDMP"
 #define	INPUT_FUNC_E	0x80	// Exit pressed
 #define	INPUT_FUNC_O	0x40	// Open door
 #define	INPUT_FUNC_L	0x20	// Lock unlocked
 #define	INPUT_FUNC_D	0x10	// Deadlock unlocked (This needs to be L>>1)
 #define	INPUT_FUNC_M	0x08	// Manual active
+#define	INPUT_FUNC_P	0x04	// Pull down (not really a function, but a rarely needed input flag)

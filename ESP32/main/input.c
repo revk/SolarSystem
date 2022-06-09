@@ -36,7 +36,7 @@ input_t input_flip = 0;         // holds flipped flag for each input, i.e. state
 static uint32_t report_next = 0;
 
 int input_active(int p)
-{ // Port from 1
+{                               // Port from 1
    if (p < 1 || p > MAXINPUT)
       return 0;
    p--;
@@ -46,7 +46,7 @@ int input_active(int p)
 }
 
 int input_get(int p)
-{ // Port from 1
+{                               // Port from 1
    if (p < 1 || p > MAXINPUT)
       return -1;
    p--;
@@ -193,7 +193,7 @@ void input_boot(void)
    revk_register("input", MAXINPUT, sizeof(*input), &input, BITFIELDS, SETTING_BITFIELD | SETTING_SET | SETTING_SECRET);
    revk_register("inputgpio", MAXINPUT, sizeof(*input), &input, BITFIELDS, SETTING_BITFIELD | SETTING_SET);
    revk_register("inputhold", MAXINPUT, sizeof(*inputhold), &inputhold, NULL, SETTING_LIVE);
-   revk_register("inputfunc", MAXINPUT, sizeof(*inputfunc), &inputfunc, INPUT_FUNCS, SETTING_BITFIELD | SETTING_LIVE);
+   revk_register("inputfunc", MAXINPUT, sizeof(*inputfunc), &inputfunc, INPUT_FUNCS, SETTING_BITFIELD);
    revk_register("inputname", MAXINPUT, 0, &inputname, NULL, SETTING_LIVE);
 #define i(t,x,c) revk_register("input"#x, MAXINPUT, sizeof(*input##x), &input##x, AREAS, SETTING_BITFIELD|SETTING_LIVE);
 #define c(t,x) revk_register("input"#x, MAXINPUT, sizeof(*input##x), &input##x, AREAS, SETTING_BITFIELD|SETTING_LIVE);
@@ -205,7 +205,9 @@ void input_boot(void)
    for (int i = 0; i < MAXINPUT; i++)
       inputfuncs |= inputfunc[i];
    {                            // GPIO
-    gpio_config_t c = { mode: GPIO_MODE_INPUT, pull_up_en:GPIO_PULLUP_ENABLE };
+    gpio_config_t I = { mode:GPIO_MODE_INPUT };
+    gpio_config_t U = { mode: GPIO_MODE_INPUT, pull_up_en:GPIO_PULLUP_ENABLE };
+    gpio_config_t D = { mode: GPIO_MODE_INPUT, pull_down_en:GPIO_PULLDOWN_ENABLE };
       int i,
        p;
       for (i = 0; i < MAXINPUT; i++)
@@ -218,7 +220,12 @@ void input_boot(void)
             {
                if (p < MAX_PORT)
                {
-                  c.pin_bit_mask |= (1ULL << p);
+                  if (p >= 34)
+                     I.pin_bit_mask |= (1ULL << p);     // Do not have pull up/down
+                  else if (inputfunc[i] & INPUT_FUNC_P)
+                     D.pin_bit_mask |= (1ULL << p);     // Pull down
+                  else
+                     U.pin_bit_mask |= (1ULL << p);     // Pull up
                   if (p == 7 || p == 8)
                      gpio_reset_pin(p);
                   if (p != 20)
@@ -232,8 +239,12 @@ void input_boot(void)
                }
             }
          }
-      if (c.pin_bit_mask)
-         REVK_ERR_CHECK(gpio_config(&c));
+      if (I.pin_bit_mask)
+         REVK_ERR_CHECK(gpio_config(&I));
+      if (U.pin_bit_mask)
+         REVK_ERR_CHECK(gpio_config(&U));
+      if (D.pin_bit_mask)
+         REVK_ERR_CHECK(gpio_config(&D));
    }
 }
 

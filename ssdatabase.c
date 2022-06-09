@@ -53,7 +53,7 @@ void sstypes(const char *fn)
 #define fo(g,t) pick(#g,#t);
 #include "types.m"
    start("GPIOFUNCOUTI");
-#define fi(g,t) out(#g,#t);
+#define fi(g,t) out(#g," "#t);
 #include "types.m"
    start("GPIOFUNCOUTO");
 #define fo(g,t) out(#g,#t);
@@ -424,7 +424,7 @@ void ssdatabase(SQL * sqlp)
 #define	gpionfc(n)	field(#n,"enum('-','30','31','32','33','34','35','71','72','-30','-31','-32','-33','-34','-35','-71','-72')","'-'");
 #define	gpiotype(n)	field(#n,"enum('-','I','O','P','I1','I2','I3','I4','I8','O1','O2','O3','O4')","'-'");
 #define	gpiopcb(n)	field(#n,"enum('-','IO','I','O')","'-'");
-#define	gpiofunc(n)	field(#n,"set('L','D','E','B','C','O','M')","''");
+#define	gpiofunc(n)	field(#n,"set('L','D','E','B','C','O','M','P')","''");
 #define	bool(n)		field(#n,"enum('false','true')","'false'");
 #define	areas(n)	field(#n,areastype,"''");
 #define	area(n)		field(#n,areatype,"'A'");
