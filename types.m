@@ -59,6 +59,7 @@ io(IO,Input/Output);
 io(I,Input);
 io(O,Output);
 
+g(0);
 g(2);
 g(4);
 g(5);
