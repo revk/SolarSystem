@@ -12,13 +12,6 @@ static const char TAG[] = "door";
 // 2 - also handling exit button (if not deadlocked)
 // 3 - also handling entry for secure card use
 // 4 - stand alone control using secure card
-// This uses pre-set input and output numbers
-#define IEXIT1 1
-#define IOPEN 2
-#define IUNLOCK 3
-#define OUNLOCK 1
-#define OBEEP 3
-#define OERROR 4
 
 #define FILE3                   // Check for old file 3 access file
 #define MINAFILE  40            // Minimum we read from afile before checking length
@@ -162,7 +155,7 @@ const char *door_access(const char *id, const uint8_t * a)
 void door_check(void)
 {
    if (doorauto >= 2)
-      output_set(OUNLOCK + 1, door_deadlocked()? 0 : 1);
+      output_func_set(OUTPUT_FUNC_D, door_deadlocked()? 0 : 1);
    if (areadeadlock)
    {                            // Work out if deadlock is final - as the normal deadlock state pre-empts actual setting so deadlock engaged can be waited on
       uint8_t unlock = !(areadeadlock & state_armed & ~control_disarm); // Delay deadlock state until confirmed
@@ -185,8 +178,8 @@ const char *door_unlock(const char *id, const uint8_t * a, const char *why)
       if (why && !doorwhy)
          doorwhy = why;
       ESP_LOGD(TAG, "Unlock %s", why ? : "?");
-      output_set(OUNLOCK + 0, 1);
-      output_set(OUNLOCK + 1, 1);
+      output_func_set(OUTPUT_FUNC_L, 1);
+      output_func_set(OUTPUT_FUNC_D, 1);
    }
    return door_access(id, a);
 }
@@ -196,7 +189,7 @@ const char *door_lock(const char *id, const uint8_t * a, const char *why)
    if (doorauto >= 2)
    {
       ESP_LOGD(TAG, "Lock %s", why ? : "?");
-      output_set(OUNLOCK + 0, 0);
+      output_func_set(OUTPUT_FUNC_L, 0);
    }
    return door_access(id, a);
 }
@@ -645,7 +638,7 @@ static void task(void *pvParameters)
       int64_t now = esp_timer_get_time();
       static uint64_t doornext = 0;
       static uint8_t lastdoorstate = -1;
-      uint8_t iopen = input_get(IOPEN);
+      uint8_t iopen = input_func_all(INPUT_FUNC_O);
       if (doornext < now)
       {
          uint8_t force = resend;
@@ -656,11 +649,11 @@ static void task(void *pvParameters)
             for (l = 0; l < 2; l++)
             {
                uint8_t last = lock[l].state;
-               uint8_t o = output_get(OUNLOCK + l),
-                   i = input_get(IUNLOCK + l);
-               if (!output_active(OUNLOCK + l))
+               uint8_t o = output_func_get(OUTPUT_FUNC_L >> l),
+                   i = (input_func_any(INPUT_FUNC_L >> l) ? 1 : 0);
+               if (!output_func_active(OUTPUT_FUNC_L >> l))
                {
-                  if (!input_active(IUNLOCK + l))
+                  if (!input_func_active(INPUT_FUNC_L >> l))
                      lock[l].state = (o ? LOCK_UNLOCKED : LOCK_LOCKED); // No input or output, just track output
                   else
                      lock[l].state = (i ? LOCK_UNLOCKED : LOCK_LOCKED); // No output, just track input
@@ -684,7 +677,7 @@ static void task(void *pvParameters)
                      if (lock[l].timeout <= now)
                      {          // End of timeout
                         lock[l].timeout = 0;
-                        lock[l].state = ((i == o || !input_active(IUNLOCK + l)) ? o ? LOCK_UNLOCKED : LOCK_LOCKED : o ? LOCK_UNLOCKFAIL : LOCK_LOCKFAIL);
+                        lock[l].state = ((i == o || !input_func_active(INPUT_FUNC_L >> l)) ? o ? LOCK_UNLOCKED : LOCK_LOCKED : o ? LOCK_UNLOCKFAIL : LOCK_LOCKFAIL);
                      }
                   } else if (!doorunlock)
                   {             // Zero timeout means lock input only works when handle, e.g. Abloy EL56X. Treat as following o
@@ -711,8 +704,8 @@ static void task(void *pvParameters)
             if (doorstate != DOOR_NOTCLOSED && doorstate != DOOR_PROPPED && doorstate != DOOR_OPEN)
             {                   // We have moved to open state, this can cancel the locking operation
                const char *manual = input_func_any(INPUT_FUNC_M);       // If a manual input was found (uses input name)
-               char forced = ((output_active(OUNLOCK) && ((!manual && lock[0].state == LOCK_LOCKED) || lock[0].state == LOCK_FORCED)) ||        //
-                              (output_active(OUNLOCK + 1) && ((!manual && lock[1].state == LOCK_LOCKED) || lock[1].state == LOCK_FORCED)));
+               char forced = ((output_func_active(OUTPUT_FUNC_L) && ((!manual && lock[0].state == LOCK_LOCKED) || lock[0].state == LOCK_FORCED)) ||     //
+                              (output_func_active(OUTPUT_FUNC_D) && ((!manual && lock[1].state == LOCK_LOCKED) || lock[1].state == LOCK_FORCED)));
                if (!doorwhy)
                   doorwhy = (forced ? "forced" : manual ? : "manual");
                if (doorwhy)
@@ -727,14 +720,14 @@ static void task(void *pvParameters)
                doorstate = DOOR_OPEN;
                if (doorauto >= 2 && !doorcatch)
                {
-                  output_set(OUNLOCK + 0, 1);   // Cancel lock
-                  output_set(OUNLOCK + 1, 1);   // Cancel deadlock
+                  output_func_set(OUTPUT_FUNC_L, 1);    // Cancel lock
+                  output_func_set(OUTPUT_FUNC_D, 1);    // Cancel deadlock
                }
                if (forced && !(logical_gpio & logical_DoorForce))
                   logical_gpio |= logical_DoorForce;
             }
             if (doorauto >= 2 && doorcatch)
-               output_set(OUNLOCK + 0, 0);      // Door lock ready for when it closes
+               output_func_set(OUTPUT_FUNC_L, 0);       // Door lock ready for when it closes
          } else
          {                      // Closed
             if (logical_gpio & logical_DoorForce)
@@ -772,7 +765,7 @@ static void task(void *pvParameters)
          } else if (doortimeout && doortimeout < now)
          {                      // Timeout happened
             if (doorauto >= 2)
-               output_set(OBEEP, 0);
+               output_func_set(OUTPUT_FUNC_B, 0);
             if (doorstate == DOOR_OPEN)
             {
                doorstate = DOOR_NOTCLOSED;
@@ -800,10 +793,11 @@ static void task(void *pvParameters)
             if (doorstate == DOOR_UNLOCKED && *dooriotunlock)
                revk_mqtt_send_str_clients(dooriotunlock, 0, 2);
             if (doorauto >= 2)
-               output_set(OBEEP, doorstate == DOOR_UNLOCKED ? 1 : 0);
+               output_func_set(OUTPUT_FUNC_B, doorstate == DOOR_UNLOCKED ? 1 : 0);
          }
          static uint64_t exit = 0;      // Main exit button
-         if (input_get(IEXIT1))
+         const char *button = input_func_any(INPUT_FUNC_E);
+         if (button)
          {
             if (!exit)
             {                   // Pushed
@@ -813,7 +807,7 @@ static void task(void *pvParameters)
                if (door_deadlocked() && doorexitdisarm && !(alarm_armed() & ~(areadeadlock & areadisarm)))
                {
                   jo_t e = jo_make(NULL);
-                  jo_string(e, "reason", "exit button");
+                  jo_string(e, "reason", button);
                   alarm_disarm(areadeadlock & areadisarm, &e);
                   jo_bool(j, "disarmed", 1);
                }
@@ -821,7 +815,7 @@ static void task(void *pvParameters)
                {
                   if (doorauto >= 2)
                   {
-                     door_unlock(NULL, NULL, "button");
+                     door_unlock(NULL, NULL, button);
                      jo_bool(j, "unlocked", 1);
                   } else
                      jo_bool(j, "unlockok", 1);
@@ -839,10 +833,10 @@ static void task(void *pvParameters)
                   if (doorauto >= 2 && (areadeadlock & areaarm & ~alarm_armed()))
                   {
                      jo_t e = jo_make(NULL);
-                     jo_string(e, "reason", "exit button");
+                     jo_string(e, "reason",button);
                      alarm_arm(areadeadlock & areaarm, &e);
                      jo_bool(j, "armed", 1);
-                     door_lock(NULL, NULL, "button");
+                     door_lock(NULL, NULL, button);
                   }
                }
                alarm_event("button", &j, iotstatedoor);
@@ -877,7 +871,7 @@ static void task(void *pvParameters)
          // Note that forced are not logged as tampers, and picked up directly for alarm from open/disengaged inputs showing as access
          // Beep
          if (doorauto >= 2 && (fault || doorstate == DOOR_AJAR || doorstate == DOOR_NOTCLOSED))
-            output_set(OBEEP, ((now - doortimeout) & (512 * 1024)) ? 1 : 0);
+            output_func_set(OUTPUT_FUNC_B, ((now - doortimeout) & (512 * 1024)) ? 1 : 0);
          if (force || doorstate != lastdoorstate)
          {
             nfc_led(strlen(doorled[doorstate]), doorled[doorstate]);
@@ -891,7 +885,7 @@ static void task(void *pvParameters)
             lastdoorstate = doorstate;
          }
          if (doorauto >= 2)
-            output_set(OERROR, fault ? 1 : 0);
+            output_func_set(OUTPUT_FUNC_E, fault ? 1 : 0);
       }
    }
 }
@@ -918,23 +912,21 @@ void door_boot(void)
 #undef s
        // Initial states before output starts
     int64_t now = esp_timer_get_time();
-   if (input_get(IOPEN))
+   if (input_func_all(INPUT_FUNC_O))
    {
       doorstate = DOOR_OPEN;
       if (doorauto >= 2 && !doorcatch)
-         output_set(OUNLOCK + 0, 1);    // Start with unlocked doors
+         output_func_set(OUTPUT_FUNC_L, 1);     // Start with unlocked doors
       lock[0].state = LOCK_UNLOCKING;
       lock[1].state = LOCK_UNLOCKING;
    } else
    {
       doorstate = DOOR_LOCKING;
       if (doorauto >= 2 && doorcatch)
-         output_set(OUNLOCK + 0, 0);    // Start with locked doors
+         output_func_set(OUTPUT_FUNC_L, 0);     // Start with locked doors
       lock[0].state = LOCK_LOCKING;
       lock[1].state = LOCK_LOCKING;
    }
-   if (doorauto >= 2 && doorcatch)
-      output_set(OUNLOCK + 0, 0);       // Start with locked doors
    lock[0].timeout = now + 1000LL;
    lock[1].timeout = now + 1000LL;
 }

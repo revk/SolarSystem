@@ -19,7 +19,7 @@ int output_func_get(uint8_t);    // Check logical output state for func (expecte
 
 #define	OUTPUT_FUNCS	"LDBE"
 #define	OUTPUT_FUNC_L	0x80	// Lock release
-#define	OUTPUT_FUNC_D	0x40	// Deadlock release
+#define	OUTPUT_FUNC_D	0x40	// Deadlock release (this needs to be L>>1)
 #define	OUTPUT_FUNC_B	0x20	// Beep
 #define	OUTPUT_FUNC_E	0x10	// Error
 

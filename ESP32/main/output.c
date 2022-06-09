@@ -73,12 +73,12 @@ int output_func_active(uint8_t f)
 void output_func_set(uint8_t f, int v)
 {                               // Set all outputs for a function set (expected to be one bit set)
    if (v)
-      outputfuncs |= f;
+      outputfuncset |= f;
    else
-      outputfuncs &= ~f;
+      outputfuncset &= ~f;
    for (int p = 0; p < MAXOUTPUT; p++)
       if (outputfunc[p] & f)
-         output_set(p, v);
+         output_set(p + 1, v);  // Yes, output_set is using p starting at 1, this really needs fixing some time as so annoying.
 }
 
 int output_func_get(uint8_t f)
@@ -230,6 +230,7 @@ void output_boot(void)
 #define i(t,x,c) revk_register("output"#x, MAXOUTPUT, sizeof(*output##x), &output##x, AREAS, SETTING_BITFIELD|SETTING_LIVE);
 #define s(t,x,c) revk_register("output"#x, MAXOUTPUT, sizeof(*output##x), &output##x, AREAS, SETTING_BITFIELD|SETTING_LIVE);
 #include "states.m"
+   outputfuncset = 0;
    outputfuncs = 0;
    for (int i = 0; i < MAXOUTPUT; i++)
       outputfuncs |= outputfunc[i];

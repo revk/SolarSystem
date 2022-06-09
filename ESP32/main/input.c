@@ -65,7 +65,7 @@ int input_func_active(uint8_t f)
 int input_func_all(uint8_t f)
 {                               // Are all inputs for a function set (expected to be one bit set)
    for (int p = 0; p < MAXINPUT; p++)
-      if ((inputfunc[p] & f) && (input_stable & (1ULL << p)))
+      if ((inputfunc[p] & f) && !(input_stable & (1ULL << p)))
          return 0;
    return 1;
 }
