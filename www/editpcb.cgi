@@ -1,4 +1,4 @@
-#!../login/loggedin /bin/csh -fx
+#!../login/loggedin /bin/csh -f
 can --redirect admin
 if($status) exit 0
 source ../setcan
@@ -67,8 +67,9 @@ if($?pcbname) then # save
 			setenv pulse `printenv "initpulse$n"`
 			setenv invert `printenv "initinvert$n"`
 			setenv initfunc `printenv "initfunc$n"`
+			if("$initfunc" == "-") setenv initfunc ""
 			setenv v0 `printenv "value0$n"`
-			if("$v0" == "")setenv v0 Low
+			if("$v0" == "") setenv v0 Low
 			setenv v1 `printenv "value1$n"`
 			if("$v1" == "")setenv v1 High
 			if("$invert" == "") setenv invert false
