@@ -48,7 +48,7 @@ int mqttdump = 0;               // mqtt logging
 
 CURL *curl = NULL;
 
-static void addset(j_t j, const char *tag, const char *val, char always);
+static void addset(j_t j, const char *tag, const char *val, const char *always);
 static void addsitedata(SQL * sqlp, j_t j, SQL_RES * site, const char *deviceid, const char *parentid, char outofservice);
 
 #define AES_STRING_LEN	35
@@ -320,12 +320,12 @@ static const char *settings(SQL * sqlp, SQL * sqlkeyp, SQL_RES * res, slot_t id)
          j_store_string(door, "iotundead", t);
    }
    j_t area = j_store_object(j, "area");
-   addset(area, "enter", sql_colz(res, "areaenter"), 0);
-   addset(area, "arm", sql_colz(res, "areaarm"), 0);
-   addset(area, "strong", sql_colz(res, "areastrong"), 0);
-   addset(area, "disarm", sql_colz(res, "areadisarm"), 0);
-   addset(area, "led", sql_colz(res, "arealed"), 0);
-   addset(area, "deadlock", sql_colz(res, "areadeadlock"), 0);
+   addset(area, "enter", sql_colz(res, "areaenter"), NULL);
+   addset(area, "arm", sql_colz(res, "areaarm"), NULL);
+   addset(area, "strong", sql_colz(res, "areastrong"), NULL);
+   addset(area, "disarm", sql_colz(res, "areadisarm"), NULL);
+   addset(area, "led", sql_colz(res, "arealed"), NULL);
+   addset(area, "deadlock", sql_colz(res, "areadeadlock"), NULL);
    int site = atoi(sql_colz(res, "site"));
    {                            // site
       SQL_RES *s = sql_safe_query_store_free(sqlp, sql_printf("SELECT * FROM `site` WHERE `site`=%d", site));
@@ -380,9 +380,9 @@ static const char *settings(SQL * sqlp, SQL * sqlkeyp, SQL_RES * res, slot_t id)
                j_store_string(o, "idle", v);
             if ((v = sql_colz(res, "keypadpin")) && *v)
                j_store_string(o, "pin", v);
-            addset(area, "keypad", sql_colz(res, "areakeypad"), 0);
-            addset(area, "keyarm", sql_colz(res, "areakeyarm"), 0);
-            addset(area, "keydisarm", sql_colz(res, "areakeydisarm"), 0);
+            addset(area, "keypad", sql_colz(res, "areakeypad"), NULL);
+            addset(area, "keyarm", sql_colz(res, "areakeyarm"), NULL);
+            addset(area, "keydisarm", sql_colz(res, "areakeydisarm"), NULL);
          }
          o = j_store_object(j, "nfc");
          set(nfc, tx);
@@ -443,12 +443,14 @@ static const char *settings(SQL * sqlp, SQL * sqlkeyp, SQL_RES * res, slot_t id)
          }
          if (gpio)
          {
+            const char *extra = NULL;
             const char *pin = sql_colz(g, "pin");
             int invert = (*sql_colz(g, "invert") == 't');
             if (*pin == '-')
             {
                pin++;
                invert = 1 - invert;
+               extra = "P";     // Pull down
             }
             if (*pin)
             {
@@ -475,10 +477,10 @@ static const char *settings(SQL * sqlp, SQL * sqlkeyp, SQL_RES * res, slot_t id)
                }
                if (*type != 'P')
                {
-                  addset(gpio, "func", sql_col(g, "func"), 0);
-#define i(t,n,c) addset(gpio,#n,sql_col(g,#n),0);
-#define c(t,n) addset(gpio,#n,sql_col(g,#n),0);
-#define s(t,n,c) addset(gpio,#n,sql_col(g,#n),0);
+                  addset(gpio, "func", sql_col(g, "func"), extra);
+#define i(t,n,c) addset(gpio,#n,sql_col(g,#n),NULL);
+#define c(t,n) addset(gpio,#n,sql_col(g,#n),NULL);
+#define s(t,n,c) addset(gpio,#n,sql_col(g,#n),NULL);
 #include "ESP32/main/states.m"
                }
             }
@@ -503,13 +505,13 @@ static const char *settings(SQL * sqlp, SQL * sqlkeyp, SQL_RES * res, slot_t id)
    return NULL;
 }
 
-static void addset(j_t j, const char *tag, const char *val, char always)
+static void addset(j_t j, const char *tag, const char *val, const char *always)
 {
    if (!always && (!val || !*val))
       return;
    if (!val)
       val = "";
-   char v[65],                  // Allow for big sets, and certainly max area
+   char v[65],                  // Allow for big sets, and certainly maximum size area
    *p = v,
        *e = v + sizeof(v) - 1;
    while (*val && p < e)
@@ -518,6 +520,9 @@ static void addset(j_t j, const char *tag, const char *val, char always)
          *p++ = *val;
       val++;
    }
+   if (always)
+      while (*always && p < e)
+         *p++ = *always++;
    *p = 0;
    j_store_string(j, tag, v);
 }
@@ -545,7 +550,7 @@ static void addsitedata(SQL * sqlp, j_t j, SQL_RES * site, const char *deviceid,
    // Standard wifi settings
    v = sql_colz(site, "iothost");
    j_store_string(j, "mqtthost2", *v ? v : NULL);
-   addset(j, "engineer", sql_colz(site, "engineer"), 1);
+   addset(j, "engineer", sql_colz(site, "engineer"), "");
    j_store_int(j, "armcancel", atoi(sql_colz(site, "armcancel")) ? : 60);       // Force a default
    j_store_int(j, "armdelay", atoi(sql_colz(site, "armdelay")));
    j_store_int(j, "alarmdelay", atoi(sql_colz(site, "alarmdelay")));

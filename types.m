@@ -40,7 +40,6 @@ fi(O,Door open);
 fi(L,Lock disengaged);
 fi(D,Deadlock disengaged);
 fi(M,Manual override);
-fi(P,Pull down);
 
 o(P,Fixed output);
 

@@ -102,7 +102,7 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <table>
 <sql table=pcb order=pcbname>
 <tr>
-<td><output name=pcbname blank="Unspecified" missing="Unnamed"  href="/editpcb.cgi/$pcb"></td>
+<td><output name=pcbname blank="Unspecified" missing="Unnamed" href="/editpcb.cgi/$pcb"></td>
 </tr>
 </sql>
 </table>
@@ -153,6 +153,7 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <IF not pcb=0><input type=submit value="Copy" name=COPY></if>
 <IF not pcb=0><input type=submit value="Delete" name=DELETE><input type=checkbox name=SURE title='Tick this to say you are sure'></if>
 </form>
+<p>Where possible inputs have pull up applied (pull down for active low inputs).</p>
 </if>
 </sql>
 'END'
