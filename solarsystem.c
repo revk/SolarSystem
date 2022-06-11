@@ -450,7 +450,8 @@ static const char *settings(SQL * sqlp, SQL * sqlkeyp, SQL_RES * res, slot_t id)
             {
                pin++;
                invert = 1 - invert;
-               extra = "P";     // Pull down
+               if (*type == 'I')
+                  extra = "P";  // Pull down on input
             }
             if (*pin)
             {
