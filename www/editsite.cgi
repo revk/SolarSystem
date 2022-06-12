@@ -33,7 +33,9 @@ if($?sitename) then
 	if(! $?ioteventarm) setenv ioteventarm false
 	if(! $?meshlr) setenv meshlr false
 	if(! $?debug) setenv debug false
-	if("$root" == "") unsetenv root
+	if($?root) then
+		if("$root" == "") unsetenv root
+	endif
 	sqlwrite -qon "$DB" site sitename wifissid wifipass wifichan iothost nomesh smsuser smspass armcancel armdelay alarmdelay alarmhold debug iotstatesystem ioteventarm smsarm smsarmfail smsdisarm smsalarm smspanic smsfire engineer smsnumber smsfrom hookbearer hookfob hookalarm hookfire hookpanic hooktrigger hookinhibit hookfobdeny meshlr wifibssid root hookoffline emailfrom hookarm hookstrong hookdisarm hooknotopen hookopen hookarmfail hookforced hookpropped hookwrongpin
 	sql "$DB" 'UPDATE device SET poke=NOW() WHERE site=$site'
 	message --poke
@@ -52,11 +54,13 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <tr><td>WIFi chan</td><td><select name=wifichan><option value=0>Auto</option><FOR SPACE C="1 2 3 4 5 6 7 8 9 10 11 12 13"><option value=$C><output name=C></option></FOR></select>
 <input name=wifibssid size=12 maxlength=12 placeholder="HEX BSSID">
 </td></tr>
-<if not nomesh=true><tr><td>Mesh</td><td>
+<tr><td>Mesh</td><td>
+<if not nomesh=true>
 Root:<select name=root><option value=''>None</option><sql table=device where="site=$site"><option value="$device"><output name=devicename></option></sql></select>
 <input name=meshlr type=checkbox value=true id=meshlr title="Long Range WiFi mode"><label for=meshlr>LR</label>
+</if>
 <input type=checkbox id=nomesh name=nomesh value=true><label for=nomesh>Non mesh</label>
-</td><tr></if>
+</td><tr>
 <tr><td>IoT MQTT</td><td><input name=iothost size=40></td></tr>
 <tr><td>IoT logging</td><td>
 <input type=checkbox id=iotstatesystem name=iotstatesystem value=true><label for=iotstatesystem>system</for>
