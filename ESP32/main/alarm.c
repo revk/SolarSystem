@@ -268,8 +268,6 @@ void alarm_boot(void)
 
 void alarm_start(void)
 {
-   if (!meshexpect)
-      meshexpect = meshmax;     // If expect not sent, use max
    revk_task(TAG, task, NULL);
    door_check();
 }

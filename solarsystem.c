@@ -648,7 +648,7 @@ static void addsitedata(SQL * sqlp, j_t j, SQL_RES * site, const char *deviceid,
       if (sql_fetch_row(res))
       {
          j_store_int(mesh, "max", atoi(sql_colz(res, "T")));
-         // j_store_int(mesh, "expect", atoi(sql_colz(res, "N"))); // Not yet something all devices know.
+         j_store_int(mesh, "expect", atoi(sql_colz(res, "N")));
       }
       sql_free_result(res);
       if (*sql_colz(site, "meshlr") == 't')
