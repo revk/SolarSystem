@@ -91,23 +91,6 @@ static void task(void *pvParameters)
    pvParameters = pvParameters;
    int poll = (inputpoll ? : 1);
    static uint8_t input_hold[MAXINPUT] = { };
-   // Init state
-   for (int i = 0; i < MAXINPUT; i++)
-      if (input[i])
-      {
-         int p = port_mask(input[i]),
-             v;
-         if (p < LOGIC_PORT)
-            v = gpio_get_level(p);
-         else if (p >= LOGIC_PORT2 && (input[i] & PORT_INV))
-            v = ((logical_gpio >> (16 + p - LOGIC_PORT)) & 1);  // Non invertable logical GPIO, i.e. extra ones
-         else
-            v = ((logical_gpio >> (p - LOGIC_PORT)) & 1);       // Logical GPIO, e.g. NFC ports, etc.
-         if ((1ULL << i) & input_invert)
-            v = 1 - v;
-         input_raw = ((input_raw & ~(1ULL << i)) | ((input_t) v << i));
-      }
-   input_stable = input_raw;
    // Scan inputs
    while (1)
    {
@@ -248,6 +231,23 @@ void input_boot(void)
       if (D.pin_bit_mask)
          REVK_ERR_CHECK(gpio_config(&D));
    }
+   // Init state
+   for (int i = 0; i < MAXINPUT; i++)
+      if (input[i])
+      {
+         int p = port_mask(input[i]),
+             v;
+         if (p < LOGIC_PORT)
+            v = gpio_get_level(p);
+         else if (p >= LOGIC_PORT2 && (input[i] & PORT_INV))
+            v = ((logical_gpio >> (16 + p - LOGIC_PORT)) & 1);  // Non invertable logical GPIO, i.e. extra ones
+         else
+            v = ((logical_gpio >> (p - LOGIC_PORT)) & 1);       // Logical GPIO, e.g. NFC ports, etc.
+         if ((1ULL << i) & input_invert)
+            v = 1 - v;
+         input_raw = ((input_raw & ~(1ULL << i)) | ((input_t) v << i));
+      }
+   input_stable = input_raw;
 }
 
 void input_start(void)

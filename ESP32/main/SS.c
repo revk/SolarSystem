@@ -35,6 +35,7 @@ static const char __attribute__((unused)) TAG[] = "SS";
 #endif
 
 // Output first to minimise startup
+// Input before door
 #define modules		\
 	m(output)	\
 	m(input)	\

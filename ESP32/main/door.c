@@ -120,8 +120,9 @@ struct {
    0
 };
 
-uint8_t doorstate = -1;
-const char *doorwhy = NULL;
+static uint8_t doorstate = -1;
+static int64_t doortimeout = 0;
+static const char *doorwhy = NULL;
 
 static area_t door_deadlocked(void)
 {
@@ -638,7 +639,7 @@ static void task(void *pvParameters)
       int64_t now = esp_timer_get_time();
       static uint64_t doornext = 0;
       static uint8_t lastdoorstate = -1;
-      uint8_t iopen = input_func_all(INPUT_FUNC_O);
+      uint8_t iopen = (input_func_active(INPUT_FUNC_O) && input_func_all(INPUT_FUNC_O) ? 1 : 0);
       if (doornext < now)
       {
          uint8_t force = resend;
@@ -697,7 +698,6 @@ static void task(void *pvParameters)
                }
             }
          }
-         static int64_t doortimeout = 0;
          // Door states
          if (iopen)
          {                      // Open
@@ -833,7 +833,7 @@ static void task(void *pvParameters)
                   if (doorauto >= 2 && (areadeadlock & areaarm & ~alarm_armed()))
                   {
                      jo_t e = jo_make(NULL);
-                     jo_string(e, "reason",button);
+                     jo_string(e, "reason", button);
                      alarm_arm(areadeadlock & areaarm, &e);
                      jo_bool(j, "armed", 1);
                      door_lock(NULL, NULL, button);
@@ -910,25 +910,20 @@ void door_boot(void)
 #undef b
 #undef d
 #undef s
-       // Initial states before output starts
     int64_t now = esp_timer_get_time();
-   if (input_func_all(INPUT_FUNC_O))
-   {
-      doorstate = DOOR_OPEN;
-      if (doorauto >= 2 && !doorcatch)
-         output_func_set(OUTPUT_FUNC_L, 1);     // Start with unlocked doors
-      lock[0].state = LOCK_UNLOCKING;
-      lock[1].state = LOCK_UNLOCKING;
-   } else
-   {
-      doorstate = DOOR_LOCKING;
-      if (doorauto >= 2 && doorcatch)
-         output_func_set(OUTPUT_FUNC_L, 0);     // Start with locked doors
-      lock[0].state = LOCK_LOCKING;
-      lock[1].state = LOCK_LOCKING;
+   // Door outputs match inputs if available, otherwise just lock
+   output_func_set(OUTPUT_FUNC_L, input_active(INPUT_FUNC_L) && input_func_any(INPUT_FUNC_L) ? 1 : 0);
+   output_func_set(OUTPUT_FUNC_D, input_active(INPUT_FUNC_D) && input_func_any(INPUT_FUNC_D) ? 1 : 0);
+   // Handle door open at start up, otherwise we assume closed
+   if (input_active(INPUT_FUNC_O) && input_func_all(INPUT_FUNC_O))
+   {                            // Door is open, so unlock regardless
+      output_func_set(OUTPUT_FUNC_L, 1);
+      output_func_set(OUTPUT_FUNC_D, 1);
    }
-   lock[0].timeout = now + 1000LL;
-   lock[1].timeout = now + 1000LL;
+   // Set all timeouts so system works out what state it is in regardless
+   lock[0].timeout = now + 100LL;
+   lock[1].timeout = now + 100LL;
+   doortimeout = now + 1000LL;
 }
 
 void door_start(void)
