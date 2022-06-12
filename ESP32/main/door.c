@@ -191,6 +191,7 @@ const char *door_lock(const char *id, const uint8_t * a, const char *why)
    {
       ESP_LOGD(TAG, "Lock %s", why ? : "?");
       output_func_set(OUTPUT_FUNC_L, 0);
+      doorwhy = NULL;
    }
    return door_access(id, a);
 }
