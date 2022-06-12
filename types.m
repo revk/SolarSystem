@@ -29,12 +29,6 @@
 #endif
 
 i(I,Input);
-
-i(I1,Exit button);
-i(I2,Door open contact);
-i(I3,Lock disengaged);
-i(I4,Deadlock disengaged);
-
 fi(E,Exit button);
 fi(O,Door open);
 fi(L,Lock disengaged);
@@ -42,13 +36,7 @@ fi(D,Deadlock disengaged);
 fi(M,Manual override);
 
 o(P,Fixed output);
-
 o(O,Output);
-o(O1,Unlock output);
-o(O2,Undeadlock output);
-o(O3,Beep output);
-o(O4,Error output);
-
 fo(L,Unlock output);
 fo(D,Undeadlock output);
 fo(B,Beep output);

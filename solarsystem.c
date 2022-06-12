@@ -280,11 +280,9 @@ static const char *settings(SQL * sqlp, SQL * sqlkeyp, SQL_RES * res, slot_t id)
    // Other settings
    if (*CONFIG_OTA_HOSTNAME)
       j_store_string(j, "otahost", CONFIG_OTA_HOSTNAME);
-   char isdoor = 0;
    j_t door = j_store_object(j, "door");
    if (*sql_colz(res, "door") == 't')
    {                            // Door specific
-      isdoor = 1;
       j_store_int(door, "auto", 5);
       if (*sql_colz(res, "doorexitarm") == 't')
          j_store_boolean(door, "exitarm", 1);
@@ -411,10 +409,6 @@ static const char *settings(SQL * sqlp, SQL * sqlkeyp, SQL_RES * res, slot_t id)
 #undef led
       }
       sql_free_result(p);
-      int i = 0,
-          o = 0;
-      if (isdoor)
-         i = o = 4;             // Skip fixed controls - TODO remove when obsolete
       j_t input = j_store_array(j, "input");
       j_t output = j_store_array(j, "output");
       j_t power = j_store_array(j, "power");
@@ -423,24 +417,12 @@ static const char *settings(SQL * sqlp, SQL * sqlkeyp, SQL_RES * res, slot_t id)
       {
          const char *type = sql_colz(g, "type");
          j_t gpio = NULL;
-         int n = 0;
          if (*type == 'P')
             gpio = j_append_null(power);
          else if (*type == 'I')
-         {                      // Input (I and number for fixed input, replacing with func)
-            if (type[1])
-               n = atoi(type + 1) - 1;  // TODO remove when obsolete
-            else
-               n = i++;
-            gpio = j_index(j_extend(input, n + 1), n);
-         } else if (*type == 'O')
-         {                      // output (O and number for fixed output, replacing with func)
-            if (type[1])
-               n = atoi(type + 1) - 1;  // TODO remove when obsolete
-            else
-               n = o++;
-            gpio = j_index(j_extend(output, n + 1), n);
-         }
+            gpio = j_append_null(input);
+         else if (*type == 'O')
+            gpio = j_append_null(output);
          if (gpio)
          {
             const char *extra = NULL;

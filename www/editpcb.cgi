@@ -140,13 +140,21 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <tr><td><input name=gpio type=hidden><select name=pin><include var=GPIONUMPICK></select></td><td><input name="initinvert$gpio" type=checkbox value=true title="Invert">
 <input name="value0$gpio" size=5 value="$value0" placeholder="0 name"><input name="value1$gpio" size=5 value="$value1" placeholder="1 name">
 <select name=io><include var=GPIOIOPICK></select>
+Defaults:
 <select name=inittype><include var=GPIOTYPEPICK></select>
 <if inittype=*I><select name=initfunc$gpio><include var=GPIOFUNCPICKI></select></if><if inittype=*O><select name=initfunc$gpio><include var=GPIOFUNCPICKO></select></if>
 <input name="initname$gpio" value="$initname" size=10>
 <input name="inithold$gpio" size=3 value="$inithold">ms
 <input name="initpulse$gpio" size=5 value="$initpulse">s/10</td></tr></td>
 </sql>
-<tr><td><input name=gpio type=hidden value=0><select name=pin><include var=GPIONUMPICK></select></td><td><input name=initinvert type=checkbox value=true title="Invert"> <input name="value0" size=5 value="" placeholder="0 name"><input name="value1" size=5 value="" placeholder="1 name"> <select name=io><include var=GPIOIOPICK></select><select name=inittype><include var=GPIOTYPEPICK></select> <input name=initname size=10 placeholder='New pin'> <input name=inithold size=3 placeholder="Hold">ms <input name=initpulse size=5 placeholder="Pulse">s/10</td></tr></td>
+<tr><td><input name=gpio type=hidden value=0><select name=pin><include var=GPIONUMPICK></select></td><td><input name=initinvert type=checkbox value=true title="Invert">
+<input name="value0" size=5 value="" placeholder="0 name"><input name="value1" size=5 value="" placeholder="1 name">
+<select name=io><include var=GPIOIOPICK></select>
+Defaults:
+<select name=inittype><include var=GPIOTYPEPICK></select>
+<input name=initname size=10 placeholder='New pin'>
+<input name=inithold size=3 placeholder="Hold">ms
+<input name=initpulse size=5 placeholder="Pulse">s/10</td></tr></td>
 </table>
 </sql>
 <input type=submit value="Update">
