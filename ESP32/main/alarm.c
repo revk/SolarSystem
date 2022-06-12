@@ -80,6 +80,7 @@ static display_t *display = NULL;
 	u16(armdelay)		\
 	u16(alarmdelay)		\
 	u16(alarmhold)		\
+	u8(meshexpect,0)	\
         u8(meshcycle,3)		\
         u8(meshwarmup,60)	\
         u8(meshflap,10)	\
@@ -267,6 +268,8 @@ void alarm_boot(void)
 
 void alarm_start(void)
 {
+   if (!meshexpect)
+      meshexpect = meshmax;     // If expect not sent, use max
    revk_task(TAG, task, NULL);
    door_check();
 }
@@ -595,8 +598,8 @@ static void mesh_send_summary(void)
          jo_int(j, "nodes", nodes);
          if (nodes_online < nodes)
             jo_int(j, "offline", nodes - nodes_online);
-         if (nodes < meshmax)
-            jo_int(j, "missing", meshmax - nodes);
+         if (nodes != meshexpect)
+            jo_int(j, "missing", meshexpect - nodes);
          char set[sizeof(area_t) * 8 + 1] = "";
          if (display)
             jo_stringf(j, "status", "%c%s %s %s", toupper(*state_name[display->priority]), state_name[display->priority] + 1, area_list(set, display->area), display->text);
@@ -945,7 +948,7 @@ static void task(void *pvParameters)
       esp_task_wdt_reset();
       {                         // Set LED mode
          int r = 1;
-         if ((isroot && !revk_link_down() && nodes_online == meshmax) || (!isroot && esp_mesh_is_device_active()))
+         if ((isroot && !revk_link_down() && nodes_online == meshexpect) || (!isroot && esp_mesh_is_device_active()))
             r = 3;
          const char *led = "G";
 #define i(t,x,c) if((state_##x&(arealed?:(area_t)-1))&&*#c)led=#c;
@@ -1054,7 +1057,7 @@ static void task(void *pvParameters)
                {                // Change to mesh
                   wasonline = nodes_online;
                   // Simple missing nodes picked up by control
-                  if (nodes_online == 1 && meshmax > 1)
+                  if (nodes_online == 1 && meshexpect > 1)
                      logical_gpio |= logical_MeshFault; // Lonely
                   else
                      logical_gpio &= ~logical_MeshFault;
