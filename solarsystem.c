@@ -479,7 +479,6 @@ static const char *settings(SQL * sqlp, SQL * sqlkeyp, SQL_RES * res, slot_t id)
       slot_send(id, "setting", sql_colz(res, "device"), NULL, &j);
    j_delete(&j);
    return NULL;
-   return NULL;
 }
 
 static void addset(j_t j, const char *tag, const char *val, const char *always)
