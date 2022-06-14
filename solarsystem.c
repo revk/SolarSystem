@@ -621,7 +621,7 @@ static void addsitedata(SQL * sqlp, j_t j, SQL_RES * site, const char *deviceid,
       }
       if (*v)
          j_store_string(mesh, "pass", v);
-      SQL_RES *res = sql_safe_query_store_free(sqlp, sql_printf("SELECT COUNT(if(`outofservice`='false',1,0)) AS `N`,COUNT(*) AS `T` FROM `device` WHERE `site`=%#s", sql_col(site, "site")));
+      SQL_RES *res = sql_safe_query_store_free(sqlp, sql_printf("SELECT SUM(if(`outofservice`='false',1,0)) AS `N`,COUNT(*) AS `T` FROM `device` WHERE `site`=%#s", sql_col(site, "site")));
       if (sql_fetch_row(res))
       {
          j_store_int(mesh, "max", atoi(sql_colz(res, "T")));
