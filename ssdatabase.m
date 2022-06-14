@@ -193,6 +193,7 @@ text(smsfrom, 10);              // From, where settable by carrier
 text(emailfrom, 0);             // From email
 areas(smsarm);                  // When to SMS
 areas(smsdisarm);
+areas(smscancel);
 areas(smsarmfail);
 areas(smsalarm);
 areas(smspanic);

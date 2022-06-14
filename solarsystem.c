@@ -551,6 +551,7 @@ static void addsitedata(SQL * sqlp, j_t j, SQL_RES * site, const char *deviceid,
    j_t sms = j_store_object(j, "sms");
    addset(sms, "arm", sql_col(site, "smsarm"), 0);
    addset(sms, "disarm", sql_col(site, "smsdisarm"), 0);
+   addset(sms, "cancel", sql_col(site, "smscancel"), 0);
    addset(sms, "armfail", sql_col(site, "smsarmfail"), 0);
    addset(sms, "alarm", sql_col(site, "smsalarm"), 0);
    addset(sms, "panic", sql_col(site, "smspanic"), 0);

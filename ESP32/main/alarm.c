@@ -87,6 +87,7 @@ static display_t *display = NULL;
 	u8(meshdied,240)	\
 	area(smsarm)		\
 	area(smsdisarm)		\
+	area(smscancel)		\
 	area(smsarmfail)	\
 	area(smsalarm)		\
 	area(smspanic)		\
@@ -887,6 +888,8 @@ static void mesh_handle_summary(const char *target, jo_t j)
       if (json_disarm)
       {
          jo_area(json_disarm, "areas", control_disarm);
+         if (smscancel & control_disarm & state_armed)
+            sms_event("Cancelled", json_disarm);
          if (smsdisarm & control_disarm)
             sms_event("Disarmed", json_disarm);
          alarm_event("disarm", &json_disarm, ioteventarm);

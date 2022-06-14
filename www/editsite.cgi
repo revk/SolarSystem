@@ -36,7 +36,7 @@ if($?sitename) then
 	if($?root) then
 		if("$root" == "") unsetenv root
 	endif
-	sqlwrite -qon "$DB" site sitename wifissid wifipass wifichan iothost nomesh smsuser smspass armcancel armdelay alarmdelay alarmhold debug iotstatesystem ioteventarm smsarm smsarmfail smsdisarm smsalarm smspanic smsfire engineer smsnumber smsfrom hookbearer hookfob hookalarm hookfire hookpanic hooktrigger hookinhibit hookfobdeny meshlr wifibssid root hookoffline emailfrom hookarm hookstrong hookdisarm hooknotopen hookopen hookarmfail hookforced hookpropped hookwrongpin
+	sqlwrite -qon "$DB" site sitename wifissid wifipass wifichan iothost nomesh smsuser smspass armcancel armdelay alarmdelay alarmhold debug iotstatesystem ioteventarm smsarm smsarmfail smsdisarm smscancel smsalarm smspanic smsfire engineer smsnumber smsfrom hookbearer hookfob hookalarm hookfire hookpanic hooktrigger hookinhibit hookfobdeny meshlr wifibssid root hookoffline emailfrom hookarm hookstrong hookdisarm hooknotopen hookopen hookarmfail hookforced hookpropped hookwrongpin
 	sql "$DB" 'UPDATE device SET poke=NOW() WHERE site=$site'
 	message --poke
 	redirect /
@@ -104,7 +104,7 @@ Root:<select name=root><option value=''>None</option><sql table=device where="si
 <tr><td>SMS Target</td><td><input name=smsnumber size=20 maxlength=20> (Send for sms selected areas as listed below)</td></tr>
 </table>
 <table border=1>
-<set tags="engineer smsarm smsarmfail smsdisarm smsalarm smspanic smsfire">
+<set tags="engineer smsarm smsarmfail smsdisarm smscancel smsalarm smspanic smsfire">
 <tr><th></th>
 <for SPACE T="$tags"><th><output name=T></th></for>
 <th>Areas</th>
