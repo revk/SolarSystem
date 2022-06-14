@@ -153,7 +153,7 @@ static void nmea(char *data)
    {                            // GNZDA,140226.832,14,03,2022,,
       struct tm tm = { };
       tm.tm_year = atoi(f[3]) - 1900;
-      tm.tm_mon = atoi(f[2]);
+      tm.tm_mon = atoi(f[2]) - 1;
       tm.tm_mday = atoi(f[1]);
       tm.tm_hour = (f[0][0] - '0') * 10 + (f[0][1] - '0');
       tm.tm_min = (f[0][2] - '0') * 10 + (f[0][3] - '0');
