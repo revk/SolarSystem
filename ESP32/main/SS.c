@@ -51,9 +51,6 @@ static const char __attribute__((unused)) TAG[] = "SS";
 	bl(iotstatedoor)	\
 	bl(iotstateinput)\
 	bl(iotstateoutput)\
-	bl(iotstatefault)\
-	bl(iotstatewarning)\
-	bl(iotstatetamper)\
 	bl(iotstatesystem)\
 	bl(ioteventfob)	\
 	bl(ioteventarm)	\

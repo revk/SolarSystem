@@ -278,9 +278,6 @@ bool (excludeall);              // Don't include in all functions
 bool (iotstatedoor);            // Copy stuff to IoT
 bool (iotstateinput);           // Copy stuff to IoT
 bool (iotstateoutput);          // Copy stuff to IoT
-bool (iotstatefault);           // Copy stuff to IoT
-bool (iotstatewarning);         // Copy stuff to IoT
-bool (iotstatetamper);          // Copy stuff to IoT
 bool (ioteventfob);             // Copy stuff to IoT
 bool (iotkeypad);               // Copy stuff to IoT
 bool (iotgps);                  // Copy stuff to IoT
