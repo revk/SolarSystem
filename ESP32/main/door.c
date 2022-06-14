@@ -586,12 +586,14 @@ const char *door_command(const char *tag, jo_t j)
             {
                if (!jo_strcmp(j, "id"))
                {
+                  jo_next(j);
                   int len = jo_strncpy(j, tempid, sizeof(tempid));
                   if (len > 0 && len < sizeof(tempid))
                      id = tempid;
 
                } else if (!jo_strcmp(j, "afile"))
                {
+                  jo_next(j);
                   int len = jo_strncpy16(j, temp, sizeof(temp));
                   if (len < 0)
                      e = "Bad hex";
