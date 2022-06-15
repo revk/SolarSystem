@@ -1553,12 +1553,8 @@ int main(int argc, const char *argv[])
                            if (sqldebug)
                               warnx("CRC mismatch %08X %08X", was, new);
                            j_t a = j_create();
-#if 1	// Waiting on devices to be able to handle this
-			   j_string(a, j_base16a(*afile + 1, afile));
-#else
                            j_store_string(a, "id", fobid);
                            j_store_string(a, "afile", j_base16a(*afile + 1, afile));
-#endif
                            slot_send(id, "command", deviceid, "access", &a);
                         }
                      }
