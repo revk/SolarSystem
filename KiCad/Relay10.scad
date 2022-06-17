@@ -1,6 +1,6 @@
 // Generated case design for KiCad/Relay10.kicad_pcb
 // By https://github.com/revk/PCBCase
-// Generated 2022-06-17 10:40:42
+// Generated 2022-06-17 11:55:26
 // title:	Output board (10)
 // date:	${DATE}
 // rev:	1
@@ -141,22 +141,25 @@ rotate([90,0,0])translate([-4.47,-3.84,0])
 	}
 	translate([0,6.65,0])cube([8.94,1.1,1.63]);
 	translate([0,2.2,0])cube([8.94,1.6,1.63]);
-	// Plug
-	translate([1.63,-20,1.63])
-	rotate([-90,0,0])
-	hull()
+	if(!hulled)
 	{
-		cylinder(d=2.5,h=21,$fn=24);
-		translate([5.68,0,0])
-		cylinder(d=2.5,h=21,$fn=24);
-	}
-	translate([1.63,-22.5,1.63])
-	rotate([-90,0,0])
-	hull()
-	{
-		cylinder(d=7,h=21,$fn=24);
-		translate([5.68,0,0])
-		cylinder(d=7,h=21,$fn=24);
+		// Plug
+		translate([1.63,-20,1.63])
+		rotate([-90,0,0])
+		hull()
+		{
+			cylinder(d=2.5,h=21,$fn=24);
+			translate([5.68,0,0])
+			cylinder(d=2.5,h=21,$fn=24);
+		}
+		translate([1.63,-22.5,1.63])
+		rotate([-90,0,0])
+		hull()
+		{
+			cylinder(d=7,h=21,$fn=24);
+			translate([5.68,0,0])
+			cylinder(d=7,h=21,$fn=24);
+		}
 	}
 }
 
