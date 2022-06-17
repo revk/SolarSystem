@@ -1,6 +1,6 @@
 // Generated case design for KiCad/Access2.kicad_pcb
 // By https://github.com/revk/PCBCase
-// Generated 2022-06-17 10:20:06
+// Generated 2022-06-17 10:24:50
 // title:	Access Control
 // date:	${DATE}
 // rev:	3
@@ -199,7 +199,7 @@ module m6(pushed=false,hulled=false)
 b(0,0,0,1.6,0.8,0.25);
 b(0,0,0,1.2,0.8,0.55);
 b(0,0,0,0.8,0.8,0.95);
-if(pushed)b(0,0,0,1,1,20);
+if(!hulled&&pushed)b(0,0,0,1,1,20);
 }
 
 module m7(pushed=false,hulled=false)

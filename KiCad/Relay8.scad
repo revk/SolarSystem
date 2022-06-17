@@ -1,9 +1,9 @@
 // Generated case design for KiCad/Relay8.kicad_pcb
 // By https://github.com/revk/PCBCase
-// Generated 2022-05-31 15:27:38
-// title:	Bell box controller
+// Generated 2022-06-17 10:37:13
+// title:	Output board (8)
 // date:	${DATE}
-// rev:	2
+// rev:	1
 // company:	Adrian Kennard, Andrews & Arnold Ltd
 //
 
@@ -186,7 +186,7 @@ module m11(pushed=false,hulled=false)
 b(0,0,0,1.6,0.8,0.25);
 b(0,0,0,1.2,0.8,0.55);
 b(0,0,0,0.8,0.8,0.95);
-if(pushed)b(0,0,0,1,1,20);
+if(!hulled&&pushed)b(0,0,0,1,1,20);
 }
 
 height=casebase+pcbthickness+casetop;
