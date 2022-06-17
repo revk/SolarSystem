@@ -1,6 +1,6 @@
 // Generated case design for KiCad/Bell2.kicad_pcb
 // By https://github.com/revk/PCBCase
-// Generated 2022-06-17 12:16:44
+// Generated 2022-06-17 13:33:03
 // title:	Bell box controller
 // date:	${DATE}
 // rev:	2
@@ -247,10 +247,14 @@ module boardf()
 		intersection()
 		{
 			translate([-casewall-1,-casewall-1,-casebase-1]) cube([pcbwidth+casewall*2+2,pcblength+casewall*2+2,height+2]);
-			minkowski()
+			union()
 			{
-				boardh(true);
-				cylinder(h=height+100,d=margin,$fn=8);
+				minkowski()
+				{
+					boardh(true);
+					cylinder(h=height+100,d=margin,$fn=8);
+				}
+				board(false,false);
 			}
 		}
 	}
@@ -263,11 +267,15 @@ module boardb()
 		intersection()
 		{
 			translate([-casewall-1,-casewall-1,-casebase-1]) cube([pcbwidth+casewall*2+2,pcblength+casewall*2+2,height+2]);
-			minkowski()
+			union()
 			{
-				boardh(true);
-				translate([0,0,-height-100])
-				cylinder(h=height+100,d=margin,$fn=8);
+				minkowski()
+				{
+					boardh(true);
+					translate([0,0,-height-100])
+					cylinder(h=height+100,d=margin,$fn=8);
+				}
+				board(false,false);
 			}
 		}
 	}
