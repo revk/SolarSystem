@@ -581,14 +581,16 @@ static void mesh_send_summary(void)
       uint32_t now = uptime();
       was_presence = state_presence;    // Not doing these
       was_access = state_access;        // Not doing these
-      static uint8_t lastnodes = 0;
+      static uint8_t lastnodes = 0,
+          lastexpect = 0;
       static display_t *lastdisplay = NULL;
-      if (now > control_summary || nodes != lastnodes || display != lastdisplay
+      if (now > control_summary || nodes != lastnodes || display != lastdisplay || meshexpect != lastexpect
 #define i(t,x,c) ||was_##x!=state_##x
 #define s(t,x,c) ||was_##x!=state_##x
 #include "states.m"
           )
       {
+         lastexpect = meshexpect;
          lastdisplay = display;
          lastnodes = nodes;
          control_summary = now + 3600;
