@@ -65,15 +65,15 @@ stl:	$(patsubst %,KiCad/%.stl,$(MODELS))
 	echo "Made $@"
 
 KiCad/GPS.scad: KiCad/GPS.kicad_pcb PCBCase/case Makefile
-	PCBCase/case -o $@ $< --base=5 --top=5.2
+	PCBCase/case -o $@ $< --base=5 --top=5.4
 KiCad/Bell.scad: KiCad/Bell.kicad_pcb PCBCase/case Makefile
-	PCBCase/case -o $@ $< --base=2 --top=5.2
+	PCBCase/case -o $@ $< --base=2 --top=5.4
 KiCad/Bell2GPS.scad: KiCad/Bell2.kicad_pcb PCBCase/case Makefile
-	PCBCase/case -o $@ $< --base=2 --top=5.2
+	PCBCase/case -o $@ $< --base=2 --top=5.4
 KiCad/Bell2.scad: KiCad/Bell2.kicad_pcb PCBCase/case Makefile
-	PCBCase/case -o $@ $< --base=2 --top=5.2 --edge2
+	PCBCase/case -o $@ $< --base=2 --top=5.4 --edge2
 KiCad/Access2.scad: KiCad/Access2.kicad_pcb PCBCase/case Makefile
-	PCBCase/case -o $@ $< --base=2 --top=5.2
+	PCBCase/case -o $@ $< --base=2 --top=5.4
 KiCad/Relay8.scad: KiCad/Relay8.kicad_pcb PCBCase/case Makefile
 	PCBCase/case -o $@ $< --base=1.4 --top=5.4
 KiCad/Relay10.scad: KiCad/Relay10.kicad_pcb PCBCase/case Makefile
