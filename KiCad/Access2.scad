@@ -1,6 +1,6 @@
 // Generated case design for KiCad/Access2.kicad_pcb
 // By https://github.com/revk/PCBCase
-// Generated 2022-06-17 13:17:53
+// Generated 2022-06-17 13:28:15
 // title:	Access Control
 // date:	${DATE}
 // rev:	3
@@ -13,7 +13,7 @@ margin=0.500000;
 overlap=2.000000;
 lip=0.000000;
 casebase=2.000000;
-casetop=5.700000;
+casetop=5.600000;
 casewall=3.000000;
 fit=0.000000;
 edge=1.000000;
@@ -193,8 +193,8 @@ module m5(pushed=false,hulled=false)
 { // RevK:SW_PUSH_6mm_SMD SW_SPST_PTS645
 if(!hulled&&!pushed)
 { // This avoids hull and minkowski as used as a tamper switch so needs to be more exact
-	b(0,0,0,6,6,4); // Used as a tamper, so exact
-	for(x=[-2,2])for(y=[-2,2])translate([x,y,0])cylinder(d=1,h=4.2); // Pips on top
+	b(0,0,0,6,6,3.4); // Used as a tamper, so exact
+	for(x=[-2,2])for(y=[-2,2])translate([x,y,0])cylinder(d=1,h=3.5); // Pips on top
 }
 b(0,0,0,9,6,1.1); // Legs
 
