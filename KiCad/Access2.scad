@@ -1,6 +1,6 @@
 // Generated case design for KiCad/Access2.kicad_pcb
 // By https://github.com/revk/PCBCase
-// Generated 2022-06-17 12:22:46
+// Generated 2022-06-17 12:41:21
 // title:	Access Control
 // date:	${DATE}
 // rev:	3
@@ -191,7 +191,8 @@ b(0,0,0,2.8,0.95,0.5); // Pad size
 
 module m5(pushed=false,hulled=false)
 { // RevK:SW_PUSH_6mm_SMD SW_SPST_PTS645
-if(!hulled)b(0,0,0,6,6,3.8); // Used as a tamper, so tight...
+b(0,0,0,6,6,3.5);
+if(!hulled&&!pushed)b(0,0,0,6.2,6.2,4); // Used as a tamper, so exact (i.e. !pushed)
 b(0,0,0,9,6,1.1);
 
 }
@@ -332,10 +333,14 @@ module boardf()
 		intersection()
 		{
 			translate([-casewall-1,-casewall-1,-casebase-1]) cube([pcbwidth+casewall*2+2,pcblength+casewall*2+2,height+2]);
-			minkowski()
+			union()
 			{
-				boardh(true);
-				cylinder(h=height+100,d=margin,$fn=8);
+				minkowski()
+				{
+					boardh(true);
+					cylinder(h=height+100,d=margin,$fn=8);
+				}
+				board(false,false);
 			}
 		}
 	}
@@ -348,11 +353,15 @@ module boardb()
 		intersection()
 		{
 			translate([-casewall-1,-casewall-1,-casebase-1]) cube([pcbwidth+casewall*2+2,pcblength+casewall*2+2,height+2]);
-			minkowski()
+			union()
 			{
-				boardh(true);
-				translate([0,0,-height-100])
-				cylinder(h=height+100,d=margin,$fn=8);
+				minkowski()
+				{
+					boardh(true);
+					translate([0,0,-height-100])
+					cylinder(h=height+100,d=margin,$fn=8);
+				}
+				board(false,false);
 			}
 		}
 	}
