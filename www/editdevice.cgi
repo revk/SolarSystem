@@ -145,7 +145,7 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <td align=right><output name=flash type=mebi replace .00="" .0Mi="Mi">B</td>
 <td>
 <if excludeall=true>*</if>
-<if outofservice=true>Out of service (recommended before upgrade as faster)</if>
+<if outofservice=true>Out of service</if>
 <if else>
 <if online door=true CANUNLOCK><form style="display:inline;" method=post><input type=hidden name=device><input type=submit name=UNLOCK value="Unlock"></form></if>
 <if door=true>Door </if><if gps=true>GPS </if><if nfc=true>NFC reader </if><if nfcadmin=true> (admin)</if><if nfctrusted=true><b> (trusted)</b></if><br>
@@ -163,7 +163,7 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <form method=post action=/editdevice.cgi><input type=hidden name=device>
 <sql table="device LEFT JOIN pcb USING (pcb)" KEY=device>
 <table>
-<tr><td><input type=checkbox id=outofservice name=outofservice value=true></td><td colspan=2><label for=outofservice>Out of service</label></td></tr>
+<tr><td><input type=checkbox id=outofservice name=outofservice value=true></td><td colspan=2><label for=outofservice>Out of service (recommended before upgrade, as faster)</label></td></tr>
 <tr><td><input type=checkbox id=excludeall name=excludeall value=true></td><td colspan=2><label for=excludeall>Do not include in "all" buttons</label></td></tr>
 <tr><td>PCB</td><td colspan=2><select name=pcb><sql table=pcb order=pcbname><option value="$pcb"><output name=pcbname></option></sql></select></td></tr>
 <tr><td>Name</td><td colspan=2><input name=devicename size=20 maxlength=20 autofocus></td></tr>
