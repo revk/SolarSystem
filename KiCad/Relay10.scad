@@ -1,6 +1,6 @@
 // Generated case design for KiCad/Relay10.kicad_pcb
 // By https://github.com/revk/PCBCase
-// Generated 2022-06-17 11:55:26
+// Generated 2022-06-17 13:06:25
 // title:	Output board (10)
 // date:	${DATE}
 // rev:	1
@@ -12,7 +12,7 @@ margin=0.500000;
 overlap=2.000000;
 lip=0.000000;
 casebase=1.400000;
-casetop=5.400000;
+casetop=5.600000;
 casewall=3.000000;
 fit=0.000000;
 edge=1.000000;
@@ -218,10 +218,14 @@ module boardf()
 		intersection()
 		{
 			translate([-casewall-1,-casewall-1,-casebase-1]) cube([pcbwidth+casewall*2+2,pcblength+casewall*2+2,height+2]);
-			minkowski()
+			union()
 			{
-				boardh(true);
-				cylinder(h=height+100,d=margin,$fn=8);
+				minkowski()
+				{
+					boardh(true);
+					cylinder(h=height+100,d=margin,$fn=8);
+				}
+				board(false,false);
 			}
 		}
 	}
@@ -234,11 +238,15 @@ module boardb()
 		intersection()
 		{
 			translate([-casewall-1,-casewall-1,-casebase-1]) cube([pcbwidth+casewall*2+2,pcblength+casewall*2+2,height+2]);
-			minkowski()
+			union()
 			{
-				boardh(true);
-				translate([0,0,-height-100])
-				cylinder(h=height+100,d=margin,$fn=8);
+				minkowski()
+				{
+					boardh(true);
+					translate([0,0,-height-100])
+					cylinder(h=height+100,d=margin,$fn=8);
+				}
+				board(false,false);
 			}
 		}
 	}
