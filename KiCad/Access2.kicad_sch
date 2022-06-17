@@ -3800,7 +3800,7 @@
     (uuid 00000000-0000-0000-0000-0000608d7f70)
     (property "Reference" "D8" (id 0) (at 260.35 31.9532 0))
     (property "Value" "D" (id 1) (at 260.35 34.2646 0))
-    (property "Footprint" "Diode_SMD:D_1206_3216Metric_Pad1.42x1.75mm_HandSolder" (id 2) (at 260.35 37.465 0)
+    (property "Footprint" "RevK:D_1206" (id 2) (at 260.35 37.465 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Datasheet" "~" (id 3) (at 260.35 37.465 0)
@@ -3845,7 +3845,7 @@
   )
 
   (symbol (lib_id "RevK:QR") (at 273.05 174.625 0) (unit 1)
-    (in_bom yes) (on_board yes)
+    (in_bom no) (on_board yes)
     (uuid 00000000-0000-0000-0000-0000608f5575)
     (property "Reference" "U7" (id 0) (at 273.05 177.8 0)
       (effects (font (size 1.27 1.27)) hide)
@@ -5968,7 +5968,7 @@
       (reference "D7") (unit 1) (value "Schottky") (footprint "RevK:Hidden")
     )
     (path "/00000000-0000-0000-0000-0000608d7f70"
-      (reference "D8") (unit 1) (value "D") (footprint "Diode_SMD:D_1206_3216Metric_Pad1.42x1.75mm_HandSolder")
+      (reference "D8") (unit 1) (value "D") (footprint "RevK:D_1206")
     )
     (path "/00000000-0000-0000-0000-000060436927"
       (reference "J1") (unit 1) (value "USB-C") (footprint "RevK:USC16-TR-Round")
