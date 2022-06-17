@@ -1,6 +1,6 @@
 // Generated case design for KiCad/Bell2.kicad_pcb
 // By https://github.com/revk/PCBCase
-// Generated 2022-06-17 10:23:45
+// Generated 2022-06-17 11:30:20
 // title:	Bell box controller
 // date:	${DATE}
 // rev:	2
@@ -12,7 +12,7 @@ margin=0.500000;
 overlap=2.000000;
 lip=0.000000;
 casebase=2.000000;
-casetop=5.200000;
+casetop=5.400000;
 casewall=3.000000;
 fit=0.000000;
 edge=1.000000;
@@ -161,7 +161,7 @@ module m10(pushed=false,hulled=false)
 b(0,0,0,1.6,0.8,0.25);
 b(0,0,0,1.2,0.8,0.55);
 b(0,0,0,0.8,0.8,0.95);
-if(pushed)b(0,0,0,1,1,20);
+if(!hulled&&pushed)b(0,0,0,1,1,20);
 }
 
 module m11(pushed=false,hulled=false)
