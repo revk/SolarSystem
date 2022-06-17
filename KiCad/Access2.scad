@@ -1,6 +1,6 @@
 // Generated case design for KiCad/Access2.kicad_pcb
 // By https://github.com/revk/PCBCase
-// Generated 2022-06-17 10:24:50
+// Generated 2022-06-17 11:01:51
 // title:	Access Control
 // date:	${DATE}
 // rev:	3
@@ -191,7 +191,7 @@ b(0,0,0,2.8,0.95,0.5); // Pad size
 
 module m5(pushed=false,hulled=false)
 { // RevK:SW_PUSH_6mm_SMD SW_SPST_PTS645
-b(0,0,0,6,6,4);
+if(!hulled&&pushed)b(0,0,0,6,6,4);
 }
 
 module m6(pushed=false,hulled=false)
