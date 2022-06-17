@@ -1,6 +1,6 @@
 // Generated case design for KiCad/Relay8.kicad_pcb
 // By https://github.com/revk/PCBCase
-// Generated 2022-06-17 13:02:49
+// Generated 2022-06-17 13:46:29
 // title:	Output board (8)
 // date:	${DATE}
 // rev:	1
