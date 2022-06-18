@@ -582,25 +582,25 @@ static void mesh_send_summary(void)
       was_presence = state_presence;    // Not doing these
       was_access = state_access;        // Not doing these
       static uint8_t lastnodes = 0,
-          lastexpect = 0;
+          lastexpect = 0,
+          lastonline = 0;
       static display_t *lastdisplay = NULL;
-      if (now > control_summary || nodes != lastnodes || display != lastdisplay || meshexpect != lastexpect
+      if (now > control_summary || nodes != lastnodes || display != lastdisplay || meshexpect != lastexpect || lastonline != nodes_online
 #define i(t,x,c) ||was_##x!=state_##x
 #define s(t,x,c) ||was_##x!=state_##x
 #include "states.m"
           )
       {
+         lastonline = nodes_online;
          lastexpect = meshexpect;
          lastdisplay = display;
          lastnodes = nodes;
          control_summary = now + 3600;
          j = jo_make("");
          jo_string(j, "root", nodename);
-         jo_int(j, "nodes", nodes);
-         if (nodes_online < nodes)
-            jo_int(j, "offline", nodes - nodes_online);
-         if (nodes != meshexpect)
-            jo_int(j, "missing", meshexpect - nodes);
+         jo_int(j, "nodes", nodes_online);
+         if (nodes_online != meshexpect)
+            jo_int(j, "missing", meshexpect - nodes_online);
          char set[sizeof(area_t) * 8 + 1] = "";
          if (display)
             jo_stringf(j, "status", "%c%s %s %s", toupper(*state_name[display->priority]), state_name[display->priority] + 1, area_list(set, display->area), display->text);
