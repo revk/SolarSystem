@@ -1060,6 +1060,7 @@ static void task(void *pvParameters)
                {                // Change to mesh
                   wasonline = nodes_online;
                   // Simple missing nodes picked up by control
+		  // Mesh fault is used to flag internally and alarm, etc.
                   if (nodes_online == 1 && meshexpect > 1)
                      logical_gpio |= logical_MeshFault; // Lonely
                   else
