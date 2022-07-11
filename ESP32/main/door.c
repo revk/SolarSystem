@@ -468,7 +468,9 @@ const char *door_fob(fob_t * fob)
             {                   // Clock not set
                if (!fob->clock)
                   e = "Time not set";
-            } else if (fok && tok && memcmp(fok, tok, 2) > 0)
+            } else if (fok && tok && !memcmp(fok, tok, 2))
+               e = "Not today"; // No time window
+            else if (fok && tok && memcmp(fok, tok, 2) > 0)
             {                   // reverse
                if (memcmp(datetime + 4, fok, 2) < 0 && memcmp(datetime + 4, tok, 2) >= 0)
                   e = "Outside time";
