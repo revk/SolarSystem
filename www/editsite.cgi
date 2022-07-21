@@ -36,7 +36,7 @@ if($?sitename) then
 	if($?root) then
 		if("$root" == "") unsetenv root
 	endif
-	sqlwrite -qon "$DB" site sitename wifissid wifipass wifichan iothost nomesh smsuser smspass armcancel armdelay alarmdelay alarmhold debug iotstatesystem ioteventarm smsarm smsarmfail smsdisarm smscancel smsalarm smspanic smsfire engineer smsnumber smsfrom hookbearer hookfob hookalarm hookfire hookpanic hooktrigger hookinhibit hookfobdeny meshlr wifibssid root hookoffline emailfrom hookarm hookstrong hookdisarm hooknotopen hookopen hookarmfail hookforced hookpropped hookwrongpin
+	sqlwrite -qon "$DB" site sitename wifissid wifipass wifichan iothost nomesh smsuser smspass armcancel armdelay alarmdelay alarmhold debug iotstatesystem ioteventarm smsarm smsarmfail smsdisarm smscancel smsalarm smspanic smsfire engineer smsnumber smsfrom hookoffline hookfob hookfobdeny hookalarm hookfire hookpanic hookwarning hooktamper hookfault hooktrigger hookinhibit hookarm hookstrong hookdisarm hookarmfail hookopen hookforced hooknotopen hookpropped hookwrongpin meshlr wifibssid root hookoffline emailfrom hookarm hookstrong hookdisarm hooknotopen hookopen hookarmfail hookforced hookpropped hookwrongpin
 	sql "$DB" 'UPDATE device SET poke=NOW() WHERE site=$site'
 	message --poke
 	redirect /
