@@ -245,7 +245,8 @@ static void task(void *pvParameters)
                } else
                {                // Failed
                   on = 0;
-                  gpio_set_direction(port_mask(nfctx), GPIO_MODE_DISABLE);      // Don't drive via tx
+                  gpio_reset_pin(port_mask(nfcrx));     // Don't drive
+                  gpio_reset_pin(port_mask(nfctx));     // Don't drive
                   if (nfcpower)
                      gpio_set_level(port_mask(nfcpower), (nfcpower & PORT_INV) ? 1 : 0);        // Off
                   wait = 500 / nfciopoll;       // off wait
@@ -255,7 +256,6 @@ static void task(void *pvParameters)
                on = 1;
                if (nfcpower)
                   gpio_set_level(port_mask(nfcpower), (nfcpower & PORT_INV) ? 0 : 1);   // On
-               gpio_set_direction(port_mask(nfctx), GPIO_MODE_OUTPUT);
                wait = 500 / nfciopoll;  // on wait
             }
          }
@@ -535,7 +535,9 @@ const char *nfc_command(const char *tag, jo_t j)
    if (!strcmp(tag, "shutdown"))
    {
       if (nfctx)
-         gpio_set_direction(port_mask(nfctx), GPIO_MODE_DISABLE);       // Don't drive via Tx
+         gpio_reset_pin(port_mask(nfctx));      // So not driving via data lines
+      if (nfcrx)
+         gpio_reset_pin(port_mask(nfcrx));      // So not driving via data lines
       if (nfcpower)
          gpio_set_level(port_mask(nfcpower), (nfcpower & PORT_INV) ? 1 : 0);    // Off
    }
@@ -630,12 +632,7 @@ void nfc_boot(void)
       nfcinvert |= (1 << gpio_mask(nfccard));
    if (nfcpower)
    {
-      // These pins could try to power the nfc when power off
-      if (nfctx)
-         gpio_set_pull_mode(port_mask(nfctx), GPIO_PULLDOWN_ONLY);
-      if (nfcrx)
-         gpio_set_pull_mode(port_mask(nfcrx), GPIO_PULLDOWN_ONLY);
-      // Start off
+      gpio_reset_pin(port_mask(nfcpower));
       gpio_set_level(port_mask(nfcpower), (nfcpower & PORT_INV) ? 1 : 0);       // Off
       gpio_set_direction(port_mask(nfcpower), GPIO_MODE_OUTPUT);
    }
