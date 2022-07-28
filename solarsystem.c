@@ -360,6 +360,8 @@ static const char *settings(SQL * sqlp, SQL * sqlkeyp, SQL_RES * res, slot_t id)
       if (sql_fetch_row(p))
       {
          const char *v;
+         if ((v = sql_colz(res, "timer1")) && *v && strlen(v) == 8)
+            j_store_int(j, "timer1", atoi(v) * 100 + atoi(v + 3));
          j_t o = j_store_object(j, "keypad");
 #define set(h,c) {const char *v=sql_colz(p,#h#c);if(v&&strcmp(v,"-"))j_store_literal(o,#c,v);}
          set(keypad, tx);

@@ -103,7 +103,7 @@ if($?devicename) then # save
 	if(! $?iotkeypad) setenv iotkeypad false
 	if(! $?iotgps) setenv iotgps false
 	if(! $?ioteventfob) setenv ioteventfob false
-	setenv allow "devicename areaenter areastrong areadeadlock areaarm areadisarm areabell arealed areakeypad areakeyarm areakeystrong areakeydisarm nfc gps rgb nfcadmin door doorexitarm doorexitdisarm aid site iotstatedoor iotstateinput iotstateoutput ioteventfob iotkeypad iotgps doorunlock doorlock dooropen doorclose doorprop doorexit doordebounce keypadidle keypadpin keypad pcb dooriotunlock dooriotdead dooriotundead excludeall outofservice doordebug doorcatch"
+	setenv allow "devicename timer1 areaenter areastrong areadeadlock areaarm areadisarm areabell arealed areakeypad areakeyarm areakeystrong areakeydisarm nfc gps rgb nfcadmin door doorexitarm doorexitdisarm aid site iotstatedoor iotstateinput iotstateoutput ioteventfob iotkeypad iotgps doorunlock doorlock dooropen doorclose doorprop doorexit doordebounce keypadidle keypadpin keypad pcb dooriotunlock dooriotdead dooriotundead excludeall outofservice doordebug doorcatch"
 	if("$USER_ADMIN" == "true") setenv allow "$allow nfctrusted"
 	sqlwrite -qon "$DB" device $allow
 	sql "$DB" 'UPDATE device SET poke=NOW() WHERE site=$site'
@@ -187,6 +187,7 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <if nfc=true><tr><td>AID</td><td colspan=2><select name=aid><sql table=aid where="site=$site"><option value="$aid"><output name=aidname></option></sql></select></td></tr></if>
 <tr><td>Online</td><td colspan=2><if online><output name=online></if><if else>Last online <output name=lastonline missing="never"></if><if upgrade> (upgrade scheduled)</if></td></tr>
 <tr><td>Version</td><td colspan=2><output name=version></td></tr>
+<tr><td>Timer1</td><td><input name=timer1 type=time> timer logical input if clock set</td></tr>
 <sql table=pcb where="pcb=$pcb">
 <if nfc=true><tr><td><input type=checkbox id=door name=door value=true></td><td colspan=2><label for=door>Door control (set times 0 for default, -1 to force no timer)</label></td></tr></if>
 <if door=true><tr><td><input size=5 id=doorunlock name=doorunlock>ms</td><td colspan=2><label for=doorunlock>Lock disengage timer (set -1 for EL56X)</label></td></tr></if>
