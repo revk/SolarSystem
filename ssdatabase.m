@@ -255,6 +255,8 @@ num(mem);                       // Free memory
 
 join(fob, aid);                 // Fob is in AID (adopted)
 datetime(adopted);              // When adopted
+datetime(firstinday);		// First used in day
+datetime(lastused);		// Last used
 text(ver, 2);                   // Key version
 link(access);                   // Access permissions
 
