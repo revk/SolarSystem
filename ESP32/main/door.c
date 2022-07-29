@@ -21,7 +21,9 @@ static const char TAG[] = "door";
 #include "output.h"
 #include "door.h"
 
+uint32_t afiletime = 0;         // Last afile stored (uptime)
 uint8_t afile[256];             // Access file saved
+char afileid[21] = { 0 };       // Access file ID
 
 #define settings  \
   u8(doorauto,0);   \
@@ -134,24 +136,21 @@ const char *door_access(const char *id, const uint8_t * a)
 {                               // Confirm access
    if (!a)
       return "";                // No action
-   // TODO check id if set
-   // TODO store cached id/afile if not on line
+   if (!id)
+      return "ID needed";
+   if (strcmp(id, afileid))
+      return "Mismatch";        // Not the fob we have here
    if (*a == *afile && !memcmp(a + 1, afile + 1, *afile))
       return "";                // Same
-   if (!df.keylen)
-      return "";                // Not logged in
-   xSemaphoreTake(nfc_mutex, portMAX_DELAY);
-   memcpy(afile, a, *a + 1);
-   const char *e = df_write_data(&df, 0x0A, 'B', DF_MODE_CMAC, 0, *afile + 1, afile);
-   if (!e)
-      e = df_commit(&df);
-   xSemaphoreGive(nfc_mutex);
-   if (!e)
-   {
-      nfc_retry();
-      return "";
+   xSemaphoreTake(nfc_mutex, portMAX_DELAY);    // Just to avoid changes whilst nfc is also doing things
+   if (!strcmp(id, afileid))
+   {                            // Re check now we have semaphore
+      memcpy(afile, a, *a + 1); // Store new afile
+      afiletime = uptime();     // log time
    }
-   return e;
+   xSemaphoreGive(nfc_mutex);
+   nfc_retry();                 // Will updated if possible because afiletime set
+   return "";
 }
 
 void door_check(void)
@@ -295,10 +294,26 @@ const char *door_fob(fob_t * fob)
        xlen = 0,
        xdays = 0;               // Expiry data
    const char *afilecheck(void) {       // Read Afile
+      const char *e = NULL;
       fob->checked = 1;
-      const char *e = df_read_data(&df, 0x0A, DF_MODE_CMAC, 0, MINAFILE, afile);        // Initial
-      if (!e && *afile + 1 > MINAFILE)
-         e = df_read_data(&df, 0x0A, DF_MODE_CMAC, MINAFILE, *afile + 1 - MINAFILE, afile + MINAFILE);  // More data
+      if (afiletime && afiletime + 60 > uptime() && *afileid && !strcmp(afileid, fob->id) && *afile)
+      {                         // We have a stored update to the afile
+         e = df_write_data(&df, 0x0A, 'B', DF_MODE_CMAC, 0, *afile + 1, afile);
+         if (!e)
+         {
+            afiletime = 0;      // Done.
+            fob->updated = 1;   // Does commit
+         }
+      } else
+      {
+         *afileid = 0;
+         afiletime = 0;
+         e = df_read_data(&df, 0x0A, DF_MODE_CMAC, 0, MINAFILE, afile); // Initial
+         if (!e && *afile + 1 > MINAFILE)
+            e = df_read_data(&df, 0x0A, DF_MODE_CMAC, MINAFILE, *afile + 1 - MINAFILE, afile + MINAFILE);       // More data
+         if (!e)
+            strcpy(afileid, fob->id);
+      }
       if (e)
       {
          fob->fail = e;
