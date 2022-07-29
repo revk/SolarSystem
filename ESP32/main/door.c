@@ -69,11 +69,12 @@ settings
 #define door_states \
   d(DEADLOCKED,R) \
   d(LOCKED,5RR+A) \
-  d(UNLOCKING,-R+A) \
+  d(SHUT,A) \
+  d(UNLOCKING,AG+A) \
   d(UNLOCKED,-G) \
   d(OPEN,G) \
   d(CLOSED,-A) \
-  d(LOCKING,-G+A) \
+  d(LOCKING,AR+A) \
   d(NOTCLOSED,RAGA) \
   d(PROPPED,G+A4G) \
   d(AJAR,R+A-G+A) \
@@ -245,6 +246,8 @@ void door_act(fob_t * fob)
    }
    if (fob->held)
       return;                   // Other actions were done already
+   if (doorstate == DOOR_SHUT)
+      return;                   // No action if deadlock working and just SHUT
    if (!fob->override && door_deadlocked() && (!fob->enterok || !fob->disarmok ||       //
                                                (fob->disarmok &&        //
                                                 (areadeadlock & andset(alarm_armed() & ~(areadisarm & fob->disarm))))))
@@ -709,8 +712,8 @@ static void task(void *pvParameters)
             if (doorstate != DOOR_NOTCLOSED && doorstate != DOOR_PROPPED && doorstate != DOOR_OPEN)
             {                   // We have moved to open state, this can cancel the locking operation
                const char *manual = input_func_any(INPUT_FUNC_M);       // If a manual input was found (uses input name)
-               char forced = ((output_func_active(OUTPUT_FUNC_L) && ((!manual && lock[0].state == LOCK_LOCKED) || lock[0].state == LOCK_FORCED)) ||     //
-                              (output_func_active(OUTPUT_FUNC_D) && ((!manual && lock[1].state == LOCK_LOCKED) || lock[1].state == LOCK_FORCED)));
+               char forced = !manual && ((output_func_active(OUTPUT_FUNC_L) && (lock[0].state == LOCK_LOCKED || lock[0].state == LOCK_FORCED)) ||       //
+                                         (output_func_active(OUTPUT_FUNC_D) && (lock[1].state == LOCK_LOCKED || lock[1].state == LOCK_FORCED)));
                if (!doorwhy)
                   doorwhy = (forced ? "forced" : manual ? : "manual");
                if (doorwhy)
@@ -740,7 +743,7 @@ static void task(void *pvParameters)
             if (lock[1].state == LOCK_LOCKED && lock[0].state == LOCK_LOCKED)
                doorstate = DOOR_DEADLOCKED;
             else if (lock[0].state == LOCK_LOCKED && lock[1].state == LOCK_UNLOCKED)
-               doorstate = DOOR_LOCKED;
+               doorstate = (output_func_active(OUTPUT_FUNC_L) ? DOOR_LOCKED : DOOR_SHUT);
             else if (lock[0].state == LOCK_UNLOCKING || lock[1].state == LOCK_UNLOCKING)
                doorstate = DOOR_UNLOCKING;
             else if (lock[0].state == LOCK_LOCKING || lock[1].state == LOCK_LOCKING)
