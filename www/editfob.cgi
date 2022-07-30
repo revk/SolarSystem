@@ -60,8 +60,8 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <td align=right><if mem><output name=mem></if></td>
 <td><output name=fobname></td>
 <td><output name=fobsms></td>
-<td><output name=lastused type=recent></td>
-<td><output name=expires type=recent></td>
+<td><output name=lastused type=recent align=right></td>
+<td><output name=expires type=recent align=right></td>
 <td>
 <if not N=1><output name=N 0=No> AIDs</if><if N=1><sql table=site where="site=$site"><output name=sitename></sql>: <output name=aidname> (<output name=accessname>)</if>
 <if blocked><b>Blocked</b></if>
@@ -97,7 +97,7 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <sql table="fobaid LEFT JOIN aid USING (aid) LEFT JOIN site USING (site)" where="fob='$fob' AND aid.organisation=$USER_ORGANISATION" order=sitename,aidname><set "access$aid"="$access">
 <tr>
 <td><input type=hidden name=aids value="$aid"><output name=sitename></td>
-<td><select name="access$aid"><option value=''>No access</option><sql table=access where="site=$site"><option value="$access"><output name=accessname></option></sql></select></td><td><output name=adopted type=recent></td><td><output name=firstinday type=recent></td><td><output name=lastused type=recent></td><td><output name=aidname></td>
+<td><select name="access$aid"><option value=''>No access</option><sql table=access where="site=$site"><option value="$access"><output name=accessname></option></sql></select></td><td><output name=adopted type=recent align=right></td><td><output name=firstinday type=recent align=right></td><td><output name=lastused type=recent align=right></td><td><output name=aidname></td>
 </tr>
 </sql>
 </table>
