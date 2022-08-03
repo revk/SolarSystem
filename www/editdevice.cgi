@@ -138,7 +138,7 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <if outofservice=true><if lastonline><set s="background:lightblue;"></if><if not online><set s="background:blue;"></if></if>
 <tr style="$s">
 <td title="$device"><IF CANEDITDEVICE><output href="/editdevice.cgi/$device" name=devicename blank="Unnamed" missing="Unnamed"></if><if else><output name=devicename></if></td>
-<td><if online><tt title="When online"><output name=boot missing="Just now" type=recent></if><if else><tt title="Last online"><output name=lastonline missing="never" type=recent></tt></if></td>
+<td align=right><if online><tt title="When online"><output name=boot missing="Just now" type=recent></if><if else><tt title="Last online"><output name=lastonline missing="never" type=recent></tt></if></td>
 <td><if online><if via><i>via</i> <if PARENT NOT PARENT="$VIA"><output name=PARENT> &amp; </if><output name=VIA></if><if else><tt title="BSSID#channel"><output name=bssid>#<output name=chan></tt> <i title="SSID"><output name=ssid></i></if></if><if else><i title="Why offline"><output name=offlinereason></i></if></td>
 <td><if upgrade><if online OR outofservice=false><i style='background:cyan;'>Upgrade <output name=progress 0=Started missing=Scheduled></i><br></if></if><set s="background:red;"><if version="$V"><set s="background:green;"></if><tt style="$s"><output name=version><output name=build_suffix></tt></td>
 <td><output name=pcbname></td>
