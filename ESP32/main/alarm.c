@@ -95,6 +95,7 @@ static display_t *display = NULL;
 	arean(mixand,MAX_MIX)	\
 	arean(mixset,MAX_MIX)	\
 	sl(smsnumber)	\
+	u16(timer1)	\
 
 #define area(n) area_t n;
 #define areanl(n) area_t n;
@@ -949,6 +950,18 @@ static void task(void *pvParameters)
    while (1)
    {
       esp_task_wdt_reset();
+      { // Timer logic input
+         time_t now = time(0);
+         if (now > 1000000000)
+         {
+            struct tm tm;
+            localtime_r(&now, &tm);
+            if (tm.tm_hour * 100 + tm.tm_min == timer1)
+               logical_gpio |= logical_Timer1;
+            else
+               logical_gpio &= ~logical_Timer1;
+         }
+      }
       {                         // Set LED mode
          int r = 1;
          if ((isroot && !revk_link_down() && nodes_online == meshexpect) || (!isroot && esp_mesh_is_device_active()))
@@ -1060,7 +1073,7 @@ static void task(void *pvParameters)
                {                // Change to mesh
                   wasonline = nodes_online;
                   // Simple missing nodes picked up by control
-		  // Mesh fault is used to flag internally and alarm, etc.
+                  // Mesh fault is used to flag internally and alarm, etc.
                   if (nodes_online == 1 && meshexpect > 1)
                      logical_gpio |= logical_MeshFault; // Lonely
                   else

@@ -360,6 +360,8 @@ static const char *settings(SQL * sqlp, SQL * sqlkeyp, SQL_RES * res, slot_t id)
       if (sql_fetch_row(p))
       {
          const char *v;
+         if ((v = sql_colz(res, "timer1")) && *v && strlen(v) == 8)
+            j_store_int(j, "timer1", atoi(v) * 100 + atoi(v + 3));
          j_t o = j_store_object(j, "keypad");
 #define set(h,c) {const char *v=sql_colz(p,#h#c);if(v&&strcmp(v,"-"))j_store_literal(o,#c,v);}
          set(keypad, tx);
@@ -1207,7 +1209,6 @@ int main(int argc, const char *argv[])
             if ((v = j_get(j, "organisation")))
                sql_safe_query_free(&sql, sql_printf("INSERT IGNORE INTO `foborganisation` SET `fob`=%#s,`organisation`=%s,`fobname`=%#s ON DUPLICATE KEY UPDATE `fobname`=%#s", fob, v, fobname, fobname));
             sql_safe_query_free(&sql, sql_printf("INSERT IGNORE INTO `fobaid` SET `fob`=%#s,`aid`=%#s,`adopted`=NOW(),`access`=%d ON DUPLICATE KEY UPDATE `access`=%d", fob, aid, access, access));
-            sql_safe_query_free(&sql, sql_printf("UPDATE `fobaid` SET `adopted`=NOW() WHERE `fob`=%#s AND `aid`=%#s", fob, aid));
          }
          if (j_find(meta, "formatted") && fob)
             sql_safe_query_free(&sql, sql_printf("DELETE FROM `fobaid` WHERE `fob`=%#s", fob));
@@ -1535,11 +1536,20 @@ int main(int argc, const char *argv[])
                   {
                      if (fa)
                      {
+                        sql_string_t q = { };
+                        const char *ts = j_get(j, "ts");
+                        time_t tst = j_time(ts);
+                        sql_sprintf(&q, "UPDATE `fobaid` SET `lastused`=%#T", tst);
+                        const char *firstinday = sql_col(fa, "firstinday");
+                        if (!firstinday || strncmp(firstinday, ts, 10))
+                           sql_sprintf(&q, ",`firstinday`=%#T", tst);
                         const char *ver = j_get(j, "ver");
                         if (ver && strcmp(ver, sql_colz(fa, "ver")))
-                           sql_safe_query_free(&sql, sql_printf("UPDATE `fobaid` SET `ver`=%#s WHERE `fob`=%#s AND `aid`=%#s", ver, fobid, aid));
+                           sql_sprintf(&q, ",`ver`=%#s", ver);
                         if (!sql_col(fa, "adopted"))
-                           sql_safe_query_free(&sql, sql_printf("UPDATE `fobaid` SET `adopted`=NOW() WHERE `fob`=%#s AND `aid`=%#s", fobid, aid));
+                           sql_sprintf(&q, ",`adopted`=%#T", tst);
+                        sql_sprintf(&q, " WHERE `fob`=%#s AND `aid`=%#s", fobid, aid);
+                        sql_safe_query_s(&sql, &q);
                      }
                      // Check afile
                      const char *crc = j_get(j, "crc");

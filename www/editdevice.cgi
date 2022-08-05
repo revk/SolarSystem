@@ -103,7 +103,7 @@ if($?devicename) then # save
 	if(! $?iotkeypad) setenv iotkeypad false
 	if(! $?iotgps) setenv iotgps false
 	if(! $?ioteventfob) setenv ioteventfob false
-	setenv allow "devicename areaenter areastrong areadeadlock areaarm areadisarm areabell arealed areakeypad areakeyarm areakeystrong areakeydisarm nfc gps rgb nfcadmin door doorexitarm doorexitdisarm aid site iotstatedoor iotstateinput iotstateoutput ioteventfob iotkeypad iotgps doorunlock doorlock dooropen doorclose doorprop doorexit doordebounce keypadidle keypadpin keypad pcb dooriotunlock dooriotdead dooriotundead excludeall outofservice doordebug doorcatch"
+	setenv allow "devicename timer1 areaenter areastrong areadeadlock areaarm areadisarm areabell arealed areakeypad areakeyarm areakeystrong areakeydisarm nfc gps rgb nfcadmin door doorexitarm doorexitdisarm aid site iotstatedoor iotstateinput iotstateoutput ioteventfob iotkeypad iotgps doorunlock doorlock dooropen doorclose doorprop doorexit doordebounce keypadidle keypadpin keypad pcb dooriotunlock dooriotdead dooriotundead excludeall outofservice doordebug doorcatch"
 	if("$USER_ADMIN" == "true") setenv allow "$allow nfctrusted"
 	sqlwrite -qon "$DB" device $allow
 	sql "$DB" 'UPDATE device SET poke=NOW() WHERE site=$site'
@@ -138,7 +138,7 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <if outofservice=true><if lastonline><set s="background:lightblue;"></if><if not online><set s="background:blue;"></if></if>
 <tr style="$s">
 <td title="$device"><IF CANEDITDEVICE><output href="/editdevice.cgi/$device" name=devicename blank="Unnamed" missing="Unnamed"></if><if else><output name=devicename></if></td>
-<td><if online><tt title="When online"><output name=boot missing="Just now"></if><if else><tt title="Last online"><output name=lastonline missing="never"></tt></if></td>
+<td align=right><if online><tt title="When online"><output name=boot missing="Just now" type=recent></if><if else><tt title="Last online"><output name=lastonline missing="never" type=recent></tt></if></td>
 <td><if online><if via><i>via</i> <if PARENT NOT PARENT="$VIA"><output name=PARENT> &amp; </if><output name=VIA></if><if else><tt title="BSSID#channel"><output name=bssid>#<output name=chan></tt> <i title="SSID"><output name=ssid></i></if></if><if else><i title="Why offline"><output name=offlinereason></i></if></td>
 <td><if upgrade><if online OR outofservice=false><i style='background:cyan;'>Upgrade <output name=progress 0=Started missing=Scheduled></i><br></if></if><set s="background:red;"><if version="$V"><set s="background:green;"></if><tt style="$s"><output name=version><output name=build_suffix></tt></td>
 <td><output name=pcbname></td>
@@ -187,6 +187,7 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <if nfc=true><tr><td>AID</td><td colspan=2><select name=aid><sql table=aid where="site=$site"><option value="$aid"><output name=aidname></option></sql></select></td></tr></if>
 <tr><td>Online</td><td colspan=2><if online><output name=online></if><if else>Last online <output name=lastonline missing="never"></if><if upgrade> (upgrade scheduled)</if></td></tr>
 <tr><td>Version</td><td colspan=2><output name=version></td></tr>
+<tr><td>Timer1</td><td><input name=timer1 type=time> timer logical input if clock set</td></tr>
 <sql table=pcb where="pcb=$pcb">
 <if nfc=true><tr><td><input type=checkbox id=door name=door value=true></td><td colspan=2><label for=door>Door control (set times 0 for default, -1 to force no timer)</label></td></tr></if>
 <if door=true><tr><td><input size=5 id=doorunlock name=doorunlock>ms</td><td colspan=2><label for=doorunlock>Lock disengage timer (set -1 for EL56X)</label></td></tr></if>

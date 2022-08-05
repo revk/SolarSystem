@@ -45,21 +45,23 @@ list:
 xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <h1>🔑 Fobs</h1>
 <table>
-<sql table="foborganisation LEFT JOIN fobaid USING (fob) LEFT JOIN aid USING (aid) LEFT JOIN access USING (access) LEFT JOIN fob USING (fob)" where="foborganisation.organisation=$USER_ORGANISATION AND aid.organisation=$USER_ORGANISATION" group="fob" order="max(adopted) DESC" select="*,count(aid) as N, sum(if(adopted IS NULL AND aid.aid IS NOT NULL,1,0)) AS W,sum(if(override='true',1,0)) AS O">
+<sql table="foborganisation LEFT JOIN fobaid USING (fob) LEFT JOIN aid USING (aid) LEFT JOIN access USING (access) LEFT JOIN fob USING (fob)" where="foborganisation.organisation=$USER_ORGANISATION AND aid.organisation=$USER_ORGANISATION" group="fob" order="max(lastused) DESC" select="*,count(aid) as N, sum(if(adopted IS NULL AND aid.aid IS NOT NULL,1,0)) AS W,sum(if(override='true',1,0)) AS O,max(lastused) AS lastused">
 <if not found><set found=1><tr>
 <th>Fob</th>
 <th>Free</th>
-<th>Expiry</th>
 <th>Name</th>
 <th>SMS</th>
+<th>Last</th>
+<th>Expiry</th>
 <th>Notes</th>
 </tr></if>
 <tr>
 <td><output name=fob href="editfob.cgi/$fob"></td>
 <td align=right><if mem><output name=mem></if></td>
-<td><output name=expires></td>
 <td><output name=fobname></td>
 <td><output name=fobsms></td>
+<td align=right><output name=lastused type=recent></td>
+<td align=right><output name=expires type=recent></td>
 <td>
 <if not N=1><output name=N 0=No> AIDs</if><if N=1><sql table=site where="site=$site"><output name=sitename></sql>: <output name=aidname> (<output name=accessname>)</if>
 <if blocked><b>Blocked</b></if>
@@ -91,10 +93,11 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <if capacity><tr><td>Capacity</td><td><output name=capacity> bytes</td></tr></if>
 <if mem><tr><td>Free</td><td><output name=mem> bytes</td></tr></if>
 <if blocked><tr><td>Block</td><td>Access blocked <output name=blocked> <if blocked and confirmed>(confirmed <output name=confirmed>)</if></td></tr></if>
+<tr><th>Site</th><th>Access</th><th>Adopted</th><th>First in day</th><th>Last used</th><th>AID</th></tr>
 <sql table="fobaid LEFT JOIN aid USING (aid) LEFT JOIN site USING (site)" where="fob='$fob' AND aid.organisation=$USER_ORGANISATION" order=sitename,aidname><set "access$aid"="$access">
 <tr>
 <td><input type=hidden name=aids value="$aid"><output name=sitename></td>
-<td><select name="access$aid"><option value=''>No access</option><sql table=access where="site=$site"><option value="$access"><output name=accessname></option></sql></select></td><td><output name=aidname></td>
+<td><select name="access$aid"><option value=''>No access</option><sql table=access where="site=$site"><option value="$access"><output name=accessname></option></sql></select></td><td align=right><output name=adopted type=recent></td><td align=right><output name=firstinday type=recent></td><td align=right><output name=lastused type=recent></td><td><output name=aidname></td>
 </tr>
 </sql>
 </table>

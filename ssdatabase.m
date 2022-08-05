@@ -255,6 +255,8 @@ num(mem);                       // Free memory
 
 join(fob, aid);                 // Fob is in AID (adopted)
 datetime(adopted);              // When adopted
+datetime(firstinday);		// First used in day
+datetime(lastused);		// Last used
 text(ver, 2);                   // Key version
 link(access);                   // Access permissions
 
@@ -339,6 +341,7 @@ num(doordebounce);              // Door timer
 text(dooriotdead, 64);          // IoT on deadlock
 text(dooriotundead, 64);        // IoT on undeadlock
 text(dooriotunlock, 64);        // IoT on unlock
+time0000(timer1);		// Timer1 event (active as a logical input for 1 minute)
 
 join(device, gpio);
 index(device);

@@ -249,7 +249,7 @@ static void task(void *pvParameters)
                   gpio_reset_pin(port_mask(nfctx));     // Don't drive
                   if (nfcpower)
                      gpio_set_level(port_mask(nfcpower), (nfcpower & PORT_INV) ? 1 : 0);        // Off
-                  wait = 1000 / nfciopoll;       // off wait
+                  wait = 1000 / nfciopoll;      // off wait
                }
             } else
             {                   // Off, so turn on
