@@ -1,6 +1,6 @@
 // Generated case design for KiCad/Relay8.kicad_pcb
 // By https://github.com/revk/PCBCase
-// Generated 2022-06-17 13:46:29
+// Generated 2022-08-05 10:20:17
 // title:	Output board (8)
 // date:	${DATE}
 // rev:	1
@@ -111,7 +111,8 @@ cube([4,4,1],center=true);
 
 module m3(pushed=false,hulled=false)
 { // RevK:C_0603 C_0603_1608Metric
-b(0,0,0,2.8,0.95,1); // Pad size
+b(0,0,0,1.6,0.95,0.2); // Pad size
+b(0,0,0,1.6,0.8,1); // Chip
 }
 
 module m4(pushed=false,hulled=false)
@@ -176,7 +177,8 @@ b(0,0,0,1.45,3.05,1.1);
 
 module m9(pushed=false,hulled=false)
 { // RevK:RegulatorBlockFB C_0805_2012Metric
-b(0,0,0,3.2,1.45,1); // Pad size
+b(0,0,0,2,1.45,0.2); // Pad size
+b(0,0,0,2,1.2,1); // Chip
 }
 
 module m10(pushed=false,hulled=false)
@@ -193,7 +195,7 @@ if(!hulled&&pushed)b(0,0,0,1,1,20);
 }
 
 height=casebase+pcbthickness+casetop;
-$fn=12;
+$fn=48;
 
 module boardh(pushed=false)
 { // Board with hulled parts

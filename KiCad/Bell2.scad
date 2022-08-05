@@ -1,6 +1,6 @@
 // Generated case design for KiCad/Bell2.kicad_pcb
 // By https://github.com/revk/PCBCase
-// Generated 2022-06-17 13:33:03
+// Generated 2022-08-05 10:06:50
 // title:	Bell box controller
 // date:	${DATE}
 // rev:	2
@@ -117,7 +117,8 @@ translate([-A/2,-2.94,-2.5])
 
 module m3(pushed=false,hulled=false)
 { // RevK:C_0603 C_0603_1608Metric
-b(0,0,0,2.8,0.95,1); // Pad size
+b(0,0,0,1.6,0.95,0.2); // Pad size
+b(0,0,0,1.6,0.8,1); // Chip
 }
 
 module m4(pushed=false,hulled=false)
@@ -148,7 +149,8 @@ b(0,0,0,1.45,3.05,1.1);
 
 module m8(pushed=false,hulled=false)
 { // RevK:RegulatorBlockFB C_0805_2012Metric
-b(0,0,0,3.2,1.45,1); // Pad size
+b(0,0,0,2,1.45,0.2); // Pad size
+b(0,0,0,2,1.2,1); // Chip
 }
 
 module m9(pushed=false,hulled=false)
@@ -224,7 +226,7 @@ b(0,0,0,2.1,2.0,0.6);
 }
 
 height=casebase+pcbthickness+casetop;
-$fn=12;
+$fn=48;
 
 module boardh(pushed=false)
 { // Board with hulled parts

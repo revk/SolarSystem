@@ -1,6 +1,6 @@
 // Generated case design for KiCad/Access2.kicad_pcb
 // By https://github.com/revk/PCBCase
-// Generated 2022-06-17 16:07:46
+// Generated 2022-08-05 10:02:40
 // title:	Access Control
 // date:	${DATE}
 // rev:	3
@@ -193,7 +193,7 @@ module m5(pushed=false,hulled=false)
 { // RevK:SW_PUSH_6mm_SMD SW_SPST_PTS645
 if(!hulled&&!pushed)
 { // This avoids hull and minkowski as used as a tamper switch so needs to be more exact
-	b(0,0,0,6,6,3); // Used as a tamper, so exact
+	b(0,0,0,6,6,3.2); // Used as a tamper, so exact
 	for(x=[-2,2])for(y=[-2,2])translate([x,y,0])cylinder(d=1,h=3.5); // Pips on top
 }
 b(0,0,0,9,6,1.1); // Legs
@@ -254,12 +254,14 @@ b(0,0,0,1.45,3.05,1.1);
 
 module m9(pushed=false,hulled=false)
 { // RevK:RegulatorBlockFB C_0603_1608Metric
-b(0,0,0,2.8,0.95,1); // Pad size
+b(0,0,0,1.6,0.95,0.2); // Pad size
+b(0,0,0,1.6,0.8,1); // Chip
 }
 
 module m10(pushed=false,hulled=false)
 { // RevK:RegulatorBlockFB C_0805_2012Metric
-b(0,0,0,3.2,1.45,1); // Pad size
+b(0,0,0,2,1.45,0.2); // Pad size
+b(0,0,0,2,1.2,1); // Chip
 }
 
 module m11(pushed=false,hulled=false)
@@ -313,7 +315,7 @@ b(0,0,0,2.1,2.0,0.6);
 }
 
 height=casebase+pcbthickness+casetop;
-$fn=12;
+$fn=48;
 
 module boardh(pushed=false)
 { // Board with hulled parts
