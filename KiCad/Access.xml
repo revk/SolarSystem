@@ -2,15 +2,15 @@
 <export version="E">
   <design>
     <source>/Users/adrian/git/SolarSystem/KiCad/Access.kicad_sch</source>
-    <date>Thursday, 17 March 2022 at 07:53:55</date>
-    <tool>Eeschema (6.0.2-0)</tool>
-    <textvar name="DATE">2022-02-18</textvar>
+    <date>Friday, 05 August 2022 at 10:01:41</date>
+    <tool>Eeschema (6.0.5-0)</tool>
+    <textvar name="DATE">2022-08-05</textvar>
     <sheet number="1" name="/" tstamps="/">
       <title_block>
         <title>Access control</title>
         <company>Adrian Kennard Andrews &amp; Arnold Ltd</company>
         <rev>3</rev>
-        <date>2022-02-18</date>
+        <date>2022-08-05</date>
         <source>Access.kicad_sch</source>
         <comment number="1" value="@TheRealRevK"/>
         <comment number="2" value="www.me.uk"/>
@@ -331,7 +331,7 @@
     </comp>
     <comp ref="J4">
       <value>ExtTamper</value>
-      <footprint>TestPoint:TestPoint_2Pads_Pitch5.08mm_Drill1.3mm</footprint>
+      <footprint>Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Vertical</footprint>
       <libsource lib="Connector_Generic" part="Conn_01x02" description="Generic connector, single row, 01x02, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
       <property name="Sheetname" value=""/>
       <property name="Sheetfile" value="Access.kicad_sch"/>
@@ -631,8 +631,9 @@
       <tstamps>8271dfba-3962-4c80-a371-fd4d42efa2fe</tstamps>
     </comp>
     <comp ref="SW1">
-      <value>Tamper</value>
-      <footprint>RevK:SW_PUSH_6mm_SMD</footprint>
+      <value>ESE58L61B</value>
+      <footprint>RevK:ESE58</footprint>
+      <datasheet>https://docs.rs-online.com/3c26/0900766b810ad108.pdf</datasheet>
       <libsource lib="Switch" part="SW_Push" description="Push button switch, generic, two pins"/>
       <property name="Sheetname" value=""/>
       <property name="Sheetfile" value="Access.kicad_sch"/>

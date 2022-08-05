@@ -1,10 +1,12 @@
-### Module positions - created on 2022-03-17 07:54
+### Module positions - created on 2022-08-05 10:01
 ### Printed by pcb_positions plugin
 ## Unit = mm, Angle = deg.
 ## Pcb Height 34.100mm, Pcb Width 50.100mm [based on Edge bounding box]
 ## Side : ALL
 ## Board Aux Origin: 0.000mm ,0.000mm
 # Ref         Val                 Package                       PosX       PosY       Pin1_PosX  Pin1_PosY    Rot     Side      Type
+J4            ExtTamper           PinHeader_1x02_P2.54mm_Vert.. 130.7750   -94.9000   130.7750   -94.9000    -90.0    top       THD
+SW1           ESE58L61B           ESE58                         129.4000   -98.4300   131.2300   -98.8800    180.0    top       SMD
 D8            D                   D_1206_3216Metric_Pad1.42x1.. 137.2500   -88.0000   135.7625   -88.0000      0.0    top       SMD
 H1            MountingHole        ISO7380-M3-Pad                129.5000   -83.5000   129.5000   -85.7500      0.0    top       VIRTUAL
 J5            POWER               Molex_MiniSPOX_H2RA           145.7500   -72.6500   147.0000   -72.6500    180.0    top       THD
@@ -19,7 +21,6 @@ J2            RFID                Molex_MiniSPOX_H4RA           124.7500   -72.6
 J3            INPUTS              Molex_MiniSPOX_H6RA           109.2500   -72.6500   115.5000   -72.6500    180.0    top       THD
 R13           5K1                 R_0603                        141.5500   -76.7500   141.5500   -75.9250    -90.0    top       SMD
 C1            0.1uF               C_0603                        133.6520   -85.3480   134.2000   -84.8000   -135.0    top       SMD
-SW1           Tamper              SW_PUSH_6mm_SMD               129.4500   -94.7000   131.7000   -98.9000    -90.0    top       SMD
 R4            100R                R_0603                        127.2500   -74.7500   126.4250   -74.7500      0.0    top       SMD
 R5            100R                R_0603                        124.0000   -74.7500   123.1750   -74.7500      0.0    top       SMD
 D2            BAV99S              SOT-363_SC-70-6               120.5000   -77.7500   119.5500   -77.1000      0.0    top       SMD
@@ -68,16 +69,15 @@ U1            ESP32-WROOM-32      ESP32-WROOM-32                115.7550   -90.3
 R23           30k 1% or NF        R_0603                        141.8400   -99.3000   142.6650   -99.3000    180.0    top       SMD
 R1            10k                 R_0603                        136.0000   -79.7000   135.1750   -79.7000      0.0    top       SMD
 AJK1          AJK                 AJK                           115.2000   -91.0250   0.0000     0.0000      180.0    bottom    THD
-J4            ExtTamper           TestPoint_2Pads_Pitch5.08mm.. 129.4000   -97.7000   129.4000   -97.7000     90.0    bottom    VIRTUAL
 U6            AA                  AA                            144.1000   -94.1000   0.0000     0.0000      180.0    bottom    THD
 U7            QR                  QR-SS                         109.8000   -91.5000   0.0000     0.0000      180.0    bottom    THD
 ## End
-## 276 SMD pads
-## 102 TH pads
-## 7 Virtual pads
-## 6 Top TH modules
+## 278 SMD pads
+## 104 TH pads
+## 5 Virtual pads
+## 7 Top TH modules
 ## 3 Bot TH modules
 ## 55 Top SMD modules
 ## 0 Bot SMD modules
 ## 1 Top Virtual modules
-## 1 Bot Virtual modules
+## 0 Bot Virtual modules

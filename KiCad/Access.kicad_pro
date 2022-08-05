@@ -45,7 +45,7 @@
         "silk_text_upright": false,
         "zones": {
           "45_degree_only": false,
-          "min_clearance": 0.254
+          "min_clearance": 0.25
         }
       },
       "diff_pair_dimensions": [
@@ -434,6 +434,6 @@
     ]
   ],
   "text_variables": {
-    "DATE": "2022-02-18"
+    "DATE": "2022-08-05"
   }
 }
