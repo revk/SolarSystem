@@ -43,8 +43,6 @@ pull:
 update:
 	git pull
 	git submodule update --init --remote --recursive
-	git commit -a -m "Library update"
-	git push
 	make -C login
 	make -C login/SQLlib
 	make -C xmlsql
