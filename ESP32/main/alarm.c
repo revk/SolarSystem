@@ -406,7 +406,7 @@ void mesh_send_report(void)
          }
          if (flip & (1ULL << i))
          {                      // State has changed, so causes presence and event logging
-            if (trigger & state_armed)
+            if (trigger & state_armed & ~control_disarm)
             {                   // Event log
                if (trigger & (state_alarm | state_prealarm))
                {                // Event while alarmed as well
@@ -950,7 +950,7 @@ static void task(void *pvParameters)
    while (1)
    {
       esp_task_wdt_reset();
-      { // Timer logic input
+      {                         // Timer logic input
          time_t now = time(0);
          if (now > 1000000000)
          {
