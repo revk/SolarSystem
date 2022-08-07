@@ -1,6 +1,6 @@
 // Generated case design for KiCad/Access2.kicad_pcb
 // By https://github.com/revk/PCBCase
-// Generated 2022-08-07 09:10:14
+// Generated 2022-08-07 09:31:43
 // title:	Access Control
 // date:	${DATE}
 // rev:	3
@@ -36,7 +36,7 @@ translate([36.500000,19.850000,1.600000])rotate([0,0,180.000000])translate([0.00
 translate([24.750000,19.850000,1.600000])rotate([0,0,180.000000])translate([0.000000,-3.600000,2.500000])rotate([0.000000,0.000000,180.000000])m2(pushed,hulled); // RevK:Molex_MiniSPOX_H4RA 22057045
 translate([9.250000,19.850000,1.600000])rotate([0,0,180.000000])translate([0.000000,-3.600000,2.500000])rotate([0.000000,0.000000,180.000000])m3(pushed,hulled); // RevK:Molex_MiniSPOX_H6RA 22057065
 translate([38.250000,13.500000,1.600000])rotate([0,0,180.000000])m4(pushed,hulled); // RevK:R_0603 R_0603_1608Metric
-translate([33.300000,4.550000,1.600000])rotate([0,0,-90.000000])translate([2.050000,0.000000,1.150000])rotate([0.000000,0.000000,90.000000])m5(pushed,hulled); // RevK:ESE13 ESE13V01D
+translate([38.800000,4.350000,1.600000])rotate([0,0,-90.000000])translate([2.050000,0.000000,1.150000])rotate([0.000000,0.000000,90.000000])m5(pushed,hulled); // RevK:ESE13 ESE13V01D
 translate([13.500000,17.000000,1.600000])rotate([0,0,-90.000000])m4(pushed,hulled); // RevK:R_0603 R_0603_1608Metric
 translate([46.250000,2.375000,1.600000])rotate([0,0,90.000000])m4(pushed,hulled); // RevK:R_0603 R_0603_1608Metric
 translate([29.500000,9.600000,1.600000])rotate([0,0,90.000000])m4(pushed,hulled); // RevK:R_0603 R_0603_1608Metric
@@ -191,8 +191,12 @@ b(0,0,0,2.8,0.95,0.5); // Pad size
 
 module m5(pushed=false,hulled=false)
 { // RevK:ESE13 ESE13V01D
-b(0,0,0,4.2,3.6,1.2);
-b(3.08,0,0,1.95,1.2,1.2);
+if(!hulled&&pushed) translate([0,2.05,-1.15])
+{
+	b(0,0,0,3.6+0.4,4.2+0.4,1.2);
+	b(0,-3.08,0,1.2+0.4,1.95+0.4,0.9);
+}
+
 }
 
 module m6(pushed=false,hulled=false)

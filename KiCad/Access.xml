@@ -2,7 +2,7 @@
 <export version="E">
   <design>
     <source>/Users/adrian/git/SolarSystem/KiCad/Access.kicad_sch</source>
-    <date>Friday, 05 August 2022 at 10:01:41</date>
+    <date>Sunday, 07 August 2022 at 09:40:34</date>
     <tool>Eeschema (6.0.5-0)</tool>
     <textvar name="DATE">2022-08-05</textvar>
     <sheet number="1" name="/" tstamps="/">
@@ -631,9 +631,9 @@
       <tstamps>8271dfba-3962-4c80-a371-fd4d42efa2fe</tstamps>
     </comp>
     <comp ref="SW1">
-      <value>ESE58L61B</value>
-      <footprint>RevK:ESE58</footprint>
-      <datasheet>https://docs.rs-online.com/3c26/0900766b810ad108.pdf</datasheet>
+      <value>ESE13V01D</value>
+      <footprint>RevK:ESE13</footprint>
+      <datasheet>https://docs.rs-online.com/73f9/0900766b810acfc9.pdf</datasheet>
       <libsource lib="Switch" part="SW_Push" description="Push button switch, generic, two pins"/>
       <property name="Sheetname" value=""/>
       <property name="Sheetfile" value="Access.kicad_sch"/>

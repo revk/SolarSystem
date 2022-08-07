@@ -4421,11 +4421,11 @@
     (in_bom yes) (on_board yes)
     (uuid 00000000-0000-0000-0000-00006093be97)
     (property "Reference" "SW1" (id 0) (at 183.515 104.521 0))
-    (property "Value" "ESE58L61B" (id 1) (at 183.515 106.8324 0))
-    (property "Footprint" "RevK:ESE58" (id 2) (at 183.515 106.68 0)
+    (property "Value" "ESE13V01D" (id 1) (at 183.515 106.8324 0))
+    (property "Footprint" "RevK:ESE13" (id 2) (at 183.515 106.68 0)
       (effects (font (size 1.27 1.27)) hide)
     )
-    (property "Datasheet" "https://docs.rs-online.com/3c26/0900766b810ad108.pdf" (id 3) (at 183.515 106.68 0)
+    (property "Datasheet" "https://docs.rs-online.com/73f9/0900766b810acfc9.pdf" (id 3) (at 183.515 106.68 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (pin "1" (uuid 5c45ff4d-3622-40d8-8cd9-db7cef28b064))
@@ -6442,7 +6442,7 @@
       (reference "R24") (unit 1) (value "18k 1% or NF") (footprint "RevK:R_0603")
     )
     (path "/00000000-0000-0000-0000-00006093be97"
-      (reference "SW1") (unit 1) (value "ESE58L61B") (footprint "RevK:ESE58")
+      (reference "SW1") (unit 1) (value "ESE13V01D") (footprint "RevK:ESE13")
     )
     (path "/a64e4ded-c775-489a-9996-ddd97aa3988a"
       (reference "U1") (unit 1) (value "ESP32-WROOM-32") (footprint "RevK:ESP32-WROOM-32")

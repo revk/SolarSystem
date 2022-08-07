@@ -1,11 +1,11 @@
-### Module positions - created on 2022-08-05 10:01
+### Module positions - created on 2022-08-07 09:40
 ### Printed by pcb_positions plugin
 ## Unit = mm, Angle = deg.
 ## Pcb Height 34.100mm, Pcb Width 50.100mm [based on Edge bounding box]
 ## Side : top
 ## Board Aux Origin: 0.000mm ,0.000mm
 # Ref         Val                 Package                       PosX       PosY       Pin1_PosX  Pin1_PosY    Rot     Side      Type
-SW1           ESE58L61B           ESE58                         129.4000   -98.4300   131.2300   -98.8800    180.0    top       SMD
+SW1           ESE13V01D           ESE13                         129.8000   -95.6500   131.5800   -94.1500    -90.0    top       SMD
 D8            D                   D_1206_3216Metric_Pad1.42x1.. 137.2500   -88.0000   135.7625   -88.0000      0.0    top       SMD
 U3            G3VM-41GR8          Special-SOP-4-3.7x4.55        132.5000   -76.7500   135.5000   -78.0200     90.0    top       SMD
 R16           1K                  R_0603_1608Metric_Pad0.98x0.. 132.5000   -79.5000   133.4125   -79.5000    180.0    top       SMD

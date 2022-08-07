@@ -1,12 +1,11 @@
-### Module positions - created on 2022-08-05 10:01
+### Module positions - created on 2022-08-07 09:40
 ### Printed by pcb_positions plugin
 ## Unit = mm, Angle = deg.
 ## Pcb Height 34.100mm, Pcb Width 50.100mm [based on Edge bounding box]
 ## Side : ALL
 ## Board Aux Origin: 0.000mm ,0.000mm
 # Ref         Val                 Package                       PosX       PosY       Pin1_PosX  Pin1_PosY    Rot     Side      Type
-J4            ExtTamper           PinHeader_1x02_P2.54mm_Vert.. 130.7750   -94.9000   130.7750   -94.9000    -90.0    top       THD
-SW1           ESE58L61B           ESE58                         129.4000   -98.4300   131.2300   -98.8800    180.0    top       SMD
+SW1           ESE13V01D           ESE13                         129.8000   -95.6500   131.5800   -94.1500    -90.0    top       SMD
 D8            D                   D_1206_3216Metric_Pad1.42x1.. 137.2500   -88.0000   135.7625   -88.0000      0.0    top       SMD
 H1            MountingHole        ISO7380-M3-Pad                129.5000   -83.5000   129.5000   -85.7500      0.0    top       VIRTUAL
 J5            POWER               Molex_MiniSPOX_H2RA           145.7500   -72.6500   147.0000   -72.6500    180.0    top       THD
@@ -21,6 +20,7 @@ J2            RFID                Molex_MiniSPOX_H4RA           124.7500   -72.6
 J3            INPUTS              Molex_MiniSPOX_H6RA           109.2500   -72.6500   115.5000   -72.6500    180.0    top       THD
 R13           5K1                 R_0603                        141.5500   -76.7500   141.5500   -75.9250    -90.0    top       SMD
 C1            0.1uF               C_0603                        133.6520   -85.3480   134.2000   -84.8000   -135.0    top       SMD
+J4            ExtTamper           PinHeader_1x02_P2.54mm_Vert.. 131.0250   -91.7500   131.0250   -91.7500    -90.0    top       THD
 R4            100R                R_0603                        127.2500   -74.7500   126.4250   -74.7500      0.0    top       SMD
 R5            100R                R_0603                        124.0000   -74.7500   123.1750   -74.7500      0.0    top       SMD
 D2            BAV99S              SOT-363_SC-70-6               120.5000   -77.7500   119.5500   -77.1000      0.0    top       SMD
