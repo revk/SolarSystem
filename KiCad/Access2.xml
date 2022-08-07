@@ -2,15 +2,15 @@
 <export version="E">
   <design>
     <source>/Users/adrian/git/SolarSystem/KiCad/Access2.kicad_sch</source>
-    <date>Wednesday, 23 February 2022 at 17:25:06</date>
-    <tool>Eeschema (6.0.2-0)</tool>
-    <textvar name="DATE">2022-02-18</textvar>
+    <date>Sunday, 07 August 2022 at 09:09:31</date>
+    <tool>Eeschema (6.0.5-0)</tool>
+    <textvar name="DATE">2022-08-07</textvar>
     <sheet number="1" name="/" tstamps="/">
       <title_block>
         <title>Access control</title>
         <company>Adrian Kennard Andrews &amp; Arnold Ltd</company>
         <rev>3</rev>
-        <date>2022-02-18</date>
+        <date>2022-08-07</date>
         <source>Access2.kicad_sch</source>
         <comment number="1" value="@TheRealRevK"/>
         <comment number="2" value="www.me.uk"/>
@@ -285,7 +285,7 @@
     </comp>
     <comp ref="D8">
       <value>D</value>
-      <footprint>Diode_SMD:D_1206_3216Metric_Pad1.42x1.75mm_HandSolder</footprint>
+      <footprint>RevK:D_1206</footprint>
       <libsource lib="Device" part="D" description="Diode"/>
       <property name="Sheetname" value=""/>
       <property name="Sheetfile" value="Access2.kicad_sch"/>
@@ -319,15 +319,6 @@
       <property name="Sheetfile" value="Access2.kicad_sch"/>
       <sheetpath names="/" tstamps="/"/>
       <tstamps>00000000-0000-0000-0000-0000608cf414</tstamps>
-    </comp>
-    <comp ref="J4">
-      <value>ExtTamper</value>
-      <footprint>TestPoint:TestPoint_2Pads_Pitch5.08mm_Drill1.3mm</footprint>
-      <libsource lib="Connector_Generic" part="Conn_01x02" description="Generic connector, single row, 01x02, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
-      <property name="Sheetname" value=""/>
-      <property name="Sheetfile" value="Access2.kicad_sch"/>
-      <sheetpath names="/" tstamps="/"/>
-      <tstamps>00000000-0000-0000-0000-00006094f3ad</tstamps>
     </comp>
     <comp ref="J5">
       <value>POWER</value>
@@ -586,7 +577,7 @@
       <tstamps>00000000-0000-0000-0000-0000609872b4</tstamps>
     </comp>
     <comp ref="R21">
-      <value>10M 1% or 0R</value>
+      <value>100k 1% or 0R</value>
       <footprint>RevK:R_0603</footprint>
       <libsource lib="Device" part="R" description="Resistor"/>
       <property name="Sheetname" value=""/>
@@ -595,7 +586,7 @@
       <tstamps>0a7f75d0-9f86-4caa-a0e4-44ff4b8f6861</tstamps>
     </comp>
     <comp ref="R22">
-      <value>10M 1% or 0R</value>
+      <value>100k 1% or 0R</value>
       <footprint>RevK:R_0603</footprint>
       <libsource lib="Device" part="R" description="Resistor"/>
       <property name="Sheetname" value=""/>
@@ -604,7 +595,16 @@
       <tstamps>0d353d81-a7d7-4ff0-89eb-60271d9c4a01</tstamps>
     </comp>
     <comp ref="R23">
-      <value>3M 1% or NF</value>
+      <value>18k 1% or NF</value>
+      <footprint>RevK:R_0603</footprint>
+      <libsource lib="Device" part="R" description="Resistor"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="Access2.kicad_sch"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>8271dfba-3962-4c80-a371-fd4d42efa2fe</tstamps>
+    </comp>
+    <comp ref="R24">
+      <value>30k 1% or NF</value>
       <footprint>RevK:R_0603</footprint>
       <libsource lib="Device" part="R" description="Resistor"/>
       <property name="Sheetname" value=""/>
@@ -612,14 +612,15 @@
       <sheetpath names="/" tstamps="/"/>
       <tstamps>d571cde4-c062-4e90-8e0a-c6147d1b6cd4</tstamps>
     </comp>
-    <comp ref="R24">
-      <value>1.8M 1% or NF</value>
-      <footprint>RevK:R_0603</footprint>
-      <libsource lib="Device" part="R" description="Resistor"/>
+    <comp ref="SW1">
+      <value>ESE13V01D</value>
+      <footprint>RevK:ESE13</footprint>
+      <datasheet>https://docs.rs-online.com/73f9/0900766b810acfc9.pdf</datasheet>
+      <libsource lib="Switch" part="SW_Push" description="Push button switch, generic, two pins"/>
       <property name="Sheetname" value=""/>
       <property name="Sheetfile" value="Access2.kicad_sch"/>
       <sheetpath names="/" tstamps="/"/>
-      <tstamps>8271dfba-3962-4c80-a371-fd4d42efa2fe</tstamps>
+      <tstamps>00000000-0000-0000-0000-00006093be97</tstamps>
     </comp>
     <comp ref="U1">
       <value>ESP32-PICO-MINI-02</value>
@@ -703,37 +704,8 @@
       <sheetpath names="/" tstamps="/"/>
       <tstamps>00000000-0000-0000-0000-000060a37ffe</tstamps>
     </comp>
-    <comp ref="U7">
-      <value>QR</value>
-      <footprint>RevK:QR-SS</footprint>
-      <fields>
-        <field name="Note">Non part, PCB printed</field>
-      </fields>
-      <libsource lib="RevK" part="QR" description=""/>
-      <property name="Note" value="Non part, PCB printed"/>
-      <property name="Sheetname" value=""/>
-      <property name="Sheetfile" value="Access2.kicad_sch"/>
-      <sheetpath names="/" tstamps="/"/>
-      <tstamps>00000000-0000-0000-0000-0000608f5575</tstamps>
-    </comp>
   </components>
   <libparts>
-    <libpart lib="Connector_Generic" part="Conn_01x02">
-      <description>Generic connector, single row, 01x02, script generated (kicad-library-utils/schlib/autogen/connector/)</description>
-      <docs>~</docs>
-      <footprints>
-        <fp>Connector*:*_1x??_*</fp>
-      </footprints>
-      <fields>
-        <field name="Reference">J</field>
-        <field name="Value">Conn_01x02</field>
-        <field name="Datasheet">~</field>
-      </fields>
-      <pins>
-        <pin num="1" name="Pin_1" type="passive"/>
-        <pin num="2" name="Pin_2" type="passive"/>
-      </pins>
-    </libpart>
     <libpart lib="Connector_Generic" part="Conn_01x03">
       <description>Generic connector, single row, 01x03, script generated (kicad-library-utils/schlib/autogen/connector/)</description>
       <docs>~</docs>
@@ -1244,7 +1216,6 @@
       <node ref="J1" pin="B12" pinfunction="GND" pintype="passive"/>
       <node ref="J1" pin="S1" pinfunction="SHIELD" pintype="passive"/>
       <node ref="J2" pin="1" pinfunction="Pin_1" pintype="passive"/>
-      <node ref="J4" pin="1" pinfunction="Pin_1" pintype="passive"/>
       <node ref="J5" pin="1" pinfunction="GND" pintype="power_in"/>
       <node ref="J6" pin="1" pinfunction="Pin_1" pintype="passive"/>
       <node ref="Q1" pin="2" pinfunction="S" pintype="passive"/>
@@ -1253,6 +1224,7 @@
       <node ref="R3" pin="2" pintype="passive"/>
       <node ref="R4" pin="2" pintype="passive"/>
       <node ref="R5" pin="1" pintype="passive"/>
+      <node ref="SW1" pin="1" pinfunction="1" pintype="passive"/>
       <node ref="U1" pin="1" pinfunction="GND" pintype="power_in"/>
       <node ref="U1" pin="11" pinfunction="GND" pintype="power_in"/>
       <node ref="U1" pin="14" pinfunction="GND" pintype="power_in"/>
@@ -1449,7 +1421,7 @@
       <node ref="U1" pin="20" pinfunction="IO13" pintype="bidirectional"/>
     </net>
     <net code="46" name="TAMPER">
-      <node ref="J4" pin="2" pinfunction="Pin_2" pintype="passive"/>
+      <node ref="SW1" pin="2" pinfunction="2" pintype="passive"/>
       <node ref="U1" pin="16" pinfunction="IO26" pintype="bidirectional"/>
     </net>
     <net code="47" name="VBUS">

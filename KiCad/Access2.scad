@@ -1,6 +1,6 @@
 // Generated case design for KiCad/Access2.kicad_pcb
 // By https://github.com/revk/PCBCase
-// Generated 2022-08-05 10:02:40
+// Generated 2022-08-07 09:10:14
 // title:	Access Control
 // date:	${DATE}
 // rev:	3
@@ -36,14 +36,14 @@ translate([36.500000,19.850000,1.600000])rotate([0,0,180.000000])translate([0.00
 translate([24.750000,19.850000,1.600000])rotate([0,0,180.000000])translate([0.000000,-3.600000,2.500000])rotate([0.000000,0.000000,180.000000])m2(pushed,hulled); // RevK:Molex_MiniSPOX_H4RA 22057045
 translate([9.250000,19.850000,1.600000])rotate([0,0,180.000000])translate([0.000000,-3.600000,2.500000])rotate([0.000000,0.000000,180.000000])m3(pushed,hulled); // RevK:Molex_MiniSPOX_H6RA 22057065
 translate([38.250000,13.500000,1.600000])rotate([0,0,180.000000])m4(pushed,hulled); // RevK:R_0603 R_0603_1608Metric
-translate([36.500000,3.400000,1.600000])m5(pushed,hulled); // RevK:SW_PUSH_6mm_SMD SW_SPST_PTS645
+translate([33.300000,4.550000,1.600000])rotate([0,0,-90.000000])translate([2.050000,0.000000,1.150000])rotate([0.000000,0.000000,90.000000])m5(pushed,hulled); // RevK:ESE13 ESE13V01D
 translate([13.500000,17.000000,1.600000])rotate([0,0,-90.000000])m4(pushed,hulled); // RevK:R_0603 R_0603_1608Metric
 translate([46.250000,2.375000,1.600000])rotate([0,0,90.000000])m4(pushed,hulled); // RevK:R_0603 R_0603_1608Metric
-translate([29.500000,1.750000,1.600000])rotate([0,0,90.000000])m4(pushed,hulled); // RevK:R_0603 R_0603_1608Metric
+translate([29.500000,9.600000,1.600000])rotate([0,0,90.000000])m4(pushed,hulled); // RevK:R_0603 R_0603_1608Metric
 translate([48.000000,2.375000,1.600000])rotate([0,0,90.000000])translate([0.000000,-0.400000,0.000000])m6(pushed,hulled); // RevK:LED-RGB-1.6x1.6 LED_0603_1608Metric
 translate([48.000000,2.375000,1.600000])rotate([0,0,90.000000])translate([0.000000,0.400000,0.000000])m6(pushed,hulled); // RevK:LED-RGB-1.6x1.6 LED_0603_1608Metric
 translate([49.935000,9.750000,1.600000])rotate([0,0,90.000000])translate([0.000000,3.385000,0.000000])rotate([-90.000000,0.000000,0.000000])m7(pushed,hulled); // RevK:USC16-TR-Round CSP-USC16-TR
-translate([29.500000,9.500000,1.600000])rotate([0,0,90.000000])m4(pushed,hulled); // RevK:R_0603 R_0603_1608Metric
+translate([29.800000,1.800000,1.600000])rotate([0,0,90.000000])m4(pushed,hulled); // RevK:R_0603 R_0603_1608Metric
 translate([22.500000,13.100000,1.600000])rotate([0.000000,0.000000,90.000000])m8(pushed,hulled); // RevK:RegulatorBlockFB SOT-23-6
 translate([22.500000,13.100000,1.600000])translate([-2.100000,-0.250000,0.000000])rotate([0.000000,0.000000,90.000000])m9(pushed,hulled); // RevK:RegulatorBlockFB C_0603_1608Metric
 translate([22.500000,13.100000,1.600000])translate([-0.800000,-3.550000,0.000000])rotate([0.000000,0.000000,90.000000])m10(pushed,hulled); // RevK:RegulatorBlockFB C_0805_2012Metric
@@ -62,7 +62,7 @@ translate([43.250000,2.375000,1.600000])rotate([0,0,90.000000])m4(pushed,hulled)
 translate([41.750000,12.000000,1.600000])rotate([0,0,-90.000000])m4(pushed,hulled); // RevK:R_0603 R_0603_1608Metric
 translate([9.500000,17.000000,1.600000])rotate([0,0,-90.000000])m4(pushed,hulled); // RevK:R_0603 R_0603_1608Metric
 translate([36.000000,7.800000,1.600000])m4(pushed,hulled); // RevK:R_0603 R_0603_1608Metric
-translate([30.250000,4.000000,1.600000])rotate([0,0,180.000000])m4(pushed,hulled); // RevK:R_0603 R_0603_1608Metric
+translate([29.800000,4.700000,1.600000])rotate([0,0,-90.000000])m4(pushed,hulled); // RevK:R_0603 R_0603_1608Metric
 translate([41.750000,7.400000,1.600000])rotate([0,0,-90.000000])m4(pushed,hulled); // RevK:R_0603 R_0603_1608Metric
 translate([21.500000,17.000000,1.600000])rotate([0,0,-90.000000])m4(pushed,hulled); // RevK:R_0603 R_0603_1608Metric
 translate([36.500000,16.250000,1.600000])rotate([0,0,90.000000])rotate([0.000000,0.000000,90.000000])m15(pushed,hulled); // RevK:Special-SOP-4-3.7x4.55 SO-4_4.4x3.6mm_P2.54mm
@@ -190,14 +190,9 @@ b(0,0,0,2.8,0.95,0.5); // Pad size
 }
 
 module m5(pushed=false,hulled=false)
-{ // RevK:SW_PUSH_6mm_SMD SW_SPST_PTS645
-if(!hulled&&!pushed)
-{ // This avoids hull and minkowski as used as a tamper switch so needs to be more exact
-	b(0,0,0,6,6,3.2); // Used as a tamper, so exact
-	for(x=[-2,2])for(y=[-2,2])translate([x,y,0])cylinder(d=1,h=3.5); // Pips on top
-}
-b(0,0,0,9,6,1.1); // Legs
-
+{ // RevK:ESE13 ESE13V01D
+b(0,0,0,4.2,3.6,1.2);
+b(3.08,0,0,1.95,1.2,1.2);
 }
 
 module m6(pushed=false,hulled=false)
