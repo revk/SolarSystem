@@ -4,7 +4,7 @@ Modular access control and alarm system.
 
 # Building
 
-Git clone this `--recursive` to get all the submodules, and it should build with just `make` for the host components. Similarly `make` in the `ESP32` directory for the ESP32 components, which actually runs the normal `idf.py` to build. `make menuconfig` can be used to fine tune the settings, but the defaults should be mostly sane. `make flash` should work to program.
+Git clone this `--recursive` to get all the submodules, and it should build with just `make` for the host components. Similarly `make set` in the `ESP32` directory for the ESP32 components, which actually runs the normal `idf.py` to build. `make menuconfig` can be used to fine tune the settings, but the defaults should be mostly sane. `make flash` should work to program.
 
 ## ESP32 code for modules
 
@@ -12,7 +12,7 @@ Modules work as a mesh over WiFi, and one connects to a back end cloud managemen
 
 Example of access control PCB:
 
-![Access2](https://user-images.githubusercontent.com/996983/170712038-56918a26-39f6-4e2f-869d-362451e7e87e.png)
+![Access2](https://user-images.githubusercontent.com/996983/183847654-823f6ce3-3b02-4f11-89c0-45e1dcc967e2.png)
 
 ## Back end management cloud system
 
