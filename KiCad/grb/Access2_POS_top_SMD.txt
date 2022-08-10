@@ -1,12 +1,12 @@
-### Module positions - created on 2022-08-07 09:09
+### Module positions - created on 2022-08-10 08:58
 ### Printed by pcb_positions plugin
 ## Unit = mm, Angle = deg.
 ## Pcb Height 26.600mm, Pcb Width 50.100mm [based on Edge bounding box]
 ## Side : top
 ## Board Aux Origin: 0.000mm ,0.000mm
 # Ref         Val                 Package                       PosX       PosY       Pin1_PosX  Pin1_PosY    Rot     Side      Type
-SW1           ESE13V01D           ESE13                         133.3000   -87.9500   135.0800   -86.4500    -90.0    top       SMD
 R16           1K                  R_0603                        138.2500   -79.0000   139.0750   -79.0000    180.0    top       SMD
+SW1           ESE13V01D           ESE13                         138.8000   -88.1500   140.5800   -86.6500    -90.0    top       SMD
 R10           100R                R_0603                        113.5000   -75.5000   113.5000   -74.6750    -90.0    top       SMD
 R18           2K                  R_0603                        146.2500   -90.1250   146.2500   -90.9500     90.0    top       SMD
 R24           30k 1% or NF        R_0603                        129.5000   -82.9000   129.5000   -83.7250     90.0    top       SMD
