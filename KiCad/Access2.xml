@@ -2,15 +2,15 @@
 <export version="E">
   <design>
     <source>/Users/adrian/git/SolarSystem/KiCad/Access2.kicad_sch</source>
-    <date>Sunday, 07 August 2022 at 09:09:31</date>
+    <date>Monday, 15 August 2022 at 09:10:43</date>
     <tool>Eeschema (6.0.5-0)</tool>
-    <textvar name="DATE">2022-08-07</textvar>
+    <textvar name="DATE">2022-08-15</textvar>
     <sheet number="1" name="/" tstamps="/">
       <title_block>
         <title>Access control</title>
         <company>Adrian Kennard Andrews &amp; Arnold Ltd</company>
         <rev>3</rev>
-        <date>2022-08-07</date>
+        <date>2022-08-15</date>
         <source>Access2.kicad_sch</source>
         <comment number="1" value="@TheRealRevK"/>
         <comment number="2" value="www.me.uk"/>
@@ -25,19 +25,6 @@
     </sheet>
   </design>
   <components>
-    <comp ref="AJK1">
-      <value>AJK</value>
-      <footprint>RevK:AJK</footprint>
-      <fields>
-        <field name="Note">Non part, PCB printed</field>
-      </fields>
-      <libsource lib="RevK" part="AJK" description=""/>
-      <property name="Note" value="Non part, PCB printed"/>
-      <property name="Sheetname" value=""/>
-      <property name="Sheetfile" value="Access2.kicad_sch"/>
-      <sheetpath names="/" tstamps="/"/>
-      <tstamps>00000000-0000-0000-0000-000060629b22</tstamps>
-    </comp>
     <comp ref="C1">
       <value>0.1uF</value>
       <footprint>RevK:C_0603</footprint>
@@ -112,7 +99,7 @@
     </comp>
     <comp ref="C9">
       <value>0.1uF</value>
-      <footprint>RevK:Hidden</footprint>
+      <footprint>RevK:C_0603_</footprint>
       <fields>
         <field name="Note">X7R or X5R 0603</field>
       </fields>
@@ -126,7 +113,7 @@
     </comp>
     <comp ref="C10">
       <value>2.2uF</value>
-      <footprint>RevK:Hidden</footprint>
+      <footprint>RevK:C_0805_</footprint>
       <fields>
         <field name="Note">0603 or 0805</field>
       </fields>
@@ -140,7 +127,7 @@
     </comp>
     <comp ref="C11">
       <value>10uF</value>
-      <footprint>RevK:Hidden</footprint>
+      <footprint>RevK:C_0805_</footprint>
       <fields>
         <field name="Note">0603 or 0805</field>
       </fields>
@@ -154,7 +141,7 @@
     </comp>
     <comp ref="C12">
       <value>0.1uF</value>
-      <footprint>RevK:Hidden</footprint>
+      <footprint>RevK:C_0603_</footprint>
       <fields>
         <field name="Note">X7R or X5R 0603</field>
       </fields>
@@ -168,7 +155,7 @@
     </comp>
     <comp ref="C13">
       <value>2.2uF</value>
-      <footprint>RevK:Hidden</footprint>
+      <footprint>RevK:C_0805_</footprint>
       <fields>
         <field name="Note">0603 or 0805</field>
       </fields>
@@ -182,7 +169,7 @@
     </comp>
     <comp ref="C14">
       <value>10uF</value>
-      <footprint>RevK:Hidden</footprint>
+      <footprint>RevK:C_0805_</footprint>
       <fields>
         <field name="Note">0603 or 0805</field>
       </fields>
@@ -193,6 +180,15 @@
       <property name="Sheetfile" value="Access2.kicad_sch"/>
       <sheetpath names="/" tstamps="/"/>
       <tstamps>00000000-0000-0000-0000-0000612d7c5a</tstamps>
+    </comp>
+    <comp ref="C15">
+      <value>10nF</value>
+      <footprint>RevK:C_0603</footprint>
+      <libsource lib="Device" part="C" description="Unpolarized capacitor"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="Access2.kicad_sch"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>cf695687-6e99-4fc3-b984-ddabe1c532a1</tstamps>
     </comp>
     <comp ref="D1">
       <value>BAV99S</value>
@@ -251,7 +247,7 @@
     </comp>
     <comp ref="D6">
       <value>Schottky</value>
-      <footprint>RevK:Hidden</footprint>
+      <footprint>RevK:D_1206_</footprint>
       <datasheet>https://www.mouser.co.uk/datasheet/2/54/CD1206-B220_B2100-777245.pdf</datasheet>
       <fields>
         <field name="Manufacturer">Bourns</field>
@@ -268,7 +264,7 @@
     </comp>
     <comp ref="D7">
       <value>Schottky</value>
-      <footprint>RevK:Hidden</footprint>
+      <footprint>RevK:D_1206_</footprint>
       <datasheet>https://www.mouser.co.uk/datasheet/2/54/CD1206-B220_B2100-777245.pdf</datasheet>
       <fields>
         <field name="Manufacturer">Bourns</field>
@@ -349,7 +345,7 @@
     </comp>
     <comp ref="L1">
       <value>6.8uH</value>
-      <footprint>RevK:Hidden</footprint>
+      <footprint>RevK:L_4x4_</footprint>
       <datasheet>https://www.mouser.co.uk/datasheet/2/987/Laird_Performance_TYA4020_series__Rev_A_-1877538.pdf</datasheet>
       <fields>
         <field name="Manufacturer">Laird</field>
@@ -366,7 +362,7 @@
     </comp>
     <comp ref="L2">
       <value>6.8uH</value>
-      <footprint>RevK:Hidden</footprint>
+      <footprint>RevK:L_4x4_</footprint>
       <datasheet>https://www.mouser.co.uk/datasheet/2/987/Laird_Performance_TYA4020_series__Rev_A_-1877538.pdf</datasheet>
       <fields>
         <field name="Manufacturer">Laird</field>
@@ -663,7 +659,7 @@
     </comp>
     <comp ref="U4">
       <value>LMR16006+FB</value>
-      <footprint>RevK:RegulatorBlockFB</footprint>
+      <footprint>RevK:SOT-23-Thin-6-Reg</footprint>
       <fields>
         <field name="Manufacturer">TI</field>
         <field name="Part No">LMR16006YQ3</field>
@@ -678,12 +674,12 @@
     </comp>
     <comp ref="U5">
       <value>LMR16006+FB</value>
-      <footprint>RevK:RegulatorBlockFB</footprint>
+      <footprint>RevK:SOT-23-Thin-6-Reg</footprint>
       <fields>
         <field name="Manufacturer">TI</field>
         <field name="Part No">LMR16006YQ3</field>
       </fields>
-      <libsource lib="RevK" part="LMR16006+FB" description=""/>
+      <libsource lib="" part="LMR16006+FB_1" description=""/>
       <property name="Manufacturer" value="TI"/>
       <property name="Part No" value="LMR16006YQ3"/>
       <property name="Sheetname" value=""/>
@@ -691,21 +687,24 @@
       <sheetpath names="/" tstamps="/"/>
       <tstamps>03d3f3dc-57cc-4a5d-b588-5d7b6cd2d907</tstamps>
     </comp>
-    <comp ref="U6">
-      <value>AA</value>
-      <footprint>RevK:AA</footprint>
-      <fields>
-        <field name="Note">Non part, PCB printed</field>
-      </fields>
-      <libsource lib="RevK" part="AA" description="A&amp;A Logo"/>
-      <property name="Note" value="Non part, PCB printed"/>
-      <property name="Sheetname" value=""/>
-      <property name="Sheetfile" value="Access2.kicad_sch"/>
-      <sheetpath names="/" tstamps="/"/>
-      <tstamps>00000000-0000-0000-0000-000060a37ffe</tstamps>
-    </comp>
   </components>
   <libparts>
+    <libpart lib="" part="LMR16006+FB_1">
+      <fields>
+        <field name="Reference">U</field>
+        <field name="Value">LMR16006+FB_1</field>
+        <field name="Footprint">RevK:SOT-23-Thin-6-Reg</field>
+        <field name="Manufacturer">TI</field>
+        <field name="Part No">LMR16006YQ3</field>
+      </fields>
+      <pins>
+        <pin num="1" name="SHDN" type="input"/>
+        <pin num="2" name="VIN" type="power_in"/>
+        <pin num="3" name="GND" type="power_in"/>
+        <pin num="4" name="VOUT" type="power_out"/>
+        <pin num="5" name="FB" type="passive"/>
+      </pins>
+    </libpart>
     <libpart lib="Connector_Generic" part="Conn_01x03">
       <description>Generic connector, single row, 01x03, script generated (kicad-library-utils/schlib/autogen/connector/)</description>
       <docs>~</docs>
@@ -1034,7 +1033,7 @@
       <fields>
         <field name="Reference">U</field>
         <field name="Value">LMR16006+FB</field>
-        <field name="Footprint">RevK:RegulatorBlockFB</field>
+        <field name="Footprint">RevK:SOT-23-Thin-6-Reg</field>
         <field name="Manufacturer">TI</field>
         <field name="Part No">LMR16006YQ3</field>
       </fields>
@@ -1067,6 +1066,20 @@
         <field name="Note">Non part, PCB printed</field>
       </fields>
     </libpart>
+    <libpart lib="RevK" part="Shelly">
+      <fields>
+        <field name="Reference">J</field>
+        <field name="Value">Shelly</field>
+        <field name="Footprint">RevK:Shelly</field>
+      </fields>
+      <pins>
+        <pin num="1" name="GND" type="passive"/>
+        <pin num="2" name="0" type="passive"/>
+        <pin num="3" name="3V3" type="passive"/>
+        <pin num="4" name="Rx" type="passive"/>
+        <pin num="5" name="Tx" type="passive"/>
+      </pins>
+    </libpart>
     <libpart lib="RevK" part="USB-C">
       <description>USB 2.0-only Type-C Receptacle connector</description>
       <docs>https://www.usb.org/sites/default/files/documents/usb_type-c.zip</docs>
@@ -1081,12 +1094,12 @@
       </fields>
       <pins>
         <pin num="A1" name="GND" type="power_out"/>
-        <pin num="A4" name="VBUS" type="passive"/>
+        <pin num="A4" name="VBUS" type="power_out"/>
         <pin num="A5" name="CC1" type="bidirectional"/>
         <pin num="A6" name="D+" type="bidirectional"/>
         <pin num="A7" name="D-" type="bidirectional"/>
         <pin num="A8" name="SBU1" type="no_connect"/>
-        <pin num="A9" name="VBUS" type="power_out"/>
+        <pin num="A9" name="VBUS" type="passive"/>
         <pin num="A12" name="GND" type="passive"/>
         <pin num="B1" name="GND" type="passive"/>
         <pin num="B4" name="VBUS" type="passive"/>
@@ -1185,6 +1198,7 @@
       <node ref="U2" pin="9" pinfunction="USBDM" pintype="bidirectional"/>
     </net>
     <net code="8" name="EN">
+      <node ref="C15" pin="2" pintype="passive"/>
       <node ref="R1" pin="2" pintype="passive"/>
       <node ref="U1" pin="8" pinfunction="EN" pintype="input"/>
       <node ref="U2" pin="19" pinfunction="~{RTS}" pintype="output"/>
@@ -1195,6 +1209,7 @@
     </net>
     <net code="10" name="GND">
       <node ref="C1" pin="2" pintype="passive"/>
+      <node ref="C15" pin="1" pintype="passive"/>
       <node ref="C2" pin="2" pintype="passive"/>
       <node ref="C3" pin="2" pintype="passive"/>
       <node ref="C4" pin="2" pintype="passive"/>
@@ -1426,8 +1441,8 @@
     </net>
     <net code="47" name="VBUS">
       <node ref="D8" pin="2" pinfunction="A" pintype="passive"/>
-      <node ref="J1" pin="A4" pinfunction="VBUS" pintype="passive"/>
-      <node ref="J1" pin="A9" pinfunction="VBUS" pintype="power_out"/>
+      <node ref="J1" pin="A4" pinfunction="VBUS" pintype="power_out"/>
+      <node ref="J1" pin="A9" pinfunction="VBUS" pintype="passive"/>
       <node ref="J1" pin="B4" pinfunction="VBUS" pintype="passive"/>
       <node ref="J1" pin="B9" pinfunction="VBUS" pintype="passive"/>
       <node ref="R2" pin="1" pintype="passive"/>
