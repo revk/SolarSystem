@@ -64,12 +64,12 @@ zip:	$(patsubst %,KiCad/%.zip,$(PCBS))
 	/Applications/OpenSCAD.app/Contents/MacOS/OpenSCAD $< -o $@
 	echo "Made $@"
 
-%.gbr:	%.kicad_pcb
-	echo "Save $@ from $<"
+%-B_Cu.gbr:	%.kicad_pcb
+	echo "Plot $@ from $<"
 	exit 1
 
-%.drl:	%.kicad_pcb
-	echo "Save $@ from $<"
+%-PTH.drl:	%.kicad_pcb
+	echo "Generate drill files $@ from $<"
 	exit 1
 
 %.zip: %-B_Cu.gbr %-F_Cu.gbr %-B_Mask.gbr %-F_Mask.gbr %-B_Paste.gbr %-F_Paste.gbr %-B_Silkscreen.gbr %-F_Silkscreen.gbr %-Edge_Cuts.gbr %-PTH.drl %-NPTH.drl
