@@ -2580,7 +2580,7 @@
     (uuid 00000000-0000-0000-0000-000060436927)
     (property "Reference" "J1" (id 0) (at 114.4778 16.0782 0))
     (property "Value" "USB-C" (id 1) (at 114.4778 18.3896 0))
-    (property "Footprint" "RevK:USC16-TR-Round" (id 2) (at 115.57 38.1 0)
+    (property "Footprint" "RevK:USC16-TR" (id 2) (at 115.57 38.1 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Datasheet" "https://www.usb.org/sites/default/files/documents/usb_type-c.zip" (id 3) (at 115.57 38.1 0)
@@ -4290,7 +4290,7 @@
       (reference "D4") (unit 1) (value "Schottky") (footprint "RevK:D_1206_")
     )
     (path "/00000000-0000-0000-0000-000060436927"
-      (reference "J1") (unit 1) (value "USB-C") (footprint "RevK:USC16-TR-Round")
+      (reference "J1") (unit 1) (value "USB-C") (footprint "RevK:USC16-TR")
     )
     (path "/00000000-0000-0000-0000-00006074263f"
       (reference "J2") (unit 1) (value "POWER") (footprint "RevK:Molex_MiniSPOX_H2RA")
