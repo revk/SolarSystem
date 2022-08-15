@@ -1240,7 +1240,6 @@
     )
   )
 
-
   (junction (at 100.33 144.145) (diameter 0) (color 0 0 0 0)
     (uuid 143ed874-a01f-4ced-ba4e-bbb66ddd1f70)
   )
@@ -2201,12 +2200,12 @@
   )
 
   (symbol (lib_id "RevK:Shelly") (at 134.62 44.45 180) (unit 1)
-    (in_bom no) (on_board yes) (fields_autoplaced)
+    (in_bom no) (on_board yes)
     (uuid fd3498e5-1162-41db-b7ed-773300b2c4e0)
-    (property "Reference" "J2" (id 0) (at 135.9662 44.8853 0)
+    (property "Reference" "J2" (id 0) (at 133.35 34.29 0)
       (effects (font (size 1.27 1.27)) (justify right))
     )
-    (property "Value" "Shelly" (id 1) (at 135.9662 47.4222 0)
+    (property "Value" "Shelly" (id 1) (at 132.08 36.195 0)
       (effects (font (size 1.27 1.27)) (justify right))
     )
     (property "Footprint" "RevK:Shelly" (id 2) (at 132.08 36.195 0)
