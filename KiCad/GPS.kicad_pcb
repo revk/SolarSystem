@@ -1685,7 +1685,7 @@
       (net 14 "DC") (pinfunction "VIN") (pintype "power_in") (zone_connect 0)
       (options (clearance outline) (anchor rect))
       (primitives
-    (gr_arc (start 0.001745 0.000002) (mid 0.706489 0.292277) (end 0.999993 0.996509) (width 0.5))
+    (gr_arc (start 0.001745 0.000002) (mid 0.705871 0.29166) (end 0.999986 0.994764) (width 0.5))
       ) (tstamp ca7cb3a1-af88-4c27-bf5e-b08a54a2119c))
     (pad "3" smd custom (at -1.1 -4.5 90) (size 0.1 0.1) (layers "B.Cu")
       (net 2 "GND") (pinfunction "GND") (pintype "power_in") (clearance 0.2) (zone_connect 0)

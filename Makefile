@@ -25,7 +25,8 @@ ifndef KCONFIG_CONFIG
 KCONFIG_CONFIG=solarsystem.conf
 endif
 
-MODELS := Access2 Bell2 Bell2GPS GPS Access Bell Relay8 Relay10
+PCBS := Access2 Bell2 GPS Access Bell Relay8 Relay10
+MODELS := ${PCBS} Bell2GPS
 
 all: solarsystem can message makeaid sscert login.conf SQLlib/sql xmlsql/xmlsql .git/hooks/pre-commit
 
@@ -56,11 +57,24 @@ PCBCase/case: PCBCase/case.c
 
 scad:	$(patsubst %,KiCad/%.scad,$(MODELS))
 stl:	$(patsubst %,KiCad/%.stl,$(MODELS))
+zip:	$(patsubst %,KiCad/%.zip,$(PCBS))
 
 %.stl: %.scad
 	echo "Making $@"
 	/Applications/OpenSCAD.app/Contents/MacOS/OpenSCAD $< -o $@
 	echo "Made $@"
+
+%.gbr:	%.kicad_pcb
+	echo "Save $@ from $<"
+	exit 1
+
+%.drl:	%.kicad_pcb
+	echo "Save $@ from $<"
+	exit 1
+
+%.zip: %-B_Cu.gbr %-F_Cu.gbr %-B_Mask.gbr %-F_Mask.gbr %-B_Paste.gbr %-F_Paste.gbr %-B_Silkscreen.gbr %-F_Silkscreen.gbr %-Edge_Cuts.gbr %-PTH.drl %-NPTH.drl
+	rm -f $@
+	zip $@ $+
 
 KiCad/GPS.scad: KiCad/GPS.kicad_pcb PCBCase/case Makefile
 	PCBCase/case -o $@ $< --base=5 --top=5.6
