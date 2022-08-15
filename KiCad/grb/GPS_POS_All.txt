@@ -1,12 +1,13 @@
-### Module positions - created on 2022-08-15 14:40
+### Module positions - created on 2022-08-15 15:28
 ### Printed by pcb_positions plugin
 ## Unit = mm, Angle = deg.
 ## Pcb Height 70.050mm, Pcb Width 36.050mm [based on Edge bounding box]
 ## Side : ALL
 ## Board Aux Origin: 0.000mm ,0.000mm
 # Ref         Val                 Package                       PosX       PosY       Pin1_PosX  Pin1_PosY    Rot     Side      Type
+U5            QR                  QR-SS                         112.0000   -135.5000  0.0000     0.0000      -90.0    top       VIRTUAL
 J5            Conn_01x05_Male     PinHeader_1x05_P1.27mm_Vert.. 102.5400   -129.0000  102.5400   -129.0000   -90.0    top       THD
-J4            Conn_01x05_Male     PinHeader_1x05_P1.27mm_Vert.. 102.5400   -118.0000  102.5400   -118.0000   -90.0    top       THD
+J4            Conn_01x05_Male     PinHeader_1x05_P1.27mm_Vert.. 102.5400   -116.6000  102.5400   -116.6000   -90.0    top       THD
 U1            L86-M33             L86-M33                       100.0000   -100.0000  93.4500    -107.9500   -90.0    top       SMD
 U3            FT231XQ             QFN-20-1EP_4x4mm_P0.5mm_EP2.. 101.0000   -135.5000  100.0000   -133.6000   -90.0    bottom    SMD
 R1            10k                 R_0603                        97.5000    -133.6750  97.5000    -132.8500   -90.0    bottom    SMD
@@ -14,7 +15,6 @@ R5            27R                 R_0603                        105.5000   -134.
 D2            LED_RGBA            LED-RGB-1.6x1.6               87.7500    -132.0000  87.2500    -131.1250    90.0    bottom    SMD
 R3            5K1                 R_0603                        105.5000   -137.7500  104.6750   -137.7500     0.0    bottom    SMD
 D3            Schottky            D_1206_                       100.6300   -146.4200  0.0000     0.0000       90.0    bottom    SMD
-U5            QR                  QR-SS                         112.0000   -135.5000  0.0000     0.0000      -90.0    top       VIRTUAL
 R4            27R                 R_0603                        105.5000   -136.0000  106.3250   -136.0000   180.0    bottom    SMD
 J2            USB-C               USC16-TR                      114.9350   -135.5000  0.0000     0.0000      -90.0    bottom    SMD
 R10           2K                  R_0603                        91.2000    -132.0000  91.2000    -131.1750   -90.0    bottom    SMD

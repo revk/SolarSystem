@@ -1,6 +1,6 @@
 // Generated case design for KiCad/Access2.kicad_pcb
 // By https://github.com/revk/PCBCase
-// Generated 2022-08-15 10:00:33
+// Generated 2022-08-15 14:40:56
 // title:	Access Control
 // date:	${DATE}
 // rev:	3
@@ -42,7 +42,7 @@ translate([46.250000,2.375000,0.800000])rotate([0,0,90.000000])m4(pushed,hulled)
 translate([29.500000,9.600000,0.800000])rotate([0,0,90.000000])m4(pushed,hulled); // RevK:R_0603 R_0603_1608Metric
 translate([48.000000,2.375000,0.800000])rotate([0,0,90.000000])translate([0.000000,-0.400000,0.000000])m6(pushed,hulled); // RevK:LED-RGB-1.6x1.6 LED_0603_1608Metric
 translate([48.000000,2.375000,0.800000])rotate([0,0,90.000000])translate([0.000000,0.400000,0.000000])m6(pushed,hulled); // RevK:LED-RGB-1.6x1.6 LED_0603_1608Metric
-translate([49.935000,9.750000,0.800000])rotate([0,0,90.000000])translate([0.000000,3.385000,0.000000])rotate([-90.000000,0.000000,0.000000])m7(pushed,hulled); // RevK:USC16-TR-Round CSP-USC16-TR
+translate([49.935000,9.750000,0.800000])rotate([0,0,90.000000])translate([0.000000,3.350000,0.000000])rotate([-90.000000,0.000000,0.000000])m7(pushed,hulled); // RevK:USC16-TR CSP-USC16-TR
 translate([29.800000,1.800000,0.800000])rotate([0,0,90.000000])m4(pushed,hulled); // RevK:R_0603 R_0603_1608Metric
 translate([22.500000,13.100000,0.800000])rotate([0.000000,0.000000,90.000000])m8(pushed,hulled); // RevK:SOT-23-Thin-6-Reg SOT-23-6
 translate([49.250000,16.000000,0.800000])rotate([0,0,-90.000000])m4(pushed,hulled); // RevK:R_0603 R_0603_1608Metric
@@ -209,7 +209,7 @@ if(!hulled&&pushed)b(0,0,0,1,1,20);
 }
 
 module m7(pushed=false,hulled=false)
-{ // RevK:USC16-TR-Round CSP-USC16-TR
+{ // RevK:USC16-TR CSP-USC16-TR
 rotate([90,0,0])translate([-4.47,-3.84,0])
 {
 	translate([1.63,0,1.63])
