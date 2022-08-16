@@ -1,6 +1,6 @@
 // Generated case design for KiCad/GPS.kicad_pcb
 // By https://github.com/revk/PCBCase
-// Generated 2022-08-16 09:03:22
+// Generated 2022-08-16 09:25:59
 // title:	GPS reference
 // date:	${DATE}
 // rev:	5
@@ -43,24 +43,23 @@ translate([5.750000,20.000000,0.000000])rotate([0,0,90.000000])rotate([180,0,0])
 translate([23.500000,14.250000,0.000000])rotate([180,0,0])m3(pushed,hulled); // RevK:R_0603 R_0603_1608Metric
 translate([18.630000,5.580000,0.000000])rotate([0,0,90.000000])rotate([180,0,0])m5(pushed,hulled); // RevK:D_1206_ D_1206_3216Metric
 translate([23.500000,16.000000,0.000000])rotate([0,0,180.000000])rotate([180,0,0])m3(pushed,hulled); // RevK:R_0603 R_0603_1608Metric
-translate([32.935000,16.500000,0.000000])rotate([0,0,-90.000000])rotate([180,0,0])translate([0.000000,3.350000,0.000000])rotate([-90.000000,0.000000,0.000000])m6(pushed,hulled); // RevK:USC16-TR CSP-USC16-TR
 translate([9.200000,20.000000,0.000000])rotate([0,0,-90.000000])rotate([180,0,0])m3(pushed,hulled); // RevK:R_0603 R_0603_1608Metric
-translate([9.750000,5.693250,0.000000])rotate([180,0,0])translate([0.000000,2.700000,0.000000])rotate([-90.000000,0.000000,0.000000])m7(pushed,hulled); // RevK:ESP32-PICO-MINI-02 ESP32-PICO-MINI-02
+translate([9.750000,5.693250,0.000000])rotate([180,0,0])translate([0.000000,2.700000,0.000000])rotate([-90.000000,0.000000,0.000000])m6(pushed,hulled); // RevK:ESP32-PICO-MINI-02 ESP32-PICO-MINI-02
 translate([29.000000,9.500000,0.000000])rotate([0,0,180.000000])rotate([180,0,0])m5(pushed,hulled); // RevK:D_1206_ D_1206_3216Metric
 translate([20.000000,13.000000,0.000000])rotate([180,0,0])m3(pushed,hulled); // RevK:R_0603 R_0603_1608Metric
 translate([7.800000,20.000000,0.000000])rotate([0,0,-90.000000])rotate([180,0,0])m3(pushed,hulled); // RevK:R_0603 R_0603_1608Metric
-translate([21.800000,7.200000,0.000000])rotate([0,0,-90.000000])rotate([180,0,0])rotate([0.000000,0.000000,90.000000])m8(pushed,hulled); // RevK:L_4x4_ TYA4020
-translate([21.800000,3.300000,0.000000])rotate([0,0,90.000000])rotate([180,0,0])rotate([0.000000,0.000000,90.000000])m9(pushed,hulled); // RevK:SOT-23-Thin-6-Reg SOT-23-6
-translate([21.550000,1.200000,0.000000])rotate([0,0,180.000000])rotate([180,0,0])m10(pushed,hulled); // RevK:C_0603_ C_0603_1608Metric
+translate([21.800000,7.200000,0.000000])rotate([0,0,-90.000000])rotate([180,0,0])rotate([0.000000,0.000000,90.000000])m7(pushed,hulled); // RevK:L_4x4_ TYA4020
+translate([21.800000,3.300000,0.000000])rotate([0,0,90.000000])rotate([180,0,0])rotate([0.000000,0.000000,90.000000])m8(pushed,hulled); // RevK:SOT-23-Thin-6-Reg SOT-23-6
+translate([21.550000,1.200000,0.000000])rotate([0,0,180.000000])rotate([180,0,0])m9(pushed,hulled); // RevK:C_0603_ C_0603_1608Metric
 translate([24.500000,1.500000,0.000000])rotate([0,0,90.000000])rotate([180,0,0])m3(pushed,hulled); // RevK:R_0603 R_0603_1608Metric
-translate([18.250000,2.450000,0.000000])rotate([180,0,0])m11(pushed,hulled); // RevK:C_0805_ C_0805_2012Metric
-translate([18.250000,8.700000,0.000000])rotate([180,0,0])m11(pushed,hulled); // RevK:C_0805_ C_0805_2012Metric
+translate([18.250000,2.450000,0.000000])rotate([180,0,0])m10(pushed,hulled); // RevK:C_0805_ C_0805_2012Metric
+translate([18.250000,8.700000,0.000000])rotate([180,0,0])m10(pushed,hulled); // RevK:C_0805_ C_0805_2012Metric
 translate([20.000000,11.500000,0.000000])rotate([0,0,180.000000])rotate([180,0,0])m3(pushed,hulled); // RevK:R_0603 R_0603_1608Metric
 translate([10.600000,20.000000,0.000000])rotate([0,0,-90.000000])rotate([180,0,0])m3(pushed,hulled); // RevK:R_0603 R_0603_1608Metric
-translate([18.000000,55.000000,0.000000])rotate([0,0,180.000000])rotate([180,0,0])rotate([0.000000,0.000000,180.000000])m12(pushed,hulled); // RevK:Battery-Holder-2032 BatteryHolder_Keystone_3034_1x20mm
-translate([19.000000,20.000000,0.000000])rotate([180,0,0])m10(pushed,hulled); // RevK:C_0603_ C_0603_1608Metric
+translate([18.000000,55.000000,0.000000])rotate([0,0,180.000000])rotate([180,0,0])rotate([0.000000,0.000000,180.000000])m11(pushed,hulled); // RevK:Battery-Holder-2032 BatteryHolder_Keystone_3034_1x20mm
+translate([19.000000,20.000000,0.000000])rotate([180,0,0])m9(pushed,hulled); // RevK:C_0603_ C_0603_1608Metric
 translate([23.500000,19.000000,0.000000])rotate([0,0,180.000000])rotate([180,0,0])m3(pushed,hulled); // RevK:R_0603 R_0603_1608Metric
-translate([29.000000,6.650000,0.000000])rotate([0,0,180.000000])rotate([180,0,0])translate([0.000000,-3.600000,2.500000])rotate([0.000000,0.000000,180.000000])m13(pushed,hulled); // RevK:Molex_MiniSPOX_H2RA 22057025
+translate([29.000000,6.650000,0.000000])rotate([0,0,180.000000])rotate([180,0,0])translate([0.000000,-3.600000,2.500000])rotate([0.000000,0.000000,180.000000])m12(pushed,hulled); // RevK:Molex_MiniSPOX_H2RA 22057025
 translate([24.500000,9.000000,0.000000])rotate([0,0,-90.000000])rotate([180,0,0])m3(pushed,hulled); // RevK:R_0603 R_0603_1608Metric
 }
 
@@ -94,44 +93,6 @@ b(0,0,0,4.4,1.75,1.2); // Pad size
 }
 
 module m6(pushed=false,hulled=false)
-{ // RevK:USC16-TR CSP-USC16-TR
-rotate([90,0,0])translate([-4.47,-3.84,0])
-{
-	translate([1.63,0,1.63])
-	rotate([-90,0,0])
-	hull()
-	{
-		cylinder(d=3.26,h=7.75,$fn=24);
-		translate([5.68,0,0])
-		cylinder(d=3.26,h=7.75,$fn=24);
-	}
-	translate([0,6.65,0])cube([8.94,1.1,1.63]);
-	translate([0,2.2,0])cube([8.94,1.6,1.63]);
-	if(!hulled)
-	{
-		// Plug
-		translate([1.63,-20,1.63])
-		rotate([-90,0,0])
-		hull()
-		{
-			cylinder(d=2.5,h=21,$fn=24);
-			translate([5.68,0,0])
-			cylinder(d=2.5,h=21,$fn=24);
-		}
-		translate([1.63,-22.5,1.63])
-		rotate([-90,0,0])
-		hull()
-		{
-			cylinder(d=7,h=21,$fn=24);
-			translate([5.68,0,0])
-			cylinder(d=7,h=21,$fn=24);
-		}
-	}
-}
-
-}
-
-module m7(pushed=false,hulled=false)
 { // RevK:ESP32-PICO-MINI-02 ESP32-PICO-MINI-02
 rotate([90,0,0])
 translate([-13.2/2,-16.6/2,0])
@@ -141,36 +102,36 @@ translate([-13.2/2,-16.6/2,0])
 }
 }
 
-module m8(pushed=false,hulled=false)
+module m7(pushed=false,hulled=false)
 { // RevK:L_4x4_ TYA4020
 b(0,0,0,4,4,2.1);
 }
 
-module m9(pushed=false,hulled=false)
+module m8(pushed=false,hulled=false)
 { // RevK:SOT-23-Thin-6-Reg SOT-23-6
 b(0,0,0,3.05,3.05,0.5);
 b(0,0,0,1.45,3.05,1.1);
 }
 
-module m10(pushed=false,hulled=false)
+module m9(pushed=false,hulled=false)
 { // RevK:C_0603_ C_0603_1608Metric
 b(0,0,0,1.6,0.95,0.2); // Pad size
 b(0,0,0,1.6,0.8,1); // Chip
 }
 
-module m11(pushed=false,hulled=false)
+module m10(pushed=false,hulled=false)
 { // RevK:C_0805_ C_0805_2012Metric
 b(0,0,0,2,1.45,0.2); // Pad size
 b(0,0,0,2,1.2,1); // Chip
 }
 
-module m12(pushed=false,hulled=false)
+module m11(pushed=false,hulled=false)
 { // RevK:Battery-Holder-2032 BatteryHolder_Keystone_3034_1x20mm
 b(0,-0.2,0,22.9,15.5,4.2);
 cylinder(d=20,h=3.2);
 }
 
-module m13(pushed=false,hulled=false)
+module m12(pushed=false,hulled=false)
 { // RevK:Molex_MiniSPOX_H2RA 22057025
 N=2;
 A=2.4+N*2.5;

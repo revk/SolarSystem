@@ -25,8 +25,8 @@ ifndef KCONFIG_CONFIG
 KCONFIG_CONFIG=solarsystem.conf
 endif
 
-PCBS := Access2 Bell2 GPS Access Bell Relay8 Relay10
-MODELS := ${PCBS} Bell2GPS
+PCBS := Access2 Bell2 GPS Access Bell Relay8 Relay10 Keypad2
+MODELS := ${PCBS} Bell2GPS GPSNoUSB Access2NoUSB Bell2GPSNoUSB
 
 all: solarsystem can message makeaid sscert login.conf SQLlib/sql xmlsql/xmlsql .git/hooks/pre-commit
 
@@ -78,17 +78,27 @@ zip:	$(patsubst %,KiCad/%.zip,$(PCBS))
 
 KiCad/GPS.scad: KiCad/GPS.kicad_pcb PCBCase/case Makefile
 	PCBCase/case -o $@ $< --base=5 --top=5.6
+KiCad/GPSNoUSB.scad: KiCad/GPS.kicad_pcb PCBCase/case Makefile
+	PCBCase/case -o $@ $< --base=5 --top=5.6 --ignore=J2
 KiCad/Bell.scad: KiCad/Bell.kicad_pcb PCBCase/case Makefile
 	PCBCase/case -o $@ $< --base=2 --top=5.6
 KiCad/Bell2GPS.scad: KiCad/Bell2.kicad_pcb PCBCase/case Makefile
 	PCBCase/case -o $@ $< --base=2 --top=5.6
+KiCad/Bell2GPSNoUSB.scad: KiCad/Bell2.kicad_pcb PCBCase/case Makefile
+	PCBCase/case -o $@ $< --base=2 --top=5.6 --ignore=J1
 KiCad/Bell2.scad: KiCad/Bell2.kicad_pcb PCBCase/case Makefile
 	PCBCase/case -o $@ $< --base=2 --top=5.6 --edge2
 KiCad/Access2.scad: KiCad/Access2.kicad_pcb PCBCase/case Makefile
 	PCBCase/case -o $@ $< --base=2 --top=5.6
+KiCad/Access2NoUSB.scad: KiCad/Access2.kicad_pcb PCBCase/case Makefile
+	PCBCase/case -o $@ $< --base=2 --top=5.6 --ignore=J1
 KiCad/Relay8.scad: KiCad/Relay8.kicad_pcb PCBCase/case Makefile
 	PCBCase/case -o $@ $< --base=1.4 --top=5.6
 KiCad/Relay10.scad: KiCad/Relay10.kicad_pcb PCBCase/case Makefile
+	PCBCase/case -o $@ $< --base=1.4 --top=5.6
+KiCad/Keypad.scad: KiCad/Keypad.kicad_pcb PCBCase/case Makefile
+	PCBCase/case -o $@ $< --base=1.4 --top=5.6
+KiCad/Keypad2.scad: KiCad/Keypad2.kicad_pcb PCBCase/case Makefile
 	PCBCase/case -o $@ $< --base=1.4 --top=5.6
 xmlsql/xmlsql: xmlsql/xmlsql.c
 	make -C xmlsql

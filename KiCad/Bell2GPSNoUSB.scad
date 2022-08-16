@@ -1,6 +1,6 @@
 // Generated case design for KiCad/Bell2.kicad_pcb
 // By https://github.com/revk/PCBCase
-// Generated 2022-08-16 09:20:07
+// Generated 2022-08-16 09:30:49
 // title:	Bell box controller
 // date:	${DATE}
 // rev:	2
@@ -57,12 +57,11 @@ translate([33.500000,16.500000,1.600000])rotate([0,0,180.000000])m1(pushed,hulle
 translate([33.625000,20.750000,1.600000])rotate([0,0,180.000000])translate([0.000000,-0.400000,0.000000])m9(pushed,hulled); // RevK:LED-RGB-1.6x1.6 LED_0603_1608Metric
 translate([33.625000,20.750000,1.600000])rotate([0,0,180.000000])translate([0.000000,0.400000,0.000000])m9(pushed,hulled); // RevK:LED-RGB-1.6x1.6 LED_0603_1608Metric
 translate([24.400000,16.400000,1.600000])translate([0.000000,2.700000,0.000000])rotate([-90.000000,0.000000,0.000000])m10(pushed,hulled); // RevK:ESP32-PICO-MINI-02 ESP32-PICO-MINI-02
-translate([32.000000,0.000000,1.600000])translate([0.000000,3.350000,0.000000])rotate([-90.000000,0.000000,0.000000])m11(pushed,hulled); // RevK:USC16-TR CSP-USC16-TR
 translate([25.170000,5.080000,1.600000])rotate([0,0,90.000000])m7(pushed,hulled); // RevK:D_1206 D_1206_3216Metric
-translate([22.000000,6.700000,1.600000])rotate([0,0,90.000000])rotate([0.000000,0.000000,90.000000])m12(pushed,hulled); // RevK:L_4x4_ TYA4020
-translate([39.600000,22.500000,1.600000])m13(pushed,hulled); // RevK:QFN-20-1EP_4x4mm_P0.5mm_EP2.5x2.5mm QFN-20-1EP_4x4mm_P0.5mm_EP2.5x2.5mm
+translate([22.000000,6.700000,1.600000])rotate([0,0,90.000000])rotate([0.000000,0.000000,90.000000])m11(pushed,hulled); // RevK:L_4x4_ TYA4020
+translate([39.600000,22.500000,1.600000])m12(pushed,hulled); // RevK:QFN-20-1EP_4x4mm_P0.5mm_EP2.5x2.5mm QFN-20-1EP_4x4mm_P0.5mm_EP2.5x2.5mm
 translate([48.300000,16.300000,0.000000])rotate([180,0,0])m3(pushed,hulled); // RevK:C_0603_ C_0603_1608Metric
-translate([48.500000,18.700000,0.000000])rotate([0,0,90.000000])rotate([180,0,0])m14(pushed,hulled); // Package_TO_SOT_SMD:SOT-363_SC-70-6 SOT-363_SC-70-6
+translate([48.500000,18.700000,0.000000])rotate([0,0,90.000000])rotate([180,0,0])m13(pushed,hulled); // Package_TO_SOT_SMD:SOT-363_SC-70-6 SOT-363_SC-70-6
 translate([48.300000,21.200000,0.000000])rotate([0,0,180.000000])rotate([180,0,0])m3(pushed,hulled); // RevK:C_0603_ C_0603_1608Metric
 }
 
@@ -173,54 +172,16 @@ translate([-13.2/2,-16.6/2,0])
 }
 
 module m11(pushed=false,hulled=false)
-{ // RevK:USC16-TR CSP-USC16-TR
-rotate([90,0,0])translate([-4.47,-3.84,0])
-{
-	translate([1.63,0,1.63])
-	rotate([-90,0,0])
-	hull()
-	{
-		cylinder(d=3.26,h=7.75,$fn=24);
-		translate([5.68,0,0])
-		cylinder(d=3.26,h=7.75,$fn=24);
-	}
-	translate([0,6.65,0])cube([8.94,1.1,1.63]);
-	translate([0,2.2,0])cube([8.94,1.6,1.63]);
-	if(!hulled)
-	{
-		// Plug
-		translate([1.63,-20,1.63])
-		rotate([-90,0,0])
-		hull()
-		{
-			cylinder(d=2.5,h=21,$fn=24);
-			translate([5.68,0,0])
-			cylinder(d=2.5,h=21,$fn=24);
-		}
-		translate([1.63,-22.5,1.63])
-		rotate([-90,0,0])
-		hull()
-		{
-			cylinder(d=7,h=21,$fn=24);
-			translate([5.68,0,0])
-			cylinder(d=7,h=21,$fn=24);
-		}
-	}
-}
-
-}
-
-module m12(pushed=false,hulled=false)
 { // RevK:L_4x4_ TYA4020
 b(0,0,0,4,4,2.1);
 }
 
-module m13(pushed=false,hulled=false)
+module m12(pushed=false,hulled=false)
 { // RevK:QFN-20-1EP_4x4mm_P0.5mm_EP2.5x2.5mm QFN-20-1EP_4x4mm_P0.5mm_EP2.5x2.5mm
 cube([4,4,1],center=true);
 }
 
-module m14(pushed=false,hulled=false)
+module m13(pushed=false,hulled=false)
 { // Package_TO_SOT_SMD:SOT-363_SC-70-6 SOT-363_SC-70-6
 b(0,0,0,1.15,2.0,1.1);
 b(0,0,0,2.1,2.0,0.6);
