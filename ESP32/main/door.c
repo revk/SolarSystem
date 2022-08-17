@@ -567,7 +567,7 @@ const char *door_fob(fob_t * fob)
          }
    if (fob->held)
       return NULL;
-   if (!fob->deny && !fob->enterok && !fob->disarmok && !fob->armok && !fob->strongok && !fob->propok)
+   if (!fob->deny && !fob->remote && !fob->enterok && !fob->disarmok && !fob->armok && !fob->strongok && !fob->propok)
       fob->deny = "Not allowed";        // No actions allowed
    if (!fob->deny && fob->secure && df.keylen && *datetime >= 0x20 && xdays && xoff && xlen <= 7)
    {                            // Update expiry
