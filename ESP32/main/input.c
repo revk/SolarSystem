@@ -50,7 +50,7 @@ int input_get(int p)
    if (p < 1 || p > MAXINPUT)
       return -1;
    p--;
-   if (input_raw & (1ULL << p))
+   if (input_stable & (1ULL << p))
       return 1;
    return 0;
 }
