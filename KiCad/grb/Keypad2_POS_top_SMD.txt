@@ -1,25 +1,25 @@
-### Module positions - created on 2022-03-29 11:32
+### Module positions - created on 2022-08-15 09:20
 ### Printed by pcb_positions plugin
 ## Unit = mm, Angle = deg.
 ## Pcb Height 29.100mm, Pcb Width 13.300mm [based on Edge bounding box]
 ## Side : top
 ## Board Aux Origin: 0.000mm ,0.000mm
 # Ref         Val                 Package                       PosX       PosY       Pin1_PosX  Pin1_PosY    Rot     Side      Type
+L1            6.8uH               L_4x4_                        171.4000   -114.4000  0.0000     0.0000       90.0    top       SMD
+D2            Schottky            D_1206_                       168.2300   -112.7800  0.0000     0.0000       90.0    top       SMD
+C4            10uF                C_0805_                       167.8500   -115.9000  0.0000     0.0000        0.0    top       SMD
+C3            2.2uF               C_0805_                       167.8500   -109.6500  0.0000     0.0000        0.0    top       SMD
+C2            0.1uF               C_0603_                       171.1500   -108.4000  0.0000     0.0000        0.0    top       SMD
+U3            LMR16006+FB         SOT-23-Thin-6-Reg             171.4000   -110.5000  170.0500   -109.5500   -90.0    top       SMD
 R1            10K                 R_0603                        164.8750   -116.7000  165.7000   -116.7000   180.0    top       SMD
-C1            10nF                C_0603                        162.4000   -116.7000  161.6250   -116.7000     0.0    top       SMD
-C4            10uF                Hidden                        167.8500   -115.9000  0.0000     0.0000        0.0    top       SMD
-C2            0.1uF               Hidden                        171.1500   -108.4000  0.0000     0.0000        0.0    top       SMD
 R4            220R                R_0603                        166.4000   -107.1000  166.4000   -107.9250    90.0    top       SMD
 U2            ESP32-PICO-MINI-02  ESP32-PICO-MINI-02            167.6000   -99.6000   161.7000   -95.6000      0.0    top       SMD
-C3            2.2uF               Hidden                        167.8500   -109.6500  0.0000     0.0000        0.0    top       SMD
 R5            100k 1% or 0R       R_0603                        171.5500   -106.6000  170.7250   -106.6000     0.0    top       SMD
 U1            SP3485              SO-8_3.9x4.9mm_P1.27mm        163.7000   -112.5465  165.6050   -109.9715   -90.0    top       SMD
-D2            Schottky            Hidden                        168.2300   -112.7800  0.0000     0.0000       90.0    top       SMD
 D1            LED_RGBA            LED-RGB-1.6x1.6               162.2500   -107.1000  162.7500   -106.2250    90.0    top       SMD
-U3            LMR16006+FB         RegulatorBlockFB              171.3490   -110.5000  169.9990   -109.5500   -90.0    top       SMD
-R6            30k 1% or NF        R_0603                        173.4500   -107.6000  173.4500   -106.7750   -90.0    top       SMD
+R6            30k 1% or NF        R_0603                        173.4500   -107.4000  173.4500   -106.5750   -90.0    top       SMD
 R3            2K                  R_0603                        165.1500   -107.1000  165.1500   -107.9250    90.0    top       SMD
+C1            10nF                C_0603                        162.4000   -116.7000  161.6250   -116.7000     0.0    top       SMD
 R2            680R                R_0603                        163.9000   -107.1000  163.9000   -107.9250    90.0    top       SMD
 C5            100nF               C_0603                        167.6000   -107.1000  167.6000   -106.3250   -90.0    top       SMD
-L1            6.8uH               Hidden                        171.4000   -114.4000  0.0000     0.0000       90.0    top       SMD
 ## End

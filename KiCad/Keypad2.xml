@@ -2,15 +2,15 @@
 <export version="E">
   <design>
     <source>/Users/adrian/git/SolarSystem/KiCad/Keypad2.kicad_sch</source>
-    <date>Tuesday, 29 March 2022 at 11:11:45</date>
-    <tool>Eeschema (6.0.2-0)</tool>
-    <textvar name="DATE">2022-03-17</textvar>
+    <date>Monday, 15 August 2022 at 09:20:27</date>
+    <tool>Eeschema (6.0.5-0)</tool>
+    <textvar name="DATE">2022-08-15</textvar>
     <sheet number="1" name="/" tstamps="/">
       <title_block>
         <title>Galaxy Keypad controller</title>
         <company>Adrian Kennard Andrews &amp; Arnold Ltd</company>
         <rev>5</rev>
-        <date>2022-03-17</date>
+        <date>2022-08-15</date>
         <source>Keypad2.kicad_sch</source>
         <comment number="1" value="@TheRealRevK"/>
         <comment number="2" value="www.me.uk"/>
@@ -36,7 +36,7 @@
     </comp>
     <comp ref="C2">
       <value>0.1uF</value>
-      <footprint>RevK:Hidden</footprint>
+      <footprint>RevK:C_0603_</footprint>
       <libsource lib="RevK" part="Hidden" description=""/>
       <property name="Note" value=""/>
       <property name="Part No" value=""/>
@@ -47,7 +47,7 @@
     </comp>
     <comp ref="C3">
       <value>2.2uF</value>
-      <footprint>RevK:Hidden</footprint>
+      <footprint>RevK:C_0805_</footprint>
       <fields>
         <field name="Note">0805</field>
       </fields>
@@ -61,7 +61,7 @@
     </comp>
     <comp ref="C4">
       <value>10uF</value>
-      <footprint>RevK:Hidden</footprint>
+      <footprint>RevK:C_0805_</footprint>
       <fields>
         <field name="Note">1206</field>
       </fields>
@@ -93,7 +93,7 @@
     </comp>
     <comp ref="D2">
       <value>Schottky</value>
-      <footprint>RevK:Hidden</footprint>
+      <footprint>RevK:D_1206_</footprint>
       <datasheet>https://www.mouser.co.uk/datasheet/2/54/CD1206-B220_B2100-777245.pdf</datasheet>
       <fields>
         <field name="Manufacturer">Bourns</field>
@@ -119,7 +119,7 @@
     </comp>
     <comp ref="L1">
       <value>6.8uH</value>
-      <footprint>RevK:Hidden</footprint>
+      <footprint>RevK:L_4x4_</footprint>
       <datasheet>https://www.mouser.co.uk/datasheet/2/987/Laird_Performance_TYA4020_series__Rev_A_-1877538.pdf</datasheet>
       <fields>
         <field name="Manufacturer">Laird</field>
@@ -218,7 +218,7 @@
     </comp>
     <comp ref="U3">
       <value>LMR16006+FB</value>
-      <footprint>RevK:RegulatorBlockFB</footprint>
+      <footprint>RevK:SOT-23-Thin-6-Reg</footprint>
       <fields>
         <field name="Manufacturer">TI</field>
         <field name="Part No">LMR16006YQ3</field>
@@ -250,26 +250,6 @@
         <pin num="2" name="Pin_2" type="power_out"/>
         <pin num="3" name="Pin_3" type="passive"/>
         <pin num="4" name="Pin_4" type="passive"/>
-      </pins>
-    </libpart>
-    <libpart lib="Connector_Generic" part="Conn_01x05">
-      <description>Generic connector, single row, 01x05, script generated (kicad-library-utils/schlib/autogen/connector/)</description>
-      <docs>~</docs>
-      <footprints>
-        <fp>Connector*:*_1x??_*</fp>
-      </footprints>
-      <fields>
-        <field name="Reference">J2</field>
-        <field name="Value">Prog</field>
-        <field name="Footprint">Connector_PinHeader_2.54mm:PinHeader_1x05_P2.54mm_Vertical</field>
-        <field name="Datasheet">~</field>
-      </fields>
-      <pins>
-        <pin num="1" name="Pin_1" type="power_in"/>
-        <pin num="2" name="Pin_2" type="passive"/>
-        <pin num="3" name="Pin_3" type="power_in"/>
-        <pin num="4" name="Pin_4" type="passive"/>
-        <pin num="5" name="Pin_5" type="passive"/>
       </pins>
     </libpart>
     <libpart lib="Device" part="C">
@@ -412,7 +392,7 @@
       <fields>
         <field name="Reference">U</field>
         <field name="Value">LMR16006+FB</field>
-        <field name="Footprint">RevK:RegulatorBlockFB</field>
+        <field name="Footprint">RevK:SOT-23-Thin-6-Reg</field>
         <field name="Manufacturer">TI</field>
         <field name="Part No">LMR16006YQ3</field>
       </fields>
@@ -446,6 +426,20 @@
         <pin num="6" name="A" type="bidirectional"/>
         <pin num="7" name="B" type="bidirectional"/>
         <pin num="8" name="Vcc" type="power_in"/>
+      </pins>
+    </libpart>
+    <libpart lib="RevK" part="Shelly">
+      <fields>
+        <field name="Reference">J</field>
+        <field name="Value">Shelly</field>
+        <field name="Footprint">RevK:Shelly</field>
+      </fields>
+      <pins>
+        <pin num="1" name="GND" type="passive"/>
+        <pin num="2" name="0" type="passive"/>
+        <pin num="3" name="3V3" type="passive"/>
+        <pin num="4" name="Rx" type="passive"/>
+        <pin num="5" name="Tx" type="passive"/>
       </pins>
     </libpart>
   </libparts>

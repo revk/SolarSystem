@@ -2,15 +2,15 @@
 <export version="E">
   <design>
     <source>/Users/adrian/git/SolarSystem/KiCad/GPS.kicad_sch</source>
-    <date>Monday, 07 March 2022 at 07:28:00</date>
-    <tool>Eeschema (6.0.2-0)</tool>
-    <textvar name="DATE">2022-03-06</textvar>
+    <date>Monday, 15 August 2022 at 14:40:31</date>
+    <tool>Eeschema (6.0.5-0)</tool>
+    <textvar name="DATE">2022-03-10</textvar>
     <sheet number="1" name="/" tstamps="/">
       <title_block>
         <title>GPS reference</title>
         <company>Adrian Kennard Andrews &amp; Arnold Ltd</company>
         <rev>1</rev>
-        <date>2022-03-06</date>
+        <date>2022-03-10</date>
         <source>GPS.kicad_sch</source>
         <comment number="1" value="@TheRealRevK"/>
         <comment number="2" value="www.me.uk"/>
@@ -45,7 +45,7 @@
     </comp>
     <comp ref="C2">
       <value>0.1uF</value>
-      <footprint>RevK:Hidden</footprint>
+      <footprint>RevK:C_0603_</footprint>
       <libsource lib="RevK" part="Hidden" description=""/>
       <property name="Note" value=""/>
       <property name="Part No" value=""/>
@@ -56,7 +56,7 @@
     </comp>
     <comp ref="C3">
       <value>2.2uF</value>
-      <footprint>RevK:Hidden</footprint>
+      <footprint>RevK:C_0805_</footprint>
       <fields>
         <field name="Note">0805</field>
       </fields>
@@ -70,7 +70,7 @@
     </comp>
     <comp ref="C4">
       <value>10uF</value>
-      <footprint>RevK:Hidden</footprint>
+      <footprint>RevK:C_0805_</footprint>
       <fields>
         <field name="Note">1206</field>
       </fields>
@@ -84,7 +84,7 @@
     </comp>
     <comp ref="D1">
       <value>D</value>
-      <footprint>Diode_SMD:D_1206_3216Metric</footprint>
+      <footprint>RevK:D_1206</footprint>
       <libsource lib="Device" part="D" description="Diode"/>
       <property name="Sheetname" value=""/>
       <property name="Sheetfile" value="GPS.kicad_sch"/>
@@ -102,7 +102,7 @@
     </comp>
     <comp ref="D3">
       <value>Schottky</value>
-      <footprint>RevK:Hidden</footprint>
+      <footprint>RevK:D_1206_</footprint>
       <datasheet>https://www.mouser.co.uk/datasheet/2/54/CD1206-B220_B2100-777245.pdf</datasheet>
       <fields>
         <field name="Manufacturer">Bourns</field>
@@ -128,7 +128,7 @@
     </comp>
     <comp ref="J2">
       <value>USB-C</value>
-      <footprint>RevK:USC16-TR-Round</footprint>
+      <footprint>RevK:USC16-TR</footprint>
       <datasheet>https://www.usb.org/sites/default/files/documents/usb_type-c.zip</datasheet>
       <libsource lib="RevK" part="USB-C" description="USB 2.0-only Type-C Receptacle connector"/>
       <property name="Sheetname" value=""/>
@@ -136,9 +136,27 @@
       <sheetpath names="/" tstamps="/"/>
       <tstamps>00000000-0000-0000-0000-000060cc7ad1</tstamps>
     </comp>
+    <comp ref="J4">
+      <value>Conn_01x05_Male</value>
+      <footprint>Connector_PinHeader_1.27mm:PinHeader_1x05_P1.27mm_Vertical</footprint>
+      <libsource lib="Connector" part="Conn_01x05_Male" description="Generic connector, single row, 01x05, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="GPS.kicad_sch"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>275c9edf-9932-44cb-8953-aaeebd1bae6b</tstamps>
+    </comp>
+    <comp ref="J5">
+      <value>Conn_01x05_Male</value>
+      <footprint>Connector_PinHeader_1.27mm:PinHeader_1x05_P1.27mm_Vertical</footprint>
+      <libsource lib="Connector" part="Conn_01x05_Male" description="Generic connector, single row, 01x05, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="GPS.kicad_sch"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>473f70ec-6509-4129-8fb2-4a09360b8b3d</tstamps>
+    </comp>
     <comp ref="L1">
       <value>6.8uH</value>
-      <footprint>RevK:Hidden</footprint>
+      <footprint>RevK:L_4x4_</footprint>
       <datasheet>https://www.mouser.co.uk/datasheet/2/987/Laird_Performance_TYA4020_series__Rev_A_-1877538.pdf</datasheet>
       <fields>
         <field name="Manufacturer">Laird</field>
@@ -217,7 +235,7 @@
       <tstamps>3d1cc92b-d081-4f42-b8be-de2b995d0a9f</tstamps>
     </comp>
     <comp ref="R8">
-      <value>10M 1% or 0R</value>
+      <value>100k 1% or 0R</value>
       <footprint>RevK:R_0603</footprint>
       <libsource lib="Device" part="R" description="Resistor"/>
       <property name="Sheetname" value=""/>
@@ -253,7 +271,7 @@
       <tstamps>00000000-0000-0000-0000-000060fbba7f</tstamps>
     </comp>
     <comp ref="R12">
-      <value>3M 1% or NF</value>
+      <value>30k 1% or NF</value>
       <footprint>RevK:R_0603</footprint>
       <libsource lib="Device" part="R" description="Resistor"/>
       <property name="Sheetname" value=""/>
@@ -301,7 +319,7 @@
     </comp>
     <comp ref="U4">
       <value>LMR16006+FB</value>
-      <footprint>RevK:RegulatorBlockFB</footprint>
+      <footprint>RevK:SOT-23-Thin-6-Reg</footprint>
       <fields>
         <field name="Manufacturer">TI</field>
         <field name="Part No">LMR16006YQ3</field>
@@ -316,6 +334,25 @@
     </comp>
   </components>
   <libparts>
+    <libpart lib="Connector" part="Conn_01x05_Male">
+      <description>Generic connector, single row, 01x05, script generated (kicad-library-utils/schlib/autogen/connector/)</description>
+      <docs>~</docs>
+      <footprints>
+        <fp>Connector*:*_1x??_*</fp>
+      </footprints>
+      <fields>
+        <field name="Reference">J</field>
+        <field name="Value">Conn_01x05_Male</field>
+        <field name="Datasheet">~</field>
+      </fields>
+      <pins>
+        <pin num="1" name="Pin_1" type="passive"/>
+        <pin num="2" name="Pin_2" type="passive"/>
+        <pin num="3" name="Pin_3" type="passive"/>
+        <pin num="4" name="Pin_4" type="passive"/>
+        <pin num="5" name="Pin_5" type="passive"/>
+      </pins>
+    </libpart>
     <libpart lib="Device" part="Battery_Cell">
       <description>Single-cell battery</description>
       <docs>~</docs>
@@ -565,7 +602,7 @@
       <fields>
         <field name="Reference">U</field>
         <field name="Value">LMR16006+FB</field>
-        <field name="Footprint">RevK:RegulatorBlockFB</field>
+        <field name="Footprint">RevK:SOT-23-Thin-6-Reg</field>
         <field name="Manufacturer">TI</field>
         <field name="Part No">LMR16006YQ3</field>
       </fields>
@@ -583,6 +620,20 @@
         <field name="Value">QR</field>
         <field name="Note">Non part, PCB printed</field>
       </fields>
+    </libpart>
+    <libpart lib="RevK" part="Shelly">
+      <fields>
+        <field name="Reference">J</field>
+        <field name="Value">Shelly</field>
+        <field name="Footprint">RevK:Shelly</field>
+      </fields>
+      <pins>
+        <pin num="1" name="GND" type="passive"/>
+        <pin num="2" name="0" type="passive"/>
+        <pin num="3" name="3V3" type="passive"/>
+        <pin num="4" name="Rx" type="passive"/>
+        <pin num="5" name="Tx" type="passive"/>
+      </pins>
     </libpart>
     <libpart lib="RevK" part="USB-C">
       <description>USB 2.0-only Type-C Receptacle connector</description>
@@ -618,6 +669,9 @@
     </libpart>
   </libparts>
   <libraries>
+    <library logical="Connector">
+      <uri>/Applications/KiCad/KiCad.app/Contents/SharedSupport/symbols//Connector.kicad_sym</uri>
+    </library>
     <library logical="Device">
       <uri>/Applications/KiCad/KiCad.app/Contents/SharedSupport/symbols//Device.kicad_sym</uri>
     </library>
@@ -629,6 +683,8 @@
     <net code="1" name="+3V3">
       <node ref="C1" pin="1" pintype="passive"/>
       <node ref="D2" pin="1" pinfunction="A" pintype="passive"/>
+      <node ref="J4" pin="2" pinfunction="Pin_2" pintype="passive"/>
+      <node ref="J5" pin="2" pinfunction="Pin_2" pintype="passive"/>
       <node ref="R1" pin="1" pintype="passive"/>
       <node ref="R8" pin="1" pintype="passive"/>
       <node ref="U1" pin="4" pinfunction="VCC" pintype="power_in"/>
@@ -643,34 +699,38 @@
       <node ref="R11" pin="2" pintype="passive"/>
       <node ref="U2" pin="35" pinfunction="IO21" pintype="bidirectional"/>
     </net>
-    <net code="3" name="BOOT">
+    <net code="3" name="BAT">
+      <node ref="BT1" pin="1" pinfunction="+" pintype="passive"/>
+      <node ref="U1" pin="5" pinfunction="V_BKCP" pintype="power_in"/>
+    </net>
+    <net code="4" name="BOOT">
       <node ref="U2" pin="23" pinfunction="IO0" pintype="bidirectional"/>
       <node ref="U3" pin="18" pinfunction="~{DTR}" pintype="output"/>
     </net>
-    <net code="4" name="D+">
+    <net code="5" name="D+">
       <node ref="R5" pin="2" pintype="passive"/>
       <node ref="U3" pin="8" pinfunction="USBDP" pintype="bidirectional"/>
     </net>
-    <net code="5" name="D-">
+    <net code="6" name="D-">
       <node ref="R4" pin="2" pintype="passive"/>
       <node ref="U3" pin="9" pinfunction="USBDM" pintype="bidirectional"/>
     </net>
-    <net code="6" name="DC">
+    <net code="7" name="DC">
       <node ref="D1" pin="1" pinfunction="K" pintype="passive"/>
       <node ref="J1" pin="2" pinfunction="DC" pintype="power_out"/>
       <node ref="U4" pin="1" pinfunction="SHDN" pintype="input"/>
       <node ref="U4" pin="2" pinfunction="VIN" pintype="power_in"/>
     </net>
-    <net code="7" name="EN">
+    <net code="8" name="EN">
       <node ref="R1" pin="2" pintype="passive"/>
       <node ref="U2" pin="8" pinfunction="EN" pintype="input"/>
       <node ref="U3" pin="19" pinfunction="~{RTS}" pintype="output"/>
     </net>
-    <net code="8" name="G">
+    <net code="9" name="G">
       <node ref="R10" pin="2" pintype="passive"/>
       <node ref="U2" pin="33" pinfunction="IO19" pintype="bidirectional"/>
     </net>
-    <net code="9" name="GND">
+    <net code="10" name="GND">
       <node ref="BT1" pin="2" pinfunction="-" pintype="passive"/>
       <node ref="C1" pin="2" pintype="passive"/>
       <node ref="J1" pin="1" pinfunction="GND" pintype="power_out"/>
@@ -679,6 +739,8 @@
       <node ref="J2" pin="B1" pinfunction="GND" pintype="passive"/>
       <node ref="J2" pin="B12" pinfunction="GND" pintype="passive"/>
       <node ref="J2" pin="S1" pinfunction="SHIELD" pintype="passive"/>
+      <node ref="J4" pin="3" pinfunction="Pin_3" pintype="passive"/>
+      <node ref="J5" pin="3" pinfunction="Pin_3" pintype="passive"/>
       <node ref="R12" pin="1" pintype="passive"/>
       <node ref="R2" pin="2" pintype="passive"/>
       <node ref="R3" pin="1" pintype="passive"/>
@@ -716,21 +778,21 @@
       <node ref="U3" pin="6" pinfunction="~{CTS}" pintype="input"/>
       <node ref="U4" pin="3" pinfunction="GND" pintype="power_in"/>
     </net>
-    <net code="10" name="GPSRX">
+    <net code="11" name="GPSRX">
+      <node ref="J4" pin="5" pinfunction="Pin_5" pintype="passive"/>
+      <node ref="J5" pin="5" pinfunction="Pin_5" pintype="passive"/>
       <node ref="U1" pin="1" pinfunction="RXD1" pintype="input"/>
       <node ref="U2" pin="12" pinfunction="IO32" pintype="bidirectional"/>
     </net>
-    <net code="11" name="GPSTX">
+    <net code="12" name="GPSTX">
+      <node ref="J4" pin="4" pinfunction="Pin_4" pintype="passive"/>
+      <node ref="J5" pin="4" pinfunction="Pin_4" pintype="passive"/>
       <node ref="U1" pin="2" pinfunction="TXD1" pintype="output"/>
       <node ref="U2" pin="15" pinfunction="IO25" pintype="bidirectional"/>
     </net>
-    <net code="12" name="I">
+    <net code="13" name="I">
       <node ref="U2" pin="30" pinfunction="RXD0" pintype="bidirectional"/>
       <node ref="U3" pin="17" pinfunction="TXD" pintype="output"/>
-    </net>
-    <net code="13" name="Net-(BT1-Pad1)">
-      <node ref="BT1" pin="1" pinfunction="+" pintype="passive"/>
-      <node ref="U1" pin="5" pinfunction="V_BKCP" pintype="power_in"/>
     </net>
     <net code="14" name="Net-(D2-Pad2)">
       <node ref="D2" pin="2" pinfunction="RK" pintype="passive"/>
@@ -781,6 +843,8 @@
       <node ref="U2" pin="34" pinfunction="IO22" pintype="bidirectional"/>
     </net>
     <net code="25" name="TICK">
+      <node ref="J4" pin="1" pinfunction="Pin_1" pintype="passive"/>
+      <node ref="J5" pin="1" pinfunction="Pin_1" pintype="passive"/>
       <node ref="U1" pin="6" pinfunction="1PPS" pintype="output"/>
       <node ref="U2" pin="13" pinfunction="IO33" pintype="bidirectional"/>
     </net>
