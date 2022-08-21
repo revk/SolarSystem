@@ -160,11 +160,8 @@ static void task(void *pvParameters)
          input_latch |= (input_stable & ~was);  // Latch rising edges
          input_flip |= (input_stable ^ was);    // Latch any change
          jo_t j = jo_make(NULL);
-         int t = MAXINPUT;
-         while (t && !input[t - 1])
-            t--;
-         for (int i = 0; i < t; i++)
-            if (*inputname[i])
+         for (int i = 0; i < MAXINPUT; i++)
+            if (input[i] && *inputname[i])
                jo_bool(j, inputname[i], (input_stable >> i) & 1);
          revk_state_clients("input", &j, debug | (iotstateinput << 1));
       }

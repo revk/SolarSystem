@@ -201,10 +201,7 @@ static void task(void *pvParameters)
          output_last_pulsed = output_pulsed;
          report_next = now + 3600;
          jo_t j = jo_make(NULL);
-         int t = MAXOUTPUT;
-         while (t && !output[t - 1])
-            t--;
-         for (int i = 0; i < t; i++)
+         for (int i = 0; i < MAXOUTPUT; i++)
             if (output[i] && *outputname[i])
             {
                if (output_pulsed & (1ULL << i))
