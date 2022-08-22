@@ -556,7 +556,7 @@ static void mesh_send_summary(void)
    state_faulted = ((state_faulted & ~new_armed) | report_fault);
    state_alarmed = ((state_alarmed & ~new_armed) | state_alarm);
    // Alarm based only on presence, but change of tamper or access trips presence anyway. Basically you can force arm with tamper and access
-   state_prealarm = (((state_prealarm | state_presence) & state_armed) & ~state_alarm);
+   state_prealarm = (((state_prealarm | state_presence) & state_armed) & ~state_alarm & ~report_disarm);
    static uint16_t timer3 = 0;  // Pre alarm timer - ideally per area, but this will be fine
    if (!state_prealarm)
       timer3 = 0;
