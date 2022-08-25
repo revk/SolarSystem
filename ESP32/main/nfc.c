@@ -299,7 +299,12 @@ static void task(void *pvParameters)
                if (nfcgreen && ledpattern[ledpos] == 'G')
                   newled |= (1 << gpio_mask(nfcgreen));
                if (nfccard && found)
-                  newled |= (1 << gpio_mask(nfccard));
+               {                // Blinky
+                  if (holdpolls & 1)
+                     newled &= ~(1 << gpio_mask(nfccard));
+                  else
+                     newled |= (1 << gpio_mask(nfccard));
+               }
                if (ledpos + 1 >= sizeof(ledpattern) || ledpattern[ledpos + 1] != '+')
                   break;        // Combined LED pattern with +
                ledpos += 2;
