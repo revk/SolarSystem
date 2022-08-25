@@ -25,7 +25,7 @@
 #include "mqttmsg.h"
 #include "ssmqtt.h"
 
-#define	MAX_SETTING	1400    // Limit side of settings - allow for header and AES padding even
+#define	MAX_SETTING	1400    // Limit size of settings - allow for header and AES padding even
 
 extern const char *cakey;
 extern const char *cacert;
