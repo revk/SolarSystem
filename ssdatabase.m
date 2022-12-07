@@ -165,6 +165,7 @@ text(hookarm, 0);               // Arm event web hook
 text(hookstrong, 0);            // Strongarm event web hook
 text(hookdisarm, 0);            // Disarm event web hook
 text(hookarmfail, 0);           // Arm fail event web hook
+text(hooknotclose, 0);          // Not close event web hook
 text(hooknotopen, 0);           // Not open event web hook
 text(hookopen, 0);              // Open event web hook
 text(hookforced, 0);            // Forced event web hook
