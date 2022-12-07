@@ -798,11 +798,11 @@ static void task(void *pvParameters)
                alarm_event("notclosed", &j, iotstatedoor);
             } else if (doorstate == DOOR_UNLOCKED || doorstate == DOOR_CLOSED)
             {                   // Time to lock the door
-               if (doorstate == DOOR_UNLOCKED && doorwhy)
+               if (doorstate == DOOR_UNLOCKED && doorwhy && input_func_any(INPUT_FUNC_O))
                {                // Only if doorwhy set, as can spam if locking failing
                   jo_t j = jo_make(NULL);
                   jo_string(j, "trigger", doorwhy);
-                  alarm_event(input_func_any(INPUT_FUNC_O) ? "notopen" : "unlock", &j, iotstatedoor);
+                  alarm_event("notopen", &j, iotstatedoor);
                }
                door_lock(NULL, NULL, NULL);
                doorwhy = NULL;
