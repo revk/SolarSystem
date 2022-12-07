@@ -802,7 +802,7 @@ static void task(void *pvParameters)
                {                // Only if doorwhy set, as can spam if locking failing
                   jo_t j = jo_make(NULL);
                   jo_string(j, "trigger", doorwhy);
-                  alarm_event("notopen", &j, iotstatedoor);
+                  alarm_event(input_func_any(INPUT_FUNC_O) ? "notopen" : "unlock", &j, iotstatedoor);
                }
                door_lock(NULL, NULL, NULL);
                doorwhy = NULL;
