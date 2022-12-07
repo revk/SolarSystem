@@ -744,7 +744,7 @@
 
   (footprint "RevK:D_1206_" (layer "F.Cu")
     (tedit 621345EE) (tstamp 4b3e8ab8-6573-4361-8b87-a68e53872f35)
-    (at 168.23 112.78 90)
+    (at 168.23 112.78 -90)
     (property "Manufacturer" "Bourns")
     (property "Note" "")
     (property "Part No" "CD1206-B2100")
@@ -764,7 +764,7 @@
       (effects (font (size 0.5 0.5) (thickness 0.08)))
       (tstamp 2da50039-2a17-4664-9d04-5b60a795df37)
     )
-    (fp_text user "D" (at -0.8 0 90 unlocked) (layer "F.Fab")
+    (fp_text user "D" (at -0.8 0 -90 unlocked) (layer "F.Fab")
       (effects (font (size 0.5 0.5) (thickness 0.08)))
       (tstamp ce896e3b-d49d-4864-9653-d69f84005175)
     )
