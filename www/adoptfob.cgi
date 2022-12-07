@@ -11,8 +11,8 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
  <if not fob><p>First you will need to read a fob ID.</p></if>
  <form name=f method=post style="display:inline;">
  <select name=device>
- <sql table="device LEFT JOIN aid USING (aid)" where="device.site=$USER_SITE AND online IS NOT NULL AND (nfctrusted='true' OR nfcadmin='true')">
- <option value="$device"><output name=aidname>:<output name=devicename blank="$device"></option>
+ <sql table="device" where="device.site=$USER_SITE AND online IS NOT NULL AND (nfctrusted='true' OR nfcadmin='true')">
+ <option value="$device"><output name=devicename blank="$device"></option>
  </sql>
  </select>
  <input type=submit name=IDENTIFY value="Read fob ID">
