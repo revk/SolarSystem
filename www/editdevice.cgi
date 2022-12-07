@@ -231,6 +231,7 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 </sql>
 </table>
 </if>
+<if nfc=true><p>arm/disarm/strong allow if any areas covered by fob match. enter/prop apply if all enter areas covered by fob match. deadlocked if any deadlock area is armed.</p></if>
 <input type=submit value="Update">
 <if online><input type=submit value="Restart" name=RESTART></if>
 <if not upgrade><input type=submit value="Upgrade" name=UPGRADE></if>
