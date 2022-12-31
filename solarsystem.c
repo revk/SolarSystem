@@ -1,6 +1,7 @@
 // Back end management / control for SolarSystem modules
 
 #define _GNU_SOURCE             /* See feature_test_macros(7) */
+typedef unsigned int uint32_t;
 #include "config.h"
 #ifdef BUILD_ESP32_USING_CMAKE
 #include "ESP32/build/config/sdkconfig.h"

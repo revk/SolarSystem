@@ -16,6 +16,7 @@ static const char __attribute__((unused)) TAG[] = "alarm";
 #include "esp_crt_bundle.h"
 #endif
 #include "freertos/semphr.h"
+#include "esp_flash.h"
 
 // Alarm control
 
@@ -1201,7 +1202,9 @@ void alarm_rx(const char *target, jo_t j)
       jo_null(j, "capability");
       if (areakeypad)
          jo_area(j, "display", areakeypad);
-      jo_int(j, "flash", spi_flash_get_chip_size());
+      uint32_t size_flash_chip;
+      esp_flash_get_size(NULL, &size_flash_chip);
+      jo_int(j, "flash", size_flash_chip);
       revk_mesh_send_json(NULL, &j);
       if (gpslocked || gpsfixed)
          gps_send_status();
