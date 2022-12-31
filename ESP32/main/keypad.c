@@ -18,7 +18,7 @@ static const char TAG[] = "keypad";
   p(keypadclk) \
   u8(keypadtimer,0) \
   u8h(keypadaddress,10)	\
-  u8(keypadtxpre,50)	\
+  u8(keypadtxpre,75)	\
   u8(keypadtxpost,50)	\
   u8(keypadrxpre,100)	\
   u8(keypadrxpost,20)	\
