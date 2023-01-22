@@ -8,6 +8,7 @@ static const char TAG[] = "nfc";
 #include "nfc.h"
 #include "door.h"
 #include "pn532.h"
+#include <driver/uart.h>
 #include <driver/gpio.h>
 
 #define port_mask(p) ((p)&0x3F)
@@ -242,6 +243,8 @@ static void task(void *pvParameters)
                   pn532 = pn532_init(nfcuart, port_mask(nfctx), port_mask(nfcrx), nfcmask);
                if (pn532)
                {                // All good!
+                  uart_set_line_inverse(nfcuart, ((PORT_INV & nfctx) ? UART_SIGNAL_TXD_INV : 0) + ((PORT_INV & nfcrx) ? UART_SIGNAL_RXD_INV : 0));      // Allow for inverted pins
+                  gpio_set_pull_mode(port_mask(nfcrx), (PORT_INV & nfcrx) ? GPIO_PULLUP_ONLY : GPIO_FLOATING);  // If inverted rx, set pull up, as will be a FET
                   df_init(&df, pn532, pn532_dx);
                   ledlast = 0xFF;
                   logical_gpio &= ~logical_NFCFault;
