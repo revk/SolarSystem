@@ -56,6 +56,7 @@ static const char __attribute__((unused)) TAG[] = "SS";
 	bl(ioteventarm)	\
 	bl(iotkeypad)	\
 	bl(iotgps)	\
+	s(iottopic)	\
 	bl(debug)	\
 
 #define io(n) static uint8_t n;

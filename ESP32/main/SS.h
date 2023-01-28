@@ -16,6 +16,7 @@ extern uint8_t ioteventfob;
 extern uint8_t ioteventarm;
 extern uint8_t iotkeypad;
 extern uint8_t iotgps;
+extern char *iottopic;
 extern uint8_t debug;
 
 #define	MAX_PORT	40
