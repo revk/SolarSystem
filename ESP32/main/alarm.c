@@ -612,17 +612,23 @@ static void mesh_send_summary(void)
 #include "states.m"
          if (!jo_error(j, NULL))
          {
-            char *topic = NULL;
-            if (asprintf(&topic, "state/%s/%s/system", appname, *iottopic ? iottopic : revk_id) > 0)
+            char *payload = jo_finisha(&j);
+            if (payload)
             {
-               char *payload = jo_finisha(&j);
-               if (payload)
-                  revk_mqtt_send_raw(topic, 1, payload, 1 | (iotstatesystem << 1));
-               freez(payload);
-               free(topic);
+               char *topic = NULL;
+               if (iotstatesystem && asprintf(&topic, "state/%s/%s/system", appname, *iottopic ? iottopic : revk_id) > 0)
+               {
+                  revk_mqtt_send_raw(topic, 1, payload, (iotstatesystem << 1));
+                  free(topic);
+               }
+               if (asprintf(&topic, "state/%s/%s/system", appname, revk_id) > 0)
+               {
+                  revk_mqtt_send_raw(topic, 1, payload, 1);
+                  free(topic);
+               }
+               free(payload);
             }
          }
-         //revk_state_clients("system", &j, 1 | (iotstatesystem << 1));
       }
    }
 
