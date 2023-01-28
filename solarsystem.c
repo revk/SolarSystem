@@ -342,7 +342,7 @@ static const char *settings(SQL * sqlp, SQL * sqlkeyp, SQL_RES * res, slot_t id)
          {                      // Only if IOT host
             const char *v;
             if ((v = sql_colz(s, "iottopic")) && *v)
-               j_store_string(j, "topic", v);
+               j_store_string(iot, "topic", v);
             if (*sql_colz(res, "iotstatedoor") == 't')
                j_store_true(iot, "statedoor");
             if (*sql_colz(res, "iotstateinput") == 't')
