@@ -603,7 +603,6 @@ static void mesh_send_summary(void)
          jo_int(j, "nodes", nodes_online);
          if (nodes_online != meshexpect)
             jo_int(j, "missing", meshexpect - nodes_online);
-	 jo_string(j,"iottopic",iottopic); // TODO
          char set[sizeof(area_t) * 8 + 1] = "";
          if (display)
             jo_stringf(j, "status", "%c%s %s %s", toupper(*state_name[display->priority]), state_name[display->priority] + 1, area_list(set, display->area), display->text);
