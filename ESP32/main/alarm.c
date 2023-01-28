@@ -612,7 +612,19 @@ static void mesh_send_summary(void)
 #define i(t,x,c) if(strcmp(#x,"access")&&strcmp(#x,"presence"))jo_area(j,#x,state_##x); // Using full name to control
 #define s(t,x,c) jo_string(j, #x, area_list(set, state_##x));
 #include "states.m"
-         revk_state_clients("system", &j, 1 | (iotstatesystem << 1));
+         if (!jo_error(j, NULL))
+         {
+            char *topic = NULL;
+            if (asprintf(&topic, "state/%s/%s/system", appname, *sitename ? sitename : revk_id) > 0)
+            {
+               char *payload = jo_finisha(&j);
+               if (payload)
+                  revk_mqtt_send_raw(topic, 1, payload, 1 | (iotstatesystem << 1));
+               freez(payload);
+               free(topic);
+            }
+         }
+         //revk_state_clients("system", &j, 1 | (iotstatesystem << 1));
       }
    }
 
