@@ -65,7 +65,7 @@ static display_t *display = NULL;
 #define MAX_ROOT_DISPLAY (MAX_LEAF_DISPLAY*2)
 
 #define settings		\
-	sl(sitename)		\
+	sl(iottopic)		\
 	area(arealed)		\
 	area(areaenter)		\
 	area(areaarm)		\
@@ -604,8 +604,6 @@ static void mesh_send_summary(void)
          jo_int(j, "nodes", nodes_online);
          if (nodes_online != meshexpect)
             jo_int(j, "missing", meshexpect - nodes_online);
-         if (*sitename)
-            jo_string(j, "site", sitename);
          char set[sizeof(area_t) * 8 + 1] = "";
          if (display)
             jo_stringf(j, "status", "%c%s %s %s", toupper(*state_name[display->priority]), state_name[display->priority] + 1, area_list(set, display->area), display->text);
@@ -615,7 +613,7 @@ static void mesh_send_summary(void)
          if (!jo_error(j, NULL))
          {
             char *topic = NULL;
-            if (asprintf(&topic, "state/%s/%s/system", appname, *sitename ? sitename : revk_id) > 0)
+            if (asprintf(&topic, "state/%s/%s/system", appname, *iottopic ? iottopic : revk_id) > 0)
             {
                char *payload = jo_finisha(&j);
                if (payload)

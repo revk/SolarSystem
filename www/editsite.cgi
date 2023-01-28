@@ -62,6 +62,7 @@ Root:<select name=root><option value=''>None</option><sql table=device where="si
 <input type=checkbox id=nomesh name=nomesh value=true><label for=nomesh>Non mesh</label>
 </td><tr>
 <tr><td>IoT MQTT</td><td><input name=iothost size=40></td></tr>
+<tr><td>IoT Topic</td><td><input name=iottopic size=16></td></tr>
 <tr><td>IoT logging</td><td>
 <input type=checkbox id=iotstatesystem name=iotstatesystem value=true><label for=iotstatesystem>system</for>
 <input type=checkbox id=ioteventarm name=ioteventarm value=true><label for=ioteventarm>arm/trigger/disarm</for>

@@ -133,11 +133,12 @@ text(organisationname, 0);
 
 table(site, 0);                 // Site
 link(organisation);
-text(sitename, 0);
+text(sitename, 0);		// Site name
 text(wifissid, 32);             // Site WiFi setting
 text(wifibssid, 12);            // Site WiFi setting
 text(wifipass, 32);             // Site WiFi setting
 num(wifichan);                  // Site WiFi setting
+text(iottopic, 16);		// Topic for local mqtt
 text(iothost, 64);              // IoT host for local MQTT
 bool (nomesh);                  // Don't mesh - i.e. where separate devices on-line
 text(meshid, 12);               // Mesh ID (MAC)
