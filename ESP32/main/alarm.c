@@ -65,6 +65,7 @@ static display_t *display = NULL;
 #define MAX_ROOT_DISPLAY (MAX_LEAF_DISPLAY*2)
 
 #define settings		\
+	sl(sitename)		\
 	area(arealed)		\
 	area(areaenter)		\
 	area(areaarm)		\
@@ -603,11 +604,13 @@ static void mesh_send_summary(void)
          jo_int(j, "nodes", nodes_online);
          if (nodes_online != meshexpect)
             jo_int(j, "missing", meshexpect - nodes_online);
+         if (*sitename)
+            jo_string(j, "site", sitename);
          char set[sizeof(area_t) * 8 + 1] = "";
          if (display)
             jo_stringf(j, "status", "%c%s %s %s", toupper(*state_name[display->priority]), state_name[display->priority] + 1, area_list(set, display->area), display->text);
 #define i(t,x,c) if(strcmp(#x,"access")&&strcmp(#x,"presence"))jo_area(j,#x,state_##x); // Using full name to control
-#define s(t,x,c) jo_area(j,#x,state_##x);
+#define s(t,x,c) jo_string(j, #x, area_list(set, state_##x));
 #include "states.m"
          revk_state_clients("system", &j, 1 | (iotstatesystem << 1));
       }

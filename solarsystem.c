@@ -536,6 +536,8 @@ addsitedata (SQL * sqlp, j_t j, SQL_RES * site, const char *deviceid, const char
    const char *v;
    if (!parentid || !*parentid || !strcmp (parentid, deviceid))
       parentid = NULL;          // Not sensible
+   v = sql_colz (site, "sitename");
+   j_store_string (j, "sitename", *v ? v : NULL);
    // Mix
    j_t mix = j_store_array (j, "mix");
    for (int s = 0; s < MAX_MIX; s++)
