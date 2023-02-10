@@ -195,14 +195,12 @@ static void task(void *pvParameters)
    uint8_t ledpos = 0;
    uint8_t retry = 0;
    uint8_t holdpolls = 0;
-   int lastp3 = -1;
    while (1)
    {
       esp_task_wdt_reset();
       usleep(1000);
       int64_t now = esp_timer_get_time();
       // Regular tasks
-      // Check tamper
       if (nextio < now)
       {                         // Check tamper
          nextio += (int64_t) nfciopoll *1000LL;
@@ -212,8 +210,7 @@ static void task(void *pvParameters)
             p3 = pn532_read_GPIO(pn532);
             if (p3 >= 0)
             {
-               if (lastp3 == p3)
-                  logical_gpio = ((logical_gpio & ~0xFF) | p3); // Needs to read the same twice to debounce a bit
+               logical_gpio = ((logical_gpio & ~0xFF) | p3);
                retry = 0;
             } else
             {
@@ -225,7 +222,6 @@ static void task(void *pvParameters)
                   logical_gpio |= logical_NFCFault;
                }
             }
-            lastp3 = p3;
          }
          if (!pn532)
          {                      // In failed state
