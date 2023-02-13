@@ -20,4 +20,6 @@ Cloud back end for management of devices without the need for on-site controller
 
 An instance of the cloud management system is run on https://access.me.uk/ by Andrews & Arnold Ltd, and provisioned DESFire cards can be ordered printed to your design.
 
+Some assemebled boards can be ordered https://www.aa.net.uk/etc/circuit-boards/
+
 Copyright © 2019-22 Adrian Kennard, Andrews & Arnold Ltd. See LICENCE file for details. GPL 3.0
