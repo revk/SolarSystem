@@ -1362,7 +1362,7 @@ int main(int argc, const char *argv[])
                sql_safe_query_free(&sql, sql_printf("UPDATE `device` SET `via`=NULL,`offlinereport`=NULL,`offlinereason`=%#s,`online`=NULL,`lastonline`=NOW(),`progress`=NULL,`id`=NULL WHERE `device`=%#s AND `id`=%lld", j_get(j, "reason"), deviceid, id));
                return NULL;
             }
-            sql_string_t s = { };
+            sql_s_t s = {0};
             if (!device && (device = sql_safe_query_store_free(&sql, sql_printf("SELECT * FROM `device` WHERE `device`=%#s", deviceid))) && !sql_fetch_row(device))
             {
                sql_free_result(device);
@@ -1440,7 +1440,7 @@ int main(int argc, const char *argv[])
             SQL_RES *res = sql_safe_query_store_free(&sql, sql_printf("SELECT * FROM `site` WHERE `site`=%#s", sql_col(device, "site")));
             if (sql_fetch_row(res))
             {
-               sql_string_t s = { };
+               sql_s_t s = {0};
                sql_sprintf(&s, "UPDATE `site` SET ");
                char temp[sizeof(area_t) * 16];
                char *commalist(const char *a) {
@@ -1561,7 +1561,7 @@ int main(int argc, const char *argv[])
                   {
                      if (fa)
                      {
-                        sql_string_t q = { };
+                        sql_s_t q = {0};
                         const char *ts = j_get(j, "ts");
                         time_t tst = j_time(ts);
                         sql_sprintf(&q, "UPDATE `fobaid` SET `lastused`=%#T", tst);
