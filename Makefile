@@ -91,8 +91,6 @@ AXL/axl.o: AXL/axl.c
 	make -C AXL
 AJL/ajl.o: AJL/ajl.c
 	make -C AJL
-SQLlib/stringdecimal/stringdecimal.o: SQLlib/stringdecimal/stringdecimal.c
-	make -C SQLlib/stringdecimal
 SQLlib/sqllib.o: SQLlib/sqllib.c
 	make -C SQLlib
 SQLlib/sql: SQLlib/sql.c
@@ -126,20 +124,20 @@ mqttmsg.o: mqttmsg.c mqttmsg.h Makefile config.h
 ssafile.o: ssafile.c ssafile.h Makefile config.h
 	gcc -g -Wall -Wextra -O -c -o $@ $< ${SQLINC} -DLIB
 
-solarsystem: solarsystem.c config.h AXL/axl.o AJL/ajl.o Dataformat/dataformat.o DESFireAES/desfireaes.o SQLlib/sqllib.o SQLlib/stringdecimal/stringdecimal.o Makefile ssdatabase.o ssmqtt.o sscert.o fobcommand.o mqttmsg.o ssafile.o email/libemaillight.o
-	gcc -g -Wall -Wextra -O ${BUILD_ESP32_USING_CMAKE} -o $@ $< ssdatabase.o ssmqtt.o sscert.o AJL/ajlcurl.o AXL/axl.o Dataformat/dataformat.o DESFireAES/desfireaes.o SQLlib/sqllib.o SQLlib/stringdecimal/stringdecimal.o ${SQLINC} ${SQLLIB} -lpopt -lcrypto -pthread -lcurl -lssl fobcommand.o mqttmsg.o ssafile.o -Iemail email/libemaillight.o
+solarsystem: solarsystem.c config.h AXL/axl.o AJL/ajl.o Dataformat/dataformat.o DESFireAES/desfireaes.o SQLlib/sqllib.o Makefile ssdatabase.o ssmqtt.o sscert.o fobcommand.o mqttmsg.o ssafile.o email/libemaillight.o
+	gcc -g -Wall -Wextra -O ${BUILD_ESP32_USING_CMAKE} -o $@ $< ssdatabase.o ssmqtt.o sscert.o AJL/ajlcurl.o AXL/axl.o Dataformat/dataformat.o DESFireAES/desfireaes.o SQLlib/sqllib.o ${SQLINC} ${SQLLIB} -lpopt -lcrypto -pthread -lcurl -lssl fobcommand.o mqttmsg.o ssafile.o -Iemail email/libemaillight.o
 
-can: can.c config.h Makefile login/redirect.o SQLlib/sqllib.o SQLlib/stringdecimal/stringdecimal.o
-	gcc -g -Wall -Wextra -O -o $@ $< SQLlib/sqllib.o SQLlib/stringdecimal/stringdecimal.o ${SQLINC} ${SQLLIB} -lpopt -lcurl AJL/ajl.o login/redirect.o
+can: can.c config.h Makefile login/redirect.o SQLlib/sqllib.o
+	gcc -g -Wall -Wextra -O -o $@ $< SQLlib/sqllib.o ${SQLINC} ${SQLLIB} -lpopt -lcurl AJL/ajl.o login/redirect.o
 
-sscert: sscert.c sscert.o SQLlib/sqllib.o SQLlib/stringdecimal/stringdecimal.o AJL/ajl.o
-	gcc -g -Wall -Wextra -O -o $@ $< AJL/ajl.o SQLlib/sqllib.o SQLlib/stringdecimal/stringdecimal.o -lssl -lcrypto ${SQLINC} ${SQLLIB}
+sscert: sscert.c sscert.o SQLlib/sqllib.o AJL/ajl.o
+	gcc -g -Wall -Wextra -O -o $@ $< AJL/ajl.o SQLlib/sqllib.o -lssl -lcrypto ${SQLINC} ${SQLLIB}
 
 message: message.c config.h Makefile sscert.o mqttmsg.o
 	gcc -g -Wall -Wextra -O -o $@ $< -lpopt AJL/ajl.o sscert.o -lcrypto -lssl mqttmsg.o
 
-makeaid: makeaid.c config.h Makefile SQLlib/sqllib.o SQLlib/stringdecimal/stringdecimal.o
-	gcc -g -Wall -Wextra -O -o $@ $< -lpopt SQLlib/sqllib.o SQLlib/stringdecimal/stringdecimal.o ${SQLINC} ${SQLLIB}
+makeaid: makeaid.c config.h Makefile SQLlib/sqllib.o
+	gcc -g -Wall -Wextra -O -o $@ $< -lpopt SQLlib/sqllib.o ${SQLINC} ${SQLLIB}
 
 menuconfig:
 	login/makek ${KCONFIG_CONFIG} config.h
