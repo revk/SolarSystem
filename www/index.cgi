@@ -37,7 +37,26 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <if USER_ADMIN=true><li><a href="editpcb.cgi">🔬 Manage PCB templates</a></li><br></if>
 <if USER_SITE CANEDITDEVICE><li><a href="editdevice.cgi">🪛 Manage devices</a></li></if>
 <if ELSE USER_SITE CANVIEWDEVICE><li><a href="editdevice.cgi">View devices</a></li></if>
-<IF USER_ADMIN=true><br><sql table=pending limit=1 WHERE="online<NOW()"><li><a href="provisiondevice.cgi">Provision new device</a></li></sql></if>
 </ul>
+<IF USER_ADMIN=true>
+<table border=1>
+<sql select="pending.*,device.device AS D,device.online AS O,device.devicename" table="pending LEFT JOIN device ON (pending=device)" order="pending.online DESC" WHERE="pending.online<NOW()"><set found=1>
+<tr>
+<td><output name=pending href="provisiondevice.cgi/$+pending"></td>
+<td><output name=address></td>
+<td><output name=online></td>
+<td><output name=version></td>
+<td><output name=flash></td>
+<td>
+<if authenticated=true><b>Device is authenticated.</b><br></if>
+<if secureboot=false><b>Not secure boot.</b><br></if>
+<if encryptednvs=false><b>Not encrypted NVS.</b><br></if>
+<if O><b>DEVICE IS ON LINE AS AUTHENTICATED DEVICE</b><br></if>
+<if D NOT O><b>Device previously in use (<output name=devicename>)- will be replaced.</b><br></if>
+</td>
+</tr>
+</sql>
+</table>
+</IF>
 <pre>
 'END'
