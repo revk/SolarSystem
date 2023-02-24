@@ -996,11 +996,11 @@ int main(int argc, const char *argv[])
          {
             tick = now / 60;
             SQL_RES *res = sql_safe_query_store(&sql,
-                                                "SELECT `site` FROM `device` WHERE `online` IS NULL AND `offlinereport` IS NULL AND `outofservice`='false' AND `lastonline`<DATE_SUB(NOW(),INTERVAL 11 MINUTE) GROUP BY `site`");
+                                                "SELECT `site` FROM `device` WHERE `site` IS NOT NULL AND `online` IS NULL AND `offlinereport` IS NULL AND `outofservice`='false' AND `lastonline`<DATE_SUB(NOW(),INTERVAL 11 MINUTE) GROUP BY `site`");
             while (sql_fetch_row(res))
                dooffline(&sql, atoi(sql_colz(res, "site")));
             sql_free_result(res);
-            res = sql_safe_query_store(&sql, "SELECT `site` FROM `device` WHERE `id` IS NOT NULL AND `upgrade` IS NOT NULL AND `upgrade`<NOW() GROUP BY `site`");
+            res = sql_safe_query_store(&sql, "SELECT `site` FROM `device` WHERE `site` IS NOT NULL AND `id` IS NOT NULL AND `upgrade` IS NOT NULL AND `upgrade`<NOW() GROUP BY `site`");
             while (sql_fetch_row(res))
                doupgrade(&sql, atoi(sql_colz(res, "site")));
             sql_free_result(res);
@@ -1026,7 +1026,7 @@ int main(int argc, const char *argv[])
             return device;
          if (deviceid && *deviceid == '*')
             return NULL;
-         device = sql_safe_query_store_free(&sql, sql_printf("SELECT * FROM `device` WHERE `device`=%#s AND `id`=%lld", deviceid ? : secureid, id));
+         device = sql_safe_query_store_free(&sql, sql_printf("SELECT * FROM `device` WHERE `device`=%#s AND `id`=%lld AND `site` IS NOT NULL", deviceid ? : secureid, id));
          if (!sql_fetch_row(device))
          {
             sql_free_result(device);
@@ -1052,7 +1052,7 @@ int main(int argc, const char *argv[])
             if ((v = j_get(meta, "site")) && atoi(v))
                res = sql_safe_query_store_free(&sql, sql_printf("SELECT `id`,`device` FROM `device` WHERE `site`=%d AND `id` IS NOT NULL AND `via` IS NULL AND `outofservice`='false' LIMIT 1", atoi(v)));
             else if ((v = j_get(meta, "device")))
-               res = sql_safe_query_store_free(&sql, sql_printf("SELECT `id`,`device` FROM `device` WHERE `device`=%#s", v));
+               res = sql_safe_query_store_free(&sql, sql_printf("SELECT `id`,`device` FROM `device` WHERE `device`=%#s AND `site` IS NOT NULL", v));
             else if ((v = j_get(meta, "pending")))
                res = sql_safe_query_store_free(&sql, sql_printf("SELECT `id`,`pending` AS `device` FROM `pending` WHERE `pending`=%#s", v));
             if (res)
@@ -1281,7 +1281,7 @@ int main(int argc, const char *argv[])
                               sql_safe_query_free(&sql, sql_printf("UPDATE `device` SET `online`=NOW(),`offlinereason`=NULL,`lastonline`=NOW(),`id`=%lld,`via`=%#s WHERE `device`=%#.*s AND `site`=%d", id, secureid, p - dev, dev, site));
                            } else
                               sql_safe_query_free(&sql, sql_printf("UPDATE `device` SET `online`=NOW(),`offlinereason`=NULL,`lastonline`=NOW(),`id`=%lld,`via`=NULL WHERE `device`=%#.*s", id, p - dev, dev));
-                           device = sql_safe_query_store_free(&sql, sql_printf("SELECT * FROM `device` WHERE `device`=%#.*s", p - dev, dev));
+                           device = sql_safe_query_store_free(&sql, sql_printf("SELECT * FROM `device` WHERE `device`=%#.*s AND `site` IS NOT NULL", p - dev, dev));
                            if (sql_fetch_row(device))
                            {
                               if (!strncmp(secureid, dev, p - dev))
@@ -1362,13 +1362,13 @@ int main(int argc, const char *argv[])
                sql_safe_query_free(&sql, sql_printf("UPDATE `device` SET `via`=NULL,`offlinereport`=NULL,`offlinereason`=%#s,`online`=NULL,`lastonline`=NOW(),`progress`=NULL,`id`=NULL WHERE `device`=%#s AND `id`=%lld", j_get(j, "reason"), deviceid, id));
                return NULL;
             }
-            sql_s_t s = {0};
-            if (!device && (device = sql_safe_query_store_free(&sql, sql_printf("SELECT * FROM `device` WHERE `device`=%#s", deviceid))) && !sql_fetch_row(device))
+            sql_s_t s = { 0 };
+            if (!device && (device = sql_safe_query_store_free(&sql, sql_printf("SELECT * FROM `device` WHERE `device`=%#s AND `site` IS NOT NULL", deviceid))) && !sql_fetch_row(device))
             {
                sql_free_result(device);
                device = NULL;
             }
-            if (secureid)
+            if (secureid && device)
             {
                sql_sprintf(&s, "UPDATE `device` SET "); // known, update
                if (!sql_col(device, "online"))
@@ -1428,7 +1428,7 @@ int main(int argc, const char *argv[])
                sql_sprintf(&s, "`bssid`=%#s,", bssid);
             if (sql_back_s(&s) == ',' && deviceid)
             {
-               if (secureid)
+               if (device && secureid)
                   sql_sprintf(&s, ",`id`=%lld WHERE `device`=%#s AND (`id` IS NULL OR `id`=%lld)", id, deviceid, id);
                sql_safe_query_s(&sql, &s);
             } else
@@ -1440,7 +1440,7 @@ int main(int argc, const char *argv[])
             SQL_RES *res = sql_safe_query_store_free(&sql, sql_printf("SELECT * FROM `site` WHERE `site`=%#s", sql_col(device, "site")));
             if (sql_fetch_row(res))
             {
-               sql_s_t s = {0};
+               sql_s_t s = { 0 };
                sql_sprintf(&s, "UPDATE `site` SET ");
                char temp[sizeof(area_t) * 16];
                char *commalist(const char *a) {
@@ -1561,7 +1561,7 @@ int main(int argc, const char *argv[])
                   {
                      if (fa)
                      {
-                        sql_s_t q = {0};
+                        sql_s_t q = { 0 };
                         const char *ts = j_get(j, "ts");
                         time_t tst = j_time(ts);
                         sql_sprintf(&q, "UPDATE `fobaid` SET `lastused`=%#T", tst);
