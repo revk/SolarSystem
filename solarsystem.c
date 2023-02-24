@@ -1099,9 +1099,8 @@ int main(int argc, const char *argv[])
                }
                sql_free_result(s);
             }
-            // Set online later to remove from pending lists in UI
             if (!fail)
-               sql_safe_query_free(&sql, sql_printf("UPDATE `pending` SET `online`=%#T WHERE `pending`=%#s", time(0) + 60, deviceid));
+               sql_safe_query_free(&sql, sql_printf("DELETE FROM `pending` WHERE `pending`=%#s", deviceid));
             return fail;
          }
          if ((v = j_get(meta, "deport")))
@@ -1113,7 +1112,7 @@ int main(int argc, const char *argv[])
             const char *fail = slot_send(id, "setting", deviceid, NULL, &j);
             // Set online later to remove from pending lists in UI
             if (!fail)
-               sql_safe_query_free(&sql, sql_printf("UPDATE `pending` SET `online`=%#T WHERE `pending`=%#s", time(0) + 60, deviceid));
+               sql_safe_query_free(&sql, sql_printf("DELETE FROM `pending` WHERE `pending`=%#s", deviceid));
             return fail;
          }
          if ((v = j_get(meta, "print")))
