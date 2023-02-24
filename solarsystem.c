@@ -1384,7 +1384,7 @@ int main(int argc, const char *argv[])
                sql_sprintf(&s, "`pending`=%#s,", deviceid);
                // makes no sense if (secureid && deviceid && strcmp(secureid, deviceid)) sql_sprintf(&s, "`authenticated`=%#s,", "true");
             }
-            if (!device || !sql_col(device, "online"))
+            if (!secureid || !device || !sql_col(device, "online"))
             {
                if (secureid && strcmp(secureid, deviceid))
                   sql_sprintf(&s, "`via`=%#s,", secureid);
@@ -1393,38 +1393,38 @@ int main(int argc, const char *argv[])
                   settings(&sql, &sqlkey, device, id);
                poke = 1;
             }
-            if (!device || (address && strcmp(sql_colz(device, "address"), address)))
+            if (!secureid || !device || (address && strcmp(sql_colz(device, "address"), address)))
                sql_sprintf(&s, "`address`=%#s,", address);
             const char *build_suffix = j_get(j, "build-suffix");
-            if (!device || (build_suffix && strcmp(sql_colz(device, "build_suffix"), build_suffix)))
+            if (!secureid || !device || (build_suffix && strcmp(sql_colz(device, "build_suffix"), build_suffix)))
                sql_sprintf(&s, "`build_suffix`=%#s,", build_suffix);
             const char *version = j_get(j, "version");
-            if (!device || (version && strcmp(sql_colz(device, "version"), version)))
+            if (!secureid || !device || (version && strcmp(sql_colz(device, "version"), version)))
             {
                sql_sprintf(&s, "`version`=%#s,", version);
                if (device && secureid)
                   sql_safe_query_free(&sql, sql_printf("INSERT INTO `event` SET `logged`=NOW(),`device`=%#s,`suffix`='upgrade',`data`='{\"version\":\"%#S%#S\"}'", deviceid, version, build_suffix));
             }
             const char *build = j_get(j, "build");
-            if (!device || (build && strcmp(sql_colz(device, "build"), build)))
+            if (!secureid || !device || (build && strcmp(sql_colz(device, "build"), build)))
                sql_sprintf(&s, "`build`=%#s,", build);
             const char *secureboot = (j_test(j, "secureboot", 0) ? "true" : "false");
-            if (!device || (secureboot && strcmp(sql_colz(device, "secureboot"), secureboot)))
+            if (!secureid || !device || (secureboot && strcmp(sql_colz(device, "secureboot"), secureboot)))
                sql_sprintf(&s, "`secureboot`=%#s,", secureboot);
             const char *encryptednvs = (j_test(j, "encryptednvs", 0) ? "true" : "false");
-            if (!device || (encryptednvs && strcmp(sql_colz(device, "encryptednvs"), encryptednvs)))
+            if (!secureid || !device || (encryptednvs && strcmp(sql_colz(device, "encryptednvs"), encryptednvs)))
                sql_sprintf(&s, "`encryptednvs`=%#s,", secureboot);
             int flash = atoi(j_get(j, "flash") ? : "");
-            if (flash && (!device || (flash != atoi(sql_colz(device, "flash")))))
+            if (flash && (!secureid || !device || (flash != atoi(sql_colz(device, "flash")))))
                sql_sprintf(&s, "`flash`=%d,", flash);
             int chan = atoi(j_get(j, "chan") ? : "");
-            if (chan && (!device || (chan != atoi(sql_colz(device, "chan")))))
+            if (chan && (!secureid || !device || (chan != atoi(sql_colz(device, "chan")))))
                sql_sprintf(&s, "`chan`=%d,", chan);
             const char *ssid = j_get(j, "ssid");
-            if (!device || (ssid && strcmp(sql_colz(device, "ssid"), ssid)))
+            if (!secureid || !device || (ssid && strcmp(sql_colz(device, "ssid"), ssid)))
                sql_sprintf(&s, "`ssid`=%#s,", ssid);
             const char *bssid = j_get(j, "bssid");
-            if (!device || (bssid && strcmp(sql_colz(device, "bssid"), bssid)))
+            if (!secureid || !device || (bssid && strcmp(sql_colz(device, "bssid"), bssid)))
                sql_sprintf(&s, "`bssid`=%#s,", bssid);
             if (sql_back_s(&s) == ',' && deviceid)
             {

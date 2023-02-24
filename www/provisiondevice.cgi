@@ -1,6 +1,8 @@
 #!../login/loggedin /bin/csh -f
 can --redirect --site='$USER_SITE' admin
 if($status) exit 0
+source ../setcan
+
 if($?PROVISION) then
 	if("$deport" != "") then
 		setenv MSG `message --pending="$PROVISION" --deport="$deport"`
