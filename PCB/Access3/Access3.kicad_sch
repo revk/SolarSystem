@@ -2607,7 +2607,6 @@
     )
   )
 
-
   (junction (at 60.96 49.53) (diameter 0) (color 0 0 0 0)
     (uuid 0154f871-4944-4d6b-85ab-31d4a295b484)
   )
@@ -5031,6 +5030,26 @@
     (pin "1" (uuid 5e6012e4-9269-4e25-ab38-47fb8d246550))
   )
 
+  (symbol (lib_id "RevK:AA") (at 257.81 177.8 0) (unit 1)
+    (in_bom no) (on_board yes)
+    (uuid 0479bcb3-8699-4b8f-bf33-b1f3d7685380)
+    (property "Reference" "U9" (id 0) (at 259.08 176.53 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (property "Value" "AA" (id 1) (at 257.175 177.8 0)
+      (effects (font (size 1.27 1.27)) (justify left))
+    )
+    (property "Footprint" "RevK:AA" (id 2) (at 257.81 177.8 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (property "Datasheet" "" (id 3) (at 257.81 177.8 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (property "Note" "Non part, PCB printed" (id 4) (at 257.81 177.8 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+  )
+
   (symbol (lib_id "RevK:Shelly") (at 60.96 49.53 0) (unit 1)
     (in_bom no) (on_board yes)
     (uuid 054d3fd2-4931-4b9d-baac-1a45d3fc9bae)
@@ -6664,6 +6683,9 @@
     )
     (path "/355c6954-a82d-4bdf-bb91-21898d4cbf2f"
       (reference "U8") (unit 1) (value "G3VM-41GR8") (footprint "RevK:Special-SOP-4-3.7x4.55")
+    )
+    (path "/0479bcb3-8699-4b8f-bf33-b1f3d7685380"
+      (reference "U9") (unit 1) (value "AA") (footprint "RevK:AA")
     )
   )
 )
