@@ -1,6 +1,6 @@
 // Generated case design for PCB/Access2/Access2.kicad_pcb
 // By https://github.com/revk/PCBCase
-// Generated 2023-02-21 11:32:43
+// Generated 2023-03-18 18:34:17
 // title:	Access Control
 // date:	${DATE}
 // rev:	3
@@ -24,9 +24,9 @@ hullcap=1.000000;
 hulledge=1.000000;
 useredge=false;
 
-module pcb(h=pcbthickness,r=0){linear_extrude(height=h)offset(r=r)polygon(points=[[50.000000,26.500000],[0.000000,26.500000],[0.000000,18.100000],[6.400000,18.100000],[6.400000,0.000000],[50.000000,0.000000]],paths=[[0,1,2,3,4,5]]);}
-
 module outline(h=pcbthickness,r=0){linear_extrude(height=h)offset(r=r)polygon(points=[[50.000000,26.500000],[0.000000,26.500000],[0.000000,18.100000],[6.400000,18.100000],[6.400000,0.000000],[50.000000,0.000000]],paths=[[0,1,2,3,4,5]]);}
+
+module pcb(h=pcbthickness,r=0){linear_extrude(height=h)offset(r=r)polygon(points=[[50.000000,26.500000],[0.000000,26.500000],[0.000000,18.100000],[6.400000,18.100000],[6.400000,0.000000],[50.000000,0.000000]],paths=[[0,1,2,3,4,5]]);}
 spacing=66.000000;
 pcbwidth=50.000000;
 pcblength=26.500000;
@@ -366,7 +366,16 @@ module pyramid()
 
 module wall(d=0)
 { // The case wall
-    	translate([0,0,-casebase-d])pcbh(height+d*2,margin/2+d);
+	translate([0,0,-casebase-d])
+	{
+		if(useredge)
+			intersection()
+			{
+				pcb(height+d*2,margin/2+d);
+				pcbh(height+d*2,margin/2+d);
+			}
+		else pcbh(height+d*2,margin/2+d);
+	}
 }
 
 module cutf()

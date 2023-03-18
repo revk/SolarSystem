@@ -1,6 +1,6 @@
 // Generated case design for PCB/Relay8/Relay8.kicad_pcb
 // By https://github.com/revk/PCBCase
-// Generated 2023-01-11 10:54:00
+// Generated 2023-03-18 18:43:07
 // title:	Output board (8)
 // date:	${DATE}
 // rev:	1
@@ -22,9 +22,9 @@ hullcap=1.000000;
 hulledge=1.000000;
 useredge=false;
 
-module pcb(h=pcbthickness,r=0){linear_extrude(height=h)offset(r=r)polygon(points=[[0.000000,30.000000],[0.000000,0.000000],[46.500000,0.000000],[46.500000,30.000000]],paths=[[0,1,2,3]]);}
-
 module outline(h=pcbthickness,r=0){linear_extrude(height=h)offset(r=r)polygon(points=[[0.000000,30.000000],[0.000000,0.000000],[46.500000,0.000000],[46.500000,30.000000]],paths=[[0,1,2,3]]);}
+
+module pcb(h=pcbthickness,r=0){linear_extrude(height=h)offset(r=r)polygon(points=[[0.000000,30.000000],[0.000000,0.000000],[46.500000,0.000000],[46.500000,30.000000]],paths=[[0,1,2,3]]);}
 spacing=62.500000;
 pcbwidth=46.500000;
 pcblength=30.000000;
@@ -283,7 +283,16 @@ module pyramid()
 
 module wall(d=0)
 { // The case wall
-    	translate([0,0,-casebase-d])pcbh(height+d*2,margin/2+d);
+	translate([0,0,-casebase-d])
+	{
+		if(useredge)
+			intersection()
+			{
+				pcb(height+d*2,margin/2+d);
+				pcbh(height+d*2,margin/2+d);
+			}
+		else pcbh(height+d*2,margin/2+d);
+	}
 }
 
 module cutf()
