@@ -1,6 +1,6 @@
 // Generated case design for PCB/Keypad2/Keypad2.kicad_pcb
 // By https://github.com/revk/PCBCase
-// Generated 2023-01-11 11:08:48
+// Generated 2023-03-18 18:53:01
 // title:	Generic ESP32 with GPIO
 // date:	${DATE}
 // rev:	5
@@ -24,9 +24,9 @@ hullcap=1.000000;
 hulledge=1.000000;
 useredge=false;
 
-module pcb(h=pcbthickness,r=0){linear_extrude(height=h)offset(r=r)polygon(points=[[0.000000,0.000000],[0.000000,29.000000],[13.200000,29.000000],[13.200000,0.000000]],paths=[[0,1,2,3]]);}
-
 module outline(h=pcbthickness,r=0){linear_extrude(height=h)offset(r=r)polygon(points=[[0.000000,0.000000],[0.000000,29.000000],[13.200000,29.000000],[13.200000,0.000000]],paths=[[0,1,2,3]]);}
+
+module pcb(h=pcbthickness,r=0){linear_extrude(height=h)offset(r=r)polygon(points=[[0.000000,0.000000],[0.000000,29.000000],[13.200000,29.000000],[13.200000,0.000000]],paths=[[0,1,2,3]]);}
 spacing=29.200000;
 pcbwidth=13.200000;
 pcblength=29.000000;
@@ -200,7 +200,16 @@ module pyramid()
 
 module wall(d=0)
 { // The case wall
-    	translate([0,0,-casebase-d])pcbh(height+d*2,margin/2+d);
+	translate([0,0,-casebase-d])
+	{
+		if(useredge)
+			intersection()
+			{
+				pcb(height+d*2,margin/2+d);
+				pcbh(height+d*2,margin/2+d);
+			}
+		else pcbh(height+d*2,margin/2+d);
+	}
 }
 
 module cutf()
