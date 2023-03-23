@@ -78,10 +78,17 @@ It also possible for an input to have a means to detect tamper or fault (e.g. sp
 
 There are physical tamper switches, but also logical inputs for various detected situations, such as *NFCFault*, which can be configured to trigger input states.
 
-|-----|-------|
 |State|Meaning|
 |-----|-------|
-|DOORBELL|This is simply a user state - it would usually be triggered on the doorbell input on an NFC reader. It can then be used to drive an output somewhere that is perhaps an actual bell.|
+|`DOORBELL`|This is simply a user state - it would usually be triggered on the doorbell input on an NFC reader. It can then be used to drive an output somewhere that is perhaps an actual bell.|
+|`WARNING`|A warning state is the lowest level of input, and is not considered critical. An example may be that a smoke cloak is low on fluid, etc. It is self clearing - i.e. when the warning is no longer valid the warning state ends.|
+|`FAULT`|A fault is where some mis-operation is detected but not likely to be tampering. Faults can be ignored when arming an area. Faults latch as `FAULTED` which are cleared next time the area is armed.|
+|`ACCESS`|This indicates that an access is open, e.g. a window, or door. I.e. there is no confirmation that someone is present, but that the building is not secure. In some cases this could be ignored and allow arming of an area. Note that a change of state of an `ACCESS` will normally be considered to be a short `PRESENCE` which would trigger an alarm - so if arming with a window open, closing the window counts as `PRESENCE` and means the alarm would go off.|
+|`PRESENCE`|This indicates someone present. It might be RADAR, PIR, or something else, but is used where it has detected a possible intruder. Areas are not armed whilst there is `PRESENCE` (arming waits a while for it to clear). A `PRESENCE` triggers an `ALARM` in an armed area.|
+|`TAMPER`|A tamper is where some specific tamper is detected. This is often a side effect of other systems, e.g. an input using resistors may detect a tamper on the input. Some devices have explicit tamper inputs. It can also be used directly on an input for something that indicates damage, such as a window break glass detector. A tamper should not be ignored. A change of `TAMPER` causes `PRESENCE` which triggers and `ALARM`. Tampers latch as `TAMPERED` which are cleared next time the area is armed.|
+|`FIRE`|This indicates a fire alarm input is active - usually a connection to a fire alarm panel. Fire alarms do not depend on a zone being `ARMED`. A fire input is self clearing. Typically `FIRE` is attached to door unlock outputs to override normal door controls. The system is not intended to be used as a fire alarm system, just to monitor a fire alarm system and take additional actions - doors should have break glass exit controls for safety.|
+|`PANIC`|This is typically a manual input indicating a panic. Panic alarms do not depend on a zone being `ARMED`. A panic input is self clearing. This could be a panic button for a silent alarm perhaps, or could be an assistance input from a disabled toilet, for example. Obviously you can configure this to cause an alarm as needed.|
+|`ENGINEER`|This is a system wide setting which stops `TAMPER` from triggering an alarm. It can also be used an output, for example,` to a bell box to stop the bell making a noise.|
 
 
 ### Input/output timers
@@ -90,14 +97,15 @@ Inputs are cycled every few seconds - during which the input is latched, so even
 
 There are however some timers than can be configured:
 
-Arm cancel - if arming is not possible within a certain time the arming is cancelled. Normally a TAMPER, ACCESS or PRESENCE will hold off arming. This allows for exit during arming.
-Pre alarm - when an alarm condition happens it triggers a pre-alarm for a time. If disarm is done during the pre alarm then the alarm is not activated. Even if the alarm trigger goes away, a pre-alarm will trigger an alarm at the end of the timer if not disarmed first. This is to allow for entry before disarming.
-Alarm clear - once the trigger for an alarm stops, the alarm state continues for a time.
-Output timers - an output can have a timer, so, for example, a bell output may be limited to avoid annoyance.
-Strong (force arm)
-In addition to normal arming for one or more areas, it is also possible to force arming with the strong-arm function. This can be set on a fob held for a long time (10 seconds). Arming and strong-arming can also be done from the management system.
-Strong-arm causes arming even when a TAMPER, or ACCESS is active. If these states change later they trigger PRESENCE and hence an alarm, but a stable TAMPER, or ACCESS state does not trigger the alarm.
-System states
+- Arm cancel - if arming is not possible within a certain time the arming is cancelled. Normally a TAMPER, ACCESS or PRESENCE will hold off arming. This allows for exit during arming.
+- Pre alarm - when an alarm condition happens it triggers a pre-alarm for a time. If disarm is done during the pre alarm then the alarm is not activated. Even if the alarm trigger goes away, a pre-alarm will trigger an alarm at the end of the timer if not disarmed first. This is to allow for entry before disarming.
+- Alarm clear - once the trigger for an alarm stops, the alarm state continues for a time.
+- Output timers - an output can have a timer, so, for example, a bell output may be limited to avoid annoyance.
+- Strong (force arm) - In addition to normal arming for one or more areas, it is also possible to force arming with the strong-arm function. This can be set on a fob held for a long time (10 seconds). Arming and strong-arming can also be done from the management system.
+- Strong-arm causes arming even when a TAMPER, or ACCESS is active. If these states change later they trigger PRESENCE and hence an alarm, but a stable TAMPER, or ACCESS state does not trigger the alarm.
+
+### System states
+
 In addition to the input states, which set, and clear, based on actual inputs, or events, there are states which can be set internally or derived from inputs or other states or timeouts:-
 
 As you can see, some states like ALARMED, TAMPERED, etc, need clearing. These are cleared next time the areas are armed.
