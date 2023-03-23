@@ -14,6 +14,7 @@ Git clone this `--recursive` to get all the submodules, and it should build with
 
 - Overview https://github.com/revk/SolarSystem/blob/master/Manuals/Overview.md
 - Server https://github.com/revk/SolarSystem/blob/master/Manuals/Server.md
+- Configuration Tips https://github.com/revk/SolarSystem/blob/master/Manuals/ConfigTips.md
 
 ### Technical
 
