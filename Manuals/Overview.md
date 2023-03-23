@@ -80,6 +80,8 @@ There are physical tamper switches, but also logical inputs for various detected
 
 |-----|-------|
 |State|Meaning|
+|-----|-------|
+|DOORBELL|This is simply a user state - it would usually be triggered on the doorbell input on an NFC reader. It can then be used to drive an output somewhere that is perhaps an actual bell.|
 
 
 ### Input/output timers
