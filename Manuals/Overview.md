@@ -90,6 +90,15 @@ There are physical tamper switches, but also logical inputs for various detected
 |`PANIC`|This is typically a manual input indicating a panic. Panic alarms do not depend on a zone being `ARMED`. A panic input is self clearing. This could be a panic button for a silent alarm perhaps, or could be an assistance input from a disabled toilet, for example. Obviously you can configure this to cause an alarm as needed.|
 |`ENGINEER`|This is a system wide setting which stops `TAMPER` from triggering an alarm. It can also be used an output, for example,` to a bell box to stop the bell making a noise.|
 
+### Arm/Strong arm
+
+Arming / disarming is done per area and can be several areas at once. This can be done from the web control pages.
+
+Arming (normally holding a fob for 3 seconds) will wait for `TAMPER`, `ACCESS` or `PRESENCE` to clear before arming, and if they take to long then arming fails.
+
+Strong arm (normally holding a fob for 10 seconds) will not wait for `TAMPER` or `ACCESS` to clear. This allows you to arm the system anyway. If the `TAMPER` or `ACCESS` stay then that is not a problem, but if any such input changes state that triggers a `PRESENCE` which sets the alarm. This is really a bodge to allow arming when something is broken, such as a window sensor, so as to allow arming rather than leaving the system unarmed. Be careful to consider who may be given permissions to do this.
+
+Disarming is done as a consequence of a valid use of a fob, allowed to disarm all the armed areas that are keeping a door in *deadlock*.
 
 ### Input/output timers
 
@@ -97,12 +106,10 @@ Inputs are cycled every few seconds - during which the input is latched, so even
 
 There are however some timers than can be configured:
 
-- Arm cancel - if arming is not possible within a certain time the arming is cancelled. Normally a TAMPER, ACCESS or PRESENCE will hold off arming. This allows for exit during arming.
+- Arm cancel - if arming is not possible within a certain time the arming is cancelled. Normally a `TAMPER`, `ACCESS` or `PRESENCE` will hold off arming. This allows for exit during arming.
 - Pre alarm - when an alarm condition happens it triggers a pre-alarm for a time. If disarm is done during the pre alarm then the alarm is not activated. Even if the alarm trigger goes away, a pre-alarm will trigger an alarm at the end of the timer if not disarmed first. This is to allow for entry before disarming.
 - Alarm clear - once the trigger for an alarm stops, the alarm state continues for a time.
 - Output timers - an output can have a timer, so, for example, a bell output may be limited to avoid annoyance.
-- Strong (force arm) - In addition to normal arming for one or more areas, it is also possible to force arming with the strong-arm function. This can be set on a fob held for a long time (10 seconds). Arming and strong-arming can also be done from the management system.
-- Strong-arm causes arming even when a TAMPER, or ACCESS is active. If these states change later they trigger PRESENCE and hence an alarm, but a stable TAMPER, or ACCESS state does not trigger the alarm.
 
 ### System states
 
