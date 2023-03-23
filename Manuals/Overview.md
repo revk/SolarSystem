@@ -30,10 +30,16 @@ Areas can be linked, e.g. you could have multiple sub offices in a building and 
 
 ### Access control
 
-The access controller systems are designed to operate a door - with an exit button one side, and a lock control with door open input (and possibly lock engaged input), and an NFC reader on the outside. Other configurations are possible.
-The door can work with just an exit button; It can have a door open sensor as well (which can act as an ACCESS alarm trigger as well); It can have a lock engaged input as well confirming the lock operation. A deadlock output and lock engaged input are also available, typically instead of the normal door lock - this is locked when the door is armed. Generic devices could also be used to drive a deadlock based on ARM state.
-The timing for locking, unlocking, etc, are all configurable. The system can report if the door is left ajar or propped open based on timing settings as well. The door can even have a door bell input.
+The access controller systems are designed to operate a door - with an exit button one side, and a lock control with door open input (and possibly lock engaged input), and an NFC reader on the outside. Many other configurations are possible, and a wide variety of locks are supported.
+
+The minimum working of a door is just an *exit* button and the lock control relay, which unlocks the door for a period when the button is pressed or a valid fob is used.  However there are a number of other input times, including tracking the door is open, the lock is disengaged, or a manual operation such a key has been used. The only output is a solid state relay which works the lock, but there is also a model with two such relays.  The timing for locking, unlocking, etc, are all configurable. The system can report if the door is left ajar or propped open based on timing settings as well. The door can even have a door bell input.
+
+The door works on the principle of a *lock* and a *deadlock*, which can have separate inputs and outputs. The *lock* is simply that the door is locked, e.g. during the day. The *deadlock* is that the door is *armed* for when nobody is in the building. This means you can have a door which is locked all the time using the *lock* output, or have a door which is open all day by using the *deadlock* output. It is even possible to have two separate actual locks if you want.
+
+The door is *armed* (well, more accurately one of the *areas* the door is assigned to are *armed*) to set the *deadlock* mode. This is usually done by holding a fob/card for three seconds. The door is disarmed by just using a valid fob. The settings for the fob define if it is allowed to *disarm* things or just allow access only when the system is not armed.
+
 A door can be, in more than one area. This means that a user must have permission to open the door in all areas covered by the door, and if areas are alarmed, to disarm the areas covered by the door that are currently armed. Normally using a fob disarms the alarm and opens the door in one operation. Arming is normally by holding a fob for 3 (configurable) seconds.
+
 The exit button normally only works if the door is not armed, but can be set to auto disarm the door. Holding the exit button can be configured to arm the door - this makes sense if the door is working using a “deadlock” mode rather than setting an alarm for the person inside holding the button.
 The NFC reader and controller itself also have tamper switches and can detect various fault states as well.
 Fobs
