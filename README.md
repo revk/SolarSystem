@@ -19,6 +19,7 @@ Git clone this `--recursive` to get all the submodules, and it should build with
 
 - API https://github.com/revk/SolarSystem/blob/master/Manuals/Tech-API.md
 - Fob https://github.com/revk/SolarSystem/blob/master/Manuals/Tech-Fob.md
+- Door https://github.com/revk/SolarSystem/blob/master/Manuals/Tech-Door.md
 
 ### Hardware modules
 
