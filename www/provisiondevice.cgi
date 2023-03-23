@@ -36,7 +36,7 @@ if($?PROVISION) then
 	# device count change
 	sql "$DB" 'UPDATE device SET poke=NOW() WHERE site=$site'
 	message --poke
-	if("$authenticated" == "true")then
+	if("$authenticated" == "true") then
 		setenv MSG `message --pending="$device" --command="restart"`
 	else
 		setenv MSG `message --pending="$device" --provision --pending="$device" --aid="$aid"`

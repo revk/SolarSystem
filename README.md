@@ -2,9 +2,18 @@
 
 Modular access control and alarm system.
 
-# Building
+## Open source
+
+Please bear in mind that this is an open source system with no warranty. The system can be used for access control, and/or alarm system, but you need to access its suitability yourself, and consider any implications with regard to your insurers. The system does not come under any sort of approved alarm system.
+
+## Building
 
 Git clone this `--recursive` to get all the submodules, and it should build with just `make` for the host components. Similarly `make set` in the `ESP32` directory for the ESP32 components, which actually runs the normal `idf.py` to build. `make menuconfig` can be used to fine tune the settings, but the defaults should be mostly sane. `make flash` should work to program.
+
+## Manuals
+
+- Overview https://github.com/revk/SolarSystem/blob/master/Manuals/Overview.md
+- Server https://github.com/revk/SolarSystem/blob/master/Manuals/Server.md
 
 ## ESP32 code for modules
 
@@ -20,6 +29,6 @@ Cloud back end for management of devices without the need for on-site controller
 
 An instance of the cloud management system is run on https://access.me.uk/ by Andrews & Arnold Ltd, and provisioned DESFire cards can be ordered printed to your design.
 
-Some assemebled boards can be ordered https://www.aa.net.uk/etc/circuit-boards/
+Some assembled boards can be ordered https://www.aa.net.uk/etc/circuit-boards/
 
 Copyright © 2019-22 Adrian Kennard, Andrews & Arnold Ltd. See LICENCE file for details. GPL 3.0
