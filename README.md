@@ -15,6 +15,12 @@ Git clone this `--recursive` to get all the submodules, and it should build with
 - Overview https://github.com/revk/SolarSystem/blob/master/Manuals/Overview.md
 - Server https://github.com/revk/SolarSystem/blob/master/Manuals/Server.md
 
+### Technical
+
+- API https://github.com/revk/SolarSystem/blob/master/Manuals/Tech-API.md
+
+### Hardware modules
+
 ## ESP32 code for modules
 
 Modules work as a mesh over WiFi, and one connects to a back end cloud management system. PCB designs are included (KiCad) as are 3D printable case designs.
