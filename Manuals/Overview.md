@@ -46,7 +46,6 @@ A door can be, in more than one area. This means that a user must have permissio
 
 The exit button normally only works if the door is not armed, but can be set to auto disarm the door. Holding the exit button can be configured to arm the door - this makes sense if the door is working using a *deadlock* mode rather than setting an alarm for the person inside holding the button.
 
-
 #### General input/output
 
 Whilst the inputs and outputs are normally tied to functions for working the door they can also be tied to various states. For example, the door lock control relay could also be linked to the `FIRE` state for one or more areas meaning the output is forced active (unlocked) if there is a fire alarm. Similarly the inputs will usually be linked to input states, mainly the *door open* would link to the `ACCESS` state for corresponding areas.
@@ -55,22 +54,40 @@ There are logical inputs too such as *NFCFault*, which can be linked to states. 
 
 ### Fobs
 
-Fobs, or cards, have access permissions, which define a set of areas where they are allowed to enter, arm or disarm, and other functions. They can also have day of week and time of day restrictions. The access details are securely encoded in DESFire key fobs so they work without the system needing to refer to a central database in real time.
-A fob can also be blacklisted - with a limited blacklist list loaded in to the flash of the door controllers on a site so that the fob is blacklisted even when the management server is not on-line.
-Inputs
-The various input states are intended to reflect reality, as it changes. Whilst the actual inputs may work in various ways they ultimately boil down to OFF or ON, even if that means comparing a voltage or a light level, etc.
-Each of these inputs can be configured to indicate that an input state (in each area) is active, so a physical contact switch on a window may represent TAMPER on area B for example. A physical input can represent multiple types of input in multiple areas at once.
-These are then aggregated per area, so if any input is ON indicating PRESENCE in area B, then area B PRESENCE state is ON for the site. Only when all such inputs are OFF will the overall state for area B PRESENCE go to OFF.
-Some inputs have special meaning, e.g. on door control systems (e.g. exit button), but even these can also be assigned as alarm system inputs (e.g. door open can represent ACCESS as well as being used as part of the door entry system).
-There are a number of basic input types. A change of input state is always propagated through the system and logged before changing back, even if a simple brief change like a DOORBELL push and release. The system cycles every few seconds ensuring all inputs are aggregated.
+Fobs, or cards, have access permissions, which define a set of areas where they are allowed to enter, arm or disarm, and other functions. They can also have day of week and time of day restrictions. The access details are securely encoded in DESFire key fobs so they work without the system needing to refer to a central database in real time. Even so they also have timeouts to ensure that a lost fob is not useful.
 
-Inherent tamper and fault
-Systems also detect tamper and fault and possibly even warning and these can be reported at a device level. The device has an overall area setting for the device, and any TAMPER or FAULT state is reported as being in those areas. Note that a device finding itself alone (i.e. no devices on the mesh WiFi) is considered a TAMPER as it indicates some WiFi jamming. Similarly missing devices on the mesh are considered a FAULT.
-It is also possible for an input to have a means to detect tamper or fault (e.g. specific voltages, or failure of some hardware to respond).
-Note that a device finding itself alone (i.e. no devices on the mesh WiFi) is considered a TAMPER as it indicates some WiFi jamming. Similarly missing devices on the mesh are considered a FAULT. Thought should be given to how this could work on a bell box, possible an extra area used so that a local TAMPER causes an alarm regardless, and so WiFI blocking causes an alarm.
-Timers
+A fob can also be individually blacklisted - with a limited blacklist list loaded in to the flash of the door controllers on a site so that the fob is blacklisted even when the management server is not on-line.
+
+#### Access controls
+
+The fobs are actually linked to named access controls which define a settings and permissions, e.g. *Staff*, *Cleaner*, *Visitor*, etc.
+
+### Input states
+
+The various input states are intended to reflect reality, as it changes. Whilst the actual inputs may work in various ways they ultimately boil down to OFF or ON, even if that means comparing a voltage or a light level, etc.
+
+Each of these inputs can be configured to indicate that an input state (in each area) is active, so a physical contact switch on a window may represent `TAMPER` on area `B` for example. A physical input can represent multiple types of input in multiple areas all at once.
+
+These are then aggregated per area, so if any input is ON indicating `PRESENCE` in area `B`, then area `B PRESENCE` state is ON for the whole site. Only when all such inputs are OFF will the overall state for area `B PRESENCE` go to OFF.
+
+Some inputs have special meaning, e.g. on door control systems (e.g. exit button), but even these can also be assigned as alarm system inputs (e.g. door open can represent `ACCESS` as well as being used as part of the door entry system).
+
+There are a number of basic input types. A change of input state is always propagated through the system and logged before changing back, even if a simple brief change like a `DOORBELL` push and release. The system cycles every few seconds ensuring all inputs are aggregated.
+
+It also possible for an input to have a means to detect tamper or fault (e.g. specific voltages, or failure of some hardware to respond), though that is not used at present.
+
+There are physical tamper switches, but also logical inputs for various detected situations, such as *NFCFault*, which can be configured to trigger input states.
+
+|-----|-------|
+|State|Meaning|
+
+
+### Input/output timers
+
 Inputs are cycled every few seconds - during which the input is latched, so even a brief input will count and be aggregated for the site for the cycle. This means an input will always last a few seconds no matter how short it was in reality.
+
 There are however some timers than can be configured:
+
 Arm cancel - if arming is not possible within a certain time the arming is cancelled. Normally a TAMPER, ACCESS or PRESENCE will hold off arming. This allows for exit during arming.
 Pre alarm - when an alarm condition happens it triggers a pre-alarm for a time. If disarm is done during the pre alarm then the alarm is not activated. Even if the alarm trigger goes away, a pre-alarm will trigger an alarm at the end of the timer if not disarmed first. This is to allow for entry before disarming.
 Alarm clear - once the trigger for an alarm stops, the alarm state continues for a time.
