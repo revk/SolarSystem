@@ -78,6 +78,8 @@ It also possible for an input to have a means to detect tamper or fault (e.g. sp
 
 There are physical tamper switches, but also logical inputs for various detected situations, such as *NFCFault*, which can be configured to trigger input states.
 
+There is also a simple time of day *Timer* logical input on some devices which can be used as an input to trigger something at a time (typically arming at end of day).
+
 |State|Meaning|
 |-----|-------|
 |`DOORBELL`|This is simply a user state - it would usually be triggered on the doorbell input on an NFC reader. It can then be used to drive an output somewhere that is perhaps an actual bell.|
@@ -94,11 +96,13 @@ There are physical tamper switches, but also logical inputs for various detected
 
 Arming / disarming is done per area and can be several areas at once. This can be done from the web control pages.
 
-Arming (normally holding a fob for 3 seconds) will wait for `TAMPER`, `ACCESS` or `PRESENCE` to clear before arming, and if they take to long then arming fails.
+Arming (normally holding a fob for 3 seconds) will wait for `TAMPER`, `ACCESS` or `PRESENCE` to clear before arming, and if they take to long then arming fails. If arming fails it fails for all the areas that you are trying to arm - i.e. it does not arm some areas and leave others unarmed. Strong arm is an option to force setting.
 
-Strong arm (normally holding a fob for 10 seconds) will not wait for `TAMPER` or `ACCESS` to clear. This allows you to arm the system anyway. If the `TAMPER` or `ACCESS` stay then that is not a problem, but if any such input changes state that triggers a `PRESENCE` which sets the alarm. This is really a bodge to allow arming when something is broken, such as a window sensor, so as to allow arming rather than leaving the system unarmed. Be careful to consider who may be given permissions to do this.
+Strong arming (normally holding a fob for 10 seconds) will not wait for `TAMPER` or `ACCESS` to clear. This allows you to arm the system anyway. If the `TAMPER` or `ACCESS` stay then that is not a problem, but if any such input changes state that triggers a `PRESENCE` which sets off the alarm. This is really a bodge to allow arming when something is broken, such as a window sensor, so as to allow arming rather than leaving the system unarmed. Be careful to consider who may be given permissions to do this - normally, for example, if it just an open internal door, the person arming should go and close the doors and try again. One use is where this did not happen and so an administrator does a strong arm remotely.
 
 Disarming is done as a consequence of a valid use of a fob, allowed to disarm all the armed areas that are keeping a door in *deadlock*.
+
+Note that these can be triggered directly on an input, and can be triggered on a timer event, so as to allow auto arming at a particular time of day.
 
 ### Input/output timers
 
@@ -113,10 +117,20 @@ There are however some timers than can be configured:
 
 ### System states
 
-In addition to the input states, which set, and clear, based on actual inputs, or events, there are states which can be set internally or derived from inputs or other states or timeouts:-
+In addition to the input states, which set, and clear, based on actual inputs, or events, there are states which can be set internally or derived from inputs or other states or timeouts.
 
-As you can see, some states like ALARMED, TAMPERED, etc, need clearing. These are cleared next time the areas are armed.
-Outputs
+|State|Meaning|
+|-----|-------|
+|`PREARM`|Aggregate of arm requests that are not set in `ARM` yet. i.e. waiting for `PRESENCE` to clear.|
+|`ARMED`|This is the state where we are armed. In this state `PRESENCE`, triggers the alarm process for the area (starting with `PREALARM`). Note that change of `TAMPER` or `ACCESS` causes `PRESENCE` and hence an alarm.|
+|`PREALARM`|This is a state where we intend to `ALARM`, but are holding off for a configurable period. Disarming during this time is not an alarm.|
+|`ALARM`|We have an active alarm condition in an area. This is cleared once the `PRESENCE` has stopped for a configurable time.|
+|`ALARMED`|We have had a previous active `ALARM` condition in an area. This persists even after `ALARM` times out. This is cleared next time the area is armed.|
+|`FAULTED`|We have had a `FAULT` at some point.  This is cleared next time the area is armed.|
+|`TAMPERED`|We have had a `TAMPER` at some point.  This is cleared next time the area is armed.|
+
+### Outputs
+
 Devices can have output which are OFF or ON. These are driven based on having a specific input or state (as above) for specific area(a) associated with the output. If any of the states and areas specified are ON then the output is ON.
 A typical example is a bell box output for the bell linked to ALARM state for one or more areas. One may, for example link a strobe to ALARMED, a light to ARMED, and an engineer hold off to ENGINEER.
 Whilst systems such as door control have outputs (well, one output, to unlock the door) controlled by the door control, it is also possible to link these, so the door opens when there is FIRE, for example.
