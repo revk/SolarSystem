@@ -34,15 +34,27 @@ The access controller systems are designed to operate a door - with an exit butt
 
 The minimum working of a door is just an *exit* button and the lock control relay, which unlocks the door for a period when the button is pressed or a valid fob is used.  However there are a number of other input times, including tracking the door is open, the lock is disengaged, or a manual operation such a key has been used. The only output is a solid state relay which works the lock, but there is also a model with two such relays.  The timing for locking, unlocking, etc, are all configurable. The system can report if the door is left ajar or propped open based on timing settings as well. The door can even have a door bell input.
 
+#### Lock/Deadlock
+
 The door works on the principle of a *lock* and a *deadlock*, which can have separate inputs and outputs. The *lock* is simply that the door is locked, e.g. during the day. The *deadlock* is that the door is *armed* for when nobody is in the building. This means you can have a door which is locked all the time using the *lock* output, or have a door which is open all day by using the *deadlock* output. It is even possible to have two separate actual locks if you want.
+
+#### Arm/Disarm
 
 The door is *armed* (well, more accurately one of the *areas* the door is assigned to are *armed*) to set the *deadlock* mode. This is usually done by holding a fob/card for three seconds. The door is disarmed by just using a valid fob. The settings for the fob define if it is allowed to *disarm* things or just allow access only when the system is not armed.
 
 A door can be, in more than one area. This means that a user must have permission to open the door in all areas covered by the door, and if areas are alarmed, to disarm the areas covered by the door that are currently armed. Normally using a fob disarms the alarm and opens the door in one operation. Arming is normally by holding a fob for 3 (configurable) seconds.
 
-The exit button normally only works if the door is not armed, but can be set to auto disarm the door. Holding the exit button can be configured to arm the door - this makes sense if the door is working using a “deadlock” mode rather than setting an alarm for the person inside holding the button.
-The NFC reader and controller itself also have tamper switches and can detect various fault states as well.
-Fobs
+The exit button normally only works if the door is not armed, but can be set to auto disarm the door. Holding the exit button can be configured to arm the door - this makes sense if the door is working using a *deadlock* mode rather than setting an alarm for the person inside holding the button.
+
+
+#### General input/output
+
+Whilst the inputs and outputs are normally tied to functions for working the door they can also be tied to various states. For example, the door lock control relay could also be linked to the `FIRE` state for one or more areas meaning the output is forced active (unlocked) if there is a fire alarm. Similarly the inputs will usually be linked to input states, mainly the *door open* would link to the `ACCESS` state for corresponding areas.
+
+There are logical inputs too such as *NFCFault*, which can be linked to states. There are also physical tamper switches (normally linked to `TAMPER` states).
+
+### Fobs
+
 Fobs, or cards, have access permissions, which define a set of areas where they are allowed to enter, arm or disarm, and other functions. They can also have day of week and time of day restrictions. The access details are securely encoded in DESFire key fobs so they work without the system needing to refer to a central database in real time.
 A fob can also be blacklisted - with a limited blacklist list loaded in to the flash of the door controllers on a site so that the fob is blacklisted even when the management server is not on-line.
 Inputs
