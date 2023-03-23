@@ -208,16 +208,23 @@ The MQTT connection to each device is relayed via the current root device, which
 ### Hardware
 
 Each module stores its configuration internally in flash, and can operate without any central control system - just using the peer to peer mesh WiFi. Even without the peer to peer Mesh, each door control can operate autonomously to allow access based on the permissions on the fob used. The control system is used to manage the system, managing configuration and settings, and monitoring status, reporting, and logging. The Internet link is currently needed for SMS sending.
+
 The hardware is mainly custom ESP32 controller boards. The main modules are :-
-Door controller - has connections for exit button, door closed, lock, and NFC reader
-NFC reader module - normally connects to door controller but can be connected to generic I/O where used in ways that are not a door control.
-Generic I/O device - connects to simple switch inputs, or ADCs, etc.
-Keypad control devices - fits inside a galaxy keypad to provide keypad control functions
-Bell box I/O - connects to bell box for tamper, strobe, light, engineer mode, and bell.
+
+- Door controller - has connections for exit button, door closed, lock, and NFC reader
+- NFC reader module - normally connects to door controller but can be connected to generic I/O where used in ways that are not a door control.
+- Generic I/O device - connects to simple switch inputs, or ADCs, etc.
+- Keypad control devices - fits inside a galaxy keypad to provide keypad control functions
+- Bell box I/O - connects to bell box for tamper, strobe, light, engineer mode, and bell. This can also include a GPS to set the system time even when no internet access.
+- It is also possible to use otehr ESP32 devices, and has been tested on Shelly Plus 1, and Shelly DC i4 which make cheap and useful extensions of the system.
+
 At present inputs are simply a switch, but in future modules may support a variety of inputs, not just switches, such as resistor based inputs with fault and tamper, light level sensors, motion sensors, proximity sensors, etc.
-Because the system can connect to a local MQTT broker, outputs using IoT devices such as Shelly1 can be used to control lights, etc.
+
+Because the system can connect to a local MQTT broker, outputs using IoT devices such as Shelly Plus 1 can be used to control lights, etc. However, as a Shelly Plus 1 can run the system code, it can work an output directly and even run off mains.
+
 Additional modules may be designed in the future:-
-GPS to inject local time source so time is known without internet access.
-Direct ethernet connection for internet connection rather than needing local WiFi.
-Direct mobile module for SMS
+
+- Direct ethernet connection for internet connection rather than needing local WiFi.
+- Direct mobile module for SMS
+
 If no local WiFI, at present, a simple mobile WiFi router can be used.
