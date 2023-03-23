@@ -132,27 +132,81 @@ In addition to the input states, which set, and clear, based on actual inputs, o
 ### Outputs
 
 Devices can have output which are OFF or ON. These are driven based on having a specific input or state (as above) for specific area(a) associated with the output. If any of the states and areas specified are ON then the output is ON.
-A typical example is a bell box output for the bell linked to ALARM state for one or more areas. One may, for example link a strobe to ALARMED, a light to ARMED, and an engineer hold off to ENGINEER.
-Whilst systems such as door control have outputs (well, one output, to unlock the door) controlled by the door control, it is also possible to link these, so the door opens when there is FIRE, for example.
+
+A typical example is a bell box output for the bell linked to `ALARM` state for one or more areas. One may, for example link a strobe to `ALARMED`, a light to `ARMED`, and an engineer hold off to `ENGINEER`.
+
+Whilst systems such as door control have outputs (well, one output, to unlock the door) controlled by the door control, it is also possible to link these, so the door opens when there is `FIRE`, for example.
+
 An output can have a maximum time limit, typically for bell output.
-Keypad
+
+### Keypad
+
 A keypad provides keys and a display, and can be configured to operate in one or more areas. This then causes the display to show when states are active such, as well as messages such as why arming is being delayed, etc.
-It may, later, be possible for a user to log in to a keypad using a code, providing additional options to reset latched states like TAMPERED, to arm or disarm areas, and to access basic logs. Configuration is not done via a keypad.
-Fob points
+
+- It is possible to arm and strong arm areas from a keypad
+- A keypad specific PIN can be entered to disarm
+- Active conditions are shown and can be scrolled through using arrow keys
+
+### Stand alone fob readers
+
 Whilst NFC readers are normally part of door entry units, they can be connected to simple I/O modules and used as a logging point. These can be used to arm/disarm areas, the same as a door control for an area but without the door. They can be used just to log, e.g. clock in/out, or security guard check points. They can also be used by an administrator to configure fobs on a desk, for example.
+
 The system includes web hooks for fob events (and various other types of event) which can feed these fob access reports to an external system for time recording, etc.
-SMS
-The control system has means to SMS for various events and areas. This only works when the system is on-line.
-MQTT/IoT
+
+### Event hooks
+
+The control pages detect (when on line) various events, and each event can be set up to send an SMS, an email, or a webhook (https/JSON post).
+
+- Offline event
+- Fob event
+- Fob deny event
+- Alarm event
+- Fire event
+- Panic event
+- Warning event
+- Tamper event
+- Fault event
+- Trigger event
+- Inhibit event
+- Arm event
+- Strong arm event
+- Disarm event
+- Arm fail event
+- Open event
+- Forced event
+- Not open event
+- Not closed event
+- Propped event
+- Wrong PIN even
+
+Sending an SMS required A&A SMS account set up on the control system.
+
+### SMS from controller
+
+The design allows for an SMS for some events direct from a door controller. This includes, for example, SMS to a number configured on a fob when arm or arm fail.
+
+At present this is sent via the web control pages, so only works on line, but plans are that this will allow direct SMS via an on site mobile module at some point.
+
+### MQTT/IoT
+
 Secure MQTT is used for command and control to the management system from the root node connected to WiFi.
+
 However, the root node can also connect to a secondary MQTT server for IoT, e.g. tasmota connected switches for lights, buttons, etc.
-Events can then be configured to send MQTT messages on this secondary connection, e.g. when an area is armed, all the lights are turned off.
-It will also possible to configure specific MQTT messages on this secondary connection to take some limited actions, such as for arming an area.
-Mesh WiFi on site
-The system configures the devices to form a mesh WiFi on site with only one connecting to the site WiFi. This allows devices to communicate without the need for a working separate AP or Internet connection. The Mesh WiFi uses a non standard “long range” rate and operates over a wide area by forming a mesh of devices based on signal strength.
+
+Many events can then be configured to send MQTT messages on this secondary connection, e.g. when an area is armed, all the lights are turned off.
+
+There is also reporting of various states and debugging which can be enabled.
+
+### Mesh WiFi on site
+
+The system configures the devices to form a mesh WiFi on site with only one connecting to the site WiFi. This allows devices to communicate without the need for a working separate AP or Internet connection. The Mesh WiFi can also use a non standard *long range* rate and operates over a wide area by forming a mesh of devices based on signal strength.
+
 Additional devices could be added with no alarm system function simply to extend the range of the mesh over a larger site.
+
 The MQTT connection to each device is relayed via the current root device, which can change depending on circumstances.
-Hardware
+
+### Hardware
+
 Each module stores its configuration internally in flash, and can operate without any central control system - just using the peer to peer mesh WiFi. Even without the peer to peer Mesh, each door control can operate autonomously to allow access based on the permissions on the fob used. The control system is used to manage the system, managing configuration and settings, and monitoring status, reporting, and logging. The Internet link is currently needed for SMS sending.
 The hardware is mainly custom ESP32 controller boards. The main modules are :-
 Door controller - has connections for exit button, door closed, lock, and NFC reader
