@@ -69,3 +69,13 @@ Access permissions, e.g. for doors and alarm arming and disarming, is set for a 
 An AID (application ID) is a 3 byte number that is unique across the whole system, and relates to only one site. Each device is in one AID. Each fob is programmed with one or more AIDs as needed. Normally a site has only one AID, however there may be reasons to deploy more than one AID.
 
 The security relies on an AID having an AES key which has to be secret. However this is deployed to devices and fobs that need them. Both should be secure (modules should have secure boot and encrypted storage), but you cannot completely rule out someone finding a way to extra the key if they have physical access. If the key is found the whole AID is no longer secure. As such it may be prudent for some devices (i.e. doors) to be on a separate AID if considered specifically sensitive for limited use - this would reduce the number of devices and fobs that get given the AES key for that AID.
+
+## PCBs and devices
+
+One of the jobs of the server is managing devices. When a device is connected it needs to be configured for a specific site.
+
+The PCB templates allow a device's various settings, such as GPIO pins, to be defined. Then the configuration for the specific device allows each of its inputs and outputs to be assigned to specific rules and areas and states. The device setings also have a number of device specific timeouts and settings.
+
+Devices can be marked out of service, and can also be upgraded, all from the web interface. It is usually sensible to mark all out of service so they connect directly to WiFi, then upgrade, then put back in service to work as a mesh again. However, if a site has devices that cannot reach wifi themselves they will need to be upgraded over the mesh - this is a lot slower but normally works.
+
+It is recommended to keep devices up to date.
