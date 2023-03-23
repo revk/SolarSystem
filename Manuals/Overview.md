@@ -1,2 +1,103 @@
-# Solar System - Overview
+# Solar System
 
+## System overview
+
+The system makes use of small modules which provide key functions including inputs (connecting to switches, PIRs, etc), secure card/fob readers, outputs (connecting to alarm bells, lights, etc), door control, and keypads, and possibly other devices.
+
+These all operate on a closed, encrypted, peer to peer, WIFi mesh. One of the devices connects to a conventional WiFi to provide the system as a whole with a connection to configuration, control and monitoring. This could be a cloud based system or a local on-site server.
+
+The system provides tracking of inputs, states, and outputs to function as an alarm system, as well as access control system.
+
+An MQTT connection can also be made to a local (insecure) broker - this allows logging of various states and events so as to allow local monitoring and allow the system to inject MQTT messages - for example to turn off lights when alarm set.
+
+## Configuration, control, and monitoring
+
+The system is configured via web pages on a control system. There are a number of key concepts about the way the system works, which are well worth understanding - these are not quite the same as you will find in other alarm systems.
+
+### Organisation / site
+
+The management system can operate multiple separate organisations, and each organisation can have multiple sites. Access control allows users to be assigned various roles in an organisation. So if you have a login to the control system you may not be able to access all of the controls and logs depending on how your administrator has configured things.
+
+An organisation has one or more sites that share some management users and settings.
+
+The door control fobs/cards can hold multiple separate credentials for different organisations and sites.
+
+### Areas
+
+The system has a concept of *areas*. These normally represent physical areas, such as a room or a building. They can overlap, or (more commonly) be one area encompassing a whole building but with sub areas for rooms or floors, etc. The system maintains inputs, states, and outputs for each area independently, and almost all configuration involves defining which areas apply to a specific function. For example, one input could be simultaneously a presence for one area, but simply a warning for another. Areas are given names, but all internal reporting uses an area ID which is a letter `A` to `Z`. Some additional special area codes may be added in due course.
+
+Areas can be linked, e.g. you could have multiple sub offices in a building and when all are armed the lobby area is armed automatically. This linking can also be configured to send MQTT messages, e.g. you may want a lobby light to go out when the alarm is set.
+
+### Access control
+
+The access controller systems are designed to operate a door - with an exit button one side, and a lock control with door open input (and possibly lock engaged input), and an NFC reader on the outside. Other configurations are possible.
+The door can work with just an exit button; It can have a door open sensor as well (which can act as an ACCESS alarm trigger as well); It can have a lock engaged input as well confirming the lock operation. A deadlock output and lock engaged input are also available, typically instead of the normal door lock - this is locked when the door is armed. Generic devices could also be used to drive a deadlock based on ARM state.
+The timing for locking, unlocking, etc, are all configurable. The system can report if the door is left ajar or propped open based on timing settings as well. The door can even have a door bell input.
+A door can be, in more than one area. This means that a user must have permission to open the door in all areas covered by the door, and if areas are alarmed, to disarm the areas covered by the door that are currently armed. Normally using a fob disarms the alarm and opens the door in one operation. Arming is normally by holding a fob for 3 (configurable) seconds.
+The exit button normally only works if the door is not armed, but can be set to auto disarm the door. Holding the exit button can be configured to arm the door - this makes sense if the door is working using a “deadlock” mode rather than setting an alarm for the person inside holding the button.
+The NFC reader and controller itself also have tamper switches and can detect various fault states as well.
+Fobs
+Fobs, or cards, have access permissions, which define a set of areas where they are allowed to enter, arm or disarm, and other functions. They can also have day of week and time of day restrictions. The access details are securely encoded in DESFire key fobs so they work without the system needing to refer to a central database in real time.
+A fob can also be blacklisted - with a limited blacklist list loaded in to the flash of the door controllers on a site so that the fob is blacklisted even when the management server is not on-line.
+Inputs
+The various input states are intended to reflect reality, as it changes. Whilst the actual inputs may work in various ways they ultimately boil down to OFF or ON, even if that means comparing a voltage or a light level, etc.
+Each of these inputs can be configured to indicate that an input state (in each area) is active, so a physical contact switch on a window may represent TAMPER on area B for example. A physical input can represent multiple types of input in multiple areas at once.
+These are then aggregated per area, so if any input is ON indicating PRESENCE in area B, then area B PRESENCE state is ON for the site. Only when all such inputs are OFF will the overall state for area B PRESENCE go to OFF.
+Some inputs have special meaning, e.g. on door control systems (e.g. exit button), but even these can also be assigned as alarm system inputs (e.g. door open can represent ACCESS as well as being used as part of the door entry system).
+There are a number of basic input types. A change of input state is always propagated through the system and logged before changing back, even if a simple brief change like a DOORBELL push and release. The system cycles every few seconds ensuring all inputs are aggregated.
+
+Inherent tamper and fault
+Systems also detect tamper and fault and possibly even warning and these can be reported at a device level. The device has an overall area setting for the device, and any TAMPER or FAULT state is reported as being in those areas. Note that a device finding itself alone (i.e. no devices on the mesh WiFi) is considered a TAMPER as it indicates some WiFi jamming. Similarly missing devices on the mesh are considered a FAULT.
+It is also possible for an input to have a means to detect tamper or fault (e.g. specific voltages, or failure of some hardware to respond).
+Note that a device finding itself alone (i.e. no devices on the mesh WiFi) is considered a TAMPER as it indicates some WiFi jamming. Similarly missing devices on the mesh are considered a FAULT. Thought should be given to how this could work on a bell box, possible an extra area used so that a local TAMPER causes an alarm regardless, and so WiFI blocking causes an alarm.
+Timers
+Inputs are cycled every few seconds - during which the input is latched, so even a brief input will count and be aggregated for the site for the cycle. This means an input will always last a few seconds no matter how short it was in reality.
+There are however some timers than can be configured:
+Arm cancel - if arming is not possible within a certain time the arming is cancelled. Normally a TAMPER, ACCESS or PRESENCE will hold off arming. This allows for exit during arming.
+Pre alarm - when an alarm condition happens it triggers a pre-alarm for a time. If disarm is done during the pre alarm then the alarm is not activated. Even if the alarm trigger goes away, a pre-alarm will trigger an alarm at the end of the timer if not disarmed first. This is to allow for entry before disarming.
+Alarm clear - once the trigger for an alarm stops, the alarm state continues for a time.
+Output timers - an output can have a timer, so, for example, a bell output may be limited to avoid annoyance.
+Strong (force arm)
+In addition to normal arming for one or more areas, it is also possible to force arming with the strong-arm function. This can be set on a fob held for a long time (10 seconds). Arming and strong-arming can also be done from the management system.
+Strong-arm causes arming even when a TAMPER, or ACCESS is active. If these states change later they trigger PRESENCE and hence an alarm, but a stable TAMPER, or ACCESS state does not trigger the alarm.
+System states
+In addition to the input states, which set, and clear, based on actual inputs, or events, there are states which can be set internally or derived from inputs or other states or timeouts:-
+
+As you can see, some states like ALARMED, TAMPERED, etc, need clearing. These are cleared next time the areas are armed.
+Outputs
+Devices can have output which are OFF or ON. These are driven based on having a specific input or state (as above) for specific area(a) associated with the output. If any of the states and areas specified are ON then the output is ON.
+A typical example is a bell box output for the bell linked to ALARM state for one or more areas. One may, for example link a strobe to ALARMED, a light to ARMED, and an engineer hold off to ENGINEER.
+Whilst systems such as door control have outputs (well, one output, to unlock the door) controlled by the door control, it is also possible to link these, so the door opens when there is FIRE, for example.
+An output can have a maximum time limit, typically for bell output.
+Keypad
+A keypad provides keys and a display, and can be configured to operate in one or more areas. This then causes the display to show when states are active such, as well as messages such as why arming is being delayed, etc.
+It may, later, be possible for a user to log in to a keypad using a code, providing additional options to reset latched states like TAMPERED, to arm or disarm areas, and to access basic logs. Configuration is not done via a keypad.
+Fob points
+Whilst NFC readers are normally part of door entry units, they can be connected to simple I/O modules and used as a logging point. These can be used to arm/disarm areas, the same as a door control for an area but without the door. They can be used just to log, e.g. clock in/out, or security guard check points. They can also be used by an administrator to configure fobs on a desk, for example.
+The system includes web hooks for fob events (and various other types of event) which can feed these fob access reports to an external system for time recording, etc.
+SMS
+The control system has means to SMS for various events and areas. This only works when the system is on-line.
+MQTT/IoT
+Secure MQTT is used for command and control to the management system from the root node connected to WiFi.
+However, the root node can also connect to a secondary MQTT server for IoT, e.g. tasmota connected switches for lights, buttons, etc.
+Events can then be configured to send MQTT messages on this secondary connection, e.g. when an area is armed, all the lights are turned off.
+It will also possible to configure specific MQTT messages on this secondary connection to take some limited actions, such as for arming an area.
+Mesh WiFi on site
+The system configures the devices to form a mesh WiFi on site with only one connecting to the site WiFi. This allows devices to communicate without the need for a working separate AP or Internet connection. The Mesh WiFi uses a non standard “long range” rate and operates over a wide area by forming a mesh of devices based on signal strength.
+Additional devices could be added with no alarm system function simply to extend the range of the mesh over a larger site.
+The MQTT connection to each device is relayed via the current root device, which can change depending on circumstances.
+Hardware
+Each module stores its configuration internally in flash, and can operate without any central control system - just using the peer to peer mesh WiFi. Even without the peer to peer Mesh, each door control can operate autonomously to allow access based on the permissions on the fob used. The control system is used to manage the system, managing configuration and settings, and monitoring status, reporting, and logging. The Internet link is currently needed for SMS sending.
+The hardware is mainly custom ESP32 controller boards. The main modules are :-
+Door controller - has connections for exit button, door closed, lock, and NFC reader
+NFC reader module - normally connects to door controller but can be connected to generic I/O where used in ways that are not a door control.
+Generic I/O device - connects to simple switch inputs, or ADCs, etc.
+Keypad control devices - fits inside a galaxy keypad to provide keypad control functions
+Bell box I/O - connects to bell box for tamper, strobe, light, engineer mode, and bell.
+At present inputs are simply a switch, but in future modules may support a variety of inputs, not just switches, such as resistor based inputs with fault and tamper, light level sensors, motion sensors, proximity sensors, etc.
+Because the system can connect to a local MQTT broker, outputs using IoT devices such as Shelly1 can be used to control lights, etc.
+Additional modules may be designed in the future:-
+GPS to inject local time source so time is known without internet access.
+Direct ethernet connection for internet connection rather than needing local WiFi.
+Direct mobile module for SMS
+If no local WiFI, at present, a simple mobile WiFi router can be used.
