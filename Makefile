@@ -105,6 +105,8 @@ login.conf: login/Kconfig
 	make -C login ../login.conf
 login/redirect.o: login/redirect.c
 	make -C login redirect.o
+email/libemaillight.o: email/libemail.c
+	make -C email libemaillight.o
 
 ssdatabase.o: ssdatabase.c ssdatabase.m ssdatabase.h config.h types.m Makefile ESP32/main/states.m ESP32/main/logicalgpio.m
 	gcc -g -Wall -Wextra -O -c -o $@ $< ${SQLINC} -DLIB
