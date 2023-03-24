@@ -10,7 +10,9 @@ The system is designed to operate using self contained devices on a site, but wi
 
 ### Environment
 
-The server is intended to be installed on a linux system (tested on Debian) with *mariadb* SQL server, *apache* web server, *gcc* compilation environment with `make`, and *csh* or equiviliant shell available for scripts. If someone wants to make a full `apt install` for what is needed, let me know and I'll update this manual.
+The server is intended to be installed on a linux system (tested on Debian) with *mariadb* SQL server, *apache* web server, *gcc* compilation environment with `make`, and *csh* or equiviliant shell available for scripts.
+
+Using `make apt` in the top directory will `apt install` the main required applications.
 
 ### Git
 
