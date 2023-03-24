@@ -2,7 +2,7 @@
 
 ## Cloud server
 
-There is a cloud based server available at [access.me.uk](https://access.me.uk). Contact A&A for more details.
+There is a cloud based server available at [access.me.uk](https://access.me.uk). Contact A&A for more details - this is currently free of charge.
 
 ## Running your own server
 
