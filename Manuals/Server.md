@@ -1,19 +1,56 @@
 # Web control server
 
 ## Cloud server
-There is a cloud based server available at https://access.me.uk. Contact A&A for more details.
+
+There is a cloud based server available at [access.me.uk](https://access.me.uk). Contact A&A for more details.
 
 ## Running your own server
 
-The system is designed to operate using self contained devices on a site, but with the management and control provided using a back end (e.g. cloud) based server. The on-site devices form a private mesh WiFi network with one node acting as a gateway on a local Internet connected WiFi. This gateway allows the back end server access to all of the on-site devices. 
+The system is designed to operate using self contained devices on a site, but with the management and control provided using a back end (e.g. cloud) based server. The on-site devices form a private mesh WiFi network with one node acting as a gateway on a local Internet connected WiFi. This gateway allows the back end server access to all of the on-site devices.
 
-The back end server takes very few arguments and is normally run by simply running `solarsystem`. A `--debug` option provides information via *stderr*, otherwise the system runs as a daemon. Logging to *syslog* is also provided to a limited extent. Use `--help` to see other options. An example `solarsystem.service` file for `systemd` usage is included.
+### Environment
 
-The server needs access to port 8883 (or other configured port) for incoming MQTT TLS connections from the on-site devices. Whilst the server talks MQTT, it is not an MQTT broker, and uses MQTT for communications to/from the remote devices only, so you cannot simply connect to it and snoop on all traffic, for example.
+The server is intended to be installed on a linux system (tested on Debian) with *mariadb* SQL server, *apache* web server, *gcc* compilation environment with `make`, and *csh* or equiviliant shell available for scripts. If someone wants to make a full `apt install` for what is needed, let me know and I'll update this manual.
 
-### Configuration
+### Git
 
-Most configuration is by means of *Kconfig*, use `make menuconfig` to set up the server. The web interface uses a `login` library, so use `make -C login menuconfig` to set up parameters for the web interface.
+Your will need to clone with `--recursive` to ensure you have the submodules. The example files such as `solarsystem.service` assume you have cloned in to `/projects/SolarSystem` so will need editing if using a different directory.
+
+```
+git clone --recursive https://github.com/revk/SolarSystem.git
+```
+
+### Server build
+
+The server is build in the top level, using `make`. You can also use `make update` to update and buils all submodules.
+
+The system uses `Kconfig` which can be edited using `make menuconfig` - mostly the defaults should work.
+
+The server itself is `solarsystem` but would normally be run using `systemd`, and a `solarsystem.service` example is included for this. You will note the example simply runs `solarsystem` as user `adrian`. You will want to add a suitable user to your system and run as that user.
+
+### ESP32 module code
+
+The ESP32 code is build in the `ESP32` directory. In that directory you can use `make set` to build the full set of ESP32 modules.
+
+You can edit the configuration using `make menuconfig`. Mostly the defaults should work, but you should consider the defaults such as `CONFIG_REVK_MQTTHOST` and `CONFIG_REVK_MQTTCERT` for your server.
+
+You will need the full [ESP IDF environment](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/get-started/index.html) to make the ESP modules. The latest stable is recommended.
+
+### Mariadb
+
+Mariadb will need to be set up and two databases created `SS` and `SSKey`. The actual names can be configured in the server build configuration if you wish. You need to set grants for `SS` to be accessible by your server user, and by your apache user (e.g. `www-data`). You must set access to `SSKey` only to be your server user.
+
+You can set explicit credentials for access in `~/.my.cnf` for the users. There is also a configuration options for these config files as part of the server build.
+
+### Apache
+
+An example `apache.conf` is included, and should be edited accordinly and put in `/etc/apache2/sites-available` for the site.
+
+The site does not have to be publically accessible, but `https` is recommended, even if that is using local CA, etc.
+
+### MQTT
+
+The ESP32 devices connect to the server over `mqtts` on port 8883, using the server name. But this is not a conventional mqtt server in that it does not pass traffic between devices. A CA is created in `solarsystem.keys` and the `mqtt` key is created under that CA.
 
 ## Security
 
