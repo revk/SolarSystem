@@ -44,6 +44,10 @@ Mariadb will need to be set up and two databases created `SS` and `SSKey`. The a
 
 You can set explicit credentials for access in `~/.my.cnf` for the users. There is also a configuration options for these config files as part of the server build.
 
+The software will make all of the necessary tables automatically, and software updates will add additional fields and make chanegs and needed.
+
+However, you make like to create the `pcb` and `gpio` tables initially from the file `pcb.sql` as this contains the pinouts for the various boards and other devices commonly used with the system.
+
 ### Apache
 
 An example `apache.conf` is included, and should be edited accordinly and put in `/etc/apache2/sites-available` for the site.
