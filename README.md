@@ -12,15 +12,15 @@ Git clone this `--recursive` to get all the submodules, and it should build with
 
 ## Manuals
 
-- Overview https://github.com/revk/SolarSystem/blob/master/Manuals/Overview.md
-- Server https://github.com/revk/SolarSystem/blob/master/Manuals/Server.md
-- Configuration Tips https://github.com/revk/SolarSystem/blob/master/Manuals/ConfigTips.md
+- [Overview](Manuals/Overview.md)
+- [Server](Manuals/Server.md)
+- [Configuration Tips](Manuals/ConfigTips.md)
 
 ### Technical
 
-- API https://github.com/revk/SolarSystem/blob/master/Manuals/Tech-API.md
-- Fob https://github.com/revk/SolarSystem/blob/master/Manuals/Tech-Fob.md
-- Door https://github.com/revk/SolarSystem/blob/master/Manuals/Tech-Door.md
+- [API](Manuals/Tech-API.md)
+- [Fob](Manuals/Tech-Fob.md)
+- [Door](Manuals/Tech-Door.md)
 
 ### Hardware modules
 
@@ -40,4 +40,4 @@ An instance of the cloud management system is run on https://access.me.uk/ by An
 
 Some assembled boards can be ordered https://www.aa.net.uk/etc/circuit-boards/
 
-Copyright © 2019-22 Adrian Kennard, Andrews & Arnold Ltd. See LICENCE file for details. GPL 3.0
+Copyright © 2019-23 Adrian Kennard, Andrews & Arnold Ltd. See [LICENSE](LICENSE) file for details. GPL 3.0
