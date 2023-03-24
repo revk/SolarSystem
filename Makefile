@@ -30,6 +30,9 @@ all: solarsystem can message makeaid sscert login.conf SQLlib/sql xmlsql/xmlsql 
 .git/hooks/pre-commit: pre-commit
 	cp $< $@
 
+pcb:	
+	mysqldump SS pcb gpio > pcb.sql
+
 apt:
 	sudo apt install libpopt-dev  libssl-dev  libcurl4-openssl-dev  libmosquitto-dev  libmariadbd-dev  kconfig-frontends libargon2-dev python3-certbot-apache libgpgme-dev
 
