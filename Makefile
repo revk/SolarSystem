@@ -30,6 +30,9 @@ all: solarsystem can message makeaid sscert login.conf SQLlib/sql xmlsql/xmlsql 
 .git/hooks/pre-commit: pre-commit
 	cp $< $@
 
+pcb:	
+	mysqldump SS pcb gpio > pcb.sql
+
 apt:
 	sudo apt install libpopt-dev  libssl-dev  libcurl4-openssl-dev  libmosquitto-dev  libmariadbd-dev  kconfig-frontends libargon2-dev python3-certbot-apache libgpgme-dev
 
@@ -105,6 +108,8 @@ login.conf: login/Kconfig
 	make -C login ../login.conf
 login/redirect.o: login/redirect.c
 	make -C login redirect.o
+email/libemaillight.o: email/libemail.c
+	make -C email libemaillight.o
 
 ssdatabase.o: ssdatabase.c ssdatabase.m ssdatabase.h config.h types.m Makefile ESP32/main/states.m ESP32/main/logicalgpio.m
 	gcc -g -Wall -Wextra -O -c -o $@ $< ${SQLINC} -DLIB
