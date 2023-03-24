@@ -22,7 +22,7 @@ The board also has a simple RGB LED which can be used to [indicate status](Tech-
 
 ### Connectors
 
-The board is designed to work (as per the image) with mini SPOX connectors, but it can just ass easily work with 0.1" square pin headers, and as such the board is typically supplied with no headers so you can attach which ones you prefer.
+The board is designed to work (as per the image) with mini SPOX connectors. However, as these need a special cirmp tool the board may be supplied with 0.1" headers or alternative headers with push fit connectors. Please check when ordering.
 
 |Connector|Meaning|
 |---------|--------|
