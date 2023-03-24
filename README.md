@@ -4,11 +4,7 @@ Modular access control and alarm system.
 
 ## Open source
 
-Please bear in mind that this is an open source system with no warranty. The system can be used for access control, and/or alarm system, but you need to access its suitability yourself, and consider any implications with regard to your insurers. The system does not come under any sort of approved alarm system.
-
-## Building
-
-Git clone this `--recursive` to get all the submodules, and it should build with just `make` for the host components. Similarly `make set` in the `ESP32` directory for the ESP32 components, which actually runs the normal `idf.py` to build. `make menuconfig` can be used to fine tune the settings, but the defaults should be mostly sane. `make flash` should work to program.
+Please bear in mind that this is an open source system with no warranty. The system can be used for access control, and/or alarm system, but you need to assess its suitability yourself, and consider any implications with regard to your insurers. The system **does not** come under any sort of approved alarm system scheme.
 
 ## Manuals
 
@@ -23,6 +19,10 @@ Git clone this `--recursive` to get all the submodules, and it should build with
 - [Door](Manuals/Tech-Door.md)
 
 ### Hardware modules
+
+- [Access controler](Manuals/Module-Access.md)
+- [Bell box controller](Manuals/Module-Bellbox.md)
+- [
 
 ## ESP32 code for modules
 
