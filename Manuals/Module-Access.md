@@ -18,6 +18,8 @@ The reader is a separate GitHub project [PN532](https://github.com/revk/ESP32-PN
 
 The inside unit controls the door access, and is typically small enough to fit in the back of an exit buttonor break glass box, or a shallow surface pattress box. A 3D printed case design is available as well - this is needed for the tamper contact to work.
 
+The board also has a simple RGB LED which can be used to [indicate status](Tech-LED.md).
+
 ### Connectors
 
 The board is designed to work (as per the image) with mini SPOX connectors, but it can just ass easily work with 0.1" square pin headers, and as such the board is typically supplied with no headers so you can attach which ones you prefer.
