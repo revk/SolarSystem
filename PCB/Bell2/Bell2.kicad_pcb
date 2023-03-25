@@ -931,7 +931,7 @@
       (net 34 "~{BACKLIGHT}") (pinfunction "OUT_A") (pintype "output") (tstamp 8c4e693f-8f8b-4adc-80ff-a8c652788869))
     (pad "8" smd roundrect (at 2.575 -1.905) (size 1.75 0.6) (layers "F.Cu" "F.Paste" "F.Mask") (roundrect_rratio 0.25)
       (net 50 "unconnected-(U4-Pad8)") (pinfunction "NC") (pintype "no_connect") (tstamp e0b96f75-e07d-4810-a488-9297ca537e71))
-    (model "${KICAD6_3DMODEL_DIR}/Package_SO.3dshapes/SO-8_3.9x4.9mm_P1.27mm.wrl"
+    (model "${KICAD6_3DMODEL_DIR}/Package_SO.3dshapes/SOIC-8-N7_3.9x4.9mm_P1.27mm.step"
       (offset (xyz 0 0 0))
       (scale (xyz 1 1 1))
       (rotate (xyz 0 0 0))
@@ -988,7 +988,7 @@
       (net 38 "STB") (pinfunction "OUT_A") (pintype "output") (tstamp 99f277bf-32c5-4f9e-8997-3a0934c77acf))
     (pad "8" smd roundrect (at 2.575 -1.905) (size 1.75 0.6) (layers "F.Cu" "F.Paste" "F.Mask") (roundrect_rratio 0.25)
       (net 48 "unconnected-(U3-Pad8)") (pinfunction "NC") (pintype "no_connect") (tstamp e4f0df43-2933-4e9a-b336-dab1a6693921))
-    (model "${KICAD6_3DMODEL_DIR}/Package_SO.3dshapes/SO-8_3.9x4.9mm_P1.27mm.wrl"
+    (model "${KICAD6_3DMODEL_DIR}/Package_SO.3dshapes/SOIC-8-N7_3.9x4.9mm_P1.27mm.step"
       (offset (xyz 0 0 0))
       (scale (xyz 1 1 1))
       (rotate (xyz 0 0 0))
