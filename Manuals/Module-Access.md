@@ -33,10 +33,12 @@ The board is designed to work (as per the image) with mini SPOX connectors. Howe
 
 The board may have a USB-C connector as well, or may not, as this is used for programming and debug. If fitted it can be used to flash the board. If not, then there are 5 pads that can be used with the (Tasmotizer)[https://github.com/revk/Tasmotizer-PCB] board to flash.
 
+*Shown with mini SPOX connectors.*
 ![Access2](Access2.png)
 
 ## Access3
 
 An alternative board is also available which has an additional 3 pin connector for a second solid state relay. This is slightly bigger, obviously.
 
+*Shown with PTSM connectors*
 ![Access3](Access3.png)
