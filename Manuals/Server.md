@@ -2,62 +2,7 @@
 
 ## Cloud server
 
-There is a cloud based server available at [access.me.uk](https://access.me.uk). Contact A&A for more details - this is currently free of charge.
-
-## Running your own server
-
-The system is designed to operate using self contained devices on a site, but with the management and control provided using a back end (e.g. cloud) based server. The on-site devices form a private mesh WiFi network with one node acting as a gateway on a local Internet connected WiFi. This gateway allows the back end server access to all of the on-site devices.
-
-### Environment
-
-The server is intended to be installed on a linux system (tested on Debian) with *mariadb* SQL server, *apache* web server, *gcc* compilation environment with `make`, and *csh* or equiviliant shell available for scripts.
-
-Using `make apt` in the top directory will `apt install` the main required applications.
-
-### Git
-
-Your will need to clone with `--recursive` to ensure you have the submodules. The example files such as `solarsystem.service` assume you have cloned in to `/projects/SolarSystem` so will need editing if using a different directory.
-
-```
-git clone --recursive https://github.com/revk/SolarSystem.git
-```
-
-### Server build
-
-The server is build in the top level, using `make`. You can also use `make update` to update and buils all submodules.
-
-The system uses `Kconfig` which can be edited using `make menuconfig` - mostly the defaults should work.
-
-The server itself is `solarsystem` but would normally be run using `systemd`, and a `solarsystem.service` example is included for this. You will note the example simply runs `solarsystem` as user `adrian`. You will want to add a suitable user to your system and run as that user.
-
-### ESP32 module code
-
-The ESP32 code is build in the `ESP32` directory. In that directory you can use `make set` to build the full set of ESP32 modules.
-
-You can edit the configuration using `make menuconfig`. Mostly the defaults should work, but you should consider the defaults such as `CONFIG_REVK_MQTTHOST` and `CONFIG_REVK_MQTTCERT` for your server.
-
-You will need the full [ESP IDF environment](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/get-started/index.html) to make the ESP modules. The latest stable is recommended.
-
-### Mariadb
-
-Mariadb will need to be set up and two databases created `SS` and `SSKey`. The actual names can be configured in the server build configuration if you wish. You need to set grants for `SS` to be accessible by your server user, and by your apache user (e.g. `www-data`). You must set access to `SSKey` only to be your server user.
-
-You can set explicit credentials for access in `~/.my.cnf` for the users. There is also a configuration options for these config files as part of the server build.
-
-The software will make all of the necessary tables automatically, and software updates will add additional fields and make chanegs and needed.
-
-However, you make like to create the `pcb` and `gpio` tables initially from the file `pcb.sql` as this contains the pinouts for the various boards and other devices commonly used with the system.
-
-### Apache
-
-An example `apache.conf` is included, and should be edited accordinly and put in `/etc/apache2/sites-available` for the site.
-
-The site does not have to be publically accessible, but `https` is recommended, even if that is using local CA, etc.
-
-### MQTT
-
-The ESP32 devices connect to the server over `mqtts` on port 8883, using the server name. But this is not a conventional mqtt server in that it does not pass traffic between devices. A CA is created in `solarsystem.keys` and the `mqtt` key is created under that CA.
-
+There is a cloud based server available at [access.me.uk](https://access.me.uk). Contact A&A for more details - this is currently free of charge. You can build your own server (see blow).
 ## Security
 
 There are a number of aspects of the system that relate to security.
@@ -122,3 +67,91 @@ The PCB templates allow a device's various settings, such as GPIO pins, to be de
 Devices can be marked out of service, and can also be upgraded, all from the web interface. It is usually sensible to mark all out of service so they connect directly to WiFi, then upgrade, then put back in service to work as a mesh again. However, if a site has devices that cannot reach wifi themselves they will need to be upgraded over the mesh - this is a lot slower but normally works.
 
 It is recommended to keep devices up to date.
+
+## Running your own server
+
+The system is designed to operate using self contained devices on a site, but with the management and control provided using a back end (e.g. cloud) based server. The on-site devices form a private mesh WiFi network with one node acting as a gateway on a local Internet connected WiFi. This gateway allows the back end server access to all of the on-site devices.
+
+### Environment
+
+The server is intended to be installed on a linux system (tested on Debian) with *mariadb* SQL server, *apache* web server, *gcc* compilation environment with `make`, and *csh* or equiviliant shell available for scripts.
+
+Using `make apt` in the top directory will `apt install` the main required applications.
+
+### Git
+
+Your will need to clone with `--recursive` to ensure you have the submodules. The example files such as `solarsystem.service` assume you have cloned in to `/projects/SolarSystem` so will need editing if using a different directory.
+
+```
+git clone --recursive https://github.com/revk/SolarSystem.git
+```
+
+### ESP32 module code
+
+The ESP32 code is build is all done in the `ESP32` subdirectory. The ESP IDF normally uses cmake and/or a custom script `idf.py` which is part of the IDF, but a `Makefile` is included to allow normal `make` for most functions.
+
+#### Environment
+
+You will need the full [ESP IDF environment](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/get-started/index.html) to make the ESP modules. The latest stable is recommended. Current buidls as at 2023-03-25 are based on 5.0.1.
+
+- `make menuconfig` runs the Kconfig tool to set configuration
+- `make pull` fetches the latest code from github
+- `make update` forces all submodules up to date and ensures they are all built
+- `make` builds the latest variant (`wroom`, `solo`, or `pico`) that was built
+- 
+#### Configuration
+
+You can edit the configuration using `make menuconfig`. Mostly the defaults should work, but you should consider the defaults such as `REVK_MQTTHOST` and `REVK_MQTTCERT` for your server specifically, and `REVK_OTAHOST` for the binary files to be served for upgrades.
+
+#### Secure signing
+
+You will need to make a `secure_boot_signing_key.pem` specifically for your modules. More details on secure boot are located on the [ESP IDF pages](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/security/secure-boot-v1.html). It is recommended you try this with the bootload checking signatures first, before flashing the secure boot checks. Setting secure boot will mean scrapping the module if you get it wrong. **You should keep a separate safe backup of your signing key.**
+
+#### Building
+
+The modules can be based on several different variations of the ESP32 processor. To this end there are several make variants you can use. The binary files are placed in the `www` subdirectory.
+
+- `make wroom` makes `SS-S1.bin` suitable for the `ESP32-WROOM-32` module.
+- `make solo` makes `SS-S1-SOLO.bin` suitable for the single CPU ESP32 found in *Shelly Plus* modules.
+- `make pico` makes `SS-S1-PICO.bin` suitable for the `ESP32-PICO-MINI-02` module used on the circuits in this repository.
+- `make set` makes all of the variations one after the other
+
+#### Flashing
+
+To flash the code in to a module, follow the ESP IDF instructions. You can also use `make flash` and `make monitor`. Note this flashes whatever variant was made last.
+
+- For modules with a USB-C connector this works directly.
+- For modules without a USB-C connector, but with 5 pads, use the [Tasmotizer](https://github.com/revk/Tasmotizer-PCB) board which fits the 5 pins (hold in place while flashing).
+
+### Server build
+
+The server is build in the top level.
+
+**Before you can build the server you must build the ESP32 modules**
+
+- `make menuconfig` runs the Kconfig tool to set configuration
+- `make pull` fetches the latest code from github
+- `make update` forces all submodules up to date and ensures they are all built
+- `make` makes the server and various binaries needed
+
+The server itself is `solarsystem` but would normally be run using `systemd`, and a `solarsystem.service` example is included for this. You will note the example simply runs `solarsystem` as user `adrian`. You will want to add a suitable user to your system and run as that user.
+
+### Mariadb
+
+Mariadb will need to be set up and two databases created `SS` and `SSKey`. The actual names can be configured in the server build configuration if you wish. You need to set grants for `SS` to be accessible by your server user, and by your apache user (e.g. `www-data`). You must set access to `SSKey` only to be your server user.
+
+You can set explicit credentials for access in `~/.my.cnf` for the users. There is also a configuration options for these config files as part of the server build.
+
+The software will make all of the necessary tables automatically, and software updates will add additional fields and make chanegs and needed.
+
+However, you make like to create the `pcb` and `gpio` tables initially from the file `pcb.sql` as this contains the pinouts for the various boards and other devices commonly used with the system.
+
+### Apache
+
+An example `apache.conf` is included, and should be edited accordinly and put in `/etc/apache2/sites-available` for the site.
+
+The site does not have to be publically accessible, but `https` is recommended, even if that is using local CA, etc.
+
+### MQTT
+
+The ESP32 devices connect to the server over `mqtts` on port 8883, using the server name. But this is not a conventional mqtt server in that it does not pass traffic between devices. A CA is created in `solarsystem.keys` and the `mqtt` key is created under that CA.
