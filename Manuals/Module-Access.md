@@ -40,5 +40,5 @@ The board may have a USB-C connector as well, or may not, as this is used for pr
 
 An alternative board is also available which has an additional 3 pin connector for a second solid state relay. This is slightly bigger, obviously.
 
-*Shown with PTSM connectors*
+*Shown with PTSM connectors (assuming GitHub is not being silly with caches)*
 ![Access3](Access3.png)
