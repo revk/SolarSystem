@@ -3895,7 +3895,7 @@
     (property "Value" "DOOR2" (id 1) (at 234.442 149.8346 0)
       (effects (font (size 1.27 1.27)) (justify left))
     )
-    (property "Footprint" "RevK:PTSM-HH-3-RA" (id 2) (at 232.41 148.59 0)
+    (property "Footprint" "RevK:PTSM-HH-3-RA-W" (id 2) (at 232.41 148.59 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Datasheet" "~" (id 3) (at 232.41 148.59 0)
@@ -6556,7 +6556,7 @@
       (reference "J5") (unit 1) (value "POWER") (footprint "RevK:PTSM-HH-2-RA")
     )
     (path "/00000000-0000-0000-0000-0000608cb396"
-      (reference "J6") (unit 1) (value "DOOR2") (footprint "RevK:PTSM-HH-3-RA")
+      (reference "J6") (unit 1) (value "DOOR2") (footprint "RevK:PTSM-HH-3-RA-W")
     )
     (path "/b0813172-89be-4441-9329-0960f03d38d2"
       (reference "J7") (unit 1) (value "DOOR1") (footprint "RevK:PTSM-HH-3-RA")
