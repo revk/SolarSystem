@@ -3,6 +3,7 @@
 ## Cloud server
 
 There is a cloud based server available at [access.me.uk](https://access.me.uk). Contact A&A for more details - this is currently free of charge. You can build your own server (see blow).
+
 ## Security
 
 There are a number of aspects of the system that relate to security.
@@ -71,6 +72,8 @@ It is recommended to keep devices up to date.
 ## Running your own server
 
 The system is designed to operate using self contained devices on a site, but with the management and control provided using a back end (e.g. cloud) based server. The on-site devices form a private mesh WiFi network with one node acting as a gateway on a local Internet connected WiFi. This gateway allows the back end server access to all of the on-site devices.
+
+**Building and managing your own server involves some work - you may want to start using the A&A provided server at [access.me.uk](https://access.me.uk/) first.**
 
 ### Environment
 
