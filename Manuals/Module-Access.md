@@ -12,6 +12,8 @@ The actual contacts on the reader are 0.1" square pins, but typically they would
 
 The reader is a separate GitHub project [PN532](https://github.com/revk/ESP32-PN532).
 
+*Note: This is fitted with a 5 pin 0.1" square pin connector which can be used with either mini SPOX plug, Pheonix Contact PSTM plug, or 0.1" header as needed.*
+
 ![Round NFC reader](Round.png)
 
 ## Inside unit (Access2)
@@ -22,7 +24,7 @@ The board also has a simple RGB LED which can be used to [indicate status](Tech-
 
 ### Connectors
 
-The board is designed to work (as per the image) with mini SPOX connectors. However, as these need a special cirmp tool the board may be supplied with 0.1" headers or alternative headers with push fit connectors. Please check when ordering.
+The board is provided with 4 connectors as follows.
 
 |Connector|Meaning|
 |---------|--------|
@@ -33,12 +35,12 @@ The board is designed to work (as per the image) with mini SPOX connectors. Howe
 
 The board may have a USB-C connector as well, or may not, as this is used for programming and debug. If fitted it can be used to flash the board. If not, then there are 5 pads that can be used with the (Tasmotizer)[https://github.com/revk/Tasmotizer-PCB] board to flash.
 
-*Shown with mini SPOX connectors.*
+*Note: Older boards may be supplied with mini-SPOX connectors, which need suitable plugs and crimps. Newer boards are supplied with Pheonix Contact PTSM connectors and plugs - these accept solid core wire directly in the plug without the need for a crimp. Either board could be fitted with 0.1" square pin headers instead if needed.*
+
 ![Access2](Access2.png)
 
 ## Access3
 
 An alternative board is also available which has an additional 3 pin connector for a second solid state relay. This is slightly bigger, obviously.
 
-*Shown with PTSM connectors*
 ![Access3](Access3.png)
