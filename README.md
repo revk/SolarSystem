@@ -21,10 +21,10 @@ Please bear in mind that this is an open source system with no warranty. The sys
 
 ### Hardware modules
 
-- [Access controler](Manuals/Module-Access.md)
+- [Access controller](Manuals/Module-Access.md)
 - [Bell box controller](Manuals/Module-Bellbox.md)
-- [Keypad controlls](Manuals/Module-Keypad.md)
-- [Relay output](Manuals/Module-Output.md)
+- [Keypad controller](Manuals/Module-Keypad.md)
+- [Output board](Manuals/Module-Output.md)
 
 ## ESP32 code for modules
 
