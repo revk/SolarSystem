@@ -12,7 +12,7 @@ The actual contacts on the reader are 0.1" square pins, but typically they would
 
 The reader is a separate GitHub project [PN532](https://github.com/revk/ESP32-PN532).
 
-*Note: This is fitted with a 5 pin 0.1" square pin connector which can be used with either mini SPOX plug, Phœnix Contact PSTM plug, or 0.1" header as needed.*
+*Note: This is fitted with a 5 pin 0.1" square pin connector which can be used with either mini SPOX plug, Phœnix Contact PTSM plug, or 0.1" header as needed.*
 
 ![Round NFC reader](Round.png)
 
