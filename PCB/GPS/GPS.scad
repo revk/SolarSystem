@@ -1,6 +1,6 @@
 // Generated case design for PCB/GPS/GPS.kicad_pcb
 // By https://github.com/revk/PCBCase
-// Generated 2023-03-26 07:15:47
+// Generated 2023-03-26 09:37:59
 // title:	GPS reference
 // date:	${DATE}
 // rev:	5
@@ -32,9 +32,9 @@ pcbwidth=36.000000;
 pcblength=36.000000;
 // Populated PCB
 module board(pushed=false,hulled=false){
-translate([18.000000,18.000000,0.800000])rotate([0,0,-90.000000])rotate([90.000000,-0.000000,-0.000000])m0(pushed,hulled); // RevK:L86-M33 L86-M33 (back)
-translate([18.000000,21.000000,0.000000])rotate([0,0,180.000000])rotate([180,0,0])rotate([-0.000000,-0.000000,-180.000000])m1(pushed,hulled); // RevK:Battery-Holder-2032 BatteryHolder_Keystone_3034_1x20mm
-// Missing RevK:PTSM-HH-5-RA-P-SMD pxc_1815154_01_PTSM-0-5-5-HHI0-2-5-SMD-R44_3D
+translate([18.000000,18.000000,0.800000])rotate([0,0,-90.000000])m0(pushed,hulled); // RevK:L86-M33 L86-M33 (back)
+translate([18.000000,21.000000,0.000000])rotate([0,0,180.000000])rotate([180,0,0])rotate([-0.000000,-0.000000,-180.000000])m5(pushed,hulled); // RevK:Battery-Holder-2032 BatteryHolder_Keystone_3034_1x20mm
+translate([18.000000,8.130000,0.000000])rotate([0,0,180.000000])rotate([180,0,0])m7(pushed,hulled,5); // RevK:PTSM-HH-5-RA-P-SMD PTSM-HH-5-RA-P-SMD
 }
 
 module b(cx,cy,z,w,l,h){translate([cx-w/2,cy-l/2,z])cube([w,l,h]);}
@@ -43,10 +43,24 @@ module m0(pushed=false,hulled=false)
 rotate([90,0,0])b(0,0,0,18.4,18.4,6.95);
 }
 
-module m1(pushed=false,hulled=false)
+module m5(pushed=false,hulled=false)
 { // RevK:Battery-Holder-2032 BatteryHolder_Keystone_3034_1x20mm
 b(0,-0.2,0,22.9,15.5,4.2);
 cylinder(d=20,h=3.2);
+}
+
+module m7(pushed=false,hulled=false,n=0)
+{ // RevK:PTSM-HH-5-RA-P-SMD PTSM-HH-5-RA-P-SMD
+// Plug on PCB
+b(0,-7.5/2-0.4,0,0.5+n*2.5,7.5,5);
+b(0,0,0,0.4+2.5*(n-1),3.2,0.4); // pins
+b(0,-5.85/2-0.4,0,9.18+n*2.5,5.6,0.4); // tab
+b(0,-5.85/2-0.4,0,3.2+n*2.5,5.6,4); // side
+hull()
+{ // Socket
+	b(0,-7.5/2-7.5-0.4,0,1.7+n*2.5,7.5,4);
+	b(0,-7.5/2-7.5-0.4,0,1.7+n*2.5-2,7.5,5);
+}
 }
 
 height=casebase+pcbthickness+casetop;

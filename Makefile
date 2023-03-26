@@ -66,9 +66,9 @@ stl:	PCB/GPS/GPS.stl PCB/Generic/Generic.stl PCB/Bell2/Bell2.stl PCB/Access2/Acc
 PCB/GPS/GPS.scad: PCB/GPS/GPS.kicad_pcb PCBCase/case Makefile
 	PCBCase/case -o $@ $< --base=5 --top=5.6
 PCB/Generic/Generic.scad: PCB/Generic/Generic.kicad_pcb PCBCase/case Makefile
-	PCBCase/case -o $@ $< --base=2 --top=5.6 --edge2
+	PCBCase/case -o $@ $< --base=2 --top=5.6 
 PCB/Bell2/Bell2.scad: PCB/Bell2/Bell2.kicad_pcb PCBCase/case Makefile
-	PCBCase/case -o $@ $< --base=2 --top=5.6 --edge2
+	PCBCase/case -o $@ $< --base=2 --top=5.6
 PCB/Access2/Access2.scad: PCB/Access2/Access2.kicad_pcb PCBCase/case Makefile
 	PCBCase/case -o $@ $< --base=2 --top=5.6
 PCB/Access2/Access2NoUSB.scad: PCB/Access2/Access2.kicad_pcb PCBCase/case Makefile
