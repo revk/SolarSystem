@@ -3616,7 +3616,7 @@
     (property "Value" "POWER" (id 1) (at 267.97 147.32 0)
       (effects (font (size 1.27 1.27)) (justify left))
     )
-    (property "Footprint" "RevK:PTSM-HH-2-RA" (id 2) (at 269.24 149.86 0)
+    (property "Footprint" "RevK:PTSM-HH1-2-RA" (id 2) (at 269.24 149.86 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Datasheet" "~" (id 3) (at 269.24 149.86 0)
@@ -3895,7 +3895,7 @@
     (property "Value" "DOOR2" (id 1) (at 234.442 149.8346 0)
       (effects (font (size 1.27 1.27)) (justify left))
     )
-    (property "Footprint" "RevK:PTSM-HH-3-RA-W" (id 2) (at 232.41 148.59 0)
+    (property "Footprint" "RevK:PTSM-HH1-3-RA-W" (id 2) (at 232.41 148.59 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Datasheet" "~" (id 3) (at 232.41 148.59 0)
@@ -5846,7 +5846,7 @@
     (property "Value" "DOOR1" (id 1) (at 234.442 125.7046 0)
       (effects (font (size 1.27 1.27)) (justify left))
     )
-    (property "Footprint" "RevK:PTSM-HH-3-RA" (id 2) (at 232.41 124.46 0)
+    (property "Footprint" "RevK:PTSM-HH1-3-RA" (id 2) (at 232.41 124.46 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Datasheet" "~" (id 3) (at 232.41 124.46 0)
@@ -6553,13 +6553,13 @@
       (reference "J4") (unit 1) (value "Shelly") (footprint "RevK:Shelly")
     )
     (path "/00000000-0000-0000-0000-00006074263f"
-      (reference "J5") (unit 1) (value "POWER") (footprint "RevK:PTSM-HH-2-RA")
+      (reference "J5") (unit 1) (value "POWER") (footprint "RevK:PTSM-HH1-2-RA")
     )
     (path "/00000000-0000-0000-0000-0000608cb396"
-      (reference "J6") (unit 1) (value "DOOR2") (footprint "RevK:PTSM-HH-3-RA-W")
+      (reference "J6") (unit 1) (value "DOOR2") (footprint "RevK:PTSM-HH1-3-RA-W")
     )
     (path "/b0813172-89be-4441-9329-0960f03d38d2"
-      (reference "J7") (unit 1) (value "DOOR1") (footprint "RevK:PTSM-HH-3-RA")
+      (reference "J7") (unit 1) (value "DOOR1") (footprint "RevK:PTSM-HH1-3-RA")
     )
     (path "/b9e3b3a7-ba8d-4414-9892-926f9909a922"
       (reference "JP1") (unit 1) (value "12V") (footprint "Jumper:SolderJumper-2_P1.3mm_Open_RoundedPad1.0x1.5mm")
