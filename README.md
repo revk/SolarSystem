@@ -24,7 +24,7 @@ Please bear in mind that this is an open source system with no warranty. The sys
 - [Access controler](Manuals/Module-Access.md)
 - [Bell box controller](Manuals/Module-Bellbox.md)
 - [Keypad controlls](Manuals/Module-Keypad.md)
-- [Relay output](Manuals/Module-Relay10.md)
+- [Relay output](Manuals/Module-Output.md)
 
 ## ESP32 code for modules
 
