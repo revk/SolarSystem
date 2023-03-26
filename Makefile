@@ -61,16 +61,12 @@ scad:	$(patsubst %,KiCad/%.scad,$(MODELS))
 	echo "Making $@"
 	/Applications/OpenSCAD.app/Contents/MacOS/OpenSCAD $< -o $@
 	echo "Made $@"
-stl:	PCB/GPS/GPS.stl PCB/GPS/GPSNoUSB.stl PCB/Bell2/Bell2GPS.stl PCB/Bell2/Bell2GPSNoUSB.stl PCB/Bell2/Bell2.stl PCB/Access2/Access2.stl PCB/Access2/Access2NoUSB.stl PCB/Access3/Access3.stl PCB/Access3/Access3NoUSB.stl PCB/Relay8/Relay8.stl PCB/Relay10/Relay10.stl PCB/Keypad2/Keypad2.stl
+stl:	PCB/GPS/GPS.stl PCB/Generic/Generic.stl PCB/Bell2/Bell2.stl PCB/Access2/Access2.stl PCB/Access2/Access2NoUSB.stl PCB/Access3/Access3.stl PCB/Access3/Access3NoUSB.stl PCB/Relay8/Relay8.stl PCB/Relay10/Relay10.stl PCB/Keypad2/Keypad2.stl
 
 PCB/GPS/GPS.scad: PCB/GPS/GPS.kicad_pcb PCBCase/case Makefile
 	PCBCase/case -o $@ $< --base=5 --top=5.6
-PCB/GPS/GPSNoUSB.scad: PCB/GPS/GPS.kicad_pcb PCBCase/case Makefile
-	PCBCase/case -o $@ $< --base=5 --top=5.6 --ignore=J2
-PCB/Bell2/Bell2GPS.scad: PCB/Bell2/Bell2.kicad_pcb PCBCase/case Makefile
-	PCBCase/case -o $@ $< --base=2 --top=5.6
-PCB/Bell2/Bell2GPSNoUSB.scad: PCB/Bell2/Bell2.kicad_pcb PCBCase/case Makefile
-	PCBCase/case -o $@ $< --base=2 --top=5.6 --ignore=J1
+PCB/Generic/Generic.scad: PCB/Generic/Generic.kicad_pcb PCBCase/case Makefile
+	PCBCase/case -o $@ $< --base=2 --top=5.6 --edge2
 PCB/Bell2/Bell2.scad: PCB/Bell2/Bell2.kicad_pcb PCBCase/case Makefile
 	PCBCase/case -o $@ $< --base=2 --top=5.6 --edge2
 PCB/Access2/Access2.scad: PCB/Access2/Access2.kicad_pcb PCBCase/case Makefile
