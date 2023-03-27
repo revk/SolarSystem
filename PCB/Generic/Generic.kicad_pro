@@ -45,7 +45,7 @@
         "silk_text_upright": false,
         "zones": {
           "45_degree_only": false,
-          "min_clearance": 0.25
+          "min_clearance": 0.254
         }
       },
       "diff_pair_dimensions": [
@@ -337,7 +337,7 @@
       "no_connect_dangling": "warning",
       "pin_not_connected": "error",
       "pin_not_driven": "error",
-      "pin_to_pin": "error",
+      "pin_to_pin": "warning",
       "power_pin_not_driven": "error",
       "similar_labels": "warning",
       "unannotated": "error",
@@ -351,7 +351,7 @@
     "pinned_symbol_libs": []
   },
   "meta": {
-    "filename": "Relay10.kicad_pro",
+    "filename": "Generic.kicad_pro",
     "version": 1
   },
   "net_settings": {
@@ -466,11 +466,11 @@
   },
   "sheets": [
     [
-      "770ad51a-7219-4633-b24a-bd20feb0a6c5",
+      "babeabf2-f3b0-4ed5-8d9e-0215947e6cf3",
       ""
     ]
   ],
   "text_variables": {
-    "DATE": "2022-05-31"
+    "DATE": "2023-03-25"
   }
 }
