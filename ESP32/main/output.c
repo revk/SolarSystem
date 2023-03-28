@@ -13,7 +13,7 @@ static const char TAG[] = "output";
 static uint8_t output[MAXOUTPUT];
 static uint8_t power[MAXOUTPUT];        /* fixed outputs */
 static char *outputname[MAXOUTPUT];
-static uint16_t outputpulse[MAXOUTPUT]; // Timeout in s/10
+static int16_t outputpulse[MAXOUTPUT];  // Timeout in s/10, +ve means timeout the active state, -ve means timeout the inactive state
 static uint8_t outputfunc[MAXOUTPUT];   // Output function codes
 static uint8_t outputfuncs;     // Combined outputs of all
 static uint8_t outputfuncset;   // Logical state of output funcs
@@ -25,7 +25,7 @@ static uint8_t outputfuncset;   // Logical state of output funcs
 static output_t output_state = 0;       // Port state
 static output_t output_raw = 0; // Actual output
 output_t output_forced = 0;     // Output forced externally
-output_t output_pulsed = 0;     // Output pulse timed out
+output_t output_pulsed = 0;     // Output pulse timed out meaning output is inverted from its logical state
 output_t output_mask = 0;       // Configure outputs
 static uint32_t report_next = 0;        // When to report output
 
@@ -43,7 +43,7 @@ static void output_write(int p)
 {                               // Write current (combined) state (p from 0)
    if (output[p])
    {
-      output_t v = (((output_state | output_forced) & ~output_pulsed) >> p) & 1;
+      output_t v = (((output_state | output_forced) ^ output_pulsed) >> p) & 1;
       output_raw = (output_raw & ~(1ULL << p)) | (v << p);
       gpio_hold_dis(port_mask(output[p]));
       gpio_set_level(port_mask(output[p]), (output[p] & PORT_INV) ? 1 - v : v);
@@ -91,7 +91,7 @@ int output_get(int p)
    if (p < 1 || p > MAXOUTPUT)
       return -1;
    p--;
-   if (((output_state | output_forced) & ~output_pulsed) & (1ULL << p))
+   if (((output_state | output_forced) ^ output_pulsed) & (1ULL << p))
       return 1;
    return 0;
 }
@@ -180,19 +180,19 @@ static void task(void *pvParameters)
       uint32_t now = uptime();
       output_t output_mix = ((output_state | output_forced) & output_mask);
       for (int i = 0; i < MAXOUTPUT; i++)
-         if (!(output_mix & (1ULL << i)))
-         {
+         if ((output_mix & (1ULL << i)) ? outputpulse[i] < 0 : outputpulse[i] > 0)
+         {                      // Cancel pulsed output
             output_hold[i] = 0;
             output_pulsed &= ~(1ULL << i);
          } else if (output_hold[i] && !--output_hold[i])
-            output_pulsed |= (1ULL << i);
-      output_mix &= ~output_pulsed;
+            output_pulsed |= (1ULL << i);       // End of pulse time
+      output_mix ^= output_pulsed;
       if (output_mix != output_raw)
          for (int i = 0; i < MAXOUTPUT; i++)
             if ((output_mix ^ output_raw) & (1ULL << i))
-            {
-               if (output_mix & (1ULL << i))
-                  output_hold[i] = outputpulse[i];
+            {                   // State has changed
+               if ((output_mix & (1ULL << i)) ? outputpulse[i] > 0 : outputpulse[i] < 0)
+                  output_hold[i] = (outputpulse[i] > 0 ? outputpulse[i] : -outputpulse[i]);     // Start of pulse time
                output_write(i); // Update output state
             }
       if (output_mix != output_last || output_pulsed != output_last_pulsed || now > report_next)
@@ -205,7 +205,7 @@ static void task(void *pvParameters)
             if (output[i] && *outputname[i])
             {
                if (output_pulsed & (1ULL << i))
-                  jo_null(j, outputname[i]);    // Distinct state for false but should be true
+                  jo_null(j, outputname[i]);    // Distinct state for output pulse timeout
                else
                   jo_bool(j, outputname[i], (output_mix >> i) & 1);
             }
@@ -220,7 +220,7 @@ void output_boot(void)
    revk_register("output", MAXOUTPUT, sizeof(*output), &output, BITFIELDS, SETTING_BITFIELD | SETTING_SET | SETTING_SECRET);
    revk_register("outputgpio", MAXOUTPUT, sizeof(*output), &output, BITFIELDS, SETTING_BITFIELD | SETTING_SET);
    revk_register("outputfunc", MAXOUTPUT, sizeof(*outputfunc), &outputfunc, OUTPUT_FUNCS, SETTING_BITFIELD | SETTING_LIVE);
-   revk_register("outputpulse", MAXOUTPUT, sizeof(*outputpulse), &outputpulse, NULL, SETTING_LIVE);
+   revk_register("outputpulse", MAXOUTPUT, sizeof(*outputpulse), &outputpulse, NULL, SETTING_LIVE | SETTING_SIGNED);
    revk_register("outputname", MAXOUTPUT, 0, &outputname, NULL, SETTING_LIVE);
    revk_register("power", MAXOUTPUT, sizeof(*power), &power, BITFIELDS, SETTING_BITFIELD | SETTING_SET | SETTING_SECRET);
    revk_register("powergpio", MAXOUTPUT, sizeof(*power), &power, BITFIELDS, SETTING_BITFIELD | SETTING_SET);
