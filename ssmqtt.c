@@ -36,6 +36,208 @@ extern int dump;
 extern int mqttdump;
 SSL_CTX *ctx = NULL;
 
+static void *insecureserver(void *arg)
+{                               // Non TLS server that just sends new setting to get secure connection
+   int sock = -1;
+   device_t device = "";
+   char address[40] = "";
+   {                            // Get passed settings
+      j_t j = arg;
+      sock = atoi(j_get(j, "socket") ? : "");
+      if (!sock)
+         errx(1, "server socket not set");
+      strncpy(address, j_get(j, "address") ? : "", sizeof(address));
+      j_delete(&j);
+   }
+
+   warnx("Connect from %s (insecure)", address);
+
+   uint8_t rx[10000];
+   uint8_t tx[10000];
+   int pos = 0,
+       txp = 0;
+   const char *fail = NULL;
+   uint16_t keepalive = 0;
+   time_t katimeout = time(0) + 10;
+   int nfds = sock;
+   nfds++;
+   while (!fail)
+   {
+      time_t now = time(0);
+      if (now >= katimeout)
+      {
+         fail = "Timeout";
+         break;
+      }
+      fd_set r;
+      FD_ZERO(&r);
+      FD_SET(sock, &r);
+
+      {
+         struct timeval to = { pos ? 1 : katimeout - now, 0 };
+         select(nfds, &r, NULL, NULL, &to);
+      }
+
+      if (!txp)
+      {
+         if (FD_ISSET(sock, &r))
+         {                      // Next block
+            int len = read(sock, rx + pos, sizeof(rx) - pos);
+            if (len <= 0)
+            {
+               fail = "Closed";
+               break;
+            }
+            pos += len;
+         }
+         if (fail)
+            break;
+         if (pos < 2)
+            continue;
+         int i,
+          l = 0;                // Len is low byte first
+         for (i = 1; i < pos && (rx[i] & 0x80); i++)
+            l |= (rx[i] & 0x7F) << ((i - 1) * 7);
+         l |= (rx[i] & 0x7F) << ((i - 1) * 7);
+         i++;
+         if (i > pos || (i == pos && (rx[i - 1] & 0x80)))
+            continue;           // Need more data
+         katimeout = time(0) + keepalive * 3 / 2;
+         if (dump)
+         {
+            fprintf(stderr, "[insecure]%s<", device);
+            for (int q = 0; q < i + l; q++)
+               fprintf(stderr, " %02X", rx[q]);
+            fprintf(stderr, "\n");
+         }
+         uint8_t *data = rx + i,
+             *end = rx + i + l;
+         // Process message
+         const char *process(void) {
+            switch (*rx >> 4)
+            {
+            case 1:            // Connect
+               {
+                  if (data + 6 > end || data[0] || data[1] != 4 || memcmp(data + 2, "MQTT", 4))
+                     return "Not MQTT format";
+                  data += 6;
+                  if (data + 1 > end || *data != 4)
+                     return "Bad MQTT version";
+                  data++;
+                  if (data + 1 > end)
+                     return "Too short";
+                  data++;       // Flags (we don't care)
+                  if (data + 2 > end)
+                     return "Too short";
+                  keepalive = (data[0] << 8) + data[1];
+                  katimeout = time(0) + keepalive * 3 / 2;
+                  data += 2;
+                  // Client ID
+                  int clientlen = (data[0] << 8) + data[1];
+                  data += 2;
+                  char *client = (char *) data;
+                  data += clientlen;
+                  // We don't really care about these
+                  // Will Topic
+                  // Will Message
+                  // Username
+                  // Password
+                  // Send connect ack
+                  tx[txp++] = 0x20;     // connack
+                  tx[txp++] = 2;
+                  tx[txp++] = 0;        // no session
+                  tx[txp++] = 0;        // clean
+                  if (clientlen != 15 || strncmp(client, "SS-", 3))
+                     return "Bad client ID";
+                  // Send new setting
+                  char *topic = NULL;
+                  if (asprintf(&topic, "setting/SS/%.12s", client + 3) <= 0)
+                     errx(1, "malloc");
+                  j_t j = j_create();
+                  j_t m = j_store_object(j, "mqtt");
+                  j_store_string(m, "host", CONFIG_MQTT_HOSTNAME);
+                  j_store_string(m, "cert", cacert);
+                  txp += mqtt_encode(tx + txp, sizeof(tx) - txp, topic, j);
+                  j_delete(&j);
+                  free(topic);
+               }
+               break;
+            case 3:            // Publish
+               break;
+            case 4:            // Puback
+               break;
+            case 5:            // Pubrec
+               break;
+            case 6:            // pubpel
+               break;
+            case 7:            // pubcomp
+               break;
+            case 8:            // sub
+               {                // ACK the subscribe
+                  if (data + 2 > end)
+                     return "Too short";
+                  unsigned short id = (data[0] << 8) + data[1];
+                  data += 2;
+                  // Ack
+                  tx[txp++] = 0x90;
+                  txp += 2;     // len
+                  tx[txp++] = (id >> 8);
+                  tx[txp++] = id;
+                  while (data + 2 <= end)
+                  {
+                     int l = (data[0] << 8) + data[1];
+                     data += 2;
+                     data += l;
+                     uint8_t qos = *data++;
+                     tx[txp++] = qos;
+                  }
+                  tx[1] = 0x80 + ((txp - 3) & 0x7f);    // len
+                  tx[2] = ((txp - 3) >> 7);
+               }
+               break;
+            case 10:           // unsub
+               return "Not expecting unsubscribe";
+               break;
+            case 12:           // pingreq
+               {
+                  tx[txp++] = 0xD0;
+                  tx[txp++] = 0;
+               }
+               break;
+            case 14:           // disconnect
+               return "*Clean disconnect";
+            default:
+               warnx("Message code %d", *rx >> 4);
+               return "Unexpected MQTT message code";
+            }
+            return NULL;
+         }
+         if (!fail)
+            fail = process();
+         if (i + l < pos)
+            memmove(rx, rx + i + l, pos - i - l);       // more
+         pos -= i + l;
+      }
+      if (!fail && txp)
+      {                         // Send data
+         if (dump)
+         {
+            fprintf(stderr, "[insecure]%s>", device);
+            for (int i = 0; i < txp; i++)
+               fprintf(stderr, " %02X", tx[i]);
+            fprintf(stderr, "\n");
+         }
+         if (write(sock, tx, txp) <= 0)
+            fail = "tx fail";
+         txp = 0;
+      }
+   }
+   if (fail)
+      warnx("Disconnect from %s (insecure): %s", address, fail);
+   close(sock);
+   return NULL;
+}
+
 static void *server(void *arg)
 {
    int sock = -1;
@@ -135,7 +337,7 @@ static void *server(void *arg)
       if (!SSL_has_pending(ssl))
       {
          FD_SET(relaysock, &r);
-         struct timeval to = { katimeout - now, 0 };
+         struct timeval to = { pos ? 1 : katimeout - now, 0 };  // The 1 is a catch all for possible multiple messages, should not happen
          select(nfds, &r, NULL, NULL, &to);
          if (FD_ISSET(relaysock, &r))
          {
@@ -175,8 +377,6 @@ static void *server(void *arg)
                fprintf(stderr, " %02X", rx[q]);
             fprintf(stderr, "\n");
          }
-         if (i + l < pos)
-            fail = "Bad message len";
          uint8_t *data = rx + i,
              *end = rx + i + l;
          // Process message
@@ -231,12 +431,8 @@ static void *server(void *arg)
                }
                break;
             case 4:            // Puback
-               {
-               }
                break;
             case 5:            // Pubrec
-               {
-               }
                break;
             case 6:            // pubpel
                {
@@ -249,8 +445,6 @@ static void *server(void *arg)
                }
                break;
             case 7:            // pubcomp
-               {
-               }
                break;
             case 8:            // sub
                {
@@ -320,7 +514,7 @@ static void *server(void *arg)
          if (!fail)
             fail = process();
          if (i + l < pos)
-            memmove(rx, rx + i + pos, pos - i - l);     // more
+            memmove(rx, rx + i + l, pos - i - l);       // more - but we don't expect that as TLS packets should be one message
          pos -= i + l;
       }
       if (!fail && txp)
@@ -352,6 +546,70 @@ static void *server(void *arg)
    SSL_shutdown(ssl);
    SSL_free(ssl);
    close(sock);
+   return NULL;
+}
+
+static void *insecurelistener(void *arg)
+{                               // Listen thread
+   arg = arg;
+   int slisten = -1;
+ struct addrinfo base = { ai_flags: AI_PASSIVE, ai_family:
+#ifdef	CONFIG_MQTT_IPV4
+      AF_INET
+#else
+      AF_UNSPEC
+#endif
+    , ai_socktype:SOCK_STREAM
+   };
+   struct addrinfo *a = 0,
+       *p;
+   if (getaddrinfo(CONFIG_MQTT_HOSTNAME, CONFIG_MQTT_INSECURE_PORT, &base, &a) || !a)
+      errx(1, "Failed to find address for %s:%s", CONFIG_MQTT_HOSTNAME, CONFIG_MQTT_INSECURE_PORT);
+   for (p = a; p; p = p->ai_next)
+   {
+      slisten = socket(p->ai_family, p->ai_socktype, p->ai_protocol);
+      if (slisten < 0)
+         continue;
+      int on = 1;
+      setsockopt(slisten, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on));
+      if (bind(slisten, p->ai_addr, p->ai_addrlen) || listen(slisten, 10))
+      {                         // failed to connect
+         close(slisten);
+         slisten = -1;
+         continue;
+      }
+      break;
+   }
+   freeaddrinfo(a);
+   if (slisten < 0)
+      err(1, "Cannot bind local address %s:%s", CONFIG_MQTT_HOSTNAME, CONFIG_MQTT_INSECURE_PORT);
+   if (sqldebug)
+      warnx("Bind %s:%s", CONFIG_MQTT_HOSTNAME, CONFIG_MQTT_INSECURE_PORT);
+   while (1)
+   {
+      struct sockaddr_in6 addr = { 0 };
+      socklen_t len = sizeof(addr);
+      int s = accept(slisten, (void *) &addr, &len);
+      if (s < 0)
+      {
+         warn("Bad accept");
+         continue;
+      }
+      char from[INET6_ADDRSTRLEN + 1] = "";
+      if (addr.sin6_family == AF_INET)
+         inet_ntop(addr.sin6_family, &((struct sockaddr_in *) &addr)->sin_addr, from, sizeof(from));
+      else
+         inet_ntop(addr.sin6_family, &addr.sin6_addr, from, sizeof(from));
+      if (!strncmp(from, "::ffff:", 7) && strchr(from, '.'))
+         memmove(from, from + 7, strlen(from + 7) + 1);
+      j_t j = j_create();
+      j_store_string(j, "address", from);
+      j_store_int(j, "socket", s);
+      pthread_t t;
+      if (pthread_create(&t, NULL, insecureserver, j))
+         err(1, "Cannot create insecure server thread");
+      pthread_detach(t);
+   }
    return NULL;
 }
 
@@ -457,9 +715,15 @@ void mqtt_start(void)
    pthread_mutex_init(&slot_mutex, NULL);
    pthread_mutex_init(&rxq_mutex, NULL);
    sem_init(&rxq_sem, 0, 0);
-   {                            // Set up listen thread
+   {                            // Set up listen thread (secure)
       pthread_t t;
       if (pthread_create(&t, NULL, listener, NULL))
+         err(1, "Cannot create listener thread");
+      pthread_detach(t);
+   }
+   {                            // Set up listen thread (insecure)
+      pthread_t t;
+      if (pthread_create(&t, NULL, insecurelistener, NULL))
          err(1, "Cannot create listener thread");
       pthread_detach(t);
    }

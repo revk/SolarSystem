@@ -15,6 +15,12 @@ menu "MQTT"
     help
    	The TCP port you listen to
 
+    config MQTT_INSECURE_PORT
+    string "MQTT TCP port (name or number) for initial insecure connection"
+    default "1883"
+    help
+   	The TCP port you listen to
+
     config MQTT_IPV4
     bool "MQTT Bind only to IPv4 "
 
