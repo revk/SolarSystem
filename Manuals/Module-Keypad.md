@@ -13,3 +13,6 @@ The board also has a simple RGB LED which can be used to [indicate status](Tech-
 *Note: Whilst most modules have moved to using Pheonix Contact connectors, they are too big for the space in the keyboard, so this is supplied with a mini SPOX connector, plug and flying leads to solder to the keyboard PCB.*
 
 ![Keypad2](Keypad2.png)
+
+*In situ in Galaxy keypad*
+![Galaxy](Galaxy.png)
