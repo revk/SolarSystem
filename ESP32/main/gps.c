@@ -119,8 +119,8 @@ static void nmea(char *data)
       if (data[2] == 'A' && gpsa != n)
          gpsa = n;
       int now = gpsp + gpsl + gpsa;
-      if (now != was && (now > was + 2 || was > now + 2 || !was || !now || gpslast + 3600 < uptime()))
-      {
+      if (now != was && (now > was + 3 || was > now + 3 || !was || !now || gpslast + 3600 < uptime()))
+      {                         // Notable change in number of sats or any change and it has been a while
          status = 1;
          if (now)
             logical_gpio &= ~logical_GPSNoSats; // sats
@@ -139,7 +139,7 @@ static void nmea(char *data)
          if (*f[5] == 'W')
             lon = 0 - lon;
          if (!gpsfixed || ((lat != gpslat || lon != gpslon) && (lat - gpslat > 1 || gpslat - lat > 1 || lon - gpslon > 1 || gpslon - lon > 1 || gpslast + 3600 < uptime())))
-         {
+         {                      // New fix, or moved notably, or moved at all and been a while
             gpslat = lat;
             gpslon = lon;
             gpsfixed = 1;
@@ -172,8 +172,8 @@ static void nmea(char *data)
       // TODO needs to be timegm but not seeing that in the ESP IDF
       time_t new = mktime(&tm),
           was = time(0);
-      if (new - was > 10 || was - new > 10)
-         gpslocked = 0;
+      if (new - was > 60 || was - new > 60)
+         gpslocked = 0;         // Should be spot on, but no idea how long it takes settimeofday to adjust things after a reset.
       struct timeval tv = { new, usec };
       if (settimeofday(&tv, NULL))
          ESP_LOGE(TAG, "Time set %d failed", (int) new);
