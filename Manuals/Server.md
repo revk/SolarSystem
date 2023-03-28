@@ -95,7 +95,7 @@ The ESP32 code is build is all done in the `ESP32` subdirectory. The ESP IDF nor
 
 #### Environment
 
-You will need the full [ESP IDF environment](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/get-started/index.html) to make the ESP modules. The latest stable is recommended. Current buidls as at 2023-03-25 are based on 5.0.1.
+You will need the full [ESP IDF environment](https://docs.espressif.com/projects/esp-idf/en/stable/esp32/get-started/index.html) to make the ESP modules. The latest stable is recommended. Current buidls as at 2023-03-25 are based on 5.0.1.
 
 - `make menuconfig` runs the Kconfig tool to set configuration
 - `make pull` fetches the latest code from github
