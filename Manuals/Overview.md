@@ -205,7 +205,7 @@ Additional devices could be added with no alarm system function simply to extend
 
 The MQTT connection to each device is relayed via the current root device, which can change depending on circumstances.
 
-### Hardware
+## Hardware
 
 Each module stores its configuration internally in flash, and can operate without any central control system - just using the peer to peer mesh WiFi. Even without the peer to peer Mesh, each door control can operate autonomously to allow access based on the permissions on the fob used. The control system is used to manage the system, managing configuration and settings, and monitoring status, reporting, and logging. The Internet link is currently needed for SMS sending.
 
@@ -228,3 +228,13 @@ Additional modules may be designed in the future:-
 - Direct mobile module for SMS
 
 If no local WiFI, at present, a simple mobile WiFi router can be used.
+
+### Adding modules
+
+The system allows working with a back end server, this can be one provided by A&A [access.me.uk](https://access.me.uk) or your own. In any case, if you buy or make a new ESP32 module for the system it will need setting up.
+
+Initiall the module tries to connect to an SSID of `SolarSystem` with a passphrase of `security`. Once connected it connects to the server and appears as a new *pending* device. This can take a few minutes. If the device is on a known and trusted IP, it can be provisioned on to a system (organisation/site) by an administrator.
+
+As this is a fixed SSID/passphrase you need a WiFi with internet access (or access to your server) in place. This is not always convenient, but simply making a mobile hotspot with the required SSID and passphrase will suffice.
+
+Once provisioned to a site, the site WiFi settings will be applied to get the device on line.
