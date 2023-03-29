@@ -206,8 +206,8 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <if nfc=true><tr><td><input type=checkbox id=nfcadmin name=nfcadmin value=true></td><td colspan=2><label for=nfcadmin>Admin NFC reader</label></td></tr></if>
 <if USER_ADMIN=true nfc=true><tr><td><input type=checkbox id=nfctrusted name=nfctrusted value=true></td><td colspan=2><label for=nfctrusted>Trusted NFC reader</label></td></tr></if>
 </sql>
-<sql select="device.device,gpio.*,devicegpio.*" table="device JOIN gpio USING (pcb) LEFT JOIN devicegpio ON (devicegpio.device=device.device AND devicegpio.gpio=gpio.gpio)" WHERE="device.device='$device'">
-<tr><td><output name=name href="/editgpio.cgi/$device/$gpio" blank="GPIO" missing="GPIO"></td>
+<sql select="device.device,gpio.*,devicegpio.*" table="device JOIN gpio USING (pcb) LEFT JOIN devicegpio ON (devicegpio.device=device.device AND devicegpio.gpio=gpio.gpio)" WHERE="device.device='$device'" order=initname>
+<tr><td><output name=name href="/editgpio.cgi/$device/$gpio" blank="GPIO" missing="GPIO"><if not name="$initname"> (<output name=initname>)</if></td>
 <if type><td><if type=*-><i>Unused</i></if><if else><b><output name=type $GPIOTYPEOUT> <if type=*I><i><output name=func replace $GPIOFUNCOUTI></i></if><if type=*O><i><output name=func $GPIOFUNCOUTO></i></if> (<output name=invert false="$value1" true="$value0"><if not pulse=0 AND type=*O> <eval #=1 s="$pulse/10"><output name=s>s</if><if not hold=0 AND type=*I> <output name=hold>ms</if>)</b></td><td><for space S="$STATELIST"><if not "$S"=''> <output name=S> (<output name="$S">)</if></for></if></td></if>
 <if not type><td><b><output name=io $GPIOIOOUT></td><td><i>Undefined</i></td></if>
 </tr>
