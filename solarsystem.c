@@ -419,7 +419,7 @@ static const char *settings(SQL * sqlp, SQL * sqlkeyp, SQL_RES * res, slot_t id)
       j_t output = j_store_array(j, "output");
       j_t power = j_store_array(j, "power");
       SQL_RES *g = sql_safe_query_store_free(sqlp,
-                                             sql_printf("SELECT * FROM `devicegpio` LEFT JOIN `gpio` USING (`gpio`) WHERE `device`=%#s AND `pcb`=%d",
+                                             sql_printf("SELECT * FROM `devicegpio` LEFT JOIN `gpio` USING (`gpio`) WHERE `device`=%#s AND `pcb`=%d ORDER BY `initname`",
                                                         sql_col(res, "device"), atoi(sql_colz(res, "pcb"))));
       while (sql_fetch_row(g))
       {
