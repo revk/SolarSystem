@@ -850,6 +850,7 @@ static void task(void *pvParameters)
                   } else
                      jo_bool(j, "unlockok", 1);
                }
+               jo_string(e, "button", button);
                alarm_event("button", &j, iotstatedoor);
             } else if (doorexitarm && exit && exit < now)
             {                   // Held (not applicable if not arming allowed, so leaves to do exit stuck fault)
@@ -869,6 +870,7 @@ static void task(void *pvParameters)
                      door_lock(NULL, NULL, button);
                   }
                }
+               jo_string(e, "button", button);
                alarm_event("button", &j, iotstatedoor);
             }
          } else
