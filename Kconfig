@@ -32,7 +32,7 @@ menu "SQL"
     string "SQL config file"
     default ""
     help
-    	SQL connection configuration file
+    	SQL connection configuration file for access to SS database (server and apache)
 
     config SQL_DATABASE
     string "SQL database"
@@ -44,7 +44,7 @@ menu "SQL"
     string "SQL config file"
     default ""
     help
-    	SQL connection configuration file for AES keys
+    	SQL connection configuration file for access to SSKey database (server only)
 
     config SQL_KEY_DATABASE
     string "SQL database"
