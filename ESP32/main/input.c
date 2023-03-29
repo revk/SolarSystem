@@ -12,7 +12,8 @@ static const char TAG[] = "input";
 #define	PORT_INV 0x40
 #define	port_mask(p) ((p)&63)
 static uint8_t input[MAXINPUT];
-static uint8_t inputhold[MAXINPUT];
+static uint8_t inputhold[MAXINPUT];     // Time held left for debounce
+static uint8_t inputtime[MAXINPUT];     // Time active so far
 static uint8_t inputfunc[MAXINPUT];     // Input functions
 static uint8_t inputfuncs;      // Combined input funcs
 #define i(t,x,c) area_t input##x[MAXINPUT];
@@ -71,11 +72,16 @@ int input_func_all(uint8_t f)
 }
 
 const char *input_func_any(uint8_t f)
-{                               // Are any inputs for a function set (expected to be one bit set)
+{                               // Are any inputs for a function set (expected to be one bit set) - returns name of most recently active input
+   char *found = NULL;
+   uint8_t best = 0xFF;
    for (int p = 0; p < MAXINPUT; p++)
-      if ((inputfunc[p] & f) && (input_stable & (1ULL << p)))
-         return inputname[p];
-   return NULL;
+      if ((inputfunc[p] & f) && (input_stable & (1ULL << p)) && inputtime[p] <= best)
+      {
+         best = inputtime[p];
+         found = inputname[p];
+      }
+   return found;
 }
 
 const char *input_command(const char *tag, jo_t j)
@@ -152,6 +158,10 @@ static void task(void *pvParameters)
                   }
                }
             }
+            if (!(input_stable & (1ULL << i)))
+               inputtime[i] = 0;
+            else if (inputtime[i] < 255)
+               inputtime[i]++;
          }
       uint32_t now = uptime();
       if (was != input_stable || now > report_next)

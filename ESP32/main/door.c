@@ -823,6 +823,12 @@ static void task(void *pvParameters)
          const char *button = input_func_any(INPUT_FUNC_E);
          if (button)
          {
+            static const char *lastbutton = NULL;
+            if (button != lastbutton)
+            {
+               exit = 0;
+               lastbutton = button;
+            }
             if (!exit)
             {                   // Pushed
                jo_t j = jo_make(NULL);
