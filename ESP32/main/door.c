@@ -851,7 +851,7 @@ static void task(void *pvParameters)
                      jo_bool(j, "unlockok", 1);
                }
                jo_string(j, "button", button);
-               alarm_event("button", &j, iotstatedoor);
+               alarm_event("exit", &j, iotstatedoor);
             } else if (doorexitarm && exit && exit < now)
             {                   // Held (not applicable if not arming allowed, so leaves to do exit stuck fault)
                exit = -1;       // Don't report stuck - this is max value as unsigned
@@ -871,7 +871,7 @@ static void task(void *pvParameters)
                   }
                }
                jo_string(j, "button", button);
-               alarm_event("button", &j, iotstatedoor);
+               alarm_event("exit", &j, iotstatedoor);
             }
          } else
             exit = 0;
