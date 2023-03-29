@@ -12,6 +12,9 @@ all:
 	@cp build/$(PROJECT_NAME).bin ../www/$(PROJECT_NAME)$(SUFFIX).bin
 	@echo Done: $(PROJECT_NAME)$(SUFFIX).bin
 
+update:	
+	make -C .. update
+
 set:	wroom solo pico
 
 pico:
