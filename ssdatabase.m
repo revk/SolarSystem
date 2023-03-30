@@ -173,13 +173,6 @@ text(hookforced, 0);            // Forced event web hook
 text(hookpropped, 0);           // Propped event web hook
 text(hookwrongpin, 0);          // Wrong PIN entry
 text(status, 0);                // Site level status
-areas(faulted);                 // Site wide states from mesh
-areas(tampered);
-areas(alarmed);
-areas(armed);
-areas(prearm);
-areas(prealarm);
-areas(alarm);
 num(nodes);                     // Site reported nodes
 num(missing);                   // Site reported nodes missing
 num(armcancel);                 // Pre arm time
