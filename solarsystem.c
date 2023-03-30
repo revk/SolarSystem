@@ -965,7 +965,7 @@ int main(int argc, const char *argv[])
    SQL sql;
    sql_cnf_connect(&sql, CONFIG_SQL_SERVER_FILE);
    sskeydatabase(&sql);
-   ssdatabase(&sql);
+   ssdatabase(&sql); // Selects the database, so do after key database
    syslog(LOG_INFO, "Starting");
    sql_safe_query(&sql, "DELETE FROM `pending`");
    sql_safe_query(&sql, "UPDATE `device` SET `id`=NULL,`via`=NULL,`offlinereason`='System restart',`online`=NULL,`lastonline`=NOW(),`progress`=NULL WHERE `id` IS NOT NULL");
