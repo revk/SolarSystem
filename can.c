@@ -93,7 +93,7 @@ int main(int argc, const char *argv[])
       sdevice = (getenv(sdevice + 1) ? : "");
 
    SQL sql;
-   sql_cnf_connect(&sql, CONFIG_SQL_USER_FILE);
+   sql_cnf_connect(&sql, CONFIG_SQL_WEBUSER_FILE);
    if (*CONFIG_SQL_DATABASE)
       sql_safe_select_db(&sql, CONFIG_SQL_DATABASE);
    SQL_RES *resus = NULL;

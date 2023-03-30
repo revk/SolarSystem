@@ -34,7 +34,7 @@ menu "SQL"
     help
     	SQL connection configuration file for access to SS and SSKey databases
 
-    config SQL_USER_FILE
+    config SQL_WEBUSER_FILE
     string "SQL config file for user (apache)"
     default ""
     help
