@@ -179,7 +179,7 @@ void sskeydatabase(SQL * sqlp)
    if (sql_select_db(sqlp, CONFIG_SQL_KEY_DATABASE))
    {
       warnx("Creating database %s", CONFIG_SQL_KEY_DATABASE);
-      sql_safe_query_free(sqlp, sql_printf("CREATE DATABASE `%#S`", CONFIG_SQL_KEY_DATABASE));
+      sql_safe_query_f(sqlp, "CREATE DATABASE `%#S`", CONFIG_SQL_KEY_DATABASE);
       sql_select_db(sqlp, CONFIG_SQL_KEY_DATABASE);
    }
    SQL_RES *res = sql_query_store(sqlp, "DESCRIBE `AES`");
@@ -196,7 +196,7 @@ void ssdatabase(SQL * sqlp)
    if (sql_select_db(sqlp, CONFIG_SQL_DATABASE))
    {
       warnx("Creating database %s", CONFIG_SQL_DATABASE);
-      sql_safe_query_free(sqlp, sql_printf("CREATE DATABASE `%#S`", CONFIG_SQL_DATABASE));
+      sql_safe_query_f(sqlp, "CREATE DATABASE `%#S`", CONFIG_SQL_DATABASE);
       sql_select_db(sqlp, CONFIG_SQL_DATABASE);
    }
 
@@ -239,7 +239,7 @@ void ssdatabase(SQL * sqlp)
    void create(const char *name, int l) {       // Make table
       addtable(name);
       addfield(name);
-      res = sql_query_store_free(sqlp, sql_printf("DESCRIBE `%S`", name));
+      res = sql_query_store_f(sqlp, "DESCRIBE `%S`", name);
       if (res)
       {                         // Exists
          sql_free_result(res);
@@ -248,9 +248,9 @@ void ssdatabase(SQL * sqlp)
       }
       warnx("Creating table %s", name);
       if (l)
-         sql_safe_query_free(sqlp, sql_printf("CREATE TABLE `%#S` (`%#S` char(%d) NOT NULL PRIMARY KEY)", name, name, l));
+         sql_safe_query_f(sqlp, "CREATE TABLE `%#S` (`%#S` char(%d) NOT NULL PRIMARY KEY)", name, name, l);
       else
-         sql_safe_query_free(sqlp, sql_printf("CREATE TABLE `%#S` (`%#S` int unsigned NOT NULL AUTO_INCREMENT PRIMARY KEY)", name, name));
+         sql_safe_query_f(sqlp, "CREATE TABLE `%#S` (`%#S` int unsigned NOT NULL AUTO_INCREMENT PRIMARY KEY)", name, name);
    }
 
    void linked(const char *tab, const char *name) {
@@ -262,9 +262,9 @@ void ssdatabase(SQL * sqlp)
 #include "ssdatabase.m"
       warnx("Creating link %s/%s/%s", tablename, tab, name);
       if (l)
-         sql_safe_query_free(sqlp, sql_printf("ALTER TABLE `%#S` ADD `%#S` char(%d) DEFAULT NULL", tablename, name, l));
+         sql_safe_query_f(sqlp, "ALTER TABLE `%#S` ADD `%#S` char(%d) DEFAULT NULL", tablename, name, l);
       else
-         sql_safe_query_free(sqlp, sql_printf("ALTER TABLE `%#S` ADD `%#S` int unsigned DEFAULT NULL", tablename, name));
+         sql_safe_query_f(sqlp, "ALTER TABLE `%#S` ADD `%#S` int unsigned DEFAULT NULL", tablename, name);
    }
 
    void unique(const char *a, const char *b) {
@@ -272,7 +272,7 @@ void ssdatabase(SQL * sqlp)
       if (asprintf(&key, "UNIQUE KEY `%s_%s_%s`", tablename, a, b) < 0)
          errx(1, "malloc");
       if (!strstr(tabledef, key))
-         sql_safe_query_free(sqlp, sql_printf("ALTER TABLE `%#S` ADD %s (`%#S`,`%#S`)", tablename, key, a, b));
+         sql_safe_query_f(sqlp, "ALTER TABLE `%#S` ADD %s (`%#S`,`%#S`)", tablename, key, a, b);
       free(key);
    }
 
@@ -280,13 +280,13 @@ void ssdatabase(SQL * sqlp)
       endtable();
       addtable(name);
       tablename = name;
-      res = sql_safe_query_store_free(sqlp, sql_printf("SELECT * FROM `%#S` LIMIT 0", name));
+      res = sql_safe_query_store_f(sqlp, "SELECT * FROM `%#S` LIMIT 0", name);
    }
 
    void getdefs(const char *name) {     // Get tabledef
       addtable(name);
       tablename = name;
-      SQL_RES *res = sql_safe_query_store_free(sqlp, sql_printf("SHOW CREATE TABLE `%#S`", name));
+      SQL_RES *res = sql_safe_query_store_f(sqlp, "SHOW CREATE TABLE `%#S`", name);
       if (!sql_fetch_row(res))
          errx(1, "WTF %s", name);
       tabledef = strdup(res->current_row[1]);
@@ -299,12 +299,12 @@ void ssdatabase(SQL * sqlp)
       if (asprintf(&constraint, "CONSTRAINT `%s_%s` FOREIGN KEY", tablename, name) < 0)
          errx(1, "malloc");
       if (!strstr(tabledef, constraint))
-         sql_safe_query_free(sqlp, sql_printf("ALTER TABLE `%#S` ADD %s (%#S) REFERENCES `%#S` (%#S) ON DELETE RESTRICT ON UPDATE CASCADE", tablename, constraint, name, tab, tab));
+         sql_safe_query_f(sqlp, "ALTER TABLE `%#S` ADD %s (%#S) REFERENCES `%#S` (%#S) ON DELETE RESTRICT ON UPDATE CASCADE", tablename, constraint, name, tab, tab);
       free(constraint);
    }
 
    void join(const char *name, const char *a, const char *b) {
-      res = sql_query_store_free(sqlp, sql_printf("DESCRIBE `%S`", name));
+      res = sql_query_store_f(sqlp, "DESCRIBE `%S`", name);
       if (res)
       {                         // Exists
          sql_free_result(res);
@@ -312,13 +312,13 @@ void ssdatabase(SQL * sqlp)
          return;
       }
       warnx("Creating table %s", name);
-      sql_safe_query_free(sqlp, sql_printf("CREATE TABLE `%#S` (`%#S` int unsigned NOT NULL AUTO_INCREMENT PRIMARY KEY)", name, name));
+      sql_safe_query_f(sqlp, "CREATE TABLE `%#S` (`%#S` int unsigned NOT NULL AUTO_INCREMENT PRIMARY KEY)", name, name);
       getrows(name);
       getdefs(name);
       linked(a, a);
       linked(b, b);
       unique(a, b);
-      sql_safe_query_free(sqlp, sql_printf("ALTER TABLE `%#S` DROP `%#S`", name, name));
+      sql_safe_query_f(sqlp, "ALTER TABLE `%#S` DROP `%#S`", name, name);
    }
 
    void key(const char *name, int l) {
@@ -328,9 +328,9 @@ void ssdatabase(SQL * sqlp)
       if (!strstr(tabledef, key))
       {
          if (l)
-            sql_safe_query_free(sqlp, sql_printf("ALTER TABLE `%#S` ADD %s (`%#S`(%d))", tablename, key, name, l));
+            sql_safe_query_f(sqlp, "ALTER TABLE `%#S` ADD %s (`%#S`(%d))", tablename, key, name, l);
          else
-            sql_safe_query_free(sqlp, sql_printf("ALTER TABLE `%#S` ADD %s (`%#S`)", tablename, key, name));
+            sql_safe_query_f(sqlp, "ALTER TABLE `%#S` ADD %s (`%#S`)", tablename, key, name);
       }
       free(key);
    }
@@ -340,7 +340,7 @@ void ssdatabase(SQL * sqlp)
       if (asprintf(&key, "KEY `%s_%s`", tablename, name) < 0)
          errx(1, "malloc");
       if (!strcasestr(tabledef, key))
-         sql_safe_query_free(sqlp, sql_printf("ALTER TABLE `%#S` ADD %s (`%#S`)", tablename, key, name));
+         sql_safe_query_f(sqlp, "ALTER TABLE `%#S` ADD %s (`%#S`)", tablename, key, name);
       free(key);
    }
 
@@ -360,11 +360,11 @@ void ssdatabase(SQL * sqlp)
       if (sql_colnum(res, name) < 0)
       {
          warnx("Creating field %s/%s", tablename, name);
-         sql_safe_query_free(sqlp, sql_printf("ALTER TABLE `%#S` ADD %s", tablename, def));
+         sql_safe_query_f(sqlp, "ALTER TABLE `%#S` ADD %s", tablename, def);
       } else if (!strcasestr(tabledef, def))
       {
          warnx("Updating field %s/%s", tablename, name);
-         sql_safe_query_free(sqlp, sql_printf("ALTER TABLE `%#S` MODIFY %s", tablename, def));
+         sql_safe_query_f(sqlp, "ALTER TABLE `%#S` MODIFY %s", tablename, def);
       }
       free(def);
 
@@ -378,11 +378,11 @@ void ssdatabase(SQL * sqlp)
       if (sql_colnum(res, name) < 0)
       {
          warnx("Creating field %s/%s", tablename, name);
-         sql_safe_query_free(sqlp, sql_printf("ALTER TABLE `%#S` ADD %s", tablename, def));
+         sql_safe_query_f(sqlp, "ALTER TABLE `%#S` ADD %s", tablename, def);
       } else if (!strcasestr(tabledef, def))
       {
          warnx("Updating field %s/%s", tablename, name);
-         sql_safe_query_free(sqlp, sql_printf("ALTER TABLE `%#S` MODIFY %s", tablename, def));
+         sql_safe_query_f(sqlp, "ALTER TABLE `%#S` MODIFY %s", tablename, def);
       }
       free(def);
    }
@@ -441,7 +441,7 @@ void ssdatabase(SQL * sqlp)
    // Delete extras
    for (int t = 0; t < dbn; t++)
    {
-      SQL_RES *res = sql_safe_query_store_free(sqlp, sql_printf("SELECT * FROM `%#S` LIMIT 1", dbs[t]));
+      SQL_RES *res = sql_safe_query_store_f(sqlp, "SELECT * FROM `%#S` LIMIT 1", dbs[t]);
       for (size_t f = 0; f < res->field_count; f++)
       {
          int q;
@@ -449,7 +449,7 @@ void ssdatabase(SQL * sqlp)
          if (q == tbn[t])
          {
             warnx("Dropping field %s/%s", dbs[t], res->fields[f].name);
-            sql_safe_query_free(sqlp, sql_printf("ALTER TABLE `%#S` DROP `%#S`", dbs[t], res->fields[f].name));
+            sql_safe_query_f(sqlp, "ALTER TABLE `%#S` DROP `%#S`", dbs[t], res->fields[f].name);
          }
       }
       sql_free_result(res);

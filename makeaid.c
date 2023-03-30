@@ -61,7 +61,7 @@ int main(int argc, const char *argv[])
    int f = open("/dev/urandom", O_RDONLY);
    if (f < 0)
       err(1, "Cannot open /dev/urandom");
-   SQL_RES *res = sql_safe_query_store_free(&sql, sql_printf("SELECT * FROM `site` WHERE `site`=%d", site));
+   SQL_RES *res = sql_safe_query_store_f(&sql, "SELECT * FROM `site` WHERE `site`=%d", site);
    if (!sql_fetch_row(res))
       errx(1, "Unknown site");
    while (tries--)
@@ -72,7 +72,7 @@ int main(int argc, const char *argv[])
       if (!bin[0] && !bin[1] && bin[2])
          continue;              // cannot be 0
       sprintf(aid, "%02X%02X%02X", bin[0], bin[1], bin[2]);
-      if (sql_query_free(&sql, sql_printf("INSERT INTO `aid` SET `aid`=%#s,`site`=%d,`aidname`=%#s,organisation=%d", aid, site, name, atoi(sql_colz(res, "organisation")))))
+      if (sql_query_f(&sql, "INSERT INTO `aid` SET `aid`=%#s,`site`=%d,`aidname`=%#s,organisation=%d", aid, site, name, atoi(sql_colz(res, "organisation"))))
       {
          *aid = 0;
          continue;
