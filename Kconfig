@@ -28,23 +28,25 @@ endmenu
 
 menu "SQL"
 
-    config SQL_CONFIG_FILE
-    string "SQL config file"
+    config SQL_SERVER_FILE
+    string "SQL config file for server user"
     default ""
     help
-    	SQL connection configuration file for access to SS database (server and apache)
+    	SQL connection configuration file for access to SS and SSKey databases
+
+    config SQL_USER_FILE
+    string "SQL config file for user (apache)"
+    default ""
+    help
+    	SQL connection configuration file for access to SS database only
+	This should be the same as DB_CONF in login config
 
     config SQL_DATABASE
     string "SQL database"
     default "SS"
     help
-    	SQL database name (should match config for login module)
-
-    config SQL_KEY_CONFIG_FILE
-    string "SQL config file"
-    default ""
-    help
-    	SQL connection configuration file for access to SSKey database (server only)
+    	SQL database name for main data
+	This should be the same as DB_DATABASE in login config
 
     config SQL_KEY_DATABASE
     string "SQL database"

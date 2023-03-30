@@ -58,5 +58,4 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 </sql>
 </table>
 </IF>
-<pre>
 'END'

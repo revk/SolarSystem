@@ -55,7 +55,7 @@ int main(int argc, const char *argv[])
    }
 
    SQL sql;
-   sql_cnf_connect(&sql, CONFIG_SQL_CONFIG_FILE);
+   sql_cnf_connect(&sql, CONFIG_SQL_USER_FILE);
    if (*CONFIG_SQL_DATABASE)
       sql_safe_select_db(&sql, CONFIG_SQL_DATABASE);
    int f = open("/dev/urandom", O_RDONLY);
