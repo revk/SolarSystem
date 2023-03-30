@@ -55,7 +55,7 @@ static void addsitedata(SQL * sqlp, j_t j, SQL_RES * site, const char *deviceid,
 #define AES_STRING_LEN	35
 char *getaes(SQL * sqlp, char *target, const char *aid, const char *fob)
 {                               // Get AES key (HEX ver and AES, so AES_STRING_LEN byte buffer)
-   SQL_RES *res = sql_safe_query_store_f(sqlp, "SELECT * FROM `AES` WHERE `aid`=%#s AND `fob`=%#s ORDER BY `created` DESC LIMIT 1", aid ? : "", fob ? : "");
+   SQL_RES *res = sql_safe_query_store_f(sqlp, "SELECT * FROM `%#S`.`AES` WHERE `aid`=%#s AND `fob`=%#s ORDER BY `created` DESC LIMIT 1", CONFIG_SQL_KEY_DATABASE,aid ? : "", fob ? : "");
    if (sql_fetch_row(res))
    {
       snprintf(target, AES_STRING_LEN, "%s%s", sql_col(res, "ver"), sql_col(res, "key"));
@@ -64,7 +64,7 @@ char *getaes(SQL * sqlp, char *target, const char *aid, const char *fob)
    unsigned char bin[17];
    randkey(bin);
    j_base16N(17, bin, AES_STRING_LEN, target);
-   if (sql_query_f(sqlp, "INSERT INTO `AES` SET `aid`=%#s,`fob`=%#s,`ver`=%#.2s,`key`=%#s", aid ? : "", fob ? : "", target, target + 2))
+   if (sql_query_f(sqlp, "INSERT INTO `%#S`.`AES` SET `aid`=%#s,`fob`=%#s,`ver`=%#.2s,`key`=%#s", CONFIG_SQL_KEY_DATABASE,aid ? : "", fob ? : "", target, target + 2))
       *target = 0;
    return target;
 }
@@ -259,7 +259,7 @@ static const char *settings(SQL * sqlp,SQL_RES * res, slot_t id)
    if (*aid && nfc)
    {                            // Security
       // Keys
-      SQL_RES *r = sql_safe_query_store_f(sqlp, "SELECT * FROM `AES` WHERE `aid`=%#s AND `fob`='' order BY `created` DESC LIMIT 3", aid);
+      SQL_RES *r = sql_safe_query_store_f(sqlp, "SELECT * FROM `%#S`.`AES` WHERE `aid`=%#s AND `fob`='' order BY `created` DESC LIMIT 3", CONFIG_SQL_KEY_DATABASE,aid);
       while (sql_fetch_row(r))
          j_append_stringf(aids, "%s%s", sql_colz(r, "ver"), sql_colz(r, "key"));
       sql_free_result(r);
@@ -1115,14 +1115,14 @@ int main(int argc, const char *argv[])
             const char *key = j_get(j, "_KEYAES");
             if (!fob || !*fob || !ver || !*ver || !key || !*key)
                return "Bad request";
-            SQL_RES *res = sql_safe_query_store_f(&sql, "SELECT * FROM `AES` WHERE `fob`=%#s", fob);
+            SQL_RES *res = sql_safe_query_store_f(&sql, "SELECT * FROM `%#S`.`AES` WHERE `fob`=%#s", CONFIG_SQL_KEY_DATABASE,fob);
             if (sql_fetch_row(res))
             {
                sql_free_result(res);
                return "Already exists";
             }
             sql_free_result(res);
-            sql_safe_query_f(&sql, "INSERT INTO `AES` SET `fob`=%#s,`ver`=%#s,`key`=%#s,`aid`=''", fob, ver, key);
+            sql_safe_query_f(&sql, "INSERT INTO `%#S`.`AES` SET `fob`=%#s,`ver`=%#s,`key`=%#s,`aid`=''", CONFIG_SQL_KEY_DATABASE,fob, ver, key);
             sql_safe_query_free(&sql, sql_printf("INSERT INTO `fob` SET `fob`=%#s,`provisioned`=NOW()", fob));
             return NULL;
          }
@@ -1212,15 +1212,15 @@ int main(int argc, const char *argv[])
             sql_safe_query_free(&sql, sql_printf("UPDATE `fob` SET `capacity`=%#s WHERE `fob`=%#s AND (`capacity` IS NULL OR `capacity`<>%#s)", v, fob, v));
          if (j_find(meta, "provisioned") && fob && (v = j_get(j, "masterkey")))
          {
-            sql_safe_query_f(&sql, "REPLACE INTO `AES` SET `fob`=%#s,`aid`='',`ver`=%#.2s,`key`=%#s", fob, v, v + 2);
+            sql_safe_query_f(&sql, "REPLACE INTO `%#S`/`AES` SET `fob`=%#s,`aid`='',`ver`=%#.2s,`key`=%#s", CONFIG_SQL_KEY_DATABASE,fob, v, v + 2);
             if (aid && (v = j_get(j, "aid0key")))
-               sql_safe_query_f(&sql, "REPLACE INTO `AES` SET `fob`=%#s,`aid`=%#s,`ver`=%#.2s,`key`=%#s", fob, aid, v, v + 2);
+               sql_safe_query_f(&sql, "REPLACE INTO `%#S`.`AES` SET `fob`=%#s,`aid`=%#s,`ver`=%#.2s,`key`=%#s", CONFIG_SQL_KEY_DATABASE,fob, aid, v, v + 2);
          }
          if (j_find(meta, "adopted") && fob && aid)
          {
             int access = atoi(j_get(j, "access") ? : "");
             if ((v = j_get(j, "aid0key")))
-               sql_safe_query_f(&sql, "REPLACE INTO `AES` SET `fob`=%#s,`aid`=%#s,`ver`=%#.2s,`key`=%#s", fob, aid, v, v + 2);
+               sql_safe_query_f(&sql, "REPLACE INTO `%#S`.`AES` SET `fob`=%#s,`aid`=%#s,`ver`=%#.2s,`key`=%#s", CONFIG_SQL_KEY_DATABASE,fob, aid, v, v + 2);
             if ((v = j_get(j, "organisation")))
                sql_safe_query_free(&sql, sql_printf("INSERT IGNORE INTO `foborganisation` SET `fob`=%#s,`organisation`=%s,`fobname`=%#s ON DUPLICATE KEY UPDATE `fobname`=%#s", fob, v, fobname, fobname));
             sql_safe_query_free(&sql, sql_printf("INSERT IGNORE INTO `fobaid` SET `fob`=%#s,`aid`=%#s,`adopted`=NOW(),`access`=%d ON DUPLICATE KEY UPDATE `access`=%d", fob, aid, access, access));
