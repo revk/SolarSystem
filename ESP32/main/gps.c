@@ -51,7 +51,7 @@ uint32_t gpslast = 0;           // Last status update
 double gpslat = 0,
     gpslon = 0;
 
-void gps_send_status(const char *why)
+const char *gps_send_status(const char *why)
 {
    jo_t j = jo_make(NULL);
    if (gpsfixed)
@@ -67,8 +67,10 @@ void gps_send_status(const char *why)
       jo_int(j, "GLONASS", gpsl);
    if (why)
       jo_string(j, "reason", why);
-   alarm_event(gpsfixed ? "fix" : gpslocked ? "clock" : "lost", &j, iotgps);
-   gpslast = uptime();
+   const char *err = alarm_event(gpsfixed ? "fix" : gpslocked ? "clock" : "lost", &j, iotgps);
+   if (!err)
+      gpslast = uptime();
+   return err;
 }
 
 static void nmea(char *data)
@@ -128,7 +130,8 @@ static void nmea(char *data)
             logical_gpio &= ~logical_GPSNoSats; // sats
          else
             logical_gpio |= logical_GPSNoSats;  // No sats
-         was = now;             // log what was reported
+         if (!revk_link_down())
+            was = now;          // log what was reported
       }
    }
    if (!strncmp(data + 3, "RMC", 3) && n >= 13)
@@ -143,8 +146,11 @@ static void nmea(char *data)
             lon = 0 - lon;
          if (!gpsfixed || ((lat != gpslat || lon != gpslon) && (lat - gpslat > 1 || gpslat - lat > 1 || lon - gpslon > 1 || gpslon - lon > 1 || gpslast + 3600 < uptime())))
          {                      // New fix, or moved notably, or moved at all and been a while
-            gpslat = lat;
-            gpslon = lon;
+            if (!revk_link_down())
+            {
+               gpslat = lat;
+               gpslon = lon;
+            }
             gpsfixed = 1;
             why = "Position changed";
             ESP_LOGI(TAG, "Fixed");

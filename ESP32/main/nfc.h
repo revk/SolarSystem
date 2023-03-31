@@ -12,13 +12,13 @@ extern void nfc_retry(void);
 typedef struct {
    char id[21];                 // Initial card ID (insecure), hex null terminated
    char name[16];               // Name from fob
-   char sms[21];		// Number on fob
+   char sms[21];                // Number on fob
    const char *fail;            // NFC fail message
    const char *deny;            // Door system entry deny message
    uint32_t crc;                // Afile CRC
    area_t enter;                // Enter allow areas
    area_t arm;                  // Arm allow areas
-   area_t strong;            // Force arm allow areas
+   area_t strong;               // Force arm allow areas
    area_t disarm;               // Disarm allow areas
    area_t prop;                 // Prop allowed
    uint8_t aesid;               // The AES key index used
@@ -27,9 +27,9 @@ typedef struct {
    uint8_t enterset:1;          // Afile has enter setting
    uint8_t propset:1;           // Afile has prop setting
    uint8_t nameset:1;           // Afile has name set
-   uint8_t smsset:1;           // Afile has sms set
+   uint8_t smsset:1;            // Afile has sms set
    uint8_t armset:1;            // Afile has arm setting
-   uint8_t strongset:1;      // Afile has strong setting
+   uint8_t strongset:1;         // Afile has strong setting
    uint8_t disarmset:1;         // Afile has disarm setting
    uint8_t iso:1;               // Fob looks like an ISO card
    uint8_t secureset:1;         // If secure is set
@@ -61,9 +61,9 @@ typedef struct {
    uint8_t disarmok:1;          // Afile checks say system can be disarmed
    uint8_t disarmed:1;          // Disarm was done
    uint8_t armed:1;             // Arm was done
-   uint8_t stronged:1;       // Strong arm was done
+   uint8_t stronged:1;          // Strong arm was done
    uint8_t armok:1;             // Afile checks say system can be armed
-   uint8_t strongok:1;       // Afile checks say system can be force armed
+   uint8_t strongok:1;          // Afile checks say system can be force armed
    uint8_t remote:1;            // Normal working overridden for remote NFC
    uint8_t recheck:1;           // Afile change
 } fob_t;

@@ -129,8 +129,6 @@ const char *alarm_command(const char *tag, jo_t j)
          for (int i = 0; i < nodes; i++)
             if (node[i].online)
                node_online(node[i].mac);
-         if (gpslocked || gpsfixed)
-            gps_send_status("WiFi connect command");
       }
       return NULL;
    }
@@ -1113,9 +1111,9 @@ static void task(void *pvParameters)
    }
 }
 
-void alarm_event(const char *event, jo_t * jp, char copy)
+const char *alarm_event(const char *event, jo_t * jp, char copy)
 {                               // Send an event
-   revk_event_clients(event, jp, 1 | (copy ? 2 : 0));
+   return revk_event_clients(event, jp, 1 | (copy ? 2 : 0));
 #if 0
    jo_t o = jo_object_alloc();
    jo_string(o, copy ? "event+" : "event", event);
@@ -1224,8 +1222,6 @@ void alarm_rx(const char *target, jo_t j)
       esp_flash_get_size(NULL, &size_flash_chip);
       jo_int(j, "flash", size_flash_chip);
       revk_mesh_send_json(NULL, &j);
-      if (gpslocked || gpsfixed)
-         gps_send_status("WiFi connect");
       return;
    }
 }
