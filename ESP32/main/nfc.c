@@ -76,7 +76,7 @@ SemaphoreHandle_t nfc_mutex = NULL;     // PN532 has low level message mutex, bu
 
 static uint8_t ledpattern[20] = "";
 
-static fob_t fob = { };         // Current card state
+static fob_t fob = { 0 };       // Current card state
 
 const char *nfc_led(int len, const void *value)
 {

@@ -165,7 +165,7 @@ static void task(void *pvParameters)
    esp_task_wdt_add(NULL);
    static output_t output_last = 0;     // Last reported
    static output_t output_last_pulsed = 0;      // Last reported
-   static uint16_t output_hold[MAXOUTPUT] = { };
+   static uint16_t output_hold[MAXOUTPUT] = { 0 };
    // Set outputs to their current state
    for (int i = 0; i < MAXOUTPUT; i++)
       if (output[i])

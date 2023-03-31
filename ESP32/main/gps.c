@@ -152,7 +152,7 @@ static void nmea(char *data)
    }
    if (!strncmp(data + 3, "ZDA", 3) && n >= 4 && strlen(f[0]) >= 6 && *f[3] == '2')
    {                            // GNZDA,140226.832,14,03,2022,,
-      struct tm tm = { };
+      struct tm tm = { 0 };
       tm.tm_year = atoi(f[3]) - 1900;
       tm.tm_mon = atoi(f[2]) - 1;
       tm.tm_mday = atoi(f[1]);
@@ -171,10 +171,7 @@ static void nmea(char *data)
          }
       }
       // TODO needs to be timegm but not seeing that in the ESP IDF
-      time_t new = mktime(&tm),
-          was = time(0);
-      if (new - was > 60 || was - new > 60)
-         gpslocked = 0;         // Should be spot on, but no idea how long it takes settimeofday to adjust things after a reset.
+      time_t new = mktime(&tm);
       struct timeval tv = { new, usec };
       if (settimeofday(&tv, NULL))
          ESP_LOGE(TAG, "Time set %d failed", (int) new);
