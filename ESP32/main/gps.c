@@ -110,7 +110,6 @@ static void nmea(char *data)
    char status = 0;
    if (!strncmp(data + 3, "GSV", 3) && n >= 3)
    {                            // $GPGSV,2,1,05,31,63,226,17,26,47,287,,25,38,104,,20,12,057,,0
-      int was = gpsp + gpsl + gpsa;
       int n = atoi(f[2]);
       if (data[2] == 'P' && gpsp != n)
          gpsp = n;
@@ -118,14 +117,16 @@ static void nmea(char *data)
          gpsl = n;
       if (data[2] == 'A' && gpsa != n)
          gpsa = n;
-      int now = gpsp + gpsl + gpsa;
-      if (now != was && (now > was + 3 || was > now + 3 || !was || !now || gpslast + 3600 < uptime()))
+      int now = gpsp * 10000 + gpsl * 100 + gpsa;
+      static int was = 0;
+      if (now != was && (now > was + 3 || was > now + 3 || (now && !gpslast) || gpslast + 3600 < uptime()))
       {                         // Notable change in number of sats or any change and it has been a while
          status = 1;
          if (now)
             logical_gpio &= ~logical_GPSNoSats; // sats
          else
             logical_gpio |= logical_GPSNoSats;  // No sats
+         was = now;             // log what was reported
       }
    }
    if (!strncmp(data + 3, "RMC", 3) && n >= 13)
