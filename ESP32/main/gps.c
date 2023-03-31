@@ -51,7 +51,7 @@ uint32_t gpslast = 0;           // Last status update
 double gpslat = 0,
     gpslon = 0;
 
-void gps_send_status(void)
+void gps_send_status(const char *why)
 {
    jo_t j = jo_make(NULL);
    if (gpsfixed)
@@ -65,6 +65,8 @@ void gps_send_status(void)
       jo_int(j, "Galileo", gpsa);
    if (gpsl)
       jo_int(j, "GLONASS", gpsl);
+   if (why)
+      jo_string(j, "reason", why);
    alarm_event(gpsfixed ? "fix" : gpslocked ? "clock" : "lost", &j, iotgps);
    gpslast = uptime();
 }
@@ -107,7 +109,7 @@ static void nmea(char *data)
       *p++ = 0;
       f[n++] = p;
    }
-   char status = 0;
+   const char *why = NULL;
    if (!strncmp(data + 3, "GSV", 3) && n >= 3)
    {                            // $GPGSV,2,1,05,31,63,226,17,26,47,287,,25,38,104,,20,12,057,,0
       int n = atoi(f[2]);
@@ -121,7 +123,7 @@ static void nmea(char *data)
       static int was = 0;
       if (now != was && (now > was + 3 || was > now + 3 || (now && !gpslast) || gpslast + 3600 < uptime()))
       {                         // Notable change in number of sats or any change and it has been a while
-         status = 1;
+         why = "GPS count changed";
          if (now)
             logical_gpio &= ~logical_GPSNoSats; // sats
          else
@@ -144,7 +146,7 @@ static void nmea(char *data)
             gpslat = lat;
             gpslon = lon;
             gpsfixed = 1;
-            status = 1;
+            why = "Position changed";
             ESP_LOGI(TAG, "Fixed");
          }
          //ESP_LOGI(TAG, "Fix %lf %lf", lat, lon);
@@ -178,12 +180,12 @@ static void nmea(char *data)
       else if (!gpslocked)
       {
          gpslocked = 1;
-         status = 1;
+         why = "Locked";
          ESP_LOGI(TAG, "Locked");
       }
    }
-   if (status)
-      gps_send_status();
+   if (why)
+      gps_send_status(why);
 }
 
 static void task(void *pvParameters)
@@ -211,7 +213,7 @@ static void task(void *pvParameters)
                gpsseen = 0;
                gpslocked = 0;
                gpsfixed = 0;
-               gps_send_status();
+               gps_send_status("Timeout");
             }
          }
          continue;

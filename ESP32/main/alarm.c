@@ -130,7 +130,7 @@ const char *alarm_command(const char *tag, jo_t j)
             if (node[i].online)
                node_online(node[i].mac);
          if (gpslocked || gpsfixed)
-            gps_send_status();
+            gps_send_status("WiFi connect command");
       }
       return NULL;
    }
@@ -1225,7 +1225,7 @@ void alarm_rx(const char *target, jo_t j)
       jo_int(j, "flash", size_flash_chip);
       revk_mesh_send_json(NULL, &j);
       if (gpslocked || gpsfixed)
-         gps_send_status();
+         gps_send_status("WiFi connect");
       return;
    }
 }
