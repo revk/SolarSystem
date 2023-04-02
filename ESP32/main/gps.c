@@ -121,17 +121,22 @@ static void nmea(char *data)
          gpsl = n;
       if (data[2] == 'A' && gpsa != n)
          gpsa = n;
-      int now = gpsp * 10000 + gpsl * 100 + gpsa;
-      static int was = 0;
-      if (now != was && (now > was + 3 || was > now + 3 || (now && !gpslast) || gpslast + 3600 < uptime()))
+      int countnow = gpsp + gpsl + gpsa;
+      static int countwas = 0;
+      int satsnow = gpsp * 10000 + gpsl * 100 + gpsa;
+      static int satswas = 0;
+      if (satsnow != satswas && (countnow > countwas + 3 || countwas > countnow + 3 || (countnow && !gpslast) || gpslast + 3600 < uptime()))
       {                         // Notable change in number of sats or any change and it has been a while
-         why = "GPS count changed";
-         if (now)
+         why = (countwas ? "GPS count changed" : "GPS sats");
+         if (countnow)
             logical_gpio &= ~logical_GPSNoSats; // sats
          else
             logical_gpio |= logical_GPSNoSats;  // No sats
          if (!revk_link_down())
-            was = now;          // log what was reported
+         {
+            countwas = countnow;        // log what was reported
+            satswas = satsnow;  // log what was reported
+         }
       }
    }
    if (!strncmp(data + 3, "RMC", 3) && n >= 13)
@@ -151,8 +156,8 @@ static void nmea(char *data)
                gpslat = lat;
                gpslon = lon;
             }
+            why = (gpsfixed ? "Position changed" : "Position fixed");
             gpsfixed = 1;
-            why = "Position changed";
             ESP_LOGI(TAG, "Fixed");
          }
          //ESP_LOGI(TAG, "Fix %lf %lf", lat, lon);
