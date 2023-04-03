@@ -83,13 +83,13 @@ char **message = NULL;
 
 static void displayprint(const char *fmt, ...)
 {
-   static int8_t s[2] = { };    // scroll
+   static int8_t s[2] = { 0 };  // scroll
    char *out = NULL;
    va_list ap;
    va_start(ap, fmt);
    vasprintf(&out, fmt, ap);
    va_end(ap);
-   int8_t len[2] = { };
+   int8_t len[2] = { 0 };
    char *v = out,
        *l2;
    while (*v && *v != '\n')
@@ -154,7 +154,7 @@ static void displayprint(const char *fmt, ...)
    free(out);
    s[0]++;
    s[1]++;
-   static char last[32] = { };
+   static char last[32] = { 0 };
    if (memcmp(ui.display, last, 32))
    {
       ui.senddisplay = 1;

@@ -611,7 +611,6 @@ const char *door_command(const char *tag, jo_t j)
                   int len = jo_strncpy(j, tempid, sizeof(tempid));
                   if (len > 0 && len < sizeof(tempid))
                      id = tempid;
-
                } else if (!jo_strcmp(j, "afile"))
                {
                   jo_next(j);
@@ -642,7 +641,13 @@ const char *door_command(const char *tag, jo_t j)
    if (!strcasecmp(tag, "lock"))
       return e ? : door_lock(id, afile, "remote");
    if (!strcasecmp(tag, "unlock"))
-      return e ? : door_unlock(id, afile, "remote");
+   {
+      if (e)
+         return e;
+      jo_t j = jo_make(NULL);
+      alarm_event("unlock", &j, iotstatedoor);
+      return door_unlock(id, afile, "remote");
+   }
    if (!strcasecmp(tag, "prop"))
       return e ? : door_prop(id, afile, "remote");
    if (!strcasecmp(tag, "access"))
@@ -850,7 +855,7 @@ static void task(void *pvParameters)
                   } else
                      jo_bool(j, "unlockok", 1);
                }
-               jo_string(j, "button", button);
+               jo_string(j, "input", button);
                alarm_event("exit", &j, iotstatedoor);
             } else if (doorexitarm && exit && exit < now)
             {                   // Held (not applicable if not arming allowed, so leaves to do exit stuck fault)
@@ -870,7 +875,7 @@ static void task(void *pvParameters)
                      door_lock(NULL, NULL, button);
                   }
                }
-               jo_string(j, "button", button);
+               jo_string(j, "input", button);
                alarm_event("exit", &j, iotstatedoor);
             }
          } else

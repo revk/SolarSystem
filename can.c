@@ -93,7 +93,7 @@ int main(int argc, const char *argv[])
       sdevice = (getenv(sdevice + 1) ? : "");
 
    SQL sql;
-   sql_cnf_connect(&sql, CONFIG_SQL_CONFIG_FILE);
+   sql_cnf_connect(&sql, CONFIG_SQL_WEBUSER_FILE);
    if (*CONFIG_SQL_DATABASE)
       sql_safe_select_db(&sql, CONFIG_SQL_DATABASE);
    SQL_RES *resus = NULL;
@@ -105,7 +105,7 @@ int main(int argc, const char *argv[])
          warnx("No --as/$USER_ID provided for can");
          return NULL;
       }
-      resus = sql_safe_query_store_free(&sql, sql_printf("SELECT * FROM `user` WHERE `user`=%d", us));
+      resus = sql_safe_query_store_f(&sql, "SELECT * FROM `user` WHERE `user`=%d", us);
       if (!sql_fetch_row(resus))
       {
          warnx("User does not exist %d", us);
@@ -156,7 +156,7 @@ int main(int argc, const char *argv[])
       }
       if (organisation)
       {
-         SQL_RES *res = sql_safe_query_store_free(&sql, sql_printf("SELECT * FROM `userorganisation` WHERE `user`=%d AND `organisation`=%d", us, organisation));
+         SQL_RES *res = sql_safe_query_store_f(&sql, "SELECT * FROM `userorganisation` WHERE `user`=%d AND `organisation`=%d", us, organisation);
          if (!sql_fetch_row(res))
          {
             sql_free_result(res);

@@ -51,7 +51,7 @@ uint32_t gpslast = 0;           // Last status update
 double gpslat = 0,
     gpslon = 0;
 
-void gps_send_status(void)
+const char *gps_send_status(const char *why)
 {
    jo_t j = jo_make(NULL);
    if (gpsfixed)
@@ -65,8 +65,12 @@ void gps_send_status(void)
       jo_int(j, "Galileo", gpsa);
    if (gpsl)
       jo_int(j, "GLONASS", gpsl);
-   alarm_event(gpsfixed ? "fix" : gpslocked ? "clock" : "lost", &j, iotgps);
-   gpslast = uptime();
+   if (why)
+      jo_string(j, "reason", why);
+   const char *err = alarm_event(gpsfixed ? "fix" : gpslocked ? "clock" : "lost", &j, iotgps);
+   if (!err)
+      gpslast = uptime();
+   return err;
 }
 
 static void nmea(char *data)
@@ -107,10 +111,9 @@ static void nmea(char *data)
       *p++ = 0;
       f[n++] = p;
    }
-   char status = 0;
+   const char *why = NULL;
    if (!strncmp(data + 3, "GSV", 3) && n >= 3)
    {                            // $GPGSV,2,1,05,31,63,226,17,26,47,287,,25,38,104,,20,12,057,,0
-      int was = gpsp + gpsl + gpsa;
       int n = atoi(f[2]);
       if (data[2] == 'P' && gpsp != n)
          gpsp = n;
@@ -118,14 +121,22 @@ static void nmea(char *data)
          gpsl = n;
       if (data[2] == 'A' && gpsa != n)
          gpsa = n;
-      int now = gpsp + gpsl + gpsa;
-      if (now != was && (now > was + 3 || was > now + 3 || !was || !now || gpslast + 3600 < uptime()))
+      int countnow = gpsp + gpsl + gpsa;
+      static int countwas = 0;
+      int satsnow = gpsp * 10000 + gpsl * 100 + gpsa;
+      static int satswas = 0;
+      if (satsnow != satswas && (countnow > countwas + 3 || countwas > countnow + 3 || (countnow && !gpslast) || gpslast + 3600 < uptime()))
       {                         // Notable change in number of sats or any change and it has been a while
-         status = 1;
-         if (now)
+         why = (countwas ? "GPS count changed" : "I can see the sky");
+         if (countnow)
             logical_gpio &= ~logical_GPSNoSats; // sats
          else
             logical_gpio |= logical_GPSNoSats;  // No sats
+         if (!revk_link_down())
+         {
+            countwas = countnow;        // log what was reported
+            satswas = satsnow;  // log what was reported
+         }
       }
    }
    if (!strncmp(data + 3, "RMC", 3) && n >= 13)
@@ -140,10 +151,13 @@ static void nmea(char *data)
             lon = 0 - lon;
          if (!gpsfixed || ((lat != gpslat || lon != gpslon) && (lat - gpslat > 1 || gpslat - lat > 1 || lon - gpslon > 1 || gpslon - lon > 1 || gpslast + 3600 < uptime())))
          {                      // New fix, or moved notably, or moved at all and been a while
-            gpslat = lat;
-            gpslon = lon;
+            if (!revk_link_down())
+            {
+               gpslat = lat;
+               gpslon = lon;
+            }
+            why = (gpsfixed ? "Position changed" : "Position fixed");
             gpsfixed = 1;
-            status = 1;
             ESP_LOGI(TAG, "Fixed");
          }
          //ESP_LOGI(TAG, "Fix %lf %lf", lat, lon);
@@ -151,7 +165,7 @@ static void nmea(char *data)
    }
    if (!strncmp(data + 3, "ZDA", 3) && n >= 4 && strlen(f[0]) >= 6 && *f[3] == '2')
    {                            // GNZDA,140226.832,14,03,2022,,
-      struct tm tm = { };
+      struct tm tm = { 0 };
       tm.tm_year = atoi(f[3]) - 1900;
       tm.tm_mon = atoi(f[2]) - 1;
       tm.tm_mday = atoi(f[1]);
@@ -170,22 +184,19 @@ static void nmea(char *data)
          }
       }
       // TODO needs to be timegm but not seeing that in the ESP IDF
-      time_t new = mktime(&tm),
-          was = time(0);
-      if (new - was > 60 || was - new > 60)
-         gpslocked = 0;         // Should be spot on, but no idea how long it takes settimeofday to adjust things after a reset.
+      time_t new = mktime(&tm);
       struct timeval tv = { new, usec };
       if (settimeofday(&tv, NULL))
          ESP_LOGE(TAG, "Time set %d failed", (int) new);
       else if (!gpslocked)
       {
          gpslocked = 1;
-         status = 1;
+         why = "Locked";
          ESP_LOGI(TAG, "Locked");
       }
    }
-   if (status)
-      gps_send_status();
+   if (why)
+      gps_send_status(why);
 }
 
 static void task(void *pvParameters)
@@ -213,7 +224,7 @@ static void task(void *pvParameters)
                gpsseen = 0;
                gpslocked = 0;
                gpsfixed = 0;
-               gps_send_status();
+               gps_send_status("Timeout");
             }
          }
          continue;

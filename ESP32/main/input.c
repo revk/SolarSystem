@@ -96,7 +96,7 @@ static void task(void *pvParameters)
    esp_task_wdt_add(NULL);
    pvParameters = pvParameters;
    int poll = (inputpoll ? : 1);
-   static uint8_t input_hold[MAXINPUT] = { };
+   static uint8_t input_hold[MAXINPUT] = { 0 };
    // Scan inputs
    while (1)
    {

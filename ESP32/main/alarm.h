@@ -33,7 +33,7 @@ void alarm_rx(const char *target, jo_t j);
 void alarm_arm(area_t a, jo_t *);
 void alarm_strong(area_t a, jo_t *);
 void alarm_disarm(area_t a, jo_t *);
-void send_sms(const char *number,const char *fmt, ...);
+void send_sms(const char *number, const char *fmt, ...);
 area_t alarm_armed(void);       // What areas are, in effect, armed
 area_t andset(area_t a);        // Do and/set logic
-void alarm_event(const char *event, jo_t * jp, char copy);
+const char *alarm_event(const char *event, jo_t * jp, char copy);

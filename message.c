@@ -188,6 +188,11 @@ int main(int argc, const char *argv[])
       j_store_string(meta, "aid", aid);
    if (pending && *pending)
       j_store_string(meta, "pending", pending);
+
+   j_store_string(meta,"user_id",getenv("USER_ID"));
+   j_store_string(meta,"user_username",getenv("USER_USERNAME"));
+   j_store_string(meta,"remote_addr",getenv("REMOTE_ADDR"));
+
    if (debug)
       j_err(j_write_pretty(j, stderr));
 

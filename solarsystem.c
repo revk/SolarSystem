@@ -53,11 +53,9 @@ static void addset(j_t j, const char *tag, const char *val, const char *always);
 static void addsitedata(SQL * sqlp, j_t j, SQL_RES * site, const char *deviceid, const char *parentid, char outofservice);
 
 #define AES_STRING_LEN	35
-char *getaes(SQL * sqlkeyp, char *target, const char *aid, const char *fob)
+char *getaes(SQL * sqlp, char *target, const char *aid, const char *fob)
 {                               // Get AES key (HEX ver and AES, so AES_STRING_LEN byte buffer)
-   SQL_RES *res = sql_safe_query_store_free(sqlkeyp,
-                                            sql_printf("SELECT * FROM `AES` WHERE `aid`=%#s AND `fob`=%#s ORDER BY `created` DESC LIMIT 1",
-                                                       aid ? : "", fob ? : ""));
+   SQL_RES *res = sql_safe_query_store_f(sqlp, "SELECT * FROM `%#S`.`AES` WHERE `aid`=%#s AND `fob`=%#s ORDER BY `created` DESC LIMIT 1", CONFIG_SQL_KEY_DATABASE, aid ? : "", fob ? : "");
    if (sql_fetch_row(res))
    {
       snprintf(target, AES_STRING_LEN, "%s%s", sql_col(res, "ver"), sql_col(res, "key"));
@@ -66,7 +64,7 @@ char *getaes(SQL * sqlkeyp, char *target, const char *aid, const char *fob)
    unsigned char bin[17];
    randkey(bin);
    j_base16N(17, bin, AES_STRING_LEN, target);
-   if (sql_query_free(sqlkeyp, sql_printf("INSERT INTO `AES` SET `aid`=%#s,`fob`=%#s,`ver`=%#.2s,`key`=%#s", aid ? : "", fob ? : "", target, target + 2)))
+   if (sql_query_f(sqlp, "INSERT INTO `%#S`.`AES` SET `aid`=%#s,`fob`=%#s,`ver`=%#.2s,`key`=%#s", CONFIG_SQL_KEY_DATABASE, aid ? : "", fob ? : "", target, target + 2))
       *target = 0;
    return target;
 }
@@ -122,7 +120,7 @@ void notify(SQL * sqlp, SQL_RES * res, const char *target, j_t j)
                   fprintf(f, "%s: ", tag);
                else
                   fprintf(f, ", ");
-               SQL_RES *a = sql_safe_query_store_free(sqlp, sql_printf("SELECT * FROM `area` WHERE `site`=%d AND `tag`=%#c", site, *areas));
+               SQL_RES *a = sql_safe_query_store_f(sqlp, "SELECT * FROM `area` WHERE `site`=%d AND `tag`=%#c", site, *areas);
                if (sql_fetch_row(a))
                   fprintf(f, "%s", sql_colz(a, "areaname"));
                else
@@ -249,7 +247,7 @@ const char *upgrade(SQL_RES * res, slot_t id)
    return upgrade;
 }
 
-static const char *settings(SQL * sqlp, SQL * sqlkeyp, SQL_RES * res, slot_t id)
+static const char *settings(SQL * sqlp, SQL_RES * res, slot_t id)
 {                               // Security and settings
    j_t j = j_create();
    j_store_string(j, "nodename", sql_colz(res, "devicename"));
@@ -261,14 +259,12 @@ static const char *settings(SQL * sqlp, SQL * sqlkeyp, SQL_RES * res, slot_t id)
    if (*aid && nfc)
    {                            // Security
       // Keys
-      SQL_RES *r = sql_safe_query_store_free(sqlkeyp,
-                                             sql_printf("SELECT * FROM `AES` WHERE `aid`=%#s AND `fob`='' order BY `created` DESC LIMIT 3",
-                                                        aid));
+      SQL_RES *r = sql_safe_query_store_f(sqlp, "SELECT * FROM `%#S`.`AES` WHERE `aid`=%#s AND `fob`='' order BY `created` DESC LIMIT 3", CONFIG_SQL_KEY_DATABASE, aid);
       while (sql_fetch_row(r))
          j_append_stringf(aids, "%s%s", sql_colz(r, "ver"), sql_colz(r, "key"));
       sql_free_result(r);
       if (!j_len(aids))
-         j_append_string(aids, getaes(sqlkeyp, alloca(AES_STRING_LEN), aid, NULL));     // Make a key
+         j_append_string(aids, getaes(sqlp, alloca(AES_STRING_LEN), aid, NULL));        // Make a key
    }
    if (!j_len(aids))
       aid = "";                 // We have not loaded any keys so no point in even trying an AID
@@ -277,9 +273,7 @@ static const char *settings(SQL * sqlp, SQL * sqlkeyp, SQL_RES * res, slot_t id)
    if (*aid)
    {
       int organisation = atoi(sql_colz(res, "organisation"));
-      SQL_RES *b = sql_safe_query_store_free(sqlp,
-                                             sql_printf("SELECT * FROM `foborganisation` WHERE `organisation`=%d AND `blocked` IS NOT NULL AND `confirmed` IS NULL ORDER BY `blocked` DESC LIMIT 10",
-                                                        organisation));
+      SQL_RES *b = sql_safe_query_store_f(sqlp, "SELECT * FROM `foborganisation` WHERE `organisation`=%d AND `blocked` IS NOT NULL AND `confirmed` IS NULL ORDER BY `blocked` DESC LIMIT 10", organisation);
       while (sql_fetch_row(b))
          j_append_string(blacklist, sql_colz(b, "fob"));
       sql_free_result(b);
@@ -333,7 +327,7 @@ static const char *settings(SQL * sqlp, SQL * sqlkeyp, SQL_RES * res, slot_t id)
    addset(area, "deadlock", sql_colz(res, "areadeadlock"), NULL);
    int site = atoi(sql_colz(res, "site"));
    {                            // site
-      SQL_RES *s = sql_safe_query_store_free(sqlp, sql_printf("SELECT * FROM `site` WHERE `site`=%d", site));
+      SQL_RES *s = sql_safe_query_store_f(sqlp, "SELECT * FROM `site` WHERE `site`=%d", site);
       if (sql_fetch_row(s))
       {
          addsitedata(sqlp, j, s, sql_colz(res, "device"), sql_col(res, "via"), outofservice);
@@ -366,7 +360,7 @@ static const char *settings(SQL * sqlp, SQL * sqlkeyp, SQL_RES * res, slot_t id)
    int pcb = atoi(sql_colz(res, "pcb"));
    if (pcb)
    {                            // Main PCB settings
-      SQL_RES *p = sql_safe_query_store_free(sqlp, sql_printf("SELECT * FROM `pcb` WHERE `pcb`=%d", pcb));
+      SQL_RES *p = sql_safe_query_store_f(sqlp, "SELECT * FROM `pcb` WHERE `pcb`=%d", pcb);
       if (sql_fetch_row(p))
       {
          const char *v;
@@ -418,9 +412,7 @@ static const char *settings(SQL * sqlp, SQL * sqlkeyp, SQL_RES * res, slot_t id)
       j_t input = j_store_array(j, "input");
       j_t output = j_store_array(j, "output");
       j_t power = j_store_array(j, "power");
-      SQL_RES *g = sql_safe_query_store_free(sqlp,
-                                             sql_printf("SELECT * FROM `devicegpio` LEFT JOIN `gpio` USING (`gpio`) WHERE `device`=%#s AND `pcb`=%d ORDER BY `initname`",
-                                                        sql_col(res, "device"), atoi(sql_colz(res, "pcb"))));
+      SQL_RES *g = sql_safe_query_store_f(sqlp, "SELECT * FROM `devicegpio` LEFT JOIN `gpio` USING (`gpio`) WHERE `device`=%#s AND `pcb`=%d ORDER BY `initname`", sql_col(res, "device"), atoi(sql_colz(res, "pcb")));
       while (sql_fetch_row(g))
       {
          const char *type = sql_colz(g, "type");
@@ -587,7 +579,7 @@ static void addsitedata(SQL * sqlp, j_t j, SQL_RES * site, const char *deviceid,
             mac[0] &= 0xFE;     // Non broadcast
             mac[0] |= 0x02;     // Local
             j_base16N(sizeof(mac), mac, sizeof(smac), smac);
-            if (!sql_query_free(sqlp, sql_printf("UPDATE `site` SET `meshid`=%#s WHERE `site`=%#s", smac, sql_col(site, "site"))))
+            if (!sql_query_f(sqlp, "UPDATE `site` SET `meshid`=%#s WHERE `site`=%#s", smac, sql_col(site, "site")))
             {
                v = strdupa(smac);
                break;
@@ -606,7 +598,7 @@ static void addsitedata(SQL * sqlp, j_t j, SQL_RES * site, const char *deviceid,
             char skey[33];
             randblock(key, sizeof(key));
             j_base16N(sizeof(key), key, sizeof(skey), skey);
-            if (!sql_query_free(sqlp, sql_printf("UPDATE `site` SET `meshkey`=%#s WHERE `site`=%#s", skey, sql_col(site, "site"))))
+            if (!sql_query_f(sqlp, "UPDATE `site` SET `meshkey`=%#s WHERE `site`=%#s", skey, sql_col(site, "site")))
             {
                v = strdupa(skey);
                break;
@@ -625,7 +617,7 @@ static void addsitedata(SQL * sqlp, j_t j, SQL_RES * site, const char *deviceid,
             char spass[33];
             randblock(pass, sizeof(pass));
             j_base64N(sizeof(pass), pass, sizeof(spass), spass);
-            if (!sql_query_free(sqlp, sql_printf("UPDATE `site` SET `meshpass`=%#s WHERE `site`=%#s", spass, sql_col(site, "site"))))
+            if (!sql_query_f(sqlp, "UPDATE `site` SET `meshpass`=%#s WHERE `site`=%#s", spass, sql_col(site, "site")))
             {
                v = strdupa(spass);
                break;
@@ -634,9 +626,7 @@ static void addsitedata(SQL * sqlp, j_t j, SQL_RES * site, const char *deviceid,
       }
       if (*v)
          j_store_string(mesh, "pass", v);
-      SQL_RES *res = sql_safe_query_store_free(sqlp,
-                                               sql_printf("SELECT SUM(if(`outofservice`='false',1,0)) AS `N`,COUNT(*) AS `T` FROM `device` WHERE `site`=%#s",
-                                                          sql_col(site, "site")));
+      SQL_RES *res = sql_safe_query_store_f(sqlp, "SELECT SUM(if(`outofservice`='false',1,0)) AS `N`,COUNT(*) AS `T` FROM `device` WHERE `site`=%#s", sql_col(site, "site"));
       if (sql_fetch_row(res))
       {
          j_store_int(mesh, "max", atoi(sql_colz(res, "T")));
@@ -667,9 +657,7 @@ void daily(SQL * sqlp)
 
 void doupgrade(SQL * sqlp, int site)
 {                               // Poking upgrades that may need doing - pick one per site, as site is one at a time
-   SQL_RES *device = sql_safe_query_store_free(sqlp,
-                                               sql_printf("SELECT * FROM `device` WHERE `site`=%d AND `upgrade`<=NOW() AND `id` IS NOT NULL ORDER BY if(`outofservice`='true',0,if(`via` IS NOT NULL,1,2)),`devicename` LIMIT 1",
-                                                          site));
+   SQL_RES *device = sql_safe_query_store_f(sqlp, "SELECT * FROM `device` WHERE `site`=%d AND `upgrade`<=NOW() AND `id` IS NOT NULL ORDER BY if(`outofservice`='true',0,if(`via` IS NOT NULL,1,2)),`devicename` LIMIT 1", site);
    while (sql_fetch_row(device))
    {
       slot_t id = strtoull(sql_colz(device, "id"), NULL, 10);
@@ -680,14 +668,12 @@ void doupgrade(SQL * sqlp, int site)
 
 void dooffline(SQL * sqlp, int site)
 {                               // Check offline sites
-   SQL_RES *res = sql_safe_query_store_free(sqlp, sql_printf("SELECT * FROM `site` WHERE `site`=%d", site));
+   SQL_RES *res = sql_safe_query_store_f(sqlp, "SELECT * FROM `site` WHERE `site`=%d", site);
    if (sql_fetch_row(res))
    {
       j_t j = j_create(),
           l = NULL;
-      SQL_RES *device = sql_safe_query_store_free(sqlp,
-                                                  sql_printf("SELECT * FROM `device` WHERE `site`=%d AND `offlinereport` IS NULL AND `online` IS NULL AND `outofservice`='false'",
-                                                             site));
+      SQL_RES *device = sql_safe_query_store_f(sqlp, "SELECT * FROM `device` WHERE `site`=%d AND `offlinereport` IS NULL AND `online` IS NULL AND `outofservice`='false'", site);
       while (sql_fetch_row(device))
       {
          if (!l)
@@ -700,7 +686,7 @@ void dooffline(SQL * sqlp, int site)
             l = j_store_array(j, "devices");
          }
          j_append_string(l, sql_colz(device, "devicename"));
-         sql_safe_query_free(sqlp, sql_printf("UPDATE `device` SET `offlinereport`=NOW() WHERE `device`=%#s", sql_colz(device, "device")));
+         sql_safe_query_f(sqlp, "UPDATE `device` SET `offlinereport`=NOW() WHERE `device`=%#s", sql_colz(device, "device"));
       }
       sql_free_result(device);
       if (l)
@@ -712,14 +698,14 @@ void dooffline(SQL * sqlp, int site)
    sql_free_result(res);
 }
 
-void dopoke(SQL * sqlp, SQL * sqlkeyp)
+void dopoke(SQL * sqlp)
 {                               // Poking that may need doing
    SQL_RES *res = sql_safe_query_store(sqlp, "SELECT * FROM `device` WHERE `poke`<=NOW() AND `id` IS NOT NULL ORDER BY `poke`");
    while (sql_fetch_row(res))
    {
       slot_t id = strtoull(sql_colz(res, "id"), NULL, 10);
-      sql_safe_query_free(sqlp, sql_printf("UPDATE `device` SET `poke`=NULL WHERE `device`=%#s", sql_col(res, "device")));
-      settings(sqlp, sqlkeyp, res, id);
+      sql_safe_query_f(sqlp, "UPDATE `device` SET `poke`=NULL WHERE `device`=%#s", sql_col(res, "device"));
+      settings(sqlp, res, id);
    }
    sql_free_result(res);
 }
@@ -746,9 +732,8 @@ const char *forkcommand(j_t * jp, slot_t device, slot_t local)
    return NULL;
 }
 
-const char *doapi(SQL * sqlp, SQL * sqlkeyp, slot_t local, j_t meta, j_t j)
+const char *doapi(SQL * sqlp, slot_t local, j_t meta, j_t j)
 {
-   sqlkeyp = sqlkeyp;
    local = local;
    SQL_RES *res;
    int organisation = atoi(j_get(meta, "organisation") ? : "");
@@ -757,7 +742,7 @@ const char *doapi(SQL * sqlp, SQL * sqlkeyp, slot_t local, j_t meta, j_t j)
       return "No organisation";
    if (!user)
       return "No user";
-   res = sql_safe_query_store_free(sqlp, sql_printf("SELECT * FROM `userorganisation` WHERE `user`=%d AND `organisation`=%d", user, organisation));
+   res = sql_safe_query_store_f(sqlp, "SELECT * FROM `userorganisation` WHERE `user`=%d AND `organisation`=%d", user, organisation);
    if (!sql_fetch_row(res))
    {
       sql_free_result(res);
@@ -783,9 +768,9 @@ const char *doapi(SQL * sqlp, SQL * sqlkeyp, slot_t local, j_t meta, j_t j)
          return "No fob";
       time_t expires = j_time(j_get(j, "expires"));
       if (expires)
-         sql_safe_query_free(sqlp, sql_printf("UPDATE `foborganisation` SET `expires`=%#T WHERE `fob`=%#s AND `organisation`=%d", expires, fob, organisation));
+         sql_safe_query_f(sqlp, "UPDATE `foborganisation` SET `expires`=%#T WHERE `fob`=%#s AND `organisation`=%d", expires, fob, organisation);
       else
-         sql_safe_query_free(sqlp, sql_printf("UPDATE `foborganisation` SET `expires`=NULL WHERE `fob`=%#s AND `organisation`=%d", fob, organisation));
+         sql_safe_query_f(sqlp, "UPDATE `foborganisation` SET `expires`=NULL WHERE `fob`=%#s AND `organisation`=%d", fob, organisation);
       return NULL;
    }
 
@@ -797,7 +782,7 @@ const char *doapi(SQL * sqlp, SQL * sqlkeyp, slot_t local, j_t meta, j_t j)
       int site = atoi(j_get(j, "site") ? : "");
       if (!site)
          return "No site";
-      res = sql_safe_query_store_free(sqlp, sql_printf("SELECT * FROM `site` WHERE `site`=%d", site));
+      res = sql_safe_query_store_f(sqlp, "SELECT * FROM `site` WHERE `site`=%d", site);
       int siteorg = 0;
       if (sql_fetch_row(res))
       {
@@ -813,7 +798,7 @@ const char *doapi(SQL * sqlp, SQL * sqlkeyp, slot_t local, j_t meta, j_t j)
 
       slot_t id = 0;
       const char *deviceid = NULL;
-      res = sql_safe_query_store_free(sqlp, sql_printf("SELECT `id`,`device` FROM `device` WHERE `site`=%d AND `id` IS NOT NULL AND `via` IS NULL AND `outofservice`='false' LIMIT 1", site));
+      res = sql_safe_query_store_f(sqlp, "SELECT `id`,`device` FROM `device` WHERE `site`=%d AND `id` IS NOT NULL AND `via` IS NULL AND `outofservice`='false' LIMIT 1", site);
       if (sql_fetch_row(res))
       {
          id = strtoll(sql_colz(res, "id") ? : "", NULL, 10);
@@ -967,12 +952,10 @@ int main(int argc, const char *argv[])
    }
    // Connect
    sstypes("types");
-   SQL sqlkey;
-   sql_cnf_connect(&sqlkey, CONFIG_SQL_KEY_CONFIG_FILE);
-   sskeydatabase(&sqlkey);
    SQL sql;
-   sql_cnf_connect(&sql, CONFIG_SQL_CONFIG_FILE);
-   ssdatabase(&sql);
+   sql_cnf_connect(&sql, CONFIG_SQL_SERVER_FILE);
+   sskeydatabase(&sql);
+   ssdatabase(&sql);            // Selects the database, so do after key database
    syslog(LOG_INFO, "Starting");
    sql_safe_query(&sql, "DELETE FROM `pending`");
    sql_safe_query(&sql, "UPDATE `device` SET `id`=NULL,`via`=NULL,`offlinereason`='System restart',`online`=NULL,`lastonline`=NOW(),`progress`=NULL WHERE `id` IS NOT NULL");
@@ -1009,7 +992,7 @@ int main(int argc, const char *argv[])
       if (poke)
       {
          poke = 0;
-         dopoke(&sql, &sqlkey);
+         dopoke(&sql);
       }
       j_t j = incoming();
       if (!j)
@@ -1026,7 +1009,7 @@ int main(int argc, const char *argv[])
             return device;
          if (deviceid && *deviceid == '*')
             return NULL;
-         device = sql_safe_query_store_free(&sql, sql_printf("SELECT * FROM `device` WHERE `device`=%#s AND `id`=%lld AND `site` IS NOT NULL", deviceid ? : secureid, id));
+         device = sql_safe_query_store_f(&sql, "SELECT * FROM `device` WHERE `device`=%#s AND `id`=%lld AND `site` IS NOT NULL", deviceid ? : secureid, id);
          if (!sql_fetch_row(device))
          {
             sql_free_result(device);
@@ -1050,11 +1033,11 @@ int main(int argc, const char *argv[])
          {                      // Identify the device we want to talk to...
             SQL_RES *res = NULL;
             if ((v = j_get(meta, "site")) && atoi(v))
-               res = sql_safe_query_store_free(&sql, sql_printf("SELECT `id`,`device` FROM `device` WHERE `site`=%d AND `id` IS NOT NULL AND `via` IS NULL AND `outofservice`='false' LIMIT 1", atoi(v)));
+               res = sql_safe_query_store_f(&sql, "SELECT `id`,`device` FROM `device` WHERE `site`=%d AND `id` IS NOT NULL AND `via` IS NULL AND `outofservice`='false' LIMIT 1", atoi(v));
             else if ((v = j_get(meta, "device")))
-               res = sql_safe_query_store_free(&sql, sql_printf("SELECT `id`,`device` FROM `device` WHERE `device`=%#s AND `site` IS NOT NULL", v));
+               res = sql_safe_query_store_f(&sql, "SELECT `id`,`device` FROM `device` WHERE `device`=%#s AND `site` IS NOT NULL", v);
             else if ((v = j_get(meta, "pending")))
-               res = sql_safe_query_store_free(&sql, sql_printf("SELECT `id`,`pending` AS `device` FROM `pending` WHERE `pending`=%#s", v));
+               res = sql_safe_query_store_f(&sql, "SELECT `id`,`pending` AS `device` FROM `pending` WHERE `pending`=%#s", v);
             if (res)
             {                   // Check device on line, find id
                deviceid = v;
@@ -1070,7 +1053,7 @@ int main(int argc, const char *argv[])
          }
          // Note, API is first as called with user supplied data, so meta could have something else as well.
          if (j_find(meta, "api"))
-            return doapi(&sql, &sqlkey, local, meta, j);
+            return doapi(&sql, local, meta, j);
          if (j_find(meta, "provision") && deviceid)
          {                      // JSON is rest of settings to send
             char *key = makekey();
@@ -1088,9 +1071,7 @@ int main(int argc, const char *argv[])
             const char *aid = j_get(meta, "aid");
             if (aid && !fail)
             {
-               SQL_RES *s = sql_safe_query_store_free(&sql,
-                                                      sql_printf("SELECT * FROM `aid` LEFT JOIN `site` USING (`site`) WHERE `aid`=%#s",
-                                                                 aid));
+               SQL_RES *s = sql_safe_query_store_f(&sql, "SELECT * FROM `aid` LEFT JOIN `site` USING (`site`) WHERE `aid`=%#s", aid);
                if (sql_fetch_row(s))
                {
                   j = j_create();
@@ -1100,7 +1081,7 @@ int main(int argc, const char *argv[])
                sql_free_result(s);
             }
             if (!fail)
-               sql_safe_query_free(&sql, sql_printf("DELETE FROM `pending` WHERE `pending`=%#s", deviceid));
+               sql_safe_query_f(&sql, "DELETE FROM `pending` WHERE `pending`=%#s", deviceid);
             return fail;
          }
          if ((v = j_get(meta, "deport")))
@@ -1112,7 +1093,7 @@ int main(int argc, const char *argv[])
             const char *fail = slot_send(id, "setting", deviceid, NULL, &j);
             // Set online later to remove from pending lists in UI
             if (!fail)
-               sql_safe_query_free(&sql, sql_printf("DELETE FROM `pending` WHERE `pending`=%#s", deviceid));
+               sql_safe_query_f(&sql, "DELETE FROM `pending` WHERE `pending`=%#s", deviceid);
             return fail;
          }
          if ((v = j_get(meta, "print")))
@@ -1122,15 +1103,15 @@ int main(int argc, const char *argv[])
             const char *key = j_get(j, "_KEYAES");
             if (!fob || !*fob || !ver || !*ver || !key || !*key)
                return "Bad request";
-            SQL_RES *res = sql_safe_query_store_free(&sqlkey, sql_printf("SELECT * FROM `AES` WHERE `fob`=%#s", fob));
+            SQL_RES *res = sql_safe_query_store_f(&sql, "SELECT * FROM `%#S`.`AES` WHERE `fob`=%#s", CONFIG_SQL_KEY_DATABASE, fob);
             if (sql_fetch_row(res))
             {
                sql_free_result(res);
                return "Already exists";
             }
             sql_free_result(res);
-            sql_safe_query_free(&sqlkey, sql_printf("INSERT INTO `AES` SET `fob`=%#s,`ver`=%#s,`key`=%#s,`aid`=''", fob, ver, key));
-            sql_safe_query_free(&sql, sql_printf("INSERT INTO `fob` SET `fob`=%#s,`provisioned`=NOW()", fob));
+            sql_safe_query_f(&sql, "INSERT INTO `%#S`.`AES` SET `fob`=%#s,`ver`=%#s,`key`=%#s,`aid`=''", CONFIG_SQL_KEY_DATABASE, fob, ver, key);
+            sql_safe_query_f(&sql, "INSERT INTO `fob` SET `fob`=%#s,`provisioned`=NOW()", fob);
             return NULL;
          }
          if ((v = j_get(meta, "prefix")))
@@ -1189,15 +1170,15 @@ int main(int argc, const char *argv[])
             if (fobid)
             {
                j_store_string(init, "fob", fobid);
-               j_store_string(init, "masterkey", getaes(&sqlkey, key, NULL, fobid));
+               j_store_string(init, "masterkey", getaes(&sql, key, NULL, fobid));
             }
             if (fobname)
                j_store_string(init, "fobname", fobname);
             if (aid)
             {
                j_store_string(init, "aid", aid);
-               j_store_string(init, "aid0key", getaes(&sqlkey, key, aid, fobid));
-               j_store_string(init, "aid1key", getaes(&sqlkey, key, aid, NULL));
+               j_store_string(init, "aid0key", getaes(&sql, key, aid, fobid));
+               j_store_string(init, "aid1key", getaes(&sql, key, aid, NULL));
             }
             j_store_int(init, "device", id);
             j_store_string(init, "deviceid", deviceid);
@@ -1212,28 +1193,28 @@ int main(int argc, const char *argv[])
          const char *fobname = j_get(j, "fobname");
          const char *aid = j_get(j, "aid");
          if (fob)
-            sql_safe_query_free(&sql, sql_printf("INSERT IGNORE INTO `fob` SET `fob`=%#s,`provisioned`=NOW()", fob));
+            sql_safe_query_f(&sql, "INSERT IGNORE INTO `fob` SET `fob`=%#s,`provisioned`=NOW()", fob);
          if ((v = j_get(j, "mem")) && fob)
-            sql_safe_query_free(&sql, sql_printf("UPDATE `fob` SET `mem`=%#s WHERE `fob`=%#s AND (`mem` IS NULL OR `mem`<>%#s)", v, fob, v));
+            sql_safe_query_f(&sql, "UPDATE `fob` SET `mem`=%#s WHERE `fob`=%#s AND (`mem` IS NULL OR `mem`<>%#s)", v, fob, v);
          if ((v = j_get(j, "capacity")) && fob)
-            sql_safe_query_free(&sql, sql_printf("UPDATE `fob` SET `capacity`=%#s WHERE `fob`=%#s AND (`capacity` IS NULL OR `capacity`<>%#s)", v, fob, v));
+            sql_safe_query_f(&sql, "UPDATE `fob` SET `capacity`=%#s WHERE `fob`=%#s AND (`capacity` IS NULL OR `capacity`<>%#s)", v, fob, v);
          if (j_find(meta, "provisioned") && fob && (v = j_get(j, "masterkey")))
          {
-            sql_safe_query_free(&sqlkey, sql_printf("REPLACE INTO `AES` SET `fob`=%#s,`aid`='',`ver`=%#.2s,`key`=%#s", fob, v, v + 2));
+            sql_safe_query_f(&sql, "REPLACE INTO `%#S`/`AES` SET `fob`=%#s,`aid`='',`ver`=%#.2s,`key`=%#s", CONFIG_SQL_KEY_DATABASE, fob, v, v + 2);
             if (aid && (v = j_get(j, "aid0key")))
-               sql_safe_query_free(&sqlkey, sql_printf("REPLACE INTO `AES` SET `fob`=%#s,`aid`=%#s,`ver`=%#.2s,`key`=%#s", fob, aid, v, v + 2));
+               sql_safe_query_f(&sql, "REPLACE INTO `%#S`.`AES` SET `fob`=%#s,`aid`=%#s,`ver`=%#.2s,`key`=%#s", CONFIG_SQL_KEY_DATABASE, fob, aid, v, v + 2);
          }
          if (j_find(meta, "adopted") && fob && aid)
          {
             int access = atoi(j_get(j, "access") ? : "");
             if ((v = j_get(j, "aid0key")))
-               sql_safe_query_free(&sqlkey, sql_printf("REPLACE INTO `AES` SET `fob`=%#s,`aid`=%#s,`ver`=%#.2s,`key`=%#s", fob, aid, v, v + 2));
+               sql_safe_query_f(&sql, "REPLACE INTO `%#S`.`AES` SET `fob`=%#s,`aid`=%#s,`ver`=%#.2s,`key`=%#s", CONFIG_SQL_KEY_DATABASE, fob, aid, v, v + 2);
             if ((v = j_get(j, "organisation")))
-               sql_safe_query_free(&sql, sql_printf("INSERT IGNORE INTO `foborganisation` SET `fob`=%#s,`organisation`=%s,`fobname`=%#s ON DUPLICATE KEY UPDATE `fobname`=%#s", fob, v, fobname, fobname));
-            sql_safe_query_free(&sql, sql_printf("INSERT IGNORE INTO `fobaid` SET `fob`=%#s,`aid`=%#s,`adopted`=NOW(),`access`=%d ON DUPLICATE KEY UPDATE `access`=%d", fob, aid, access, access));
+               sql_safe_query_f(&sql, "INSERT IGNORE INTO `foborganisation` SET `fob`=%#s,`organisation`=%s,`fobname`=%#s ON DUPLICATE KEY UPDATE `fobname`=%#s", fob, v, fobname, fobname);
+            sql_safe_query_f(&sql, "INSERT IGNORE INTO `fobaid` SET `fob`=%#s,`aid`=%#s,`adopted`=NOW(),`access`=%d ON DUPLICATE KEY UPDATE `access`=%d", fob, aid, access, access);
          }
          if (j_find(meta, "formatted") && fob)
-            sql_safe_query_free(&sql, sql_printf("DELETE FROM `fobaid` WHERE `fob`=%#s", fob));
+            sql_safe_query_f(&sql, "DELETE FROM `fobaid` WHERE `fob`=%#s", fob);
          return NULL;
       }
       const char *process(void) {
@@ -1267,29 +1248,29 @@ int main(int argc, const char *argv[])
                         if (secureid)
                         {
                            int site = 0;
-                           SQL_RES *res = sql_safe_query_store_free(&sql, sql_printf("SELECT * FROM `device` WHERE `device`=%#s", secureid));
+                           SQL_RES *res = sql_safe_query_store_f(&sql, "SELECT * FROM `device` WHERE `device`=%#s", secureid);
                            if (!sql_fetch_row(res))
-                              sql_safe_query_free(&sql, sql_printf("INSERT INTO `device` SET `device`=%#s,`id`=%lld,`online`=NOW()", secureid, id));
+                              sql_safe_query_f(&sql, "INSERT INTO `device` SET `device`=%#s,`id`=%lld,`online`=NOW()", secureid, id);
                            else
                               site = atoi(sql_colz(res, "site"));
                            sql_free_result(res);
                            if (!site)
-                              sql_safe_query_free(&sql, sql_printf("INSERT INTO `pending` SET `pending`=%#s,`id`=%lld,`online`=NOW() ON DUPLICATE KEY UPDATE `id`=%lld", secureid, id, id));
+                              sql_safe_query_f(&sql, "INSERT INTO `pending` SET `pending`=%#s,`id`=%lld,`online`=NOW() ON DUPLICATE KEY UPDATE `id`=%lld", secureid, id, id);
                            if (strncmp(secureid, dev, p - dev))
                            {    // Must be same site
-                              sql_safe_query_free(&sql, sql_printf("UPDATE `device` SET `online`=NOW(),`offlinereason`=NULL,`lastonline`=NOW(),`id`=%lld,`via`=%#s WHERE `device`=%#.*s AND `site`=%d", id, secureid, p - dev, dev, site));
+                              sql_safe_query_f(&sql, "UPDATE `device` SET `online`=NOW(),`offlinereason`=NULL,`lastonline`=NOW(),`id`=%lld,`via`=%#s WHERE `device`=%#.*s AND `site`=%d", id, secureid, p - dev, dev, site);
                            } else
-                              sql_safe_query_free(&sql, sql_printf("UPDATE `device` SET `online`=NOW(),`offlinereason`=NULL,`lastonline`=NOW(),`id`=%lld,`via`=NULL WHERE `device`=%#.*s", id, p - dev, dev));
-                           device = sql_safe_query_store_free(&sql, sql_printf("SELECT * FROM `device` WHERE `device`=%#.*s AND `site` IS NOT NULL", p - dev, dev));
+                              sql_safe_query_f(&sql, "UPDATE `device` SET `online`=NOW(),`offlinereason`=NULL,`lastonline`=NOW(),`id`=%lld,`via`=NULL WHERE `device`=%#.*s", id, p - dev, dev);
+                           device = sql_safe_query_store_f(&sql, "SELECT * FROM `device` WHERE `device`=%#.*s AND `site` IS NOT NULL", p - dev, dev);
                            if (sql_fetch_row(device))
                            {
                               if (!strncmp(secureid, dev, p - dev))
                                  upgrade(device, id);   // Priority upgrade for connecting device as fastest
-                              settings(&sql, &sqlkey, device, id);
+                              settings(&sql, device, id);
                            }
                            poke = 1;
                         } else
-                           sql_safe_query_free(&sql, sql_printf("INSERT INTO `pending` SET `pending`=%#.*s,`online`=NOW(),`id`=%lld ON DUPLICATE KEY UPDATE `id`=%lld", p - dev, dev, id, id));
+                           sql_safe_query_f(&sql, "INSERT INTO `pending` SET `pending`=%#.*s,`online`=NOW(),`id`=%lld ON DUPLICATE KEY UPDATE `id`=%lld", p - dev, dev, id, id);
                      }
                   }
                }
@@ -1319,9 +1300,9 @@ int main(int argc, const char *argv[])
                      if (p - dev == 12)
                      {
                         if (checkdevice())
-                           sql_safe_query_free(&sql, sql_printf("UPDATE `device` SET `via`=NULL,`online`=NULL,`lastonline`=NOW(),`progress`=NULL,`id`=NULL,`offlinereport`=NULL,`offlinereason`='Timeout' WHERE `device`=%#.*s AND `id`=%lld", p - dev, dev, id));
+                           sql_safe_query_f(&sql, "UPDATE `device` SET `via`=NULL,`online`=NULL,`lastonline`=NOW(),`progress`=NULL,`id`=NULL,`offlinereport`=NULL,`offlinereason`='Timeout' WHERE `device`=%#.*s AND `id`=%lld", p - dev, dev, id);
                         else
-                           sql_safe_query_free(&sql, sql_printf("DELETE FROM `pending` WHERE `pending`=%#.*s AND `id`=%lld", p - dev, dev, id));
+                           sql_safe_query_f(&sql, "DELETE FROM `pending` WHERE `pending`=%#.*s AND `id`=%lld", p - dev, dev, id);
                      }
                   }
                }
@@ -1358,11 +1339,11 @@ int main(int argc, const char *argv[])
          {                      // Up message
             if (j_isbool(up) && !j_istrue(up))
             {                   // Down
-               sql_safe_query_free(&sql, sql_printf("UPDATE `device` SET `via`=NULL,`offlinereport`=NULL,`offlinereason`=%#s,`online`=NULL,`lastonline`=NOW(),`progress`=NULL,`id`=NULL WHERE `device`=%#s AND `id`=%lld", j_get(j, "reason"), deviceid, id));
+               sql_safe_query_f(&sql, "UPDATE `device` SET `via`=NULL,`offlinereport`=NULL,`offlinereason`=%#s,`online`=NULL,`lastonline`=NOW(),`progress`=NULL,`id`=NULL WHERE `device`=%#s AND `id`=%lld", j_get(j, "reason"), deviceid, id);
                return NULL;
             }
             sql_s_t s = { 0 };
-            if (!device && (device = sql_safe_query_store_free(&sql, sql_printf("SELECT * FROM `device` WHERE `device`=%#s AND `site` IS NOT NULL", deviceid))) && !sql_fetch_row(device))
+            if (!device && (device = sql_safe_query_store_f(&sql, "SELECT * FROM `device` WHERE `device`=%#s AND `site` IS NOT NULL", deviceid)) && !sql_fetch_row(device))
             {
                sql_free_result(device);
                device = NULL;
@@ -1389,7 +1370,7 @@ int main(int argc, const char *argv[])
                   sql_sprintf(&s, "`via`=%#s,", secureid);
                sql_sprintf(&s, "`online`=NOW(),");      // Can happen if reconnect without unsub/sub (i.e. fast enough)
                if (device && secureid)
-                  settings(&sql, &sqlkey, device, id);
+                  settings(&sql, device, id);
                poke = 1;
             }
             if (!secureid || !device || (address && strcmp(sql_colz(device, "address"), address)))
@@ -1402,7 +1383,7 @@ int main(int argc, const char *argv[])
             {
                sql_sprintf(&s, "`version`=%#s,", version);
                if (device && secureid)
-                  sql_safe_query_free(&sql, sql_printf("INSERT INTO `event` SET `logged`=NOW(),`device`=%#s,`suffix`='upgrade',`data`='{\"version\":\"%#S%#S\"}'", deviceid, version, build_suffix));
+                  sql_safe_query_f(&sql, "INSERT INTO `event` SET `logged`=NOW(),`device`=%#s,`suffix`='upgrade',`data`='{\"version\":\"%#S%#S\"}'", deviceid, version, build_suffix);
             }
             const char *build = j_get(j, "build");
             if (!secureid || !device || (build && strcmp(sql_colz(device, "build"), build)))
@@ -1436,7 +1417,7 @@ int main(int argc, const char *argv[])
          }
          if (prefix && !strcmp(prefix, "state") && suffix && !strcmp(suffix, "system") && checkdevice() && *sql_colz(device, "outofservice") == 'f')
          {
-            SQL_RES *res = sql_safe_query_store_free(&sql, sql_printf("SELECT * FROM `site` WHERE `site`=%#s", sql_col(device, "site")));
+            SQL_RES *res = sql_safe_query_store_f(&sql, "SELECT * FROM `site` WHERE `site`=%#s", sql_col(device, "site"));
             if (sql_fetch_row(res))
             {
                sql_s_t s = { 0 };
@@ -1477,7 +1458,7 @@ int main(int argc, const char *argv[])
          }
          if (prefix && !strcmp(prefix, "sms") && checkdevice())
          {
-            SQL_RES *res = sql_safe_query_store_free(&sql, sql_printf("SELECT * FROM `site` WHERE `site`=%#s", sql_col(device, "site")));
+            SQL_RES *res = sql_safe_query_store_f(&sql, "SELECT * FROM `site` WHERE `site`=%#s", sql_col(device, "site"));
             if (sql_fetch_row(res))
                send_message(res, j_get(j, "message"), j_get(j, "number") ? : sql_colz(res, "smsnumber"));
             sql_free_result(res);
@@ -1486,9 +1467,9 @@ int main(int argc, const char *argv[])
          if (!prefix)
          {                      // Down (all other messages have a topic)
             if (secureid)
-               sql_safe_query_free(&sql, sql_printf("UPDATE `device` SET `via`=NULL,`offlinereport`=NULL,`offlinereason`='Closed',`online`=NULL,`lastonline`=NOW(),`progress`=NULL,`id`=NULL,`lastonline`=NOW() WHERE `id`=%lld", id));
+               sql_safe_query_f(&sql, "UPDATE `device` SET `via`=NULL,`offlinereport`=NULL,`offlinereason`='Closed',`online`=NULL,`lastonline`=NOW(),`progress`=NULL,`id`=NULL,`lastonline`=NOW() WHERE `id`=%lld", id);
             else                // pending
-               sql_safe_query_free(&sql, sql_printf("DELETE FROM `pending` WHERE `id`=%lld", id));
+               sql_safe_query_f(&sql, "DELETE FROM `pending` WHERE `id`=%lld", id);
             return NULL;
          }
          if (prefix && !strcmp(prefix, "event"))
@@ -1497,18 +1478,18 @@ int main(int argc, const char *argv[])
             if (!strcmp(suffix ? : "", "fob"))
             {
                fob = j_get(j, "id");
-               SQL_RES *res = sql_safe_query_store_free(&sql, sql_printf("SELECT * FROM `fob` WHERE `fob`=%#s", fob));
+               SQL_RES *res = sql_safe_query_store_f(&sql, "SELECT * FROM `fob` WHERE `fob`=%#s", fob);
                if (!sql_fetch_row(res))
                   fob = NULL;
                sql_free_result(res);
             }
             char *data = j_write_str(j);
-            sql_safe_query_free(&sql, sql_printf("INSERT INTO `event` SET `logged`=NOW(),`device`=%#s,`fob`=%#s,`suffix`=%#s,`data`=%#s", deviceid, fob, suffix, data));
+            sql_safe_query_f(&sql, "INSERT INTO `event` SET `logged`=NOW(),`device`=%#s,`fob`=%#s,`suffix`=%#s,`data`=%#s", deviceid, fob, suffix, data);
             free(data);
             j_store_string(j, "event", suffix);
             if (suffix && *suffix && checkdevice())
             {                   // Event hooks
-               SQL_RES *res = sql_safe_query_store_free(&sql, sql_printf("SELECT * FROM `site` WHERE `site`=%#s", sql_col(device, "site")));
+               SQL_RES *res = sql_safe_query_store_f(&sql, "SELECT * FROM `site` WHERE `site`=%#s", sql_col(device, "site"));
                if (sql_fetch_row(res))
                {
                   char *tag;
@@ -1539,9 +1520,7 @@ int main(int argc, const char *argv[])
                char blacklist = j_test(j, "blacklist", 0);
                if (!held && !gone && !remote)
                {                // Initial fob use
-                  SQL_RES *fa = sql_safe_query_store_free(&sql,
-                                                          sql_printf("SELECT * FROM `fobaid` LEFT JOIN `foborganisation` USING (`fob`) LEFT JOIN `access` USING (`access`) WHERE `fob`=%#s AND `aid`=%#s",
-                                                                     fobid, aid));
+                  SQL_RES *fa = sql_safe_query_store_f(&sql, "SELECT * FROM `fobaid` LEFT JOIN `foborganisation` USING (`fob`) LEFT JOIN `access` USING (`access`) WHERE `fob`=%#s AND `aid`=%#s", fobid, aid);
                   if (!sql_fetch_row(fa))
                   {
                      sql_free_result(fa);
@@ -1549,10 +1528,10 @@ int main(int argc, const char *argv[])
                   }
                   if ((block || (updated && blacklist)) && secure)
                   {             // Confirm blocked
-                     sql_safe_query_free(&sql, sql_printf("UPDATE `foborganisation` SET `confirmed`=NOW() WHERE `organisation`=%d AND `fob`=%#s AND `confirmed` IS NULL", organisation, fobid));
+                     sql_safe_query_f(&sql, "UPDATE `foborganisation` SET `confirmed`=NOW() WHERE `organisation`=%d AND `fob`=%#s AND `confirmed` IS NULL", organisation, fobid);
                      if (sql_affected_rows(&sql))
                      {
-                        sql_safe_query_free(&sql, sql_printf("UPDATE `device` SET `poke`=NOW() WHERE `organisation`=%d", organisation));
+                        sql_safe_query_f(&sql, "UPDATE `device` SET `poke`=NOW() WHERE `organisation`=%d", organisation);
                         poke = 1;
                      }
                   }
@@ -1605,10 +1584,10 @@ int main(int argc, const char *argv[])
             {
                if (j_find(j, "complete"))
                {                // Done
-                  sql_safe_query_free(&sql, sql_printf("UPDATE `device` SET `upgrade`=NULL,`version`=NULL,`build_suffix`=NULL,`progress`=NULL WHERE `device`=%#s", deviceid));
+                  sql_safe_query_f(&sql, "UPDATE `device` SET `upgrade`=NULL,`version`=NULL,`build_suffix`=NULL,`progress`=NULL WHERE `device`=%#s", deviceid);
                   poke = 1;
                } else if (j_find(j, "size"))    // making progress
-                  sql_safe_query_free(&sql, sql_printf("UPDATE `device` SET `progress`=%d WHERE `device`=%#s", atoi(j_get(j, "progress") ? : ""), deviceid));
+                  sql_safe_query_f(&sql, "UPDATE `device` SET `progress`=%d WHERE `device`=%#s", atoi(j_get(j, "progress") ? : ""), deviceid);
             }
          }
          if (j)
@@ -1629,7 +1608,6 @@ int main(int argc, const char *argv[])
    }
 
    sql_close(&sql);
-   sql_close(&sqlkey);
    curl_easy_cleanup(curl);
    return 0;
 }
