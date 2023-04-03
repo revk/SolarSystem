@@ -611,7 +611,6 @@ const char *door_command(const char *tag, jo_t j)
                   int len = jo_strncpy(j, tempid, sizeof(tempid));
                   if (len > 0 && len < sizeof(tempid))
                      id = tempid;
-
                } else if (!jo_strcmp(j, "afile"))
                {
                   jo_next(j);
@@ -642,7 +641,13 @@ const char *door_command(const char *tag, jo_t j)
    if (!strcasecmp(tag, "lock"))
       return e ? : door_lock(id, afile, "remote");
    if (!strcasecmp(tag, "unlock"))
-      return e ? : door_unlock(id, afile, "remote");
+   {
+      if (e)
+         return e;
+      jo_t j = jo_make(NULL);
+      alarm_event("unlock", &j, iotstatedoor);
+      return door_unlock(id, afile, "remote");
+   }
    if (!strcasecmp(tag, "prop"))
       return e ? : door_prop(id, afile, "remote");
    if (!strcasecmp(tag, "access"))
