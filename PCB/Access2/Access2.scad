@@ -1,6 +1,6 @@
 // Generated case design for PCB/Access2/Access2.kicad_pcb
 // By https://github.com/revk/PCBCase
-// Generated 2023-04-04 12:33:28
+// Generated 2023-04-04 14:58:57
 // title:	Access Control
 // date:	${DATE}
 // rev:	3
@@ -110,7 +110,7 @@ hull()
 // Plug
 b(0,-10.5/2-7.5+0.3,0,1.1+n*2,10.5,5);
 // Pins
-for(p=[0:n-1])translate([-2.5*(n-1)/2+p*2.5,0,-2.1])cylinder(r=0.3,h=2.1);
+if(!hulled)for(p=[0:n-1])translate([-2.5*(n-1)/2+p*2.5,0,-2.1])cylinder(r=0.3,h=2.1);
 }
 
 module m4(pushed=false,hulled=false,n=0)
@@ -123,7 +123,7 @@ hull()
 // Plug
 b(0,-10.5/2-7.5+0.3,0,1.1+n*2,10.5,5);
 // Pins
-for(p=[0:n-1])translate([-2.5*(n-1)/2+p*2.5,0,-2.1])cylinder(r=0.3,h=2.1);
+if(!hulled)for(p=[0:n-1])translate([-2.5*(n-1)/2+p*2.5,0,-2.1])cylinder(r=0.3,h=2.1);
 }
 
 module m8(pushed=false,hulled=false)
