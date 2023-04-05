@@ -1,6 +1,6 @@
 // Generated case design for PCB/Access2/Access2.kicad_pcb
 // By https://github.com/revk/PCBCase
-// Generated 2023-04-04 14:58:57
+// Generated 2023-04-04 15:39:52
 // title:	Access Control
 // date:	${DATE}
 // rev:	3
@@ -14,7 +14,7 @@ margin=0.500000;
 overlap=2.000000;
 lip=0.000000;
 casebase=2.000000;
-casetop=5.600000;
+casetop=6.000000;
 casewall=3.000000;
 fit=0.000000;
 edge=1.000000;

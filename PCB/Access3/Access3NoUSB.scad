@@ -1,6 +1,6 @@
 // Generated case design for PCB/Access3/Access3.kicad_pcb
 // By https://github.com/revk/PCBCase
-// Generated 2023-04-04 12:49:27
+// Generated 2023-04-04 16:59:33
 // title:	Access Control
 // date:	${DATE}
 // rev:	3
@@ -14,7 +14,7 @@ margin=0.500000;
 overlap=2.000000;
 lip=0.000000;
 casebase=2.000000;
-casetop=5.600000;
+casetop=6.000000;
 casewall=3.000000;
 fit=0.000000;
 edge=1.000000;
@@ -112,7 +112,7 @@ hull()
 // Plug
 b(0,-10.5/2-7.5+0.3,0,1.1+n*2,10.5,5);
 // Pins
-for(p=[0:n-1])translate([-2.5*(n-1)/2+p*2.5,0,-2.1])cylinder(r=0.3,h=2.1);
+if(!hulled)for(p=[0:n-1])translate([-2.5*(n-1)/2+p*2.5,0,-2.1])cylinder(r=0.3,h=2.1);
 }
 
 module m3(pushed=false,hulled=false,n=0)
@@ -125,7 +125,7 @@ hull()
 // Plug
 b(0,-10.5/2-7.5+0.3,0,1.1+n*2,10.5,5);
 // Pins
-for(p=[0:n-1])translate([-2.5*(n-1)/2+p*2.5,0,-2.1])cylinder(r=0.3,h=2.1);
+if(!hulled)for(p=[0:n-1])translate([-2.5*(n-1)/2+p*2.5,0,-2.1])cylinder(r=0.3,h=2.1);
 }
 
 module m5(pushed=false,hulled=false,n=0)
@@ -138,7 +138,7 @@ hull()
 // Plug
 b(0,-10.5/2-7.5+0.3,0,1.1+n*2,10.5,5);
 // Pins
-for(p=[0:n-1])translate([-2.5*(n-1)/2+p*2.5,0,-2.1])cylinder(r=0.3,h=2.1);
+if(!hulled)for(p=[0:n-1])translate([-2.5*(n-1)/2+p*2.5,0,-2.1])cylinder(r=0.3,h=2.1);
 }
 
 module m9(pushed=false,hulled=false)
