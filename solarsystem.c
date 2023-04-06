@@ -1200,7 +1200,7 @@ int main(int argc, const char *argv[])
             sql_safe_query_f(&sql, "UPDATE `fob` SET `capacity`=%#s WHERE `fob`=%#s AND (`capacity` IS NULL OR `capacity`<>%#s)", v, fob, v);
          if (j_find(meta, "provisioned") && fob && (v = j_get(j, "masterkey")))
          {
-            sql_safe_query_f(&sql, "REPLACE INTO `%#S`/`AES` SET `fob`=%#s,`aid`='',`ver`=%#.2s,`key`=%#s", CONFIG_SQL_KEY_DATABASE, fob, v, v + 2);
+            sql_safe_query_f(&sql, "REPLACE INTO `%#S`.`AES` SET `fob`=%#s,`aid`='',`ver`=%#.2s,`key`=%#s", CONFIG_SQL_KEY_DATABASE, fob, v, v + 2);
             if (aid && (v = j_get(j, "aid0key")))
                sql_safe_query_f(&sql, "REPLACE INTO `%#S`.`AES` SET `fob`=%#s,`aid`=%#s,`ver`=%#.2s,`key`=%#s", CONFIG_SQL_KEY_DATABASE, fob, aid, v, v + 2);
          }
