@@ -1,6 +1,6 @@
 // Generated case design for PCB/Bell2/Bell2.kicad_pcb
 // By https://github.com/revk/PCBCase
-// Generated 2023-04-04 15:31:58
+// Generated 2023-04-05 11:43:54
 // title:	Bell box controller
 // date:	${DATE}
 // rev:	2
@@ -44,8 +44,8 @@ translate([29.200000,20.750000,0.800000])rotate([0,0,90.000000])m4(pushed,hulled
 translate([23.150000,26.500000,0.800000])rotate([0,0,180.000000])m10(pushed,hulled); // RevK:C_0603_ C_0603_1608Metric (back)
 translate([7.300000,9.900000,0.800000])m4(pushed,hulled); // RevK:R_0603 R_0603_1608Metric (back)
 translate([31.100000,3.400000,0.800000])rotate([0,0,90.000000])m1(pushed,hulled,2); // RevK:PTSM-HH-8-RA PTSM-HH-8-RA (back)
-// Missing U4.1 SOIC-8-N7_3.9x4.9mm_P1.27mm
-// Missing U3.1 SOIC-8-N7_3.9x4.9mm_P1.27mm
+translate([26.150000,16.500000,0.800000])m16(pushed,hulled); // Package_SO:SO-8_3.9x4.9mm_P1.27mm SOIC-8-N7_3.9x4.9mm_P1.27mm (back)
+translate([26.150000,11.000000,0.800000])m16(pushed,hulled); // Package_SO:SO-8_3.9x4.9mm_P1.27mm SOIC-8-N7_3.9x4.9mm_P1.27mm (back)
 translate([4.600000,9.900000,0.800000])m10(pushed,hulled); // RevK:C_0603_ C_0603_1608Metric (back)
 translate([14.900000,8.250000,0.800000])rotate([0,0,180.000000])m4(pushed,hulled); // RevK:R_0603 R_0603_1608Metric (back)
 translate([3.900000,4.500000,0.800000])rotate([0,0,-90.000000])m4(pushed,hulled); // RevK:R_0603 R_0603_1608Metric (back)
@@ -75,7 +75,7 @@ hull()
 	b(0,-7.5/2+0.3,0,1.7+n*2.5-2,7.5,5);
 }
 // Plug
-b(0,-10.5/2-7.5+0.3,0,1.1+n*2,10.5,5);
+b(0,-10.5/2-7.5+0.3,0,1.1+n*2.5,10.5,5);
 // Pins
 if(!hulled)for(p=[0:n-1])translate([-2.5*(n-1)/2+p*2.5,0,-2.1])cylinder(r=0.3,h=2.1);
 }
@@ -101,6 +101,12 @@ module m12(pushed=false,hulled=false)
 { // RevK:C_0805_ C_0805_2012Metric
 b(0,0,0,2,1.45,0.2); // Pad size
 b(0,0,0,2,1.2,1); // Chip
+}
+
+module m16(pushed=false,hulled=false)
+{ // Package_SO:SO-8_3.9x4.9mm_P1.27mm SOIC-8-N7_3.9x4.9mm_P1.27mm
+b(0,0,0,5,4,1);
+b(0,0,0,3.9,4.9,2.1);
 }
 
 module m19(pushed=false,hulled=false)
