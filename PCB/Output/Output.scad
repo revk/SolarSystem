@@ -1,6 +1,6 @@
 // Generated case design for PCB/Output/Output.kicad_pcb
 // By https://github.com/revk/PCBCase
-// Generated 2023-04-04 17:26:18
+// Generated 2023-04-05 13:37:43
 // title:	Output board (10)
 // date:	${DATE}
 // rev:	1
@@ -81,7 +81,7 @@ hull()
 	b(0,-7.5/2+0.3,0,1.7+n*2.5-2,7.5,5);
 }
 // Plug
-b(0,-10.5/2-7.5+0.3,0,1.1+n*2,10.5,5);
+b(0,-10.5/2-7.5+0.3,0,1.1+n*2.5,10.5,5);
 // Pins
 if(!hulled)for(p=[0:n-1])translate([-2.5*(n-1)/2+p*2.5,0,-2.1])cylinder(r=0.3,h=2.1);
 }
