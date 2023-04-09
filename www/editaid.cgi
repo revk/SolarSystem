@@ -36,6 +36,7 @@ endif
 xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <sql table=site where="site=$site">
 <h1>🔢 Manage AIDs for <output name=sitename></h1>
+<p>You can add more AIDs if needed for distinct security areas, but this is not usually necessary.</p>
 <form method=post>
 <table>
 <tr><th>AID</th><th>Keys</th><th>Fobs</th></tr>
@@ -56,4 +57,5 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <if not USER_ADMIN=true><p>If you need an additional AID, please contact the system controller.</p></if>
 </form>
 </sql>
+<p>Each AID has a current key, and up to two old keys, (each with a random two digit codes. Fobs will update to the current one on use. You can roll over to create a new key at any time using the checkbox, but all fobs will be have to be used at some point to update. Once a fob is too old it will not work unless re-adopted.</p>
 'END'
