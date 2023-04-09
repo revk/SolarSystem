@@ -363,7 +363,8 @@ void *fobcommand(void *arg)
                status("Storing access file");
                df(write_data(&d, 0x0A, 'B', 1, 0, *afile + 1, afile));
                df(commit(&d));
-               // This is last as it is what marks a fob as finally adpoted
+               // This is last as it is what marks a fob as finally adopted
+	       // TODO what if not current key version?
                if (df_authenticate(&d, 1, aid1key + 2))
                {                // Set key 1
                   status("Setting AID key");
