@@ -57,5 +57,5 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <if not USER_ADMIN=true><p>If you need an additional AID, please contact the system controller.</p></if>
 </form>
 </sql>
-<p>Each AID has a current key, and up to two old keys (each with a random two digit code). Fobs will update to the current one on use. You can roll over to create a new key at any time using the checkbox, but all fobs will be have to be used at some point to update. Once a fob is too old it will not work unless re-adopted.</p>
+<p>Each AID has a current key, and up to two old keys (each with a random two digit code). Fobs will update to the current one on use. You can roll over to create a new key at any time using the checkbox, but all fobs will be have to be used at some point to update. Once a fob is still on a key that is too old (not one of the current or two backup keys), it will not work unless re-adopted.</p>
 'END'
