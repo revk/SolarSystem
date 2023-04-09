@@ -127,7 +127,7 @@ static void nmea(char *data)
       static int satswas = 0;
       if (satsnow != satswas && (countnow > countwas + 3 || countwas > countnow + 3 || (countnow && !gpslast) || gpslast + 3600 < uptime()))
       {                         // Notable change in number of sats or any change and it has been a while
-         why = (countwas ? "GPS count changed" : "I can see the sky");
+         why = (countwas ? countnow ? "GPS count changed" : "Hello darkness, my old friend (no GPS sats seen)" : "I have seen the light (GPS sats seen)");
          if (countnow)
             logical_gpio &= ~logical_GPSNoSats; // sats
          else
