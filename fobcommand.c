@@ -364,12 +364,19 @@ void *fobcommand(void *arg)
                df(write_data(&d, 0x0A, 'B', 1, 0, *afile + 1, afile));
                df(commit(&d));
                // This is last as it is what marks a fob as finally adopted
-	       // TODO what if not current key version?
+               // TODO what if not current key version?
                if (df_authenticate(&d, 1, aid1key + 2))
-               {                // Set key 1
+               {                // Auth failed, so set key 1 assuming it is NULL
                   status("Setting AID key");
-                  df(authenticate(&d, 1, NULL));        // own key to change it
-                  df(change_key(&d, 1, aid1key[1], NULL, aid1key + 2));
+                  if (df_authenticate(&d, 1, NULL))
+                  {             // Problem...
+                     status("Application not blank, erasing, please try again");
+               df(select_application(&d, NULL));
+                     df_authenticate(&d, 0, masterkey + 2);
+                     df(delete_application(&d, aid));
+                     return;
+                  } else
+                     df(change_key(&d, 1, aid1key[1], NULL, aid1key + 2));
                }
                unsigned int mem;
                df(free_memory(&d, &mem));
