@@ -63,7 +63,15 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <td align=right><output name=lastused type=recent></td>
 <td align=right><output name=expires type=recent></td>
 <td>
-<if not N=1><output name=N 0=No> AIDs</if><if N=1><sql table=site where="site=$site"><output name=sitename></sql>: <output name=aidname> (<output name=accessname>)</if>
+<if N=0>No AIDs</if>
+<if else>
+<sql table='fobaid LEFT JOIN aid USING (aid) LEFT JOIN site USING (site)' where='fob="$fob"'>
+<output name=sitename>: <output name=aidname> (<output name=accessname missing="?">)
+<if ver="$ver2" or ver="$ver3"><b>Old key</b></if>
+<if not ver="$ver1" not ver="$ver2" not ver="$ver3"><b>Obsolete key</b></if>
+<br>
+</sql>
+</if>
 <if blocked><b>Blocked</b></if>
 </td>
 </tr>

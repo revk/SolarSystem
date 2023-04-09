@@ -95,7 +95,7 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <tr><td><output name=day sun=Sunday mon=Monday tue=Tuesday wed=Wednesday thu=Thursday fri=Friday sat=Saturday></td><td><input name="${day}from" type=time>-<input name="${day}to" type=time></td></tr>
 </for>
 </table>
-<table border=1>
+<table>
 <set tags="enter arm strong disarm prop">
 <tr><th></th>
 <for SPACE T="$tags"><th><output name=T></th></for>

@@ -17,3 +17,6 @@ input[type=checkbox]:checked::after {
 a {
 	text-decoration:none;
 }
+table{border:1px solid blue;}
+tr:nth-child(odd) {background: #8ee;}
+td {vertical-align:top;}

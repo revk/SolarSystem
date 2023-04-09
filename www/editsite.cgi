@@ -105,7 +105,7 @@ Root:<select name=root><option value=''>None</option><sql table=device where="si
 <tr><td colspan=2><hr></td></tr>
 <tr><td>SMS Target</td><td><input name=smsnumber size=20 maxlength=20> (Send for sms selected areas as listed below)</td></tr>
 </table>
-<table border=1>
+<table>
 <set tags="engineer smsarm smsarmfail smsdisarm smscancel smsalarm smspanic smsfire">
 <tr><th></th>
 <for SPACE T="$tags"><th><output name=T></th></for>

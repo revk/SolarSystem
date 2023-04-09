@@ -42,7 +42,7 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 </table>
 <if not type=*P not type=*->
 <if type=*O><set SL="$STATELISTO"></if><if else><set SL="$STATELISTI"></if>
-<table border=1>
+<table>
 <tr><th></th><for space STATE="$SL"><th><output name=STATE></th></for><th>Areas</th></tr>
 <sql table=area where="site=$USER_SITE" order=tag>
 <tr>

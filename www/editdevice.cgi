@@ -121,7 +121,7 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <h1>🪛 Manage devices <output name=VERSION></h1>
 <if device CANVIEWLOG><p><a href="/log.cgi/$device">View logs</a></p></if>
 <if not device CANVIEWDEVICE>
-<table border=1>
+<table>
 <tr>
 <th>Device</th>
 <th>Online</th>
@@ -217,7 +217,7 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <if keypad=true><set tags="$tags keypad keyarm keystrong keydisarm"></if>
 <if nfc=true><set tags="$tags deadlock enter arm strong disarm"></if>
 <if tags>
-<table border=1>
+<table>
 <tr><th></th>
 <for SPACE T="$tags"><if not T=""><th><output name=T></th></if></for>
 <th>Areas</th>

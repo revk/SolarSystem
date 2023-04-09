@@ -39,7 +39,7 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <if ELSE USER_SITE CANVIEWDEVICE><li><a href="editdevice.cgi">View devices</a></li></if>
 </ul>
 <IF USER_ADMIN=true>
-<table border=1>
+<table>
 <sql select="pending.*,device.device AS D,device.online AS O,device.devicename" table="pending LEFT JOIN device ON (pending=device)" order="pending.online DESC" WHERE="pending.online<NOW()"><set found=1>
 <tr>
 <td><output name=pending href="provisiondevice.cgi/$+pending"></td>

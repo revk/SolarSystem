@@ -697,7 +697,36 @@ void daily(SQL * sqlp)
 {                               // Daily tasks and clean up
    sql_safe_query(sqlp, "DELETE FROM `session` WHERE `expires`<NOW()"); // Old sessions
    sql_safe_query(sqlp, "DELETE FROM `event` WHERE `logged`<DATE_SUB(NOW(),INTERVAL 1 MONTH)"); // Old event logs
-   // TODO clean up unused AES AID keys
+   SQL_RES *a = sql_safe_query_store(sqlp, "SELECT * FROM `aid`");
+   while (sql_fetch_row(a))
+   {
+      const char *aid = sql_colz(a, "aid");
+      const char *ver1 = sql_colz(a, "ver1");
+      int changed = 0;
+      SQL_RES *r = sql_safe_query_store_f(sqlp, "SELECT * FROM `%#S`.`AES` WHERE `aid`=%#s AND `fob`=''", CONFIG_SQL_KEY_DATABASE, aid);
+      while (sql_fetch_row(r))
+      {
+         const char *ver = sql_colz(r, "ver");
+         if (strcmp(ver, ver1))
+         {
+            SQL_RES *f = sql_safe_query_store_f(sqlp, "SELECT COUNT(*) AS `N` FROM `fobaid` WHERE `aid`=%#s AND `ver`=%#s", aid, ver);
+            if (!sql_fetch_row(f) || !atoi(sql_colz(f, "N")))
+            {                   // No fobs using this version - remove it
+               sql_safe_query_f(sqlp, "DELETE FROM `%#S`.`AES` WHERE `aid`=%#s AND `fob`='' AND `ver`=%#s", CONFIG_SQL_KEY_DATABASE, aid, ver);
+               changed++;
+            }
+            sql_free_result(f);
+         }
+      }
+      sql_free_result(r);
+      if (changed)
+      {
+         aidver(sqlp, aid);
+         sql_safe_query_f(sqlp, "UPDATE `device` SET `poke`=NOW() WHERE `aid`=%#s AND `online` IS NOT NULL", aid);
+         poke = 1;
+      }
+   }
+   sql_free_result(a);
 }
 
 void doupgrade(SQL * sqlp, int site)
