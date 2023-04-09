@@ -18,13 +18,15 @@ But this means that you cannot simply buy blank fobs and adopt them on to the sy
 
 The master key settings are set to `0x09`, but could be locked down further if required.
 
-## AID
+## AID and AID keys
 
 Each site may have one (or more) AID defining an application on the fob. Each application has a master AES key (key `0`) which is unique to the card and AID - this is used to control files in the application.
 
 The application key settings are `0xEB`, but could be locked down further if required.
 
-The application has a second key (key `1`) which is a site wide key for the AID, and is also store in corresponding door controllers. This allows the fob to be authenticated and some specific read and write operations to be performed.
+The application has a second key (key `1`) which is a site wide key for the AID, and is also stored in corresponding door controllers. This allows the fob to be authenticated and some specific read and write operations to be performed.
+
+*However, to avoid each fob having the site wide key stored, and hence risk of compromise of an individual fob releasing keys to make or change any fob, the actual key used on the fob is the result of AES128 encrypting the ASCII hex fob ID (null padded) with the site key, making a unique key for each fob but allowing the door controllers to only need to know the one site/AID key. This relies on the UID before authentication matching the actual UID and as such random UIDs cannot be used. (random UIDs also cause apparent multiple fobs when on the edge of the field).*
 
 All files are created with comms mode `0x01` (CMAC communications required).
 
