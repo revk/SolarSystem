@@ -186,19 +186,17 @@ void sskeydatabase(SQL * sqlp)
    if (res)
    {
       // Crude update, if we do any more then use same mechanism as ssdatabase()
-      char hasencrypt = 0;
+      char hastype = 0;
       SQL_ROW row;
       while ((row = sql_fetch_row(res)))
-         if (row[0] && !strcmp(row[0], "encrypt"))
-            hasencrypt = 1;
+         if (row[0] && !strcmp(row[0], "type"))
+            hastype = 1;
       sql_free_result(res);
-      if (!hasencrypt)
-         sql_safe_query(sqlp, "ALTER TABLE `AES` ADD `encrypt` enum('false','true') NOT NULL DEFAULT 'false'");
+      if (!hastype)
+         sql_safe_query(sqlp, "ALTER TABLE `AES` ADD `type` char(2) NOT NULL default '01' AFTER `fob`");
    } else
    {
-      sql_safe_query(sqlp,
-                     "CREATE TABLE `AES` (" "`created` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,`aid` char(6) NOT NULL DEFAULT '',`fob` char(14) NOT NULL DEFAULT '',`ver` char(2) NOT NULL DEFAULT '',`key` char(32) NOT NULL,`encrypt` enum('false','true') NOT NULL DEFAULT 'false',UNIQUE KEY `key` (`aid`,`fob`,`ver`)"
-                     ")");
+      sql_safe_query(sqlp, "CREATE TABLE `AES` (" "`created` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,`aid` char(6) NOT NULL DEFAULT '',`fob` char(14) NOT NULL DEFAULT '',`type` char(2) NOT NULL DEFAULT '00',`ver` char(2) NOT NULL DEFAULT '',`key` char(32) NOT NULL,UNIQUE KEY `key` (`aid`,`fob`,`ver`)" ")");
    }
 }
 

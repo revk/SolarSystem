@@ -139,10 +139,10 @@ void *fobcommand(void *arg)
        format = 0,
        hardformat = 0;
    unsigned char aid[3] = { };
-   unsigned char masterkey[17] = { };   // Keys with version on front
-   unsigned char aid0key[17] = { };
-   unsigned char aid1key[17] = { };
-   unsigned char afile[256] = { };
+   unsigned char masterkey[KEY_DATA_LEN] = { 0 };       // Type, Ver, Key
+   unsigned char aid0key[KEY_DATA_LEN] = { 0 }; // Type, Ver, Key
+   unsigned char aid1key[KEY_DATA_LEN] = { 0 }; // Type, Ver, Key
+   unsigned char afile[256] = { 0 };
    int organisation = 0;
    int access = 0;
    char *fob = NULL;
@@ -271,13 +271,13 @@ void *fobcommand(void *arg)
 
             void doformat(void) {
                status("Formatting fob");
-               df(format(&d, *masterkey, masterkey + 1));
+               df(format(&d, masterkey[1], masterkey + 2));
                df(get_uid(&d, uid));
                status(j_base16(sizeof(uid), uid));
                if (hardformat)
                {
                   status("Hard format fob - will need provisioning again");
-                  df(change_key(&d, 0x80, 0, masterkey + 1, NULL));     // Hard reset to zero AES
+                  df(change_key(&d, 0x80, 0, masterkey + 2, NULL));     // Hard reset to zero AES
                   df(authenticate(&d, 0, NULL));
                } else
                {
@@ -303,7 +303,7 @@ void *fobcommand(void *arg)
             void doconnect(void) {
                status("Connecting to fob");
                df(select_application(&d, NULL));
-               if (df_authenticate(&d, 0, masterkey + 1))
+               if (df_authenticate(&d, 0, masterkey + 2))
                   df(authenticate(&d, 0, NULL));
                df(get_uid(&d, uid));
                status(j_base16(sizeof(uid), uid));
@@ -316,7 +316,7 @@ void *fobcommand(void *arg)
             void doadopt(void) {
                status("Adopting fob");
                if (!*aid0key)
-                  randkey(aid0key);
+                  randkey(aid0key);     // type 0 means not set
                unsigned int n;
                {
                   unsigned char aids[3 * 20];
@@ -330,13 +330,13 @@ void *fobcommand(void *arg)
                   df(create_application(&d, aid, 0xEB, 2));
                }
                df(select_application(&d, aid));
-               if (df_authenticate(&d, 0, aid0key + 1))
+               if (df_authenticate(&d, 0, aid0key + 2))
                {                // Set key 0
                   status("Setting application key");
                   df(authenticate(&d, 0, NULL));        // own key to change it
-                  df(change_key(&d, 0, *aid0key, NULL, aid0key + 1));
+                  df(change_key(&d, 0, aid0key[1], NULL, aid0key + 2));
                }
-               df(authenticate(&d, 0, aid0key + 1));
+               df(authenticate(&d, 0, aid0key + 2));
                // Check files
                unsigned long long fids;
                df(get_file_ids(&d, &fids));
@@ -364,11 +364,11 @@ void *fobcommand(void *arg)
                df(write_data(&d, 0x0A, 'B', 1, 0, *afile + 1, afile));
                df(commit(&d));
                // This is last as it is what marks a fob as finally adpoted
-               if (df_authenticate(&d, 1, aid1key + 1))
+               if (df_authenticate(&d, 1, aid1key + 2))
                {                // Set key 1
                   status("Setting AID key");
                   df(authenticate(&d, 1, NULL));        // own key to change it
-                  df(change_key(&d, 1, *aid1key, NULL, aid1key + 1));
+                  df(change_key(&d, 1, aid1key[1], NULL, aid1key + 2));
                }
                unsigned int mem;
                df(free_memory(&d, &mem));
@@ -380,7 +380,7 @@ void *fobcommand(void *arg)
                   if (aid[0] || aid[1] || aid[2])
                      j_store_string(j, "aid", j_base16(sizeof(aid), aid));
                   j_store_string(j, "aid0key", j_base16(sizeof(aid0key), aid0key));
-                  j_store_stringf(j, "ver", "%02X", *aid1key);
+                  j_store_stringf(j, "ver", "%02X", aid1key[1]);
                   j_store_string(j, "deviceid", f.deviceid);
                   if (organisation)
                      j_store_int(j, "organisation", organisation);
@@ -396,9 +396,9 @@ void *fobcommand(void *arg)
             void doprovision(void) {    // Expects to have formatted and connected
                status("Setting key");
                if (!*masterkey)
-                  randkey(masterkey);
+                  randkey(masterkey);   // Type 0 is not set, so make a key
                if (adopt && !*aid0key)
-                  randkey(aid0key);
+                  randkey(aid0key);     // Type 0 is not set, so make a key
                unsigned int mem;
                df(free_memory(&d, &mem));
                {                // Tell system new key
@@ -416,8 +416,8 @@ void *fobcommand(void *arg)
                   j_store_int(j, "mem", mem);
                   mqtt_qin(&j);
                }
-               df(change_key(&d, 0x80, *masterkey, NULL, masterkey + 1));
-               df(authenticate(&d, 0, masterkey + 1));
+               df(change_key(&d, 0x80, masterkey[1], NULL, masterkey + 2));
+               df(authenticate(&d, 0, masterkey + 2));
             }
             if (f.connected && !f.done)
             {
@@ -464,9 +464,8 @@ void randblock(unsigned char *data, ssize_t len)
    close(f);
 }
 
-void randkey(unsigned char key[17])
+void randkey(unsigned char key[KEY_DATA_LEN])
 {
-   randblock(key, 17);
-   if (!*key)
-      *key = 1;
+   *key = 1;                    // Default, non encrypted
+   randblock(key + 1, KEY_DATA_LEN - 1);
 }

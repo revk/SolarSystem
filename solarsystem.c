@@ -49,23 +49,50 @@ int mqttdump = 0;               // mqtt logging
 
 CURL *curl = NULL;
 
+int poke = 1;                   // Poke devices
+
 static void addset(j_t j, const char *tag, const char *val, const char *always);
 static void addsitedata(SQL * sqlp, j_t j, SQL_RES * site, const char *deviceid, const char *parentid, char outofservice);
 
-#define AES_STRING_LEN	35      // TODO extra byte on end to mark encrypted
+#define AES_STRING_LEN	(KEY_DATA_LEN*2+1)      // Type/Ver/Key in hex with terminator
+
+void aidver(SQL * sqlp, const char *aid)
+{                               // Update AID version list
+   sql_s_t q = { 0 };
+   sql_sprintf(&q, "UPDATE `aid` SET ");
+   SQL_RES *a = sql_safe_query_store_f(sqlp, "SELECT * FROM `aid` WHERE `aid`=%#s", aid);
+   sql_fetch_row(a);
+   SQL_RES *r = sql_safe_query_store_f(sqlp, "SELECT * FROM `%#S`.`AES` WHERE `aid`=%#s AND `fob`='' order BY `created` DESC LIMIT 3", CONFIG_SQL_KEY_DATABASE, aid);
+   if (!sql_fetch_row(r) || strcmp(sql_colz(a, "ver1"), sql_colz(r, "ver")))
+      sql_sprintf(&q, "`ver1`=%#s,", sql_col(r, "ver"));
+   if (!sql_fetch_row(r) || strcmp(sql_colz(a, "ver2"), sql_colz(r, "ver")))
+      sql_sprintf(&q, "`ver2`=%#s,", sql_col(r, "ver"));
+   if (!sql_fetch_row(r) || strcmp(sql_colz(a, "ver3"), sql_colz(r, "ver")))
+      sql_sprintf(&q, "`ver3`=%#s,", sql_col(r, "ver"));
+   sql_free_result(r);
+   sql_free_result(a);
+   if (sql_back_s(&q) == ',')
+   {
+      sql_sprintf(&q, " WHERE `aid`=%#s", aid);
+      sql_safe_query_s(sqlp, &q);
+   } else
+      sql_free_s(&q);
+}
 
 char *makeaes(SQL * sqlp, char *target, const char *aid, const char *fob)
 {                               // Make an AES key (HEX ver and AES, so AES_STRING_LEN byte buffer)
-   // TODO encrypt flag as extra byte on end
    int try = 10;
    while (try--)
    {
-      unsigned char bin[17];
+      unsigned char bin[KEY_DATA_LEN] = { };    // Type, Ver, key. TODO set type 2 for encrypted
       randkey(bin);
-      j_base16N(17, bin, AES_STRING_LEN, target);
-      if (sql_query_f(sqlp, "INSERT INTO `%#S`.`AES` SET `aid`=%#s,`fob`=%#s,`ver`=%#.2s,`key`=%#.32s", CONFIG_SQL_KEY_DATABASE, aid ? : "", fob ? : "", target, target + 2))
+      j_base16N(sizeof(bin), bin, AES_STRING_LEN, target);
+      if (sql_query_f(sqlp, "INSERT INTO `%#S`.`AES` SET `aid`=%#s,`fob`=%#s,`type`=%#.2s,`ver`=%#.2s,`key`=%#.32s", CONFIG_SQL_KEY_DATABASE, aid ? : "", fob ? : "", target + 0, target + 2, target + 4))
          continue;
-      sql_safe_query_f(sqlp, "UPDATE `device` SET `poke`=NOW() WHERE `aid`=%#s", aid);
+      aidver(sqlp, aid);
+      sql_safe_query_f(sqlp, "UPDATE `device` SET `poke`=NOW() WHERE `aid`=%#s AND `online` IS NOT NULL", aid);
+      if (sql_affected_rows(sqlp))
+         poke = 1;
       return target;
    }
    *target = 0;
@@ -78,7 +105,7 @@ char *getaes(SQL * sqlp, char *target, const char *aid, const char *fob)
    SQL_RES *res = sql_safe_query_store_f(sqlp, "SELECT * FROM `%#S`.`AES` WHERE `aid`=%#s AND `fob`=%#s ORDER BY `created` DESC LIMIT 1", CONFIG_SQL_KEY_DATABASE, aid ? : "", fob ? : "");
    if (sql_fetch_row(res))
    {
-      snprintf(target, AES_STRING_LEN, "%s%s", sql_col(res, "ver"), sql_col(res, "key"));
+      snprintf(target, AES_STRING_LEN, "%s%s%s", sql_col(res, "type"), sql_col(res, "ver"), sql_col(res, "key"));
       return target;
    }
    return makeaes(sqlp, target, aid, fob);
@@ -276,11 +303,10 @@ static const char *settings(SQL * sqlp, SQL_RES * res, slot_t id)
       // Keys
       SQL_RES *r = sql_safe_query_store_f(sqlp, "SELECT * FROM `%#S`.`AES` WHERE `aid`=%#s AND `fob`='' order BY `created` DESC LIMIT 3", CONFIG_SQL_KEY_DATABASE, aid);
       while (sql_fetch_row(r))
-         j_append_stringf(aids, "%s%s", sql_colz(r, "ver"), sql_colz(r, "key"));
+         j_append_stringf(aids, "%s%s%s", sql_colz(r, "type"), sql_colz(r, "ver"), sql_colz(r, "key"));
       sql_free_result(r);
       if (!j_len(aids))
          j_append_string(aids, getaes(sqlp, alloca(AES_STRING_LEN), aid, NULL));        // Make a key
-      // TODO encrypted...
    }
    if (!j_len(aids))
       aid = "";                 // We have not loaded any keys so no point in even trying an AID
@@ -975,9 +1001,14 @@ int main(int argc, const char *argv[])
    syslog(LOG_INFO, "Starting");
    sql_safe_query(&sql, "DELETE FROM `pending`");
    sql_safe_query(&sql, "UPDATE `device` SET `id`=NULL,`via`=NULL,`offlinereason`='System restart',`online`=NULL,`lastonline`=NOW(),`progress`=NULL WHERE `id` IS NOT NULL");
+   {
+      SQL_RES *res = sql_safe_query_store_f(&sql, "SELECT * FROM `aid` WHERE `ver1` IS NULL");
+      while (sql_fetch_row(res))
+         aidver(&sql, sql_colz(res, "aid"));
+      sql_free_result(res);
+   }
    mqtt_start();
    // Main loop getting messages (from MQTT or websocket)
-   int poke = 1;
    while (1)
    {
       time_t now = time(0);
@@ -1222,15 +1253,15 @@ int main(int argc, const char *argv[])
             sql_safe_query_f(&sql, "UPDATE `fob` SET `capacity`=%#s WHERE `fob`=%#s AND (`capacity` IS NULL OR `capacity`<>%#s)", v, fob, v);
          if (j_find(meta, "provisioned") && fob && (v = j_get(j, "masterkey")))
          {
-            sql_safe_query_f(&sql, "REPLACE INTO `%#S`.`AES` SET `fob`=%#s,`aid`='',`ver`=%#.2s,`key`=%#s", CONFIG_SQL_KEY_DATABASE, fob, v, v + 2);
+            sql_safe_query_f(&sql, "REPLACE INTO `%#S`.`AES` SET `fob`=%#s,`aid`='',`type`=%#.2s,`ver`=%#.2s,`key`=%#s", CONFIG_SQL_KEY_DATABASE, fob, v, v + 2, v + 4);
             if (aid && (v = j_get(j, "aid0key")))
-               sql_safe_query_f(&sql, "REPLACE INTO `%#S`.`AES` SET `fob`=%#s,`aid`=%#s,`ver`=%#.2s,`key`=%#s", CONFIG_SQL_KEY_DATABASE, fob, aid, v, v + 2);
+               sql_safe_query_f(&sql, "REPLACE INTO `%#S`.`AES` SET `fob`=%#s,`aid`=%#s,`type`=%#.2s,`ver`=%#.2s,`key`=%#s", CONFIG_SQL_KEY_DATABASE, fob, aid, v, v + 2, v + 4);
          }
          if (j_find(meta, "adopted") && fob && aid)
          {
             int access = atoi(j_get(j, "access") ? : "");
             if ((v = j_get(j, "aid0key")))
-               sql_safe_query_f(&sql, "REPLACE INTO `%#S`.`AES` SET `fob`=%#s,`aid`=%#s,`ver`=%#.2s,`key`=%#s", CONFIG_SQL_KEY_DATABASE, fob, aid, v, v + 2);
+               sql_safe_query_f(&sql, "REPLACE INTO `%#S`.`AES` SET `fob`=%#s,`aid`=%#s,`type`=%#.2s,`ver`=%#.2s,`key`=%#s", CONFIG_SQL_KEY_DATABASE, fob, aid, v, v + 2, v + 4);
             if ((v = j_get(j, "organisation")))
                sql_safe_query_f(&sql, "INSERT IGNORE INTO `foborganisation` SET `fob`=%#s,`organisation`=%s,`fobname`=%#s ON DUPLICATE KEY UPDATE `fobname`=%#s", fob, v, fobname, fobname);
             sql_safe_query_f(&sql, "INSERT IGNORE INTO `fobaid` SET `fob`=%#s,`aid`=%#s,`ver`=%#s,`adopted`=NOW(),`access`=%d ON DUPLICATE KEY UPDATE `access`=%d", fob, aid, j_get(j, "ver"), access, access);

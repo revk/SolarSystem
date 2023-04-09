@@ -405,6 +405,9 @@ table(aid, 6);                  // AID
 link(organisation);
 link(site);
 text(aidname, 0);
+text(ver1, 2);			// The Key versions that exist, in order
+text(ver2, 2);
+text(ver3, 2);
 
 table(event, 0);                // Logging
 link(device);

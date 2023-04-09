@@ -45,7 +45,7 @@ int16_t gpio_mask(uint8_t p)
   u16(nfciopoll,200) \
   u8(nfcuart,1) \
   t(nfcmqttbell,NULL) \
-  bap(aes,17,3) \
+  bap(aes,18,3) \
   b(aid,3) \
   t(ledIDLE,"3R3-") \
 
@@ -399,7 +399,7 @@ static void task(void *pvParameters)
                      if (!e && version)
                      {
                         uint8_t aesid;
-                        for (aesid = 0; aesid < sizeof(aes) / sizeof(*aes) && aes[aesid][0] != version; aesid++);
+                        for (aesid = 0; aesid < sizeof(aes) / sizeof(*aes) && aes[aesid][1] != version; aesid++);
                         if (aesid == sizeof(aes) / sizeof(*aes))
                            e = "Unknown key version";
                         else
@@ -409,7 +409,7 @@ static void task(void *pvParameters)
                   // Authenticate
                   if (!e)
                   {
-                     e = df_authenticate(&df, 1, aes[fob.aesid] + 1);
+                     e = df_authenticate(&df, 1, aes[fob.aesid] + 2);
                      if (e)
                      {          // Log key version as auth failed
                         uint8_t version = 0;
@@ -420,7 +420,7 @@ static void task(void *pvParameters)
                         }
                      } else
                      {          // Authenticated so version is as expected
-                        fob.ver = *aes[fob.aesid];
+                        fob.ver = aes[fob.aesid][1];
                         fob.verset = 1;
                      }
                   }
@@ -471,8 +471,13 @@ static void task(void *pvParameters)
                // Key update
                if (fob.aesid)
                {
-                  e = df_change_key(&df, 1, aes[0][0], aes[fob.aesid] + 1, aes[0] + 1);
-                  fob.keyupdated = 1;
+                  e = df_change_key(&df, 1, aes[0][1], aes[fob.aesid] + 2, aes[0] + 2);
+                  if (!e)
+                  {
+                     fob.aesid = 0;
+                     fob.ver = aes[0][1];
+                     fob.keyupdated = 1;
+                  }
                }
                if (!e)
                {
@@ -529,7 +534,7 @@ static void report_state(void)
       jo_stringf(j, "aid", "%02X%02X%02X", aid[0], aid[1], aid[2]);
    jo_array(j, "ver");
    for (int i = 0; i < sizeof(aes) / sizeof(*aes) && aes[i][0]; i++)
-      jo_stringf(j, NULL, "%02X", aes[i][0]);
+      jo_stringf(j, NULL, "%02X", aes[i][1]);
    revk_state_clients("keys", &j, 1);
 }
 
@@ -606,7 +611,7 @@ void nfc_boot(void)
 #define u8(n,d) revk_register(#n,0,sizeof(n),&n,#d,0);
 #define u16(n,d) revk_register(#n,0,sizeof(n),&n,#d,0);
 #define b(n,l) revk_register(#n,0,sizeof(n),n,NULL,SETTING_BINDATA|SETTING_HEX);
-#define bap(n,l,a) revk_register(#n,a,sizeof(n[0]),n,NULL,SETTING_BINDATA|SETTING_HEX|SETTING_SECRET);
+#define bap(n,l,a) revk_register(#n,a,sizeof(n[0]),n,NULL,SETTING_BINDATA|SETTING_HEX|SETTING_SECRET|SETTING_LIVE);
 #define u1(n) revk_register(#n,0,sizeof(n),&n,NULL,SETTING_BOOLEAN);
 #define t(n,d) revk_register(#n,0,0,&n,d,0);
    settings
