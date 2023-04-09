@@ -39,13 +39,15 @@ if($?expires) then
 	redirect editfob.cgi
 	exit 0
 endif
-
+setenv XMLSQLDEBUG
 if(! $?PATH_INFO) then
 list:
 xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <h1>🔑 Fobs</h1>
 <table>
-<sql table="foborganisation LEFT JOIN fobaid USING (fob) LEFT JOIN aid USING (aid) LEFT JOIN access USING (access) LEFT JOIN fob USING (fob)" where="foborganisation.organisation=$USER_ORGANISATION AND aid.organisation=$USER_ORGANISATION" group="fob" order="max(lastused) DESC" select="*,count(aid) as N, sum(if(adopted IS NULL AND aid.aid IS NOT NULL,1,0)) AS W,sum(if(override='true',1,0)) AS O,max(lastused) AS lastused">
+<set last>
+<sql table="foborganisation LEFT JOIN fobaid USING (fob) LEFT JOIN aid USING (aid)" group="fob" order="max(lastused) DESC,max(adopted) DESC,fob DESC" where="foborganisation.organisation=$USER_ORGANISATION AND aid.organisation=$USER_ORGANISATION">
+<sql table="foborganisation LEFT JOIN fobaid USING (fob) LEFT JOIN aid USING (aid) LEFT JOIN fob USING (fob) LEFT JOIN site USING (site) LEFT JOIN access USING (access)" where="foborganisation.organisation=$USER_ORGANISATION AND aid.organisation=$USER_ORGANISATION AND fobaid.fob='$fob'" order="aid">
 <if not found><set found=1><tr>
 <th>Fob</th>
 <th>Free</th>
@@ -53,28 +55,28 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <th>SMS</th>
 <th>Last</th>
 <th>Expiry</th>
-<th>Notes</th>
+<th colspan=2>Notes</th>
 </tr></if>
 <tr>
+<if last="$fob"><td colspan=4></if>
+<if else><set last="$fob">
 <td><output name=fob href="editfob.cgi/$fob"></td>
 <td align=right><if mem><output name=mem></if></td>
 <td><output name=fobname></td>
 <td><output name=fobsms></td>
+</if>
 <td align=right><output name=lastused type=recent></td>
 <td align=right><output name=expires type=recent></td>
 <td>
-<if N=0>No AIDs</if>
-<if else>
-<sql table='fobaid LEFT JOIN aid USING (aid) LEFT JOIN site USING (site)' where='fob="$fob"'>
 <output name=sitename>: <output name=aidname> (<output name=accessname missing="?">)
-<if ver="$ver2" or ver="$ver3"><b>Old key</b></if>
-<if not ver="$ver1" not ver="$ver2" not ver="$ver3"><b>Obsolete key</b></if>
+<if ver="$ver2" or ver="$ver3"><td><b>Old key <tt><output name=ver></tt></b></td></if>
+<if ver not ver="$ver1" not ver="$ver2" not ver="$ver3"><td><b>Obsolete key <tt><output name=ver></tt></b></td></if>
+<if not ver><td><i>Unknown key version</i></td></if>
 <br>
-</sql>
-</if>
 <if blocked><b>Blocked</b></if>
 </td>
 </tr>
+</sql>
 </sql>
 </table>
 <if found><set found></if><if else><p>No fobs found</p></if>
