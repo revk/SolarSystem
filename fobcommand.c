@@ -380,6 +380,7 @@ void *fobcommand(void *arg)
                   if (aid[0] || aid[1] || aid[2])
                      j_store_string(j, "aid", j_base16(sizeof(aid), aid));
                   j_store_string(j, "aid0key", j_base16(sizeof(aid0key), aid0key));
+                  j_store_stringf(j, "ver", "%02X", *aid1key);
                   j_store_string(j, "deviceid", f.deviceid);
                   if (organisation)
                      j_store_int(j, "organisation", organisation);

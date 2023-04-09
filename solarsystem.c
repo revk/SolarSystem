@@ -52,21 +52,36 @@ CURL *curl = NULL;
 static void addset(j_t j, const char *tag, const char *val, const char *always);
 static void addsitedata(SQL * sqlp, j_t j, SQL_RES * site, const char *deviceid, const char *parentid, char outofservice);
 
-#define AES_STRING_LEN	35
+#define AES_STRING_LEN	35      // TODO extra byte on end to mark encrypted
+
+char *makeaes(SQL * sqlp, char *target, const char *aid, const char *fob)
+{                               // Make an AES key (HEX ver and AES, so AES_STRING_LEN byte buffer)
+   // TODO encrypt flag as extra byte on end
+   int try = 10;
+   while (try--)
+   {
+      unsigned char bin[17];
+      randkey(bin);
+      j_base16N(17, bin, AES_STRING_LEN, target);
+      if (sql_query_f(sqlp, "INSERT INTO `%#S`.`AES` SET `aid`=%#s,`fob`=%#s,`ver`=%#.2s,`key`=%#.32s", CONFIG_SQL_KEY_DATABASE, aid ? : "", fob ? : "", target, target + 2))
+         continue;
+      sql_safe_query_f(sqlp, "UPDATE `device` SET `poke`=NOW() WHERE `aid`=%#s", aid);
+      return target;
+   }
+   *target = 0;
+   return target;
+}
+
 char *getaes(SQL * sqlp, char *target, const char *aid, const char *fob)
 {                               // Get AES key (HEX ver and AES, so AES_STRING_LEN byte buffer)
+   // TODO encrypt flag as extra byte on end
    SQL_RES *res = sql_safe_query_store_f(sqlp, "SELECT * FROM `%#S`.`AES` WHERE `aid`=%#s AND `fob`=%#s ORDER BY `created` DESC LIMIT 1", CONFIG_SQL_KEY_DATABASE, aid ? : "", fob ? : "");
    if (sql_fetch_row(res))
    {
       snprintf(target, AES_STRING_LEN, "%s%s", sql_col(res, "ver"), sql_col(res, "key"));
       return target;
    }
-   unsigned char bin[17];
-   randkey(bin);
-   j_base16N(17, bin, AES_STRING_LEN, target);
-   if (sql_query_f(sqlp, "INSERT INTO `%#S`.`AES` SET `aid`=%#s,`fob`=%#s,`ver`=%#.2s,`key`=%#s", CONFIG_SQL_KEY_DATABASE, aid ? : "", fob ? : "", target, target + 2))
-      *target = 0;
-   return target;
+   return makeaes(sqlp, target, aid, fob);
 }
 
 void send_message(SQL_RES * res, const char *ud, const char *n)
@@ -265,6 +280,7 @@ static const char *settings(SQL * sqlp, SQL_RES * res, slot_t id)
       sql_free_result(r);
       if (!j_len(aids))
          j_append_string(aids, getaes(sqlp, alloca(AES_STRING_LEN), aid, NULL));        // Make a key
+      // TODO encrypted...
    }
    if (!j_len(aids))
       aid = "";                 // We have not loaded any keys so no point in even trying an AID
@@ -1023,13 +1039,19 @@ int main(int argc, const char *argv[])
          meta = j_detach(meta);
       char forked = 0;
       const char *local(slot_t local) { // Commands sent to us from local system
+         const char *v;
          if (j_find(meta, "poke"))
          {
             poke = 1;
             return NULL;
          }
+         if ((v = j_get(meta, "rollover")))
+         {
+            if (!*makeaes(&sql, alloca(AES_STRING_LEN), v, NULL))
+               return "Failed";
+            return NULL;
+         }
          slot_t id = 0;         // Collection id
-         const char *v;
          {                      // Identify the device we want to talk to...
             SQL_RES *res = NULL;
             if ((v = j_get(meta, "site")) && atoi(v))
@@ -1211,7 +1233,7 @@ int main(int argc, const char *argv[])
                sql_safe_query_f(&sql, "REPLACE INTO `%#S`.`AES` SET `fob`=%#s,`aid`=%#s,`ver`=%#.2s,`key`=%#s", CONFIG_SQL_KEY_DATABASE, fob, aid, v, v + 2);
             if ((v = j_get(j, "organisation")))
                sql_safe_query_f(&sql, "INSERT IGNORE INTO `foborganisation` SET `fob`=%#s,`organisation`=%s,`fobname`=%#s ON DUPLICATE KEY UPDATE `fobname`=%#s", fob, v, fobname, fobname);
-            sql_safe_query_f(&sql, "INSERT IGNORE INTO `fobaid` SET `fob`=%#s,`aid`=%#s,`adopted`=NOW(),`access`=%d ON DUPLICATE KEY UPDATE `access`=%d", fob, aid, access, access);
+            sql_safe_query_f(&sql, "INSERT IGNORE INTO `fobaid` SET `fob`=%#s,`aid`=%#s,`ver`=%#s,`adopted`=NOW(),`access`=%d ON DUPLICATE KEY UPDATE `access`=%d", fob, aid, j_get(j, "ver"), access, access);
          }
          if (j_find(meta, "formatted") && fob)
             sql_safe_query_f(&sql, "DELETE FROM `fobaid` WHERE `fob`=%#s", fob);

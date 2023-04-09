@@ -175,24 +175,35 @@ void sstypes(const char *fn)
 }
 
 void sskeydatabase(SQL * sqlp)
-{
+{                               // Selects database
    if (sql_select_db(sqlp, CONFIG_SQL_KEY_DATABASE))
    {
       warnx("Creating database %s", CONFIG_SQL_KEY_DATABASE);
       sql_safe_query_f(sqlp, "CREATE DATABASE `%#S`", CONFIG_SQL_KEY_DATABASE);
       sql_select_db(sqlp, CONFIG_SQL_KEY_DATABASE);
    }
-   SQL_RES *res = sql_query_store(sqlp, "DESCRIBE `AES`");
+   SQL_RES *res = sql_query_store_f(sqlp, "DESCRIBE `AES`");
    if (res)
-      sql_free_result(res);
-   else
    {
-      sql_safe_query(sqlp, "CREATE TABLE `AES` (" "`created` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,`aid` char(6) NOT NULL DEFAULT '',`fob` char(14) NOT NULL DEFAULT '',`ver` char(2) NOT NULL DEFAULT '',`key` char(32) NOT NULL,UNIQUE KEY `key` (`aid`,`fob`,`ver`)" ")");
+      // Crude update, if we do any more then use same mechanism as ssdatabase()
+      char hasencrypt = 0;
+      SQL_ROW row;
+      while ((row = sql_fetch_row(res)))
+         if (row[0] && !strcmp(row[0], "encrypt"))
+            hasencrypt = 1;
+      sql_free_result(res);
+      if (!hasencrypt)
+         sql_safe_query(sqlp, "ALTER TABLE `AES` ADD `encrypt` enum('false','true') NOT NULL DEFAULT 'false'");
+   } else
+   {
+      sql_safe_query(sqlp,
+                     "CREATE TABLE `AES` (" "`created` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,`aid` char(6) NOT NULL DEFAULT '',`fob` char(14) NOT NULL DEFAULT '',`ver` char(2) NOT NULL DEFAULT '',`key` char(32) NOT NULL,`encrypt` enum('false','true') NOT NULL DEFAULT 'false',UNIQUE KEY `key` (`aid`,`fob`,`ver`)"
+                     ")");
    }
 }
 
 void ssdatabase(SQL * sqlp)
-{                               // Check database integrity
+{                               // Check database integrity - selects database
    if (sql_select_db(sqlp, CONFIG_SQL_DATABASE))
    {
       warnx("Creating database %s", CONFIG_SQL_DATABASE);

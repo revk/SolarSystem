@@ -33,6 +33,7 @@ int main(int argc, const char *argv[])
    const char *fobadopt = 0;
    const char *fobformat = 0;
    const char *deport = NULL;
+   const char *rollover = NULL;
    const char *aid = NULL;
    const char *status = NULL;
    const char *arm = NULL;
@@ -63,6 +64,7 @@ int main(int argc, const char *argv[])
          { "aid", 0, POPT_ARG_STRING, &aid, 0, "AID", "XXXXXX" },
          { "access", 0, POPT_ARG_INT, &access, 0, "Access", "N" },
          { "deport", 0, POPT_ARG_STRING, &deport, 0, "Deport", "mqtthost" },
+         { "rollover", 0, POPT_ARG_STRING, &rollover, 0, "Rollover", "AID" },
          { "device", 'd', POPT_ARG_STRING, &device, 0, "Device", "XXXXXXXXXXXX" },
          { "site", 's', POPT_ARG_INT, &site, 0, "Site", "N" },
          { "organisation", 's', POPT_ARG_INT, &organisation, 0, "Organisation", "N" },
@@ -120,6 +122,8 @@ int main(int argc, const char *argv[])
       j_store_true(meta, "poke");
    if (deport)
       j_store_string(meta, "deport", deport);
+   if (rollover&&strlen(rollover)==6)
+      j_store_string(meta, "rollover", rollover);
    if (fobprovision)
    {
       if (!device)

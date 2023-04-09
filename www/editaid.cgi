@@ -30,9 +30,15 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <h1>🔢 Manage AIDs for <output name=sitename></h1>
 <form method=post>
 <table>
+<tr><th>AID</th><th>Keys</th></tr>
 <sql table=aid WHERE="site=$site">
 <tr>
 <td><input type=hidden name=aids value="$aid"><input name="NAME$aid" size=20 value="$aidname"></td>
+<td>
+<sql table='fobaid' where='ver IS NOT NULL AND aid="$aid"' group='ver' select='ver,count(*) AS N'>
+<tt><output name=ver></tt> <output name=N><br>
+</sql>
+</td>
 </tr>
 </sql>
 <if USER_ADMIN=true><tr><td><input name=NEW> New AID</if>

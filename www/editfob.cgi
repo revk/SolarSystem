@@ -93,11 +93,11 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <if capacity><tr><td>Capacity</td><td><output name=capacity> bytes</td></tr></if>
 <if mem><tr><td>Free</td><td><output name=mem> bytes</td></tr></if>
 <if blocked><tr><td>Block</td><td>Access blocked <output name=blocked> <if blocked and confirmed>(confirmed <output name=confirmed>)</if></td></tr></if>
-<tr><th>Site</th><th>Access</th><th>Adopted</th><th>First in day</th><th>Last used</th><th>AID</th></tr>
+<tr><th>Site</th><th>Access</th><th>Adopted</th><th>First in day</th><th>Last used</th><th>AID</th><th>Key</th></tr>
 <sql table="fobaid LEFT JOIN aid USING (aid) LEFT JOIN site USING (site)" where="fob='$fob' AND aid.organisation=$USER_ORGANISATION" order=sitename,aidname><set "access$aid"="$access">
 <tr>
 <td><input type=hidden name=aids value="$aid"><output name=sitename></td>
-<td><select name="access$aid"><option value=''>No access</option><sql table=access where="site=$site"><option value="$access"><output name=accessname></option></sql></select></td><td align=right><output name=adopted type=recent></td><td align=right><output name=firstinday type=recent></td><td align=right><output name=lastused type=recent></td><td><output name=aidname></td>
+<td><select name="access$aid"><option value=''>No access</option><sql table=access where="site=$site"><option value="$access"><output name=accessname></option></sql></select></td><td align=right><output name=adopted type=recent></td><td align=right><output name=firstinday type=recent></td><td align=right><output name=lastused type=recent></td><td><output name=aidname></td><td><tt><output name=ver></tt></td>
 </tr>
 </sql>
 </table>
