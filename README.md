@@ -12,6 +12,7 @@ Please bear in mind that this is an open source system with no warranty. The sys
 - [Server](Manuals/Server.md)
 - [Configuration Tips](Manuals/ConfigTips.md)
 - [Door and fobs](Manuals/DoorAndFob.md)
+- [People and fobs](Manuals/People.md)
 
 ### Technical
 
