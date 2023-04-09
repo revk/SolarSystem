@@ -95,7 +95,7 @@ uint8_t key_ver(uint8_t keyid)
    return aes[keyid][1];        // The key version
 }
 
-uint8_t *key_aes_m(uint8_t keyid, uint8_t temp[16])
+uint8_t *key_aes(uint8_t keyid, uint8_t temp[16])
 {                               // Get actual key
    if (keyid >= sizeof(aes) / sizeof(*aes))
       return NULL;
@@ -121,8 +121,6 @@ uint8_t *key_aes_m(uint8_t keyid, uint8_t temp[16])
       return NULL;
    return temp;
 }
-
-#define	key_aes(i) key_aes_m(i,alloca(16))
 
 const char *nfc_led(int len, const void *value)
 {
@@ -455,7 +453,8 @@ static void task(void *pvParameters)
                   // Authenticate
                   if (!e)
                   {
-                     e = df_authenticate(&df, 1, key_aes(fob.aesid));
+                     uint8_t temp[16];
+                     e = df_authenticate(&df, 1, key_aes(fob.aesid, temp));
                      if (e)
                      {          // Log key version as auth failed
                         uint8_t version = 0;
@@ -517,7 +516,9 @@ static void task(void *pvParameters)
                // Key update
                if (fob.aesid && key_type(0))
                {
-                  e = df_change_key(&df, 1, key_ver(0), key_aes(fob.aesid), key_aes(0));
+                  uint8_t temp1[16],
+                   temp2[16];
+                  e = df_change_key(&df, 1, key_ver(0), key_aes(fob.aesid, temp1), key_aes(0, temp2));
                   if (!e)
                   {
                      fob.aesid = 0;
