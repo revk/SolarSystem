@@ -84,8 +84,10 @@ char *makeaes(SQL * sqlp, char *target, const char *aid, const char *fob)
    int try = 10;
    while (try--)
    {
-      unsigned char bin[KEY_DATA_LEN] = { };    // Type, Ver, key. TODO set type 2 for encrypted
+      unsigned char bin[KEY_DATA_LEN] = { };    // Type, Ver, Key.
       randkey(bin);
+      if (aid && !fob)
+         *bin = 2;              // Encrypted AID key
       j_base16N(sizeof(bin), bin, AES_STRING_LEN, target);
       if (sql_query_f(sqlp, "INSERT INTO `%#S`.`AES` SET `aid`=%#s,`fob`=%#s,`type`=%#.2s,`ver`=%#.2s,`key`=%#.32s", CONFIG_SQL_KEY_DATABASE, aid ? : "", fob ? : "", target + 0, target + 2, target + 4))
          continue;

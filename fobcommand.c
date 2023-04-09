@@ -129,6 +129,45 @@ static int dx(void *obj, unsigned int len, unsigned char *data, unsigned int max
    return len;
 };
 
+unsigned char key_type(const unsigned char *key)
+{
+   if (!key || !*key)
+      return 0;
+   return *key;
+}
+
+unsigned char key_ver(const unsigned char *key)
+{
+   if (!key || !*key)
+      return 0;
+   return key[1];
+}
+
+const unsigned char *key_aes_m(const unsigned char *key, const char *fob, unsigned char temp[16])
+{
+   if (!key || !*key)
+      return NULL;
+   if (*key == 1)
+      return key + 2;
+   if (*key != 2)
+      return NULL;
+   // Encrypted key
+   unsigned char id[16] = { 0 };
+   strncpy((char *) id, fob, 16);
+   EVP_CIPHER_CTX *ctx = EVP_CIPHER_CTX_new();
+   unsigned char iv[16] = { 0 };        // We should be able to just block encrypt but CBC with zero IV does the same
+   int n;
+   if (EVP_EncryptInit_ex(ctx, EVP_aes_128_cbc(), NULL, key + 2, iv) != 1 || EVP_EncryptUpdate(ctx, temp, &n, id, 16) != 1 || EVP_EncryptFinal_ex(ctx, temp + n, &n) != 1)
+   {
+      EVP_CIPHER_CTX_free(ctx);
+      return NULL;
+   }
+   EVP_CIPHER_CTX_free(ctx);
+   return temp;
+}
+
+#define key_aes(k,u) key_aes_m(k,u,alloca(16))
+
 void *fobcommand(void *arg)
 {
    nfc_t f = { };
@@ -271,13 +310,13 @@ void *fobcommand(void *arg)
 
             void doformat(void) {
                status("Formatting fob");
-               df(format(&d, masterkey[1], masterkey + 2));
+               df(format(&d, key_ver(masterkey), key_aes(masterkey, fob)));
                df(get_uid(&d, uid));
                status(j_base16(sizeof(uid), uid));
                if (hardformat)
                {
                   status("Hard format fob - will need provisioning again");
-                  df(change_key(&d, 0x80, 0, masterkey + 2, NULL));     // Hard reset to zero AES
+                  df(change_key(&d, 0x80, 0, key_aes(masterkey, fob), NULL));   // Hard reset to zero AES
                   df(authenticate(&d, 0, NULL));
                } else
                {
@@ -303,7 +342,7 @@ void *fobcommand(void *arg)
             void doconnect(void) {
                status("Connecting to fob");
                df(select_application(&d, NULL));
-               if (df_authenticate(&d, 0, masterkey + 2))
+               if (df_authenticate(&d, 0, key_aes(masterkey, fob)))
                   df(authenticate(&d, 0, NULL));
                df(get_uid(&d, uid));
                status(j_base16(sizeof(uid), uid));
@@ -315,7 +354,7 @@ void *fobcommand(void *arg)
 
             void doadopt(void) {
                status("Adopting fob");
-               if (!*aid0key)
+               if (!key_type(aid0key))
                   randkey(aid0key);     // type 0 means not set
                unsigned int n;
                {
@@ -330,13 +369,13 @@ void *fobcommand(void *arg)
                   df(create_application(&d, aid, 0xEB, 2));
                }
                df(select_application(&d, aid));
-               if (df_authenticate(&d, 0, aid0key + 2))
+               if (df_authenticate(&d, 0, key_aes(aid0key, fob)))
                {                // Set key 0
                   status("Setting application key");
                   df(authenticate(&d, 0, NULL));        // own key to change it
-                  df(change_key(&d, 0, aid0key[1], NULL, aid0key + 2));
+                  df(change_key(&d, 0, key_ver(aid0key), NULL, key_aes(aid0key, fob)));
                }
-               df(authenticate(&d, 0, aid0key + 2));
+               df(authenticate(&d, 0, key_aes(aid0key, fob)));
                // Check files
                unsigned long long fids;
                df(get_file_ids(&d, &fids));
@@ -365,18 +404,18 @@ void *fobcommand(void *arg)
                df(commit(&d));
                // This is last as it is what marks a fob as finally adopted
                // TODO what if not current key version?
-               if (df_authenticate(&d, 1, aid1key + 2))
+               if (df_authenticate(&d, 1, key_aes(aid1key, fob)))
                {                // Auth failed, so set key 1 assuming it is NULL
                   status("Setting AID key");
                   if (df_authenticate(&d, 1, NULL))
                   {             // Problem...
-                     status("Application not blank, erasing, please try again");
-               df(select_application(&d, NULL));
-                     df_authenticate(&d, 0, masterkey + 2);
+                     status("Application not current - removing application - try again");
+                     df(select_application(&d, NULL));
+                     df_authenticate(&d, 0, key_aes(masterkey, fob));
                      df(delete_application(&d, aid));
                      return;
                   } else
-                     df(change_key(&d, 1, aid1key[1], NULL, aid1key + 2));
+                     df(change_key(&d, 1, key_ver(aid1key), NULL, key_aes(aid1key, fob)));
                }
                unsigned int mem;
                df(free_memory(&d, &mem));
@@ -388,7 +427,7 @@ void *fobcommand(void *arg)
                   if (aid[0] || aid[1] || aid[2])
                      j_store_string(j, "aid", j_base16(sizeof(aid), aid));
                   j_store_string(j, "aid0key", j_base16(sizeof(aid0key), aid0key));
-                  j_store_stringf(j, "ver", "%02X", aid1key[1]);
+                  j_store_stringf(j, "ver", "%02X", key_ver(aid1key));
                   j_store_string(j, "deviceid", f.deviceid);
                   if (organisation)
                      j_store_int(j, "organisation", organisation);
@@ -403,9 +442,9 @@ void *fobcommand(void *arg)
 
             void doprovision(void) {    // Expects to have formatted and connected
                status("Setting key");
-               if (!*masterkey)
+               if (!key_type(masterkey))
                   randkey(masterkey);   // Type 0 is not set, so make a key
-               if (adopt && !*aid0key)
+               if (adopt && !key_type(aid0key))
                   randkey(aid0key);     // Type 0 is not set, so make a key
                unsigned int mem;
                df(free_memory(&d, &mem));
@@ -424,8 +463,8 @@ void *fobcommand(void *arg)
                   j_store_int(j, "mem", mem);
                   mqtt_qin(&j);
                }
-               df(change_key(&d, 0x80, masterkey[1], NULL, masterkey + 2));
-               df(authenticate(&d, 0, masterkey + 2));
+               df(change_key(&d, 0x80, key_ver(masterkey), NULL, key_aes(masterkey, fob)));
+               df(authenticate(&d, 0, key_aes(masterkey, fob)));
             }
             if (f.connected && !f.done)
             {

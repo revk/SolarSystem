@@ -10,6 +10,7 @@ static const char TAG[] = "nfc";
 #include "pn532.h"
 #include <driver/uart.h>
 #include <driver/gpio.h>
+#include <aes/esp_aes.h>
 
 #define port_mask(p) ((p)&0x3F)
 #define	BITFIELDS "-"
@@ -77,6 +78,51 @@ SemaphoreHandle_t nfc_mutex = NULL;     // PN532 has low level message mutex, bu
 static uint8_t ledpattern[20] = "";
 
 static fob_t fob = { 0 };       // Current card state
+
+uint8_t key_type(uint8_t keyid)
+{                               // Get key type
+   if (keyid >= sizeof(aes) / sizeof(*aes))
+      return 0;
+   return aes[keyid][0];
+}
+
+uint8_t key_ver(uint8_t keyid)
+{                               // Get key version
+   if (keyid >= sizeof(aes) / sizeof(*aes))
+      return 0;
+   if (!aes[keyid][0])
+      return 0;
+   return aes[keyid][1];        // The key version
+}
+
+uint8_t *key_aes_m(uint8_t keyid, uint8_t temp[16])
+{                               // Get actual key
+   if (keyid >= sizeof(aes) / sizeof(*aes))
+      return NULL;
+   if (!aes[keyid][0])
+      return NULL;
+   if (aes[keyid][0] == 1)
+      return aes[keyid] + 2;    // Direct key use
+   // Encrypted key
+   if (aes[keyid][0] != 2)
+      return NULL;
+   if (!temp)
+      return NULL;
+   // Encrypt key based on fobid.
+   uint8_t id[16] = { 0 };
+   strncpy((char *) id, fob.id, 16);
+   esp_aes_context ctx;
+   esp_aes_init(&ctx);
+   esp_err_t err = esp_aes_setkey(&ctx, aes[keyid] + 2, 128);
+   if (!err)
+      err = esp_internal_aes_encrypt(&ctx, id, temp);
+   esp_aes_free(&ctx);
+   if (err)
+      return NULL;
+   return temp;
+}
+
+#define	key_aes(i) key_aes_m(i,alloca(16))
 
 const char *nfc_led(int len, const void *value)
 {
@@ -375,7 +421,7 @@ static void task(void *pvParameters)
             pn532_nfcid(pn532, fob.id);
             if (*ats && ats[1] == 0x78)
                fob.iso = 1;
-            if (!fob.remote && aes[0][0] && (aid[0] || aid[1] || aid[2]) && *ats && ats[1] == 0x75)
+            if (!fob.remote && key_type(0) && (aid[0] || aid[1] || aid[2]) && *ats && ats[1] == 0x75)
             {                   // DESFire
                fob.secureset = 1;       // We checked security
                // Select application
@@ -387,7 +433,7 @@ static void task(void *pvParameters)
                      e = NULL;  // Just treat as insecure
                } else
                {
-                  if (!e && aes[1][0])
+                  if (!e && key_type(1))
                   {             // We have more than one key, get key version
                      uint8_t version = 0;
                      e = df_get_key_version(&df, 1, &version);
@@ -399,7 +445,7 @@ static void task(void *pvParameters)
                      if (!e && version)
                      {
                         uint8_t aesid;
-                        for (aesid = 0; aesid < sizeof(aes) / sizeof(*aes) && aes[aesid][1] != version; aesid++);
+                        for (aesid = 0; aesid < sizeof(aes) / sizeof(*aes) && key_ver(aesid) != version; aesid++);
                         if (aesid == sizeof(aes) / sizeof(*aes))
                            e = "Unknown key version";
                         else
@@ -409,7 +455,7 @@ static void task(void *pvParameters)
                   // Authenticate
                   if (!e)
                   {
-                     e = df_authenticate(&df, 1, aes[fob.aesid] + 2);
+                     e = df_authenticate(&df, 1, key_aes(fob.aesid));
                      if (e)
                      {          // Log key version as auth failed
                         uint8_t version = 0;
@@ -420,7 +466,7 @@ static void task(void *pvParameters)
                         }
                      } else
                      {          // Authenticated so version is as expected
-                        fob.ver = aes[fob.aesid][1];
+                        fob.ver = key_ver(fob.aesid);
                         fob.verset = 1;
                      }
                   }
@@ -469,13 +515,13 @@ static void task(void *pvParameters)
                   }
                }
                // Key update
-               if (fob.aesid)
+               if (fob.aesid && key_type(0))
                {
-                  e = df_change_key(&df, 1, aes[0][1], aes[fob.aesid] + 2, aes[0] + 2);
+                  e = df_change_key(&df, 1, key_ver(0), key_aes(fob.aesid), key_aes(0));
                   if (!e)
                   {
                      fob.aesid = 0;
-                     fob.ver = aes[0][1];
+                     fob.ver = key_ver(0);
                      fob.keyupdated = 1;
                   }
                }
@@ -533,8 +579,8 @@ static void report_state(void)
    if (aid[0] || aid[1] || aid[2])
       jo_stringf(j, "aid", "%02X%02X%02X", aid[0], aid[1], aid[2]);
    jo_array(j, "ver");
-   for (int i = 0; i < sizeof(aes) / sizeof(*aes) && aes[i][0]; i++)
-      jo_stringf(j, NULL, "%02X", aes[i][1]);
+   for (int i = 0; i < sizeof(aes) / sizeof(*aes) && key_type(i); i++)
+      jo_stringf(j, NULL, "%02X", key_ver(i));
    revk_state_clients("keys", &j, 1);
 }
 
