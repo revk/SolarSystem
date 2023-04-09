@@ -467,15 +467,18 @@ static void task(void *pvParameters)
                      {          // Authenticated so version is as expected
                         fob.ver = key_ver(fob.aesid);
                         fob.verset = 1;
+                        if (key_type(fob.aesid) == 1)
+                        {       // Only get UID if key type 1 as someone could have fed us one UID then linked to a real fob fooling us, but if encrypted key based on UID, it must be right so we can assume so and save time
+                           uint8_t uid[7];      // Real ID
+                           if (!e)
+                              e = df_get_uid(&df, uid);
+                           if (!e)
+                           {
+                              fob.secure = 1;
+                              snprintf(fob.id, sizeof(fob.id), "%02X%02X%02X%02X%02X%02X%02X", uid[0], uid[1], uid[2], uid[3], uid[4], uid[5], uid[6]);
+                           }
+                        }
                      }
-                  }
-                  uint8_t uid[7];       // Real ID
-                  if (!e)
-                     e = df_get_uid(&df, uid);
-                  if (!e)
-                  {
-                     fob.secure = 1;
-                     snprintf(fob.id, sizeof(fob.id), "%02X%02X%02X%02X%02X%02X%02X", uid[0], uid[1], uid[2], uid[3], uid[4], uid[5], uid[6]);
                   }
                }
             }
