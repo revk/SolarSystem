@@ -705,7 +705,7 @@ void daily(SQL * sqlp)
    while (sql_fetch_row(a))
    {
       const char *aid = sql_colz(a, "aid");
-      time_t ver1date = sql_time(sql_col(a, "ver1date"));
+      time_t ver1date = sql_time(sql_colz(a, "ver1date"));
       int rollover = atoi(sql_colz(a, "rollover"));
       if (rollover && ver1date && ver1date + rollover * 86400 < now)
       {
