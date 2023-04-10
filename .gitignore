@@ -18,6 +18,7 @@ types
 .DS_Store
 */*.old
 */*/*.old
+*/*.BAK
 www/*.bin
 ESP32/secure_boot_signing_key.pem
 ESP32/build/*
