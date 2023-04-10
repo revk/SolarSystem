@@ -201,6 +201,7 @@ static void nmea(char *data)
 
 static void task(void *pvParameters)
 {
+   esp_task_wdt_add(NULL);
    pvParameters = pvParameters;
    uint8_t buf[200],
    *p = buf;
