@@ -43,7 +43,7 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <sql table=aid WHERE="site=$site">
 <tr>
 <td><input type=hidden name=aids value="$aid"><input name="NAME$aid" size=20 value="$aidname"></td>
-<td title="Key rollover"><tt><b><output name=ver1></b></tt><input type=checkbox name="ROLLOVER$aid" id="ROLLOVER$aid"><label for="ROLLOVER$aid"><if ver2><br><tt><output name=ver2></tt></if><if ver3><br><tt><output name=ver3></tt></if></label></td>
+<td title="Key rollover"><tt><b><output name=ver1></b></tt><input type=checkbox name="ROLLOVER$aid" id="ROLLOVER$aid"><label for="ROLLOVER$aid"><output name=ver1date type=recent><if ver2><br><tt><output name=ver2></tt></if><if ver3><br><tt><output name=ver3></tt></if></label></td>
 <td>
 <sql table='fobaid' where='ver IS NOT NULL AND aid="$aid"' group='ver' select='ver,count(*) AS N' order='if(ver="$ver1",1,if(ver="$ver2",2,if(ver="$ver3",3,4)))'>
 <tt><output name=ver></tt> <output name=N><if ver="$ver1"> Current</if><if ver="$ver2" or ver="$ver3"> Old</if><if not ver="$ver1" not ver="$ver2" not ver="$ver3"> (obsolete)</if><br>
