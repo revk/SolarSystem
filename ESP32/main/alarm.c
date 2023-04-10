@@ -907,12 +907,11 @@ static void mesh_handle_summary(const char *target, jo_t j)
       xSemaphoreTake(control_mutex, portMAX_DELAY);
       if (json_disarm)
       {
+         // TODO how to tell if was armed (disarm) or not (cancel)
          jo_area(json_disarm, "areas", control_disarm);
-         if (smscancel & control_disarm & state_armed)
+         if (smscancel & control_disarm)
             sms_event("Disarmed", json_disarm);
-         else if (smsdisarm & control_disarm & ~state_armed)
-            sms_event("Cancelled", json_disarm);
-         alarm_event((control_disarm & state_armed) ? "disarm" : "armcancel", &json_disarm, ioteventarm);
+         alarm_event("disarm", &json_disarm, ioteventarm);
       }
       control_disarm = 0;
       xSemaphoreGive(control_mutex);
