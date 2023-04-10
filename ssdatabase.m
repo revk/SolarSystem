@@ -408,7 +408,9 @@ link(site);
 text(aidname, 0);
 datetime(ver1date)		// The date/time of current key
 text(ver1, 2);			// The Key versions that exist, in order, starting with current key
+datetime(ver2date)		// The date/time of key
 text(ver2, 2);
+datetime(ver3date)		// The date/time of key
 text(ver3, 2);
 
 table(event, 0);                // Logging

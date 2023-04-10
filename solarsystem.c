@@ -67,11 +67,11 @@ void aidver(SQL * sqlp, const char *aid)
    if (strcmp(sql_colz(a, "ver1"), sql_colz(r, "ver")) || strcmp(sql_colz(a, "ver1date"), sql_colz(r, "created")))
       sql_sprintf(&q, "`ver1`=%#s,`ver1date`=%#s,", sql_col(r, "ver"), sql_col(r, "created"));
    sql_fetch_row(r);            // queries will be null if off end
-   if (strcmp(sql_colz(a, "ver2"), sql_colz(r, "ver")))
-      sql_sprintf(&q, "`ver2`=%#s,", sql_col(r, "ver"));
+   if (strcmp(sql_colz(a, "ver2"), sql_colz(r, "ver")) || strcmp(sql_colz(a, "ver2date"), sql_colz(r, "created")))
+      sql_sprintf(&q, "`ver2`=%#s,`ver2date`=%#s,", sql_col(r, "ver"), sql_col(r, "created"));
    sql_fetch_row(r);            // queries will be null if off end
-   if (strcmp(sql_colz(a, "ver3"), sql_colz(r, "ver")))
-      sql_sprintf(&q, "`ver3`=%#s,", sql_col(r, "ver"));
+   if (strcmp(sql_colz(a, "ver3"), sql_colz(r, "ver")) || strcmp(sql_colz(a, "ver3date"), sql_colz(r, "created")))
+      sql_sprintf(&q, "`ver3`=%#s,`ver3date`=%#s,", sql_col(r, "ver"), sql_col(r, "created"));
    sql_free_result(r);
    sql_free_result(a);
    if (sql_back_s(&q) == ',')
