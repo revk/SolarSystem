@@ -63,11 +63,14 @@ void aidver(SQL * sqlp, const char *aid)
    SQL_RES *a = sql_safe_query_store_f(sqlp, "SELECT * FROM `aid` WHERE `aid`=%#s", aid);
    sql_fetch_row(a);
    SQL_RES *r = sql_safe_query_store_f(sqlp, "SELECT * FROM `%#S`.`AES` WHERE `aid`=%#s AND `fob`='' order BY `created` DESC LIMIT 3", CONFIG_SQL_KEY_DATABASE, aid);
-   if (!sql_fetch_row(r) || strcmp(sql_colz(a, "ver1"), sql_colz(r, "ver")))
-      sql_sprintf(&q, "`ver1`=%#s,", sql_col(r, "ver"));
-   if (!sql_fetch_row(r) || strcmp(sql_colz(a, "ver2"), sql_colz(r, "ver")))
+   sql_fetch_row(r);            // queries will be null if off end
+   if (strcmp(sql_colz(a, "ver1"), sql_colz(r, "ver")) || strcmp(sql_colz(a, "ver1date"), sql_colz(r, "created")))
+      sql_sprintf(&q, "`ver1`=%#s,`ver1date`=%#s,", sql_col(r, "ver"), sql_col(r, "created"));
+   sql_fetch_row(r);            // queries will be null if off end
+   if (strcmp(sql_colz(a, "ver2"), sql_colz(r, "ver")))
       sql_sprintf(&q, "`ver2`=%#s,", sql_col(r, "ver"));
-   if (!sql_fetch_row(r) || strcmp(sql_colz(a, "ver3"), sql_colz(r, "ver")))
+   sql_fetch_row(r);            // queries will be null if off end
+   if (strcmp(sql_colz(a, "ver3"), sql_colz(r, "ver")))
       sql_sprintf(&q, "`ver3`=%#s,", sql_col(r, "ver"));
    sql_free_result(r);
    sql_free_result(a);
@@ -695,35 +698,49 @@ void bogus(slot_t id)
 
 void daily(SQL * sqlp)
 {                               // Daily tasks and clean up
+   time_t now = time(0);
    sql_safe_query(sqlp, "DELETE FROM `session` WHERE `expires`<NOW()"); // Old sessions
    sql_safe_query(sqlp, "DELETE FROM `event` WHERE `logged`<DATE_SUB(NOW(),INTERVAL 1 MONTH)"); // Old event logs
-   SQL_RES *a = sql_safe_query_store(sqlp, "SELECT * FROM `aid`");
+   SQL_RES *a = sql_safe_query_store(sqlp, "SELECT * FROM `aid` LEFT JOIN `site` USING (`site`)");
    while (sql_fetch_row(a))
    {
       const char *aid = sql_colz(a, "aid");
-      const char *ver1 = sql_colz(a, "ver1");
+      time_t ver1date = sql_time(sql_col(a, "ver1date"));
+      int rollover = atoi(sql_colz(a, "rollover"));
+      if (rollover && ver1date && ver1date + rollover * 86400 < now)
+      {
+         makeaes(sqlp, alloca(AES_STRING_LEN), aid, NULL);      // New key
+         continue;
+      }
+      const char *ver1 = sql_col(a, "ver1");
       int changed = 0;
       SQL_RES *r = sql_safe_query_store_f(sqlp, "SELECT * FROM `%#S`.`AES` WHERE `aid`=%#s AND `fob`=''", CONFIG_SQL_KEY_DATABASE, aid);
-      while (sql_fetch_row(r))
-      {
-         const char *ver = sql_colz(r, "ver");
-         if (strcmp(ver, ver1))
-         {
-            SQL_RES *f = sql_safe_query_store_f(sqlp, "SELECT COUNT(*) AS `N` FROM `fobaid` WHERE `aid`=%#s AND `ver`=%#s", aid, ver);
-            if (!sql_fetch_row(f) || !atoi(sql_colz(f, "N")))
-            {                   // No fobs using this version - remove it
-               sql_safe_query_f(sqlp, "DELETE FROM `%#S`.`AES` WHERE `aid`=%#s AND `fob`='' AND `ver`=%#s", CONFIG_SQL_KEY_DATABASE, aid, ver);
-               changed++;
+      if (!sql_num_rows(r))
+         makeaes(sqlp, alloca(AES_STRING_LEN), aid, NULL);      // No keys exist, make the current key
+      else if (!ver1 || !ver1date)
+         aidver(sqlp, aid);     // ver1/ver1date is not set, so set it
+      else
+         while (sql_fetch_row(r))
+         {                      // Check for keys we can delete
+            const char *ver = sql_colz(r, "ver");
+            if (strcmp(ver, ver1))
+            {
+               SQL_RES *f = sql_safe_query_store_f(sqlp, "SELECT COUNT(*) AS `N` FROM `fobaid` WHERE `aid`=%#s AND `ver`=%#s", aid, ver);
+               if (!sql_fetch_row(f) || !atoi(sql_colz(f, "N")))
+               {                // No fobs using this version - remove it
+                  sql_safe_query_f(sqlp, "DELETE FROM `%#S`.`AES` WHERE `aid`=%#s AND `fob`='' AND `ver`=%#s", CONFIG_SQL_KEY_DATABASE, aid, ver);
+                  changed++;
+               }
+               sql_free_result(f);
             }
-            sql_free_result(f);
          }
-      }
       sql_free_result(r);
       if (changed)
       {
          aidver(sqlp, aid);
          sql_safe_query_f(sqlp, "UPDATE `device` SET `poke`=NOW() WHERE `aid`=%#s AND `online` IS NOT NULL", aid);
-         poke = 1;
+         if (sql_affected_rows(sqlp))
+            poke = 1;
       }
    }
    sql_free_result(a);
@@ -1033,12 +1050,6 @@ int main(int argc, const char *argv[])
    syslog(LOG_INFO, "Starting");
    sql_safe_query(&sql, "DELETE FROM `pending`");
    sql_safe_query(&sql, "UPDATE `device` SET `id`=NULL,`via`=NULL,`offlinereason`='System restart',`online`=NULL,`lastonline`=NOW(),`progress`=NULL WHERE `id` IS NOT NULL");
-   {
-      SQL_RES *res = sql_safe_query_store_f(&sql, "SELECT * FROM `aid` WHERE `ver1` IS NULL");
-      while (sql_fetch_row(res))
-         aidver(&sql, sql_colz(res, "aid"));
-      sql_free_result(res);
-   }
    mqtt_start();
    // Main loop getting messages (from MQTT or websocket)
    while (1)

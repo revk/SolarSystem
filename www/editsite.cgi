@@ -36,7 +36,7 @@ if($?sitename) then
 	if($?root) then
 		if("$root" == "") unsetenv root
 	endif
-	sqlwrite -qon "$DB" site sitename wifissid wifipass wifichan iottopic iothost nomesh smsuser smspass armcancel armdelay alarmdelay alarmhold debug iotstatesystem ioteventarm smsarm smsarmfail smsdisarm smscancel smsalarm smspanic smsfire engineer smsnumber smsfrom hookoffline hookfob hookfobdeny hookalarm hookfire hookpanic hookwarning hooktamper hookfault hooktrigger hookinhibit hookarm hookstrong hookdisarm hookarmfail hookopen hookforced hooknotclosed hooknotopen hookpropped hookwrongpin meshlr wifibssid root hookoffline emailfrom hookarm hookstrong hookdisarm hookopen hookarmfail hookforced hookpropped hookwrongpin
+	sqlwrite -qon "$DB" site sitename wifissid wifipass wifichan iottopic iothost nomesh smsuser smspass armcancel armdelay alarmdelay alarmhold debug rollover iotstatesystem ioteventarm smsarm smsarmfail smsdisarm smscancel smsalarm smspanic smsfire engineer smsnumber smsfrom hookoffline hookfob hookfobdeny hookalarm hookfire hookpanic hookwarning hooktamper hookfault hooktrigger hookinhibit hookarm hookstrong hookdisarm hookarmfail hookopen hookforced hooknotclosed hooknotopen hookpropped hookwrongpin meshlr wifibssid root hookoffline emailfrom hookarm hookstrong hookdisarm hookopen hookarmfail hookforced hookpropped hookwrongpin
 	sql "$DB" 'UPDATE device SET poke=NOW() WHERE site=$site'
 	message --poke
 	redirect /
@@ -67,6 +67,7 @@ Root:<select name=root><option value=''>None</option><sql table=device where="si
 <input type=checkbox id=iotstatesystem name=iotstatesystem value=true><label for=iotstatesystem>system</for>
 <input type=checkbox id=ioteventarm name=ioteventarm value=true><label for=ioteventarm>arm/trigger/disarm</for>
 </td></tr>
+<tr><td>Auto-Rollover</td><td><input name=rollover size=3> days (before automatic key rollover)</td></tr>
 <tr><td><input type=checkbox id=debug name=debug value=true></td><td><label for=debug>Debug mode (additional logging).</label></td></tr>
 <tr><td>Arm-Cancel</td><td><input name=armcancel size=3> seconds (timeout before cancelling arming)</td></tr>
 <tr><td>Arm-Delay</td><td><input name=armdelay size=3> seconds (timeout before arm happens)</td></tr>

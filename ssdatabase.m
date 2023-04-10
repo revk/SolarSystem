@@ -133,6 +133,7 @@ text(organisationname, 0);
 
 table(site, 0);                 // Site
 link(organisation);
+num(rollover);			// Number of days for auto rollover
 text(sitename, 0);		// Site name
 text(wifissid, 32);             // Site WiFi setting
 text(wifibssid, 12);            // Site WiFi setting
@@ -405,7 +406,8 @@ table(aid, 6);                  // AID
 link(organisation);
 link(site);
 text(aidname, 0);
-text(ver1, 2);			// The Key versions that exist, in order
+datetime(ver1date)		// The date/time of current key
+text(ver1, 2);			// The Key versions that exist, in order, starting with current key
 text(ver2, 2);
 text(ver3, 2);
 
