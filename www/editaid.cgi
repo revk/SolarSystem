@@ -51,7 +51,7 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 </td>
 </tr>
 </sql>
-<if USER_ADMIN=true><tr><td><input name=NEW></td><td colspan=2>New AID</td></tr></if>
+<if USER_ADMIN=true><tr><td><input name=NEW placeholder="New AID name"></td><td colspan=2>New AID</td></tr></if>
 </table>
 <input type=submit value="Update">
 <if not USER_ADMIN=true><p>If you need an additional AID, please contact the system controller.</p></if>
