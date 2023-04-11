@@ -134,8 +134,7 @@ static void task(void *pvParameters)
                   {
                      jo_t make(void) {
                         jo_t e = jo_make(NULL);
-                        jo_string(e, "reason", "input");
-                        jo_string(e, "input", inputname[i]);
+                        jo_string(e, "reason", inputname[i]);
                         return e;
                      }
                      if (inputdisarm[i] && (inputdisarm[i] & alarm_armed()))
