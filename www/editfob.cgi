@@ -46,8 +46,8 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <h1>🔑 Fobs</h1>
 <table>
 <set last>
-<sql table="foborganisation LEFT JOIN fobaid USING (fob) LEFT JOIN aid USING (aid)" group="fob" order="max(lastused) DESC,max(adopted) DESC,fob DESC" where="foborganisation.organisation=$USER_ORGANISATION AND aid.organisation=$USER_ORGANISATION">
-<sql table="foborganisation LEFT JOIN fobaid USING (fob) LEFT JOIN aid USING (aid) LEFT JOIN fob USING (fob) LEFT JOIN site USING (site) LEFT JOIN access USING (access)" where="foborganisation.organisation=$USER_ORGANISATION AND aid.organisation=$USER_ORGANISATION AND fobaid.fob='$fob'" order="aid">
+<sql table="foborganisation LEFT JOIN fobaid USING (fob) LEFT JOIN aid USING (aid)" group="fob" order="max(lastused) DESC,max(adopted) DESC,fob DESC" where="foborganisation.organisation=$USER_ORGANISATION AND aid.organisation=$USER_ORGANISATION AND aid.site=$USER_SITE">
+<sql table="foborganisation LEFT JOIN fobaid USING (fob) LEFT JOIN aid USING (aid) LEFT JOIN fob USING (fob) LEFT JOIN site USING (site) LEFT JOIN access USING (access)" where="foborganisation.organisation=$USER_ORGANISATION AND aid.organisation=$USER_ORGANISATION AND aid.site=$USER_SITE AND fobaid.fob='$fob'" order="aid">
 <if not found><set found=1><tr>
 <th>Fob</th>
 <th>Free</th>
