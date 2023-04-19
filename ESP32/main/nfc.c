@@ -17,7 +17,8 @@ static const char TAG[] = "nfc";
 #define PORT_INV 0x40
 #define GPIO_INV 0x80           // No SETTING bit
 
-int16_t gpio_mask(uint8_t p)
+int16_t
+gpio_mask (uint8_t p)
 {
    if (!p)
       return -1;                // Invalid (bit set if port is set)
@@ -69,9 +70,9 @@ settings
 #undef b
 #undef bap
 #undef u1
-    pn532_t * pn532 = NULL;
+   pn532_t * pn532 = NULL;
 uint8_t nfcmask = 0,
-    nfcinvert = 0;
+   nfcinvert = 0;
 df_t df;
 SemaphoreHandle_t nfc_mutex = NULL;     // PN532 has low level message mutex, but this is needed for DESFire level.
 
@@ -79,25 +80,28 @@ static uint8_t ledpattern[20] = "";
 
 static fob_t fob = { 0 };       // Current card state
 
-uint8_t key_type(uint8_t keyid)
+uint8_t
+key_type (uint8_t keyid)
 {                               // Get key type
-   if (keyid >= sizeof(aes) / sizeof(*aes))
+   if (keyid >= sizeof (aes) / sizeof (*aes))
       return 0;
    return aes[keyid][0];
 }
 
-uint8_t key_ver(uint8_t keyid)
+uint8_t
+key_ver (uint8_t keyid)
 {                               // Get key version
-   if (keyid >= sizeof(aes) / sizeof(*aes))
+   if (keyid >= sizeof (aes) / sizeof (*aes))
       return 0;
    if (!aes[keyid][0])
       return 0;
    return aes[keyid][1];        // The key version
 }
 
-uint8_t *key_aes(uint8_t keyid, uint8_t temp[16])
+uint8_t *
+key_aes (uint8_t keyid, uint8_t temp[16])
 {                               // Get actual key
-   if (keyid >= sizeof(aes) / sizeof(*aes))
+   if (keyid >= sizeof (aes) / sizeof (*aes))
       return NULL;
    if (!aes[keyid][0])
       return NULL;
@@ -110,125 +114,129 @@ uint8_t *key_aes(uint8_t keyid, uint8_t temp[16])
       return NULL;
    // Encrypt key based on fobid.
    uint8_t id[16] = { 0 };
-   strncpy((char *) id, fob.id, 16);
+   strncpy ((char *) id, fob.id, 16);
    esp_aes_context ctx;
-   esp_aes_init(&ctx);
-   esp_err_t err = esp_aes_setkey(&ctx, aes[keyid] + 2, 128);
+   esp_aes_init (&ctx);
+   esp_err_t err = esp_aes_setkey (&ctx, aes[keyid] + 2, 128);
    if (!err)
-      err = esp_internal_aes_encrypt(&ctx, id, temp);
-   esp_aes_free(&ctx);
+      err = esp_internal_aes_encrypt (&ctx, id, temp);
+   esp_aes_free (&ctx);
    if (err)
       return NULL;
    return temp;
 }
 
-const char *nfc_led(int len, const void *value)
+const char *
+nfc_led (int len, const void *value)
 {
    if (!len)
-      len = strlen(value = ledIDLE);    // Default
-   jo_t j = jo_object_alloc();
-   jo_stringf(j, "sequence", "%.*s", len, value);
-   revk_info_clients("led", &j, debug | (ioteventfob << 1));
-   if (len > sizeof(ledpattern))
-      len = sizeof(ledpattern);
-   if (len < sizeof(ledpattern))
+      len = strlen (value = ledIDLE);   // Default
+   jo_t j = jo_object_alloc ();
+   jo_stringf (j, "sequence", "%.*s", len, value);
+   revk_info_clients ("led", &j, debug | (ioteventfob << 1));
+   if (len > sizeof (ledpattern))
+      len = sizeof (ledpattern);
+   if (len < sizeof (ledpattern))
       ledpattern[len] = 0;
    if (len)
-      memcpy(ledpattern, value, len);
+      memcpy (ledpattern, value, len);
    return "";
 }
 
-static void fobevent(const uint8_t * ats, const uint8_t ver[28])
+static void
+fobevent (const uint8_t * ats, const uint8_t ver[28])
 {
-   jo_t j = jo_make(NULL);
+   jo_t j = jo_make (NULL);
    if (*fob.id)
    {
       if (fob.secureset)
-         jo_bool(j, "secure", fob.secure);
-      jo_string(j, "id", fob.id);
+         jo_bool (j, "secure", fob.secure);
+      jo_string (j, "id", fob.id);
       if (!fob.secure && ats && *ats)
-         jo_base16(j, "ats", ats, *ats);
+         jo_base16 (j, "ats", ats, *ats);
       if (ver)
-         jo_base16(j, "mifare-version", ver, 28);
+         jo_base16 (j, "mifare-version", ver, 28);
       if (fob.nameset)
-         jo_string(j, "name", fob.name);
+         jo_string (j, "name", fob.name);
       if (fob.smsset)
-         jo_string(j, "sms", fob.sms);
+         jo_string (j, "sms", fob.sms);
       if (fob.verset)
-         jo_stringf(j, "ver", "%02X", fob.ver);
+         jo_stringf (j, "ver", "%02X", fob.ver);
       if (fob.keyupdated)
-         jo_bool(j, "keyupdated", fob.keyupdated);
+         jo_bool (j, "keyupdated", fob.keyupdated);
       if (fob.fail)
-         jo_string(j, "fail", fob.fail);
+         jo_string (j, "fail", fob.fail);
       if (fob.deny)
-         jo_string(j, "deny", fob.deny);
+         jo_string (j, "deny", fob.deny);
       if (fob.updated)
-         jo_bool(j, "updated", fob.updated);
+         jo_bool (j, "updated", fob.updated);
       if (fob.logged)
-         jo_bool(j, "logged", fob.logged);
+         jo_bool (j, "logged", fob.logged);
       if (fob.counted)
-         jo_bool(j, "counted", fob.counted);
+         jo_bool (j, "counted", fob.counted);
       if (fob.checked)
-         jo_bool(j, "checked", fob.checked);
+         jo_bool (j, "checked", fob.checked);
       if (fob.held)
-         jo_bool(j, "held", fob.held);
+         jo_bool (j, "held", fob.held);
       if (fob.longheld)
-         jo_bool(j, "longheld", fob.longheld);
+         jo_bool (j, "longheld", fob.longheld);
       if (fob.gone)
-         jo_bool(j, "gone", fob.gone);
+         jo_bool (j, "gone", fob.gone);
       if (fob.block)
-         jo_bool(j, "block", fob.block);
+         jo_bool (j, "block", fob.block);
       if (fob.blacklist)
-         jo_bool(j, "blacklist", fob.blacklist);
+         jo_bool (j, "blacklist", fob.blacklist);
       if (fob.fallback)
-         jo_bool(j, "fallback", fob.fallback);
+         jo_bool (j, "fallback", fob.fallback);
       if (fob.unlocked)
-         jo_bool(j, "unlocked", fob.unlocked);
+         jo_bool (j, "unlocked", fob.unlocked);
       if (fob.disarmed)
-         jo_bool(j, "disarmed", fob.disarmed);
+         jo_bool (j, "disarmed", fob.disarmed);
       if (fob.armed)
-         jo_bool(j, "armed", fob.armed);
+         jo_bool (j, "armed", fob.armed);
       if (fob.stronged)
-         jo_bool(j, "stronged", fob.stronged);
+         jo_bool (j, "stronged", fob.stronged);
       if (fob.unlockok)
-         jo_bool(j, "unlockok", fob.unlockok);
+         jo_bool (j, "unlockok", fob.unlockok);
       if (fob.enterok)
-         jo_bool(j, "enterok", fob.enterok);
+         jo_bool (j, "enterok", fob.enterok);
       if (fob.propok)
-         jo_bool(j, "propok", fob.propok);
+         jo_bool (j, "propok", fob.propok);
       if (fob.propped)
-         jo_bool(j, "propped", fob.propped);
+         jo_bool (j, "propped", fob.propped);
       if (fob.disarmok)
-         jo_area(j, "disarmok", fob.disarm & areadisarm);
+         jo_area (j, "disarmok", fob.disarm & areadisarm);
       if (fob.armok)
-         jo_area(j, "armok", fob.arm & areaarm);
+         jo_area (j, "armok", fob.arm & areaarm);
       if (fob.strongok)
-         jo_area(j, "strongok", fob.strong & areaarm);
+         jo_area (j, "strongok", fob.strong & areaarm);
       if (fob.armlate)
-         jo_bool(j, "armlate", fob.armlate);
+         jo_bool (j, "armlate", fob.armlate);
       if (fob.afile)
-         jo_stringf(j, "crc", "%08X", fob.crc);
+         jo_stringf (j, "crc", "%08X", fob.crc);
       if (fob.override)
-         jo_bool(j, "override", fob.override);
-      if (door_state_name())
-         jo_string(j, "door", door_state_name());
+         jo_bool (j, "override", fob.override);
+      if (door_state_name ())
+         jo_string (j, "door", door_state_name ());
    }
    if (fob.remote)
-      jo_bool(j, "remote", 1);
-   alarm_event("fob", &j, ioteventfob);
+      jo_bool (j, "remote", 1);
+   alarm_event ("fob", &j, ioteventfob);
 }
 
-void nfc_retry(void)
+void
+nfc_retry (void)
 {
    fob.recheck = 1;
-   ESP_LOGD(TAG, "NFC permissions re-check");
+   ESP_LOGD (TAG, "NFC permissions re-check");
 }
 
-static void task(void *pvParameters)
+static void
+task (void *pvParameters)
 {
    if (!nfciopoll)
       nfciopoll = 100;          // Should not happen
-   esp_task_wdt_add(NULL);
+   esp_task_wdt_add (NULL);
    pvParameters = pvParameters;
    int64_t found = 0;
    int64_t nextpoll = 0;        // Timers
@@ -239,13 +247,13 @@ static void task(void *pvParameters)
    uint8_t ledpos = 0;
    uint8_t retry = 0;
    uint8_t holdpolls = 0;
-   uart_set_line_inverse(nfcuart, ((PORT_INV & nfctx) ? UART_SIGNAL_TXD_INV : 0) + ((PORT_INV & nfcrx) ? UART_SIGNAL_RXD_INV : 0));     // Allow for inverted pins
-   gpio_set_pull_mode(port_mask(nfcrx), (PORT_INV & nfcrx) ? GPIO_PULLUP_ONLY : GPIO_FLOATING); // If inverted rx, set pull up, as will be a FET
+   uart_set_line_inverse (nfcuart, ((PORT_INV & nfctx) ? UART_SIGNAL_TXD_INV : 0) + ((PORT_INV & nfcrx) ? UART_SIGNAL_RXD_INV : 0));    // Allow for inverted pins
+   gpio_set_pull_mode (port_mask (nfcrx), (PORT_INV & nfcrx) ? GPIO_PULLUP_ONLY : GPIO_FLOATING);       // If inverted rx, set pull up, as will be a FET
    while (1)
    {
-      esp_task_wdt_reset();
-      usleep(1000);
-      int64_t now = esp_timer_get_time();
+      esp_task_wdt_reset ();
+      usleep (1000);
+      int64_t now = esp_timer_get_time ();
       // Regular tasks
       if (nextio < now)
       {                         // Check tamper
@@ -253,7 +261,7 @@ static void task(void *pvParameters)
          int p3 = -1;
          if (pn532)
          {                      // Connected, get port
-            p3 = pn532_read_GPIO(pn532);
+            p3 = pn532_read_GPIO (pn532);
             if (p3 >= 0)
             {
                logical_gpio = ((logical_gpio & ~0xFF) | p3);
@@ -261,10 +269,10 @@ static void task(void *pvParameters)
             } else
             {
                nextio = now;    // Try again right away
-               ESP_LOGD(TAG, "Retry %d", retry + 1);
+               ESP_LOGD (TAG, "Retry %d", retry + 1);
                if (retry++ >= 10)
                {                // We don't expect this in normal operation, but some flash operations seem to stall serial a bit
-                  pn532 = pn532_end(pn532);
+                  pn532 = pn532_end (pn532);
                   logical_gpio |= logical_NFCFault;
                }
             }
@@ -272,36 +280,36 @@ static void task(void *pvParameters)
          if (!pn532)
          {                      // In failed state
             static uint8_t wait = 0,
-                on = 1;
+               on = 1;
             if (wait)
                wait--;
             if (wait)
                continue;
             if (on)
             {                   // Try talking to it
-               ESP_LOGE(TAG, "NFC re-init");
-               pn532 = pn532_init(nfcuart, port_mask(nfctx), port_mask(nfcrx), nfcmask);
+               ESP_LOGE (TAG, "NFC re-init");
+               pn532 = pn532_init (nfcuart, port_mask (nfctx), port_mask (nfcrx), nfcmask);
                if (!pn532)
-                  pn532 = pn532_init(nfcuart, port_mask(nfctx), port_mask(nfcrx), nfcmask);
+                  pn532 = pn532_init (nfcuart, port_mask (nfctx), port_mask (nfcrx), nfcmask);
                if (pn532)
                {                // All good!
-                  df_init(&df, pn532, pn532_dx);
+                  df_init (&df, pn532, pn532_dx);
                   ledlast = 0xFF;
                   logical_gpio &= ~logical_NFCFault;
                } else
                {                // Failed
                   on = 0;
-                  gpio_reset_pin(port_mask(nfcrx));     // Don't drive
-                  gpio_reset_pin(port_mask(nfctx));     // Don't drive
+                  gpio_reset_pin (port_mask (nfcrx));   // Don't drive
+                  gpio_reset_pin (port_mask (nfctx));   // Don't drive
                   if (nfcpower)
-                     gpio_set_level(port_mask(nfcpower), (nfcpower & PORT_INV) ? 1 : 0);        // Off
+                     gpio_set_level (port_mask (nfcpower), (nfcpower & PORT_INV) ? 1 : 0);      // Off
                   wait = 1000 / nfciopoll;      // off wait
                }
             } else
             {                   // Off, so turn on
                on = 1;
                if (nfcpower)
-                  gpio_set_level(port_mask(nfcpower), (nfcpower & PORT_INV) ? 0 : 1);   // On
+                  gpio_set_level (port_mask (nfcpower), (nfcpower & PORT_INV) ? 0 : 1); // On
                wait = 500 / nfciopoll;  // on wait
             }
          }
@@ -309,17 +317,18 @@ static void task(void *pvParameters)
             continue;           // No point doing any more
       }
       // LED
-      void blink(char r, char a, char g) {      // Blink an LED
+      void blink (char r, char a, char g)
+      {                         // Blink an LED
          uint8_t newled = 0;
          if (nfcred && r)
-            newled |= (1 << gpio_mask(nfcred));
+            newled |= (1 << gpio_mask (nfcred));
          if (nfcamber && a)
-            newled |= (1 << gpio_mask(nfcamber));
+            newled |= (1 << gpio_mask (nfcamber));
          if (nfcgreen && g)
-            newled |= (1 << gpio_mask(nfcgreen));
+            newled |= (1 << gpio_mask (nfcgreen));
          if (newled != ledlast)
-            pn532_write_GPIO(pn532, (ledlast = newled) ^ nfcinvert);
-         pn532_write_GPIO(pn532, ledlast ^ nfcinvert);
+            pn532_write_GPIO (pn532, (ledlast = newled) ^ nfcinvert);
+         pn532_write_GPIO (pn532, ledlast ^ nfcinvert);
          countled = 5;          // Hold for a bit
          ledpos = 0;
       }
@@ -331,47 +340,47 @@ static void task(void *pvParameters)
          if (!countled)
          {                      // Next colour
             ledpos++;
-            if (ledpos >= sizeof(ledpattern) || !ledpattern[ledpos] || !*ledpattern)
+            if (ledpos >= sizeof (ledpattern) || !ledpattern[ledpos] || !*ledpattern)
                ledpos = 0;      // Wrap
             uint8_t newled = 0;
-            while (ledpos < sizeof(ledpattern) && ledpattern[ledpos] && isdigit(ledpattern[ledpos]))
+            while (ledpos < sizeof (ledpattern) && ledpattern[ledpos] && isdigit (ledpattern[ledpos]))
                countled = countled * 10 + ledpattern[ledpos++] - '0';
-            while (ledpos < sizeof(ledpattern) && ledpattern[ledpos])
+            while (ledpos < sizeof (ledpattern) && ledpattern[ledpos])
             {                   // Check combined colours
                if (nfcred && ledpattern[ledpos] == 'R')
-                  newled |= (1 << gpio_mask(nfcred));
+                  newled |= (1 << gpio_mask (nfcred));
                if (nfcamber && ledpattern[ledpos] == 'A')
-                  newled |= (1 << gpio_mask(nfcamber));
+                  newled |= (1 << gpio_mask (nfcamber));
                if (nfcgreen && ledpattern[ledpos] == 'G')
-                  newled |= (1 << gpio_mask(nfcgreen));
+                  newled |= (1 << gpio_mask (nfcgreen));
                if (nfccard && found)
                {                // Blinky
                   if (holdpolls & 1)
-                     newled &= ~(1 << gpio_mask(nfccard));
+                     newled &= ~(1 << gpio_mask (nfccard));
                   else
-                     newled |= (1 << gpio_mask(nfccard));
+                     newled |= (1 << gpio_mask (nfccard));
                }
-               if (ledpos + 1 >= sizeof(ledpattern) || ledpattern[ledpos + 1] != '+')
+               if (ledpos + 1 >= sizeof (ledpattern) || ledpattern[ledpos + 1] != '+')
                   break;        // Combined LED pattern with +
                ledpos += 2;
             }
             if (state_prearm && (ledpos & 1) && nfcred)
-               newled ^= (1 << gpio_mask(nfcred));      // Extra blinky when prearm... Not a nice bodge
+               newled ^= (1 << gpio_mask (nfcred));     // Extra blinky when prearm... Not a nice bodge
             if (newled != ledlast)
-               pn532_write_GPIO(pn532, (ledlast = newled) ^ nfcinvert);
+               pn532_write_GPIO (pn532, (ledlast = newled) ^ nfcinvert);
          }
       }
       // Card
       if (nextpoll < now)
       {                         // Check for card
          nextpoll = now + (int64_t) nfcpoll *1000LL;    // Default polling
-         if (found && !pn532_Present(pn532))
+         if (found && !pn532_Present (pn532))
          {                      // Card gone
-            ESP_LOGI(TAG, "gone %s", fob.id);
+            ESP_LOGI (TAG, "gone %s", fob.id);
             fob.gone = 1;
             if (fob.remote || (fob.held && nfchold) || (fob.longheld && nfclonghold) || fob.deny || fob.fail)
-               fobevent(NULL, NULL);    // Report as was help, or was still failed
-            memset(&fob, 0, sizeof(fob));
+               fobevent (NULL, NULL);   // Report as was help, or was still failed
+            memset (&fob, 0, sizeof (fob));
             found = 0;
             holdpolls = 0;
          }
@@ -384,57 +393,57 @@ static void task(void *pvParameters)
             {                   // Card has been held for a while, report
                fob.held = 1;
                fob.deny = NULL; // Re-evaluate as held
-               door_fob(&fob);
-               door_act(&fob);  // Action from held
-               fobevent(NULL, NULL);
+               door_fob (&fob);
+               door_act (&fob); // Action from held
+               fobevent (NULL, NULL);
             }
             if (!fob.remote && !fob.longheld && nfclonghold && holdpolls >= nfclonghold)
             {                   // Card has been held for a while, report
                fob.longheld = 1;
                fob.deny = NULL; // Re-evaluate as long held
-               door_fob(&fob);
-               door_act(&fob);  // Action from long held
-               fobevent(NULL, NULL);
+               door_fob (&fob);
+               door_act (&fob); // Action from long held
+               fobevent (NULL, NULL);
             }
             continue;           // Waiting for card to go
          }
          // Check for new card
-         df.blocklen = 0;         // New card
+         df_deauth (&df);
          int cards = 1;
          if (!fob.recheck)
-            cards = pn532_Cards(pn532);
+            cards = pn532_Cards (pn532);
          if (cards > 1)
          {
-            ESP_LOGI(TAG, "Release 2nd card");
-            pn532_release(pn532, 2);
+            ESP_LOGI (TAG, "Release 2nd card");
+            pn532_release (pn532, 2);
             nextpoll = 0;
          } else if (cards > 0)
          {                      // Check for new card
             if (fob.recheck)
-               memset(&fob, 0, sizeof(fob));    // Fresh start
-            xSemaphoreTake(nfc_mutex, portMAX_DELAY);
+               memset (&fob, 0, sizeof (fob));  // Fresh start
+            xSemaphoreTake (nfc_mutex, portMAX_DELAY);
             nextpoll = now + (int64_t) nfcholdpoll *1000LL;     // Polling while held
             const char *e = NULL;
-            uint8_t *ats = pn532_ats(pn532);
-            pn532_nfcid(pn532, fob.id);
+            uint8_t *ats = pn532_ats (pn532);
+            pn532_nfcid (pn532, fob.id);
             if (*ats && ats[1] == 0x78)
                fob.iso = 1;
-            if (!fob.remote && key_type(0) && (aid[0] || aid[1] || aid[2]) && *ats && ats[1] == 0x75)
+            if (!fob.remote && key_type (0) && (aid[0] || aid[1] || aid[2]) && *ats && ats[1] == 0x75)
             {                   // DESFire
                fob.secureset = 1;       // We checked security
                // Select application
                if (!e)
-                  e = df_select_application(&df, aid);
+                  e = df_select_application (&df, aid);
                if (e)
                {
-                  if (!strstr(e, "TIMEOUT"))
+                  if (!strstr (e, "TIMEOUT"))
                      e = NULL;  // Just treat as insecure
                } else
                {
-                  if (!e && key_type(1))
+                  if (!e && key_type (1))
                   {             // We have more than one key, get key version
                      uint8_t version = 0;
-                     e = df_get_key_version(&df, 1, &version);
+                     e = df_get_key_version (&df, 1, &version);
                      if (!e)
                      {
                         fob.ver = version;
@@ -443,8 +452,8 @@ static void task(void *pvParameters)
                      if (!e && version)
                      {
                         uint8_t aesid;
-                        for (aesid = 0; aesid < sizeof(aes) / sizeof(*aes) && key_ver(aesid) != version; aesid++);
-                        if (aesid == sizeof(aes) / sizeof(*aes))
+                        for (aesid = 0; aesid < sizeof (aes) / sizeof (*aes) && key_ver (aesid) != version; aesid++);
+                        if (aesid == sizeof (aes) / sizeof (*aes))
                            e = "Unknown key version";
                         else
                            fob.aesid = aesid;
@@ -454,29 +463,30 @@ static void task(void *pvParameters)
                   if (!e)
                   {
                      uint8_t temp[16];
-                     e = df_authenticate(&df, 1, key_aes(fob.aesid, temp));
+                     e = df_authenticate (&df, 1, key_aes (fob.aesid, temp));
                      if (e)
                      {          // Log key version as auth failed
                         uint8_t version = 0;
-                        if (!df_get_key_version(&df, 1, &version))
+                        if (!df_get_key_version (&df, 1, &version))
                         {
                            fob.ver = version;
                            fob.verset = 1;
                         }
                      } else
                      {          // Authenticated so version is as expected
-                        fob.ver = key_ver(fob.aesid);
+                        fob.ver = key_ver (fob.aesid);
                         fob.verset = 1;
                         fob.secure = 1;
-                        if (key_type(fob.aesid) == 1)
+                        if (key_type (fob.aesid) == 1)
                         {       // Only get UID if key type 1 as someone could have fed us one UID then linked to a real fob fooling us, but if encrypted key based on UID, it must be right so we can assume so and save time
                            uint8_t uid[7];      // Real ID
                            if (!e)
-                              e = df_get_uid(&df, uid);
+                              e = df_get_uid (&df, uid);
                            if (e)
                               fob.secure = 0;   // Err, WTF?
                            else
-                              snprintf(fob.id, sizeof(fob.id), "%02X%02X%02X%02X%02X%02X%02X", uid[0], uid[1], uid[2], uid[3], uid[4], uid[5], uid[6]);
+                              snprintf (fob.id, sizeof (fob.id), "%02X%02X%02X%02X%02X%02X%02X", uid[0], uid[1], uid[2], uid[3],
+                                        uid[4], uid[5], uid[6]);
                         }
                      }
                   }
@@ -486,8 +496,9 @@ static void task(void *pvParameters)
             if (e)
                fob.fail = e;
             else
-               door_fob(&fob);
-            void log(void) {    // Log and count
+               door_fob (&fob);
+            void log (void)
+            {                   // Log and count
                if (fob.log)
                {                // Log
                   uint8_t buf[13];
@@ -497,35 +508,35 @@ static void task(void *pvParameters)
                   buf[3] = revk_binid >> 16;
                   buf[4] = revk_binid >> 8;
                   buf[5] = revk_binid;
-                  bcdutctime(0, buf + 6);
+                  bcdutctime (0, buf + 6);
                   if (buf[6] == 0x19)
-                     ESP_LOGI(TAG, "Clock not set when logging");
-                  else if ((e = df_write_data(&df, 1, 'C', DF_MODE_CMAC, 0, 13, buf)))
+                     ESP_LOGI (TAG, "Clock not set when logging");
+                  else if ((e = df_write_data (&df, 1, 'C', DF_MODE_CMAC, 0, 13, buf)))
                      return;
                }
                if (fob.count)
                {                // Count
-                  if ((e = df_credit(&df, 2, DF_MODE_CMAC, 1)))
+                  if ((e = df_credit (&df, 2, DF_MODE_CMAC, 1)))
                      return;
                }
                if (fob.log || fob.count || fob.updated)
                {                // Commit
-                  if ((e = df_commit(&df)))
+                  if ((e = df_commit (&df)))
                   {
                      fob.updated = 0;
                      return;
                   }
                }
                // Key update
-               if (fob.aesid && key_type(0))
+               if (fob.aesid && key_type (0))
                {
                   uint8_t temp1[16],
-                   temp2[16];
-                  e = df_change_key(&df, 1, key_ver(0), key_aes(fob.aesid, temp1), key_aes(0, temp2));
+                    temp2[16];
+                  e = df_change_key (&df, 1, key_ver (0), key_aes (fob.aesid, temp1), key_aes (0, temp2));
                   if (!e)
                   {
                      fob.aesid = 0;
-                     fob.ver = key_ver(0);
+                     fob.ver = key_ver (0);
                      fob.keyupdated = 1;
                   }
                }
@@ -537,124 +548,127 @@ static void task(void *pvParameters)
                      fob.counted = 1;
                }
             }
-            if (e && strstr(e, "TIMEOUT"))
+            if (e && strstr (e, "TIMEOUT"))
             {
-               blink(0, 1, 0);  // Read ID OK
-               ESP_LOGI(TAG, "Retry %s %s", fob.id, e);
+               blink (0, 1, 0); // Read ID OK
+               ESP_LOGI (TAG, "Retry %s %s", fob.id, e);
                nextpoll = 0;    // Try again immediately
-               memset(&fob, 0, sizeof(fob));
+               memset (&fob, 0, sizeof (fob));
             } else
             {                   // Processing door
                if (fob.fail)
-                  ESP_LOGI(TAG, "Fail %s: %s", fob.id, fob.fail);
+                  ESP_LOGI (TAG, "Fail %s: %s", fob.id, fob.fail);
                else if (fob.deny)
-                  ESP_LOGI(TAG, "Deny %s: %s", fob.id, fob.deny);
+                  ESP_LOGI (TAG, "Deny %s: %s", fob.id, fob.deny);
                else
-                  ESP_LOGI(TAG, "Read %s", fob.id);
-               if (!e && df.blocklen && fob.commit)
-                  log();        // Log before reporting or opening door
+                  ESP_LOGI (TAG, "Read %s", fob.id);
+               if (!e && df_isauth (&df) && fob.commit)
+                  log ();       // Log before reporting or opening door
                if (fob.enterok)
-                  blink(0, 1, 1);
+                  blink (0, 1, 1);
                else if (fob.deny)
-                  blink(1, 0, 1);
+                  blink (1, 0, 1);
                else
-                  blink(0, 1, 0);
+                  blink (0, 1, 0);
                if (!e)
-                  door_act(&fob);
+                  door_act (&fob);
                uint8_t ver[28];
-               fobevent(ats, fob.secureset && !fob.secure && !df_get_version(&df, ver) ? ver : NULL);   // Report - as may need updating
-               if (!e && df.blocklen && !fob.commit)
+               fobevent (ats, fob.secureset && !fob.secure && !df_get_version (&df, ver) ? ver : NULL); // Report - as may need updating
+               if (!e && df_isauth (&df) && !fob.commit)
                {
-                  log();        // Can log after reporting / opening
-                  if (e && !strstr(e, "TIMEOUT"))
+                  log ();       // Can log after reporting / opening
+                  if (e && !strstr (e, "TIMEOUT"))
                      fob.fail = e;      // Will log when gone
                }
                found = now;
             }
-            xSemaphoreGive(nfc_mutex);
+            xSemaphoreGive (nfc_mutex);
          }
       }
    }
 }
 
-static void report_state(void)
+static void
+report_state (void)
 {
-   jo_t j = jo_object_alloc();
+   jo_t j = jo_object_alloc ();
    if (aid[0] || aid[1] || aid[2])
-      jo_stringf(j, "aid", "%02X%02X%02X", aid[0], aid[1], aid[2]);
-   jo_array(j, "ver");
-   for (int i = 0; i < sizeof(aes) / sizeof(*aes) && key_type(i); i++)
-      jo_stringf(j, NULL, "%02X", key_ver(i));
-   revk_state_clients("keys", &j, 1);
+      jo_stringf (j, "aid", "%02X%02X%02X", aid[0], aid[1], aid[2]);
+   jo_array (j, "ver");
+   for (int i = 0; i < sizeof (aes) / sizeof (*aes) && key_type (i); i++)
+      jo_stringf (j, NULL, "%02X", key_ver (i));
+   revk_state_clients ("keys", &j, 1);
 }
 
-const char *nfc_command(const char *tag, jo_t j)
+const char *
+nfc_command (const char *tag, jo_t j)
 {
-   if (!strcmp(tag, "connect"))
-      report_state();
+   if (!strcmp (tag, "connect"))
+      report_state ();
    if (!pn532)
       return NULL;              // Not running
-   if (!strcmp(tag, "shutdown"))
+   if (!strcmp (tag, "shutdown"))
    {
       if (nfctx)
-         gpio_reset_pin(port_mask(nfctx));      // So not driving via data lines
+         gpio_reset_pin (port_mask (nfctx));    // So not driving via data lines
       if (nfcrx)
-         gpio_reset_pin(port_mask(nfcrx));      // So not driving via data lines
+         gpio_reset_pin (port_mask (nfcrx));    // So not driving via data lines
       if (nfcpower)
-         gpio_set_level(port_mask(nfcpower), (nfcpower & PORT_INV) ? 1 : 0);    // Off
+         gpio_set_level (port_mask (nfcpower), (nfcpower & PORT_INV) ? 1 : 0);  // Off
    }
-   if (nfcmask && !strcmp(tag, "led"))
+   if (nfcmask && !strcmp (tag, "led"))
    {
-      char temp[sizeof(ledpattern)];
-      int l = jo_strncpy(j, temp, sizeof(temp));
+      char temp[sizeof (ledpattern)];
+      int l = jo_strncpy (j, temp, sizeof (temp));
       if (l < 0)
          return "Expecting JSON string";
-      if (l > sizeof(temp))
+      if (l > sizeof (temp))
          return "Too long";
-      return nfc_led(l, temp);
+      return nfc_led (l, temp);
    }
-   if (!strcmp(tag, "nfcremote"))
+   if (!strcmp (tag, "nfcremote"))
    {                            // Direct NFC data
       fob.remote = 1;           // Disable normal working
-      ESP_LOGI(TAG, "NFC access remote");
+      ESP_LOGI (TAG, "NFC access remote");
       return "";
    }
-   if (!strcmp(tag, "nfc"))
+   if (!strcmp (tag, "nfc"))
    {
-      if (jo_here(j) != JO_STRING)
+      if (jo_here (j) != JO_STRING)
          return "Expecting JSON string";
       if (!fob.remote)
          return "Send nfcremote first";
       uint8_t buf[256];
-      int len = jo_strncpy16(j, (char *) buf, sizeof(buf));
-      if (len < 0 || len > sizeof(buf))
+      int len = jo_strncpy16 (j, (char *) buf, sizeof (buf));
+      if (len < 0 || len > sizeof (buf))
          return "Too big";
       const char *err = NULL;
-      xSemaphoreTake(nfc_mutex, portMAX_DELAY);
-      len = pn532_dx(pn532, len, buf, sizeof(buf), &err);
-      xSemaphoreGive(nfc_mutex);
-      jo_t i = jo_create_alloc();
+      xSemaphoreTake (nfc_mutex, portMAX_DELAY);
+      len = pn532_dx (pn532, len, buf, sizeof (buf), &err);
+      xSemaphoreGive (nfc_mutex);
+      jo_t i = jo_create_alloc ();
       if (len < 0)
-         jo_string(i, NULL, err);
+         jo_string (i, NULL, err);
       else
-         jo_base16(i, NULL, buf, len);
-      revk_info_clients(len < 0 ? "nfcerror" : "nfc", &i, 1);
+         jo_base16 (i, NULL, buf, len);
+      revk_info_clients (len < 0 ? "nfcerror" : "nfc", &i, 1);
       return "";
    }
-   if (!strcmp(tag, "nfcdone"))
+   if (!strcmp (tag, "nfcdone"))
    {
-      ESP_LOGI(TAG, "NFC access remote ended");
+      ESP_LOGI (TAG, "NFC access remote ended");
       fob.remote = 0;
       fob.recheck = 1;
-      nfc_led(0, NULL);
+      nfc_led (0, NULL);
       return "";
    }
    return NULL;
 }
 
-void nfc_boot(void)
+void
+nfc_boot (void)
 {
-   revk_register("nfc", 0, sizeof(nfctx), &nfctx, BITFIELDS, SETTING_SET | SETTING_BITFIELD | SETTING_SECRET);  // parent setting
+   revk_register ("nfc", 0, sizeof (nfctx), &nfctx, BITFIELDS, SETTING_SET | SETTING_BITFIELD | SETTING_SECRET);        // parent setting
 #define i8(n,d) revk_register(#n,0,sizeof(n),&n,#d,SETTING_SIGNED);
 #define io(n) revk_register(#n,0,sizeof(n),&n,BITFIELDS,SETTING_SET|SETTING_BITFIELD);
 #define gpio(n) revk_register(#n,0,sizeof(n),&n,BITFIELDS,SETTING_BITFIELD);
@@ -674,55 +688,56 @@ void nfc_boot(void)
 #undef b
 #undef bap
 #undef u1
-       // Set up ports */
-       nfcmask = 0;             /* output mask for NFC */
+      // Set up ports */
+      nfcmask = 0;              /* output mask for NFC */
    if (nfcred)
-      nfcmask |= (1 << gpio_mask(nfcred));
+      nfcmask |= (1 << gpio_mask (nfcred));
    if (nfcamber)
-      nfcmask |= (1 << gpio_mask(nfcamber));
+      nfcmask |= (1 << gpio_mask (nfcamber));
    if (nfcgreen)
-      nfcmask |= (1 << gpio_mask(nfcgreen));
+      nfcmask |= (1 << gpio_mask (nfcgreen));
    if (nfccard)
-      nfcmask |= (1 << gpio_mask(nfccard));
+      nfcmask |= (1 << gpio_mask (nfccard));
    if (nfcred & GPIO_INV)
-      nfcinvert |= (1 << gpio_mask(nfcred));
+      nfcinvert |= (1 << gpio_mask (nfcred));
    if (nfcamber & GPIO_INV)
-      nfcinvert |= (1 << gpio_mask(nfcamber));
+      nfcinvert |= (1 << gpio_mask (nfcamber));
    if (nfcgreen & GPIO_INV)
-      nfcinvert |= (1 << gpio_mask(nfcgreen));
+      nfcinvert |= (1 << gpio_mask (nfcgreen));
    if (nfccard & GPIO_INV)
-      nfcinvert |= (1 << gpio_mask(nfccard));
+      nfcinvert |= (1 << gpio_mask (nfccard));
    if (nfcpower)
    {
-      gpio_reset_pin(port_mask(nfcpower));
-      gpio_set_level(port_mask(nfcpower), (nfcpower & PORT_INV) ? 1 : 0);       // Off
-      gpio_set_direction(port_mask(nfcpower), GPIO_MODE_OUTPUT);
+      gpio_reset_pin (port_mask (nfcpower));
+      gpio_set_level (port_mask (nfcpower), (nfcpower & PORT_INV) ? 1 : 0);     // Off
+      gpio_set_direction (port_mask (nfcpower), GPIO_MODE_OUTPUT);
    }
    if (nfctx && nfcrx)
    {
-      const char *e = port_check(port_mask(nfctx), TAG, 0);
+      const char *e = port_check (port_mask (nfctx), TAG, 0);
       if (!e)
-         e = port_check(port_mask(nfcrx), TAG, 1);
+         e = port_check (port_mask (nfcrx), TAG, 1);
       if (e)
          logical_gpio |= logical_NFCFault;
       else
       {
-         nfc_mutex = xSemaphoreCreateBinary();
-         xSemaphoreGive(nfc_mutex);
-         pn532 = pn532_init(nfcuart, port_mask(nfctx), port_mask(nfcrx), nfcmask);
+         nfc_mutex = xSemaphoreCreateBinary ();
+         xSemaphoreGive (nfc_mutex);
+         pn532 = pn532_init (nfcuart, port_mask (nfctx), port_mask (nfcrx), nfcmask);
          if (!pn532)
             logical_gpio |= logical_NFCFault;
-         df_init(&df, pn532, pn532_dx); // Start anyway, er re-try init
+         df_init (&df, pn532, pn532_dx);        // Start anyway, er re-try init
       }
    } else if (nfcrx || nfctx)
       logical_gpio |= logical_NFCFault;
 }
 
-void nfc_start(void)
+void
+nfc_start (void)
 {
    if (nfctx && nfcrx)
    {
-      revk_task(TAG, task, pn532);
-      nfc_led(0, NULL);
+      revk_task (TAG, task, pn532);
+      nfc_led (0, NULL);
    }
 }

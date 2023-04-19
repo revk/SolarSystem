@@ -82,7 +82,8 @@ settings
   d(AJAR,R+A-G+A) \
 
 #define l(n) LOCK_##n,
-    enum {
+   enum
+{
    lock_states
 };
 #undef l
@@ -95,7 +96,8 @@ const char *lockstates[] = {
 #undef l
 
 #define d(n,l) DOOR_##n,
-enum {
+enum
+{
    door_states
 };
 #undef d
@@ -114,9 +116,10 @@ char *doorled[] = {
 
 #undef d
 
-struct {
+struct
+{
    uint8_t o,
-    i;
+     i;
    uint8_t state;
    int64_t timeout;
 } lock[2] = {
@@ -127,36 +130,39 @@ static uint8_t doorstate = -1;
 static int64_t doortimeout = 0;
 static const char *doorwhy = NULL;
 
-static area_t door_deadlocked(void)
+static area_t
+door_deadlocked (void)
 {
-   return areadeadlock & alarm_armed();
+   return areadeadlock & alarm_armed ();
 }
 
-const char *door_access(const char *id, const uint8_t * a)
+const char *
+door_access (const char *id, const uint8_t * a)
 {                               // Confirm access
    if (!a)
       return "";                // No action
    if (!id)
       return "ID needed";
-   if (strcmp(id, afileid))
+   if (strcmp (id, afileid))
       return "Mismatch";        // Not the fob we have here
-   if (*a == *afile && !memcmp(a + 1, afile + 1, *afile))
+   if (*a == *afile && !memcmp (a + 1, afile + 1, *afile))
       return "";                // Same
-   xSemaphoreTake(nfc_mutex, portMAX_DELAY);    // Just to avoid changes whilst nfc is also doing things
-   if (!strcmp(id, afileid))
+   xSemaphoreTake (nfc_mutex, portMAX_DELAY);   // Just to avoid changes whilst nfc is also doing things
+   if (!strcmp (id, afileid))
    {                            // Re check now we have semaphore
-      memcpy(afile, a, *a + 1); // Store new afile
-      afiletime = uptime();     // log time
+      memcpy (afile, a, *a + 1);        // Store new afile
+      afiletime = uptime ();    // log time
    }
-   xSemaphoreGive(nfc_mutex);
-   nfc_retry();                 // Will updated if possible because afiletime set
+   xSemaphoreGive (nfc_mutex);
+   nfc_retry ();                // Will updated if possible because afiletime set
    return "";
 }
 
-void door_check(void)
+void
+door_check (void)
 {
    if (doorauto >= 2)
-      output_func_set(OUTPUT_FUNC_D, door_deadlocked()? 0 : 1);
+      output_func_set (OUTPUT_FUNC_D, door_deadlocked ()? 0 : 1);
    if (areadeadlock)
    {                            // Work out if deadlock is final - as the normal deadlock state pre-empts actual setting so deadlock engaged can be waited on
       uint8_t unlock = !(areadeadlock & state_armed & ~control_disarm); // Delay deadlock state until confirmed
@@ -165,59 +171,64 @@ void door_check(void)
       {
          was = unlock;
          if (!unlock && *dooriotdead)
-            revk_mqtt_send_str_clients(dooriotdead, 0, 2);
+            revk_mqtt_send_str_clients (dooriotdead, 0, 2);
          else if (unlock && *dooriotundead)
-            revk_mqtt_send_str_clients(dooriotundead, 0, 2);
+            revk_mqtt_send_str_clients (dooriotundead, 0, 2);
       }
    }
 }
 
-const char *door_unlock(const char *id, const uint8_t * a, const char *why)
+const char *
+door_unlock (const char *id, const uint8_t * a, const char *why)
 {                               // Unlock the door - i.e. exit button, entry allowed, etc.
    if (doorauto >= 2)
    {
       if (why && !doorwhy)
          doorwhy = why;
-      ESP_LOGD(TAG, "Unlock %s", why ? : "?");
-      output_func_set(OUTPUT_FUNC_L, 1);
-      output_func_set(OUTPUT_FUNC_D, 1);
+      ESP_LOGD (TAG, "Unlock %s", why ? : "?");
+      output_func_set (OUTPUT_FUNC_L, 1);
+      output_func_set (OUTPUT_FUNC_D, 1);
    }
-   return door_access(id, a);
+   return door_access (id, a);
 }
 
-const char *door_lock(const char *id, const uint8_t * a, const char *why)
+const char *
+door_lock (const char *id, const uint8_t * a, const char *why)
 {                               // Lock the door - i.e. move to normal locked operation
    if (doorauto >= 2)
    {
-      ESP_LOGD(TAG, "Lock %s", why ? : "?");
-      output_func_set(OUTPUT_FUNC_L, 0);
+      ESP_LOGD (TAG, "Lock %s", why ? : "?");
+      output_func_set (OUTPUT_FUNC_L, 0);
       doorwhy = NULL;
    }
-   return door_access(id, a);
+   return door_access (id, a);
 }
 
-const char *door_prop(const char *id, const uint8_t * a, const char *why)
+const char *
+door_prop (const char *id, const uint8_t * a, const char *why)
 {                               // Allow door propping
    if (doorstate != DOOR_OPEN && doorstate != DOOR_NOTCLOSED && doorstate != DOOR_PROPPED)
       return false;
-   jo_t j = jo_make(NULL);
+   jo_t j = jo_make (NULL);
    if (why)
-      jo_string(j, "trigger", why);
-   alarm_event("propped", &j, iotstatedoor);
+      jo_string (j, "trigger", why);
+   alarm_event ("propped", &j, iotstatedoor);
    doorstate = DOOR_PROPPED;
-   return door_access(id, a);
+   return door_access (id, a);
 }
 
-void door_act(fob_t * fob)
+void
+door_act (fob_t * fob)
 {                               // Act on fob (unlock/lock/arm/disarm)
-   jo_t make(void) {            // Create JSON for arm/disarm
-      jo_t e = jo_make(NULL);
-      jo_string(e, "reason", "fob");
-      jo_string(e, "id", fob->id);
+   jo_t make (void)
+   {                            // Create JSON for arm/disarm
+      jo_t e = jo_make (NULL);
+      jo_string (e, "reason", "fob");
+      jo_string (e, "id", fob->id);
       if (fob->nameset)
-         jo_string(e, "name", fob->name);
+         jo_string (e, "name", fob->name);
       if (fob->smsset)
-         jo_string(e, "sms", fob->sms);
+         jo_string (e, "sms", fob->sms);
       return e;
    }
    if (fob->strongok && fob->longheld && (fob->strong & areastrong & ~((state_armed | control_strong) & ~control_disarm)))
@@ -225,21 +236,21 @@ void door_act(fob_t * fob)
       // Allowing if door open, strong arm is an override, so yeh, suffer the consequences
       if (doorauto >= 5)
       {
-         jo_t e = make();
-         alarm_strong(fob->strong & areastrong, &e);
-         door_lock(fob->id, NULL, "fob");
+         jo_t e = make ();
+         alarm_strong (fob->strong & areastrong, &e);
+         door_lock (fob->id, NULL, "fob");
          fob->stronged = 1;
       }
    }
-   if (fob->armok && fob->held && (fob->arm & areaarm & ~alarm_armed()))
+   if (fob->armok && fob->held && (fob->arm & areaarm & ~alarm_armed ()))
    {                            // Simple, we can arm
       if (doorstate == DOOR_OPEN || doorstate == DOOR_PROPPED || doorstate == DOOR_NOTCLOSED)
          return;                // Not if open
       if (doorauto >= 5)
       {
-         jo_t e = make();
-         alarm_arm(fob->arm & areaarm, &e);
-         door_lock(fob->id, NULL, "fob");
+         jo_t e = make ();
+         alarm_arm (fob->arm & areaarm, &e);
+         door_lock (fob->id, NULL, "fob");
          fob->armed = 1;
       }
    }
@@ -247,16 +258,16 @@ void door_act(fob_t * fob)
       return;                   // Other actions were done already
    if (doorstate == DOOR_SHUT)
       return;                   // No action if deadlock working and just SHUT
-   if (!fob->override && door_deadlocked() && (!fob->enterok || !fob->disarmok ||       //
-                                               (fob->disarmok &&        //
-                                                (areadeadlock & andset(alarm_armed() & ~(areadisarm & fob->disarm))))))
+   if (!fob->override && door_deadlocked () && (!fob->enterok || !fob->disarmok ||      //
+                                                (fob->disarmok &&       //
+                                                 (areadeadlock & andset (alarm_armed () & ~(areadisarm & fob->disarm))))))
       return;                   // Same check as Deadlocked - cannot enter or cannot disarm or cannot disarm enough... Unless override
-   if (fob->disarmok && (alarm_armed() & fob->disarm & areadisarm))
+   if (fob->disarmok && (alarm_armed () & fob->disarm & areadisarm))
    {
       if (doorauto >= 5)
       {
-         jo_t e = make();
-         alarm_disarm(fob->disarm & areadisarm, &e);
+         jo_t e = make ();
+         alarm_disarm (fob->disarm & areadisarm, &e);
          fob->disarmed = 1;
       }
    }
@@ -264,7 +275,7 @@ void door_act(fob_t * fob)
    {
       if (doorauto >= 4)
       {
-         door_prop(fob->id, NULL, "fob");
+         door_prop (fob->id, NULL, "fob");
          fob->propped = 1;
       }
    }
@@ -272,33 +283,35 @@ void door_act(fob_t * fob)
    {
       if (doorauto >= 4)
       {
-         door_unlock(fob->id, NULL, "fob");
+         door_unlock (fob->id, NULL, "fob");
          fob->unlocked = 1;
       } else
          fob->unlockok = 1;
    } else if (fob->deny)
    {
       if (doorauto >= 4)
-         door_lock(fob->id, NULL, "fob");
+         door_lock (fob->id, NULL, "fob");
    }
 }
 
-const char *door_fob(fob_t * fob)
+const char *
+door_fob (fob_t * fob)
 {                               // Consider fob - sets details of action in the fob object
    if (!fob || doorauto < 3 || fob->fail || fob->deny)
       return NULL;              // Do nothing
    // Check the card security
-   time_t now = time(0);
+   time_t now = time (0);
    uint8_t datetime[7];         // BCD date time
    int xoff = 0,
-       xlen = 0,
-       xdays = 0;               // Expiry data
-   const char *afilecheck(void) {       // Read Afile
+      xlen = 0,
+      xdays = 0;                // Expiry data
+   const char *afilecheck (void)
+   {                            // Read Afile
       const char *e = NULL;
       fob->checked = 1;
-      if (afiletime && afiletime + 60 > uptime() && *afileid && !strcmp(afileid, fob->id) && *afile)
+      if (afiletime && afiletime + 60 > uptime () && *afileid && !strcmp (afileid, fob->id) && *afile)
       {                         // We have a stored update to the afile
-         e = df_write_data(&df, 0x0A, 'B', DF_MODE_CMAC, 0, *afile + 1, afile);
+         e = df_write_data (&df, 0x0A, 'B', DF_MODE_CMAC, 0, *afile + 1, afile);
          if (!e)
          {
             afiletime = 0;      // Done.
@@ -308,11 +321,11 @@ const char *door_fob(fob_t * fob)
       {
          *afileid = 0;
          afiletime = 0;
-         e = df_read_data(&df, 0x0A, DF_MODE_CMAC, 0, MINAFILE, afile); // Initial
+         e = df_read_data (&df, 0x0A, DF_MODE_CMAC, 0, MINAFILE, afile);        // Initial
          if (!e && *afile + 1 > MINAFILE)
-            e = df_read_data(&df, 0x0A, DF_MODE_CMAC, MINAFILE, *afile + 1 - MINAFILE, afile + MINAFILE);       // More data
+            e = df_read_data (&df, 0x0A, DF_MODE_CMAC, MINAFILE, *afile + 1 - MINAFILE, afile + MINAFILE);      // More data
          if (!e)
-            strcpy(afileid, fob->id);
+            strcpy (afileid, fob->id);
       }
       if (e)
       {
@@ -320,15 +333,15 @@ const char *door_fob(fob_t * fob)
          return "Cannot access Afile";
       }
       fob->afile = 1;
-      fob->crc = df_crc(*afile, afile + 1);
+      fob->crc = df_crc (*afile, afile + 1);
       // Check access file (expected to exist)
       if (*afile)
       {                         // Check access
          uint8_t *p = afile + 1,
-             *e = afile + 1 + *afile;
+            *e = afile + 1 + *afile;
          uint8_t *fok = NULL,
-             *tok = NULL;
-         uint8_t dow = bcdlocaltime(now, datetime);
+            *tok = NULL;
+         uint8_t dow = bcdlocaltime (now, datetime);
          while (p < e)
          {                      // Scan the afile
             uint8_t l = (*p & 0xF);
@@ -372,7 +385,7 @@ const char *door_fob(fob_t * fob)
             {                   // Name
                if (l)
                {
-                  memcpy(fob->name, p, l);
+                  memcpy (fob->name, p, l);
                   fob->name[l] = 0;
                   fob->nameset = 1;
                }
@@ -381,12 +394,12 @@ const char *door_fob(fob_t * fob)
                if (l)
                {
                   uint8_t i = 0,
-                      o = 0;
-                  while (i < l && o < sizeof(fob->sms) - 1)
+                     o = 0;
+                  while (i < l && o < sizeof (fob->sms) - 1)
                   {
                      if ((p[i] & 0xF0) != 0xF0)
                         fob->sms[o++] = '0' + (p[i] >> 4);
-                     if ((p[i] & 0x0F) != 0x0F && o < sizeof(fob->sms) - 1)
+                     if ((p[i] & 0x0F) != 0x0F && o < sizeof (fob->sms) - 1)
                         fob->sms[o++] = '0' + (p[i] & 0xF);
                      i++;
                   }
@@ -463,7 +476,7 @@ const char *door_fob(fob_t * fob)
                {
                   xoff = p - afile;
                   xlen = l;
-                  if (memcmp(datetime, p, l) > 0)
+                  if (memcmp (datetime, p, l) > 0)
                      return "Expired";  // expired
                }
             } else
@@ -476,7 +489,7 @@ const char *door_fob(fob_t * fob)
             {                   // Clock not set
                if (!fob->clock)
                   return "Date not set";
-            } else if (memcmp(datetime, afile + xoff, xlen) > 0)
+            } else if (memcmp (datetime, afile + xoff, xlen) > 0)
                return "Expired";        // expired
          }
          if (fok || tok)
@@ -486,17 +499,17 @@ const char *door_fob(fob_t * fob)
             {                   // Clock not set
                if (!fob->clock)
                   e = "Time not set";
-            } else if (fok && tok && !memcmp(fok, tok, 2))
+            } else if (fok && tok && !memcmp (fok, tok, 2))
                e = "Not today"; // No time window
-            else if (fok && tok && memcmp(fok, tok, 2) > 0)
+            else if (fok && tok && memcmp (fok, tok, 2) > 0)
             {                   // reverse
-               if (memcmp(datetime + 4, fok, 2) < 0 && memcmp(datetime + 4, tok, 2) >= 0)
+               if (memcmp (datetime + 4, fok, 2) < 0 && memcmp (datetime + 4, tok, 2) >= 0)
                   e = "Outside time";
             } else
             {
-               if (fok && memcmp(datetime + 4, fok, 2) < 0)
+               if (fok && memcmp (datetime + 4, fok, 2) < 0)
                   e = "Too soon";
-               if (tok && memcmp(datetime + 4, tok, 2) >= 0)
+               if (tok && memcmp (datetime + 4, tok, 2) >= 0)
                   e = "Too late";
             }
             if (e)
@@ -521,18 +534,18 @@ const char *door_fob(fob_t * fob)
          fob->enterok = 1;      // Can enter if all enter areas covered
       if (!(areaenter & ~fob->prop))
          fob->propok = 1;       // Can prop if all enter areas covered
-      if (door_deadlocked() && (!fob->enterok || !fob->disarmok ||      //
-                                (fob->disarmok &&       //
-                                 (areadeadlock & andset(alarm_armed() & ~(areadisarm & fob->disarm))))))
+      if (door_deadlocked () && (!fob->enterok || !fob->disarmok ||     //
+                                 (fob->disarmok &&      //
+                                  (areadeadlock & andset (alarm_armed () & ~(areadisarm & fob->disarm))))))
          return "Deadlocked";   // We could not enter, or could not disarm, or could not disarm enough to get in
       return NULL;
    }
-   if (fob->secure && df.blocklen)
-      fob->deny = afilecheck();
+   if (fob->secure && df_isauth (&df))
+      fob->deny = afilecheck ();
    // Check fallback
    if (*fob->id)
-      for (int i = 0; i < sizeof(fallback) / sizeof(*fallback); i++)
-         if (!strcmp(fallback[i], fob->id))
+      for (int i = 0; i < sizeof (fallback) / sizeof (*fallback); i++)
+         if (!strcmp (fallback[i], fob->id))
          {
             fob->fallback = 1;
             fob->enterok = 1;
@@ -540,8 +553,8 @@ const char *door_fob(fob_t * fob)
          }
    // Check blacklist
    if (*fob->id)
-      for (int i = 0; i < sizeof(blacklist) / sizeof(*blacklist); i++)
-         if (!strcmp(blacklist[i], fob->id))
+      for (int i = 0; i < sizeof (blacklist) / sizeof (*blacklist); i++)
+         if (!strcmp (blacklist[i], fob->id))
          {
             fob->blacklist = 1;
             fob->enterok = 0;
@@ -551,14 +564,14 @@ const char *door_fob(fob_t * fob)
             fob->strongok = 0;
             if (!fob->deny)
                fob->deny = "Blacklist";
-            if (fob->secure && df.blocklen)
+            if (fob->secure && df_isauth (&df))
             {
                if (*afile != 1 || afile[1] != 0xFB)
                {
                   *afile = 1;
                   afile[1] = 0xFB;      // Blocked
-                  fob->crc = df_crc(*afile, afile + 1);
-                  const char *e = df_write_data(&df, 0x0A, 'B', DF_MODE_CMAC, 0, *afile + 1, afile);
+                  fob->crc = df_crc (*afile, afile + 1);
+                  const char *e = df_write_data (&df, 0x0A, 'B', DF_MODE_CMAC, 0, *afile + 1, afile);
                   if (!e)
                      fob->updated = 1;
                }
@@ -569,15 +582,15 @@ const char *door_fob(fob_t * fob)
       return NULL;
    if (!fob->deny && !fob->remote && !fob->enterok && !fob->disarmok && !fob->armok && !fob->strongok && !fob->propok)
       fob->deny = "Not allowed";        // No actions allowed
-   if (!fob->deny && fob->secure && df.blocklen && *datetime >= 0x20 && xdays && xoff && xlen <= 7)
+   if (!fob->deny && fob->secure && df_isauth (&df) && *datetime >= 0x20 && xdays && xoff && xlen <= 7)
    {                            // Update expiry
       now += 86400LL * (int64_t) xdays;
-      bcdutctime(now, datetime);
-      if (memcmp(datetime, afile + xoff, xlen) > 0)
+      bcdutctime (now, datetime);
+      if (memcmp (datetime, afile + xoff, xlen) > 0)
       {                         // Changed expiry
-         memcpy(afile + xoff, datetime, xlen);
-         fob->crc = df_crc(*afile, afile + 1);
-         if (!df_write_data(&df, 0x0A, 'B', DF_MODE_CMAC, xoff, xlen, datetime))
+         memcpy (afile + xoff, datetime, xlen);
+         fob->crc = df_crc (*afile, afile + 1);
+         if (!df_write_data (&df, 0x0A, 'B', DF_MODE_CMAC, xoff, xlen, datetime))
             fob->updated = 1;
          // We don't really care if this fails, as we get a chance later, this means the access is allowed so will log and commit later
       }
@@ -587,34 +600,35 @@ const char *door_fob(fob_t * fob)
 
 static uint8_t resend;
 
-const char *door_command(const char *tag, jo_t j)
+const char *
+door_command (const char *tag, jo_t j)
 {                               // Called for incoming MQTT messages
    if (!doorauto)
       return false;             // No door control in operation
    const char *e = NULL;
    char temp[256],
-    tempid[22];
+     tempid[22];
    const uint8_t *afile = NULL;
    const char *id = NULL;
    if (j)
    {
-      if (jo_here(j) == JO_OBJECT)
+      if (jo_here (j) == JO_OBJECT)
       {                         // New format with id and afile
-         while (jo_here(j))
+         while (jo_here (j))
          {
-            jo_next(j);
-            if (jo_here(j) == JO_TAG)
+            jo_next (j);
+            if (jo_here (j) == JO_TAG)
             {
-               if (!jo_strcmp(j, "id"))
+               if (!jo_strcmp (j, "id"))
                {
-                  jo_next(j);
-                  int len = jo_strncpy(j, tempid, sizeof(tempid));
-                  if (len > 0 && len < sizeof(tempid))
+                  jo_next (j);
+                  int len = jo_strncpy (j, tempid, sizeof (tempid));
+                  if (len > 0 && len < sizeof (tempid))
                      id = tempid;
-               } else if (!jo_strcmp(j, "afile"))
+               } else if (!jo_strcmp (j, "afile"))
                {
-                  jo_next(j);
-                  int len = jo_strncpy16(j, temp, sizeof(temp));
+                  jo_next (j);
+                  int len = jo_strncpy16 (j, temp, sizeof (temp));
                   if (len < 0)
                      e = "Bad hex";
                   else if (len > 0 && *temp == len - 1)
@@ -624,9 +638,9 @@ const char *door_command(const char *tag, jo_t j)
                }
             }
          }
-      } else if (jo_here(j) == JO_STRING)
+      } else if (jo_here (j) == JO_STRING)
       {                         // Afile only
-         int len = jo_strncpy16(j, temp, sizeof(temp));
+         int len = jo_strncpy16 (j, temp, sizeof (temp));
          if (len < 0)
             e = "Bad hex";
          else if (len > 0 && *temp == len - 1)
@@ -636,39 +650,40 @@ const char *door_command(const char *tag, jo_t j)
       } else
          e = "Expecting JSON";
       if (!e)
-         e = jo_error(j, NULL);
+         e = jo_error (j, NULL);
    }
-   if (!strcasecmp(tag, "lock"))
-      return e ? : door_lock(id, afile, "remote");
-   if (!strcasecmp(tag, "unlock"))
+   if (!strcasecmp (tag, "lock"))
+      return e ? : door_lock (id, afile, "remote");
+   if (!strcasecmp (tag, "unlock"))
    {
       if (e)
          return e;
-      jo_t j = jo_make(NULL);
-      alarm_event("unlock", &j, iotstatedoor);
-      return door_unlock(id, afile, "remote");
+      jo_t j = jo_make (NULL);
+      alarm_event ("unlock", &j, iotstatedoor);
+      return door_unlock (id, afile, "remote");
    }
-   if (!strcasecmp(tag, "prop"))
-      return e ? : door_prop(id, afile, "remote");
-   if (!strcasecmp(tag, "access"))
-      return e ? : door_access(id, afile);
-   if (!strcasecmp(tag, "connect"))
+   if (!strcasecmp (tag, "prop"))
+      return e ? : door_prop (id, afile, "remote");
+   if (!strcasecmp (tag, "access"))
+      return e ? : door_access (id, afile);
+   if (!strcasecmp (tag, "connect"))
       resend = 1;
    return NULL;
 }
 
-static void task(void *pvParameters)
+static void
+task (void *pvParameters)
 {                               // Main RevK task
-   esp_task_wdt_add(NULL);
+   esp_task_wdt_add (NULL);
    pvParameters = pvParameters;
    while (1)
    {
-      esp_task_wdt_reset();
-      usleep(1000);             // ms
-      int64_t now = esp_timer_get_time();
+      esp_task_wdt_reset ();
+      usleep (1000);            // ms
+      int64_t now = esp_timer_get_time ();
       static uint64_t doornext = 0;
       static uint8_t lastdoorstate = -1;
-      uint8_t iopen = (input_func_active(INPUT_FUNC_O) && input_func_all(INPUT_FUNC_O) ? 1 : 0);
+      uint8_t iopen = (input_func_active (INPUT_FUNC_O) && input_func_all (INPUT_FUNC_O) ? 1 : 0);
       if (doornext < now)
       {
          uint8_t force = resend;
@@ -679,11 +694,11 @@ static void task(void *pvParameters)
             for (l = 0; l < 2; l++)
             {
                uint8_t last = lock[l].state;
-               uint8_t o = output_func_get(OUTPUT_FUNC_L >> l),
-                   i = (input_func_any(INPUT_FUNC_L >> l) ? 1 : 0);
-               if (!output_func_active(OUTPUT_FUNC_L >> l))
+               uint8_t o = output_func_get (OUTPUT_FUNC_L >> l),
+                  i = (input_func_any (INPUT_FUNC_L >> l) ? 1 : 0);
+               if (!output_func_active (OUTPUT_FUNC_L >> l))
                {
-                  if (!input_func_active(INPUT_FUNC_L >> l))
+                  if (!input_func_active (INPUT_FUNC_L >> l))
                      lock[l].state = (o ? LOCK_UNLOCKED : LOCK_LOCKED); // No input or output, just track output
                   else
                      lock[l].state = (i ? LOCK_UNLOCKED : LOCK_LOCKED); // No output, just track input
@@ -707,7 +722,10 @@ static void task(void *pvParameters)
                      if (lock[l].timeout <= now)
                      {          // End of timeout
                         lock[l].timeout = 0;
-                        lock[l].state = ((i == o || !input_func_active(INPUT_FUNC_L >> l)) ? o ? LOCK_UNLOCKED : LOCK_LOCKED : o ? LOCK_UNLOCKFAIL : LOCK_LOCKFAIL);
+                        lock[l].state =
+                           ((i == o
+                             || !input_func_active (INPUT_FUNC_L >> l)) ? o ? LOCK_UNLOCKED : LOCK_LOCKED : o ? LOCK_UNLOCKFAIL :
+                            LOCK_LOCKFAIL);
                      }
                   } else if (!doorunlock)
                   {             // Zero timeout means lock input only works when handle, e.g. Abloy EL56X. Treat as following o
@@ -719,11 +737,11 @@ static void task(void *pvParameters)
                lock[l].i = i;
                if (doordebug && (force || last != lock[l].state))
                {
-                  jo_t j = jo_make(NULL);
-                  jo_string(j, "state", lockstates[lock[l].state]);
+                  jo_t j = jo_make (NULL);
+                  jo_string (j, "state", lockstates[lock[l].state]);
                   if (lock[l].timeout > now)
-                     jo_int(j, "timeout", (lock[l].timeout - now) / 1000);
-                  revk_state_clients(l ? "deadlock" : "lock", &j, debug | (iotstatedoor << 1));
+                     jo_int (j, "timeout", (lock[l].timeout - now) / 1000);
+                  revk_state_clients (l ? "deadlock" : "lock", &j, debug | (iotstatedoor << 1));
                }
             }
          }
@@ -732,31 +750,32 @@ static void task(void *pvParameters)
          {                      // Open
             if (doorstate != DOOR_NOTCLOSED && doorstate != DOOR_PROPPED && doorstate != DOOR_OPEN)
             {                   // We have moved to open state, this can cancel the locking operation
-               const char *manual = input_func_any(INPUT_FUNC_M);       // If a manual input was found (uses input name)
-               char forced = !manual && ((output_func_active(OUTPUT_FUNC_L) && (lock[0].state == LOCK_LOCKED || lock[0].state == LOCK_FORCED)) ||       //
-                                         (output_func_active(OUTPUT_FUNC_D) && (lock[1].state == LOCK_LOCKED || lock[1].state == LOCK_FORCED)));
+               const char *manual = input_func_any (INPUT_FUNC_M);      // If a manual input was found (uses input name)
+               char forced = !manual && ((output_func_active (OUTPUT_FUNC_L) && (lock[0].state == LOCK_LOCKED || lock[0].state == LOCK_FORCED)) ||      //
+                                         (output_func_active (OUTPUT_FUNC_D)
+                                          && (lock[1].state == LOCK_LOCKED || lock[1].state == LOCK_FORCED)));
                if (!doorwhy)
                   doorwhy = (forced ? "forced" : manual ? : "manual");
                if (doorwhy)
                {
-                  jo_t j = jo_make(NULL);
-                  jo_string(j, "trigger", doorwhy);
-                  alarm_event(forced ? "forced" : "open", &j, iotstatedoor);
+                  jo_t j = jo_make (NULL);
+                  jo_string (j, "trigger", doorwhy);
+                  alarm_event (forced ? "forced" : "open", &j, iotstatedoor);
                   doorwhy = NULL;
                }
                if (doorstate != DOOR_UNLOCKING && *dooriotunlock)
-                  revk_mqtt_send_str_clients(dooriotunlock, 0, 2);      // We skipped unlocking...
+                  revk_mqtt_send_str_clients (dooriotunlock, 0, 2);     // We skipped unlocking...
                doorstate = DOOR_OPEN;
                if (doorauto >= 2 && !doorcatch)
                {
-                  output_func_set(OUTPUT_FUNC_L, 1);    // Cancel lock
-                  output_func_set(OUTPUT_FUNC_D, 1);    // Cancel deadlock
+                  output_func_set (OUTPUT_FUNC_L, 1);   // Cancel lock
+                  output_func_set (OUTPUT_FUNC_D, 1);   // Cancel deadlock
                }
                if (forced && !(logical_gpio & logical_DoorForce))
                   logical_gpio |= logical_DoorForce;
             }
             if (doorauto >= 2 && doorcatch)
-               output_func_set(OUTPUT_FUNC_L, 0);       // Door lock ready for when it closes
+               output_func_set (OUTPUT_FUNC_L, 0);      // Door lock ready for when it closes
          } else
          {                      // Closed
             if (logical_gpio & logical_DoorForce)
@@ -764,7 +783,7 @@ static void task(void *pvParameters)
             if (lock[1].state == LOCK_LOCKED && lock[0].state == LOCK_LOCKED)
                doorstate = DOOR_DEADLOCKED;
             else if (lock[0].state == LOCK_LOCKED && lock[1].state == LOCK_UNLOCKED)
-               doorstate = (output_func_active(OUTPUT_FUNC_L) ? DOOR_LOCKED : DOOR_SHUT);
+               doorstate = (output_func_active (OUTPUT_FUNC_L) ? DOOR_LOCKED : DOOR_SHUT);
             else if (lock[0].state == LOCK_UNLOCKING || lock[1].state == LOCK_UNLOCKING)
                doorstate = DOOR_UNLOCKING;
             else if (lock[0].state == LOCK_LOCKING || lock[1].state == LOCK_LOCKING)
@@ -775,10 +794,12 @@ static void task(void *pvParameters)
             {
                if (doorstate == DOOR_NOTCLOSED || doorstate == DOOR_PROPPED)
                {
-                  jo_t j = jo_make(NULL);
-                  alarm_event("closed", &j, iotstatedoor);
+                  jo_t j = jo_make (NULL);
+                  alarm_event ("closed", &j, iotstatedoor);
                }
-               doorstate = ((doorstate == DOOR_OPEN || doorstate == DOOR_NOTCLOSED || doorstate == DOOR_PROPPED || doorstate == DOOR_CLOSED) ? DOOR_CLOSED : DOOR_UNLOCKED);
+               doorstate =
+                  ((doorstate == DOOR_OPEN || doorstate == DOOR_NOTCLOSED || doorstate == DOOR_PROPPED
+                    || doorstate == DOOR_CLOSED) ? DOOR_CLOSED : DOOR_UNLOCKED);
             }
          }
          if (doorstate != lastdoorstate)
@@ -794,22 +815,22 @@ static void task(void *pvParameters)
          } else if (doortimeout && doortimeout < now)
          {                      // Timeout happened
             if (doorauto >= 2)
-               output_func_set(OUTPUT_FUNC_B, 0);
+               output_func_set (OUTPUT_FUNC_B, 0);
             if (doorstate == DOOR_OPEN)
             {
                doorstate = DOOR_NOTCLOSED;
                doortimeout = 0;
-               jo_t j = jo_make(NULL);
-               alarm_event("notclosed", &j, iotstatedoor);
+               jo_t j = jo_make (NULL);
+               alarm_event ("notclosed", &j, iotstatedoor);
             } else if (doorstate == DOOR_UNLOCKED || doorstate == DOOR_CLOSED)
             {                   // Time to lock the door
-               if (doorstate == DOOR_UNLOCKED && doorwhy && input_func_any(INPUT_FUNC_O))
+               if (doorstate == DOOR_UNLOCKED && doorwhy && input_func_any (INPUT_FUNC_O))
                {                // Only if doorwhy set, as can spam if locking failing
-                  jo_t j = jo_make(NULL);
-                  jo_string(j, "trigger", doorwhy);
-                  alarm_event("notopen", &j, iotstatedoor);
+                  jo_t j = jo_make (NULL);
+                  jo_string (j, "trigger", doorwhy);
+                  alarm_event ("notopen", &j, iotstatedoor);
                }
-               door_lock(NULL, NULL, NULL);
+               door_lock (NULL, NULL, NULL);
                doorwhy = NULL;
             }
          }
@@ -820,12 +841,12 @@ static void task(void *pvParameters)
             else if (lastdoorstate == DOOR_NOTCLOSED)
                logical_gpio &= ~logical_DoorProp;       // Always a change of state - unauthorised propped
             if (doorstate == DOOR_UNLOCKED && *dooriotunlock)
-               revk_mqtt_send_str_clients(dooriotunlock, 0, 2);
+               revk_mqtt_send_str_clients (dooriotunlock, 0, 2);
             if (doorauto >= 2)
-               output_func_set(OUTPUT_FUNC_B, doorstate == DOOR_UNLOCKED ? 1 : 0);
+               output_func_set (OUTPUT_FUNC_B, doorstate == DOOR_UNLOCKED ? 1 : 0);
          }
          static uint64_t exit = 0;      // Main exit button
-         const char *button = input_func_any(INPUT_FUNC_E);
+         const char *button = input_func_any (INPUT_FUNC_E);
          if (button)
          {
             static const char *lastbutton = NULL;
@@ -836,47 +857,47 @@ static void task(void *pvParameters)
             }
             if (!exit)
             {                   // Pushed
-               jo_t j = jo_make(NULL);
+               jo_t j = jo_make (NULL);
                exit = now + (int64_t) doorexit *1000LL; // Exit button timeout
-               jo_area(j, "disarmok", doorexitdisarm & areadeadlock);
-               if (door_deadlocked() && doorexitdisarm && !(alarm_armed() & ~(areadeadlock & areadisarm)))
+               jo_area (j, "disarmok", doorexitdisarm & areadeadlock);
+               if (door_deadlocked () && doorexitdisarm && !(alarm_armed () & ~(areadeadlock & areadisarm)))
                {
-                  jo_t e = jo_make(NULL);
-                  jo_string(e, "reason", button);
-                  alarm_disarm(areadeadlock & areadisarm, &e);
-                  jo_bool(j, "disarmed", 1);
+                  jo_t e = jo_make (NULL);
+                  jo_string (e, "reason", button);
+                  alarm_disarm (areadeadlock & areadisarm, &e);
+                  jo_bool (j, "disarmed", 1);
                }
-               if (!door_deadlocked())
+               if (!door_deadlocked ())
                {
                   if (doorauto >= 2)
                   {
-                     door_unlock(NULL, NULL, button);
-                     jo_bool(j, "unlocked", 1);
+                     door_unlock (NULL, NULL, button);
+                     jo_bool (j, "unlocked", 1);
                   } else
-                     jo_bool(j, "unlockok", 1);
+                     jo_bool (j, "unlockok", 1);
                }
-               jo_string(j, "input", button);
-               alarm_event("exit", &j, iotstatedoor);
+               jo_string (j, "input", button);
+               alarm_event ("exit", &j, iotstatedoor);
             } else if (doorexitarm && exit && exit < now)
             {                   // Held (not applicable if not arming allowed, so leaves to do exit stuck fault)
                exit = -1;       // Don't report stuck - this is max value as unsigned
                // Allowed even if door open, one assumes this is not used for an actual alarm if being set from inside
-               jo_t j = jo_make(NULL);
-               jo_bool(j, "held", 1);
+               jo_t j = jo_make (NULL);
+               jo_bool (j, "held", 1);
                if (areadeadlock & areaarm)
                {
-                  jo_area(j, "armok", areadeadlock & areaarm);
-                  if (doorauto >= 2 && (areadeadlock & areaarm & ~alarm_armed()))
+                  jo_area (j, "armok", areadeadlock & areaarm);
+                  if (doorauto >= 2 && (areadeadlock & areaarm & ~alarm_armed ()))
                   {
-                     jo_t e = jo_make(NULL);
-                     jo_string(e, "reason", button);
-                     alarm_arm(areadeadlock & areaarm, &e);
-                     jo_bool(j, "armed", 1);
-                     door_lock(NULL, NULL, button);
+                     jo_t e = jo_make (NULL);
+                     jo_string (e, "reason", button);
+                     alarm_arm (areadeadlock & areaarm, &e);
+                     jo_bool (j, "armed", 1);
+                     door_lock (NULL, NULL, button);
                   }
                }
-               jo_string(j, "input", button);
-               alarm_event("exit", &j, iotstatedoor);
+               jo_string (j, "input", button);
+               alarm_event ("exit", &j, iotstatedoor);
             }
          } else
             exit = 0;
@@ -897,9 +918,9 @@ static void task(void *pvParameters)
          {
             if (!(logical_gpio & logical_LockFault))
             {                   // new fault
-               jo_t j = jo_make(NULL);
-               jo_string(j, "lock", fault);
-               alarm_event("fault", &j, iotstatedoor);
+               jo_t j = jo_make (NULL);
+               jo_string (j, "lock", fault);
+               alarm_event ("fault", &j, iotstatedoor);
                logical_gpio |= logical_LockFault;
             }
          } else if (logical_gpio & logical_LockFault)
@@ -908,30 +929,31 @@ static void task(void *pvParameters)
          // Note that forced are not logged as tampers, and picked up directly for alarm from open/disengaged inputs showing as access
          // Beep
          if (doorauto >= 2 && (fault || doorstate == DOOR_AJAR || doorstate == DOOR_NOTCLOSED))
-            output_func_set(OUTPUT_FUNC_B, ((now - doortimeout) & (512 * 1024)) ? 1 : 0);
+            output_func_set (OUTPUT_FUNC_B, ((now - doortimeout) & (512 * 1024)) ? 1 : 0);
          if (force || doorstate != lastdoorstate)
          {
-            nfc_led(strlen(doorled[doorstate]), doorled[doorstate]);
-            jo_t j = jo_make(NULL);
-            jo_string(j, "state", doorstates[doorstate]);
+            nfc_led (strlen (doorled[doorstate]), doorled[doorstate]);
+            jo_t j = jo_make (NULL);
+            jo_string (j, "state", doorstates[doorstate]);
             if (doorwhy && doorstate == DOOR_UNLOCKING)
-               jo_string(j, "trigger", doorwhy);
+               jo_string (j, "trigger", doorwhy);
             if (doortimeout > now)
-               jo_int(j, "timeout", (doortimeout - now) / 1000);
-            revk_state_clients("door", &j, debug | (iotstatedoor << 1));
+               jo_int (j, "timeout", (doortimeout - now) / 1000);
+            revk_state_clients ("door", &j, debug | (iotstatedoor << 1));
             lastdoorstate = doorstate;
          }
          if (doorauto >= 2)
-            output_func_set(OUTPUT_FUNC_E, fault ? 1 : 0);
+            output_func_set (OUTPUT_FUNC_E, fault ? 1 : 0);
       }
    }
 }
 
-void door_boot(void)
+void
+door_boot (void)
 {
    extern char *ledIDLE;
-   revk_register("door", 0, sizeof(doorauto), &doorauto, NULL, SETTING_SECRET); // Parent
-   revk_register("led", 0, 0, &ledIDLE, NULL, SETTING_SECRET);  // Parent
+   revk_register ("door", 0, sizeof (doorauto), &doorauto, NULL, SETTING_SECRET);       // Parent
+   revk_register ("led", 0, 0, &ledIDLE, NULL, SETTING_SECRET); // Parent
 #define u32(n,d) revk_register(#n,0,sizeof(n),&n,#d,0);
 #define u16(n,d) revk_register(#n,0,sizeof(n),&n,#d,0);
 #define u8(n,d) revk_register(#n,0,sizeof(n),&n,#d,0);
@@ -947,15 +969,15 @@ void door_boot(void)
 #undef b
 #undef d
 #undef s
-    int64_t now = esp_timer_get_time();
+     int64_t now = esp_timer_get_time ();
    // Door outputs match inputs if available, otherwise just lock
-   output_func_set(OUTPUT_FUNC_L, input_active(INPUT_FUNC_L) && input_func_any(INPUT_FUNC_L) ? 1 : 0);
-   output_func_set(OUTPUT_FUNC_D, input_active(INPUT_FUNC_D) && input_func_any(INPUT_FUNC_D) ? 1 : 0);
+   output_func_set (OUTPUT_FUNC_L, input_active (INPUT_FUNC_L) && input_func_any (INPUT_FUNC_L) ? 1 : 0);
+   output_func_set (OUTPUT_FUNC_D, input_active (INPUT_FUNC_D) && input_func_any (INPUT_FUNC_D) ? 1 : 0);
    // Handle door open at start up, otherwise we assume closed
-   if (input_active(INPUT_FUNC_O) && input_func_all(INPUT_FUNC_O))
+   if (input_active (INPUT_FUNC_O) && input_func_all (INPUT_FUNC_O))
    {                            // Door is open, so unlock regardless
-      output_func_set(OUTPUT_FUNC_L, 1);
-      output_func_set(OUTPUT_FUNC_D, 1);
+      output_func_set (OUTPUT_FUNC_L, 1);
+      output_func_set (OUTPUT_FUNC_D, 1);
    }
    // Set all timeouts so system works out what state it is in regardless
    lock[0].timeout = now + 100LL;
@@ -963,14 +985,16 @@ void door_boot(void)
    doortimeout = now + 1000LL;
 }
 
-void door_start(void)
+void
+door_start (void)
 {
    if (!doorauto)
       return;                   // No door control in operation
-   revk_task(TAG, task, NULL);
+   revk_task (TAG, task, NULL);
 }
 
-const char *door_state_name(void)
+const char *
+door_state_name (void)
 {
    if (!doorauto)
       return NULL;

@@ -316,8 +316,13 @@ void *fobcommand(void *arg)
                if (hardformat)
                {
                   status("Hard format fob, all AIDs removed");
+#if 1
                   df(change_key(&d, 0x80, 0, key_aes(masterkey, fob), NULL));   // Hard reset to zero AES
                   df(authenticate(&d, 0, NULL));
+#else
+                  df(change_key(&d, 0x0, 0, key_aes(masterkey, fob), NULL));   // Hard reset to zero DES
+                  df(des_authenticate(&d, 0, NULL));
+#endif
                } else
                {
                   df(change_key_settings(&d, 0x09));
