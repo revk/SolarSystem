@@ -424,60 +424,60 @@ settings (SQL * sqlp, SQL_RES * res, slot_t id)
       }
       sql_free_result (s);
    }
-   int pcb = atoi (sql_colz (res, "pcb"));
-   if (pcb)
-   {                            // Main PCB settings
-      SQL_RES *p = sql_safe_query_store_f (sqlp, "SELECT * FROM `pcb` WHERE `pcb`=%d", pcb);
-      if (sql_fetch_row (p))
-      {
-         const char *v;
-         if ((v = sql_colz (res, "timer1")) && *v && strlen (v) == 8)
-            j_store_int (j, "timer1", atoi (v) * 100 + atoi (v + 3));
-         j_t o = j_store_object (j, "keypad");
+   if (!outofservice)
+   {
+      int pcb = atoi (sql_colz (res, "pcb"));
+      if (pcb)
+      {                         // Main PCB settings
+         SQL_RES *p = sql_safe_query_store_f (sqlp, "SELECT * FROM `pcb` WHERE `pcb`=%d", pcb);
+         if (sql_fetch_row (p))
+         {
+            const char *v;
+            if ((v = sql_colz (res, "timer1")) && *v && strlen (v) == 8)
+               j_store_int (j, "timer1", atoi (v) * 100 + atoi (v + 3));
+            j_t o = j_store_object (j, "keypad");
 #define set(h,c) {const char *v=sql_colz(p,#h#c);if(v&&strcmp(v,"-"))j_store_literal(o,#c,v);}
-         set (keypad, tx);
-         set (keypad, rx);
-         set (keypad, re);
-         set (keypad, de);
-         if (j_len (o))
-         {                      // Keypad specific
-            if ((v = (outofservice ? "Out of service" : sql_colz (res, "keypadidle"))) && *v)
-               j_store_string (o, "idle", v);
-            if ((v = sql_colz (res, "keypadpin")) && *v)
-               j_store_string (o, "pin", v);
-            addset (area, "keypad", sql_colz (res, "areakeypad"), NULL);
-            addset (area, "keyarm", sql_colz (res, "areakeyarm"), NULL);
-            addset (area, "keydisarm", sql_colz (res, "areakeydisarm"), NULL);
-         }
-         o = j_store_object (j, "nfc");
-         set (nfc, tx);
-         set (nfc, rx);
-         set (nfc, power);
-         set (nfc, red);
-         set (nfc, amber);
-         set (nfc, green);
-         set (nfc, card);
-         o = j_store_object (j, "gps");
-         set (gps, tx);
-         set (gps, rx);
-         set (gps, tick);
+            set (keypad, tx);
+            set (keypad, rx);
+            set (keypad, re);
+            set (keypad, de);
+            if (j_len (o))
+            {                   // Keypad specific
+               if ((v = (outofservice ? "Out of service" : sql_colz (res, "keypadidle"))) && *v)
+                  j_store_string (o, "idle", v);
+               if ((v = sql_colz (res, "keypadpin")) && *v)
+                  j_store_string (o, "pin", v);
+               addset (area, "keypad", sql_colz (res, "areakeypad"), NULL);
+               addset (area, "keyarm", sql_colz (res, "areakeyarm"), NULL);
+               addset (area, "keydisarm", sql_colz (res, "areakeydisarm"), NULL);
+            }
+            o = j_store_object (j, "nfc");
+            set (nfc, tx);
+            set (nfc, rx);
+            set (nfc, power);
+            set (nfc, red);
+            set (nfc, amber);
+            set (nfc, green);
+            set (nfc, card);
+            o = j_store_object (j, "gps");
+            set (gps, tx);
+            set (gps, rx);
+            set (gps, tick);
 #undef set
-         j_t blink = j_store_array (j, "blink");
+            j_t blink = j_store_array (j, "blink");
 #define led(n) {const char *v=sql_colz(p,#n);if(!*v||!strcmp(v,"-"))j_append_string(blink,""); else j_append_literal(blink,v);}
-         if (strcmp (sql_colz (p, "leda"), "-"))
-         {
-            led (leda);
-         } else
-         {
-            led (ledr);
-            led (ledg);
-            led (ledb);
-         }
+            if (strcmp (sql_colz (p, "leda"), "-"))
+            {
+               led (leda);
+            } else
+            {
+               led (ledr);
+               led (ledg);
+               led (ledb);
+            }
 #undef led
-      }
-      sql_free_result (p);
-      if (!outofservice)
-      {
+         }
+         sql_free_result (p);
          j_t input = j_store_array (j, "in");
          j_t output = j_store_array (j, "out");
          j_t power = j_store_array (j, "power");
