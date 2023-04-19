@@ -7,8 +7,8 @@ typedef uint16_t input_t;       // Enough for number of inputs
 extern input_t input_stable;    // holds current input state
 extern input_t input_latch;     // inputs have changed state to on at some point
 extern input_t input_flip;      // inputs have changed state at some point
-extern char *inputname[MAXINPUT];
-#define i(t,x,c) extern area_t input##x[MAXINPUT];
+extern char *inname[MAXINPUT];
+#define i(t,x,c) extern area_t in##x[MAXINPUT];
 #include "states.m"
 
 void input_set(int p, int v);

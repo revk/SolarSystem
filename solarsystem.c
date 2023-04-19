@@ -477,8 +477,8 @@ settings (SQL * sqlp, SQL_RES * res, slot_t id)
 #undef led
       }
       sql_free_result (p);
-      j_t input = j_store_array (j, "input");
-      j_t output = j_store_array (j, "output");
+      j_t input = j_store_array (j, "in");
+      j_t output = j_store_array (j, "out");
       j_t power = j_store_array (j, "power");
       SQL_RES *g =
          sql_safe_query_store_f (sqlp,

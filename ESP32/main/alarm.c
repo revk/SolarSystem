@@ -386,16 +386,16 @@ void mesh_send_report(void)
       {
 #define i(t,x,c) area_t x=0;    // what we are going to send
 #include "states.m"
-         area_t trigger = (inputpresence[i] | inputaccess[i] | (inputtamper[i] & ~state_engineer));
+         area_t trigger = (inpresence[i] | inaccess[i] | (intamper[i] & ~state_engineer));
          if ((latch | input_stable) & (1ULL << i))
          {                      // State is active (or has been, even if briefly)
-#define i(t,x,c) x|=input##x[i];
+#define i(t,x,c) x|=in##x[i];
 #include "states.m"
             if ((trigger & state_prearm) && !(trigger & was_prearm))
             {
                jo_t e = jo_make(NULL);
-               jo_string(e, "input", inputname[i]);
-#define i(x) if(input##x[i]&state_prearm)jo_area(e,#x,input##x[i]&(state_armed|state_prearm));
+               jo_string(e, "input", inname[i]);
+#define i(x) if(in##x[i]&state_prearm)jo_area(e,#x,in##x[i]&(state_armed|state_prearm));
                i(presence);     // Only these relate to alarm/trigger
                i(access);
                i(tamper);
@@ -410,8 +410,8 @@ void mesh_send_report(void)
                if (trigger & (state_alarm | state_prealarm))
                {                // Event while alarmed as well
                   jo_t e = jo_make(NULL);
-                  jo_string(e, "input", inputname[i]);
-#define i(x) if(input##x[i]&state_armed)jo_area(e,#x,input##x[i]&(state_armed|state_prearm));
+                  jo_string(e, "input", inname[i]);
+#define i(x) if(in##x[i]&state_armed)jo_area(e,#x,in##x[i]&(state_armed|state_prearm));
                   i(presence);  // Only these relate to alarm/trigger
                   i(access);
                   i(tamper);
@@ -420,11 +420,11 @@ void mesh_send_report(void)
                } else
                   input_flip |= (1ULL << i);    // Defer trigger, maintain that there is an input to trip
             }
-            presence |= inputtamper[i];
-            presence |= inputaccess[i];
+            presence |= intamper[i];
+            presence |= inaccess[i];
             if ((latch | input_stable) & (1ULL << i))
             {                   // Event reporting regardless
-#define i(x) if(input##x[i]){jo_t e = jo_make(NULL);jo_string(e, "input", inputname[i]);jo_area(e,#x,input##x[i]);alarm_event(#x, &e, 0);}
+#define i(x) if(in##x[i]){jo_t e = jo_make(NULL);jo_string(e, "input", inname[i]);jo_area(e,#x,in##x[i]);alarm_event(#x, &e, 0);}
                i(warning);
                i(tamper);
                i(fault);
@@ -438,7 +438,7 @@ void mesh_send_report(void)
                0)
          {                      // Report for input
             jo_t j = jo_object_alloc();
-            jo_string(j, "@", inputname[i]);
+            jo_string(j, "@", inname[i]);
 #define i(t,x,c) if(#x)jo_area(j,#t,x);
 #include "states.m"
             if (jo_len(j) + jo_len(report) > MAX - 25 - (gpslocked ? 25 : 0))
@@ -811,8 +811,8 @@ static void set_outputs(void)
    output_t forced = 0;
    for (int i = 0; i < MAXOUTPUT; i++)
    {
-#define i(t,x,c) if(output##x[i]&state_##x)forced|=(1ULL<<i);
-#define s(t,x,c) if(output##x[i]&state_##x)forced|=(1ULL<<i);
+#define i(t,x,c) if(out##x[i]&state_##x)forced|=(1ULL<<i);
+#define s(t,x,c) if(out##x[i]&state_##x)forced|=(1ULL<<i);
 #include "states.m"
    }
    output_forced = forced;

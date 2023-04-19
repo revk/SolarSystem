@@ -1,12 +1,12 @@
 // Outputs
 // Copyright © 2019-21 Adrian Kennard, Andrews & Arnold Ltd. See LICENCE file for details. GPL 3.0
 
-#define MAXOUTPUT 8             // Note 10 makes names too long
+#define MAXOUTPUT 10            
 typedef uint8_t output_t;       // Enough for number of outputs
 
 extern output_t output_forced;  // Output forced externally
-#define i(t,x,c) extern area_t output##x[MAXOUTPUT];
-#define s(t,x,c) extern area_t output##x[MAXOUTPUT];
+#define i(t,x,c) extern area_t out##x[MAXOUTPUT];
+#define s(t,x,c) extern area_t out##x[MAXOUTPUT];
 #include "states.m"
 
 void output_set(int p, int v);
