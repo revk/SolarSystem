@@ -320,7 +320,7 @@ void *fobcommand(void *arg)
                   df(change_key(&d, 0x80, 0, key_aes(masterkey, fob), NULL));   // Hard reset to zero AES
                   df(authenticate(&d, 0, NULL));
 #else
-                  df(change_key(&d, 0x0, 0, key_aes(masterkey, fob), NULL));   // Hard reset to zero DES
+                  df(change_key(&d, 0x00, 0, key_aes(masterkey, fob), NULL));   // Hard reset to zero DES
                   df(des_authenticate(&d, 0, NULL));
 #endif
                } else
