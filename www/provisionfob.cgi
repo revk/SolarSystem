@@ -13,6 +13,7 @@ Device:<select name=device><sql table=device where="nfctrusted='true' AND online
 <if else><p>No devices on line for provisioning</p></if>
 </form>
 <if device><ul id=status></ul></if>
+<if else><p>This works on a blank new fob.</p></if>
 'END'
 if($?device) then
 	message --device="$device" --fob-provision --status=status --silent

@@ -315,9 +315,14 @@ void *fobcommand(void *arg)
                status(j_base16(sizeof(uid), uid));
                if (hardformat)
                {
-                  status("Hard format fob - will need provisioning again");
+                  status("Hard format fob, all AIDs removed");
+#if 1
                   df(change_key(&d, 0x80, 0, key_aes(masterkey, fob), NULL));   // Hard reset to zero AES
                   df(authenticate(&d, 0, NULL));
+#else
+                  df(change_key(&d, 0x00, 0, key_aes(masterkey, fob), NULL));   // Hard reset to zero DES - does not work
+                  df(des_authenticate(&d, 0, NULL));
+#endif
                } else
                {
                   df(change_key_settings(&d, 0x09));
