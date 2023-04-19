@@ -399,7 +399,7 @@ static void task(void *pvParameters)
             continue;           // Waiting for card to go
          }
          // Check for new card
-         df.keylen = 0;         // New card
+         df.blocklen = 0;         // New card
          int cards = 1;
          if (!fob.recheck)
             cards = pn532_Cards(pn532);
@@ -551,7 +551,7 @@ static void task(void *pvParameters)
                   ESP_LOGI(TAG, "Deny %s: %s", fob.id, fob.deny);
                else
                   ESP_LOGI(TAG, "Read %s", fob.id);
-               if (!e && df.keylen && fob.commit)
+               if (!e && df.blocklen && fob.commit)
                   log();        // Log before reporting or opening door
                if (fob.enterok)
                   blink(0, 1, 1);
@@ -563,7 +563,7 @@ static void task(void *pvParameters)
                   door_act(&fob);
                uint8_t ver[28];
                fobevent(ats, fob.secureset && !fob.secure && !df_get_version(&df, ver) ? ver : NULL);   // Report - as may need updating
-               if (!e && df.keylen && !fob.commit)
+               if (!e && df.blocklen && !fob.commit)
                {
                   log();        // Can log after reporting / opening
                   if (e && !strstr(e, "TIMEOUT"))

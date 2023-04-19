@@ -527,7 +527,7 @@ const char *door_fob(fob_t * fob)
          return "Deadlocked";   // We could not enter, or could not disarm, or could not disarm enough to get in
       return NULL;
    }
-   if (fob->secure && df.keylen)
+   if (fob->secure && df.blocklen)
       fob->deny = afilecheck();
    // Check fallback
    if (*fob->id)
@@ -551,7 +551,7 @@ const char *door_fob(fob_t * fob)
             fob->strongok = 0;
             if (!fob->deny)
                fob->deny = "Blacklist";
-            if (fob->secure && df.keylen)
+            if (fob->secure && df.blocklen)
             {
                if (*afile != 1 || afile[1] != 0xFB)
                {
@@ -569,7 +569,7 @@ const char *door_fob(fob_t * fob)
       return NULL;
    if (!fob->deny && !fob->remote && !fob->enterok && !fob->disarmok && !fob->armok && !fob->strongok && !fob->propok)
       fob->deny = "Not allowed";        // No actions allowed
-   if (!fob->deny && fob->secure && df.keylen && *datetime >= 0x20 && xdays && xoff && xlen <= 7)
+   if (!fob->deny && fob->secure && df.blocklen && *datetime >= 0x20 && xdays && xoff && xlen <= 7)
    {                            // Update expiry
       now += 86400LL * (int64_t) xdays;
       bcdutctime(now, datetime);
