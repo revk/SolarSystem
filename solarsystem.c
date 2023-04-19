@@ -348,84 +348,87 @@ settings (SQL * sqlp, SQL_RES * res, slot_t id)
    // Other settings
    if (*CONFIG_OTA_HOSTNAME)
       j_store_string (j, "otahost", CONFIG_OTA_HOSTNAME);
-   j_t door = j_store_object (j, "door");
-   if (*sql_colz (res, "door") == 't')
-   {                            // Door specific
-      j_store_int (door, "auto", 5);
-      if (*sql_colz (res, "doorexitarm") == 't')
-         j_store_boolean (door, "exitarm", 1);
-      if (*sql_colz (res, "doorexitdisarm") == 't')
-         j_store_boolean (door, "exitdisarm", 1);
-      if (*sql_colz (res, "doordebug") == 't')
-         j_store_boolean (door, "debug", 1);
-      if (*sql_colz (res, "doorcatch") == 't')
-         j_store_boolean (door, "catch", 1);
-      int v;                    // We don't send 0, so using default, but -ve means we send explicit 0
-      if ((v = atoi (sql_colz (res, "doorunlock"))))
-         j_store_int (door, "unlock", v < 0 ? 0 : v);
-      if ((v = atoi (sql_colz (res, "doorlock"))))
-         j_store_int (door, "lock", v < 0 ? 0 : v);
-      if ((v = atoi (sql_colz (res, "dooropen"))))
-         j_store_int (door, "open", v < 0 ? 0 : v);
-      if ((v = atoi (sql_colz (res, "doorclose"))))
-         j_store_int (door, "close", v < 0 ? 0 : v);
-      if ((v = atoi (sql_colz (res, "doorprop"))))
-         j_store_int (door, "prop", v < 0 ? 0 : v);
-      if ((v = atoi (sql_colz (res, "doorexit"))))
-         j_store_int (door, "exit", v < 0 ? 0 : v);
-      if ((v = atoi (sql_colz (res, "doorpoll"))))
-         j_store_int (door, "poll", v < 0 ? 0 : v);
-      if ((v = atoi (sql_colz (res, "doordebounce"))))
-         j_store_int (door, "debounce", v < 0 ? 0 : v);
-      const char *t;
-      if ((t = sql_colz (res, "dooriotunlock")) && *t)
-         j_store_string (door, "iotunlock", t);
-      if ((t = sql_colz (res, "dooriotdead")) && *t)
-         j_store_string (door, "iotdead", t);
-      if ((t = sql_colz (res, "dooriotundead")) && *t)
-         j_store_string (door, "iotundead", t);
-   }
-   j_t area = j_store_object (j, "area");
-   addset (area, "enter", sql_colz (res, "areaenter"), NULL);
-   addset (area, "arm", sql_colz (res, "areaarm"), NULL);
-   addset (area, "strong", sql_colz (res, "areastrong"), NULL);
-   addset (area, "disarm", sql_colz (res, "areadisarm"), NULL);
-   addset (area, "led", sql_colz (res, "arealed"), NULL);
-   addset (area, "deadlock", sql_colz (res, "areadeadlock"), NULL);
    int site = atoi (sql_colz (res, "site"));
    {                            // site
       SQL_RES *s = sql_safe_query_store_f (sqlp, "SELECT * FROM `site` WHERE `site`=%d", site);
       if (sql_fetch_row (s))
       {
          addsitedata (sqlp, j, s, sql_colz (res, "device"), sql_col (res, "via"), outofservice);
-         j_t iot = j_store_object (j, "iot");
-         if (*sql_colz (s, "iothost"))
-         {                      // Only if IOT host
-            const char *v;
-            if ((v = sql_colz (s, "iottopic")) && *v)
-               j_store_string (iot, "topic", v);
-            if (*sql_colz (res, "iotstatedoor") == 't')
-               j_store_true (iot, "statedoor");
-            if (*sql_colz (res, "iotstateinput") == 't')
-               j_store_true (iot, "stateinput");
-            if (*sql_colz (res, "iotstateoutput") == 't')
-               j_store_true (iot, "stateoutput");
-            if (*sql_colz (s, "iotstatesystem") == 't')
-               j_store_true (iot, "statesystem");
-            if (*sql_colz (res, "ioteventfob") == 't')
-               j_store_true (iot, "eventfob");
-            if (*sql_colz (s, "ioteventarm") == 't')
-               j_store_true (iot, "eventarm");
-            if (*sql_colz (res, "iotkeypad") == 't')
-               j_store_true (iot, "keypad");
-            if (*sql_colz (res, "iotgps") == 't')
-               j_store_true (iot, "gps");
+         if (!outofservice)
+         {
+            j_t iot = j_store_object (j, "iot");
+            if (*sql_colz (s, "iothost"))
+            {                   // Only if IOT host
+               const char *v;
+               if ((v = sql_colz (s, "iottopic")) && *v)
+                  j_store_string (iot, "topic", v);
+               if (*sql_colz (res, "iotstatedoor") == 't')
+                  j_store_true (iot, "statedoor");
+               if (*sql_colz (res, "iotstateinput") == 't')
+                  j_store_true (iot, "stateinput");
+               if (*sql_colz (res, "iotstateoutput") == 't')
+                  j_store_true (iot, "stateoutput");
+               if (*sql_colz (s, "iotstatesystem") == 't')
+                  j_store_true (iot, "statesystem");
+               if (*sql_colz (res, "ioteventfob") == 't')
+                  j_store_true (iot, "eventfob");
+               if (*sql_colz (s, "ioteventarm") == 't')
+                  j_store_true (iot, "eventarm");
+               if (*sql_colz (res, "iotkeypad") == 't')
+                  j_store_true (iot, "keypad");
+               if (*sql_colz (res, "iotgps") == 't')
+                  j_store_true (iot, "gps");
+            }
          }
       }
       sql_free_result (s);
    }
    if (!outofservice)
    {
+      j_t door = j_store_object (j, "door");
+      if (*sql_colz (res, "door") == 't')
+      {                         // Door specific
+         j_store_int (door, "auto", 5);
+         if (*sql_colz (res, "doorexitarm") == 't')
+            j_store_boolean (door, "exitarm", 1);
+         if (*sql_colz (res, "doorexitdisarm") == 't')
+            j_store_boolean (door, "exitdisarm", 1);
+         if (*sql_colz (res, "doordebug") == 't')
+            j_store_boolean (door, "debug", 1);
+         if (*sql_colz (res, "doorcatch") == 't')
+            j_store_boolean (door, "catch", 1);
+         int v;                 // We don't send 0, so using default, but -ve means we send explicit 0
+         if ((v = atoi (sql_colz (res, "doorunlock"))))
+            j_store_int (door, "unlock", v < 0 ? 0 : v);
+         if ((v = atoi (sql_colz (res, "doorlock"))))
+            j_store_int (door, "lock", v < 0 ? 0 : v);
+         if ((v = atoi (sql_colz (res, "dooropen"))))
+            j_store_int (door, "open", v < 0 ? 0 : v);
+         if ((v = atoi (sql_colz (res, "doorclose"))))
+            j_store_int (door, "close", v < 0 ? 0 : v);
+         if ((v = atoi (sql_colz (res, "doorprop"))))
+            j_store_int (door, "prop", v < 0 ? 0 : v);
+         if ((v = atoi (sql_colz (res, "doorexit"))))
+            j_store_int (door, "exit", v < 0 ? 0 : v);
+         if ((v = atoi (sql_colz (res, "doorpoll"))))
+            j_store_int (door, "poll", v < 0 ? 0 : v);
+         if ((v = atoi (sql_colz (res, "doordebounce"))))
+            j_store_int (door, "debounce", v < 0 ? 0 : v);
+         const char *t;
+         if ((t = sql_colz (res, "dooriotunlock")) && *t)
+            j_store_string (door, "iotunlock", t);
+         if ((t = sql_colz (res, "dooriotdead")) && *t)
+            j_store_string (door, "iotdead", t);
+         if ((t = sql_colz (res, "dooriotundead")) && *t)
+            j_store_string (door, "iotundead", t);
+      }
+      j_t area = j_store_object (j, "area");
+      addset (area, "enter", sql_colz (res, "areaenter"), NULL);
+      addset (area, "arm", sql_colz (res, "areaarm"), NULL);
+      addset (area, "strong", sql_colz (res, "areastrong"), NULL);
+      addset (area, "disarm", sql_colz (res, "areadisarm"), NULL);
+      addset (area, "led", sql_colz (res, "arealed"), NULL);
+      addset (area, "deadlock", sql_colz (res, "areadeadlock"), NULL);
       int pcb = atoi (sql_colz (res, "pcb"));
       if (pcb)
       {                         // Main PCB settings
