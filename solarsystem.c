@@ -338,10 +338,9 @@ settings (SQL * sqlp, SQL_RES * res, slot_t id)
    if (*aid)
    {
       int organisation = atoi (sql_colz (res, "organisation"));
-      SQL_RES *b =
-         sql_safe_query_store_f (sqlp,
-                                 "SELECT * FROM `foborganisation` WHERE `organisation`=%d AND `blocked` IS NOT NULL AND `confirmed` IS NULL ORDER BY `blocked` DESC LIMIT 10",
-                                 organisation);
+      SQL_RES *b = sql_safe_query_store_f (sqlp,
+                                           "SELECT * FROM `foborganisation` WHERE `organisation`=%d AND `blocked` IS NOT NULL AND `confirmed` IS NULL ORDER BY `blocked` DESC LIMIT 10",
+                                           organisation);
       while (sql_fetch_row (b))
          j_append_string (blacklist, sql_colz (b, "fob"));
       sql_free_result (b);
@@ -477,80 +476,82 @@ settings (SQL * sqlp, SQL_RES * res, slot_t id)
 #undef led
       }
       sql_free_result (p);
-      j_t input = j_store_array (j, "in");
-      j_t output = j_store_array (j, "out");
-      j_t power = j_store_array (j, "power");
-      SQL_RES *g =
-         sql_safe_query_store_f (sqlp,
-                                 "SELECT * FROM `devicegpio` LEFT JOIN `gpio` USING (`gpio`) WHERE `device`=%#s AND `pcb`=%d ORDER BY `initname`",
-                                 sql_col (res, "device"), atoi (sql_colz (res, "pcb")));
-      while (sql_fetch_row (g))
+      if (!outofservice)
       {
-         const char *type = sql_colz (g, "type");
-         j_t gpio = NULL;
-         if (*type == 'P')
-            gpio = j_append_null (power);
-         else if (*type == 'I')
-            gpio = j_append_null (input);
-         else if (*type == 'O')
-            gpio = j_append_null (output);
-         if (gpio)
+         j_t input = j_store_array (j, "in");
+         j_t output = j_store_array (j, "out");
+         j_t power = j_store_array (j, "power");
+         SQL_RES *g = sql_safe_query_store_f (sqlp,
+                                              "SELECT * FROM `devicegpio` LEFT JOIN `gpio` USING (`gpio`) WHERE `device`=%#s AND `pcb`=%d ORDER BY `initname`",
+                                              sql_col (res, "device"), atoi (sql_colz (res, "pcb")));
+         while (sql_fetch_row (g))
          {
-            const char *extra = NULL;
-            const char *pin = sql_colz (g, "pin");
-            int invert = (*sql_colz (g, "invert") == 't');
-            if (*pin == '-')
+            const char *type = sql_colz (g, "type");
+            j_t gpio = NULL;
+            if (*type == 'P')
+               gpio = j_append_null (power);
+            else if (*type == 'I')
+               gpio = j_append_null (input);
+            else if (*type == 'O')
+               gpio = j_append_null (output);
+            if (gpio)
             {
-               pin++;
-               invert = 1 - invert;
-               if (*type == 'I')
-                  extra = "P";  // Pull down on input
-            }
-            if (*pin)
-            {
-               j_store_literalf (gpio, "gpio", "%s%s", (invert ? "-" : ""), pin);
-               if (*type != 'P')
+               const char *extra = NULL;
+               const char *pin = sql_colz (g, "pin");
+               int invert = (*sql_colz (g, "invert") == 't');
+               if (*pin == '-')
                {
-                  const char *name = sql_colz (g, "name");
-                  if (!*name)
-                     name = sql_colz (g, "initname");
-                  if (*name)
-                     j_store_string (gpio, "name", name);
+                  pin++;
+                  invert = 1 - invert;
+                  if (*type == 'I')
+                     extra = "P";       // Pull down on input
                }
-               if (*type == 'I')
+               if (*pin)
                {
-                  int hold = atoi (sql_colz (g, "hold"));
-                  if (hold)
-                     j_store_int (gpio, "hold", hold);
-               }
-               if (*type == 'O')
-               {
-                  int pulse = atoi (sql_colz (g, "pulse"));
-                  if (pulse)
-                     j_store_int (gpio, "pulse", pulse);
-               }
-               if (*type != 'P')
-               {
-                  addset (gpio, "func", sql_col (g, "func"), extra);
+                  j_store_literalf (gpio, "gpio", "%s%s", (invert ? "-" : ""), pin);
+                  if (*type != 'P')
+                  {
+                     const char *name = sql_colz (g, "name");
+                     if (!*name)
+                        name = sql_colz (g, "initname");
+                     if (*name)
+                        j_store_string (gpio, "name", name);
+                  }
+                  if (*type == 'I')
+                  {
+                     int hold = atoi (sql_colz (g, "hold"));
+                     if (hold)
+                        j_store_int (gpio, "hold", hold);
+                  }
+                  if (*type == 'O')
+                  {
+                     int pulse = atoi (sql_colz (g, "pulse"));
+                     if (pulse)
+                        j_store_int (gpio, "pulse", pulse);
+                  }
+                  if (*type != 'P')
+                  {
+                     addset (gpio, "func", sql_col (g, "func"), extra);
 #define i(t,n,c) addset(gpio,#n,sql_col(g,#n),NULL);
 #define c(t,n) addset(gpio,#n,sql_col(g,#n),NULL);
 #define s(t,n,c) addset(gpio,#n,sql_col(g,#n),NULL);
 #include "ESP32/main/states.m"
+                  }
                }
             }
          }
+         // We send {} not null as (a) smaller, and (b) ensures content is zapped
+         for (int i = 0; i < j_len (output); i++)
+            if (j_isnull (j_index (output, i)))
+               j_object (j_index (output, i));
+         for (int i = 0; i < j_len (input); i++)
+            if (j_isnull (j_index (input, i)))
+               j_object (j_index (input, i));
+         for (int i = 0; i < j_len (power); i++)
+            if (j_isnull (j_index (power, i)))
+               j_object (j_index (power, i));
+         sql_free_result (g);
       }
-      // We send {} not null as (a) smaller, and (b) ensures content is zapped
-      for (int i = 0; i < j_len (output); i++)
-         if (j_isnull (j_index (output, i)))
-            j_object (j_index (output, i));
-      for (int i = 0; i < j_len (input); i++)
-         if (j_isnull (j_index (input, i)))
-            j_object (j_index (input, i));
-      for (int i = 0; i < j_len (power); i++)
-         if (j_isnull (j_index (power, i)))
-            j_object (j_index (power, i));
-      sql_free_result (g);
    }
    if (!j_isnull (j))
       slot_send (id, "setting", sql_colz (res, "device"), NULL, &j);
@@ -699,10 +700,9 @@ addsitedata (SQL * sqlp, j_t j, SQL_RES * site, const char *deviceid, const char
       }
       if (*v)
          j_store_string (mesh, "pass", v);
-      SQL_RES *res =
-         sql_safe_query_store_f (sqlp,
-                                 "SELECT SUM(if(`outofservice`='false',1,0)) AS `N`,COUNT(*) AS `T` FROM `device` WHERE `site`=%#s",
-                                 sql_col (site, "site"));
+      SQL_RES *res = sql_safe_query_store_f (sqlp,
+                                             "SELECT SUM(if(`outofservice`='false',1,0)) AS `N`,COUNT(*) AS `T` FROM `device` WHERE `site`=%#s",
+                                             sql_col (site, "site"));
       if (sql_fetch_row (res))
       {
          j_store_int (mesh, "max", atoi (sql_colz (res, "T")));
@@ -783,10 +783,9 @@ daily (SQL * sqlp)
 void
 doupgrade (SQL * sqlp, int site)
 {                               // Poking upgrades that may need doing - pick one per site, as site is one at a time
-   SQL_RES *device =
-      sql_safe_query_store_f (sqlp,
-                              "SELECT * FROM `device` WHERE `site`=%d AND `upgrade`<=NOW() AND `id` IS NOT NULL ORDER BY if(`outofservice`='true',0,if(`via` IS NOT NULL,1,2)),`devicename` LIMIT 1",
-                              site);
+   SQL_RES *device = sql_safe_query_store_f (sqlp,
+                                             "SELECT * FROM `device` WHERE `site`=%d AND `upgrade`<=NOW() AND `id` IS NOT NULL ORDER BY if(`outofservice`='true',0,if(`via` IS NOT NULL,1,2)),`devicename` LIMIT 1",
+                                             site);
    while (sql_fetch_row (device))
    {
       slot_t id = strtoull (sql_colz (device, "id"), NULL, 10);
@@ -803,10 +802,9 @@ dooffline (SQL * sqlp, int site)
    {
       j_t j = j_create (),
          l = NULL;
-      SQL_RES *device =
-         sql_safe_query_store_f (sqlp,
-                                 "SELECT * FROM `device` WHERE `site`=%d AND `offlinereport` IS NULL AND `online` IS NULL AND `outofservice`='false'",
-                                 site);
+      SQL_RES *device = sql_safe_query_store_f (sqlp,
+                                                "SELECT * FROM `device` WHERE `site`=%d AND `offlinereport` IS NULL AND `online` IS NULL AND `outofservice`='false'",
+                                                site);
       while (sql_fetch_row (device))
       {
          if (!l)
@@ -1720,10 +1718,9 @@ main (int argc, const char *argv[])
                char blacklist = j_test (j, "blacklist", 0);
                if (!held && !gone && !remote)
                {                // Initial fob use
-                  SQL_RES *fa =
-                     sql_safe_query_store_f (&sql,
-                                             "SELECT * FROM `fobaid` LEFT JOIN `foborganisation` USING (`fob`) LEFT JOIN `access` USING (`access`) WHERE `fob`=%#s AND `aid`=%#s",
-                                             fobid, aid);
+                  SQL_RES *fa = sql_safe_query_store_f (&sql,
+                                                        "SELECT * FROM `fobaid` LEFT JOIN `foborganisation` USING (`fob`) LEFT JOIN `access` USING (`access`) WHERE `fob`=%#s AND `aid`=%#s",
+                                                        fobid, aid);
                   if (!sql_fetch_row (fa))
                   {
                      sql_free_result (fa);
