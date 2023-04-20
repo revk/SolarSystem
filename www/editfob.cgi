@@ -42,12 +42,13 @@ endif
 setenv XMLSQLDEBUG
 if(! $?PATH_INFO) then
 list:
+setenv XMLSQLDEBUG
 xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <h1>🔑 Fobs</h1>
 <table>
 <set last>
-<sql table="foborganisation LEFT JOIN fobaid USING (fob) LEFT JOIN aid USING (aid)" group="fob" order="max(lastused) DESC,max(adopted) DESC,fob DESC" where="foborganisation.organisation=$USER_ORGANISATION AND aid.organisation=$USER_ORGANISATION AND aid.site=$USER_SITE">
-<sql table="foborganisation LEFT JOIN fobaid USING (fob) LEFT JOIN aid USING (aid) LEFT JOIN fob USING (fob) LEFT JOIN site USING (site) LEFT JOIN access USING (access)" where="foborganisation.organisation=$USER_ORGANISATION AND aid.organisation=$USER_ORGANISATION AND aid.site=$USER_SITE AND fobaid.fob='$fob'" order="aid">
+<sql table="foborganisation LEFT JOIN fobaid USING (fob) LEFT JOIN aid USING (aid)" group="fob" order="max(lastused) DESC,max(adopted) DESC,fob DESC" where="foborganisation.organisation=$USER_ORGANISATION">
+<sql table="foborganisation LEFT JOIN fobaid USING (fob) LEFT JOIN aid USING (aid) LEFT JOIN fob USING (fob) LEFT JOIN site USING (site) LEFT JOIN access USING (access)" where="foborganisation.organisation=$USER_ORGANISATION AND (aid.site IS NULL OR aid.site=$USER_SITE) AND fob.fob='$fob'" order="aid">
 <if not found><set found=1><tr>
 <th>Fob</th>
 <th>Free</th>
@@ -67,7 +68,9 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 </if>
 <td align=right><output name=lastused type=recent></td>
 <td align=right><output name=expires type=recent></td>
-<td><output name=sitename>: <output name=aidname> (<output name=accessname missing="?">)</td>
+<td>
+<if site><output name=sitename>: <output name=aidname> (<output name=accessname missing="?">)</if><if else>No access</if>
+</td>
 <if ver="$ver2" or ver="$ver3"><td><b>Old key <tt><output name=ver></tt></b></td></if>
 <if ver not ver="$ver1" not ver="$ver2" not ver="$ver3"><td><b>Obsolete key <tt><output name=ver></tt></b></td></if>
 <if not ver><td><i>Unknown key version</i></td></if>
