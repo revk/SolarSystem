@@ -35,6 +35,7 @@ typedef unsigned int uint32_t;
 #include "ssdatabase.h"
 #include "ssafile.h"
 #include "fobcommand.h"
+#include "DESFireAES/include/desfireaes.h"
 
 #define MAX_MIX 5
 
@@ -1027,6 +1028,7 @@ main (int argc, const char *argv[])
             syslog (LOG_INFO, "Could not increase threads");
       }
    }
+   df_check_des();
    // Load (or make) keys
    const char *msgkey = "",
       *msgcert = "";

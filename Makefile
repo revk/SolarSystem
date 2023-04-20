@@ -34,7 +34,7 @@ pcb:
 	mysqldump SS pcb gpio > pcb.sql
 
 apt:
-	sudo apt install libpopt-dev  libssl-dev  libcurl4-openssl-dev  libmosquitto-dev  libmariadbd-dev  kconfig-frontends libargon2-dev python3-certbot-apache libgpgme-dev
+	sudo apt install libpopt-dev libssl-dev libcurl4-openssl-dev libmosquitto-dev libmariadbd-dev kconfig-frontends libargon2-dev python3-certbot-apache libgpgme-dev
 
 pull:
 	git checkout ESP32/version.txt

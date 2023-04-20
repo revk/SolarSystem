@@ -347,8 +347,12 @@ void *fobcommand(void *arg)
             void doconnect(void) {
                status("Connecting to fob");
                df(select_application(&d, NULL));
+#if 0
                if (df_authenticate(&d, 0, key_aes(masterkey, fob)))
                   df(authenticate(&d, 0, NULL));
+#else
+	       e=df_authenticate(&d, 0, key_aes(masterkey, fob));
+#endif
                df(get_uid(&d, uid));
                status(j_base16(sizeof(uid), uid));
                if (!fob)
@@ -475,7 +479,7 @@ void *fobcommand(void *arg)
             {
                if (!e && (format || provision))
                   doformat();
-               if (!e)
+               if (!e && !format)
                   doconnect();
                if (!e && provision)
                   doprovision();
