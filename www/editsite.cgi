@@ -79,10 +79,10 @@ Root:<select name=root><option value=''>None</option><sql table=device where="si
 <tr><td>Email From</td><td><input name=emailfrom size=40> (for email hooks)</td></tr>
 <tr><td>SMS Username</td><td><input name=smsuser size=40> (for sms hooks)</td></tr>
 <tr><td>SMS Password</td><td><input name=smspass size=40></td></tr>
-<tr><td>SMS From</td><td><input name=smsfrom size=10 maxlength=10> (if carrier allows)</td></tr>
+<tr><td>SMS From</td><td><input name=smsfrom size=20 maxlength=20> (if carrier allows)</td></tr>
 <tr><td>SMS Username</td><td><input name=sms2user size=40> (for sms hooks, number starting *)</td></tr>
 <tr><td>SMS Password</td><td><input name=sms2pass size=40></td></tr>
-<tr><td>SMS From</td><td><input name=sms2from size=10 maxlength=10> (if carrier allows)</td></tr>
+<tr><td>SMS From</td><td><input name=sms2from size=20 maxlength=20> (if carrier allows)</td></tr>
 <tr><td>Toot server</td><td><input name=toothost size=50> Mastodon host</td></tr>
 <tr><td>Toot bearer</td><td><input name=tootbearer size=50> Authentication</td></tr>
 <tr><td colspan=2><hr></td></tr>

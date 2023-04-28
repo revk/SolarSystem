@@ -151,10 +151,10 @@ key(meshkey, 32);
 link2(device, root);            // Preferred root
 text(smsuser, 16);		// Credentials
 text(smspass, 32);
-text(smsfrom, 10);              // From, where settable by carrier
+text(smsfrom, 20);              // From, where settable by carrier
 text(sms2user, 16);		// Credentials for secondary SMS (e.g. important)
 text(sms2pass, 32);
-text(sms2from, 10);             // From, where settable by carrier
+text(sms2from, 20);             // From, where settable by carrier
 text(toothost,0);		// Server for mastodon
 text(tootbearer,0);		// Bearer for mastodon
 text(hookoffline, 0);           // Off line devices
