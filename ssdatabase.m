@@ -149,8 +149,14 @@ text(meshkey, 32);              // AES key
 bool (meshlr);                  // Mesh is LR
 key(meshkey, 32);
 link2(device, root);            // Preferred root
-text(smsuser, 16);
+text(smsuser, 16);		// Credentials
 text(smspass, 32);
+text(smsfrom, 10);              // From, where settable by carrier
+text(sms2user, 16);		// Credentials for secondary SMS (e.g. important)
+text(sms2pass, 32);
+text(sms2from, 10);             // From, where settable by carrier
+text(toothost,0);		// Server for mastodon
+text(tootbearer,0);		// Bearer for mastodon
 text(hookoffline, 0);           // Off line devices
 text(hookbearer, 0);            // Bearer for web hooks
 text(hookfob, 0);               // Fob event web hook
@@ -185,7 +191,6 @@ bool (iotstatesystem);          // Copy stuff to IoT
 #define s(t,state,c) areas(state)
 #include "ESP32/main/states.m"  // Related areas
 text(smsnumber, 20);            // Number to SMS
-text(smsfrom, 10);              // From, where settable by carrier
 text(emailfrom, 0);             // From email
 areas(smsarm);                  // When to SMS
 areas(smsdisarm);

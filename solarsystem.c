@@ -127,32 +127,88 @@ getaes (SQL * sqlp, char *target, const char *aid, const char *fob)
 }
 
 void
+send_email (SQL_RES * res, const char *ud, const char *t, const char *event, j_t j)
+{
+   // TODO maybe check syntax a bit
+   if (fork ())
+      return;
+   FILE *f = NULL;
+   email_t e = email_new (&f);
+   fprintf (f, "%s", ud);
+   const char *from = sql_col (res, "emailfrom");
+   if (!from || !*from)
+      from = "alarm@access.me.uk";
+   email_subject (e, "Alarm message:%s", event);
+   email_address (e, "To", t, NULL);
+   email_address (e, "From", from, sql_col (res, "sitename"));
+   FILE *a = NULL;              // JSON attachment
+   email_add (e, "event.json", NULL, &a);
+   j_err (j_write (j, a));
+   const char *er = email_send (e, 0);
+   if (er)
+      warnx ("Email failed %s: %s", t, er);
+   _exit (0);
+}
+
+void
 send_message (SQL_RES * res, const char *ud, const char *n)
 {                               // SMS
-   const char *u = sql_colz (res, "smsuser");
-   const char *p = sql_colz (res, "smspass");
-   if (*u && *p && *n)
+   int special = 0;
+   while (*n == '*')
    {
-      const char *f = sql_colz (res, "smsfrom");
-      j_t s = j_create ();
-      j_store_string (s, "username", u);
-      j_store_string (s, "password", p);
-      j_store_string (s, "da", n);
-      if (*f)
-         j_store_string (s, "oa", f);
-      j_store_string (s, "ud", ud);
-      if (!fork ())
-      {
-         j_t r = j_create ();
-         if (sqldebug)
-            j_err (j_write_pretty (s, stderr));
-         j_curl_send (curl, s, r, NULL, "https://sms.aa.net.uk");
-         if (sqldebug)
-            j_err (j_write_pretty (r, stderr));
-         _exit (0);
-      }
-      j_delete (&s);
+      special++;
+      n++;
    }
+   // TODO maybe check syntax a bit
+   const char *u = sql_colz (res, special ? "sms2user" : "smsuser");
+   const char *p = sql_colz (res, special ? "sms2pass" : "smspass");
+   if (!*u || !*p || !*n)
+      return;                   // Nothing to send
+   if (fork ())
+      return;
+   const char *f = sql_colz (res, special ? "sms2from" : "smsfrom");
+   j_t s = j_create ();
+   j_store_string (s, "username", u);
+   j_store_string (s, "password", p);
+   j_store_string (s, "da", n);
+   if (*f)
+      j_store_string (s, "oa", f);
+   j_store_string (s, "ud", ud);
+   if (!fork ())
+   {
+      j_t r = j_create ();
+      if (sqldebug)
+         j_err (j_write_pretty (s, stderr));
+      j_curl_send (curl, s, r, NULL, "https://sms.aa.net.uk");
+      if (sqldebug)
+         j_err (j_write_pretty (r, stderr));
+      _exit (0);
+   }
+   j_delete (&s);
+   _exit (0);
+}
+
+void
+send_toot (SQL_RES * res, const char *ud, const char *n)
+{                               // SMS
+   const char *host = sql_colz (res, "toothost");
+   const char *bearer = sql_colz (res, "tootbearer");
+   if (!*host || !*bearer)
+      return;                   // Nothing to send
+   if (fork ())
+      return;
+   j_t t = j_create (),
+      r = j_create ();
+   j_store_stringf (t, "status", "%s %s", n, ud);
+   j_store_string (t, "visibility", "direct");
+   j_store_string (t, "language", "en");
+   const char *e;
+   e = j_curl_send (curl, t, r, bearer, "https://%s/api/v1/statuses", host);
+   if (e)
+      warnx ("Failed toot %s: %s %s", host, e, j_get (r, "error") ? : "");
+   j_delete (&t);
+   j_delete (&r);
+   _exit (0);
 }
 
 void
@@ -256,32 +312,19 @@ notify (SQL * sqlp, SQL_RES * res, const char *target, j_t j)
             j_curl_send (curl, j, NULL, sql_col (res, "hookbearer"), "%s", t);
             _exit (0);
          }
+      } else if (*t == '@')
+      {                         // Let's assume it is a mastodon
+         if (!ud)
+            makeud ();
+         send_toot (res, ud, t);
       } else if (strchr (t, '@'))
       {
          if (!ud)
             makeud ();
-         if (!fork ())
-         {
-            FILE *f = NULL;
-            email_t e = email_new (&f);
-            fprintf (f, "%s", ud);
-            const char *from = sql_col (res, "emailfrom");
-            if (!from || !*from)
-               from = "alarm@access.me.uk";
-            email_subject (e, "Alarm message:%s", event);
-            email_address (e, "To", t, NULL);
-            email_address (e, "From", from, sql_col (res, "sitename"));
-            FILE *a = NULL;     // JSON attachment
-            email_add (e, "event.json", NULL, &a);
-            j_err (j_write (j, a));
-            const char *er = email_send (e, 0);
-            if (er)
-               warnx ("Email failed %s: %s", t, er);
-            _exit (0);
-         }
+         send_email (res, ud, t, event, j);
       }                         // Let's assume it is an email address
-      else if (*t == '+' || isdigit (*t))
-      {                         // Let's assume it is a number to SMS
+      else if (*t == '+' || isdigit (*t) || *t == '*')
+      {                         // Let's assume it is a number to SMS, * prefix means secondary SMS
          if (!ud)
             makeud ();
          send_message (res, ud, t);
@@ -1028,7 +1071,7 @@ main (int argc, const char *argv[])
             syslog (LOG_INFO, "Could not increase threads");
       }
    }
-   df_check_des();
+   df_check_des ();
    // Load (or make) keys
    const char *msgkey = "",
       *msgcert = "";

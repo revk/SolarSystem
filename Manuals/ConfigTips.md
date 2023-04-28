@@ -106,6 +106,20 @@ The top level has the notion of SMS monitoring. This allows an SMS for specific 
 
 At present the SMS is only sent from the control system, but the plan is that the system will be able to do this by itself - either a new mobile module or configuration via a module router. This means that the SMS alerting for these events can work even when not on-line to the control system.
 
+The system allows two sets of credentials for SMS service from A&A. The idea is that you can set different alert tones. To use the secondary SMS server, prefix the mobile number with a `*`. This is ideal for Alarm, or Armfail which are rare to make a louder noise.
+
+## Email
+
+You can have events emailed, just include the email address in the hook.
+
+The config allows you to set the sender address.
+
+## Mastodon
+
+You can have events sent by direct message on Mastodon to any fediverse account. Simply include the target handle in the hook.
+
+The config requires a mastodon server and a bearer (`access_token`) - you will need to use suitable tools to obtain a valid access token for sending toots.
+
 ## Hooks
 
 The control system can also generate a number of alerts, which can be SMS, email, or a web hook (https ideally). These cover many more types of event as listed on the site management page, including things like nodes (or the whole site) going off line. For each type of event, you can list one or more hooks.

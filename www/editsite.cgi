@@ -36,7 +36,7 @@ if($?sitename) then
 	if($?root) then
 		if("$root" == "") unsetenv root
 	endif
-	sqlwrite -qon "$DB" site sitename wifissid wifipass wifichan iottopic iothost nomesh smsuser smspass armcancel armdelay alarmdelay alarmhold debug rollover iotstatesystem ioteventarm smsarm smsarmfail smsdisarm smscancel smsalarm smspanic smsfire engineer smsnumber smsfrom hookoffline hookfob hookfobdeny hookalarm hookfire hookpanic hookwarning hooktamper hookfault hooktrigger hookinhibit hookarm hookstrong hookdisarm hookarmfail hookopen hookforced hooknotclosed hooknotopen hookpropped hookwrongpin meshlr wifibssid root hookoffline emailfrom hookarm hookstrong hookdisarm hookopen hookarmfail hookforced hookpropped hookwrongpin
+	sqlwrite -qon "$DB" site sitename wifissid wifipass wifichan iottopic iothost nomesh smsuser smspass smsfrom sms2user sms2pass sms2from toothost tootbearer armcancel armdelay alarmdelay alarmhold debug rollover iotstatesystem ioteventarm smsarm smsarmfail smsdisarm smscancel smsalarm smspanic smsfire engineer smsnumber hookoffline hookfob hookfobdeny hookalarm hookfire hookpanic hookwarning hooktamper hookfault hooktrigger hookinhibit hookarm hookstrong hookdisarm hookarmfail hookopen hookforced hooknotclosed hooknotopen hookpropped hookwrongpin meshlr wifibssid root hookoffline emailfrom hookarm hookstrong hookdisarm hookopen hookarmfail hookforced hookpropped hookwrongpin
 	sql "$DB" 'UPDATE device SET poke=NOW() WHERE site=$site'
 	message --poke
 	redirect /
@@ -80,8 +80,13 @@ Root:<select name=root><option value=''>None</option><sql table=device where="si
 <tr><td>SMS Username</td><td><input name=smsuser size=40> (for sms hooks)</td></tr>
 <tr><td>SMS Password</td><td><input name=smspass size=40></td></tr>
 <tr><td>SMS From</td><td><input name=smsfrom size=10 maxlength=10> (if carrier allows)</td></tr>
+<tr><td>SMS Username</td><td><input name=sms2user size=40> (for sms hooks, number starting *)</td></tr>
+<tr><td>SMS Password</td><td><input name=sms2pass size=40></td></tr>
+<tr><td>SMS From</td><td><input name=sms2from size=10 maxlength=10> (if carrier allows)</td></tr>
+<tr><td>Toot server</td><td><input name=toothost size=50> Mastodon host</td></tr>
+<tr><td>Toot bearer</td><td><input name=tootbearer size=50> Authentication</td></tr>
 <tr><td colspan=2><hr></td></tr>
-<tr><td colspan=2>Event hooks</td></tr>
+<tr><td colspan=2>Event hooks (can be https:// for JSON post, email address, mobile number for SMS, * prefix mobile number for secondary SMS (e.g. set special alert tone for Alarm, etc)</td></tr>
 <tr><td>Offline event</td><td><input name=hookoffline size=80 placeholder="https://... / email / number"></td></tr>
 <tr><td>Fob event</td><td><input name=hookfob size=80 placeholder="https://... / email / number"></td></tr>
 <tr><td>Fob deny event</td><td><input name=hookfobdeny size=80 placeholder="https://... / email / number"></td></tr>
