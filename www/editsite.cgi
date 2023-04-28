@@ -75,16 +75,16 @@ Root:<select name=root><option value=''>None</option><sql table=device where="si
 <tr><td>Alarm-Hold</td><td><input name=alarmhold size=3> seconds (timeout before alarm cancels after last trigger)</td></tr>
 <tr><td colspan=2><hr></td></tr>
 <tr><td colspan=2>Event hook settings</td></tr>
-<tr><td>Bearer</td><td><input name=hookbearer size=40 placeholder="To send on web hooks"> (for web hooks)</td></tr>
+<tr><td>Bearer</td><td><input type=password name=hookbearer size=40 placeholder="To send on web hooks"> (for web hooks)</td></tr>
 <tr><td>Email From</td><td><input name=emailfrom size=40> (for email hooks)</td></tr>
 <tr><td>SMS Username</td><td><input name=smsuser size=40> (for sms hooks)</td></tr>
-<tr><td>SMS Password</td><td><input name=smspass size=40></td></tr>
+<tr><td>SMS Password</td><td><input type=password name=smspass size=40></td></tr>
 <tr><td>SMS From</td><td><input name=smsfrom size=20 maxlength=20> (if carrier allows)</td></tr>
 <tr><td>SMS Username</td><td><input name=sms2user size=40> (for sms hooks, number starting *)</td></tr>
-<tr><td>SMS Password</td><td><input name=sms2pass size=40></td></tr>
+<tr><td>SMS Password</td><td><input type=password name=sms2pass size=40></td></tr>
 <tr><td>SMS From</td><td><input name=sms2from size=20 maxlength=20> (if carrier allows)</td></tr>
 <tr><td>Toot server</td><td><input name=toothost size=50> Mastodon host</td></tr>
-<tr><td>Toot bearer</td><td><input name=tootbearer size=50> Authentication</td></tr>
+<tr><td>Toot bearer</td><td><input type=password name=tootbearer size=50> Authentication</td></tr>
 <tr><td colspan=2><hr></td></tr>
 <tr><td colspan=2>Event hooks (can be https:// for JSON post, email address, mobile number for SMS, * prefix mobile number for secondary SMS (e.g. set special alert tone for Alarm, etc)</td></tr>
 <tr><td>Offline event</td><td><input name=hookoffline size=80 placeholder="https://... / email / number"></td></tr>
