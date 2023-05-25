@@ -266,6 +266,7 @@ datetime(blocked);              // Block card (when blocked)
 datetime(confirmed);            // When confirmed blocked
 text(fobname, 15);              // Name of fob user
 text(fobsms, 20);               // SMS of the fob user
+text(fobdata,0);		// User data for fob logs, etc
 datetime(expires);              // Fixed expiry (local time on server)
 
 table(device, 12);

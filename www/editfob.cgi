@@ -25,7 +25,7 @@ if($?expires) then
 		endif
 	end
 	setenv organisation "$USER_ORGANISATION"
-	setenv allow "fobname fobsms expires"
+	setenv allow "fobname fobsms expires fobdata"
 	if($?BLOCK) setenv blocked "`date +'%F %T'`"
 	if($?BLOCK) setenv allow "$allow confirmed"
 	if($?UNBLOCK||$?BLOCK) then
@@ -39,7 +39,6 @@ if($?expires) then
 	redirect editfob.cgi
 	exit 0
 endif
-setenv XMLSQLDEBUG
 if(! $?PATH_INFO) then
 list:
 setenv XMLSQLDEBUG
@@ -97,9 +96,10 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <form method=post action=/editfob.cgi><input name=fob type=hidden>
 <sql table="foborganisation LEFT JOIN fob using (fob)" where="fob='$fob' AND organisation=$USER_ORGANISATION">
 <table>
-<tr><td>Name</td><td colspan=2><input name=fobname size=15 maxlength=15 autofocus></td></tr>
-<tr><td>Mobile</td><td colspan=2><input name=fobsms size=15 maxlength=15 autofocus></td></tr>
-<tr><td>Expiry</td><td colspan=2><input name=expires id=expires type=datetime-local><input type=button onclick='document.getElementById("expires").value="";' value="No expiry"></td></tr>
+<tr><td>Name</td><td colspan=6><input name=fobname size=15 maxlength=15 autofocus></td></tr>
+<tr><td>Mobile</td><td colspan=6><input name=fobsms size=15 maxlength=15></td></tr>
+<tr><td>Expiry</td><td colspan=6><input name=expires id=expires type=datetime-local><input type=button onclick='document.getElementById("expires").value="";' value="No expiry"></td></tr>
+<tr><td>UserData</td><td colspan=6><textarea name=fobdata placeholder=JSON cols=100></textarea></td></tr>
 <if capacity><tr><td>Capacity</td><td><output name=capacity> bytes</td></tr></if>
 <if mem><tr><td>Free</td><td><output name=mem> bytes</td></tr></if>
 <if blocked><tr><td>Block</td><td>Access blocked <output name=blocked> <if blocked and confirmed>(confirmed <output name=confirmed>)</if></td></tr></if>

@@ -1726,32 +1726,6 @@ main (int argc, const char *argv[])
                   fob = NULL;
                sql_free_result (res);
             }
-            char *data = j_write_str (j);
-            sql_safe_query_f (&sql, "INSERT INTO `event` SET `logged`=NOW(),`device`=%#s,`fob`=%#s,`suffix`=%#s,`data`=%#s",
-                              deviceid, fob, suffix, data);
-            free (data);
-            j_store_string (j, "event", suffix);
-            if (suffix && *suffix && checkdevice ())
-            {                   // Event hooks
-               SQL_RES *res = sql_safe_query_store_f (&sql, "SELECT * FROM `site` WHERE `site`=%#s", sql_col (device, "site"));
-               if (sql_fetch_row (res))
-               {
-                  char *tag;
-                  if (asprintf (&tag, "hook%s", suffix) < 0)
-                     errx (1, "malloc");
-                  if ((!j_find (j, "deny") && !j_find (j, "fail")) || j_find (j, "gone"))
-                  {             // fail/deny are sent twice - one read and on gone, and we only log these on gone event as otherwise we log fixed issues like expiry
-                     const char *hook = sql_col (res, tag);
-                     if (hook && *hook)
-                        notify (&sql, res, hook, j);
-                     if (!strcmp (suffix, "fob") && j_find (j, "deny")
-                         && strcmp (j_get (j, "fail") ? : "", "PN532_ERR_STATUS_TIMEOUT") && (hook = sql_col (res, "hookfobdeny"))
-                         && *hook)
-                        notify (&sql, res, hook, j);    // Failed other than simple timeout (i.e. too quick)
-                  }
-               }
-               sql_free_result (res);
-            }
             if (!strcmp (suffix, "fob") && checkdevice ())
             {                   // Fob usage - loads of options
                int organisation = atoi (sql_colz (device, "organisation"));
@@ -1773,6 +1747,18 @@ main (int argc, const char *argv[])
                   {
                      sql_free_result (fa);
                      fa = NULL;
+                  }
+                  if (fa)
+                  {
+                     j_t d = j_create ();
+                     const char *data = sql_col (fa, "fobdata");
+                     const char *e = j_read_mem (d, data, -1);
+                     if (e)
+                     {          // Not JSON, so treat as string
+                        j_store_string (j, "data", data);
+                        j_delete (&d);
+                     } else
+                        j_store_json (j, "data", &d);
                   }
                   if ((block || (updated && blacklist)) && secure)
                   {             // Confirm blocked
@@ -1825,6 +1811,32 @@ main (int argc, const char *argv[])
                   if (fa)
                      sql_free_result (fa);
                }
+            }
+            char *data = j_write_str (j);
+            sql_safe_query_f (&sql, "INSERT INTO `event` SET `logged`=NOW(),`device`=%#s,`fob`=%#s,`suffix`=%#s,`data`=%#s",
+                              deviceid, fob, suffix, data);
+            free (data);
+            j_store_string (j, "event", suffix);
+            if (suffix && *suffix && checkdevice ())
+            {                   // Event hooks
+               SQL_RES *res = sql_safe_query_store_f (&sql, "SELECT * FROM `site` WHERE `site`=%#s", sql_col (device, "site"));
+               if (sql_fetch_row (res))
+               {
+                  char *tag;
+                  if (asprintf (&tag, "hook%s", suffix) < 0)
+                     errx (1, "malloc");
+                  if ((!j_find (j, "deny") && !j_find (j, "fail")) || j_find (j, "gone"))
+                  {             // fail/deny are sent twice - one read and on gone, and we only log these on gone event as otherwise we log fixed issues like expiry
+                     const char *hook = sql_col (res, tag);
+                     if (hook && *hook)
+                        notify (&sql, res, hook, j);
+                     if (!strcmp (suffix, "fob") && j_find (j, "deny")
+                         && strcmp (j_get (j, "fail") ? : "", "PN532_ERR_STATUS_TIMEOUT") && (hook = sql_col (res, "hookfobdeny"))
+                         && *hook)
+                        notify (&sql, res, hook, j);    // Failed other than simple timeout (i.e. too quick)
+                  }
+               }
+               sql_free_result (res);
             }
          } else if (prefix && !strcmp (prefix, "error"))
          {
