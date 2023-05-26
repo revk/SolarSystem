@@ -258,6 +258,7 @@ notify (SQL * sqlp, SQL_RES * res, const char *target, j_t j)
       for (e = j_first (j); e; e = j_next (e))
       {
          const char *tag = j_name (e);
+	 if(!strcmp(tag,"data"))continue;
          if (strcmp (tag, "event") && strcmp (tag, "areas") && strcmp (tag, "ts") && strcmp (tag, "also")
 #define s(t,x,l) &&strcmp(tag,#x)
 #define i(t,x,l) &&strcmp(tag,#x)
@@ -1738,20 +1739,20 @@ main (int argc, const char *argv[])
                char remote = j_test (j, "remote", 0);
                char updated = j_test (j, "updated", 0);
                char blacklist = j_test (j, "blacklist", 0);
-               if (!held && !gone && !remote)
-               {                // Initial fob use
-                  SQL_RES *fa = sql_safe_query_store_f (&sql,
-                                                        "SELECT * FROM `fobaid` LEFT JOIN `foborganisation` USING (`fob`) LEFT JOIN `access` USING (`access`) WHERE `fob`=%#s AND `aid`=%#s",
-                                                        fobid, aid);
-                  if (!sql_fetch_row (fa))
-                  {
-                     sql_free_result (fa);
-                     fa = NULL;
-                  }
-                  if (fa)
-                  {
+               SQL_RES *fa = sql_safe_query_store_f (&sql,
+                                                     "SELECT * FROM `fobaid` LEFT JOIN `foborganisation` USING (`fob`) LEFT JOIN `access` USING (`access`) WHERE `fob`=%#s AND `aid`=%#s",
+                                                     fobid, aid);
+               if (!sql_fetch_row (fa))
+               {
+                  sql_free_result (fa);
+                  fa = NULL;
+               }
+               if (secure && fa)
+               {
+                  const char *data = sql_colz (fa, "fobdata");
+                  if (*data)
+                  {             // User data (JSON) from database
                      j_t d = j_create ();
-                     const char *data = sql_col (fa, "fobdata");
                      const char *e = j_read_mem (d, data, -1);
                      if (e)
                      {          // Not JSON, so treat as string
@@ -1760,6 +1761,9 @@ main (int argc, const char *argv[])
                      } else
                         j_store_json (j, "data", &d);
                   }
+               }
+               if (!held && !gone && !remote)
+               {                // Initial fob use
                   if ((block || (updated && blacklist)) && secure)
                   {             // Confirm blocked
                      sql_safe_query_f (&sql,
@@ -1808,9 +1812,9 @@ main (int argc, const char *argv[])
                         }
                      }
                   }
-                  if (fa)
-                     sql_free_result (fa);
                }
+               if (fa)
+                  sql_free_result (fa);
             }
             char *data = j_write_str (j);
             sql_safe_query_f (&sql, "INSERT INTO `event` SET `logged`=NOW(),`device`=%#s,`fob`=%#s,`suffix`=%#s,`data`=%#s",
