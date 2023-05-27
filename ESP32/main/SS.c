@@ -11,6 +11,10 @@ static const char __attribute__((unused)) TAG[] = "SS";
 #error	Needs CONFIG_REVK_MESH
 #endif
 
+#if	CONFIG_REVK_OTAAUTO != 0
+#error	Do not auto upgrade (OTAAUTO should be 0)
+#endif
+
 #ifdef	CONFIG_REVK_APMODE
 #warning	You do not want door controller running CONFIG_REVK_APMODE
 #endif
