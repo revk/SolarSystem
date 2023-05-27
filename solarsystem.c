@@ -258,7 +258,8 @@ notify (SQL * sqlp, SQL_RES * res, const char *target, j_t j)
       for (e = j_first (j); e; e = j_next (e))
       {
          const char *tag = j_name (e);
-	 if(!strcmp(tag,"data"))continue;
+         if (!strcmp (tag, "data"))
+            continue;
          if (strcmp (tag, "event") && strcmp (tag, "areas") && strcmp (tag, "ts") && strcmp (tag, "also")
 #define s(t,x,l) &&strcmp(tag,#x)
 #define i(t,x,l) &&strcmp(tag,#x)
@@ -1848,7 +1849,10 @@ main (int argc, const char *argv[])
          {
             if (suffix && !strcmp (suffix, "upgrade") && checkdevice ())
             {
-               if (j_find (j, "complete"))
+               if (j_find (j, "up-to-date"))
+               {
+                  sql_safe_query_f (&sql, "UPDATE `device` SET `upgrade`=NULL,`progress`=NULL WHERE `device`=%#s", deviceid);
+               } else if (j_find (j, "complete"))
                {                // Done
                   sql_safe_query_f (&sql,
                                     "UPDATE `device` SET `upgrade`=NULL,`version`=NULL,`build_suffix`=NULL,`progress`=NULL WHERE `device`=%#s",
