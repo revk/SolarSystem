@@ -1852,12 +1852,13 @@ main (int argc, const char *argv[])
                if (j_find (j, "up-to-date"))
                {
                   sql_safe_query_f (&sql, "UPDATE `device` SET `upgrade`=NULL,`progress`=NULL WHERE `device`=%#s", deviceid);
+                  poke = 1; // Next
                } else if (j_find (j, "complete"))
                {                // Done
                   sql_safe_query_f (&sql,
                                     "UPDATE `device` SET `upgrade`=NULL,`version`=NULL,`build_suffix`=NULL,`progress`=NULL WHERE `device`=%#s",
                                     deviceid);
-                  poke = 1;
+                  poke = 1; // Next
                } else if (j_find (j, "size"))   // making progress
                   sql_safe_query_f (&sql, "UPDATE `device` SET `progress`=%d WHERE `device`=%#s",
                                     atoi (j_get (j, "progress") ? : ""), deviceid);
