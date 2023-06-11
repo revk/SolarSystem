@@ -6,7 +6,7 @@
 
   (title_block
     (title "Galaxy Keypad controller")
-    (date "${DATE}")
+    (date "${CURRENT_DATE}")
     (rev "5")
     (company "Adrian Kennard Andrews & Arnold Ltd")
     (comment 1 "@TheRealRevK")
