@@ -1,4 +1,4 @@
-Designator,Footprint,Quantity,Value,LCSC Part #
+﻿Designator,Footprint,Quantity,Value,LCSC Part #
 C1,C_0603,1,0.1uF,
 "C10, C13",C_0805_,2,2.2uF,C19110
 "C11, C14",C_0805_,2,10uF,C17024
