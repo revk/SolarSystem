@@ -1,9 +1,10 @@
-Designator,Footprint,Quantity,Value,LCSC Part #
+﻿Designator,Footprint,Quantity,Value,LCSC Part #
 AJK1,AJK,1,AJK,
 C1,C_0603,1,0.1uF,
 C2,C_0603_,1,100nF,C30926
 C3,C_0805_,1,2.2uF,C19110
 C4,C_0805_,1,10uF,C17024
+C5,C_0603,1,1uF,
 D1,MHS190RGBCT,1,LED_BARG,C409798
 D2,D_1206,1,D,C143805
 D3,D_1206_,1,Schottky,C143805
