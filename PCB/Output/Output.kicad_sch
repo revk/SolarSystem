@@ -4253,9 +4253,6 @@
     (property "LCSC Part #" "C143805" (at 255.27 41.91 0)
       (effects (font (size 1.27 1.27)) hide)
     )
-    (property "JLCPCB Rotation Offset" "180" (at 255.27 41.91 0)
-      (effects (font (size 1.27 1.27)) hide)
-    )
     (pin "~" (uuid d9e88550-9e33-4d35-98fb-d28a4cb32606))
     (instances
       (project "Faikin"
@@ -4736,6 +4733,9 @@
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "LCSC Part #" "C290195" (at 244.475 48.26 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (property "JLCPCB Rotation Offset" "180" (at 238.76 33.655 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (pin "1" (uuid 7f52e92e-c87d-4b37-91ab-1faa58ba5fcb))
