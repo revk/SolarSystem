@@ -3118,9 +3118,6 @@
     (property "Datasheet" "~" (at 249.555 52.07 0)
       (effects (font (size 1.27 1.27)) hide)
     )
-    (property "LCSC Part #" "C520308" (at 249.555 52.07 0)
-      (effects (font (size 1.27 1.27)) hide)
-    )
     (pin "~" (uuid 0fcaa8df-c3d9-4522-a73d-cece7783152b))
     (instances
       (project "Generic"
