@@ -1245,10 +1245,10 @@
       (property "Reference" "PCB" (at 0 -10.16 0)
         (effects (font (size 1.27 1.27)) hide)
       )
-      (property "Value" "70x70" (at 0 0 0)
+      (property "Value" "XxY" (at 0 0 0)
         (effects (font (size 1.27 1.27)))
       )
-      (property "Footprint" "RevK:PCB7070" (at 0 5.715 0)
+      (property "Footprint" "" (at 0 5.715 0)
         (effects (font (size 1.27 1.27)) hide)
       )
       (property "Datasheet" "" (at 0 0 0)
@@ -1264,22 +1264,6 @@
           (fill (type none))
         )
         (circle (center -3.81 3.81) (radius 0.0001)
-          (stroke (width 0) (type default))
-          (fill (type none))
-        )
-        (polyline
-          (pts
-            (xy -4.445 -3.175)
-            (xy 4.445 -3.175)
-          )
-          (stroke (width 0) (type default))
-          (fill (type none))
-        )
-        (polyline
-          (pts
-            (xy -4.445 3.175)
-            (xy 4.445 3.175)
-          )
           (stroke (width 0) (type default))
           (fill (type none))
         )
@@ -1596,6 +1580,30 @@
         (pin passive line (at -7.62 -22.86 90) (length 5.08)
           (name "SHIELD" (effects (font (size 1.27 1.27))))
           (number "S1" (effects (font (size 1.27 1.27))))
+        )
+      )
+    )
+    (symbol "RevK:VCUT" (in_bom yes) (on_board yes)
+      (property "Reference" "V" (at 0 1.27 0)
+        (effects (font (size 1.27 1.27)) hide)
+      )
+      (property "Value" "" (at 0 0 0)
+        (effects (font (size 1.27 1.27)))
+      )
+      (property "Footprint" "RevK:VCUT70" (at 0 -1.27 0)
+        (effects (font (size 1.27 1.27)) hide)
+      )
+      (property "Datasheet" "" (at 0 0 0)
+        (effects (font (size 1.27 1.27)) hide)
+      )
+      (symbol "VCUT_0_1"
+        (polyline
+          (pts
+            (xy -4.445 0)
+            (xy 4.445 0)
+          )
+          (stroke (width 0) (type default))
+          (fill (type none))
         )
       )
     )
@@ -3602,6 +3610,35 @@
     )
   )
 
+  (symbol (lib_id "RevK:VCUT") (at 262.89 171.45 0) (unit 1)
+    (in_bom yes) (on_board yes) (dnp no) (fields_autoplaced)
+    (uuid ab615b13-ce24-46c4-844d-46e5ddaddd1f)
+    (property "Reference" "V1" (at 262.89 170.18 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (property "Value" "~" (at 262.89 171.45 0)
+      (effects (font (size 1.27 1.27)))
+    )
+    (property "Footprint" "RevK:VCUT70" (at 262.89 172.72 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (property "Datasheet" "" (at 262.89 171.45 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (instances
+      (project "Reference"
+        (path "/825c70b0-4860-42b7-97dc-86bfa46e06fd"
+          (reference "V1") (unit 1)
+        )
+      )
+      (project "Generic"
+        (path "/babeabf2-f3b0-4ed5-8d9e-0215947e6cf3"
+          (reference "V2") (unit 1)
+        )
+      )
+    )
+  )
+
   (symbol (lib_id "Device:LED_RBGA") (at 169.545 153.67 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
     (uuid bd2da4d3-544c-4022-b383-bb3131c3952d)
@@ -3781,6 +3818,35 @@
       (project "Generic"
         (path "/babeabf2-f3b0-4ed5-8d9e-0215947e6cf3"
           (reference "U5") (unit 1)
+        )
+      )
+    )
+  )
+
+  (symbol (lib_id "RevK:VCUT") (at 262.89 177.8 0) (unit 1)
+    (in_bom yes) (on_board yes) (dnp no) (fields_autoplaced)
+    (uuid e8617b08-4fda-4893-96b7-89509f8fa56f)
+    (property "Reference" "V1" (at 262.89 176.53 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (property "Value" "~" (at 262.89 177.8 0)
+      (effects (font (size 1.27 1.27)))
+    )
+    (property "Footprint" "RevK:VCUT70" (at 262.89 179.07 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (property "Datasheet" "" (at 262.89 177.8 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (instances
+      (project "Reference"
+        (path "/825c70b0-4860-42b7-97dc-86bfa46e06fd"
+          (reference "V1") (unit 1)
+        )
+      )
+      (project "Generic"
+        (path "/babeabf2-f3b0-4ed5-8d9e-0215947e6cf3"
+          (reference "V1") (unit 1)
         )
       )
     )
