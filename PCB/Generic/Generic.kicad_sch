@@ -200,11 +200,11 @@
         )
       )
     )
-    (symbol "Device:LED_RBGA" (pin_names (offset 0) hide) (in_bom yes) (on_board yes)
+    (symbol "Device:LED_RGBA" (pin_names (offset 0) hide) (in_bom yes) (on_board yes)
       (property "Reference" "D" (at 0 9.398 0)
         (effects (font (size 1.27 1.27)))
       )
-      (property "Value" "LED_RBGA" (at 0 -8.89 0)
+      (property "Value" "LED_RGBA" (at 0 -8.89 0)
         (effects (font (size 1.27 1.27)))
       )
       (property "Footprint" "" (at 0 -1.27 0)
@@ -216,13 +216,13 @@
       (property "ki_keywords" "LED RGB diode" (at 0 0 0)
         (effects (font (size 1.27 1.27)) hide)
       )
-      (property "ki_description" "RGB LED, red/blue/green/anode" (at 0 0 0)
+      (property "ki_description" "RGB LED, red/green/blue/anode" (at 0 0 0)
         (effects (font (size 1.27 1.27)) hide)
       )
       (property "ki_fp_filters" "LED* LED_SMD:* LED_THT:*" (at 0 0 0)
         (effects (font (size 1.27 1.27)) hide)
       )
-      (symbol "LED_RBGA_0_0"
+      (symbol "LED_RGBA_0_0"
         (text "B" (at -1.905 -6.35 0)
           (effects (font (size 1.27 1.27)))
         )
@@ -233,7 +233,7 @@
           (effects (font (size 1.27 1.27)))
         )
       )
-      (symbol "LED_RBGA_0_1"
+      (symbol "LED_RGBA_0_1"
         (polyline
           (pts
             (xy -1.27 -5.08)
@@ -463,17 +463,17 @@
           (fill (type background))
         )
       )
-      (symbol "LED_RBGA_1_1"
+      (symbol "LED_RGBA_1_1"
         (pin passive line (at -5.08 5.08 0) (length 2.54)
           (name "RK" (effects (font (size 1.27 1.27))))
           (number "1" (effects (font (size 1.27 1.27))))
         )
-        (pin passive line (at -5.08 -5.08 0) (length 2.54)
-          (name "BK" (effects (font (size 1.27 1.27))))
-          (number "2" (effects (font (size 1.27 1.27))))
-        )
         (pin passive line (at -5.08 0 0) (length 2.54)
           (name "GK" (effects (font (size 1.27 1.27))))
+          (number "2" (effects (font (size 1.27 1.27))))
+        )
+        (pin passive line (at -5.08 -5.08 0) (length 2.54)
+          (name "BK" (effects (font (size 1.27 1.27))))
           (number "3" (effects (font (size 1.27 1.27))))
         )
         (pin passive line (at 5.08 0 180) (length 2.54)
@@ -3612,7 +3612,7 @@
     )
   )
 
-  (symbol (lib_id "Device:LED_RBGA") (at 169.545 153.67 0) (unit 1)
+  (symbol (lib_id "Device:LED_RGBA") (at 169.545 153.67 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
     (uuid bd2da4d3-544c-4022-b383-bb3131c3952d)
     (property "Reference" "D1" (at 169.545 141.0462 0)
