@@ -227,6 +227,7 @@ static void task(void *pvParameters)
                gpsfixed = 0;
                gps_send_status("Timeout");
             }
+	    timeout = esp_timer_get_time() + 10000000;
          }
          continue;
       }
