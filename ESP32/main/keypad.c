@@ -684,7 +684,7 @@ void keypad_boot(void)
          err = port_check(port_mask(keypadre), TAG, 0);
       logical_gpio |= logical_KeyFault;
       // Done early because it beeps a lot!
-      revk_task(TAG, task, NULL);
+      revk_task(TAG, task, NULL,0);
    } else if (keypadtx || keypadrx || keypadde)
       logical_gpio |= logical_KeyFault;
 }

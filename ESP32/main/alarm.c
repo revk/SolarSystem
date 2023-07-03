@@ -269,7 +269,7 @@ void alarm_boot(void)
 
 void alarm_start(void)
 {
-   revk_task(TAG, task, NULL);
+   revk_task(TAG, task, NULL,4);
    door_check();
 }
 

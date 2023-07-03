@@ -339,5 +339,5 @@ void gps_boot(void)
 void gps_start(void)
 {
    if (gpstx && gpsrx)
-      revk_task(TAG, task, NULL);
+      revk_task(TAG, task, NULL,4);
 }

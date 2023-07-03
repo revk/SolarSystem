@@ -990,7 +990,7 @@ door_start (void)
 {
    if (!doorauto)
       return;                   // No door control in operation
-   revk_task (TAG, task, NULL);
+   revk_task (TAG, task, NULL,4);
 }
 
 const char *
