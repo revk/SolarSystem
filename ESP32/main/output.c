@@ -10,11 +10,11 @@ static const char TAG[] = "output";
 #define BITFIELDS "-"
 #define PORT_INV 0x40
 #define port_mask(p) ((p)&63)
-static uint8_t out[MAXOUTPUT]; // GPIO
+static uint8_t out[MAXOUTPUT];  // GPIO
 static uint8_t power[MAXOUTPUT];        /* fixed outputs */
 static char *outname[MAXOUTPUT];
-static int16_t outpulse[MAXOUTPUT];  // Timeout in s/10, +ve means timeout the active state, -ve means timeout the inactive state
-static uint8_t outfunc[MAXOUTPUT];   // Output function codes
+static int16_t outpulse[MAXOUTPUT];     // Timeout in s/10, +ve means timeout the active state, -ve means timeout the inactive state
+static uint8_t outfunc[MAXOUTPUT];      // Output function codes
 static uint8_t outputfuncs;     // Combined outputs of all
 static uint8_t outputfuncset;   // Logical state of output funcs
 
@@ -29,7 +29,8 @@ output_t output_pulsed = 0;     // Output pulse timed out meaning output is inve
 output_t output_mask = 0;       // Configure outputs
 static uint32_t report_next = 0;        // When to report output
 
-int output_active(int p)
+int
+output_active (int p)
 {
    if (p < 1 || p > MAXOUTPUT)
       return -1;
@@ -39,19 +40,21 @@ int output_active(int p)
    return 0;
 }
 
-static void output_write(int p)
+static void
+output_write (int p)
 {                               // Write current (combined) state (p from 0)
    if (out[p])
    {
       output_t v = (((output_state | output_forced) ^ output_pulsed) >> p) & 1;
       output_raw = (output_raw & ~(1ULL << p)) | (v << p);
-      gpio_hold_dis(port_mask(out[p]));
-      gpio_set_level(port_mask(out[p]), (out[p] & PORT_INV) ? 1 - v : v);
-      gpio_hold_en(port_mask(out[p]));
+      gpio_hold_dis (port_mask (out[p]));
+      gpio_set_level (port_mask (out[p]), (out[p] & PORT_INV) ? 1 - v : v);
+      gpio_hold_en (port_mask (out[p]));
    }
 }
 
-void output_set(int p, int v)
+void
+output_set (int p, int v)
 {
    if (p < 1 || p > MAXOUTPUT)
       return;
@@ -60,17 +63,19 @@ void output_set(int p, int v)
       output_state |= (1ULL << p);
    else
       output_state &= ~(1ULL << p);
-   output_write(p);
+   output_write (p);
 }
 
-int output_func_active(uint8_t f)
+int
+output_func_active (uint8_t f)
 {                               // Does a function exist at all (expected to be one bit set)
    if (outputfuncs & f)
       return 1;
    return 0;
 }
 
-void output_func_set(uint8_t f, int v)
+void
+output_func_set (uint8_t f, int v)
 {                               // Set all outputs for a function set (expected to be one bit set)
    if (v)
       outputfuncset |= f;
@@ -78,15 +83,17 @@ void output_func_set(uint8_t f, int v)
       outputfuncset &= ~f;
    for (int p = 0; p < MAXOUTPUT; p++)
       if (outfunc[p] & f)
-         output_set(p + 1, v);  // Yes, output_set is using p starting at 1, this really needs fixing some time as so annoying.
+         output_set (p + 1, v); // Yes, output_set is using p starting at 1, this really needs fixing some time as so annoying.
 }
 
-int output_func_get(uint8_t f)
+int
+output_func_get (uint8_t f)
 {
    return (outputfuncset & f) ? 1 : 0;
 }
 
-int output_get(int p)
+int
+output_get (int p)
 {
    if (p < 1 || p > MAXOUTPUT)
       return -1;
@@ -96,44 +103,45 @@ int output_get(int p)
    return 0;
 }
 
-const char *output_command(const char *tag, jo_t j)
+const char *
+output_command (const char *tag, jo_t j)
 {
-   if (!strcmp(tag, "connect"))
-      report_next = uptime() + 1;       // Report
+   if (!strcmp (tag, "connect"))
+      report_next = uptime () + 1;      // Report
    const char *e = NULL;
-   if (!strncmp(tag, TAG, strlen(TAG)))
+   if (!strncmp (tag, TAG, strlen (TAG)))
    {                            // Set output
       if (!e)
-         jo_skip(j);
+         jo_skip (j);
       if (!e)
-         e = jo_error(j, NULL);
+         e = jo_error (j, NULL);
       if (e)
          return e;
-      int i = atoi(tag + strlen(TAG));
+      int i = atoi (tag + strlen (TAG));
       if (!i)
       {                         // Object expected}
-         if (jo_here(j) != JO_OBJECT)
+         if (jo_here (j) != JO_OBJECT)
             e = "Expecting JSON object";
-         while (jo_here(j))
+         while (jo_here (j))
          {
-            jo_next(j);
-            if (jo_here(j) == JO_TAG)
+            jo_next (j);
+            if (jo_here (j) == JO_TAG)
             {
                int i = 0;
-               for (i = 0; i < MAXOUTPUT && jo_strcmp(j, outname[i]); i++);
+               for (i = 0; i < MAXOUTPUT && jo_strcmp (j, outname[i]); i++);
                if (i == MAXOUTPUT)
                   e = "Unknown output";
                else
                {
-                  jo_type_t t = jo_next(j);
+                  jo_type_t t = jo_next (j);
                   if (t >= JO_TRUE)
                   {
                      if (!out[i - 1])
                         e = "Trying to set unconfigured output";
                      else if (t == JO_TRUE)
-                        output_set(i, 1);
+                        output_set (i, 1);
                      else if (t == JO_FALSE)
-                        output_set(i, 0);
+                        output_set (i, 0);
                   } else if (t != JO_NULL)
                      e = "Expecting boolean or null entries";
                }
@@ -141,15 +149,15 @@ const char *output_command(const char *tag, jo_t j)
          }
       } else
       {                         // Single entry outputN
-         jo_type_t t = jo_here(j);
+         jo_type_t t = jo_here (j);
          if (i > MAXOUTPUT)
             e = "Output too high";
          else if (!out[i - 1])
             e = "Output not active";
          else if (t == JO_TRUE)
-            output_set(i, 1);
+            output_set (i, 1);
          else if (t == JO_FALSE)
-            output_set(i, 0);
+            output_set (i, 0);
          else
             e = "Expecting boolean";
       }
@@ -159,10 +167,11 @@ const char *output_command(const char *tag, jo_t j)
    return e;
 }
 
-static void task(void *pvParameters)
+static void
+task (void *pvParameters)
 {                               // Output poll
    pvParameters = pvParameters;
-   esp_task_wdt_add(NULL);
+   esp_task_wdt_add (NULL);
    static output_t output_last = 0;     // Last reported
    static output_t output_last_pulsed = 0;      // Last reported
    static uint16_t output_hold[MAXOUTPUT] = { 0 };
@@ -171,13 +180,13 @@ static void task(void *pvParameters)
       if (out[i])
       {
          output_mask |= (1ULL << i);
-         output_write(i);
+         output_write (i);
       }
    // Scan outputs
    while (1)
    {
-      esp_task_wdt_reset();
-      uint32_t now = uptime();
+      esp_task_wdt_reset ();
+      uint32_t now = uptime ();
       output_t output_mix = ((output_state | output_forced) & output_mask);
       for (int i = 0; i < MAXOUTPUT; i++)
          if ((output_mix & (1ULL << i)) ? outpulse[i] < 0 : outpulse[i] > 0)
@@ -192,38 +201,39 @@ static void task(void *pvParameters)
             if ((output_mix ^ output_raw) & (1ULL << i))
             {                   // State has changed
                if ((output_mix & (1ULL << i)) ? outpulse[i] > 0 : outpulse[i] < 0)
-                  output_hold[i] = (outpulse[i] > 0 ? outpulse[i] : -outpulse[i]);     // Start of pulse time
-               output_write(i); // Update output state
+                  output_hold[i] = (outpulse[i] > 0 ? outpulse[i] : -outpulse[i]);      // Start of pulse time
+               output_write (i);        // Update output state
             }
       if (output_mix != output_last || output_pulsed != output_last_pulsed || now > report_next)
       {
          output_last = output_mix;
          output_last_pulsed = output_pulsed;
          report_next = now + 3600;
-         jo_t j = jo_make(NULL);
+         jo_t j = jo_make (NULL);
          for (int i = 0; i < MAXOUTPUT; i++)
             if (out[i] && *outname[i])
             {
                if (output_pulsed & (1ULL << i))
-                  jo_null(j, outname[i]);    // Distinct state for output pulse timeout
+                  jo_null (j, outname[i]);      // Distinct state for output pulse timeout
                else
-                  jo_bool(j, outname[i], (output_mix >> i) & 1);
+                  jo_bool (j, outname[i], (output_mix >> i) & 1);
             }
-         revk_state_clients("output", &j, debug | (iotstateoutput << 1));
+         revk_state_clients ("output", &j, debug | (iotstateoutput << 1));
       }
-      usleep(100000);           // 100 ms (timers assume this)
+      usleep (100000);          // 100 ms (timers assume this)
    }
 }
 
-void output_boot(void)
+void
+output_boot (void)
 {
-   revk_register("out", MAXOUTPUT, sizeof(*out), &out, BITFIELDS, SETTING_BITFIELD | SETTING_SET | SETTING_SECRET);
-   revk_register("outgpio", MAXOUTPUT, sizeof(*out), &out, BITFIELDS, SETTING_BITFIELD | SETTING_SET);
-   revk_register("outfunc", MAXOUTPUT, sizeof(*outfunc), &outfunc, OUTPUT_FUNCS, SETTING_BITFIELD | SETTING_LIVE);
-   revk_register("outpulse", MAXOUTPUT, sizeof(*outpulse), &outpulse, NULL, SETTING_LIVE | SETTING_SIGNED);
-   revk_register("outname", MAXOUTPUT, 0, &outname, NULL, SETTING_LIVE);
-   revk_register("power", MAXOUTPUT, sizeof(*power), &power, BITFIELDS, SETTING_BITFIELD | SETTING_SET | SETTING_SECRET);
-   revk_register("powergpio", MAXOUTPUT, sizeof(*power), &power, BITFIELDS, SETTING_BITFIELD | SETTING_SET);
+   revk_register ("out", MAXOUTPUT, sizeof (*out), &out, BITFIELDS, SETTING_BITFIELD | SETTING_SET | SETTING_SECRET);
+   revk_register ("outgpio", MAXOUTPUT, sizeof (*out), &out, BITFIELDS, SETTING_BITFIELD | SETTING_SET);
+   revk_register ("outfunc", MAXOUTPUT, sizeof (*outfunc), &outfunc, OUTPUT_FUNCS, SETTING_BITFIELD | SETTING_LIVE);
+   revk_register ("outpulse", MAXOUTPUT, sizeof (*outpulse), &outpulse, NULL, SETTING_LIVE | SETTING_SIGNED);
+   revk_register ("outname", MAXOUTPUT, 0, &outname, NULL, SETTING_LIVE);
+   revk_register ("power", MAXOUTPUT, sizeof (*power), &power, BITFIELDS, SETTING_BITFIELD | SETTING_SET | SETTING_SECRET);
+   revk_register ("powergpio", MAXOUTPUT, sizeof (*power), &power, BITFIELDS, SETTING_BITFIELD | SETTING_SET);
 #define i(t,x,c) revk_register("out"#x, MAXOUTPUT, sizeof(*out##x), &out##x, AREAS, SETTING_BITFIELD|SETTING_LIVE);
 #define s(t,x,c) revk_register("out"#x, MAXOUTPUT, sizeof(*out##x), &out##x, AREAS, SETTING_BITFIELD|SETTING_LIVE);
 #include "states.m"
@@ -234,45 +244,46 @@ void output_boot(void)
    {                            // GPIO
     gpio_config_t c = { mode:GPIO_MODE_OUTPUT };
       int i,
-       p;
+        p;
       for (i = 0; i < MAXOUTPUT; i++)
       {
          if (out[i])
          {
-            const char *e = port_check(p = port_mask(out[i]), TAG, 0);
+            const char *e = port_check (p = port_mask (out[i]), TAG, 0);
             if (e)
                out[i] = 0;
             else
             {                   // Set up output pin
                c.pin_bit_mask |= (1ULL << p);
-               REVK_ERR_CHECK(gpio_set_level(p, (out[i] & PORT_INV) ? 1 : 0));
+               REVK_ERR_CHECK (gpio_set_level (p, (out[i] & PORT_INV) ? 1 : 0));
             }
          }
          if (power[i])
          {
-            const char *e = port_check(p = port_mask(power[i]), TAG, 0);
+            const char *e = port_check (p = port_mask (power[i]), TAG, 0);
             if (e)
                power[i] = 0;
             else
             {                   // Set up power output pin
                c.pin_bit_mask |= (1ULL << p);
                if (p != 20)
-                  REVK_ERR_CHECK(gpio_hold_dis(p));
-               REVK_ERR_CHECK(gpio_set_level(p, (power[i] & PORT_INV) ? 0 : 1));
-               REVK_ERR_CHECK(gpio_set_drive_capability(p, GPIO_DRIVE_CAP_3));
+                  REVK_ERR_CHECK (gpio_hold_dis (p));
+               REVK_ERR_CHECK (gpio_set_level (p, (power[i] & PORT_INV) ? 0 : 1));
+               REVK_ERR_CHECK (gpio_set_drive_capability (p, GPIO_DRIVE_CAP_3));
             }
          }
       }
       if (c.pin_bit_mask)
-         REVK_ERR_CHECK(gpio_config(&c));
+         REVK_ERR_CHECK (gpio_config (&c));
    }
 }
 
-void output_start(void)
+void
+output_start (void)
 {
    int i;
    for (i = 0; i < MAXOUTPUT && !out[i]; i++);
    if (i == MAXOUTPUT)
       return;
-   revk_task(TAG, task, NULL,4);
+   revk_task (TAG, task, NULL, 2);
 }

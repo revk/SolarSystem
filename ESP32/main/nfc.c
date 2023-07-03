@@ -737,7 +737,7 @@ nfc_start (void)
 {
    if (nfctx && nfcrx)
    {
-      revk_task (TAG, task, pn532,4);
+      revk_task (TAG, task, pn532, 3);
       nfc_led (0, NULL);
    }
 }
