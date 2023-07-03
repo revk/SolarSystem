@@ -530,14 +530,16 @@ check_online (const char *target)
    int child = mesh_find_child (mac, 1);
    if (child < 0)
       return child;
+   xSemaphoreTake (node_mutex, portMAX_DELAY);
    if (!node[child].online)
-   {                            // Is there risk of a race in any way? mutex?
+   {
       node[child].online = 1;
       node[child].missed = 0;
       node[child].reported = 0;
       nodes_online++;
       node_online (mac);
    }
+   xSemaphoreGive (node_mutex);
    return child;
 }
 
@@ -1065,17 +1067,23 @@ task (void *pvParameters)
                      ESP_LOGE (TAG, "Self offline");
                      continue;
                   }
-                  char mac[13];
-                  sprintf (mac, "%02X%02X%02X%02X%02X%02X", node[n].mac[0], node[n].mac[1], node[n].mac[2], node[n].mac[3],
-                           node[n].mac[4], node[n].mac[5]);
-                  revk_send_unsub (0, node[n].mac);
-                  revk_send_unsub (1, node[n].mac);
-                  char *topic;  // Tell IoT
-                  asprintf (&topic, "state/%s/%s", appname, mac);
-                  revk_mqtt_send_raw (topic, 1, "{\"up\":false}", -1);
-                  free (topic);
-                  node_offline (node[n].mac);
-                  flapping = uptime () + meshflap;      // Ignore changes for a moment
+                  xSemaphoreTake (node_mutex, portMAX_DELAY);
+                  if (node[n].online)
+                  {
+                     char mac[13];
+                     sprintf (mac, "%02X%02X%02X%02X%02X%02X", node[n].mac[0], node[n].mac[1], node[n].mac[2], node[n].mac[3],
+                              node[n].mac[4], node[n].mac[5]);
+                     revk_send_unsub (0, node[n].mac);
+                     revk_send_unsub (1, node[n].mac);
+                     char *topic;       // Tell IoT
+                     asprintf (&topic, "state/%s/%s", appname, mac);
+                     revk_mqtt_send_raw (topic, 1, "{\"up\":false}", -1);
+                     free (topic);
+                     node_offline (node[n].mac);
+                     flapping = uptime () + meshflap;   // Ignore changes for a moment
+                  }
+                  xSemaphoreGive (node_mutex);
+
                }
             }
          static char missed = 0;
