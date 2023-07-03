@@ -1060,13 +1060,13 @@ task (void *pvParameters)
                   node[n].missed++;     // Allow some missed
                else
                {
-                  node[n].online = 0;
-                  nodes_online--;
                   if (!memcmp (node[n].mac, revk_mac, 6))
                   {             // Should not happen
                      ESP_LOGE (TAG, "Self offline");
                      continue;
                   }
+                  node[n].online = 0;
+                  nodes_online--;
                   xSemaphoreTake (node_mutex, portMAX_DELAY);
                   if (node[n].online)
                   {
