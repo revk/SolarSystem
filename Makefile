@@ -51,6 +51,7 @@ update:
 	make -C AJL
 	make -C DESFireAES
 	make -C email
+	-git commit -a -m "Library update"
 
 PCBCase/case: PCBCase/case.c
 	make -C PCBCase

@@ -5,9 +5,9 @@
 #include "esp_task_wdt.h"
 #include "areas.h"
 
-#if     ESP_IDF_VERSION_MAJOR > 5 || ESP_IDF_VERSION_MAJOR == 5 && ESP_IDF_VERSION_MINOR > 0
-#error  Not safe with ESP IDF 5.1 or greater yet - memory issues
-#endif
+//#if     ESP_IDF_VERSION_MAJOR > 5 || ESP_IDF_VERSION_MAJOR == 5 && ESP_IDF_VERSION_MINOR > 0
+//#error  Not safe with ESP IDF 5.1 or greater yet - memory issues
+//#endif
 
 extern uint8_t iotstatedoor;
 extern uint8_t iotstateinput;
