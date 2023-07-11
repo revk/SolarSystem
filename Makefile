@@ -52,6 +52,7 @@ update:
 	make -C DESFireAES
 	make -C email
 	-git commit -a -m "Library update"
+	-git push
 
 PCBCase/case: PCBCase/case.c
 	make -C PCBCase
