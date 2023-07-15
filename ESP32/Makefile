@@ -44,6 +44,7 @@ menuconfig:
 #include $(IDF_PATH)/make/project.mk
 
 pull:
+	git checkout version.txt
 	git pull
 	git submodule update --recursive
 
