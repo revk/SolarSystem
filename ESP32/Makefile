@@ -8,11 +8,14 @@ SUFFIX := $(shell components/ESP32-RevK/buildsuffix)
 
 all:
 	@echo Make: $(PROJECT_NAME)$(SUFFIX).bin
+	-git submodule --init --remote --recursive
 	@idf.py build
 	@cp build/$(PROJECT_NAME).bin ../www/$(PROJECT_NAME)$(SUFFIX).bin
 	@echo Done: $(PROJECT_NAME)$(SUFFIX).bin
 
 update:	
+	git checkout version.txt
+	git pull
 	make -C .. update
 
 set:	wroom solo pico
