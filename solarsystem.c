@@ -758,8 +758,7 @@ addsitedata (SQL * sqlp, j_t j, SQL_RES * site, const char *deviceid, const char
          j_store_int (mesh, "expect", atoi (sql_colz (res, "N")));
       }
       sql_free_result (res);
-      if (*sql_colz (site, "meshlr") == 't')
-         j_store_true (mesh, "lr");
+      j_store_boolean (mesh, "lr", *sql_colz (site, "meshlr") == 't');
       if (!strcmp (sql_colz (site, "root"), deviceid))
          j_store_true (mesh, "root");
    }
