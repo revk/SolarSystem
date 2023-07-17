@@ -285,5 +285,5 @@ output_start (void)
    for (i = 0; i < MAXOUTPUT && !out[i]; i++);
    if (i == MAXOUTPUT)
       return;
-   revk_task (TAG, task, NULL, 2);
+   revk_task (TAG, task, NULL, 3);
 }
