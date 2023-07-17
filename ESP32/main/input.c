@@ -272,5 +272,5 @@ input_start (void)
    for (i = 0; i < MAXINPUT && !in[i]; i++);
    if (i == MAXINPUT)
       return;
-   revk_task (TAG, task, NULL, 2);
+   revk_task (TAG, task, NULL, 3);
 }
