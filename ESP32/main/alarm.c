@@ -88,6 +88,7 @@ static display_t *display = NULL;
         u8(meshwarmup,60)	\
         u8(meshflap,10)	\
 	u8(meshdied,240)	\
+	u16(mqttdied,600)	\
 	area(smsarm)		\
 	area(smsdisarm)		\
 	area(smscancel)		\
@@ -1008,6 +1009,8 @@ task (void *pvParameters)
    nodes_online++;
    while (1)
    {
+      if (isroot && uptime () > mqttdied && mqtt_failed (mqtt_client (0)) > 5 && !revk_shutting_down (NULL))
+         revk_restart (1, "MQTT not connecting");
       esp_task_wdt_reset ();
       {                         // Timer logic input
          time_t now = time (0);
