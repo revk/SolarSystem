@@ -88,7 +88,7 @@ static display_t *display = NULL;
         u8(meshwarmup,60)	\
         u8(meshflap,10)	\
 	u8(meshdied,240)	\
-	u16(mqttdied,600)	\
+	u16d(mqttdied,600)	\
 	area(smsarm)		\
 	area(smsdisarm)		\
 	area(smscancel)		\
@@ -106,6 +106,7 @@ static display_t *display = NULL;
 #define arean(n,q) area_t n[q];
 #define sl(n) char *n;
 #define u16(n) uint16_t n;
+#define u16d(n,d) uint16_t n;
 #define u8(n,d) uint16_t n;
 settings
 #undef area
@@ -113,6 +114,7 @@ settings
 #undef arean
 #undef sl
 #undef u16
+#undef u16d
 #undef u8
 #define c(t,x) static area_t report_##x=0;      // The collated reports
 #define i(t,x,l) static area_t report_##x=0;    // The collated reports
@@ -263,6 +265,7 @@ alarm_boot (void)
 #define arean(n,q) revk_register(#n,q,sizeof(*n),&n,AREAS,SETTING_BITFIELD|SETTING_LIVE);
 #define sl(n) revk_register(#n,0,0,&n,NULL,SETTING_LIVE);
 #define u16(n) revk_register(#n,0,sizeof(n),&n,NULL,SETTING_LIVE);
+#define u16d(n,d) revk_register(#n,0,sizeof(n),&n,#d,SETTING_LIVE);
 #define u8(n,d) revk_register(#n,0,sizeof(n),&n,#d,SETTING_LIVE);
    settings;
 #undef area
@@ -270,6 +273,7 @@ alarm_boot (void)
 #undef arean
 #undef sl
 #undef u16
+#undef u16d
 #undef u8
    // Pick up flash stored state to get started
    state_armed = armed;
@@ -1009,8 +1013,8 @@ task (void *pvParameters)
    nodes_online++;
    while (1)
    {
-      if (isroot && uptime () > mqttdied && mqtt_failed (mqtt_client (0)) > 5 && !revk_shutting_down (NULL))
-         revk_restart (1, "MQTT not connecting");
+      if (mqttdied && isroot && uptime () > mqttdied && lwmqtt_failed (lwmqtt_client (0)) > 5 && !revk_shutting_down (NULL))
+         revk_restart ("MQTT not connecting", 0);
       esp_task_wdt_reset ();
       {                         // Timer logic input
          time_t now = time (0);
