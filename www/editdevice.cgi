@@ -155,7 +155,7 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <if door=true>Door </if><if gps=true>GPS </if><if nfc=true>NFC reader </if><if nfcadmin=true> (admin)</if><if nfctrusted=true><b> (trusted)</b></if>
 </if>
 <if online not via><output name=address></if>
-<i title='Restart reason'><output name=rst missing='' 0='' 1='power-on' 2='' 3='' 4='panic' 5='int-wdt' 6='task-wdt' 7='rst-wdt' 8='deepsleep' 9='brownout' 10='rst-sdio' 11='rst-usb'></i>
+<if USER_ADMIN=true><i title='Restart reason'><output name=rst missing='' 0='' 1='power-on' 2='' 3='' 4='panic' 5='int-wdt' 6='task-wdt' 7='rst-wdt' 8='deepsleep' 9='brownout' 10='rst-sdio' 11='rst-usb'></i></IF>
 </td>
 </tr>
 </sql>
