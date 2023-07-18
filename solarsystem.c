@@ -1616,9 +1616,9 @@ main (int argc, const char *argv[])
             const char *build_suffix = j_get (j, "build-suffix");
             if (!secureid || !device || (build_suffix && strcmp (sql_colz (device, "build_suffix"), build_suffix)))
                sql_sprintf (&s, "`build_suffix`=%#s,", build_suffix);
-            int rst = atoi (j_get (j, "rst"));
-            int mem = atoi (j_get (j, "mem"));  // mem and spi always sent together unless no spi then treat spi as 0 anyway
-            int spi = atoi (j_get (j, "spi"));
+            int rst = atoi (j_get (j, "rst") ? : "");
+            int mem = atoi (j_get (j, "mem") ? : "");   // mem and spi always sent together unless no spi then treat spi as 0 anyway
+            int spi = atoi (j_get (j, "spi") ? : "");
             const char *version = j_get (j, "version");
             if (!secureid || !device || (version && strcmp (sql_colz (device, "version"), version)))
             {
