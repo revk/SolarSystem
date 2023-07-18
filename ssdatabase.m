@@ -300,6 +300,9 @@ text(status, 0);                // Summary status from device
 text(version, 0);               // S/w version
 text(build, 0);                 // S/w build
 text(build_suffix, 0);          // S/w build suffix
+num(rst);			// Last rst reason
+num(mem);			// LWM mem
+num(spi);			// LWM spi mem
 num(chan);                      // WiFi channel
 text(bssid, 0);                 // WiFi SSID
 text(ssid, 0);                  // WiFi SSID

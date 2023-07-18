@@ -1616,15 +1616,29 @@ main (int argc, const char *argv[])
             const char *build_suffix = j_get (j, "build-suffix");
             if (!secureid || !device || (build_suffix && strcmp (sql_colz (device, "build_suffix"), build_suffix)))
                sql_sprintf (&s, "`build_suffix`=%#s,", build_suffix);
+            int rst = atoi (j_get (j, "rst"));
+            int mem = atoi (j_get (j, "mem"));  // mem and spi always sent together unless no spi then treat spi as 0 anyway
+            int spi = atoi (j_get (j, "spi"));
             const char *version = j_get (j, "version");
             if (!secureid || !device || (version && strcmp (sql_colz (device, "version"), version)))
             {
                sql_sprintf (&s, "`version`=%#s,", version);
+               if (mem)
+                  sql_sprintf (&s, "`mem`=%d,`spi`=%d,", mem, spi);     // Clear LWM
                if (device && secureid)
                   sql_safe_query_f (&sql,
                                     "INSERT INTO `event` SET `logged`=NOW(),`device`=%#s,`suffix`='upgrade',`data`='{\"version\":\"%#S%#S\"}'",
                                     deviceid, version, build_suffix);
+            } else if (mem)
+            {                   // Low water mark
+               int v;
+               if (mem < (v = atoi (sql_colz (device, "mem"))) || !v)
+                  sql_sprintf (&s, "`mem`=%d,", mem);
+               if (spi < (v = atoi (sql_colz (device, "spi"))) || !v)
+                  sql_sprintf (&s, "`spi`=%d,", spi);
             }
+            if (rst && rst != atoi (sql_colz (device, "rst")))
+               sql_sprintf (&s, "`rst`=%d,", rst);
             const char *build = j_get (j, "build");
             if (!secureid || !device || (build && strcmp (sql_colz (device, "build"), build)))
                sql_sprintf (&s, "`build`=%#s,", build);
