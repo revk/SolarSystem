@@ -128,9 +128,9 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <th>Connect</th>
 <th>Version</th>
 <th>PCB</th>
+<th>Flash</th>
 <th>Mem</th>
 <th>SPI</th>
-<th>Flash</th>
 <th>Notes</th></tr>
 <sql table="site" where="site=$USER_SITE"><set root="$root"></sql>
 <sql table="device" where="site=$USER_SITE" select="max(version) AS V,max(build) AS B"><set V="$V"><set B="$B"></sql>
