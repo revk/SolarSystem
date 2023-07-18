@@ -128,6 +128,8 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <th>Connect</th>
 <th>Version</th>
 <th>PCB</th>
+<th>Mem</th>
+<th>SPI</th>
 <th>Flash</th>
 <th>Notes</th></tr>
 <sql table="site" where="site=$USER_SITE"><set root="$root"></sql>
@@ -143,6 +145,8 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <td><if upgrade><if online OR outofservice=false><i style='background:cyan;'>Upgrade <output name=progress 0=Started missing=Scheduled></i><br></if></if><set s="background:red;"><if version="$V"><set s="background:green;"></if><tt style="$s"><output name=version><output name=build_suffix></tt></td>
 <td><output name=pcbname></td>
 <td align=right><output name=flash type=mebi replace .00="" .0Mi="Mi">B</td>
+<td align=right><output name=mem type=mebi replace .00="" .0Mi="Mi">B</td>
+<td align=right><if spi=0>-</if><if else><output name=spi type=mebi replace .00="" .0Mi="Mi">B</if></td>
 <td>
 <if excludeall=true>*</if>
 <if outofservice=true>Out of service</if>
@@ -151,6 +155,7 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <if door=true>Door </if><if gps=true>GPS </if><if nfc=true>NFC reader </if><if nfcadmin=true> (admin)</if><if nfctrusted=true><b> (trusted)</b></if>
 </if>
 <if online not via><output name=address></if>
+<output name=rst missing='' 0='' 1='power-on' 2='' 3='' 4='panic' 5='int-wdt' 6='task-wdt' 7='rst-wdt' 8='deepsleep' 9='brownout' 10='rst-sdio' 11='rst-usb'>
 </td>
 </tr>
 </sql>
