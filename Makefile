@@ -44,6 +44,8 @@ pull:
 update:
 	git pull
 	git submodule update --init --remote --recursive
+	-git commit -a -m "Library update"
+	-git push
 	make -C login
 	make -C login/SQLlib
 	make -C xmlsql
@@ -51,8 +53,6 @@ update:
 	make -C AJL
 	make -C DESFireAES
 	make -C email
-	-git commit -a -m "Library update"
-	-git push
 
 PCBCase/case: PCBCase/case.c
 	make -C PCBCase
