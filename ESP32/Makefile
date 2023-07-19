@@ -14,7 +14,6 @@ all:
 
 update:	
 	git checkout version.txt
-	git pull
 	make -C .. update
 
 set:	wroom solo pico
