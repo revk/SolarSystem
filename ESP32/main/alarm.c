@@ -1013,6 +1013,7 @@ task (void *pvParameters)
    nodes_online++;
    while (1)
    {
+	   if( uptime () > mqttdied)ESP_LOGE(TAG,"isroot=%ld uptime=%ld failed=%d shutting=%ld mqttdied=%d",isroot,uptime(),lwmqtt_failed (revk_mqtt (0)),revk_shutting_down(NULL),mqttdied); // TODO
       if (mqttdied && isroot && uptime () > mqttdied && lwmqtt_failed (revk_mqtt (0)) > 5 && !revk_shutting_down (NULL))
          revk_restart ("MQTT not connecting", 0);
       esp_task_wdt_reset ();
