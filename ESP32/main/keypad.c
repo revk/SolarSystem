@@ -63,6 +63,7 @@ settings
 #undef p
 #undef sl
 static volatile uint8_t force;
+static  galaxybus_t *g=NULL;
 
 static void displayprint (const char *fmt, ...);
 
@@ -75,6 +76,8 @@ keypad_command (const char *tag, jo_t j)
       val[len = 0] = 0;
    if (!strcmp (tag, "connect") || !strcmp (tag, "disconnect") || !strcmp (tag, "change"))
       force = 1;
+   if(!strcmp(tag,"shutdown"))
+	   galaxybus_end(g);
    return NULL;
 }
 
@@ -450,7 +453,7 @@ keypad_ui (char key)
 static void
 task (void *pvParameters)
 {
-   galaxybus_t *g = galaxybus_init (keypadtimer, port_mask (keypadtx), port_mask (keypadrx), port_mask (keypadde),
+   g = galaxybus_init (keypadtimer, port_mask (keypadtx), port_mask (keypadrx), port_mask (keypadde),
                                     keypadre ? port_mask (keypadre) : -1,
                                     keypadclk ? port_mask (keypadclk) : -1,
                                     0);
