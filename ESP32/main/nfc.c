@@ -3,8 +3,8 @@
 static const char TAG[] = "nfc";
 #include "SS.h"
 
-#ifndef	REVK_LOCK_CPU1
-#warning	Better with REVK_LOCK_CPU1
+#ifndef	CONFIG_REVK_LOCK_CPU1
+#warning	Better with CONFIG_REVK_LOCK_CPU1
 #endif
 
 #include "desfireaes.h"
