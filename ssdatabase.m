@@ -375,6 +375,9 @@ bool (encryptednvs);            // Built with encrypted NVS
 bool (secureboot);              // Built with secure boot
 bool (authenticated);           // New authenticated device
 num(flash);                     // Flash size
+num(rst);			// Last rst reason
+num(mem);			// LWM mem
+num(spi);			// LWM spi mem
 
 table(pcb, 0);                  // PCB type
 text(pcbname, 0);
