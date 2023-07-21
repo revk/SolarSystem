@@ -453,6 +453,8 @@ keypad_ui (char key)
 static void
 task (void *pvParameters)
 {
+   sleep(2); // Just delaying the start slightly
+   esp_task_wdt_add (NULL);
    g = galaxybus_init (keypadtimer, port_mask (keypadtx), port_mask (keypadrx), port_mask (keypadde),
                        keypadre ? port_mask (keypadre) : -1, keypadclk ? port_mask (keypadclk) : -1, 0);
    if (!g)
@@ -460,7 +462,6 @@ task (void *pvParameters)
       vTaskDelete (NULL);
       return;
    }
-   esp_task_wdt_add (NULL);
    int64_t keypad_next = 0;
    galaxybus_set_timing (g, keypadtxpre, keypadtxpost, keypadrxpre, keypadrxpost);
    galaxybus_start (g);
