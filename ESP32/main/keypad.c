@@ -76,8 +76,10 @@ keypad_command (const char *tag, jo_t j)
       val[len = 0] = 0;
    if (!strcmp (tag, "connect") || !strcmp (tag, "disconnect") || !strcmp (tag, "change"))
       force = 1;
+#if 0	// This actually makes it worse, believe it or not
    if (!strcmp (tag, "shutdown"))
       galaxybus_end (g);
+#endif
    return NULL;
 }
 
