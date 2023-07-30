@@ -170,8 +170,8 @@ output_command (const char *tag, jo_t j)
 static void
 task (void *pvParameters)
 {                               // Output poll
-   pvParameters = pvParameters;
    esp_task_wdt_add (NULL);
+   pvParameters = pvParameters;
    static output_t output_last = 0;     // Last reported
    static output_t output_last_pulsed = 0;      // Last reported
    static uint16_t output_hold[MAXOUTPUT] = { 0 };

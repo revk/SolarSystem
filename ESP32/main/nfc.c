@@ -238,9 +238,9 @@ nfc_retry (void)
 static void
 task (void *pvParameters)
 {
+   esp_task_wdt_add (NULL);
    if (!nfciopoll)
       nfciopoll = 100;          // Should not happen
-   esp_task_wdt_add (NULL);
    pvParameters = pvParameters;
    int64_t found = 0;
    int64_t nextpoll = 0;        // Timers
