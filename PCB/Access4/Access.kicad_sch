@@ -3334,33 +3334,6 @@
     )
   )
 
-  (symbol (lib_id "RevK:AJK") (at 271.78 169.545 0) (unit 1)
-    (in_bom no) (on_board yes) (dnp no)
-    (uuid 00000000-0000-0000-0000-000060629b22)
-    (property "Reference" "AJK1" (at 271.78 167.005 0)
-      (effects (font (size 1.27 1.27)) hide)
-    )
-    (property "Value" "AJK" (at 269.875 169.545 0)
-      (effects (font (size 1.27 1.27)) (justify left))
-    )
-    (property "Footprint" "RevK:AJK" (at 271.78 172.085 0)
-      (effects (font (size 1.27 1.27)) hide)
-    )
-    (property "Datasheet" "" (at 271.78 172.085 0)
-      (effects (font (size 1.27 1.27)) hide)
-    )
-    (property "Note" "Non part, PCB printed" (at 271.78 169.545 0)
-      (effects (font (size 1.27 1.27)) hide)
-    )
-    (instances
-      (project "Access"
-        (path "/2a267270-6585-45e3-a633-b53049f10066"
-          (reference "AJK1") (unit 1)
-        )
-      )
-    )
-  )
-
   (symbol (lib_id "Connector_Generic:Conn_01x04") (at 153.67 79.375 0) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
     (uuid 00000000-0000-0000-0000-000060739fa0)
@@ -4165,33 +4138,6 @@
       (project "Access"
         (path "/2a267270-6585-45e3-a633-b53049f10066"
           (reference "#PWR015") (unit 1)
-        )
-      )
-    )
-  )
-
-  (symbol (lib_id "RevK:AA") (at 258.445 172.72 0) (unit 1)
-    (in_bom no) (on_board yes) (dnp no)
-    (uuid 00000000-0000-0000-0000-000060a37ffe)
-    (property "Reference" "U6" (at 259.715 171.45 0)
-      (effects (font (size 1.27 1.27)) hide)
-    )
-    (property "Value" "AA" (at 257.81 172.72 0)
-      (effects (font (size 1.27 1.27)) (justify left))
-    )
-    (property "Footprint" "RevK:AA" (at 258.445 172.72 0)
-      (effects (font (size 1.27 1.27)) hide)
-    )
-    (property "Datasheet" "" (at 258.445 172.72 0)
-      (effects (font (size 1.27 1.27)) hide)
-    )
-    (property "Note" "Non part, PCB printed" (at 258.445 172.72 0)
-      (effects (font (size 1.27 1.27)) hide)
-    )
-    (instances
-      (project "Access"
-        (path "/2a267270-6585-45e3-a633-b53049f10066"
-          (reference "U6") (unit 1)
         )
       )
     )
