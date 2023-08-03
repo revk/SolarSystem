@@ -2955,7 +2955,7 @@
     (effects (font (size 1.27 1.27)) (justify left bottom))
     (uuid 0d75a639-6a11-4283-8b2a-b643494dc876)
   )
-  (text "Use FET for polarity?" (at 223.52 22.86 0)
+  (text "Use FET for polarity?\n\n0402s" (at 223.52 22.86 0)
     (effects (font (size 1.27 1.27)) (justify left bottom))
     (uuid e07b5168-09f8-43d5-b3df-d670dde4b17b)
   )
