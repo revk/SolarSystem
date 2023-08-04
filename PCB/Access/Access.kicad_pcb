@@ -7920,7 +7920,7 @@
   (gr_text "DC" (at 145.7 66.5) (layer "B.SilkS") (tstamp 2ca99449-e3da-4a60-82bb-65a20372fa35)
     (effects (font (size 0.8 0.8) (thickness 0.1)) (justify mirror))
   )
-  (gr_text "Solar System\nAccess" (at 123.5 87.4) (layer "B.SilkS") (tstamp 39349f81-a647-4568-a49b-eb371290ec0d)
+  (gr_text "Solar System\nAccess (1L)" (at 123.5 87.4) (layer "B.SilkS") (tstamp 39349f81-a647-4568-a49b-eb371290ec0d)
     (effects (font (size 1 1) (thickness 0.15)) (justify mirror))
   )
   (gr_text "+" (at 136.5 75.3) (layer "B.SilkS") (tstamp 9c19f757-9b0d-4577-87fe-fa35fda132e1)
