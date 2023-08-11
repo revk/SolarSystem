@@ -26,9 +26,6 @@
 	path = ESP32/ftdizap
 	url = https://github.com/revk/ftdizap
 	branch = main
-[submodule "PCBCase"]
-	path = PCBCase
-	url = https://github.com/revk/PCBCase
 [submodule "AJL"]
 	path = AJL
 	url = https://github.com/revk/AJL
@@ -47,3 +44,6 @@
 	path = email
 	url = https://github.com/revk/email
 	branch = main
+[submodule "PCB/PCBCase"]
+	path = PCB/PCBCase
+	url = https://github.com/revk/PCBCase
