@@ -16,10 +16,10 @@ update:
 	git checkout version.txt
 	make -C .. update
 
-set:	wroom solo pico
+set:	wroom solo pico s3
 
-pico:
-	components/ESP32-RevK/setbuildsuffix -S1-PICO
+s3:
+	components/ESP32-RevK/setbuildsuffix -S3-MINI-N4-R2
 	@make
 
 wroom:
