@@ -112,29 +112,29 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <sql table=pcb key=pcb>
 <table>
 <tr><td>Name</td><td><input name=pcbname size=40 autofocus></td></tr>
-<if ledr=='-' ledg=='-' ledb=='-' OR NOT leda=='-'><tr><td><select name=leda><include var=GPIONUMPICK></select></td><td>GPIO Controller LED (amber)</td></tr></if>
-<if leda=='-'><tr><td><select name=ledr><include var=GPIONUMPICK></select></td><td>GPIO Controller LED (red)</td></tr></if>
-<if leda=='-'><tr><td><select name=ledg><include var=GPIONUMPICK></select></td><td>GPIO Controller LED (green)</td></tr></if>
-<if leda=='-'><tr><td><select name=ledb><include var=GPIONUMPICK></select></td><td>GPIO Controller LED (blue)</td></tr></if>
-<tr><td><select name=keypadtx onchange='F.submit();'><include var=GPIONUMPICK></select></td><td>GPIO Keypad Tx</td></tr>
+<if ledr=='-' ledg=='-' ledb=='-' OR NOT leda=='-'><tr><td><select name=leda><include var=GPIOREALPICK></select></td><td>GPIO Controller LED (amber)</td></tr></if>
+<if leda=='-'><tr><td><select name=ledr><include var=GPIOREALPICK></select></td><td>GPIO Controller LED (red)</td></tr></if>
+<if leda=='-'><tr><td><select name=ledg><include var=GPIOREALPICK></select></td><td>GPIO Controller LED (green)</td></tr></if>
+<if leda=='-'><tr><td><select name=ledb><include var=GPIOREALPICK></select></td><td>GPIO Controller LED (blue)</td></tr></if>
+<tr><td><select name=keypadtx onchange='F.submit();'><include var=GPIOREALPICK></select></td><td>GPIO Keypad Tx</td></tr>
 <if not keypadtx=='-'>
-<tr><td><select name=keypadrx><include var=GPIONUMPICK></select></td><td>GPIO Keypad Rx</td></tr>
-<tr><td><select name=keypadde><include var=GPIONUMPICK></select></td><td>GPIO Keypad DE</td></tr>
-<tr><td><select name=keypadre><include var=GPIONUMPICK></select></td><td>GPIO Keypad RE</td></tr>
+<tr><td><select name=keypadrx><include var=GPIOREALPICK></select></td><td>GPIO Keypad Rx</td></tr>
+<tr><td><select name=keypadde><include var=GPIOREALPICK></select></td><td>GPIO Keypad DE</td></tr>
+<tr><td><select name=keypadre><include var=GPIOREALPICK></select></td><td>GPIO Keypad RE</td></tr>
 </if>
-<tr><td><select name=nfctx onchange='F.submit();'><include var=GPIONUMPICK></select></td><td>GPIO NFC Tx</td></tr>
+<tr><td><select name=nfctx onchange='F.submit();'><include var=GPIOREALPICK></select></td><td>GPIO NFC Tx</td></tr>
 <if not nfctx=='-'>
-<tr><td><select name=nfcrx><include var=GPIONUMPICK></select></td><td>GPIO NFC Rx</td></tr>
-<tr><td><select name=nfcpower><include var=GPIONUMPICK></select></td><td>GPIO NFC Power</td></tr>
+<tr><td><select name=nfcrx><include var=GPIOREALPICK></select></td><td>GPIO NFC Rx</td></tr>
+<tr><td><select name=nfcpower><include var=GPIOREALPICK></select></td><td>GPIO NFC Power</td></tr>
 <tr><td><select name=nfcred><include var=GPIONFCPICK></select></td><td>PN532 NFC red LED</td></tr>
 <tr><td><select name=nfcamber><include var=GPIONFCPICK></select></td><td>PN532 NFC amber LED</td></tr>
 <tr><td><select name=nfcgreen><include var=GPIONFCPICK></select></td><td>PN532 NFC green LED</td></tr>
 <tr><td><select name=nfccard><include var=GPIONFCPICK></select></td><td>PN532 NFC LED to blink for card</td></tr>
 </if>
-<tr><td><select name=gpstx onchange='F.submit();'><include var=GPIONUMPICK></select></td><td>GPIO GPS Tx</td></tr>
+<tr><td><select name=gpstx onchange='F.submit();'><include var=GPIOREALPICK></select></td><td>GPIO GPS Tx</td></tr>
 <if not gpstx=='-'>
-<tr><td><select name=gpsrx><include var=GPIONUMPICK></select></td><td>GPIO GPS Rx</td></tr>
-<tr><td><select name=gpstick><include var=GPIONUMPICK></select></td><td>GPIO GPS Tick</td></tr>
+<tr><td><select name=gpsrx><include var=GPIOREALPICK></select></td><td>GPIO GPS Rx</td></tr>
+<tr><td><select name=gpstick><include var=GPIOREALPICK></select></td><td>GPIO GPS Tick</td></tr>
 </if>
 <sql table=gpio where="pcb=$pcb" order=io,inittype,initname><set initinvert$gpio="$initinvert"><set initfunc$gpio="$initfunc">
 <tr><td><input name=gpio type=hidden><select name=pin><include var=GPIONUMPICK></select></td><td><input name="initinvert$gpio" type=checkbox value=true title="Invert">

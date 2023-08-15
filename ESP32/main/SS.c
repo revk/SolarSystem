@@ -111,8 +111,8 @@ port_check (uint8_t p, const char *module, uint8_t in)
       }
    }
    static uint64_t port_inuse = 0;
-   if ((port_inuse & (1ULL << p)) && p < LOGIC_PORT2)
-   {
+   if (p < LOGIC_PORT && (port_inuse & (1ULL << p)))
+   {                            // Only check clash on real GPIOs
       ESP_LOGE (TAG, "Port %d clash (%s)", p, module);
       jo_t j = jo_object_alloc ();
       jo_string (j, "description", "Port clash");

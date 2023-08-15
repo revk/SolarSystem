@@ -100,7 +100,23 @@ sstypes (const char *fn)
    pick ("-", "-- Unused --");
 #define o(g,t) pick(#g,#t);
 #include "types.m"
+   start ("GPIOREALLIST");
+#define g(g) list(#g);
+#include "types.m"
+   start ("GPIOREALOUT");
+   out ("-", "Unused");
+#define g(g) out(#g,#g);
+#include "types.m"
+#define g(g) out("-"#g,#g" (active low)");
+#include "types.m"
+   start ("GPIOREALPICK");
+   pick ("-", "-- GPIO --");
+#define g(g) pick(#g,#g);
+#include "types.m"
+#define g(g) pick("-"#g,#g" (active low)");
+#include "types.m"
    start ("GPIONUMLIST");
+#define gg(g)
 #define g(g) list(#g);
 #include "types.m"
 #define n(g,t) list(#t);
@@ -109,42 +125,46 @@ sstypes (const char *fn)
 #include "ESP32/main/logicalgpio.m"
    start ("GPIONUMOUT");
    out ("-", "Unused");
+#define gg(g)
 #define g(g) out(#g,#g);
 #include "types.m"
-#define n(g,t) out(#t,"NFC"#g);
+#define n(g,t) out(#t,"NFC P"#g);
 #include "types.m"
 #define l(g,t) out(#t,#g);
 #include "ESP32/main/logicalgpio.m"
+#define gg(g)
 #define g(g) out("-"#g,#g" (active low)");
 #include "types.m"
-#define n(g,t) out("-"#t,"NFC"#g" (active low)");
+#define n(g,t) out("-"#t,"NFC P"#g" (active low)");
 #include "types.m"
    start ("GPIONUMPICK");
    pick ("-", "-- GPIO --");
+#define gg(g)
 #define g(g) pick(#g,#g);
 #include "types.m"
-#define n(g,t) pick(#t,"NFC"#g);
+#define n(g,t) pick(#t,"NFC P"#g);
 #include "types.m"
 #define l(g,t) pick(#t,#g);
 #include "ESP32/main/logicalgpio.m"
+#define gg(g)
 #define g(g) pick("-"#g,#g" (active low)");
 #include "types.m"
-#define n(g,t) pick("-"#t,"NFC"#g" (active low)");
+#define n(g,t) pick("-"#t,"NFC P"#g" (active low)");
 #include "types.m"
    start ("GPIONFCLIST");
 #define n(g,t) list(#g);
 #include "types.m"
    start ("GPIONFCOUT");
    out ("-", "Unused");
-#define n(g,t) out(#g,#g);
+#define n(g,t) out(#g,"P"#g);
 #include "types.m"
-#define n(g,t) out("-"#g,#g" (active low)");
+#define n(g,t) out("-"#g,"P"#g" (active low)");
 #include "types.m"
    start ("GPIONFCPICK");
    pick ("-", "-- NFC GPIO --");
-#define n(g,t) pick(#g,#g);
+#define n(g,t) pick(#g,"P"#g);
 #include "types.m"
-#define n(g,t) pick("-"#g,#g" (active low)");
+#define n(g,t) pick("-"#g,"P"#g" (active low)");
 #include "types.m"
    start ("GPIOIOLIST");
 #define io(g,t) list(#g);

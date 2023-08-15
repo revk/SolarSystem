@@ -20,6 +20,10 @@
 #define g(g)
 #endif
 
+#ifndef gg
+#define gg(p) g(p)
+#endif
+
 #ifndef n
 #define n(g,i)
 #endif
@@ -47,11 +51,17 @@ io(I,Input);
 io(O,Output);
 
 g(0);
+g(1);
 g(2);
+g(3);
 g(4);
 g(5);
+g(6);
 g(7);
 g(8);
+g(9);
+g(10);
+g(11);
 g(12);
 g(13);
 g(14);
@@ -67,12 +77,27 @@ g(23);
 g(25);
 g(26);
 g(27);
+g(28);
+g(29);
+g(30);
+g(31);
 g(32);
 g(33);
 g(34);
 g(35);
 g(36);
+g(37);
+g(38);
 g(39);
+g(40);
+g(41);
+g(42);
+g(43);
+g(44);
+g(45);
+g(46);
+g(47);
+gg(48);
 
 n(30,48);
 n(31,49);
@@ -88,5 +113,6 @@ n(72,55);
 #undef o
 #undef fo
 #undef g
+#undef gg
 #undef n
 #undef io
