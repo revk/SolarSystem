@@ -30,7 +30,7 @@ extern uint32_t logical_gpio;   // Logical GPIO (from GPIO 48, covers NFC, keypa
 #define l(t,g)	static const uint32_t logical_##t=(1<<(((g<0?16-g:g))-LOGIC_PORT));
 #include "logicalgpio.m"
 
-const char *app_callback(int client, const char *prefix, const char *target, const char *suffix, jo_t j);
-const char *port_check(int p, const char *module, int i);       // Check port is OK, NULL if OK, else error
-uint8_t bcdutctime(time_t now, uint8_t datetime[7]);
-uint8_t bcdlocaltime(time_t now, uint8_t datetime[7]);
+const char *app_callback (int client, const char *prefix, const char *target, const char *suffix, jo_t j);
+const char *port_check (uint8_t p, const char *module, uint8_t i);      // Check port is OK, NULL if OK, else error
+uint8_t bcdutctime (time_t now, uint8_t datetime[7]);
+uint8_t bcdlocaltime (time_t now, uint8_t datetime[7]);
