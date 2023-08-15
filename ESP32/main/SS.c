@@ -89,7 +89,7 @@ port_check (int p, const char *module, int in)
 {                               // Check port is OK
    if (!in || p < LOGIC_PORT)
    {
-      if (p < 0 || p >= MAX_PORT || !GPIO_IS_VALID_GPIO (p))
+      if (p < 0 || p >= MAX_PORT || !(gpio_ok (p) & 2))
       {
          ESP_LOGE (TAG, "Port %d not valid (%s)", p, module);
          jo_t j = jo_object_alloc ();
@@ -101,7 +101,7 @@ port_check (int p, const char *module, int in)
             return "Bad GPIO port number";
          return "Invalid GPIO port";
       }
-      if (!in && !GPIO_IS_VALID_OUTPUT_GPIO (p))
+      if (!in && !(gpio_ok (p) & 1))
       {
          ESP_LOGE (TAG, "Port %d not output (%s)", p, module);
          jo_t j = jo_object_alloc ();
@@ -168,7 +168,10 @@ app_main ()
 #undef bd
 #undef b
 #undef bl
-      port_check (6, "Flash", 0);       // Flash pins
+#ifdef  CONFIG_IDF_TARGET_ESP32
+      port_check (1, "Serial", 0);
+   port_check (3, "Serial", 0);
+   port_check (6, "Flash", 0);
 #if defined(CONFIG_ESPTOOLPY_FLASHSIZE_8MB) && defined(CONFIG_ESP32_SPIRAM_SUPPORT)
    // PICO allows 7, 8 and 20
 #else
@@ -179,6 +182,26 @@ app_main ()
    port_check (9, "Flash", 0);
    port_check (10, "Flash", 0);
    port_check (11, "Flash", 0);
+#endif
+#ifdef  CONFIG_IDF_TARGET_ESP32S3
+   //port_check (19, "USB", 0); // Already handled by gpio_ok checks
+   //port_check (20, "USB", 0);
+   port_check (22, "Flash", 0);
+   port_check (23, "Flash", 0);
+   port_check (24, "Flash", 0);
+   port_check (25, "Flash", 0);
+#ifdef	CONFIG_SPIRAM
+   port_check (26, "PSRAM", 0);
+#endif
+   port_check (27, "Flash", 0);
+   port_check (28, "Flash", 0);
+   port_check (29, "Flash", 0);
+   port_check (30, "Flash", 0);
+   port_check (31, "Flash", 0);
+   port_check (32, "Flash", 0);
+   port_check (39, "Serial", 0);
+   port_check (40, "Serial", 0);
+#endif
 #define m(x) extern void x##_boot(void); ESP_LOGI(TAG,"Boot "#x); x##_boot();
    modules;
 #undef m
