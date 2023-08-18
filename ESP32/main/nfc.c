@@ -251,7 +251,7 @@ task (void *pvParameters)
    uint8_t ledpos = 0;
    uint8_t retry = 0;
    uint8_t holdpolls = 0;
-   uint8_t nfcinv=((PORT_INV & nfctx) ? UART_SIGNAL_TXD_INV : 0) + ((PORT_INV & nfcrx) ? UART_SIGNAL_RXD_INV : 0);
+   uart_set_line_inverse (nfcuart, ((PORT_INV & nfctx) ? UART_SIGNAL_TXD_INV : 0) + ((PORT_INV & nfcrx) ? UART_SIGNAL_RXD_INV : 0));    // Allow for inverted pins
    gpio_set_pull_mode (port_mask (nfcrx), (PORT_INV & nfcrx) ? GPIO_PULLUP_ONLY : GPIO_FLOATING);       // If inverted rx, set pull up, as will be a FET
    while (1)
    {
@@ -292,9 +292,9 @@ task (void *pvParameters)
             if (on)
             {                   // Try talking to it
                ESP_LOGE (TAG, "NFC re-init");
-               pn532 = pn532_init (nfcuart, port_mask (nfctx), port_mask (nfcrx), nfcinv, nfcmask);
+               pn532 = pn532_init (nfcuart, port_mask (nfctx), port_mask (nfcrx), nfcmask);
                if (!pn532)
-                  pn532 = pn532_init (nfcuart, port_mask (nfctx), port_mask (nfcrx), nfcinv,nfcmask);
+                  pn532 = pn532_init (nfcuart, port_mask (nfctx), port_mask (nfcrx), nfcmask);
                if (pn532)
                {                // All good!
                   df_init (&df, pn532, pn532_dx);
@@ -726,10 +726,8 @@ nfc_boot (void)
       else
       {
          nfc_mutex = xSemaphoreCreateBinary ();
-   uint8_t nfcinv=((PORT_INV & nfctx) ? UART_SIGNAL_TXD_INV : 0) + ((PORT_INV & nfcrx) ? UART_SIGNAL_RXD_INV : 0);
-   ESP_LOGE(TAG,"NFC Inv %X",nfcinv);
          xSemaphoreGive (nfc_mutex);
-         pn532 = pn532_init (nfcuart, port_mask (nfctx), port_mask (nfcrx), nfcinv, nfcmask);
+         pn532 = pn532_init (nfcuart, port_mask (nfctx), port_mask (nfcrx), nfcmask);
          if (!pn532)
             logical_gpio |= logical_NFCFault;
          df_init (&df, pn532, pn532_dx);        // Start anyway, er re-try init
