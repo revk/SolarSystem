@@ -171,8 +171,8 @@ app_main ()
    port_check (3, "Serial", 0);
 #endif
 #ifdef  CONFIG_IDF_TARGET_ESP32S3
-   port_check (39, "Serial", 0);
-   port_check (40, "Serial", 0);
+   port_check (43, "Serial", 0);
+   port_check (44, "Serial", 0);
 #endif
 #define m(x) extern void x##_boot(void); ESP_LOGI(TAG,"Boot "#x); x##_boot();
    modules;
