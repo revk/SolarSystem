@@ -35,7 +35,7 @@
     (48 "B.Fab" user)
     (49 "F.Fab" user)
     (50 "User.1" user "V.Cuts")
-    (51 "User.2" user "Boarder")
+    (51 "User.2" user "Border")
   )
 
   (setup
