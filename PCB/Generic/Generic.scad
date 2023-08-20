@@ -1,6 +1,6 @@
 // Generated case design for Generic/Generic.kicad_pcb
 // By https://github.com/revk/PCBCase
-// Generated 2023-08-19 18:07:55
+// Generated 2023-08-20 06:48:27
 // title:	PCB-GENERIC-GPS
 // rev:	5
 // company:	Adrian Kennard Andrews & Arnold Ltd

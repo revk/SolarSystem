@@ -1,6 +1,6 @@
 // Generated case design for Output/Output.kicad_pcb
 // By https://github.com/revk/PCBCase
-// Generated 2023-08-19 18:29:27
+// Generated 2023-08-20 07:06:11
 // title:	PCB-OUTPUT
 // rev:	1
 // company:	Adrian Kennard, Andrews & Arnold Ltd
@@ -53,14 +53,14 @@ translate([40.450000,3.420000,0.800000])rotate([0,0,90.000000])m1(pushed,hulled,
 // Missing U4.1 SO-8_3.9x4.9mm_P1.27mm
 translate([40.450000,17.140000,0.800000])rotate([0,0,90.000000])m1(pushed,hulled,2); // RevK:PTSM-HH1-2-RA PTSM-HH1-2-RA (back)
 translate([40.450000,10.280000,0.800000])rotate([0,0,90.000000])m1(pushed,hulled,2); // RevK:PTSM-HH1-2-RA PTSM-HH1-2-RA (back)
-translate([36.000000,2.700000,0.800000])rotate([0,0,180.000000])m12(pushed,hulled); // RevK:R_0402 R_0402_1005Metric (back)
+translate([37.100000,3.200000,0.800000])rotate([0,0,-90.000000])m12(pushed,hulled); // RevK:R_0402 R_0402_1005Metric (back)
 translate([33.700000,28.200000,0.800000])translate([0.000000,-0.400000,0.000000])m30(pushed,hulled); // RevK:LED-RGB-1.6x1.6 LED_0603_1608Metric (back)
 translate([33.700000,28.200000,0.800000])translate([0.000000,0.400000,0.000000])m30(pushed,hulled); // RevK:LED-RGB-1.6x1.6 LED_0603_1608Metric (back)
 translate([7.250000,3.420000,0.800000])rotate([0,0,-90.000000])m1(pushed,hulled,2); // RevK:PTSM-HH1-2-RA PTSM-HH1-2-RA (back)
 translate([30.600000,5.000000,0.800000])rotate([0,0,-90.000000])rotate([-0.000000,-0.000000,-90.000000])m33(pushed,hulled); // RevK:L_4x4_ TYA4020 (back)
 translate([20.100000,8.400000,0.800000])rotate([0,0,90.000000])m12(pushed,hulled); // RevK:R_0402 R_0402_1005Metric (back)
 // Missing U5.1 SO-8_3.9x4.9mm_P1.27mm
-translate([36.000000,7.300000,0.800000])m12(pushed,hulled); // RevK:R_0402 R_0402_1005Metric (back)
+translate([37.100000,6.800000,0.800000])rotate([0,0,-90.000000])m12(pushed,hulled); // RevK:R_0402 R_0402_1005Metric (back)
 translate([31.400000,28.600000,0.800000])rotate([0,0,180.000000])m12(pushed,hulled); // RevK:R_0402 R_0402_1005Metric (back)
 translate([31.400000,26.800000,0.800000])rotate([0,0,180.000000])m12(pushed,hulled); // RevK:R_0402 R_0402_1005Metric (back)
 translate([20.400000,14.700000,0.800000])rotate([0,0,90.000000])m26(pushed,hulled); // RevK:C_0402 C_0402_1005Metric (back)

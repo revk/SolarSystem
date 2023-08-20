@@ -1,6 +1,6 @@
 // Generated case design for Access/Access.kicad_pcb
 // By https://github.com/revk/PCBCase
-// Generated 2023-08-19 18:25:26
+// Generated 2023-08-20 06:41:21
 // title:	Access Control
 // rev:	3
 // company:	Adrian Kennard Andrews & Arnold Ltd
@@ -18,7 +18,7 @@ casewall=3.000000;
 fit=0.000000;
 edge=1.000000;
 pcbthickness=1.200000;
-nohull=false;
+nohull=true;
 hullcap=1.000000;
 hulledge=1.000000;
 useredge=false;
