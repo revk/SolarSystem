@@ -6366,6 +6366,41 @@
     )
   )
 
+  (symbol (lib_id "power:GND") (at 69.215 97.79 90) (unit 1)
+    (in_bom yes) (on_board yes) (dnp no) (fields_autoplaced)
+    (uuid be030f26-8835-48c5-8789-dbbd8642cc61)
+    (property "Reference" "#PWR010" (at 75.565 97.79 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (property "Value" "GND" (at 72.39 97.79 90)
+      (effects (font (size 1.27 1.27)) (justify right))
+    )
+    (property "Footprint" "" (at 69.215 97.79 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (property "Datasheet" "" (at 69.215 97.79 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (pin "1" (uuid c0ed7a2b-b8aa-402f-bebd-25a257e2572b))
+    (instances
+      (project "Access"
+        (path "/2a267270-6585-45e3-a633-b53049f10066"
+          (reference "#PWR010") (unit 1)
+        )
+      )
+      (project "USBA"
+        (path "/2d210a96-f81f-42a9-8bf4-1b43c11086f3"
+          (reference "#PWR0105") (unit 1)
+        )
+      )
+      (project "Faikin"
+        (path "/46c350bb-7de4-4e81-aafd-4af55e37aab0"
+          (reference "#PWR015") (unit 1)
+        )
+      )
+    )
+  )
+
   (symbol (lib_id "Device:R") (at 182.88 34.29 270) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
     (uuid be14f4ac-9673-4a12-9e0c-457f83ed02b4)
