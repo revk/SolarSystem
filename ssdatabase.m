@@ -36,6 +36,10 @@
 #define num(n)                  // Numeric field (integer)
 #endif
 
+#ifndef numd
+#define numd(n,d)                  // Numeric field (integer) with default
+#endif
+
 #ifndef datetime
 #define datetime(n)             // Time field
 #endif
@@ -186,6 +190,7 @@ num(armcancel);                 // Pre arm time
 num(armdelay);                  // Pre arm delay
 num(alarmdelay);                // Pre alarm time
 num(alarmhold);                 // Hold alarm state time
+numd(mqttdied,600);			// MQTT restart time
 bool (ioteventarm);             // Copy stuff to IoT
 bool (iotstatesystem);          // Copy stuff to IoT
 #define s(t,state,c) areas(state)
@@ -441,6 +446,7 @@ text(data, 0);
 #undef index
 #undef text
 #undef num
+#undef numd
 #undef datetime
 #undef date
 #undef time0000

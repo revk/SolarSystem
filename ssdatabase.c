@@ -472,6 +472,7 @@ ssdatabase (SQL * sqlp)
 #define link2(a,b)	linked(#a,#b);  // Foreign key under different name
 #define	text(n,l)	text(#n,l);
 #define	num(n)		field(#n,"int(10)","NULL");
+#define	numd(n,d)	field(#n,"int(10)",#d);
 #define	ip(n)		field(#n,"varchar(39)","NULL");
 #define	datetime(n)	field(#n,"datetime","NULL");
 #define	date(n)		field(#n,"date","NULL");

@@ -36,7 +36,7 @@ if($?sitename) then
 	if($?root) then
 		if("$root" == "") unsetenv root
 	endif
-	sqlwrite -qon "$DB" site sitename wifissid wifipass wifichan iottopic iothost nomesh smsuser smspass smsfrom sms2user sms2pass sms2from toothost tootbearer armcancel armdelay alarmdelay alarmhold debug rollover iotstatesystem ioteventarm smsarm smsarmfail smsdisarm smscancel smsalarm smspanic smsfire engineer smsnumber hookoffline hookfob hookfobdeny hookalarm hookfire hookpanic hookwarning hooktamper hookfault hooktrigger hookinhibit hookarm hookstrong hookdisarm hookarmfail hookopen hookforced hooknotclosed hooknotopen hookpropped hookwrongpin meshlr wifibssid root hookoffline emailfrom hookarm hookstrong hookdisarm hookopen hookarmfail hookforced hookpropped hookwrongpin
+	sqlwrite -qon "$DB" site sitename wifissid wifipass wifichan iottopic iothost nomesh smsuser smspass smsfrom sms2user sms2pass sms2from toothost tootbearer armcancel armdelay alarmdelay alarmhold mqttdied debug rollover iotstatesystem ioteventarm smsarm smsarmfail smsdisarm smscancel smsalarm smspanic smsfire engineer smsnumber hookoffline hookfob hookfobdeny hookalarm hookfire hookpanic hookwarning hooktamper hookfault hooktrigger hookinhibit hookarm hookstrong hookdisarm hookarmfail hookopen hookforced hooknotclosed hooknotopen hookpropped hookwrongpin meshlr wifibssid root hookoffline emailfrom hookarm hookstrong hookdisarm hookopen hookarmfail hookforced hookpropped hookwrongpin
 	sql "$DB" 'UPDATE device SET poke=NOW() WHERE site=$site'
 	message --poke
 	redirect /
@@ -73,6 +73,7 @@ Root:<select name=root><option value=''>None</option><sql table=device where="si
 <tr><td>Arm-Delay</td><td><input name=armdelay size=3> seconds (timeout before arm happens)</td></tr>
 <tr><td>Alarm-Delay</td><td><input name=alarmdelay size=3> seconds (timeout before alarm triggers)</td></tr>
 <tr><td>Alarm-Hold</td><td><input name=alarmhold size=3> seconds (timeout before alarm cancels after last trigger)</td></tr>
+<tr><td>MQTT-Reset</td><td><input name=mqttdied size=3> seconds (uptime before restart due to no MQTT)</td></tr>
 <tr><td colspan=2><hr></td></tr>
 <tr><td colspan=2>Event hook settings</td></tr>
 <tr><td>Bearer</td><td><input type=password name=hookbearer size=40 placeholder="To send on web hooks"> (for web hooks)</td></tr>
