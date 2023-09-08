@@ -654,13 +654,13 @@ addsitedata (SQL * sqlp, j_t j, SQL_RES * site, const char *deviceid, const char
    }
    // Standard wifi settings
    v = sql_colz (site, "iothost");
+   j_store_int (j, "mqttdied", atoi (sql_colz (site, "mqttdied")));
    j_store_string (j, "mqtthost2", *v ? v : NULL);
    addset (j, "engineer", sql_colz (site, "engineer"), "");
    j_store_int (j, "armcancel", atoi (sql_colz (site, "armcancel")) ? : 60);    // Force a default
    j_store_int (j, "armdelay", atoi (sql_colz (site, "armdelay")));
    j_store_int (j, "alarmdelay", atoi (sql_colz (site, "alarmdelay")));
    j_store_int (j, "alarmhold", atoi (sql_colz (site, "alarmhold")));
-   j_store_int (j, "mqttdied", atoi (sql_colz (site, "mqttdied")));
    j_store_boolean (j, "debug", *sql_colz (site, "debug") == 't');
    j_t wifi = j_store_object (j, "wifi");
    if ((v = sql_colz (site, "wifissid")) && *v)
