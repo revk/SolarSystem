@@ -197,7 +197,7 @@ fobevent (const uint8_t * ats, const uint8_t ver[28])
       if (fob.disarmed)
          jo_bool (j, "disarmed", fob.disarmed);
       if (fob.armed)
-         jo_bool (j, "armed", fob.armed);
+         jo_bool (j, "isarmed", fob.armed);
       if (fob.stronged)
          jo_bool (j, "stronged", fob.stronged);
       if (fob.unlockok)
