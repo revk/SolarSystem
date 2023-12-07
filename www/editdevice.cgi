@@ -205,11 +205,11 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <if door=true><tr><td><input type=checkbox id=doorexitdisarm name=doorexitdisarm value=true></td><td colspan=2><label for=doorexitdisarm>Door exit button disarm</label></td></tr></if>
 <if door=true><tr><td><input type=checkbox id=doorexitarm name=doorexitarm value=true></td><td colspan=2><label for=doorexitarm>Door exit button arm on hold</label></td></tr></if>
 <if door=true><tr><td><input type=checkbox id=doorcatch name=doorcatch value=true></td><td colspan=2><label for=doorcatch>Door catch mode (re-lock on opening)</label></td></tr></if>
+<if door=true><tr><td>IoT on lock</td><td colspan=2><input name=dooriotlock></td></tr></if>
 <if door=true><tr><td>IoT on deadlock</td><td colspan=2><input name=dooriotdead></td></tr></if>
 <if door=true><tr><td>IoT on un-deadlock</td><td colspan=2><input name=dooriotundead></td></tr></if>
-<if door=true><tr><td>IoT on open</td><td colspan=2><input name=dooriotopen></td></tr></if>
-<if door=true><tr><td>IoT on lock</td><td colspan=2><input name=dooriotlock></td></tr></if>
 <if door=true><tr><td>IoT on unlock</td><td colspan=2><input name=dooriotunlock></td></tr></if>
+<if door=true><tr><td>IoT on open</td><td colspan=2><input name=dooriotopen></td></tr></if>
 <if nfc=true><tr><td><input type=checkbox id=nfcadmin name=nfcadmin value=true></td><td colspan=2><label for=nfcadmin>Admin NFC reader</label></td></tr></if>
 <if USER_ADMIN=true nfc=true><tr><td><input type=checkbox id=nfctrusted name=nfctrusted value=true></td><td colspan=2><label for=nfctrusted>Trusted NFC reader</label></td></tr></if>
 </sql>
