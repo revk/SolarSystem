@@ -41,6 +41,7 @@ char afileid[21] = { 0 };       // Access file ID
   b(doorcatch); \
   ta(fallback,10); \
   ta(blacklist,10); \
+  s(dooriotopen)	\
   s(dooriotdead)	\
   s(dooriotundead)	\
   s(dooriotlock)	\
@@ -843,6 +844,8 @@ task (void *pvParameters)
                 && (lastdoorstate == DOOR_LOCKED || lastdoorstate == DOOR_DEADLOCKED || lastdoorstate == DOOR_LOCKING)
                 && doorstate != DOOR_LOCKED && doorstate != DOOR_DEADLOCKED && doorstate != DOOR_LOCKING)
                revk_mqtt_send_str_clients (dooriotunlock, 0, 2);        // Change from (locked or deadlock or locking) to not (locked or deadlocked or locking)
+            if (*dooriotopen && lastdoorstate != DOOR_OPEN && doorstate == DOOR_OPEN)
+               revk_mqtt_send_str_clients (dooriotopen, 0, 2);  // Open
             if (*dooriotlock && (doorstate == DOOR_LOCKED || doorstate == DOOR_DEADLOCKED || doorstate == DOOR_LOCKING)
                 && lastdoorstate != DOOR_LOCKED && lastdoorstate != DOOR_DEADLOCKED && lastdoorstate != DOOR_LOCKING)
                revk_mqtt_send_str_clients (dooriotlock, 0, 2);  // Change from not (locked or deadlocked or locking) to (locked or deadlocked or locking)

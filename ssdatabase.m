@@ -348,6 +348,7 @@ num(doorprop);                  // Door timer
 num(doorexit);                  // Door timer
 num(doorpoll);                  // Door timer
 num(doordebounce);              // Door timer
+text(dooriotopen, 64);          // IoT on open
 text(dooriotdead, 64);          // IoT on deadlock
 text(dooriotundead, 64);        // IoT on undeadlock
 text(dooriotlock, 64);          // IoT on lock
