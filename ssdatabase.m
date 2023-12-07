@@ -350,6 +350,7 @@ num(doorpoll);                  // Door timer
 num(doordebounce);              // Door timer
 text(dooriotdead, 64);          // IoT on deadlock
 text(dooriotundead, 64);        // IoT on undeadlock
+text(dooriotlock, 64);          // IoT on lock
 text(dooriotunlock, 64);        // IoT on unlock
 time0000(timer1);		// Timer1 event (active as a logical input for 1 minute)
 

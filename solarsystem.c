@@ -461,6 +461,8 @@ settings (SQL * sqlp, SQL_RES * res, slot_t id)
          if ((v = atoi (sql_colz (res, "doordebounce"))))
             j_store_int (door, "debounce", v < 0 ? 0 : v);
          const char *t;
+         if ((t = sql_colz (res, "dooriotlock")) && *t)
+            j_store_string (door, "iotlock", t);
          if ((t = sql_colz (res, "dooriotunlock")) && *t)
             j_store_string (door, "iotunlock", t);
          if ((t = sql_colz (res, "dooriotdead")) && *t)

@@ -103,7 +103,7 @@ if($?devicename) then # save
 	if(! $?iotkeypad) setenv iotkeypad false
 	if(! $?iotgps) setenv iotgps false
 	if(! $?ioteventfob) setenv ioteventfob false
-	setenv allow "devicename timer1 areaenter areastrong areadeadlock areaarm areadisarm areabell arealed areakeypad areakeyarm areakeystrong areakeydisarm nfc gps rgb nfcadmin door doorexitarm doorexitdisarm aid site iotstatedoor iotstateinput iotstateoutput ioteventfob iotkeypad iotgps doorunlock doorlock dooropen doorclose doorprop doorexit doordebounce keypadidle keypadpin keypad pcb dooriotunlock dooriotdead dooriotundead excludeall outofservice doordebug doorcatch"
+	setenv allow "devicename timer1 areaenter areastrong areadeadlock areaarm areadisarm areabell arealed areakeypad areakeyarm areakeystrong areakeydisarm nfc gps rgb nfcadmin door doorexitarm doorexitdisarm aid site iotstatedoor iotstateinput iotstateoutput ioteventfob iotkeypad iotgps doorunlock doorlock dooropen doorclose doorprop doorexit doordebounce keypadidle keypadpin keypad pcb dooriotlock dooriotunlock dooriotdead dooriotundead excludeall outofservice doordebug doorcatch"
 	if("$USER_ADMIN" == "true") setenv allow "$allow nfctrusted"
 	sqlwrite -qon "$DB" device $allow
 	sql "$DB" 'UPDATE device SET poke=NOW() WHERE site=$site'
@@ -207,6 +207,7 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <if door=true><tr><td><input type=checkbox id=doorcatch name=doorcatch value=true></td><td colspan=2><label for=doorcatch>Door catch mode (re-lock on opening)</label></td></tr></if>
 <if door=true><tr><td>IoT on deadlock</td><td colspan=2><input name=dooriotdead></td></tr></if>
 <if door=true><tr><td>IoT on un-deadlock</td><td colspan=2><input name=dooriotundead></td></tr></if>
+<if door=true><tr><td>IoT on lock</td><td colspan=2><input name=dooriotlock></td></tr></if>
 <if door=true><tr><td>IoT on unlock</td><td colspan=2><input name=dooriotunlock></td></tr></if>
 <if nfc=true><tr><td><input type=checkbox id=nfcadmin name=nfcadmin value=true></td><td colspan=2><label for=nfcadmin>Admin NFC reader</label></td></tr></if>
 <if USER_ADMIN=true nfc=true><tr><td><input type=checkbox id=nfctrusted name=nfctrusted value=true></td><td colspan=2><label for=nfctrusted>Trusted NFC reader</label></td></tr></if>
