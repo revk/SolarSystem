@@ -839,12 +839,13 @@ task (void *pvParameters)
                logical_gpio |= logical_DoorProp;        // Always a change of state - unauthorised propped
             else if (lastdoorstate == DOOR_NOTCLOSED)
                logical_gpio &= ~logical_DoorProp;       // Always a change of state - unauthorised propped
-            if (*dooriotunlock && (lastdoorstate == DOOR_LOCKED || lastdoorstate == DOOR_DEADLOCKED)
-                && doorstate != DOOR_LOCKED && doorstate != DOOR_DEADLOCKED)
-               revk_mqtt_send_str_clients (dooriotunlock, 0, 2);        // Change from (locked or deadlock) to not (locked or deadlocked)
-            if (*dooriotlock && (doorstate == DOOR_LOCKED || doorstate == DOOR_DEADLOCKED)
-                && lastdoorstate != DOOR_LOCKED && lastdoorstate != DOOR_DEADLOCKED)
-               revk_mqtt_send_str_clients (dooriotlock, 0, 2);  // Change from not (locked or deadlocked) to (locked or deadlocked)
+            if (*dooriotunlock
+                && (lastdoorstate == DOOR_LOCKED || lastdoorstate == DOOR_DEADLOCKED || lastdoorstate == DOOR_LOCKING)
+                && doorstate != DOOR_LOCKED && doorstate != DOOR_DEADLOCKED && doorstate != DOOR_LOCKING)
+               revk_mqtt_send_str_clients (dooriotunlock, 0, 2);        // Change from (locked or deadlock or locking) to not (locked or deadlocked or locking)
+            if (*dooriotlock && (doorstate == DOOR_LOCKED || doorstate == DOOR_DEADLOCKED || doorstate == DOOR_LOCKING)
+                && lastdoorstate != DOOR_LOCKED && lastdoorstate != DOOR_DEADLOCKED && lastdoorstate != DOOR_LOCKING)
+               revk_mqtt_send_str_clients (dooriotlock, 0, 2);  // Change from not (locked or deadlocked or locking) to (locked or deadlocked or locking)
             if (doorauto >= 2)
                output_func_set (OUTPUT_FUNC_B, doorstate == DOOR_UNLOCKED ? 1 : 0);
          }
