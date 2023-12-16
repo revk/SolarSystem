@@ -2881,7 +2881,7 @@
         (effects (font (size 0.5 0.5) (thickness 0.08)))
       (tstamp 7c154111-b77c-45d0-8a63-a977a9986020)
     )
-    (fp_text value "15uH" (at 0 1.5 90) (layer "F.Fab")
+    (fp_text value "10uH" (at 0 1.5 90) (layer "F.Fab")
         (effects (font (size 0.5 0.5) (thickness 0.08)))
       (tstamp 50b86843-3129-488c-9a40-1a579bb579ed)
     )
