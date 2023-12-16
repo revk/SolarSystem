@@ -220,9 +220,12 @@ input_boot (void)
             {
                if (p < MAX_PORT)
                {
+#ifdef 	CONFIG_IDF_TARGET_ESP32
                   if (p >= 34)
-                     I.pin_bit_mask |= (1ULL << p);     // Do not have pull up/down
-                  else if (infunc[i] & INPUT_FUNC_P)
+                     I.pin_bit_mask |= (1ULL << p);     // Do not have pull up/down on ESP32
+                  else
+#endif
+                  if (infunc[i] & INPUT_FUNC_P)
                      D.pin_bit_mask |= (1ULL << p);     // Pull down
                   else
                      U.pin_bit_mask |= (1ULL << p);     // Pull up
