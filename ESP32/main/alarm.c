@@ -1029,7 +1029,7 @@ task (void *pvParameters)
          }
       }
       {                         // Set LED mode
-         int r = 1;
+         int r = 6;
          if ((isroot && !revk_link_down () && nodes_online == meshexpect) || (!isroot && esp_mesh_is_device_active ()))
             r = 3;
          const char *led = "G";
