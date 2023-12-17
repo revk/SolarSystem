@@ -127,7 +127,9 @@ task (void *pvParameters)
             if (v != ((input_raw >> i) & 1))
             {                   // Change of raw state
                input_raw = ((input_raw & ~(1ULL << i)) | ((input_t) v << i));
-               input_hold[i] = (inhold[i] ? : 100);     // Start countdown
+               input_hold[i] = (inhold[i] ? : 100) + poll + 1;  // Start countdown
+               // We add poll as next step takes off poll
+               // We add 1 so a poll size hold does expect two samples to be the same, less than poll will work on one sample
             }
             if (input_hold[i])
             {                   // counting down
