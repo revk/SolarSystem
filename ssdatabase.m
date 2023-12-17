@@ -420,6 +420,7 @@ num(initpulse);                 // Default port pulse time
 bool (initinvert);              // Default port invert setting
 text(value0, 0);                // Value name for 0
 text(value1, 0);                // Value name for 1
+num(rgb);			// RGB LED number
 
 table(aid, 6);                  // AID
 link(organisation);
