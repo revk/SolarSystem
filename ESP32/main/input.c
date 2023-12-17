@@ -7,6 +7,10 @@ static const char TAG[] = "input";
 
 #include <driver/gpio.h>
 
+#ifdef  CONFIG_REVK_LED_STRIP
+void led_set (int led, uint32_t colour);
+#endif
+
 // Input ports
 #define	BITFIELDS "-"
 #define	PORT_INV 0x40
@@ -139,6 +143,10 @@ task (void *pvParameters)
                   input_hold[i] -= poll;
                if (!input_hold[i])      // hold done
                {
+#ifdef  CONFIG_REVK_LED_STRIP
+                  if (inrgb[i])
+                     led_set (inrgb[i], v ? 0xFF0000 : 0x00FF00);
+#endif
                   input_stable = ((input_stable & ~(1ULL << i)) | ((input_t) v << i));
                   if (v)
                   {

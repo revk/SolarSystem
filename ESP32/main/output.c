@@ -12,7 +12,7 @@ static const char TAG[] = "output";
 #define port_mask(p) ((p)&63)
 static uint8_t out[MAXOUTPUT];  // GPIO
 static uint8_t power[MAXOUTPUT];        /* fixed outputs */
-static uint8_t powerrgb[MAXOUTPUT];       // Output RGB LED number
+static uint8_t powerrgb[MAXOUTPUT];     // Output RGB LED number
 static char *outname[MAXOUTPUT];
 static int16_t outpulse[MAXOUTPUT];     // Timeout in s/10, +ve means timeout the active state, -ve means timeout the inactive state
 static uint8_t outrgb[MAXOUTPUT];       // Output RGB LED number
@@ -30,6 +30,18 @@ output_t output_forced = 0;     // Output forced externally
 output_t output_pulsed = 0;     // Output pulse timed out meaning output is inverted from its logical state
 output_t output_mask = 0;       // Configure outputs
 static uint32_t report_next = 0;        // When to report output
+
+#ifdef	CONFIG_REVK_LED_STRIP
+led_strip_handle_t rgb = NULL;
+int rgbs = 0;
+void
+led_set (int led, uint32_t colour)
+{
+   if (!rgb || led >= rgbs)
+      return;
+   led_strip_set_pixel (rgb, led, (colour >> 16) & 0xFF, (colour >> 8) & 0xFF, colour & 0xFF);
+}
+#endif
 
 int
 output_active (int p)
@@ -52,6 +64,10 @@ output_write (int p)
       gpio_hold_dis (port_mask (out[p]));
       gpio_set_level (port_mask (out[p]), (out[p] & PORT_INV) ? 1 - v : v);
       gpio_hold_en (port_mask (out[p]));
+#ifdef  CONFIG_REVK_LED_STRIP
+      if (outrgb[p])
+         led_set (outrgb[p], v ? 0xFF0000 : 0x00FF00);
+#endif
    }
 }
 
@@ -223,6 +239,14 @@ task (void *pvParameters)
          revk_state_clients ("output", &j, debug | (iotstateoutput << 1));
       }
       usleep (100000);          // 100 ms (timers assume this)
+#ifndef CONFIG_REVK_BLINK_LIB
+#ifdef  CONFIG_REVK_LED_STRIP
+      if (rgb)
+         revk_blinker (rgb);
+#else
+      revk_blinker ();
+#endif
+#endif
    }
 }
 
@@ -251,6 +275,12 @@ output_boot (void)
         p;
       for (i = 0; i < MAXOUTPUT; i++)
       {
+#ifdef	CONFIG_REVK_LED_STRIP
+         if (outrgb[i] > rgbs)
+            rgbs = outrgb[i];
+         if (powerrgb[i] > rgbs)
+            rgbs = powerrgb[i];
+#endif
          if (out[i])
          {
             const char *e = port_check (p = port_mask (out[i]), TAG, 0);
@@ -280,6 +310,37 @@ output_boot (void)
       if (c.pin_bit_mask)
          REVK_ERR_CHECK (gpio_config (&c));
    }
+#ifdef  CONFIG_REVK_LED_STRIP
+#ifndef CONFIG_REVK_BLINK_LIB
+   rgbs++;
+   extern uint8_t blink[3];     // 0x80 for set, 0x40 for invert
+   if (blink[0] && blink[0] == blink[1])
+   {
+      led_strip_config_t strip_config = {
+         .strip_gpio_num = (blink[0] & 0x3F),
+         .max_leds = rgbs,      // The number of LEDs in the strip,
+         .led_pixel_format = LED_PIXEL_FORMAT_GRB,      // Pixel format of your LED strip
+         .led_model = LED_MODEL_WS2812, // LED strip model
+         .flags.invert_out = ((blink[0] & 0x40) ? 1 : 0),       // whether to invert the output signal (useful when your hardware has a level inverter)
+      };
+      led_strip_rmt_config_t rmt_config = {
+         .clk_src = RMT_CLK_SRC_DEFAULT,        // different clock source can lead to different power consumption
+         .resolution_hz = 10 * 1000 * 1000,     // 10MHz
+#ifdef  CONFIG_IDF_TARGET_ESP32S3
+         .flags.with_dma = true,
+#endif
+      };
+      REVK_ERR_CHECK (led_strip_new_rmt_device (&strip_config, &rmt_config, &rgb));
+      for (int i = 0; i < MAXOUTPUT; i++)
+      {
+         if (outrgb[i])
+            led_set (outrgb[i], (out[i] & PORT_INV) ? 0x0000FF : 0xFF00FF);
+         if (powerrgb[i])
+            led_set (powerrgb[i], (power[i] & PORT_INV) ? 0x0000FF : 0xFF00FF);
+      }
+   }
+#endif
+#endif
 }
 
 void
