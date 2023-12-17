@@ -229,10 +229,12 @@ input_boot (void)
                      D.pin_bit_mask |= (1ULL << p);     // Pull down
                   else
                      U.pin_bit_mask |= (1ULL << p);     // Pull up
+#ifdef 	CONFIG_IDF_TARGET_ESP32
                   if (p == 7 || p == 8)
                      gpio_reset_pin (p);
                   if (p != 20)
                      REVK_ERR_CHECK (gpio_hold_dis (p));
+#endif
                }
                if (p < LOGIC_PORT2 && (in[i] & PORT_INV))
                {                // Inverted
