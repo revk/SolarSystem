@@ -2965,7 +2965,7 @@
     (property "Value" "Conn_01x05" (at 236.22 82.6571 0)
       (effects (font (size 1.27 1.27)))
     )
-    (property "Footprint" "RevK:PTSM-HH-5-RA" (at 236.22 90.17 0)
+    (property "Footprint" "RevK:PTSM-HH-5-RA-SMD" (at 236.22 90.17 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Datasheet" "~" (at 236.22 90.17 0)
