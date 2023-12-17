@@ -14,6 +14,7 @@ static uint8_t out[MAXOUTPUT];  // GPIO
 static uint8_t power[MAXOUTPUT];        /* fixed outputs */
 static char *outname[MAXOUTPUT];
 static int16_t outpulse[MAXOUTPUT];     // Timeout in s/10, +ve means timeout the active state, -ve means timeout the inactive state
+static uint8_t outrgb[MAXOUTPUT];       // Output RGB LED number
 static uint8_t outfunc[MAXOUTPUT];      // Output function codes
 static uint8_t outputfuncs;     // Combined outputs of all
 static uint8_t outputfuncset;   // Logical state of output funcs
@@ -231,6 +232,7 @@ output_boot (void)
    revk_register ("outgpio", MAXOUTPUT, sizeof (*out), &out, BITFIELDS, SETTING_BITFIELD | SETTING_SET);
    revk_register ("outfunc", MAXOUTPUT, sizeof (*outfunc), &outfunc, OUTPUT_FUNCS, SETTING_BITFIELD | SETTING_LIVE);
    revk_register ("outpulse", MAXOUTPUT, sizeof (*outpulse), &outpulse, NULL, SETTING_LIVE | SETTING_SIGNED);
+   revk_register ("outrgb", MAXOUTPUT, sizeof (*outrgb), &outrgb, NULL, 0);
    revk_register ("outname", MAXOUTPUT, 0, &outname, NULL, SETTING_LIVE);
    revk_register ("power", MAXOUTPUT, sizeof (*power), &power, BITFIELDS, SETTING_BITFIELD | SETTING_SET | SETTING_SECRET);
    revk_register ("powergpio", MAXOUTPUT, sizeof (*power), &power, BITFIELDS, SETTING_BITFIELD | SETTING_SET);

@@ -13,6 +13,7 @@ static const char TAG[] = "input";
 #define	port_mask(p) ((p)&63)
 static uint8_t in[MAXINPUT];
 static uint8_t inhold[MAXINPUT];        // Time held left for debounce
+static uint8_t inrgb[MAXINPUT]; // Input RGB LED number
 static uint8_t intime[MAXINPUT];        // Time active so far
 static uint8_t infunc[MAXINPUT];        // Input functions
 static uint8_t inputfuncs;      // Combined input funcs
@@ -193,6 +194,7 @@ input_boot (void)
    revk_register ("in", MAXINPUT, sizeof (*in), &in, BITFIELDS, SETTING_BITFIELD | SETTING_SET | SETTING_SECRET);
    revk_register ("ingpio", MAXINPUT, sizeof (*in), &in, BITFIELDS, SETTING_BITFIELD | SETTING_SET);
    revk_register ("inhold", MAXINPUT, sizeof (*inhold), &inhold, NULL, SETTING_LIVE);
+   revk_register ("inrgb", MAXINPUT, sizeof (*inrgb), &inrgb, NULL, 0);
    revk_register ("infunc", MAXINPUT, sizeof (*infunc), &infunc, INPUT_FUNCS, SETTING_BITFIELD);
    revk_register ("inname", MAXINPUT, 0, &inname, NULL, SETTING_LIVE);
 #define i(t,x,c) revk_register("in"#x, MAXINPUT, sizeof(*in##x), &in##x, AREAS, SETTING_BITFIELD|SETTING_LIVE);

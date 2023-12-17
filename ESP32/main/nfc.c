@@ -710,7 +710,7 @@ nfc_boot (void)
       nfcinvert |= (1 << gpio_mask (nfcgreen));
    if (nfccard & GPIO_INV)
       nfcinvert |= (1 << gpio_mask (nfccard));
-   if (nfcpower && !port_check (port_mask (nfcpower),TAG, 0))
+   if (nfcpower && !port_check (port_mask (nfcpower), TAG, 0))
    {
       gpio_reset_pin (port_mask (nfcpower));
       gpio_set_level (port_mask (nfcpower), (nfcpower & PORT_INV) ? 1 : 0);     // Off
