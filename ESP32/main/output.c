@@ -12,6 +12,7 @@ static const char TAG[] = "output";
 #define port_mask(p) ((p)&63)
 static uint8_t out[MAXOUTPUT];  // GPIO
 static uint8_t power[MAXOUTPUT];        /* fixed outputs */
+static uint8_t powerrgb[MAXOUTPUT];       // Output RGB LED number
 static char *outname[MAXOUTPUT];
 static int16_t outpulse[MAXOUTPUT];     // Timeout in s/10, +ve means timeout the active state, -ve means timeout the inactive state
 static uint8_t outrgb[MAXOUTPUT];       // Output RGB LED number
@@ -235,6 +236,7 @@ output_boot (void)
    revk_register ("outrgb", MAXOUTPUT, sizeof (*outrgb), &outrgb, NULL, 0);
    revk_register ("outname", MAXOUTPUT, 0, &outname, NULL, SETTING_LIVE);
    revk_register ("power", MAXOUTPUT, sizeof (*power), &power, BITFIELDS, SETTING_BITFIELD | SETTING_SET | SETTING_SECRET);
+   revk_register ("powerrgb", MAXOUTPUT, sizeof (*powerrgb), &powerrgb, NULL, 0);
    revk_register ("powergpio", MAXOUTPUT, sizeof (*power), &power, BITFIELDS, SETTING_BITFIELD | SETTING_SET);
 #define i(t,x,c) revk_register("out"#x, MAXOUTPUT, sizeof(*out##x), &out##x, AREAS, SETTING_BITFIELD|SETTING_LIVE);
 #define s(t,x,c) revk_register("out"#x, MAXOUTPUT, sizeof(*out##x), &out##x, AREAS, SETTING_BITFIELD|SETTING_LIVE);
