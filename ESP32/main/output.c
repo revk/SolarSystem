@@ -241,8 +241,7 @@ task (void *pvParameters)
       usleep (100000);          // 100 ms (timers assume this)
 #ifndef CONFIG_REVK_BLINK_LIB
 #ifdef  CONFIG_REVK_LED_STRIP
-      if (rgb)
-         revk_blinker (rgb);
+      revk_blinker (rgb);
 #else
       revk_blinker ();
 #endif
@@ -332,12 +331,8 @@ output_boot (void)
       };
       REVK_ERR_CHECK (led_strip_new_rmt_device (&strip_config, &rmt_config, &rgb));
       for (int i = 0; i < MAXOUTPUT; i++)
-      {
-         if (outrgb[i])
-            led_set (outrgb[i], (out[i] & PORT_INV) ? 0x0000FF : 0xFF00FF);
          if (powerrgb[i])
             led_set (powerrgb[i], (power[i] & PORT_INV) ? 0x0000FF : 0xFF00FF);
-      }
    }
 #endif
 #endif
@@ -346,9 +341,11 @@ output_boot (void)
 void
 output_start (void)
 {
+#ifdef CONFIG_REVK_BLINK_LIB    // If not defined we need output task to blink the status LED, so run task anyway
    int i;
    for (i = 0; i < MAXOUTPUT && !out[i]; i++);
    if (i == MAXOUTPUT)
       return;
+#endif
    revk_task (TAG, task, NULL, 3);
 }
