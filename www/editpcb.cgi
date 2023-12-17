@@ -55,8 +55,9 @@ if($?pcbname) then # save
 			if("$initpulse" == "")setenv initpulse 0
 			if("$value0" == "")setenv value0 Low
 			if("$value1" == "")setenv value1 High
+			if("$rgb" == "")setenv rgb 0
 			if(! $?initinvert) setenv initinvert false
-			set n=`sql -i "$DB" 'INSERT INTO gpio SET pcb="$pcb",pin="$g",io="$t",inittype="$i",initname="$initname",inithold=$inithold,initpulse=$initpulse,initinvert="$initinvert",value0="$value0",value1="$value1"'`
+			set n=`sql -i "$DB" 'INSERT INTO gpio SET pcb="$pcb",pin="$g",io="$t",inittype="$i",rgb=$rgb,initname="$initname",inithold=$inithold,initpulse=$initpulse,initinvert="$initinvert",value0="$value0",value1="$value1"'`
 		endif
 	else
 		if("$g" == "-") then
@@ -67,13 +68,14 @@ if($?pcbname) then # save
 			setenv pulse `printenv "initpulse$n"`
 			setenv invert `printenv "initinvert$n"`
 			setenv initfunc `printenv "initfunc$n"`
+			setenv led `printenv "rgb$n"`
 			if("$initfunc" == "-") setenv initfunc ""
 			setenv v0 `printenv "value0$n"`
 			if("$v0" == "") setenv v0 Low
 			setenv v1 `printenv "value1$n"`
 			if("$v1" == "")setenv v1 High
 			if("$invert" == "") setenv invert false
-			@ changed = $changed + `sql -c "$DB" 'UPDATE gpio SET pin="$g",io="$t",initfunc="$initfunc",inittype="$i",initname="$name",inithold=$hold,initpulse=$pulse,initinvert="$invert",value0="$v0",value1="$v1" WHERE gpio="$n" AND pcb="$pcb" AND (pin<>"$g" OR io<>"$t" OR inittype<>"$i" OR inittype<>"$f" OR initname<>"$name" OR inithold<>$hold OR initpulse<>$pulse OR initinvert<>"$invert" OR value0<>"$v0" OR value1<>"$v1")'`
+			@ changed = $changed + `sql -c "$DB" 'UPDATE gpio SET pin="$g",io="$t",initfunc="$initfunc",led=$rgb,inittype="$i",initname="$name",inithold=$hold,initpulse=$pulse,initinvert="$invert",value0="$v0",value1="$v1" WHERE gpio="$n" AND pcb="$pcb" AND (pin<>"$g" OR io<>"$t" OR inittype<>"$i" OR inittype<>"$f" OR initname<>"$name" OR inithold<>$hold OR initpulse<>$pulse OR rgb<>$rgb OR initinvert<>"$invert" OR value0<>"$v0" OR value1<>"$v1")'`
 		endif
 	endif
 	setenv set "$set,$n"
@@ -92,10 +94,15 @@ if($?PATH_INFO) then
 endif
 unsetenv gpio
 unsetenv pin
+unsetenv io
 unsetenv inittype
 unsetenv initfunc
-unsetenv io
+unsetenv inithold
+unsetenv initpulse
 unsetenv initname
+unsetenv rgb
+unsetenv value0
+unsetenv value1
 xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <h1>🔬 PCB template</h1>
 <if not pcb>
@@ -140,6 +147,7 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <tr><td><input name=gpio type=hidden><select name=pin><include var=GPIONUMPICK></select></td><td><input name="initinvert$gpio" type=checkbox value=true title="Invert">
 <input name="value0$gpio" size=5 value="$value0" placeholder="0 name"><input name="value1$gpio" size=5 value="$value1" placeholder="1 name">
 <select name=io><include var=GPIOIOPICK></select>
+<if not ledr='-' ledr='$ledg'><input name="rgb$gpio" value="$rgb" title="LED number" placeholder='LED' size=3></if><if else><input name="rgb$gpio" value="$rgb" type=hidden></if>
 Defaults:
 <select name=inittype><include var=GPIOTYPEPICK></select>
 <if inittype=*I><select name=initfunc$gpio><include var=GPIOFUNCPICKI></select></if><if inittype=*O><select name=initfunc$gpio><include var=GPIOFUNCPICKO></select></if>
@@ -150,6 +158,7 @@ Defaults:
 <tr><td><input name=gpio type=hidden value=0><select name=pin><include var=GPIONUMPICK></select></td><td><input name=initinvert type=checkbox value=true title="Invert">
 <input name="value0" size=5 value="" placeholder="0 name"><input name="value1" size=5 value="" placeholder="1 name">
 <select name=io><include var=GPIOIOPICK></select>
+<if not ledr='-' ledr='$ledg'><input name=rgb title="LED number" placeholder='LED' size=3></if><if else><input name=rgb type=hidden></if>
 Defaults:
 <select name=inittype><include var=GPIOTYPEPICK></select>
 <input name=initname size=10 placeholder='New pin'>
