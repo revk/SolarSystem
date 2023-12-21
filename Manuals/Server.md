@@ -112,6 +112,9 @@ You will need to make a `secure_boot_signing_key.pem` specifically for your modu
 
 #### Building
 
+
+**Important Note**: Make sure to install `csh` (C Shell) on your system as some build scripts require it. You can install `csh` on Debian-based systems using `sudo apt-get install csh`.
+
 The modules can be based on several different variations of the ESP32 processor. To this end there are several make variants you can use. The binary files are placed in the `www` subdirectory.
 
 - `make wroom` makes `SS-S1.bin` suitable for the `ESP32-WROOM-32` module.
