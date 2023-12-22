@@ -1,6 +1,6 @@
 // Generated case design for Generic/Generic.kicad_pcb
 // By https://github.com/revk/PCBCase
-// Generated 2023-12-22 08:57:04
+// Generated 2023-12-22 09:02:52
 // title:	PCB-GENERIC-GPS
 // rev:	5
 // company:	Adrian Kennard Andrews & Arnold Ltd
@@ -11,7 +11,7 @@
 // Globals
 margin=0.500000;
 lip=2.000000;
-casebase=2.000000;
+casebottom=2.000000;
 casetop=5.600000;
 casewall=3.000000;
 fit=0.000000;
@@ -227,7 +227,7 @@ if(hole)
 
 // Generate PCB casework
 
-height=casebase+pcbthickness+casetop;
+height=casebottom+pcbthickness+casetop;
 $fn=48;
 
 module pyramid()
@@ -246,8 +246,8 @@ module solid_case(d=0)
 { // The case wall
 	hull()
         {
-                translate([0,0,-casebase])pcb_hulled(height,casewall-edge);
-                translate([0,0,edge-casebase])pcb_hulled(height-edge*2,casewall);
+                translate([0,0,-casebottom])pcb_hulled(height,casewall-edge);
+                translate([0,0,edge-casebottom])pcb_hulled(height-edge*2,casewall);
         }
 }
 
@@ -266,14 +266,14 @@ module top_half(step=false)
 {
 	difference()
 	{
-		translate([-casebase-100,-casewall-100,pcbthickness-lip/2+0.01]) cube([pcbwidth+casewall*2+200,pcblength+casewall*2+200,height]);
+		translate([-casebottom-100,-casewall-100,pcbthickness-lip/2+0.01]) cube([pcbwidth+casewall*2+200,pcblength+casewall*2+200,height]);
 		if(step)translate([0,0,pcbthickness-lip/2-0.01])pcb_hulled(lip,casewall/2+fit);
 	}
 }
 
 module bottom_half(step=false)
 {
-	translate([-casebase-100,-casewall-100,pcbthickness+lip/2-height-0.01]) cube([pcbwidth+casewall*2+200,pcblength+casewall*2+200,height]);
+	translate([-casebottom-100,-casewall-100,pcbthickness+lip/2-height-0.01]) cube([pcbwidth+casewall*2+200,pcblength+casewall*2+200,height]);
 	if(step)translate([0,0,pcbthickness-lip/2])pcb_hulled(lip,casewall/2-fit);
 }
 
@@ -356,7 +356,7 @@ module bottom_cut()
 {
 	difference()
 	{
-		 translate([-casebase-50,-casewall-50,-height]) cube([pcbwidth+casewall*2+100,pcblength+casewall*2+100,height*2]);
+		 translate([-casebottom-50,-casewall-50,-height]) cube([pcbwidth+casewall*2+100,pcblength+casewall*2+100,height*2]);
 		 top_cut();
 	}
 }
@@ -443,7 +443,7 @@ module bottom_edge()
 
 module bottom()
 {
-	translate([casewall,casewall,casebase])difference()
+	translate([casewall,casewall,casebottom])difference()
 	{
 		union()
 		{
