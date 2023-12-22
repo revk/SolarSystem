@@ -1,6 +1,6 @@
 // Generated case design for GPS/GPS.kicad_pcb
 // By https://github.com/revk/PCBCase
-// Generated 2023-08-20 06:47:59
+// Generated 2023-12-22 08:56:59
 // title:	GPS reference
 // date:	${DATE}
 // rev:	5
@@ -11,8 +11,7 @@
 
 // Globals
 margin=0.500000;
-overlap=2.000000;
-lip=0.000000;
+lip=2.000000;
 casebase=5.000000;
 casetop=5.600000;
 casewall=3.000000;
@@ -30,289 +29,267 @@ module pcb(h=pcbthickness,r=0){linear_extrude(height=h)offset(r=r)polygon(points
 spacing=52.000000;
 pcbwidth=36.000000;
 pcblength=36.000000;
-// Populated PCB
-module board(pushed=false,hulled=false){
-translate([18.000000,18.000000,1.600000])rotate([0,0,-90.000000])m0(pushed,hulled); // RevK:L86-M33 L86-M33 (back)
-translate([18.000000,21.000000,0.000000])rotate([0,0,180.000000])rotate([180,0,0])rotate([-0.000000,-0.000000,-180.000000])m5(pushed,hulled); // RevK:Battery-Holder-2032 BatteryHolder_Keystone_3034_1x20mm
-translate([18.000000,8.130000,0.000000])rotate([0,0,180.000000])rotate([180,0,0])m7(pushed,hulled,5); // RevK:PTSM-HH-5-RA-P-SMD PTSM-HH-5-RA-P-SMD
+// Parts to go on PCB (top)
+module parts_top(part=false,hole=false,block=false){
+// Missing model U1.1 L86-M33
 }
 
+parts_top=0;
+// Parts to go on PCB (bottom)
+module parts_bottom(part=false,hole=false,block=false){
+// Missing model BT1.1 BatteryHolder_Keystone_3034_1x20mm (back)
+translate([18.000000,8.130000,0.000000])rotate([0,0,180.000000])rotate([180,0,0])m0(part,hole,block,casebottom,5); // J1
+}
+
+parts_bottom=1;
 module b(cx,cy,z,w,l,h){translate([cx-w/2,cy-l/2,z])cube([w,l,h]);}
-module m0(pushed=false,hulled=false)
-{ // RevK:L86-M33 L86-M33
-rotate([90,0,0])b(0,0,0,18.4,18.4,6.95);
-}
-
-module m5(pushed=false,hulled=false)
-{ // RevK:Battery-Holder-2032 BatteryHolder_Keystone_3034_1x20mm
-b(0,-0.2,0,22.9,15.5,4.2);
-cylinder(d=20,h=3.2);
-}
-
-module m7(pushed=false,hulled=false,n=0)
-{ // RevK:PTSM-HH-5-RA-P-SMD PTSM-HH-5-RA-P-SMD
+module m0(part=false,hole=false,block=false,height,N=0)
+{ // J1
 // Plug on PCB
-b(0,-7.5/2-0.4,0,0.5+n*2.5,7.5,5);
-b(0,0,0,0.4+2.5*(n-1),3.2,0.4); // pins
-b(0,-5.85/2-0.4,0,9.18+n*2.5,5.6,0.4); // tab
-b(0,-5.85/2-0.4,0,3.2+n*2.5,5.6,4); // side
-if(!hulled)
+if(part)
 {
-	// Socket
+	b(0,-7.5/2-0.4,0,0.5+N*2.5,7.5,5);
+	b(0,0,0,0.4+2.5*(N-1),3.2,0.4); // pins
+	b(0,-5.85/2-0.4,0,9.18+N*2.5,5.6,0.4); // tab
+	b(0,-5.85/2-0.4,0,3.2+N*2.5,5.6,4); // side
+}
+if(hole)
+{ // Socket
 	hull()
 	{
-		b(0,-7.5/2-7.5-0.4,0,1.7+n*2.5,7.5,4);
-		b(0,-7.5/2-7.5-0.4,0,1.7+n*2.5-2,7.5,5);
+		b(0,-7.5/2-7.5-0.4,0,1.7+N*2.5,7.5,4);
+		b(0,-7.5/2-7.5-0.4,0,1.7+N*2.5-2,7.5,5);
 	}
 }
 }
+
+// Generate PCB casework
 
 height=casebase+pcbthickness+casetop;
 $fn=48;
-
-module boardh(pushed=false)
-{ // Board with hulled parts
-	union()
-	{
-		if(!nohull)intersection()
-		{
-			translate([0,0,hullcap-casebase])outline(casebase+pcbthickness+casetop-hullcap*2,-hulledge);
-			hull()board(pushed,true);
-		}
-		board(pushed,false);
-		pcb();
-	}
-}
-
-module boardf()
-{ // This is the board, but stretched up to make a push out in from the front
-	render()
-	{
-		intersection()
-		{
-			translate([-casewall-1,-casewall-1,-casebase-1]) cube([pcbwidth+casewall*2+2,pcblength+casewall*2+2,height+2]);
-			union()
-			{
-				minkowski()
-				{
-					boardh(true);
-					cylinder(h=height+100,d=margin,$fn=8);
-				}
-				board(false,false);
-			}
-		}
-	}
-}
-
-module boardb()
-{ // This is the board, but stretched down to make a push out in from the back
-	render()
-	{
-		intersection()
-		{
-			translate([-casewall-1,-casewall-1,-casebase-1]) cube([pcbwidth+casewall*2+2,pcblength+casewall*2+2,height+2]);
-			union()
-			{
-				minkowski()
-				{
-					boardh(true);
-					translate([0,0,-height-100])
-					cylinder(h=height+100,d=margin,$fn=8);
-				}
-				board(false,false);
-			}
-		}
-	}
-}
-
-module boardm()
-{
-	render()
-	{
- 		minkowski()
- 		{
-			translate([0,0,-margin/2])cylinder(d=margin,h=margin,$fn=8);
- 			boardh(false);
-		}
-		//intersection()
-    		//{
-        		//translate([0,0,-(casebase-hullcap)])pcb(pcbthickness+(casebase-hullcap)+(casetop-hullcap));
-        		//translate([0,0,-(casebase-hullcap)])outline(pcbthickness+(casebase-hullcap)+(casetop-hullcap));
-			boardh(false);
-    		//}
- 	}
-}
-
-module pcbh(h=pcbthickness,r=0)
-{ // PCB shape for case
-	if(useredge)outline(h,r);
-	else hull()outline(h,r);
-}
 
 module pyramid()
 { // A pyramid
  polyhedron(points=[[0,0,0],[-height,-height,height],[-height,height,height],[height,height,height],[height,-height,height]],faces=[[0,1,2],[0,2,3],[0,3,4],[0,4,1],[4,3,2,1]]);
 }
 
-module wall(d=0)
+
+module pcb_hulled(h=pcbthickness,r=0)
+{ // PCB shape for case
+	if(useredge)outline(h,r);
+	else hull()outline(h,r);
+}
+
+module solid_case(d=0)
 { // The case wall
-	translate([0,0,-casebase-d])
-	{
-		if(useredge)
-			intersection()
-			{
-				pcb(height+d*2,margin/2+d);
-				pcbh(height+d*2,margin/2+d);
-			}
-		else pcbh(height+d*2,margin/2+d);
-	}
-}
-
-module cutf()
-{ // This cut up from base in the wall
-	intersection()
-	{
-		boardf();
-		difference()
-		{
-			translate([-casewall+0.01,-casewall+0.01,-casebase+0.01])cube([pcbwidth+casewall*2-0.02,pcblength+casewall*2-0.02,casebase+overlap+lip]);
-			wall();
-			boardb();
-		}
-	}
-}
-
-module cutb()
-{ // The cut down from top in the wall
-	intersection()
-	{
-		boardb();
-		difference()
-		{
-			translate([-casewall+0.01,-casewall+0.01,0.01])cube([pcbwidth+casewall*2-0.02,pcblength+casewall*2-0.02,casetop+pcbthickness]);
-			wall();
-			boardf();
-		}
-	}
-}
-
-module cutpf()
-{ // the push up but pyramid
-	render()
-	intersection()
-	{
-		minkowski()
-		{
-			pyramid();
-			cutf();
-		}
-		difference()
-		{
-			translate([-casewall-0.01,-casewall-0.01,-casebase-0.01])cube([pcbwidth+casewall*2+0.02,pcblength+casewall*2+0.02,casebase+overlap+lip+0.02]);
-			wall();
-			boardh(true);
-		}
-		translate([-casewall,-casewall,-casebase])case();
-	}
-}
-
-module cutpb()
-{ // the push down but pyramid
-	render()
-	intersection()
-	{
-		minkowski()
-		{
-			scale([1,1,-1])pyramid();
-			cutb();
-		}
-		difference()
-		{
-			translate([-casewall-0.01,-casewall-0.01,-0.01])cube([pcbwidth+casewall*2+0.02,pcblength+casewall*2+0.02,casetop+pcbthickness+0.02]);
-			wall();
-			boardh(true);
-		}
-		translate([-casewall,-casewall,-casebase])case();
-	}
-}
-
-module case()
-{ // The basic case
 	hull()
-	{
-		translate([casewall,casewall,0])pcbh(height,casewall-edge);
-		translate([casewall,casewall,edge])pcbh(height-edge*2,casewall);
-	}
+        {
+                translate([0,0,-casebase])pcb_hulled(height,casewall-edge);
+                translate([0,0,edge-casebase])pcb_hulled(height-edge*2,casewall);
+        }
 }
 
-module cut(d=0)
-{ // The cut point in the wall
-	translate([casewall,casewall,casebase+lip])pcbh(casetop+pcbthickness-lip+1,casewall/2+d/2+margin/4);
+module preview()
+{
+	pcb();
+	color("#0f0")parts_top(part=true);
+	color("#0f0")parts_bottom(part=true);
+	color("#f00")parts_top(hole=true);
+	color("#f00")parts_bottom(hole=true);
+	color("#00f8")parts_top(block=true);
+	color("#00f8")parts_bottom(block=true);
 }
 
-module base()
-{ // The base
+module top_half(step=false)
+{
 	difference()
 	{
-		case();
-		difference()
+		translate([-casebase-100,-casewall-100,pcbthickness-lip/2+0.01]) cube([pcbwidth+casewall*2+200,pcblength+casewall*2+200,height]);
+		if(step)translate([0,0,pcbthickness-lip/2-0.01])pcb_hulled(lip,casewall/2+fit);
+	}
+}
+
+module bottom_half(step=false)
+{
+	translate([-casebase-100,-casewall-100,pcbthickness+lip/2-height-0.01]) cube([pcbwidth+casewall*2+200,pcblength+casewall*2+200,height]);
+	if(step)translate([0,0,pcbthickness-lip/2])pcb_hulled(lip,casewall/2-fit);
+}
+
+module case_wall()
+{
+	difference()
+	{
+		solid_case();
+		translate([0,0,-height])pcb_hulled(height*2);
+	}
+}
+
+module top_side_hole()
+{
+	intersection()
+	{
+		parts_top(hole=true);
+		case_wall();
+	}
+}
+
+module bottom_side_hole()
+{
+	intersection()
+	{
+		parts_bottom(hole=true);
+		case_wall();
+	}
+}
+
+module parts_space()
+{
+	minkowski()
+	{
+		union()
 		{
-			union()
+			parts_top(part=true,hole=true);
+			parts_bottom(part=true,hole=true);
+		}
+		sphere(r=margin,$fn=6);
+	}
+}
+
+module top_cut()
+{
+	difference()
+	{
+		top_half(true);
+		if(parts_top)difference()
+		{
+			minkowski()
+			{ // Penetrating side holes
+				top_side_hole();
+				rotate([180,0,0])
+				pyramid();
+			}
+			minkowski()
 			{
-				translate([-1,-1,casebase+overlap+lip])cube([pcbwidth+casewall*2+2,pcblength+casewall*2+2,casetop+1]);
-				cut(fit);
+				top_side_hole();
+				cylinder(d=margin,h=height,$fn=4);
 			}
 		}
-		translate([casewall,casewall,casebase])boardf();
-		translate([casewall,casewall,casebase])boardm();
-		translate([casewall,casewall,casebase])cutpf();
 	}
-	translate([casewall,casewall,casebase])cutpb();
+	if(parts_bottom)difference()
+	{
+		minkowski()
+		{ // Penetrating side holes
+			bottom_side_hole();
+			pyramid();
+		}
+			minkowski()
+			{
+				bottom_side_hole();
+				translate([0,0,-height])cylinder(d=margin,h=height,$fn=4);
+			}
+	}
+}
+
+module bottom_cut()
+{
+	difference()
+	{
+		 translate([-casebase-50,-casewall-50,-height]) cube([pcbwidth+casewall*2+100,pcblength+casewall*2+100,height*2]);
+		 top_cut();
+	}
+}
+
+module top_body()
+{
+	difference()
+	{
+		intersection()
+		{
+			solid_case();
+			pcb_hulled(height);
+			top_half();
+		}
+		if(parts_top)minkowski()
+		{
+			if(nohull)parts_top(part=true);
+			else hull()parts_top(part=true);
+			translate([0,0,margin-height])cylinder(r=margin,h=height,$fn=8);
+		}
+	}
+	intersection()
+	{
+		solid_case();
+		parts_top(block=true);
+	}
+}
+
+module top_edge()
+{
+	intersection()
+	{
+		case_wall();
+		top_cut();
+	}
 }
 
 module top()
 {
-	translate([0,pcblength+casewall*2,height])rotate([180,0,0])
+	translate([casewall,casewall+pcblength,pcbthickness+casetop])rotate([180,0,0])difference()
 	{
-		difference()
+		union()
 		{
-			case();
-			difference()
-			{
-				translate([-1,-1,-1])cube([pcbwidth+casewall*2+2,pcblength+casewall*2+2,casebase+overlap+lip-margin+1]);
-				cut(-fit);
-			}
-			translate([casewall,casewall,casebase])boardb();
-			translate([casewall,casewall,casebase])boardm();
-			translate([casewall,casewall,casebase])cutpb();
+			top_body();
+			top_edge();
 		}
-		translate([casewall,casewall,casebase])cutpf();
+		parts_space();
+		translate([0,0,pcbthickness-height])pcb(height,r=margin);
 	}
 }
 
-module test()
+module bottom_body()
 {
-	translate([0*spacing,0,0])base();
-	translate([1*spacing,0,0])top();
-	translate([2*spacing,0,0])pcb();
-	translate([3*spacing,0,0])outline();
-	translate([4*spacing,0,0])wall();
-	translate([5*spacing,0,0])board();
-	translate([6*spacing,0,0])board(false,true);
-	translate([7*spacing,0,0])board(true);
-	translate([8*spacing,0,0])boardh();
-	translate([9*spacing,0,0])boardf();
-	translate([10*spacing,0,0])boardb();
-	translate([11*spacing,0,0])cutpf();
-	translate([12*spacing,0,0])cutpb();
-	translate([13*spacing,0,0])cutf();
-	translate([14*spacing,0,0])cutb();
-	translate([15*spacing,0,0])case();
+	difference()
+	{
+		intersection()
+		{
+			solid_case();
+			translate([0,0,-height])pcb_hulled(height);
+			bottom_half();
+		}
+		if(parts_bottom)minkowski()
+		{
+			if(nohull)parts_bottom(part=true);
+			else hull()parts_bottom(part=true);
+			translate([0,0,-margin])cylinder(r=margin,h=height,$fn=8);
+		}
+	}
+	intersection()
+	{
+		solid_case();
+		parts_bottom(block=true);
+	}
 }
 
-module parts()
+module bottom_edge()
 {
-	base();
-	translate([spacing,0,0])top();
+	intersection()
+	{
+		case_wall();
+       		bottom_cut();
+	}
 }
-base(); translate([spacing,0,0])top();
+
+module bottom()
+{
+	translate([casewall,casewall,casebase])difference()
+	{
+		union()
+		{
+        		bottom_body();
+        		bottom_edge();
+		}
+		parts_space();
+		pcb(height,r=margin);
+	}
+}
+bottom(); translate([spacing,0,0])top();
