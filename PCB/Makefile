@@ -6,9 +6,7 @@ PCBCase/case: PCBCase/case.c
 scad:	$(patsubst %,KiCad/%.scad,$(MODELS))
 
 %.stl: %.scad
-	echo "Making $@"
 	/Applications/OpenSCAD.app/Contents/MacOS/OpenSCAD $< -o $@
-	echo "Made $@"
 
 GPS/GPS.scad: GPS/GPS.kicad_pcb PCBCase/case Makefile
 	PCBCase/case -o $@ $< --base=5 --top=5.6
