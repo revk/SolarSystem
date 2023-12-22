@@ -1,6 +1,6 @@
 // Generated case design for GPS/GPS.kicad_pcb
 // By https://github.com/revk/PCBCase
-// Generated 2023-12-22 09:12:19
+// Generated 2023-12-22 09:36:27
 // title:	GPS reference
 // date:	${DATE}
 // rev:	5
@@ -10,7 +10,7 @@
 //
 
 // Globals
-margin=0.500000;
+margin=0.200000;
 lip=2.000000;
 casebottom=5.000000;
 casetop=5.600000;
@@ -275,7 +275,7 @@ module bottom_edge()
 	intersection()
 	{
 		case_wall();
-       		bottom_cut();
+		bottom_cut();
 	}
 }
 

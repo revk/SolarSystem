@@ -1,13 +1,13 @@
 // Generated case design for Output/Output.kicad_pcb
 // By https://github.com/revk/PCBCase
-// Generated 2023-12-22 09:13:28
+// Generated 2023-12-22 09:37:33
 // title:	PCB-OUTPUT
 // rev:	1
 // company:	Adrian Kennard, Andrews & Arnold Ltd
 //
 
 // Globals
-margin=0.500000;
+margin=0.200000;
 lip=2.000000;
 casebottom=1.400000;
 casetop=6.000000;
@@ -479,7 +479,7 @@ module bottom_edge()
 	intersection()
 	{
 		case_wall();
-       		bottom_cut();
+		bottom_cut();
 	}
 }
 
