@@ -1,6 +1,6 @@
 // Generated case design for Access/Access.kicad_pcb
 // By https://github.com/revk/PCBCase
-// Generated 2023-12-22 09:24:46
+// Generated 2023-12-22 09:27:15
 // title:	Access Control
 // rev:	3
 // company:	Adrian Kennard Andrews & Arnold Ltd
@@ -233,7 +233,7 @@ rotate([0,0,180])translate([0,2.05,-1.15])
 	}
 	if(block)
 	{
-		b(0,-3.08,1.5,1.2+0.5,1.95+0.95,height);
+		b(0,-3.08,1.5,1.2+2,1.95+2,height);
 	}
 }
 
