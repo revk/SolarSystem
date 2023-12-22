@@ -1,6 +1,6 @@
 // Generated case design for Generic/Generic.kicad_pcb
 // By https://github.com/revk/PCBCase
-// Generated 2023-12-22 09:02:52
+// Generated 2023-12-22 09:12:24
 // title:	PCB-GENERIC-GPS
 // rev:	5
 // company:	Adrian Kennard Andrews & Arnold Ltd
@@ -95,8 +95,8 @@ module m3(part=false,hole=false,block=false,height)
 // 0603 Capacitor
 if(part)
 {
-	b(0,0,0,1.6,0.95,0.2); // Pad size
 	b(0,0,0,1.6,0.8,1); // Chip
+	b(0,0,0,1.6,0.95,0.2); // Pad size
 }
 }
 
@@ -176,8 +176,8 @@ module m7(part=false,hole=false,block=false,height)
 // 0402 Capacitor
 if(part)
 {
-	b(0,0,0,1.5,0.65,0.2); // Pad size
 	b(0,0,0,1.0,0.5,1); // Chip
+	b(0,0,0,1.5,0.65,0.2); // Pad size
 }
 }
 

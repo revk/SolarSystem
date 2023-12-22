@@ -1,6 +1,6 @@
 // Generated case design for GPS/GPS.kicad_pcb
 // By https://github.com/revk/PCBCase
-// Generated 2023-12-22 09:02:48
+// Generated 2023-12-22 09:12:19
 // title:	GPS reference
 // date:	${DATE}
 // rev:	5

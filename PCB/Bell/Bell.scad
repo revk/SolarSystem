@@ -1,6 +1,6 @@
 // Generated case design for Bell/Bell.kicad_pcb
 // By https://github.com/revk/PCBCase
-// Generated 2023-12-22 09:03:19
+// Generated 2023-12-22 09:12:51
 // title:	Bell box controller
 // date:	${DATE}
 // rev:	2
@@ -156,8 +156,8 @@ module m4(part=false,hole=false,block=false,height)
 // 0603 Capacitor
 if(part)
 {
-	b(0,0,0,1.6,0.95,0.2); // Pad size
 	b(0,0,0,1.6,0.8,1); // Chip
+	b(0,0,0,1.6,0.95,0.2); // Pad size
 }
 }
 
@@ -166,8 +166,8 @@ module m5(part=false,hole=false,block=false,height)
 // 0402 Capacitor
 if(part)
 {
-	b(0,0,0,1.5,0.65,0.2); // Pad size
 	b(0,0,0,1.0,0.5,1); // Chip
+	b(0,0,0,1.5,0.65,0.2); // Pad size
 }
 }
 

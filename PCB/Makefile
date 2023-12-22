@@ -15,7 +15,7 @@ Generic/Generic.scad: Generic/Generic.kicad_pcb PCBCase/case Makefile
 Bell/Bell.scad: Bell/Bell.kicad_pcb PCBCase/case Makefile
 	PCBCase/case -o $@ $< --bottom=2 --top=5.6
 Access/Access.scad: Access/Access.kicad_pcb PCBCase/case Makefile
-	PCBCase/case -o $@ $< --bottom=2 --top=6 --pcb=2 --no-hull
+	PCBCase/case -o $@ $< --bottom=2 --top=6 --pcb=2
 Output/Output.scad: Output/Output.kicad_pcb PCBCase/case Makefile
 	PCBCase/case -o $@ $< --bottom=1.4 --top=6 --pcb=2
 
