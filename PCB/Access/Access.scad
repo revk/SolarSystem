@@ -1,6 +1,6 @@
 // Generated case design for Access/Access.kicad_pcb
 // By https://github.com/revk/PCBCase
-// Generated 2023-12-22 09:15:55
+// Generated 2023-12-22 09:24:46
 // title:	Access Control
 // rev:	3
 // company:	Adrian Kennard Andrews & Arnold Ltd
@@ -223,12 +223,17 @@ if(block)
 
 module m6(part=false,hole=false,block=false,height)
 { // RevK:ESE13 ESE13V01D
+// Tamper switch
 rotate([0,0,180])translate([0,2.05,-1.15])
 {
 	if(part)
 	{
-		b(0,0,0,3.6+0.4,4.2+0.4,1.2);
-		b(0,-3.08,0,1.2+0.4,1.95+0.4,0.9);
+		b(0,0,0,3.6,4.2,1.4);
+		b(0,-3.08,0,1.2,1.95,0.9);
+	}
+	if(block)
+	{
+		b(0,-3.08,1.5,1.2+0.5,1.95+0.95,height);
 	}
 }
 
