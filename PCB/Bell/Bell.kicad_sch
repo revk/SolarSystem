@@ -1672,7 +1672,6 @@
   (no_connect (at 33.655 48.26) (uuid 4ecc110b-4bd5-474a-823b-85db186c5c7f))
   (no_connect (at 33.655 50.8) (uuid 5c5f7e36-8a99-4b2c-8c07-75c40042b35a))
   (no_connect (at 33.655 43.18) (uuid 722f4c7b-09ad-46f8-9001-21ec4dd1ff50))
-  (no_connect (at 64.135 83.82) (uuid 7caa47d6-2036-48bb-a2c5-88ec093b1bf4))
   (no_connect (at 240.03 68.58) (uuid 88c7d5e2-f657-4c27-bf5a-cc78097b99bf))
   (no_connect (at 33.655 66.04) (uuid 99d0aad7-5d6e-42c1-8602-06d4639a6320))
   (no_connect (at 33.655 71.12) (uuid c07e1dbf-bee0-4b39-95d9-3b7fdc0a9611))
@@ -4349,6 +4348,51 @@
       (project "Generic"
         (path "/babeabf2-f3b0-4ed5-8d9e-0215947e6cf3"
           (reference "R4") (unit 1)
+        )
+      )
+    )
+  )
+
+  (symbol (lib_id "power:GND") (at 64.135 83.82 90) (unit 1)
+    (in_bom yes) (on_board yes) (dnp no) (fields_autoplaced)
+    (uuid 96feea9e-5176-4736-aaed-6b8978347c48)
+    (property "Reference" "#PWR061" (at 70.485 83.82 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (property "Value" "GND" (at 67.31 83.82 90)
+      (effects (font (size 1.27 1.27)) (justify right))
+    )
+    (property "Footprint" "" (at 64.135 83.82 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (property "Datasheet" "" (at 64.135 83.82 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (pin "1" (uuid 7f0b1a9c-e88d-495c-8f16-cef1695d992d))
+    (instances
+      (project "Access"
+        (path "/2a267270-6585-45e3-a633-b53049f10066"
+          (reference "#PWR061") (unit 1)
+        )
+      )
+      (project "USBA"
+        (path "/2d210a96-f81f-42a9-8bf4-1b43c11086f3"
+          (reference "#PWR01") (unit 1)
+        )
+      )
+      (project "Faikin"
+        (path "/46c350bb-7de4-4e81-aafd-4af55e37aab0"
+          (reference "#PWR013") (unit 1)
+        )
+      )
+      (project "Bell"
+        (path "/770ad51a-7219-4633-b24a-bd20feb0a6c5"
+          (reference "#PWR08") (unit 1)
+        )
+      )
+      (project "Generic"
+        (path "/babeabf2-f3b0-4ed5-8d9e-0215947e6cf3"
+          (reference "#PWR025") (unit 1)
         )
       )
     )
