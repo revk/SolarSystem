@@ -143,7 +143,7 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <tr><td><select name=gpsrx><include var=GPIOREALPICK></select></td><td>GPIO GPS Rx</td></tr>
 <tr><td><select name=gpstick><include var=GPIOREALPICK></select></td><td>GPIO GPS Tick</td></tr>
 </if>
-<sql table=gpio where="pcb=$pcb" order=io,inittype,initname><set initinvert$gpio="$initinvert"><set initfunc$gpio="$initfunc">
+<sql table=gpio where="pcb=$pcb" order=io,initname><set initinvert$gpio="$initinvert"><set initfunc$gpio="$initfunc">
 <tr><td><input name=gpio type=hidden><select name=pin><include var=GPIONUMPICK></select></td><td><input name="initinvert$gpio" type=checkbox value=true title="Invert">
 <input name="value0$gpio" size=5 value="$value0" placeholder="0 name"><input name="value1$gpio" size=5 value="$value1" placeholder="1 name">
 <select name=io><include var=GPIOIOPICK></select>
