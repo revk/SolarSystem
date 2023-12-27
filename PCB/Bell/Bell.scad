@@ -1,6 +1,6 @@
 // Generated case design for Bell/Bell.kicad_pcb
 // By https://github.com/revk/PCBCase
-// Generated 2023-12-22 09:36:58
+// Generated 2023-12-27 08:40:37
 // title:	Bell box controller
 // date:	${DATE}
 // rev:	2
@@ -37,10 +37,10 @@ translate([23.300000,7.200000,0.800000])m0(part,hole,block,casetop,2); // J3 (ba
 translate([17.850000,23.100000,0.800000])rotate([0,0,-90.000000])m2(part,hole,block,casetop); // RevK:R_0402 R_0402_1005Metric (back)
 translate([8.650000,16.400000,0.800000])m3(part,hole,block,casetop); // U6 (back)
 translate([3.935000,6.900000,0.800000])rotate([0,0,180.000000])m4(part,hole,block,casetop); // RevK:C_0603_ C_0603_1608Metric (back)
-translate([23.650000,24.100000,0.800000])rotate([0,0,-90.000000])m2(part,hole,block,casetop); // RevK:R_0402 R_0402_1005Metric (back)
+translate([24.250000,24.100000,0.800000])rotate([0,0,-90.000000])m2(part,hole,block,casetop); // RevK:R_0402 R_0402_1005Metric (back)
 translate([25.800000,10.300000,0.800000])rotate([0,0,180.000000])m5(part,hole,block,casetop); // RevK:C_0402 C_0402_1005Metric (back)
 translate([0.735000,2.600000,0.800000])rotate([0,0,90.000000])m2(part,hole,block,casetop); // RevK:R_0402 R_0402_1005Metric (back)
-translate([23.750000,21.200000,0.800000])rotate([0,0,-90.000000])m2(part,hole,block,casetop); // RevK:R_0402 R_0402_1005Metric (back)
+translate([24.250000,21.000000,0.800000])rotate([0,0,-90.000000])m2(part,hole,block,casetop); // RevK:R_0402 R_0402_1005Metric (back)
 translate([0.735000,6.200000,0.800000])rotate([0,0,90.000000])m2(part,hole,block,casetop); // RevK:R_0402 R_0402_1005Metric (back)
 translate([0.735000,4.400000,0.800000])rotate([0,0,90.000000])m2(part,hole,block,casetop); // RevK:R_0402 R_0402_1005Metric (back)
 translate([28.000000,3.400000,0.800000])rotate([0,0,90.000000])m0(part,hole,block,casetop,2); // J3 (back)
@@ -57,17 +57,18 @@ translate([25.800000,12.800000,0.800000])rotate([0,0,180.000000])m5(part,hole,bl
 translate([25.800000,26.550000,0.800000])rotate([0,0,135.000000])m1(part,hole,block,casetop); // D9 (back)
 translate([19.400000,3.800000,0.800000])rotate([0,0,90.000000])m2(part,hole,block,casetop); // RevK:R_0402 R_0402_1005Metric (back)
 translate([16.900000,23.100000,0.800000])rotate([0,0,90.000000])m5(part,hole,block,casetop); // RevK:C_0402 C_0402_1005Metric (back)
-translate([20.350000,21.900000,0.800000])rotate([0,0,-90.000000])m7(part,hole,block,casetop); // D3 (back)
+translate([21.150000,21.700000,0.800000])rotate([0,0,90.000000])m7(part,hole,block,casetop); // D3 (back)
 translate([25.800000,22.780000,0.800000])rotate([0,0,180.000000])m5(part,hole,block,casetop); // RevK:C_0402 C_0402_1005Metric (back)
 translate([25.800000,17.780000,0.800000])rotate([0,0,180.000000])m5(part,hole,block,casetop); // RevK:C_0402 C_0402_1005Metric (back)
 translate([25.800000,25.280000,0.800000])rotate([0,0,180.000000])m5(part,hole,block,casetop); // RevK:C_0402 C_0402_1005Metric (back)
-translate([22.950000,21.200000,0.800000])rotate([0,0,90.000000])m5(part,hole,block,casetop); // RevK:C_0402 C_0402_1005Metric (back)
+translate([23.450000,21.000000,0.800000])rotate([0,0,90.000000])m5(part,hole,block,casetop); // RevK:C_0402 C_0402_1005Metric (back)
 translate([19.950000,27.100000,0.800000])rotate([0,0,-135.000000])m1(part,hole,block,casetop); // D9 (back)
 translate([4.635000,4.400000,0.800000])rotate([0,0,90.000000])m4(part,hole,block,casetop); // RevK:C_0603_ C_0603_1608Metric (back)
 translate([23.250000,25.400000,0.800000])rotate([0,0,180.000000])m5(part,hole,block,casetop); // RevK:C_0402 C_0402_1005Metric (back)
-translate([2.635000,4.400000,0.800000])rotate([0,0,90.000000])m8(part,hole,block,casetop); // RevK:SOT-23-6-MD8942 SOT-23-6 (back)
-translate([14.300000,4.400000,0.800000])translate([0.000000,-1.050000,0.000000])rotate([90.000000,-0.000000,-0.000000])m9(part,hole,block,casetop); // RevK:USB-C-Socket-H CSP-USC16-TR (back)
-translate([22.850000,24.100000,0.800000])rotate([0,0,90.000000])m5(part,hole,block,casetop); // RevK:C_0402 C_0402_1005Metric (back)
+translate([19.350000,21.700000,0.800000])rotate([0,0,-90.000000])m8(part,hole,block,casetop); // RevK:C_1206 C_1206_3216Metric (back)
+translate([2.635000,4.400000,0.800000])rotate([0,0,90.000000])m9(part,hole,block,casetop); // RevK:SOT-23-6-MD8942 SOT-23-6 (back)
+translate([14.300000,4.400000,0.800000])translate([0.000000,-1.050000,0.000000])rotate([90.000000,-0.000000,-0.000000])m10(part,hole,block,casetop); // RevK:USB-C-Socket-H CSP-USC16-TR (back)
+translate([23.450000,24.100000,0.800000])rotate([0,0,90.000000])m5(part,hole,block,casetop); // RevK:C_0402 C_0402_1005Metric (back)
 translate([23.350000,22.400000,0.800000])rotate([0,0,180.000000])m5(part,hole,block,casetop); // RevK:C_0402 C_0402_1005Metric (back)
 }
 
@@ -111,15 +112,15 @@ if(hole)
 	hull()
 	{
 		b(0,0,.8,1,1,1);
-		b(0,0,height,2,2,1);
+		translate([0,0,height])cylinder(d=2,h=1,$fn=16);
 	}
 }
 if(block)
 {
 	hull()
 	{
-		b(0,0,0,3,3,1);
-		b(0,0,height,4,4,1);
+		b(0,0,0,2,2,1);
+		translate([0,0,height])cylinder(d=4,h=1,$fn=16);
 	}
 }
 }
@@ -191,6 +192,16 @@ if(part)
 }
 
 module m8(part=false,hole=false,block=false,height)
+{ // RevK:C_1206 C_1206_3216Metric
+// 1206 Capacitor
+if(part)
+{
+	b(0,0,0,3.2,1.6,1.5); // Part
+	b(0,0,0,4.1,1.8,0.2); // Pads
+}
+}
+
+module m9(part=false,hole=false,block=false,height)
 { // RevK:SOT-23-6-MD8942 SOT-23-6
 // SOT-23-6
 if(part)
@@ -200,7 +211,7 @@ if(part)
 }
 }
 
-module m9(part=false,hole=false,block=false,height)
+module m10(part=false,hole=false,block=false,height)
 { // RevK:USB-C-Socket-H CSP-USC16-TR
 // USB connector
 rotate([-90,0,0])translate([-4.47,-3.84,0])
