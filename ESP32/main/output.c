@@ -245,7 +245,7 @@ task (void *pvParameters)
       usleep (100000);          // 100 ms (timers assume this)
 #ifndef CONFIG_REVK_BLINK_LIB
 #ifdef  CONFIG_REVK_LED_STRIP
-      revk_blinker (rgb);
+      //revk_blinker (rgb);
 #else
       revk_blinker ();
 #endif
@@ -338,7 +338,11 @@ output_boot (void)
          .flags.with_dma = true,
 #endif
       };
+<<<<<<< HEAD
       ESP_LOGE (TAG, "LED Strip %d LEDs on GPIO %d%s", rgbs, (blink[0] & 0x3F), (blink[0] & 0x40) ? " (inverted)" : "");
+=======
+      ESP_LOGE(TAG,"LED Strip %d LEDs on GPIP %d%s",rgbs,(blink[0] & 0x3F),(blink[0] & 0x40)?" (inverted)":"");
+>>>>>>> bc716b61ca0422dc8aa5a6ea75b7316e7d242585
       REVK_ERR_CHECK (led_strip_new_rmt_device (&strip_config, &rmt_config, &rgb));
       for (int i = 0; i < MAXOUTPUT; i++)
          if (powerrgb[i])
