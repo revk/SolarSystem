@@ -35,11 +35,14 @@ static uint32_t report_next = 0;        // When to report output
 led_strip_handle_t rgb = NULL;
 int rgbs = 0;
 void
-led_set (int led, uint32_t colour)
+led_set (int led, char c)
 {
    if (!rgb || led >= rgbs)
       return;
-   led_strip_set_pixel (rgb, led, (colour >> 16) & 0xFF, (colour >> 8) & 0xFF, colour & 0xFF);
+   uint8_t r = (c == 'R' ? 0xFF : c == 'M' || c == 'Y' ? 0x80 : c == 'W' ? 0x55 : 0);
+   uint8_t g = (c == 'G' ? 0xFF : c == 'C' || c == 'Y' ? 0x80 : c == 'W' ? 0x55 : 0);
+   uint8_t b = (c == 'B' ? 0xFF : c == 'C' || c == 'M' ? 0x80 : c == 'W' ? 0x55 : 0);
+   led_strip_set_pixel (rgb, led, r / 4, g / 4, b / 4); // Reduced as way too bright and hot
 }
 #endif
 
@@ -66,7 +69,7 @@ output_write (int p)
       gpio_hold_en (port_mask (out[p]));
 #ifdef  CONFIG_REVK_LED_STRIP
       if (outrgb[p])
-         led_set (outrgb[p], v ? 0xFF0000 : 0x00FF00);
+         led_set (outrgb[p], v ? 'R' : 'G');
 #endif
    }
 }
@@ -332,7 +335,7 @@ output_boot (void)
       REVK_ERR_CHECK (led_strip_new_rmt_device (&strip_config, &rmt_config, &rgb));
       for (int i = 0; i < MAXOUTPUT; i++)
          if (powerrgb[i])
-            led_set (powerrgb[i], (power[i] & PORT_INV) ? 0x0000FF : 0xFF00FF);
+            led_set (powerrgb[i], (power[i] & PORT_INV) ? 'B' : 'M');
    }
 #endif
 #endif

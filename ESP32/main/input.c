@@ -8,7 +8,7 @@ static const char TAG[] = "input";
 #include <driver/gpio.h>
 
 #ifdef  CONFIG_REVK_LED_STRIP
-void led_set (int led, uint32_t colour);
+void led_set (int led, char colour);
 #endif
 
 // Input ports
@@ -109,6 +109,11 @@ task (void *pvParameters)
    pvParameters = pvParameters;
    int poll = (inpoll ? : 1);
    static uint8_t input_hold[MAXINPUT] = { 0 };
+#ifdef  CONFIG_REVK_LED_STRIP
+   for (int i = 0; i < MAXINPUT; i++)
+      if (inrgb[i])
+         led_set (inrgb[i], (1ULL << i) & input_raw ? 'R' : 'G');
+#endif
    // Scan inputs
    while (1)
    {
@@ -145,7 +150,7 @@ task (void *pvParameters)
                {
 #ifdef  CONFIG_REVK_LED_STRIP
                   if (inrgb[i])
-                     led_set (inrgb[i], v ? 0xFF0000 : 0x00FF00);
+                     led_set (inrgb[i], v ? 'R' : 'G');
 #endif
                   input_stable = ((input_stable & ~(1ULL << i)) | ((input_t) v << i));
                   if (v)
