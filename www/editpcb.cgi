@@ -75,7 +75,7 @@ if($?pcbname) then # save
 			setenv v1 `printenv "value1$n"`
 			if("$v1" == "")setenv v1 High
 			if("$invert" == "") setenv invert false
-			@ changed = $changed + `sql -c "$DB" 'UPDATE gpio SET pin="$g",io="$t",initfunc="$initfunc",led=$rgb,inittype="$i",initname="$name",inithold=$hold,initpulse=$pulse,initinvert="$invert",value0="$v0",value1="$v1" WHERE gpio="$n" AND pcb="$pcb" AND (pin<>"$g" OR io<>"$t" OR inittype<>"$i" OR inittype<>"$f" OR initname<>"$name" OR inithold<>$hold OR initpulse<>$pulse OR rgb<>$rgb OR initinvert<>"$invert" OR value0<>"$v0" OR value1<>"$v1")'`
+			@ changed = $changed + `sql -c "$DB" 'UPDATE gpio SET pin="$g",io="$t",initfunc="$initfunc",rgb=$led,inittype="$i",initname="$name",inithold=$hold,initpulse=$pulse,initinvert="$invert",value0="$v0",value1="$v1" WHERE gpio="$n" AND pcb="$pcb" AND (pin<>"$g" OR io<>"$t" OR inittype<>"$i" OR inittype<>"$f" OR initname<>"$name" OR inithold<>$hold OR initpulse<>$pulse OR rgb<>$led OR initinvert<>"$invert" OR value0<>"$v0" OR value1<>"$v1")'`
 		endif
 	endif
 	setenv set "$set,$n"
