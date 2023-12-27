@@ -6,10 +6,11 @@ extern pn532_t *pn532;
 extern df_t df;
 extern SemaphoreHandle_t nfc_mutex;
 
-extern const char *nfc_led(int len, const void *value);
-extern void nfc_retry(void);
+extern const char *nfc_led (int len, const void *value);
+extern void nfc_retry (void);
 
-typedef struct {
+typedef struct
+{
    char id[21];                 // Initial card ID (insecure), hex null terminated
    char name[16];               // Name from fob
    char sms[21];                // Number on fob

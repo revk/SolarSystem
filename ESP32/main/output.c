@@ -3,6 +3,7 @@
 static const char TAG[] = "output";
 #include "SS.h"
 #include "output.h"
+#include "input.h"
 
 #include <driver/gpio.h>
 
@@ -275,6 +276,11 @@ output_boot (void)
     gpio_config_t c = { mode:GPIO_MODE_OUTPUT };
       int i,
         p;
+#ifdef	CONFIG_REVK_LED_STRIP
+      for (i = 0; i < MAXINPUT; i++)
+         if (inrgb[i] > rgbs)
+            rgbs = inrgb[i];
+#endif
       for (i = 0; i < MAXOUTPUT; i++)
       {
 #ifdef	CONFIG_REVK_LED_STRIP
@@ -332,6 +338,7 @@ output_boot (void)
          .flags.with_dma = true,
 #endif
       };
+      ESP_LOGE (TAG, "LED Strip %d LEDs on GPIO %d%s", rgbs, (blink[0] & 0x3F), (blink[0] & 0x40) ? " (inverted)" : "");
       REVK_ERR_CHECK (led_strip_new_rmt_device (&strip_config, &rmt_config, &rgb));
       for (int i = 0; i < MAXOUTPUT; i++)
          if (powerrgb[i])

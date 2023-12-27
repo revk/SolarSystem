@@ -8,16 +8,17 @@ extern input_t input_stable;    // holds current input state
 extern input_t input_latch;     // inputs have changed state to on at some point
 extern input_t input_flip;      // inputs have changed state at some point
 extern char *inname[MAXINPUT];
+extern uint8_t inrgb[MAXINPUT]; // LED colours
 #define i(t,x,c) extern area_t in##x[MAXINPUT];
 #include "states.m"
 
-void input_set(int p, int v);
-int input_get(int p);
-int input_active(int p);
+void input_set (int p, int v);
+int input_get (int p);
+int input_active (int p);
 
-int input_func_active(uint8_t); // Does a function exist at all (expected to be one bit set)
-int input_func_all(uint8_t);    // Are all inputs for a function set (expected to be one bit set)
-const char *input_func_any(uint8_t);    // Are any inputs for a function set (expected to be one bit set) (returns input name)
+int input_func_active (uint8_t);        // Does a function exist at all (expected to be one bit set)
+int input_func_all (uint8_t);   // Are all inputs for a function set (expected to be one bit set)
+const char *input_func_any (uint8_t);   // Are any inputs for a function set (expected to be one bit set) (returns input name)
 
 #define	INPUT_FUNCS	"EOLDMP"
 #define	INPUT_FUNC_E	0x80    // Exit pressed

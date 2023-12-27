@@ -3,13 +3,10 @@
 static const char TAG[] = "input";
 #include "SS.h"
 #include "input.h"
+#include "output.h"
 #include "alarm.h"
 
 #include <driver/gpio.h>
-
-#ifdef  CONFIG_REVK_LED_STRIP
-void led_set (int led, char colour);
-#endif
 
 // Input ports
 #define	BITFIELDS "-"
@@ -17,7 +14,7 @@ void led_set (int led, char colour);
 #define	port_mask(p) ((p)&63)
 static uint8_t in[MAXINPUT];
 static uint8_t inhold[MAXINPUT];        // Time held left for debounce
-static uint8_t inrgb[MAXINPUT]; // Input RGB LED number
+uint8_t inrgb[MAXINPUT];        // Input RGB LED number
 static uint8_t intime[MAXINPUT];        // Time active so far
 static uint8_t infunc[MAXINPUT];        // Input functions
 static uint8_t inputfuncs;      // Combined input funcs

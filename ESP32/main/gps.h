@@ -5,4 +5,4 @@ extern uint8_t gpstime;         // Time
 extern uint8_t gpsfixed;        // Location
 extern uint8_t gpslocked;       // Remote time from GPS
 extern double gpslat,
- gpslon;                        // Where
+  gpslon;                       // Where
