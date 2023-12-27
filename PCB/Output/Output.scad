@@ -1,6 +1,6 @@
 // Generated case design for Output/Output.kicad_pcb
 // By https://github.com/revk/PCBCase
-// Generated 2023-12-27 08:18:32
+// Generated 2023-12-27 08:44:31
 // title:	PCB-OUTPUT
 // rev:	1
 // company:	Adrian Kennard, Andrews & Arnold Ltd
@@ -127,24 +127,23 @@ module m2(part=false,hole=false,block=false,height)
 // 1x1mm LED
 if(part)
 {
-	b(0,0,0,1,1,.8);
+        b(0,0,0,1,1,.8);
 }
 if(hole)
 {
-	hull()
-	{
-		b(0,0,.8,1,1,1);
-		translate([0,0,height])cylinder(d=2,h=1,$fn=8);
-		b(0,0,height,2,2,1);
-	}
+        hull()
+        {
+                b(0,0,.8,1,1,1);
+                translate([0,0,height])cylinder(d=2,h=1,$fn=16);
+        }
 }
 if(block)
 {
-	hull()
-	{
-		b(0,0,0,3,3,1);
-		translate([0,0,height])cylinder(d=4,h=1,$fn=8);
-	}
+        hull()
+        {
+                b(0,0,0,2,2,1);
+                translate([0,0,height])cylinder(d=4,h=1,$fn=16);
+        }
 }
 }
 

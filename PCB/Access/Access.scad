@@ -1,6 +1,6 @@
 // Generated case design for Access/Access.kicad_pcb
 // By https://github.com/revk/PCBCase
-// Generated 2023-12-27 08:39:11
+// Generated 2023-12-27 08:42:24
 // title:	Access Control
 // rev:	3
 // company:	Adrian Kennard Andrews & Arnold Ltd
@@ -89,16 +89,16 @@ translate([39.000000,5.400000,1.200000])rotate([0,0,90.000000])m4(part,hole,bloc
 translate([0.700000,13.100000,1.200000])rotate([0,0,-90.000000])m3(part,hole,block,casetop); // RevK:C_0402 C_0402_1005Metric (back)
 translate([16.750000,15.200000,1.200000])rotate([0,0,-90.000000])m4(part,hole,block,casetop); // RevK:R_0402 R_0402_1005Metric (back)
 translate([39.000000,15.200000,1.200000])rotate([0,0,45.000000])m5(part,hole,block,casetop); // D16 (back)
-// Missing model U3.1 SO-4_4.4x4.3mm_P2.54mm
+translate([37.800000,10.200000,1.200000])m15(part,hole,block,casetop); // U3 (back)
 translate([42.400000,13.400000,1.200000])rotate([0,0,180.000000])m14(part,hole,block,casetop); // D19 (back)
 translate([4.056250,2.600000,1.200000])rotate([0,0,180.000000])m11(part,hole,block,casetop); // RevK:SOT-23-6-MD8942 SOT-23-6 (back)
 translate([5.700000,13.100000,1.200000])rotate([0,0,-90.000000])m3(part,hole,block,casetop); // RevK:C_0402 C_0402_1005Metric (back)
 translate([19.150000,15.150000,1.200000])rotate([0,0,-90.000000])m4(part,hole,block,casetop); // RevK:R_0402 R_0402_1005Metric (back)
-translate([27.500000,8.200000,1.200000])rotate([0,0,180.000000])m15(part,hole,block,casetop); // U10 (back)
+translate([27.500000,8.200000,1.200000])rotate([0,0,180.000000])m16(part,hole,block,casetop); // U10 (back)
 translate([12.101000,15.200000,1.200000])rotate([0,0,45.000000])m5(part,hole,block,casetop); // D16 (back)
 translate([6.600000,13.100000,1.200000])rotate([0,0,-90.000000])m4(part,hole,block,casetop); // RevK:R_0402 R_0402_1005Metric (back)
 translate([8.350000,15.200000,1.200000])rotate([0,0,-90.000000])m3(part,hole,block,casetop); // RevK:C_0402 C_0402_1005Metric (back)
-// Missing model U8.1 SO-4_4.4x4.3mm_P2.54mm
+translate([44.800000,10.200000,1.200000])rotate([0,0,90.000000])m15(part,hole,block,casetop); // U3 (back)
 translate([45.900000,15.200000,1.200000])rotate([0,0,45.000000])m5(part,hole,block,casetop); // D16 (back)
 translate([12.400000,13.400000,1.200000])rotate([0,0,-90.000000])m3(part,hole,block,casetop); // RevK:C_0402 C_0402_1005Metric (back)
 translate([14.601000,15.200000,1.200000])rotate([0,0,45.000000])m5(part,hole,block,casetop); // D16 (back)
@@ -112,7 +112,7 @@ translate([10.700000,13.100000,1.200000])rotate([0,0,-90.000000])m3(part,hole,bl
 translate([4.056250,0.700000,1.200000])rotate([0,0,180.000000])m4(part,hole,block,casetop); // RevK:R_0402 R_0402_1005Metric (back)
 }
 
-parts_top=18;
+parts_top=20;
 // Parts to go on PCB (bottom)
 module parts_bottom(part=false,hole=false,block=false){
 }
@@ -201,23 +201,23 @@ module m5(part=false,hole=false,block=false,height)
 // 1x1mm LED
 if(part)
 {
-	b(0,0,0,1,1,.8);
+        b(0,0,0,1,1,.8);
 }
 if(hole)
 {
-	hull()
-	{
-		b(0,0,.8,1,1,1);
-		translate([0,0,height])cylinder(d=2,h=1,$fn=16);
-	}
+        hull()
+        {
+                b(0,0,.8,1,1,1);
+                translate([0,0,height])cylinder(d=2,h=1,$fn=16);
+        }
 }
 if(block)
 {
-	hull()
-	{
-		b(0,0,0,2,2,1);
-		translate([0,0,height])cylinder(d=4,h=1,$fn=16);
-	}
+        hull()
+        {
+                b(0,0,0,2,2,1);
+                translate([0,0,height])cylinder(d=4,h=1,$fn=16);
+        }
 }
 }
 
@@ -351,6 +351,16 @@ if(part)
 }
 
 module m15(part=false,hole=false,block=false,height)
+{ // U3
+// SO-4_4.4x4.3mm_P2.54mm 
+if(part)
+{
+	b(0,0,0,4.6,4.5,2.2); // Part
+	b(0,0,0,6.8,3.34,1.5); // Pins
+}
+}
+
+module m16(part=false,hole=false,block=false,height)
 { // U10
 // ESP32-S3-MINI-1
 translate([-15.4/2,-15.45/2,0])
