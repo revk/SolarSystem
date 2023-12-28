@@ -20,6 +20,7 @@ static uint8_t outrgb[MAXOUTPUT];       // Output RGB LED number
 static uint8_t outfunc[MAXOUTPUT];      // Output function codes
 static uint8_t outputfuncs;     // Combined outputs of all
 static uint8_t outputfuncset;   // Logical state of output funcs
+static uint8_t rgbs = 0;
 
 #define i(t,x,c) area_t out##x[MAXOUTPUT];
 #define s(t,x,c) area_t out##x[MAXOUTPUT];
@@ -34,7 +35,6 @@ static uint32_t report_next = 0;        // When to report output
 
 #ifdef	CONFIG_REVK_LED_STRIP
 led_strip_handle_t rgb = NULL;
-int rgbs = 0;
 void
 led_set (int led, char c)
 {
@@ -256,6 +256,7 @@ task (void *pvParameters)
 void
 output_boot (void)
 {
+   revk_register ("rgbs", 0, sizeof (rgbs), &rgbs, NULL, 0);
    revk_register ("out", MAXOUTPUT, sizeof (*out), &out, BITFIELDS, SETTING_BITFIELD | SETTING_SET | SETTING_SECRET);
    revk_register ("outgpio", MAXOUTPUT, sizeof (*out), &out, BITFIELDS, SETTING_BITFIELD | SETTING_SET);
    revk_register ("outfunc", MAXOUTPUT, sizeof (*outfunc), &outfunc, OUTPUT_FUNCS, SETTING_BITFIELD | SETTING_LIVE);
@@ -276,19 +277,8 @@ output_boot (void)
     gpio_config_t c = { mode:GPIO_MODE_OUTPUT };
       int i,
         p;
-#ifdef	CONFIG_REVK_LED_STRIP
-      for (i = 0; i < MAXINPUT; i++)
-         if (inrgb[i] > rgbs)
-            rgbs = inrgb[i];
-#endif
       for (i = 0; i < MAXOUTPUT; i++)
       {
-#ifdef	CONFIG_REVK_LED_STRIP
-         if (outrgb[i] > rgbs)
-            rgbs = outrgb[i];
-         if (powerrgb[i] > rgbs)
-            rgbs = powerrgb[i];
-#endif
          if (out[i])
          {
             const char *e = port_check (p = port_mask (out[i]), TAG, 0);
@@ -320,13 +310,12 @@ output_boot (void)
    }
 #ifdef  CONFIG_REVK_LED_STRIP
 #ifndef CONFIG_REVK_BLINK_LIB
-   rgbs++;
    extern uint8_t blink[3];     // 0x80 for set, 0x40 for invert
    if (blink[0] && blink[0] == blink[1])
    {
       led_strip_config_t strip_config = {
          .strip_gpio_num = (blink[0] & 0x3F),
-         .max_leds = rgbs,      // The number of LEDs in the strip,
+         .max_leds = rgbs ? : 1,        // The number of LEDs in the strip,
          .led_pixel_format = LED_PIXEL_FORMAT_GRB,      // Pixel format of your LED strip
          .led_model = LED_MODEL_WS2812, // LED strip model
          .flags.invert_out = ((blink[0] & 0x40) ? 1 : 0),       // whether to invert the output signal (useful when your hardware has a level inverter)

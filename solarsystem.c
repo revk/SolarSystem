@@ -537,6 +537,7 @@ settings (SQL * sqlp, SQL_RES * res, slot_t id)
          SQL_RES *g = sql_safe_query_store_f (sqlp,
                                               "SELECT * FROM `devicegpio` LEFT JOIN `gpio` USING (`gpio`) WHERE `device`=%#s AND `pcb`=%d ORDER BY `initname`",
                                               sql_col (res, "device"), atoi (sql_colz (res, "pcb")));
+         int rgbs = 0;
          while (sql_fetch_row (g))
          {
             const char *type = sql_colz (g, "type");
@@ -592,7 +593,11 @@ settings (SQL * sqlp, SQL_RES * res, slot_t id)
                   }
                   int rgb = atoi (sql_colz (g, "rgb"));
                   if (rgb)
+                  {
                      j_store_int (gpio, "rgb", rgb);
+                     if (rgb > rgbs)
+                        rgbs = rgb;
+                  }
                }
             }
          }
@@ -607,6 +612,7 @@ settings (SQL * sqlp, SQL_RES * res, slot_t id)
             if (j_isnull (j_index (power, i)))
                j_object (j_index (power, i));
          sql_free_result (g);
+         j_store_int (j, "rgbs", rgbs + 1);
       }
    }
    if (!j_isnull (j))

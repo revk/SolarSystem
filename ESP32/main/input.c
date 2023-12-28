@@ -14,7 +14,7 @@ static const char TAG[] = "input";
 #define	port_mask(p) ((p)&63)
 static uint8_t in[MAXINPUT];
 static uint8_t inhold[MAXINPUT];        // Time held left for debounce
-uint8_t inrgb[MAXINPUT];        // Input RGB LED number
+static uint8_t inrgb[MAXINPUT]; // Input RGB LED number
 static uint8_t intime[MAXINPUT];        // Time active so far
 static uint8_t infunc[MAXINPUT];        // Input functions
 static uint8_t inputfuncs;      // Combined input funcs
@@ -108,8 +108,11 @@ task (void *pvParameters)
    static uint8_t input_hold[MAXINPUT] = { 0 };
 #ifdef  CONFIG_REVK_LED_STRIP
    for (int i = 0; i < MAXINPUT; i++)
+   {
+      ESP_LOGE (TAG, "Input %d LED %d", i, inrgb[i]);
       if (inrgb[i])
          led_set (inrgb[i], (1ULL << i) & input_raw ? 'R' : 'G');
+   }
 #endif
    // Scan inputs
    while (1)
