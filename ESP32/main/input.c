@@ -109,7 +109,7 @@ task (void *pvParameters)
 #ifdef  CONFIG_REVK_LED_STRIP
    for (int i = 0; i < MAXINPUT; i++)
       if (inrgb[i])
-         led_set (inrgb[i], (1ULL << i) & input_raw ? 'R' : 'G');
+         led_set (inrgb[i], (1ULL << i) & input_raw ? 'G' : 'R');
 #endif
    // Scan inputs
    while (1)
@@ -147,7 +147,7 @@ task (void *pvParameters)
                {
 #ifdef  CONFIG_REVK_LED_STRIP
                   if (inrgb[i])
-                     led_set (inrgb[i], v ? 'R' : 'G');
+                     led_set (inrgb[i], v ? 'G' : 'R');
 #endif
                   input_stable = ((input_stable & ~(1ULL << i)) | ((input_t) v << i));
                   if (v)
