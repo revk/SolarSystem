@@ -1,4 +1,4 @@
-#!../login/loggedin /bin/csh -f
+#!../login/loggedin /bin/csh -fx
 can --redirect admin
 if($status) exit 0
 source ../setcan
@@ -61,7 +61,7 @@ if($?pcbname) then # save
 		endif
 	else
 		if("$g" == "-") then
-			@ changed = $changed + `sql -c "$DB" 'DELETE FROM gpio WHERE gpio="$n" AND pcb="$pcb"'`
+			@ changed = $changed + `sql -ct "$DB" 'DELETE FROM devicegpio WHERE gpio="$n"' 'DELETE FROM gpio WHERE gpio="$n" AND pcb="$pcb"'`
 		else
 			setenv name `printenv "initname$n"`
 			setenv hold `printenv "inithold$n"`
