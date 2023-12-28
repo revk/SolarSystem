@@ -245,7 +245,7 @@ task (void *pvParameters)
       usleep (100000);          // 100 ms (timers assume this)
 #ifndef CONFIG_REVK_BLINK_LIB
 #ifdef  CONFIG_REVK_LED_STRIP
-      //revk_blinker (rgb);
+      revk_blinker (rgb);
 #else
       revk_blinker ();
 #endif
