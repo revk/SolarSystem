@@ -108,11 +108,8 @@ task (void *pvParameters)
    static uint8_t input_hold[MAXINPUT] = { 0 };
 #ifdef  CONFIG_REVK_LED_STRIP
    for (int i = 0; i < MAXINPUT; i++)
-   {
-      ESP_LOGE (TAG, "Input %d LED %d", i, inrgb[i]);
       if (inrgb[i])
          led_set (inrgb[i], (1ULL << i) & input_raw ? 'R' : 'G');
-   }
 #endif
    // Scan inputs
    while (1)

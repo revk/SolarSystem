@@ -38,7 +38,7 @@ led_strip_handle_t rgb = NULL;
 void
 led_set (int led, char c)
 {
-   if (!rgb || led >= rgbs)
+   if (!rgb || led > rgbs)
       return;
    uint8_t r = (c == 'R' ? 0xFF : c == 'M' || c == 'Y' ? 0x80 : c == 'W' ? 0x55 : 0);
    uint8_t g = (c == 'G' ? 0xFF : c == 'C' || c == 'Y' ? 0x80 : c == 'W' ? 0x55 : 0);
@@ -315,7 +315,7 @@ output_boot (void)
    {
       led_strip_config_t strip_config = {
          .strip_gpio_num = (blink[0] & 0x3F),
-         .max_leds = rgbs ? : 1,        // The number of LEDs in the strip,
+         .max_leds = rgbs + 1,  // The number of LEDs in the strip,
          .led_pixel_format = LED_PIXEL_FORMAT_GRB,      // Pixel format of your LED strip
          .led_model = LED_MODEL_WS2812, // LED strip model
          .flags.invert_out = ((blink[0] & 0x40) ? 1 : 0),       // whether to invert the output signal (useful when your hardware has a level inverter)

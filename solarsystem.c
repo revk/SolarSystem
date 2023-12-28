@@ -612,7 +612,8 @@ settings (SQL * sqlp, SQL_RES * res, slot_t id)
             if (j_isnull (j_index (power, i)))
                j_object (j_index (power, i));
          sql_free_result (g);
-         j_store_int (j, "rgbs", rgbs + 1);
+         if (rgbs)
+            j_store_int (j, "rgbs", rgbs);
       }
    }
    if (!j_isnull (j))
