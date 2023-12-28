@@ -1,6 +1,6 @@
 // Generated case design for Output/Output.kicad_pcb
 // By https://github.com/revk/PCBCase
-// Generated 2023-12-28 11:00:16
+// Generated 2023-12-28 15:52:52
 // title:	PCB-OUTPUT
 // rev:	1
 // company:	Adrian Kennard, Andrews & Arnold Ltd
@@ -213,16 +213,17 @@ rotate([-90,0,0])translate([-4.47,-3.84,0])
 {
 	if(part)
 	{
-		translate([1.63,0,1.63])
+		b(4.47,7,0,7,2,0.2);	// Pads
+		translate([1.63,-0.2,1.63])
 		rotate([-90,0,0])
 		hull()
 		{
-			cylinder(d=3.26,h=7.75,$fn=24);
+			cylinder(d=3.26,h=7.55,$fn=24);
 			translate([5.68,0,0])
-			cylinder(d=3.26,h=7.75,$fn=24);
+			cylinder(d=3.26,h=7.55,$fn=24);
 		}
-		translate([0,6.65,0])cube([8.94,1.1,1.63]);
-		translate([0,2.2,0])cube([8.94,1.6,1.63]);
+		translate([0,6.25,0])cube([8.94,1.1,1.63]);
+		translate([0,1.7,0])cube([8.94,1.6,1.63]);
 	}
 	if(hole)
 	{
@@ -245,7 +246,6 @@ rotate([-90,0,0])translate([-4.47,-3.84,0])
 		}
 	}
 }
-
 }
 
 module m9(part=false,hole=false,block=false,height)

@@ -1,6 +1,6 @@
 // Generated case design for Access/Access.kicad_pcb
 // By https://github.com/revk/PCBCase
-// Generated 2023-12-28 15:42:46
+// Generated 2023-12-28 15:50:45
 // title:	Access Control
 // rev:	3
 // company:	Adrian Kennard Andrews & Arnold Ltd
@@ -60,7 +60,6 @@ translate([0.850000,15.150000,1.200000])rotate([0,0,-90.000000])m3(part,hole,blo
 translate([15.000000,13.400000,1.200000])rotate([0,0,-90.000000])m3(part,hole,block,casetop); // RevK:C_0402 C_0402_1005Metric (back)
 translate([4.601000,15.200000,1.200000])rotate([0,0,45.000000])m5(part,hole,block,casetop); // D16 (back)
 translate([7.400000,13.400000,1.200000])rotate([0,0,-90.000000])m3(part,hole,block,casetop); // RevK:C_0402 C_0402_1005Metric (back)
-translate([49.550000,2.050000,1.200000])rotate([0,0,90.000000])m3(part,hole,block,casetop); // RevK:C_0402 C_0402_1005Metric (back)
 translate([13.750000,5.550000,1.200000])rotate([0,0,90.000000])m7(part,hole,block,casetop); // RevK:C_0603_ C_0603_1608Metric (back)
 translate([35.800000,4.800000,1.200000])rotate([0,0,90.000000])m3(part,hole,block,casetop); // RevK:C_0402 C_0402_1005Metric (back)
 translate([11.250000,4.850000,1.200000])m7(part,hole,block,casetop); // RevK:C_0603_ C_0603_1608Metric (back)
@@ -68,10 +67,8 @@ translate([4.900000,13.425000,1.200000])rotate([0,0,-90.000000])m3(part,hole,blo
 translate([5.850000,15.200000,1.200000])rotate([0,0,-90.000000])m3(part,hole,block,casetop); // RevK:C_0402 C_0402_1005Metric (back)
 translate([6.556250,4.100000,1.200000])rotate([0,0,-90.000000])m7(part,hole,block,casetop); // RevK:C_0603_ C_0603_1608Metric (back)
 translate([39.050000,17.257500,1.200000])rotate([0,0,180.000000])m1(part,hole,block,casetop,2); // J6 (back)
-translate([47.750000,-0.500000,1.200000])m3(part,hole,block,casetop); // RevK:C_0402 C_0402_1005Metric (back)
 translate([2.256250,0.700000,1.200000])rotate([0,0,180.000000])m4(part,hole,block,casetop); // RevK:R_0402 R_0402_1005Metric (back)
 translate([11.600000,13.100000,1.200000])rotate([0,0,-90.000000])m4(part,hole,block,casetop); // RevK:R_0402 R_0402_1005Metric (back)
-translate([47.150000,6.900000,1.200000])m3(part,hole,block,casetop); // RevK:C_0402 C_0402_1005Metric (back)
 translate([3.350000,15.200000,1.200000])rotate([0,0,-90.000000])m3(part,hole,block,casetop); // RevK:C_0402 C_0402_1005Metric (back)
 translate([5.856250,0.700000,1.200000])rotate([0,0,180.000000])m4(part,hole,block,casetop); // RevK:R_0402 R_0402_1005Metric (back)
 translate([9.601000,15.200000,1.200000])rotate([0,0,45.000000])m5(part,hole,block,casetop); // D16 (back)
@@ -105,7 +102,6 @@ translate([44.800000,10.200000,1.200000])rotate([0,0,90.000000])m15(part,hole,bl
 translate([45.900000,15.200000,1.200000])rotate([0,0,45.000000])m5(part,hole,block,casetop); // D16 (back)
 translate([12.400000,13.400000,1.200000])rotate([0,0,-90.000000])m3(part,hole,block,casetop); // RevK:C_0402 C_0402_1005Metric (back)
 translate([14.601000,15.200000,1.200000])rotate([0,0,45.000000])m5(part,hole,block,casetop); // D16 (back)
-translate([49.550000,6.300000,1.200000])rotate([0,0,90.000000])m3(part,hole,block,casetop); // RevK:C_0402 C_0402_1005Metric (back)
 translate([11.250000,2.250000,1.200000])rotate([-0.000000,-0.000000,-90.000000])m8(part,hole,block,casetop); // RevK:L_4x4_ TYA4020 (back)
 translate([8.750000,5.550000,1.200000])rotate([0,0,90.000000])m7(part,hole,block,casetop); // RevK:C_0603_ C_0603_1608Metric (back)
 translate([1.600000,13.100000,1.200000])rotate([0,0,-90.000000])m4(part,hole,block,casetop); // RevK:R_0402 R_0402_1005Metric (back)
@@ -269,7 +265,8 @@ rotate([-90,0,0])translate([-4.47,-3.84,0])
 {
 	if(part)
 	{
-		translate([1.63,0,1.63])
+		b(4.47,7,0,7,2,0.2);	// Pads
+		translate([1.63,-0.2,1.63])
 		rotate([-90,0,0])
 		hull()
 		{
@@ -277,8 +274,8 @@ rotate([-90,0,0])translate([-4.47,-3.84,0])
 			translate([5.68,0,0])
 			cylinder(d=3.26,h=7.55,$fn=24);
 		}
-		translate([0,6.65,0])cube([8.94,1.1,1.63]);
-		translate([0,2.2,0])cube([8.94,1.6,1.63]);
+		translate([0,6.25,0])cube([8.94,1.1,1.63]);
+		translate([0,1.7,0])cube([8.94,1.6,1.63]);
 	}
 	if(hole)
 	{
@@ -301,7 +298,6 @@ rotate([-90,0,0])translate([-4.47,-3.84,0])
 		}
 	}
 }
-
 }
 
 module m10(part=false,hole=false,block=false,height)
