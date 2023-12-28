@@ -1,6 +1,6 @@
 // Generated case design for Generic/Generic.kicad_pcb
 // By https://github.com/revk/PCBCase
-// Generated 2023-12-27 09:13:02
+// Generated 2023-12-28 10:59:13
 // title:	PCB-GENERIC-GPS
 // rev:	5
 // company:	Adrian Kennard Andrews & Arnold Ltd
@@ -333,7 +333,7 @@ module top_cut()
 			minkowski()
 			{
 				top_side_hole();
-				cylinder(d=margin,h=height,$fn=4);
+				rotate([0,0,45])cylinder(r=margin,h=height,$fn=4);
 			}
 		}
 	}
@@ -347,7 +347,7 @@ module top_cut()
 			minkowski()
 			{
 				bottom_side_hole();
-				translate([0,0,-height])cylinder(d=margin,h=height,$fn=4);
+				rotate([0,0,45])translate([0,0,-height])cylinder(r=margin,h=height,$fn=4);
 			}
 	}
 }

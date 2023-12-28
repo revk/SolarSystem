@@ -1,6 +1,6 @@
 // Generated case design for Access/Access.kicad_pcb
 // By https://github.com/revk/PCBCase
-// Generated 2023-12-28 10:52:51
+// Generated 2023-12-28 15:38:28
 // title:	Access Control
 // rev:	3
 // company:	Adrian Kennard Andrews & Arnold Ltd
@@ -37,6 +37,7 @@ translate([8.350000,17.257500,1.200000])rotate([0,0,180.000000])m2(part,hole,blo
 translate([10.850000,15.200000,1.200000])rotate([0,0,-90.000000])m3(part,hole,block,casetop); // RevK:C_0402 C_0402_1005Metric (back)
 translate([37.500000,6.800000,1.200000])rotate([0,0,90.000000])m4(part,hole,block,casetop); // RevK:R_0402 R_0402_1005Metric (back)
 translate([7.101000,15.200000,1.200000])rotate([0,0,45.000000])m5(part,hole,block,casetop); // D16 (back)
+translate([48.100000,-0.800000,1.200000])m3(part,hole,block,casetop); // RevK:C_0402 C_0402_1005Metric (back)
 translate([16.900000,6.400000,1.200000])rotate([0,0,90.000000])translate([2.050000,0.000000,1.150000])rotate([-0.000000,-0.000000,-90.000000])m6(part,hole,block,casetop); // RevK:ESE13 ESE13V01D (back)
 translate([9.100000,13.100000,1.200000])rotate([0,0,-90.000000])m4(part,hole,block,casetop); // RevK:R_0402 R_0402_1005Metric (back)
 translate([13.200000,13.100000,1.200000])rotate([0,0,-90.000000])m3(part,hole,block,casetop); // RevK:C_0402 C_0402_1005Metric (back)
@@ -89,6 +90,7 @@ translate([39.000000,5.400000,1.200000])rotate([0,0,90.000000])m4(part,hole,bloc
 translate([0.700000,13.100000,1.200000])rotate([0,0,-90.000000])m3(part,hole,block,casetop); // RevK:C_0402 C_0402_1005Metric (back)
 translate([16.750000,15.200000,1.200000])rotate([0,0,-90.000000])m4(part,hole,block,casetop); // RevK:R_0402 R_0402_1005Metric (back)
 translate([39.000000,15.200000,1.200000])rotate([0,0,45.000000])m5(part,hole,block,casetop); // D16 (back)
+translate([47.300000,7.250000,1.200000])m3(part,hole,block,casetop); // RevK:C_0402 C_0402_1005Metric (back)
 translate([37.800000,10.200000,1.200000])m15(part,hole,block,casetop); // U3 (back)
 translate([42.400000,13.400000,1.200000])rotate([0,0,180.000000])m14(part,hole,block,casetop); // D19 (back)
 translate([4.056250,2.600000,1.200000])rotate([0,0,180.000000])m11(part,hole,block,casetop); // RevK:SOT-23-6-MD8942 SOT-23-6 (back)

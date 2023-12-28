@@ -1,6 +1,6 @@
 // Generated case design for GPS/GPS.kicad_pcb
 // By https://github.com/revk/PCBCase
-// Generated 2023-12-27 09:12:57
+// Generated 2023-12-28 10:59:08
 // title:	GPS reference
 // date:	${DATE}
 // rev:	5
@@ -31,19 +31,40 @@ pcbwidth=36.000000;
 pcblength=36.000000;
 // Parts to go on PCB (top)
 module parts_top(part=false,hole=false,block=false){
-// Missing model U1.1 L86-M33
+translate([18.000000,18.000000,1.600000])rotate([0,0,-90.000000])m0(part,hole,block,casetop); // U1 (back)
 }
 
-parts_top=0;
+parts_top=1;
 // Parts to go on PCB (bottom)
 module parts_bottom(part=false,hole=false,block=false){
-// Missing model BT1.1 BatteryHolder_Keystone_3034_1x20mm (back)
-translate([18.000000,8.130000,0.000000])rotate([0,0,180.000000])rotate([180,0,0])m0(part,hole,block,casebottom,5); // J1
+translate([18.000000,21.000000,0.000000])rotate([0,0,180.000000])rotate([180,0,0])rotate([-0.000000,-0.000000,-180.000000])m1(part,hole,block,casebottom); // RevK:Battery-Holder-2032 BatteryHolder_Keystone_3034_1x20mm
+translate([18.000000,8.130000,0.000000])rotate([0,0,180.000000])rotate([180,0,0])m2(part,hole,block,casebottom,5); // J1
 }
 
 parts_bottom=1;
 module b(cx,cy,z,w,l,h){translate([cx-w/2,cy-l/2,z])cube([w,l,h]);}
-module m0(part=false,hole=false,block=false,height,N=0)
+module m0(part=false,hole=false,block=false,height)
+{ // U1
+rotate([90,0,0])
+{
+	if(part)
+	{
+		b(0,0,0,18.4,18.4,6.95);
+	}
+}
+	
+}
+
+module m1(part=false,hole=false,block=false,height)
+{ // RevK:Battery-Holder-2032 BatteryHolder_Keystone_3034_1x20mm
+if(part)
+{
+	b(0,-0.2,0,22.9,15.5,4.2);
+	cylinder(d=20,h=3.2);
+}
+}
+
+module m2(part=false,hole=false,block=false,height,N=0)
 { // J1
 // Plug on PCB
 if(part)
@@ -171,7 +192,7 @@ module top_cut()
 			minkowski()
 			{
 				top_side_hole();
-				cylinder(d=margin,h=height,$fn=4);
+				rotate([0,0,45])cylinder(r=margin,h=height,$fn=4);
 			}
 		}
 	}
@@ -185,7 +206,7 @@ module top_cut()
 			minkowski()
 			{
 				bottom_side_hole();
-				translate([0,0,-height])cylinder(d=margin,h=height,$fn=4);
+				rotate([0,0,45])translate([0,0,-height])cylinder(r=margin,h=height,$fn=4);
 			}
 	}
 }
