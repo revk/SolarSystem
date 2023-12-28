@@ -1,4 +1,4 @@
-#!../login/loggedin /bin/csh -fx
+#!../login/loggedin /bin/csh -f
 can --redirect admin
 if($status) exit 0
 source ../setcan
