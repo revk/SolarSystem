@@ -3530,7 +3530,7 @@
     (property "Reference" "SW1" (at 52.705 152.146 0)
       (effects (font (size 1.27 1.27)))
     )
-    (property "Value" "ESE13V01D" (at 52.705 154.4574 0)
+    (property "Value" "ESE13V01A" (at 52.705 154.4574 0)
       (effects (font (size 1.27 1.27)))
     )
     (property "Footprint" "RevK:ESE13" (at 52.705 154.305 0)
