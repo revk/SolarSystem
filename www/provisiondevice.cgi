@@ -28,13 +28,9 @@ if($?PROVISION) then
 		setenv MSG "Pick AID"
 	endif
 	setenv authenticated `sql "$DB" 'SELECT authenticated FROM pending WHERE pending="$device"'`
-	setenv nfc `sql "$DB" 'SELECT IF(nfctx="-","false","true") FROM pcb WHERE pcb=$pcb'`
-	setenv gps `sql "$DB" 'SELECT IF(gpstx="-","false","true") FROM pcb WHERE pcb=$pcb'`
-	sql "$DB" 'INSERT INTO device SET device="$device",pcb="$pcb",organisation="$USER_ORGANISATION",site="$USER_SITE",aid="$aid",nfc="$nfc",gps="$gps",devicename="$devicename",outofservice="true",upgrade=NOW() ON DUPLICATE KEY UPDATE pcb="$pcb",organisation="$USER_ORGANISATION",site="$USER_SITE",aid="$aid",nfc="$nfc",gps="$gps",devicename="$devicename",outofservice="true",upgrade=NOW()'
-	sql "$DB" 'DELETE FROM devicegpio WHERE device="$device"'
-	sql "$DB" 'INSERT INTO devicegpio (device,gpio,type,name,hold,pulse,invert,func) SELECT "$device",gpio,inittype,initname,inithold,initpulse,initinvert,initfunc FROM gpio WHERE pcb=$pcb'
-	# device count change
-	sql "$DB" 'UPDATE device SET poke=NOW() WHERE site=$site'
+
+	../sstool --provision-device="$device" --aid="$aid" --device-name="$devicename" --copy-device="$copydevice" --pcb="$pcb"
+
 	message --poke
 	if("$authenticated" == "true") then
 		setenv MSG `message --pending="$device" --command="restart"`
@@ -55,6 +51,7 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <form style="display:inline;" method=post>
 <table>
 <tr><td>PCB</td><td><select name=pcb><option value=0>-- Pick PCB --</option><sql table=pcb order=pcbname ><option value=$pcb><output name=pcbname blank="Unnamed"></option></sql></select></td></tr>
+<tr><td>Copy</td><td><select name=copydevice><option value=''>Copy device</option><sql table="device LEFT JOIN pcb USING (pcb)" WHERE="site=$USER_SITE"><option value=$device><output name=pcbname>: <output name=devicename></option></sql></select></td></tr>
 <tr><td>AID</td><td><select name=aid><sql table=aid WHERE="site=$USER_SITE"><option value=$aid><output name=aidname></option></sql></select></td></tr>
 <tr><td>Name</td><td><input name=devicename size=20 autofocus></td></tr>
 <tr><td><input type=submit name=PROVISION value="Provision"></td></tr>
