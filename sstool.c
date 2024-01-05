@@ -141,7 +141,6 @@ main (int argc, const char *argv[])
          while (sql_fetch_row (res))
          {
             SQL_RES *oldpin = sql_safe_query_store_f (&sql, "SELECT * FROM `gpio` WHERE `gpio`=%#s", sql_col (res, "gpio"));
-            int found = 0;
             if (sql_fetch_row (oldpin))
             {
                const char *name = sql_colz (oldpin, "initname");
@@ -161,35 +160,23 @@ main (int argc, const char *argv[])
                      if (sql_fetch_row (newpin))
                         sql_free_s (&q);        // Has to be unique
                      else
-                     {
                         sql_safe_query_s (&sql, &q);
-                        found++;
-                     }
                   }
                   sql_free_result (newpin);
                }
             }
-            if (!found)
-               sql_safe_query_f (&sql,
-                                 "INSERT INTO `devicegpio` SET `device`=%#s,`gpio`=%#s,`type`=%#s,`name`=%#s,`hold`=%#s,`pulse`=%#s,`invert`=%#s,`func`=%#s",
-                                 provisiondevice, sql_col (oldpin, "gpio"), sql_col (oldpin, "inittype"), sql_col (oldpin,
-                                                                                                                   "initname"),
-                                 sql_col (oldpin, "inithold"), sql_col (oldpin, "initpulse"), sql_col (oldpin, "initinvert"),
-                                 sql_col (oldpin, "initfunc"));
             sql_free_result (oldpin);
          }
          sql_free_result (res);
-      } else
-      {
-         res = sql_safe_query_store_f (&sql, "SELECT * FROM `gpio` WHERE `pcb`=%d", pcb);
-         while (sql_fetch_row (res))
-            sql_safe_query_f (&sql,
-                              "INSERT INTO `devicegpio` SET `device`=%#s,`gpio`=%#s,`type`=%#s,`name`=%#s,`hold`=%#s,`pulse`=%#s,`invert`=%#s,`func`=%#s",
-                              provisiondevice, sql_col (res, "gpio"), sql_col (res, "inittype"), sql_col (res, "initname"),
-                              sql_col (res, "inithold"), sql_col (res, "initpulse"), sql_col (res, "initinvert"), sql_col (res,
-                                                                                                                           "initfunc"));
-         sql_free_result (res);
       }
+      res = sql_safe_query_store_f (&sql, "SELECT * FROM `gpio` WHERE `pcb`=%d", pcb);
+      while (sql_fetch_row (res))
+         sql_safe_query_f (&sql,
+                           "INSERT IGNORE INTO `devicegpio` SET `device`=%#s,`gpio`=%#s,`type`=%#s,`name`=%#s,`hold`=%#s,`pulse`=%#s,`invert`=%#s,`func`=%#s",
+                           provisiondevice, sql_col (res, "gpio"), sql_col (res, "inittype"), sql_col (res, "initname"),
+                           sql_col (res, "inithold"), sql_col (res, "initpulse"), sql_col (res, "initinvert"), sql_col (res,
+                                                                                                                        "initfunc"));
+      sql_free_result (res);
       sql_safe_query_f (&sql, "UPDATE `device` SET `poke`=NOW() WHERE `site`=%d", site);
       if (old)
          sql_free_result (old);
