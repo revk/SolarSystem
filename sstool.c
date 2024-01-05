@@ -140,7 +140,9 @@ main (int argc, const char *argv[])
          res = sql_safe_query_store_f (&sql, "SELECT * FROM `devicegpio` WHERE `device`=%#s", copydevice);
          while (sql_fetch_row (res))
          {
-            SQL_RES *oldpin = sql_safe_query_store_f (&sql, "SELECT * FROM `gpio` WHERE `gpio`=%#s", sql_col (res, "gpio"));
+            SQL_RES *oldpin =
+               sql_safe_query_store_f (&sql, "SELECT * FROM `gpio` WHERE `gpio`=%#s AND `pcb`=%#s", sql_col (res, "gpio"),
+                                       sql_col (old, "pcb"));
             if (sql_fetch_row (oldpin))
             {
                const char *name = sql_colz (oldpin, "initname");
@@ -151,16 +153,14 @@ main (int argc, const char *argv[])
                   if (sql_fetch_row (newpin))
                   {
                      sql_s_t q = { 0 };
-                     sql_sprintf (&q, "INSERT INTO `devicegpio` SET `device`=%#s,`gpio`=%#s", provisiondevice,
+                     // IGNORE should not be needed unless duplicate names... Best effort if there is
+                     sql_sprintf (&q, "INSERT IGNORE INTO `devicegpio` SET `device`=%#s,`gpio`=%#s", provisiondevice,
                                   sql_col (newpin, "gpio"));
                      for (unsigned int n = 0; n < res->field_count; n++)
                         if (res->fields[n].name && strcasecmp (res->fields[n].name, "device")
                             && strcasecmp (res->fields[n].name, "gpio"))
                            sql_sprintf (&q, ",`%#S`=%#s", res->fields[n].name, res->current_row[n]);
-                     if (sql_fetch_row (newpin))
-                        sql_free_s (&q);        // Has to be unique
-                     else
-                        sql_safe_query_s (&sql, &q);
+                     sql_safe_query_s (&sql, &q);
                   }
                   sql_free_result (newpin);
                }

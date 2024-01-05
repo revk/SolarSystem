@@ -161,9 +161,8 @@ main (int argc, const char *argv[])
       }
       if (organisation)
       {
-         SQL_RES *res =
-            sql_safe_query_store_f (&sql, "SELECT * FROM `userorganisation` WHERE `user`=%d AND `organisation`=%d", us,
-                                    organisation);
+         SQL_RES *res = sql_safe_query_store_f (&sql, "SELECT * FROM `userorganisation` WHERE `user`=%d AND `organisation`=%d", us,
+                                                organisation);
          if (!sql_fetch_row (res))
          {
             sql_free_result (res);
