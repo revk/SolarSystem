@@ -23,7 +23,6 @@ extern uint8_t iotgps;
 extern char *iottopic;
 extern uint8_t debug;
 
-#define	MAX_PORT	40
 #define	LOGIC_PORT	48
 #define	LOGIC_PORT2	56
 extern uint32_t logical_gpio;   // Logical GPIO (from GPIO 48, covers NFC, keypad...)

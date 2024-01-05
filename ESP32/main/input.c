@@ -232,7 +232,7 @@ input_boot (void)
                in[i] = 0;
             else
             {
-               if (p < MAX_PORT)
+               if (p < LOGIC_PORT)
                {
 #ifdef 	CONFIG_IDF_TARGET_ESP32
                   if (p >= 34)
