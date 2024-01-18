@@ -50,7 +50,7 @@ gpio_mask (uint8_t p)
   u16(nfcledpoll,100) \
   u16(nfciopoll,200) \
   u8(nfcuart,1) \
-  u8f(nfcbaud,4) \
+  u8f(nfcbaud,CONFIG_NFC_BAUD_CODE) \
   t(nfcmqttbell,NULL) \
   bap(aes,18,3) \
   b(aid,3) \
@@ -295,9 +295,9 @@ task (void *pvParameters)
             if (on)
             {                   // Try talking to it
                ESP_LOGE (TAG, "NFC re-init");
-               pn532 = pn532_init (nfcuart, port_mask (nfctx), port_mask (nfcrx), nfcmask);
+               pn532 = pn532_init (nfcuart,nfcbaud, port_mask (nfctx), port_mask (nfcrx), nfcmask);
                if (!pn532)
-                  pn532 = pn532_init (nfcuart, port_mask (nfctx), port_mask (nfcrx), nfcmask);
+                  pn532 = pn532_init (nfcuart, nfcbaud,port_mask (nfctx), port_mask (nfcrx), nfcmask);
                if (pn532)
                {                // All good!
                   df_init (&df, pn532, pn532_dx);
@@ -676,11 +676,12 @@ void
 nfc_boot (void)
 {
    revk_register ("nfc", 0, sizeof (nfctx), &nfctx, BITFIELDS, SETTING_SET | SETTING_BITFIELD | SETTING_SECRET);        // parent setting
+#define str(x) #x
 #define i8(n,d) revk_register(#n,0,sizeof(n),&n,#d,SETTING_SIGNED);
 #define io(n) revk_register(#n,0,sizeof(n),&n,BITFIELDS,SETTING_SET|SETTING_BITFIELD);
 #define gpio(n) revk_register(#n,0,sizeof(n),&n,BITFIELDS,SETTING_BITFIELD);
 #define u8(n,d) revk_register(#n,0,sizeof(n),&n,#d,0);
-#define u8f(n,d) revk_register(#n,0,sizeof(n),&n,#d,SETTING_FIXED);
+#define u8f(n,d) revk_register(#n,0,sizeof(n),&n,str(#d),SETTING_FIX);
 #define u16(n,d) revk_register(#n,0,sizeof(n),&n,#d,0);
 #define b(n,l) revk_register(#n,0,sizeof(n),n,NULL,SETTING_BINDATA|SETTING_HEX);
 #define bap(n,l,a) revk_register(#n,a,sizeof(n[0]),n,NULL,SETTING_BINDATA|SETTING_HEX|SETTING_SECRET|SETTING_LIVE);
@@ -697,6 +698,7 @@ nfc_boot (void)
 #undef b
 #undef bap
 #undef u1
+#undef str
       // Set up ports */
       nfcmask = 0;              /* output mask for NFC */
    if (nfcred)
@@ -732,7 +734,7 @@ nfc_boot (void)
       {
          nfc_mutex = xSemaphoreCreateBinary ();
          xSemaphoreGive (nfc_mutex);
-         pn532 = pn532_init (nfcuart, port_mask (nfctx), port_mask (nfcrx), nfcmask);
+         pn532 = pn532_init (nfcuart, nfcbaud, port_mask (nfctx), port_mask (nfcrx), nfcmask);
          if (!pn532)
             logical_gpio |= logical_NFCFault;
          df_init (&df, pn532, pn532_dx);        // Start anyway, er re-try init

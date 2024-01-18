@@ -80,4 +80,10 @@ endmenu
     help
     	Filename message command internal keys
 
+    config NFC_BAUD_CODE
+    int "NFC Baud rate code, 4 for default 115200"
+    default 4
+    help
+    	NFC Baud code, 0-8 for 9600 to 1288000
+
 endmenu
