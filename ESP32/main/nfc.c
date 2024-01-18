@@ -50,6 +50,7 @@ gpio_mask (uint8_t p)
   u16(nfcledpoll,100) \
   u16(nfciopoll,200) \
   u8(nfcuart,1) \
+  u8f(nfcbaud,4) \
   t(nfcmqttbell,NULL) \
   bap(aes,18,3) \
   b(aid,3) \
@@ -59,6 +60,7 @@ gpio_mask (uint8_t p)
 #define io(n) uint8_t n;
 #define gpio(n) uint8_t n;
 #define u8(n,d) uint8_t n;
+#define u8d(n,d) uint8_t n;
 #define u16(n,d) uint16_t n;
 #define b(n,l) uint8_t n[l];
 #define bap(n,l,a) uint8_t n[a][l];
@@ -70,6 +72,7 @@ settings
 #undef io
 #undef gpio
 #undef u8
+#undef u8f
 #undef u16
 #undef b
 #undef bap
@@ -677,6 +680,7 @@ nfc_boot (void)
 #define io(n) revk_register(#n,0,sizeof(n),&n,BITFIELDS,SETTING_SET|SETTING_BITFIELD);
 #define gpio(n) revk_register(#n,0,sizeof(n),&n,BITFIELDS,SETTING_BITFIELD);
 #define u8(n,d) revk_register(#n,0,sizeof(n),&n,#d,0);
+#define u8f(n,d) revk_register(#n,0,sizeof(n),&n,#d,SETTING_FIXED);
 #define u16(n,d) revk_register(#n,0,sizeof(n),&n,#d,0);
 #define b(n,l) revk_register(#n,0,sizeof(n),n,NULL,SETTING_BINDATA|SETTING_HEX);
 #define bap(n,l,a) revk_register(#n,a,sizeof(n[0]),n,NULL,SETTING_BINDATA|SETTING_HEX|SETTING_SECRET|SETTING_LIVE);
@@ -688,6 +692,7 @@ nfc_boot (void)
 #undef gpio
 #undef i8
 #undef u8
+#undef u8f
 #undef u16
 #undef b
 #undef bap
