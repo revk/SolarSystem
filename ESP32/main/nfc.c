@@ -60,7 +60,7 @@ gpio_mask (uint8_t p)
 #define io(n) uint8_t n;
 #define gpio(n) uint8_t n;
 #define u8(n,d) uint8_t n;
-#define u8d(n,d) uint8_t n;
+#define u8f(n,d) uint8_t n;
 #define u16(n,d) uint16_t n;
 #define b(n,l) uint8_t n[l];
 #define bap(n,l,a) uint8_t n[a][l];
