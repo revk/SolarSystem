@@ -1789,9 +1789,16 @@ CONFIG_WIFI_PROV_STA_ALL_CHANNEL_SCAN=y
 # end of Wi-Fi Provisioning Manager
 
 #
+# SS
+#
+CONFIG_NFC_BAUD_CODE=4
+# end of SS
+
+#
 # PN532
 #
-CONFIG_PN532_DEBUG_DX=y
+# CONFIG_PN532_DEBUG_DX is not set
+# CONFIG_PN532_DEBUG_MSG is not set
 # CONFIG_PN532_DUMP is not set
 # end of PN532
 
