@@ -681,7 +681,7 @@ nfc_boot (void)
 #define io(n) revk_register(#n,0,sizeof(n),&n,BITFIELDS,SETTING_SET|SETTING_BITFIELD);
 #define gpio(n) revk_register(#n,0,sizeof(n),&n,BITFIELDS,SETTING_BITFIELD);
 #define u8(n,d) revk_register(#n,0,sizeof(n),&n,#d,0);
-#define u8f(n,d) revk_register(#n,0,sizeof(n),&n,str(#d),SETTING_FIX);
+#define u8f(n,d) revk_register(#n,0,sizeof(n),&n,str(d),SETTING_FIX);
 #define u16(n,d) revk_register(#n,0,sizeof(n),&n,#d,0);
 #define b(n,l) revk_register(#n,0,sizeof(n),n,NULL,SETTING_BINDATA|SETTING_HEX);
 #define bap(n,l,a) revk_register(#n,a,sizeof(n[0]),n,NULL,SETTING_BINDATA|SETTING_HEX|SETTING_SECRET|SETTING_LIVE);
