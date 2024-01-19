@@ -1,0 +1,9 @@
+menu "SS"
+
+        config NFC_BAUD_CODE
+        int "NFC reader baud rate code"
+        default 4
+        help
+                Set 0-8 for 9600 to 1288000 bps
+
+endmenu
