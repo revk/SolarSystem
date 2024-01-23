@@ -295,9 +295,9 @@ task (void *pvParameters)
             if (on)
             {                   // Try talking to it
                ESP_LOGE (TAG, "NFC re-init");
-               pn532 = pn532_init (nfcuart,nfcbaud, port_mask (nfctx), port_mask (nfcrx), nfcmask);
+               pn532 = pn532_init (nfcuart, nfcbaud, port_mask (nfctx), port_mask (nfcrx), nfcmask);
                if (!pn532)
-                  pn532 = pn532_init (nfcuart, nfcbaud,port_mask (nfctx), port_mask (nfcrx), nfcmask);
+                  pn532 = pn532_init (nfcuart, nfcbaud, port_mask (nfctx), port_mask (nfcrx), nfcmask);
                if (pn532)
                {                // All good!
                   df_init (&df, pn532, pn532_dx);
@@ -725,6 +725,8 @@ nfc_boot (void)
    }
    if (nfctx && nfcrx)
    {
+      nfc_mutex = xSemaphoreCreateBinary ();
+      xSemaphoreGive (nfc_mutex);
       const char *e = port_check (port_mask (nfctx), TAG, 0);
       if (!e)
          e = port_check (port_mask (nfcrx), TAG, 1);
@@ -732,8 +734,6 @@ nfc_boot (void)
          logical_gpio |= logical_NFCFault;
       else
       {
-         nfc_mutex = xSemaphoreCreateBinary ();
-         xSemaphoreGive (nfc_mutex);
          pn532 = pn532_init (nfcuart, nfcbaud, port_mask (nfctx), port_mask (nfcrx), nfcmask);
          if (!pn532)
             logical_gpio |= logical_NFCFault;
