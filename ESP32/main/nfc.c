@@ -731,8 +731,10 @@ nfc_boot (void)
       if (!e)
          e = port_check (port_mask (nfcrx), TAG, 1);
       if (e)
+      {
+         nfcrx = nfctx = 0;     // Don't start
          logical_gpio |= logical_NFCFault;
-      else
+      } else
       {
          pn532 = pn532_init (nfcuart, nfcbaud, port_mask (nfctx), port_mask (nfcrx), nfcmask);
          if (!pn532)
