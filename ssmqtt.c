@@ -149,7 +149,7 @@ insecureserver (void *arg)
                   tx[txp++] = 2;
                   tx[txp++] = 0;        // no session
                   tx[txp++] = 0;        // clean
-                  if (clientlen != 15 || strncmp (client, "SS-", 3))
+                  if (clientlen != 15 || strncmp (client, "SS-", 3) && strncmp (client, "SS:", 3))
                      return "Bad client ID";
                   // Send new setting
                   char *topic = NULL;
