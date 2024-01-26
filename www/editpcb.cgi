@@ -137,6 +137,17 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <tr><td><select name=nfcamber><include var=GPIONFCPICK></select></td><td colspan=12>PN532 NFC amber LED</td></tr>
 <tr><td><select name=nfcgreen><include var=GPIONFCPICK></select></td><td colspan=12>PN532 NFC green LED</td></tr>
 <tr><td><select name=nfccard><include var=GPIONFCPICK></select></td><td colspan=12>PN532 NFC LED to blink for card</td></tr>
+<tr><td><select name=nfcbaud>
+<option value=0>9,600</option>
+<option value=1>19,200</option>
+<option value=2>38,400</option>
+<option value=3>57,600</option>
+<option value=4>115,200</option>
+<option value=5>230,400</option>
+<option value=6>460,800</option>
+<option value=7>921,600</option>
+<option value=8>1,288,000</option>
+</select></td><td colspan=12>PN532 NFC Baud Rate</td></tr>
 </if>
 <tr><td><select name=gpstx onchange='F.submit();'><include var=GPIOREALPICK></select></td><td colspan=12>GPIO GPS Tx</td></tr>
 <if not gpstx=='-'>

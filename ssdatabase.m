@@ -399,6 +399,7 @@ gpio(keypadre);
 gpio(nfctx);
 gpio(nfcrx);
 gpio(nfcpower);
+numd(nfcbaud,4);
 gpio(gpstx);
 gpio(gpsrx);
 gpio(gpstick);

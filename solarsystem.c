@@ -505,6 +505,7 @@ settings (SQL * sqlp, SQL_RES * res, slot_t id)
                addset (area, "keydisarm", sql_colz (res, "areakeydisarm"), NULL);
             }
             o = j_store_object (j, "nfc");
+            set (nfc, baud);
             set (nfc, tx);
             set (nfc, rx);
             set (nfc, power);
