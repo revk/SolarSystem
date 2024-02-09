@@ -41,10 +41,7 @@ led_set (int led, char c)
 {
    if (!rgb || led > rgbs)
       return;
-   uint8_t r = (c == 'R' ? 0xFF : c == 'M' || c == 'Y' ? 0x80 : c == 'W' ? 0x55 : 0);
-   uint8_t g = (c == 'G' ? 0xFF : c == 'C' || c == 'Y' ? 0x80 : c == 'W' ? 0x55 : 0);
-   uint8_t b = (c == 'B' ? 0xFF : c == 'C' || c == 'M' ? 0x80 : c == 'W' ? 0x55 : 0);
-   led_strip_set_pixel (rgb, led, r / 4, g / 4, b / 4); // Reduced as way too bright and hot
+   revk_led (rgb, led, 255, revk_rgb (c));
 }
 #endif
 
@@ -244,7 +241,7 @@ task (void *pvParameters)
          revk_state_clients ("output", &j, debug | (iotstateoutput << 1));
       }
       usleep (100000);          // 100 ms (timers assume this)
-#ifdef CONFIG_REVK_BLINK_LIB
+#ifndef CONFIG_REVK_BLINK_LIB
       if (blink[0].set)
       {
          uint32_t colour = revk_blinker ();
@@ -259,7 +256,7 @@ task (void *pvParameters)
 #ifdef  CONFIG_REVK_LED_STRIP
          else
          {
-            revk_led (revk_strip, 0, 255, colour);
+            revk_led (rgb, 0, 255, colour);
             led_strip_refresh (rgb);
          }
 #endif
