@@ -21,6 +21,7 @@ static uint8_t outfunc[MAXOUTPUT];      // Output function codes
 static uint8_t outputfuncs;     // Combined outputs of all
 static uint8_t outputfuncset;   // Logical state of output funcs
 static uint8_t rgbs = 0;
+revk_settings_gpio_t blink[3];
 
 #define i(t,x,c) area_t out##x[MAXOUTPUT];
 #define s(t,x,c) area_t out##x[MAXOUTPUT];
@@ -243,12 +244,26 @@ task (void *pvParameters)
          revk_state_clients ("output", &j, debug | (iotstateoutput << 1));
       }
       usleep (100000);          // 100 ms (timers assume this)
-#ifndef CONFIG_REVK_BLINK_LIB
+#ifdef CONFIG_REVK_BLINK_LIB
+      if (blink[0].set)
+      {
+         uint32_t colour = revk_blinker ();
+         if (!blink[1].set)
+            revk_gpio_set (blink[0], (colour >> 31) & 1);
+         else if (blink[0].num != blink[1].num)
+         {                      // Separate RGB on
+            revk_gpio_set (blink[0], (colour >> 29) & 1);
+            revk_gpio_set (blink[1], (colour >> 27) & 1);
+            revk_gpio_set (blink[2], (colour >> 25) & 1);
+         }
 #ifdef  CONFIG_REVK_LED_STRIP
-      revk_blinker (rgb);
-#else
-      revk_blinker ();
+         else
+         {
+            revk_led (revk_strip, 0, 255, colour);
+            led_strip_refresh (rgb);
+         }
 #endif
+      }
 #endif
    }
 }
@@ -256,6 +271,7 @@ task (void *pvParameters)
 void
 output_boot (void)
 {
+   revk_register ("blink", 3, sizeof (*blink), &blink, "- ", SETTING_SET | SETTING_BITFIELD | SETTING_FIX);
    revk_register ("rgbs", 0, sizeof (rgbs), &rgbs, NULL, 0);
    revk_register ("out", MAXOUTPUT, sizeof (*out), &out, BITFIELDS, SETTING_BITFIELD | SETTING_SET | SETTING_SECRET);
    revk_register ("outgpio", MAXOUTPUT, sizeof (*out), &out, BITFIELDS, SETTING_BITFIELD | SETTING_SET);
@@ -310,15 +326,14 @@ output_boot (void)
    }
 #ifdef  CONFIG_REVK_LED_STRIP
 #ifndef CONFIG_REVK_BLINK_LIB
-   extern uint8_t blink[3];     // 0x80 for set, 0x40 for invert
-   if (blink[0] && blink[0] == blink[1])
+   if (blink[0].set && blink[0].num == blink[1].num)
    {
       led_strip_config_t strip_config = {
-         .strip_gpio_num = (blink[0] & 0x3F),
+         .strip_gpio_num = blink[0].num,
          .max_leds = rgbs + 1,  // The number of LEDs in the strip,
          .led_pixel_format = LED_PIXEL_FORMAT_GRB,      // Pixel format of your LED strip
          .led_model = LED_MODEL_WS2812, // LED strip model
-         .flags.invert_out = ((blink[0] & 0x40) ? 1 : 0),       // whether to invert the output signal (useful when your hardware has a level inverter)
+         .flags.invert_out = blink[0].invert,
       };
       led_strip_rmt_config_t rmt_config = {
          .clk_src = RMT_CLK_SRC_DEFAULT,        // different clock source can lead to different power consumption
@@ -331,7 +346,9 @@ output_boot (void)
       for (int i = 0; i < MAXOUTPUT; i++)
          if (powerrgb[i])
             led_set (powerrgb[i], (power[i] & PORT_INV) ? 'B' : 'M');
-   }
+   } else
+      for (int b = 0; b < 3; b++)
+         revk_gpio_output (blink[b]);
 #endif
 #endif
 }
