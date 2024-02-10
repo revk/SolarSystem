@@ -119,18 +119,18 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <sql table=pcb key=pcb>
 <table>
 <tr><td>Name</td><td colspan=12><input name=pcbname size=40 autofocus></td></tr>
-<if ledr=='-' ledg=='-' ledb=='-' OR NOT leda=='-'><tr><td><select name=leda><include var=GPIOREALPICK></select></td><td colspan=12>GPIO Controller LED (amber)</td></tr></if>
-<if leda=='-'><tr><td><select name=ledr><include var=GPIOREALPICK></select></td><td colspan=12>GPIO Controller LED (red)</td></tr></if>
-<if leda=='-'><tr><td><select name=ledg><include var=GPIOREALPICK></select></td><td colspan=12>GPIO Controller LED (green)</td></tr></if>
-<if leda=='-'><tr><td><select name=ledb><include var=GPIOREALPICK></select></td><td colspan=12>GPIO Controller LED (blue)</td></tr></if>
+<if ledr==- ledg==- ledb==- OR NOT leda==-><tr><td><select name=leda><include var=GPIOREALPICK></select></td><td colspan=12>GPIO Controller LED (amber)</td></tr></if>
+<if leda==-><tr><td><select name=ledr><include var=GPIOREALPICK></select></td><td colspan=12>GPIO Controller LED (red)</td></tr></if>
+<if leda==-><tr><td><select name=ledg><include var=GPIOREALPICK></select></td><td colspan=12>GPIO Controller LED (green)</td></tr></if>
+<if leda==-><tr><td><select name=ledb><include var=GPIOREALPICK></select></td><td colspan=12>GPIO Controller LED (blue)</td></tr></if>
 <tr><td><select name=keypadtx onchange='F.submit();'><include var=GPIOREALPICK></select></td><td colspan=12>GPIO Keypad Tx</td></tr>
-<if not keypadtx=='-'>
+<if not keypadtx==->
 <tr><td><select name=keypadrx><include var=GPIOREALPICK></select></td><td colspan=12>GPIO Keypad Rx</td></tr>
 <tr><td><select name=keypadde><include var=GPIOREALPICK></select></td><td colspan=12>GPIO Keypad DE</td></tr>
 <tr><td><select name=keypadre><include var=GPIOREALPICK></select></td><td colspan=12>GPIO Keypad RE</td></tr>
 </if>
 <tr><td><select name=nfctx onchange='F.submit();'><include var=GPIOREALPICK></select></td><td colspan=12>GPIO NFC Tx</td></tr>
-<if not nfctx=='-'>
+<if not nfctx==->
 <tr><td><select name=nfcrx><include var=GPIOREALPICK></select></td><td colspan=12>GPIO NFC Rx</td></tr>
 <tr><td><select name=nfcpower><include var=GPIOREALPICK></select></td><td colspan=12>GPIO NFC Power</td></tr>
 <tr><td><select name=nfcred><include var=GPIONFCPICK></select></td><td colspan=12>PN532 NFC red LED</td></tr>
@@ -150,7 +150,7 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 </select></td><td colspan=12>PN532 NFC Baud Rate</td></tr>
 </if>
 <tr><td><select name=gpstx onchange='F.submit();'><include var=GPIOREALPICK></select></td><td colspan=12>GPIO GPS Tx</td></tr>
-<if not gpstx=='-'>
+<if not gpstx==->
 <tr><td><select name=gpsrx><include var=GPIOREALPICK></select></td><td colspan=12>GPIO GPS Rx</td></tr>
 <tr><td><select name=gpstick><include var=GPIOREALPICK></select></td><td colspan=12>GPIO GPS Tick</td></tr>
 </if>
@@ -161,7 +161,7 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <td><input name="value0$gpio" size=5 value="$value0" placeholder="0 name"></td>
 <td><input name="value1$gpio" size=5 value="$value1" placeholder="1 name"></td>
 <td><select name=io><include var=GPIOIOPICK></select></td>
-<if not ledr='-' ledr='$ledg'><td><input name="rgb$gpio" value="$rgb" title="LED number" placeholder='LED' size=3></td></if><if else><input name="rgb$gpio" value="$rgb" type=hidden></if>
+<if not ledr=- ledr='$ledg'><td><input name="rgb$gpio" value="$rgb" title="LED number" placeholder='LED' size=3></td></if><if else><input name="rgb$gpio" value="$rgb" type=hidden></if>
 <td>Defaults:</td>
 <td><select name=inittype><include var=GPIOTYPEPICK></select></td>
 <td><if inittype=*I><select name=initfunc$gpio><include var=GPIOFUNCPICKI></select></if><if inittype=*O><select name=initfunc$gpio><include var=GPIOFUNCPICKO></select></if></td>
@@ -175,7 +175,7 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <td><input name="value0" size=5 value="" placeholder="0 name"></td>
 <td><input name="value1" size=5 value="" placeholder="1 name"></td>
 <td><select name=io><include var=GPIOIOPICK></select></td>
-<if not ledr='-' ledr='$ledg'><td><input name=rgb title="LED number" placeholder='LED' size=3></td></if><if else><input name=rgb type=hidden></if>
+<if not ledr=- ledr='$ledg'><td><input name=rgb title="LED number" placeholder='LED' size=3></td></if><if else><input name=rgb type=hidden></if>
 <td>Defaults:</td>
 <td><select name=inittype><include var=GPIOTYPEPICK></select></td>
 <td><i>set when added</i></td>
