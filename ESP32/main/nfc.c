@@ -302,7 +302,7 @@ task (void *pvParameters)
             if (ledpos >= sizeof (ledpattern) || !ledpattern[ledpos] || !*ledpattern)
                ledpos = 0;      // Wrap
             uint8_t newled = 0;
-            while (ledpos < sizeof (ledpattern) && ledpattern[ledpos] && isdigit (ledpattern[ledpos]))
+            while (ledpos < sizeof (ledpattern) && ledpattern[ledpos] && is_digit (ledpattern[ledpos]))
                countled = countled * 10 + ledpattern[ledpos++] - '0';
             while (ledpos < sizeof (ledpattern) && ledpattern[ledpos])
             {                   // Check combined colours
