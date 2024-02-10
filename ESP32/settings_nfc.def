@@ -14,6 +14,6 @@ u16	nfc.iopoll	200
 u8	nfc.uart	1
 u8	nfc.baud	CONFIG_NFC_BAUD_CODE
 s	nfc.mqttbell
-o18	aes					.hex=1	.array=3
+o18	aes					.hex=1	.array=3	.secret=1
 o3	aid					.hex=1
 s	led.IDLE	"3R3-"

@@ -1,5 +1,5 @@
 #define	MAXOUTPUT	10
-#define	OUTPUT_FUNCS	"LDBE"
+#define	OUTPUT_FUNCS	"LDBE----"
 #define	OUTPUT_FUNC_L	0x80	// Lock release
 #define	OUTPUT_FUNC_D	0x40	// Deadlock release (this needs to be L>>1)
 #define	OUTPUT_FUNC_B	0x20	// Beep

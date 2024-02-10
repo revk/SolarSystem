@@ -1,6 +1,6 @@
 #define	MAXINPUT	16
 
-#define	INPUT_FUNCS	"EOLDMP"
+#define	INPUT_FUNCS	"EOLDMP--"
 #define	INPUT_FUNC_E	0x80		// Exit pressed
 #define	INPUT_FUNC_O	0x40		// Open door
 #define	INPUT_FUNC_L	0x20		// Lock unlocked
