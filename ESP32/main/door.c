@@ -923,7 +923,6 @@ task (void *pvParameters)
 void
 door_boot (void)
 {
-   extern char *ledIDLE;
    int64_t now = esp_timer_get_time ();
    // Door outputs match inputs if available, otherwise just lock
    output_func_set (OUTPUT_FUNC_L, input_active (INPUT_FUNC_L) && input_func_any (INPUT_FUNC_L) ? 1 : 0);

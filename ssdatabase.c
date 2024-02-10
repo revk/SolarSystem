@@ -12,7 +12,7 @@ typedef unsigned int uint32_t;
 #include <ctype.h>
 #include <err.h>
 #include "SQLlib/sqllib.h"
-#include "ESP32/main/areas.h"
+#include "espdefines.h"
 #include "ssdatabase.h"
 
 void

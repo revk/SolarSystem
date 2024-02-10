@@ -9,26 +9,26 @@ gpio	blink			.array=3
 u8	rgbs
 
 gpio	out.gpio		.array=MAXOUTPUT
-u8	out.func		.array=MAXOUTPUT	.bitfield=OUTPUT_FUNCS
-u16	out.pulse		.array=MAXOUTPUT
+u8	out.func		.array=MAXOUTPUT	.flags=OUTPUT_FUNCS
+s16	out.pulse		.array=MAXOUTPUT
 u8	out.rgb			.array=MAXOUTPUT
 s	out.name		.array=MAXOUTPUT
-u32	out.engineer		.array=MAXOUTPUT	.bitfield=AREAS
-u32	out.faulted		.array=MAXOUTPUT	.bitfield=AREAS
-u32	out.tampered		.array=MAXOUTPUT	.bitfield=AREAS
-u32	out.alarmed		.array=MAXOUTPUT	.bitfield=AREAS
-u32	out.armed		.array=MAXOUTPUT	.bitfield=AREAS
-u32	out.prearm		.array=MAXOUTPUT	.bitfield=AREAS
-u32	out.prealarm		.array=MAXOUTPUT	.bitfield=AREAS
-u32	out.alarm		.array=MAXOUTPUT	.bitfield=AREAS
-u32	out.doorbell		.array=MAXOUTPUT	.bitfield=AREAS
-u32	out.warning		.array=MAXOUTPUT	.bitfield=AREAS
-u32	out.fault		.array=MAXOUTPUT	.bitfield=AREAS
-u32	out.access		.array=MAXOUTPUT	.bitfield=AREAS
-u32	out.presence		.array=MAXOUTPUT	.bitfield=AREAS
-u32	out.tamper		.array=MAXOUTPUT	.bitfield=AREAS
-u32	out.fire		.array=MAXOUTPUT	.bitfield=AREAS
-u32	out.panic		.array=MAXOUTPUT	.bitfield=AREAS
+u32	out.engineer		.array=MAXOUTPUT	.flags=AREAS
+u32	out.faulted		.array=MAXOUTPUT	.flags=AREAS
+u32	out.tampered		.array=MAXOUTPUT	.flags=AREAS
+u32	out.alarmed		.array=MAXOUTPUT	.flags=AREAS
+u32	out.armed		.array=MAXOUTPUT	.flags=AREAS
+u32	out.prearm		.array=MAXOUTPUT	.flags=AREAS
+u32	out.prealarm		.array=MAXOUTPUT	.flags=AREAS
+u32	out.alarm		.array=MAXOUTPUT	.flags=AREAS
+u32	out.doorbell		.array=MAXOUTPUT	.flags=AREAS
+u32	out.warning		.array=MAXOUTPUT	.flags=AREAS
+u32	out.fault		.array=MAXOUTPUT	.flags=AREAS
+u32	out.access		.array=MAXOUTPUT	.flags=AREAS
+u32	out.presence		.array=MAXOUTPUT	.flags=AREAS
+u32	out.tamper		.array=MAXOUTPUT	.flags=AREAS
+u32	out.fire		.array=MAXOUTPUT	.flags=AREAS
+u32	out.panic		.array=MAXOUTPUT	.flags=AREAS
 
 gpio	power.gpio		.array=MAXOUTPUT
 u8	power.rgb		.array=MAXOUTPUT

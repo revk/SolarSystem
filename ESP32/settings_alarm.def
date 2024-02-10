@@ -1,26 +1,26 @@
 #define	MAX_MIX		5
 
-u32	area.led			.bitfield=AREAS
-u32	area.enter			.bitfield=AREAS
-u32	area.arm			.bitfield=AREAS
-u32	area.strong			.bitfield=AREAS
-u32	area.disarm			.bitfield=AREAS
-u32	area.deadlock			.bitfield=AREAS
-u32	area.keypad			.bitfield=AREAS
-u32	area.keydisarm			.bitfield=AREAS
-u32	area.keystrong			.bitfield=AREAS
-u32	area.keyarm			.bitfield=AREAS
-u32	engineer			.bitfield=AREAS
-u32	armed				.bitfield=AREAS
-u32	sms.arm				.bitfield=AREAS
-u32	sms.disarm			.bitfield=AREAS
-u32	sms.cancel			.bitfield=AREAS
-u32	sms.armfail			.bitfield=AREAS
-u32	sms.alarm			.bitfield=AREAS
-u32	sms.panic			.bitfield=AREAS
-u32	sms.fire			.bitfield=AREAS
-u32	mix.and				.bitfield=AREAS	..array=MAX_MIX
-u32	mix.set				.bitfield=AREAS	..array=MAX_MIX
+u32	area.led			.flags=AREAS
+u32	area.enter			.flags=AREAS
+u32	area.arm			.flags=AREAS
+u32	area.strong			.flags=AREAS
+u32	area.disarm			.flags=AREAS
+u32	area.deadlock			.flags=AREAS
+u32	area.keypad			.flags=AREAS
+u32	area.keydisarm			.flags=AREAS
+u32	area.keystrong			.flags=AREAS
+u32	area.keyarm			.flags=AREAS
+u32	engineer			.flags=AREAS
+u32	armed				.flags=AREAS
+u32	sms.arm				.flags=AREAS
+u32	sms.disarm			.flags=AREAS
+u32	sms.cancel			.flags=AREAS
+u32	sms.armfail			.flags=AREAS
+u32	sms.alarm			.flags=AREAS
+u32	sms.panic			.flags=AREAS
+u32	sms.fire			.flags=AREAS
+u32	mix.and				.flags=AREAS	.array=MAX_MIX
+u32	mix.set				.flags=AREAS	.array=MAX_MIX
 u16	arm.cancel
 u16	arm.delay
 u16	alarm.delay

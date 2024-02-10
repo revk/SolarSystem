@@ -28,3 +28,4 @@ sdkconfig
 pn532test
 ESP32/dependencies.lock
 ESP32/managed_components
+espdefines.h

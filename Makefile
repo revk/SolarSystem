@@ -77,7 +77,11 @@ login/redirect.o: login/redirect.c
 email/libemaillight.o: email/libemail.c
 	make -C email libemaillight.o
 
-ssdatabase.o: ssdatabase.c ssdatabase.m ssdatabase.h config.h types.m Makefile ESP32/main/states.m ESP32/main/logicalgpio.m
+espdefines.h: ESP32/settings.h ESP32/main/areas.h Makefile
+	cat ESP32/main/areas.h > espdefines.h
+	grep '#define' ESP32/settings.h | grep -v revk_settings_bits >> espdefines.h
+
+ssdatabase.o: ssdatabase.c ssdatabase.m ssdatabase.h config.h types.m Makefile ESP32/main/states.m ESP32/main/logicalgpio.m espdefines.h
 	gcc -g -Wall -Wextra -O -c -o $@ $< ${SQLINC} -DLIB
 
 ssmqtt.o: ssmqtt.c ssmqtt.h Makefile config.h
@@ -92,10 +96,10 @@ fobcommand.o: fobcommand.c fobcommand.h Makefile config.h
 mqttmsg.o: mqttmsg.c mqttmsg.h Makefile config.h
 	gcc -g -Wall -Wextra -O -c -o $@ $< ${SQLINC} -DLIB
 
-ssafile.o: ssafile.c ssafile.h Makefile config.h
+ssafile.o: ssafile.c ssafile.h Makefile config.h espdefines.h
 	gcc -g -Wall -Wextra -O -c -o $@ $< ${SQLINC} -DLIB
 
-solarsystem: solarsystem.c config.h AXL/axl.o AJL/ajl.o Dataformat/dataformat.o DESFireAES/desfireaes.o SQLlib/sqllib.o Makefile ssdatabase.o ssmqtt.o sscert.o fobcommand.o mqttmsg.o ssafile.o email/libemaillight.o
+solarsystem: solarsystem.c config.h AXL/axl.o AJL/ajl.o Dataformat/dataformat.o DESFireAES/desfireaes.o SQLlib/sqllib.o Makefile ssdatabase.o ssmqtt.o sscert.o fobcommand.o mqttmsg.o ssafile.o email/libemaillight.o espdefines.h
 	gcc -g -Wall -Wextra -O ${BUILD_ESP32_USING_CMAKE} -o $@ $< ssdatabase.o ssmqtt.o sscert.o AJL/ajlcurl.o AXL/axl.o Dataformat/dataformat.o DESFireAES/desfireaes.o SQLlib/sqllib.o ${SQLINC} ${SQLLIB} -lpopt -lcrypto -pthread -lcurl -lssl fobcommand.o mqttmsg.o ssafile.o -Iemail email/libemaillight.o
 
 sstool: sstool.c config.h SQLlib/sqllib.o

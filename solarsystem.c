@@ -8,7 +8,7 @@ typedef unsigned int uint32_t;
 #else
 #include "ESP32/build/include/sdkconfig.h"
 #endif
-#include "ESP32/main/areas.h"
+#include "espdefines.h"
 #include <stdio.h>
 #include <string.h>
 #include <popt.h>

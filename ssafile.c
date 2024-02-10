@@ -18,7 +18,7 @@
 #include "SQLlib/sqllib.h"
 #include <openssl/evp.h>
 #include "DESFireAES/include/desfireaes.h"
-#include "ESP32/main/areas.h"
+#include "espdefines.h"
 
 unsigned int
 makeafile (SQL_RES * res, unsigned char *afile)

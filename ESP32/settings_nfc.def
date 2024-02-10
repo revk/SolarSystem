@@ -1,7 +1,7 @@
-u8	nfc.red					.bitfield="-"
-u8	nfc.amber				.bitfield="-"
-u8	nfc.green				.bitfield="-"
-u8	nfc.card				.bitfield="-"
+u8	nfc.red					.flags="-"
+u8	nfc.amber				.flags="-"
+u8	nfc.green				.flags="-"
+u8	nfc.card				.flags="-"
 gpio	nfc.tx
 gpio	nfc.rx
 gpio	nfc.power
