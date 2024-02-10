@@ -2,6 +2,7 @@
 
 // Note, update settings_output.def for i() and s()
 // Note, update settings_input.def for i() and c()
+// Note, update settings_alarm.def for i(), s(), and c()
 
 #ifndef i
 #define i(t,n,c)	// Input states

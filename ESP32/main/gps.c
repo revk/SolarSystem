@@ -9,38 +9,7 @@ static const char TAG[] = "gps";
 #include <driver/uart.h>
 #include <driver/gpio.h>
 
-#define port_mask(p) ((p)&0x3F)
-#define	BITFIELDS "-"
-#define PORT_INV 0x40
-#define GPIO_INV 0x80           // No SETTING bit
-
-// Other settings
-#define settings  \
-  io(gpstx) \
-  io(gpsrx) \
-  io(gpstick) \
-  u8(gpsuart,2) \
-
-#define i8(n,d) int8_t n;
-#define io(n) uint8_t n;
-#define gpio(n) uint8_t n;
-#define u8(n,d) uint8_t n;
-#define u16(n,d) uint16_t n;
-#define b(n,l) uint8_t n[l];
-#define bap(n,l,a) uint8_t n[a][l];
-#define u1(n) uint8_t n;
-#define t(n,d) const char*n=NULL;
-settings
-#undef t
-#undef i8
-#undef io
-#undef gpio
-#undef u8
-#undef u16
-#undef b
-#undef bap
-#undef u1
-   uint8_t gpsseen = 0;         // Have we seen any data
+uint8_t gpsseen = 0;            // Have we seen any data
 uint8_t gpslocked = 0;          // Do we have a current time lock
 uint8_t gpsfixed = 0;           // Do we have a location lock
 uint8_t gpstime = 0;            // Remote GPS time
@@ -283,7 +252,7 @@ task (void *pvParameters)
 const char *
 gps_command (const char *tag, jo_t j)
 {
-   if (!gpstx || !gpsrx)
+   if (!gpstx.set || !gpsrx.set)
       return NULL;              // Not running
    return NULL;
 }
@@ -291,33 +260,13 @@ gps_command (const char *tag, jo_t j)
 void
 gps_boot (void)
 {
-   revk_register ("gps", 0, sizeof (gpstx), &gpstx, BITFIELDS, SETTING_SET | SETTING_BITFIELD | SETTING_SECRET);        // parent setting
-#define i8(n,d) revk_register(#n,0,sizeof(n),&n,#d,SETTING_SIGNED);
-#define io(n) revk_register(#n,0,sizeof(n),&n,BITFIELDS,SETTING_SET|SETTING_BITFIELD);
-#define gpio(n) revk_register(#n,0,sizeof(n),&n,BITFIELDS,SETTING_BITFIELD);
-#define u8(n,d) revk_register(#n,0,sizeof(n),&n,#d,0);
-#define u16(n,d) revk_register(#n,0,sizeof(n),&n,#d,0);
-#define b(n,l) revk_register(#n,0,sizeof(n),n,NULL,SETTING_BINDATA|SETTING_HEX);
-#define bap(n,l,a) revk_register(#n,a,sizeof(n[0]),n,NULL,SETTING_BINDATA|SETTING_HEX|SETTING_SECRET);
-#define u1(n) revk_register(#n,0,sizeof(n),&n,NULL,SETTING_BOOLEAN);
-#define t(n,d) revk_register(#n,0,0,&n,d,0);
-   settings
-#undef t
-#undef io
-#undef gpio
-#undef i8
-#undef u8
-#undef u16
-#undef b
-#undef bap
-#undef u1
-      if (gpstx && gpsrx)
+   if (gpstx.set && gpsrx.set)
    {
-      const char *e = port_check (port_mask (gpstx), TAG, 0);
+      const char *e = port_check (gpstx.num, TAG, 0);
       if (!e)
-         e = port_check (port_mask (gpsrx), TAG, 1);
+         e = port_check (gpsrx.num, TAG, 1);
       if (!e)
-         e = port_check (port_mask (gpstick), TAG, 1);
+         e = port_check (gpstick.num, TAG, 1);
       if (e)
          logical_gpio |= logical_GPSFault;
       else
@@ -334,7 +283,7 @@ gps_boot (void)
          if (!err)
             err = uart_param_config (gpsuart, &uart_config);
          if (!err)
-            err = uart_set_pin (gpsuart, port_mask (gpstx), port_mask (gpsrx), -1, -1);
+            err = uart_set_pin (gpsuart, gpstx.num, gpsrx.num, -1, -1);
          if (!err && !uart_is_driver_installed (gpsuart))
          {
             ESP_LOGI (TAG, "Installing GPS UART driver %d", gpsuart);
@@ -343,13 +292,13 @@ gps_boot (void)
          if (err)
             ESP_LOGE (TAG, "GPS UART fail %s", esp_err_to_name (err));
       }
-   } else if (gpsrx || gpstx)
+   } else if (gpsrx.set || gpstx.set)
       logical_gpio |= logical_GPSFault;
 }
 
 void
 gps_start (void)
 {
-   if (gpstx && gpsrx)
+   if (gpstx.set && gpsrx.set)
       revk_task (TAG, task, NULL, 4);
 }

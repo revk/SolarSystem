@@ -1,0 +1,35 @@
+#define	MAX_MIX		5
+
+u32	area.led			.bitfield=AREAS
+u32	area.enter			.bitfield=AREAS
+u32	area.arm			.bitfield=AREAS
+u32	area.strong			.bitfield=AREAS
+u32	area.disarm			.bitfield=AREAS
+u32	area.deadlock			.bitfield=AREAS
+u32	area.keypad			.bitfield=AREAS
+u32	area.keydisarm			.bitfield=AREAS
+u32	area.keystrong			.bitfield=AREAS
+u32	area.keyarm			.bitfield=AREAS
+u32	engineer			.bitfield=AREAS
+u32	armed				.bitfield=AREAS
+u32	sms.arm				.bitfield=AREAS
+u32	sms.disarm			.bitfield=AREAS
+u32	sms.cancel			.bitfield=AREAS
+u32	sms.armfail			.bitfield=AREAS
+u32	sms.alarm			.bitfield=AREAS
+u32	sms.panic			.bitfield=AREAS
+u32	sms.fire			.bitfield=AREAS
+u32	mix.and				.bitfield=AREAS	..array=MAX_MIX
+u32	mix.set				.bitfield=AREAS	..array=MAX_MIX
+u16	arm.cancel
+u16	arm.delay
+u16	alarm.delay
+u16	alarm.hold
+u8	mesh.expect
+u8	mesh.cycle	3
+u8	mesh.warmup	60
+u8	mesh.flap	10
+u8	mesh.died	240
+u16	mqtt.died	600
+s	sms.number
+u16	timer1

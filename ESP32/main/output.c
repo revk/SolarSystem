@@ -12,6 +12,8 @@ static output_t output_raw = 0; // Actual output
 output_t output_forced = 0;     // Output forced externally
 output_t output_pulsed = 0;     // Output pulse timed out meaning output is inverted from its logical state
 output_t output_mask = 0;       // Configure outputs
+static uint8_t outputfuncs;     // Combined outputs of all
+static uint8_t outputfuncset;   // Logical state of output funcs
 static uint32_t report_next = 0;        // When to report output
 
 #ifdef	CONFIG_REVK_LED_STRIP
@@ -31,7 +33,7 @@ output_active (int p)
    if (p < 1 || p > MAXOUTPUT)
       return -1;
    p--;
-   if (out[p])
+   if (outgpio[p].set)
       return 1;
    return 0;
 }
@@ -39,13 +41,13 @@ output_active (int p)
 static void
 output_write (int p)
 {                               // Write current (combined) state (p from 0)
-   if (out[p])
+   if (outgpio[p].set)
    {
       output_t v = (((output_state | output_forced) ^ output_pulsed) >> p) & 1;
       output_raw = (output_raw & ~(1ULL << p)) | (v << p);
-      gpio_hold_dis (port_mask (out[p]));
-      gpio_set_level (port_mask (out[p]), (out[p] & PORT_INV) ? 1 - v : v);
-      gpio_hold_en (port_mask (out[p]));
+      gpio_hold_dis (outgpio[p].num);
+      gpio_set_level (outgpio[p].num, outgpio[p].invert - v);
+      gpio_hold_en (outgpio[p].num);
 #ifdef  CONFIG_REVK_LED_STRIP
       if (outrgb[p])
          led_set (outrgb[p], v ? 'R' : 'G');
@@ -136,7 +138,7 @@ output_command (const char *tag, jo_t j)
                   jo_type_t t = jo_next (j);
                   if (t >= JO_TRUE)
                   {
-                     if (!out[i - 1])
+                     if (!outgpio[i - 1].set)
                         e = "Trying to set unconfigured output";
                      else if (t == JO_TRUE)
                         output_set (i, 1);
@@ -152,7 +154,7 @@ output_command (const char *tag, jo_t j)
          jo_type_t t = jo_here (j);
          if (i > MAXOUTPUT)
             e = "Output too high";
-         else if (!out[i - 1])
+         else if (!outgpio[i - 1].set)
             e = "Output not active";
          else if (t == JO_TRUE)
             output_set (i, 1);
@@ -177,7 +179,7 @@ task (void *pvParameters)
    static uint16_t output_hold[MAXOUTPUT] = { 0 };
    // Set outputs to their current state
    for (int i = 0; i < MAXOUTPUT; i++)
-      if (out[i])
+      if (outgpio[i].set)
       {
          output_mask |= (1ULL << i);
          output_write (i);
@@ -211,7 +213,7 @@ task (void *pvParameters)
          report_next = now + 3600;
          jo_t j = jo_make (NULL);
          for (int i = 0; i < MAXOUTPUT; i++)
-            if (out[i] && *outname[i])
+            if (outgpio[i].set && *outname[i])
             {
                if (output_pulsed & (1ULL << i))
                   jo_null (j, outname[i]);      // Distinct state for output pulse timeout
@@ -258,28 +260,28 @@ output_boot (void)
         p;
       for (i = 0; i < MAXOUTPUT; i++)
       {
-         if (out[i])
+         if (outgpio[i].set)
          {
-            const char *e = port_check (p = port_mask (out[i]), TAG, 0);
+            const char *e = port_check (p = outgpio[i].num, TAG, 0);
             if (e)
-               out[i] = 0;
+               outgpio[i].set = 0;
             else
             {                   // Set up output pin
                c.pin_bit_mask |= (1ULL << p);
-               REVK_ERR_CHECK (gpio_set_level (p, (out[i] & PORT_INV) ? 1 : 0));
+               REVK_ERR_CHECK (gpio_set_level (p, outgpio[i].invert));
             }
          }
-         if (power[i])
+         if (powergpio[i].set)
          {
-            const char *e = port_check (p = port_mask (power[i]), TAG, 0);
+            const char *e = port_check (p = powergpio[i].num, TAG, 0);
             if (e)
-               power[i] = 0;
+               powergpio[i].set = 0;
             else
             {                   // Set up power output pin
                c.pin_bit_mask |= (1ULL << p);
                if (p != 20)
                   REVK_ERR_CHECK (gpio_hold_dis (p));
-               REVK_ERR_CHECK (gpio_set_level (p, (power[i] & PORT_INV) ? 0 : 1));
+               REVK_ERR_CHECK (gpio_set_level (p, 1 - powergpio[i].invert));
                REVK_ERR_CHECK (gpio_set_drive_capability (p, GPIO_DRIVE_CAP_3));
             }
          }
@@ -308,7 +310,7 @@ output_boot (void)
       REVK_ERR_CHECK (led_strip_new_rmt_device (&strip_config, &rmt_config, &rgb));
       for (int i = 0; i < MAXOUTPUT; i++)
          if (powerrgb[i])
-            led_set (powerrgb[i], (power[i] & PORT_INV) ? 'B' : 'M');
+            led_set (powerrgb[i], powergpio[i].invert ? 'B' : 'M');
    } else
       for (int b = 0; b < 3; b++)
          revk_gpio_output (blink[b]);
@@ -321,7 +323,7 @@ output_start (void)
 {
 #ifdef CONFIG_REVK_BLINK_LIB    // If not defined we need output task to blink the status LED, so run task anyway
    int i;
-   for (i = 0; i < MAXOUTPUT && !out[i]; i++);
+   for (i = 0; i < MAXOUTPUT && !outgpio[i].set; i++);
    if (i == MAXOUTPUT)
       return;
 #endif

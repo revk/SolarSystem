@@ -676,7 +676,7 @@ nfc_boot (void)
 void
 nfc_start (void)
 {
-   if (nfctx.set && nfcrx)
+   if (nfctx.set && nfcrx.set)
    {
       revk_task (TAG, task, pn532, 3);
       nfc_led (0, NULL);

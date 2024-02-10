@@ -14,14 +14,14 @@ u8	in.rgb			.array=MAXINPUT
 u8	in.func			.array=MAXINPUT	.bitfields=INPUT_FUNCS
 u8	in.hold			.array=MAXINPUT
 s	in.name			.array=MAXINPUT
-u32	in.engineer		.array=MAXINPUT	.bitfield=AREAS
-u32	in.faulted		.array=MAXINPUT	.bitfield=AREAS
-u32	in.tampered		.array=MAXINPUT	.bitfield=AREAS
-u32	in.alarmed		.array=MAXINPUT	.bitfield=AREAS
-u32	in.armed		.array=MAXINPUT	.bitfield=AREAS
-u32	in.prearm		.array=MAXINPUT	.bitfield=AREAS
-u32	in.prealarm		.array=MAXINPUT	.bitfield=AREAS
-u32	in.alarm		.array=MAXINPUT	.bitfield=AREAS
+u32	in.doorbell		.array=MAXINPUT	.bitfield=AREAS
+u32	in.warning		.array=MAXINPUT	.bitfield=AREAS
+u32	in.fault		.array=MAXINPUT	.bitfield=AREAS
+u32	in.access		.array=MAXINPUT	.bitfield=AREAS
+u32	in.presence		.array=MAXINPUT	.bitfield=AREAS
+u32	in.tamper		.array=MAXINPUT	.bitfield=AREAS
+u32	in.fire			.array=MAXINPUT	.bitfield=AREAS
+u32	in.panic		.array=MAXINPUT	.bitfield=AREAS
 u32	in.arm			.array=MAXINPUT	.bitfield=AREAS
 u32	in.strong		.array=MAXINPUT	.bitfield=AREAS
 u32	in.disarm		.array=MAXINPUT	.bitfield=AREAS

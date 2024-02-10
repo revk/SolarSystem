@@ -53,7 +53,7 @@ pull:
 	git pull
 	git submodule update --recursive
 
-settings.h:     components/ESP32-RevK/revk_settings components/ESP32-RevK/settings.def settings.def settings_nfc.def settings_door.def settings_gps.def settings_output.def settings_input.def settings_keypad.def
+settings.h:     components/ESP32-RevK/revk_settings components/ESP32-RevK/settings.def settings.def settings_nfc.def settings_door.def settings_gps.def settings_output.def settings_input.def settings_keypad.def settings_alarm.def
 	components/ESP32-RevK/revk_settings $^
 
 components/ESP32-RevK/revk_settings: components/ESP32-RevK/revk_settings.c

@@ -66,56 +66,6 @@ struct display_s
 static display_t *display = NULL;
 #define MAX_ROOT_DISPLAY (MAX_LEAF_DISPLAY*2)
 
-#define settings		\
-	area(arealed)		\
-	area(areaenter)		\
-	area(areaarm)		\
-	area(areastrong)	\
-	area(areadisarm)	\
-	area(areadeadlock)	\
-	areanl(areakeypad)	\
-	area(areakeydisarm)	\
-	area(areakeystrong)	\
-	area(areakeyarm)	\
-	area(engineer)		\
-	area(armed)		\
-	u16(armcancel)		\
-	u16(armdelay)		\
-	u16(alarmdelay)		\
-	u16(alarmhold)		\
-	u8(meshexpect,0)	\
-        u8(meshcycle,3)		\
-        u8(meshwarmup,60)	\
-        u8(meshflap,10)	\
-	u8(meshdied,240)	\
-	u16d(mqttdied,600)	\
-	area(smsarm)		\
-	area(smsdisarm)		\
-	area(smscancel)		\
-	area(smsarmfail)	\
-	area(smsalarm)		\
-	area(smspanic)		\
-	area(smsfire)		\
-	arean(mixand,MAX_MIX)	\
-	arean(mixset,MAX_MIX)	\
-	sl(smsnumber)	\
-	u16(timer1)	\
-
-#define area(n) area_t n;
-#define areanl(n) area_t n;
-#define arean(n,q) area_t n[q];
-#define sl(n) char *n;
-#define u16(n) uint16_t n;
-#define u16d(n,d) uint16_t n;
-#define u8(n,d) uint16_t n;
-settings
-#undef area
-#undef areanl
-#undef arean
-#undef sl
-#undef u16
-#undef u16d
-#undef u8
 #define c(t,x) static area_t report_##x=0;      // The collated reports
 #define i(t,x,l) static area_t report_##x=0;    // The collated reports
 #include "states.m"
@@ -256,25 +206,6 @@ alarm_boot (void)
    xSemaphoreGive (control_mutex);
    display_mutex = xSemaphoreCreateBinary ();
    xSemaphoreGive (display_mutex);
-   revk_register ("area", 0, sizeof (arealed), &arealed, AREAS, SETTING_BITFIELD | SETTING_LIVE | SETTING_SECRET);      // Will control if shown in dump!
-   revk_register ("sms", 0, sizeof (smsalarm), &smsalarm, AREAS, SETTING_BITFIELD | SETTING_LIVE | SETTING_SECRET);
-   revk_register ("mix", sizeof (mixand) / sizeof (*mixand), sizeof (*mixand), &mixand, AREAS,
-                  SETTING_BITFIELD | SETTING_LIVE | SETTING_SECRET);
-#define area(n) revk_register(#n,0,sizeof(n),&n,AREAS,SETTING_BITFIELD|SETTING_LIVE);
-#define areanl(n) revk_register(#n,0,sizeof(n),&n,AREAS,SETTING_BITFIELD);
-#define arean(n,q) revk_register(#n,q,sizeof(*n),&n,AREAS,SETTING_BITFIELD|SETTING_LIVE);
-#define sl(n) revk_register(#n,0,0,&n,NULL,SETTING_LIVE);
-#define u16(n) revk_register(#n,0,sizeof(n),&n,NULL,SETTING_LIVE);
-#define u16d(n,d) revk_register(#n,0,sizeof(n),&n,#d,SETTING_LIVE);
-#define u8(n,d) revk_register(#n,0,sizeof(n),&n,#d,SETTING_LIVE);
-   settings;
-#undef area
-#undef areanl
-#undef arean
-#undef sl
-#undef u16
-#undef u16d
-#undef u8
    // Pick up flash stored state to get started
    state_armed = armed;
    state_engineer = engineer;
