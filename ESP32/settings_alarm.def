@@ -25,7 +25,7 @@ u16	arm.cancel
 u16	arm.delay
 u16	alarm.delay
 u16	alarm.hold
-u8	mesh.expect
+u8	mesh.expect			.live=1
 u8	mesh.cycle	3
 u8	mesh.warmup	60
 u8	mesh.flap	10
