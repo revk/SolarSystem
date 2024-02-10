@@ -1,2 +1,2 @@
 typedef uint32_t area_t;
-#define AREAS "ABCDEFGHIJKLMNOPQRSTUVWXYZZZZZZZ"
+// Mapping in settings.def

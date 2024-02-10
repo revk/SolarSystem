@@ -8,34 +8,13 @@ static const char TAG[] = "input";
 
 #include <driver/gpio.h>
 
-// Input ports
-#define	BITFIELDS "-"
-#define	PORT_INV 0x40
-#define	port_mask(p) ((p)&63)
-static uint8_t in[MAXINPUT];
-static uint8_t inhold[MAXINPUT];        // Time held left for debounce
-static uint8_t inrgb[MAXINPUT]; // Input RGB LED number
-static uint8_t intime[MAXINPUT];        // Time active so far
-static uint8_t infunc[MAXINPUT];        // Input functions
-static uint8_t inputfuncs;      // Combined input funcs
-#define i(t,x,c) area_t in##x[MAXINPUT];
-#define c(t,x) area_t in##x[MAXINPUT];
-#include "states.m"
-char *inname[MAXINPUT];
-
-// Other settings
-#define settings	\
-u8 (inpoll, 10);	\
-
-#define u8(n,v) uint8_t n
-settings
-#undef u8
 static input_t input_raw = 0;
 static input_t input_invert = 0;
 input_t input_stable = 0;
 input_t input_latch = 0;        // holds resettable state of input
 input_t input_flip = 0;         // holds flipped flag for each input, i.e. state has changed
-
+static uint8_t intime[MAXINPUT];        // Time active so far
+static uint8_t inputfuncs;      // Combined input funcs
 static uint32_t report_next = 0;
 
 int
@@ -44,7 +23,7 @@ input_active (int p)
    if (p < 1 || p > MAXINPUT)
       return 0;
    p--;
-   if (!in[p])
+   if (!ingpio[p].set)
       return 0;
    return 1;
 }
@@ -118,13 +97,13 @@ task (void *pvParameters)
       // Check inputs
       input_t was = input_stable;
       for (int i = 0; i < MAXINPUT; i++)
-         if (in[i])
+         if (ingpio[i].set)
          {
-            int p = port_mask (in[i]),
+            int p = ingpio[i].num,
                v;
             if (p < LOGIC_PORT)
                v = gpio_get_level (p);
-            else if (p >= LOGIC_PORT2 && (in[i] & PORT_INV))
+            else if (p >= LOGIC_PORT2 && ingpio[i].invert)
                v = ((logical_gpio >> (16 + p - LOGIC_PORT)) & 1);       // Non invertable logical GPIO, i.e. extra ones
             else
                v = ((logical_gpio >> (p - LOGIC_PORT)) & 1);    // Logical GPIO, e.g. NFC ports, etc.
@@ -191,7 +170,7 @@ task (void *pvParameters)
          input_flip |= (input_stable ^ was);    // Latch any change
          jo_t j = jo_make (NULL);
          for (int i = 0; i < MAXINPUT; i++)
-            if (in[i] && *inname[i])
+            if (ingpio[i].set && *inname[i])
                jo_bool (j, inname[i], (input_stable >> i) & 1);
          revk_state_clients ("input", &j, debug | (iotstateinput << 1));
       }
@@ -203,19 +182,7 @@ task (void *pvParameters)
 void
 input_boot (void)
 {
-   revk_register ("in", MAXINPUT, sizeof (*in), &in, BITFIELDS, SETTING_BITFIELD | SETTING_SET | SETTING_SECRET);
-   revk_register ("ingpio", MAXINPUT, sizeof (*in), &in, BITFIELDS, SETTING_BITFIELD | SETTING_SET);
-   revk_register ("inhold", MAXINPUT, sizeof (*inhold), &inhold, NULL, SETTING_LIVE);
-   revk_register ("inrgb", MAXINPUT, sizeof (*inrgb), &inrgb, NULL, 0);
-   revk_register ("infunc", MAXINPUT, sizeof (*infunc), &infunc, INPUT_FUNCS, SETTING_BITFIELD);
-   revk_register ("inname", MAXINPUT, 0, &inname, NULL, SETTING_LIVE);
-#define i(t,x,c) revk_register("in"#x, MAXINPUT, sizeof(*in##x), &in##x, AREAS, SETTING_BITFIELD|SETTING_LIVE);
-#define c(t,x) revk_register("in"#x, MAXINPUT, sizeof(*in##x), &in##x, AREAS, SETTING_BITFIELD|SETTING_LIVE);
-#include "states.m"
-#define u8(n,v) revk_register(#n,0,sizeof(n),&n,#v,0);
-   settings
-#undef u8
-      inputfuncs = 0;
+   inputfuncs = 0;
    for (int i = 0; i < MAXINPUT; i++)
       inputfuncs |= infunc[i];
    {                            // GPIO
@@ -225,11 +192,11 @@ input_boot (void)
       int i,
         p;
       for (i = 0; i < MAXINPUT; i++)
-         if (in[i])
+         if (ingpio[i].set)
          {
-            const char *e = port_check (p = port_mask (in[i]), TAG, 1);
+            const char *e = port_check (p = ingpio[i].num, TAG, 1);
             if (e)
-               in[i] = 0;
+               ingpio[i].set = 0;
             else
             {
                if (p < LOGIC_PORT)
@@ -250,7 +217,7 @@ input_boot (void)
                      REVK_ERR_CHECK (gpio_hold_dis (p));
 #endif
                }
-               if (p < LOGIC_PORT2 && (in[i] & PORT_INV))
+               if (p < LOGIC_PORT2 && ingpio[i].invert)
                {                // Inverted
                   input_invert |= (1ULL << i);
                   if (p >= LOGIC_PORT)
@@ -267,13 +234,13 @@ input_boot (void)
    }
    // Init state
    for (int i = 0; i < MAXINPUT; i++)
-      if (in[i])
+      if (ingpio[i].set)
       {
-         int p = port_mask (in[i]),
+         int p = ingpio[i].num,
             v;
          if (p < LOGIC_PORT)
             v = gpio_get_level (p);
-         else if (p >= LOGIC_PORT2 && (in[i] & PORT_INV))
+         else if (p >= LOGIC_PORT2 && ingpio[i].invert)
             v = ((logical_gpio >> (16 + p - LOGIC_PORT)) & 1);  // Non invertable logical GPIO, i.e. extra ones
          else
             v = ((logical_gpio >> (p - LOGIC_PORT)) & 1);       // Logical GPIO, e.g. NFC ports, etc.
@@ -288,7 +255,7 @@ void
 input_start (void)
 {
    int i;
-   for (i = 0; i < MAXINPUT && !in[i]; i++);
+   for (i = 0; i < MAXINPUT && !ingpio[i].set; i++);
    if (i == MAXINPUT)
       return;
    revk_task (TAG, task, NULL, 3);

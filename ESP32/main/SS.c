@@ -40,48 +40,16 @@ static const char __attribute__((unused)) TAG[] = "SS";
 
 // Output first to minimise startup
 // Input before door
-#define modules		\
-	m(output)	\
-	m(input)	\
-	m(keypad)	\
-	m(door)		\
-	m(nfc)		\
-	m(alarm)	\
-	m(gps)		\
+#define modules                \
+       m(output)       \
+       m(input)        \
+       m(keypad)       \
+       m(door)         \
+       m(nfc)          \
+       m(alarm)        \
+       m(gps)          \
 
-// Other settings
-#define settings  	\
-  	io(tamper) 	\
-	bl(iotstatedoor)	\
-	bl(iotstateinput)\
-	bl(iotstateoutput)\
-	bl(iotstatesystem)\
-	bl(ioteventfob)	\
-	bl(ioteventarm)	\
-	bl(iotkeypad)	\
-	bl(iotgps)	\
-	s(iottopic)	\
-	bl(debug)	\
-
-#define io(n) static uint8_t n;
-#define area(n) area_t n;
-#define	s(n) char *n;
-#define	sa(n,a) char *n[a];
-#define b(n) uint8_t n;
-#define bl(n) uint8_t n;
-#define bd(n,d)         static revk_bindata_t *n;
-settings
-#undef io
-#undef area
-#undef s
-#undef sa
-#undef bd
-#undef b
-#undef bl
-#define port_mask(p) ((p)&63)
-#define BITFIELDS "-"
-#define PORT_INV 0x40
-   uint32_t logical_gpio = 0;   // Logical GPIO (from GPIO 48 to 63 and -48 to -63, covers NFC, keypad, GPS, etc.)
+uint32_t logical_gpio = 0;      // Logical GPIO (from GPIO 48 to 63 and -48 to -63, covers NFC, keypad, GPS, etc.)
 
 // External
 const char *
@@ -150,24 +118,9 @@ void
 app_main ()
 {
    revk_boot (&app_callback);
-   revk_register ("iot", 0, 0, &iotcopy, "true", SETTING_BOOLEAN | SETTING_SECRET);     // iot group
-#define io(n) revk_register(#n,0,sizeof(n),&n,BITFIELDS,SETTING_SET|SETTING_BITFIELD);
-#define s(n) revk_register(#n,0,0,&n,NULL,0);
-#define sa(n,a) revk_register(#n,a,0,&n,NULL,0);
-#define area(n) revk_register(#n,0,sizeof(n),&n,AREAS,SETTING_BITFIELD);
-#define bd(n,d)         revk_register(#n,0,0,&n,d,SETTING_BINDATA);
-#define b(n)          revk_register(#n,0,1,&n,NULL,SETTING_BOOLEAN);
-#define bl(n)          revk_register(#n,0,1,&n,NULL,SETTING_BOOLEAN|SETTING_LIVE);
-   settings
-#undef io
-#undef area
-#undef s
-#undef sa
-#undef bd
-#undef b
 #undef bl
 #ifdef  CONFIG_IDF_TARGET_ESP32
-      port_check (1, "Serial", 0);
+   port_check (1, "Serial", 0);
    port_check (3, "Serial", 0);
 #endif
 #ifdef  CONFIG_IDF_TARGET_ESP32S3

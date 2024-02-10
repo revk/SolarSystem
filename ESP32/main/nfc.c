@@ -16,11 +16,6 @@ static const char TAG[] = "nfc";
 #include <driver/gpio.h>
 #include <aes/esp_aes.h>
 
-#define port_mask(p) ((p)&0x3F)
-#define	BITFIELDS "-"
-#define PORT_INV 0x40
-#define GPIO_INV 0x80           // No SETTING bit
-
 int16_t
 gpio_mask (uint8_t p)
 {
@@ -34,50 +29,7 @@ gpio_mask (uint8_t p)
    return -1;                   // Invalid
 }
 
-// Other settings
-#define settings  \
-  gpio(nfcred) \
-  gpio(nfcamber) \
-  gpio(nfcgreen) \
-  gpio(nfccard) \
-  io(nfctx) \
-  io(nfcrx) \
-  io(nfcpower) \
-  u16(nfcpoll,50) \
-  u16(nfcholdpoll,500) \
-  u8(nfchold,6) \
-  u8(nfclonghold,20) \
-  u16(nfcledpoll,100) \
-  u16(nfciopoll,200) \
-  u8(nfcuart,1) \
-  u8f(nfcbaud,CONFIG_NFC_BAUD_CODE) \
-  t(nfcmqttbell,NULL) \
-  bap(aes,18,3) \
-  b(aid,3) \
-  t(ledIDLE,"3R3-") \
-
-#define i8(n,d) int8_t n;
-#define io(n) uint8_t n;
-#define gpio(n) uint8_t n;
-#define u8(n,d) uint8_t n;
-#define u8f(n,d) uint8_t n;
-#define u16(n,d) uint16_t n;
-#define b(n,l) uint8_t n[l];
-#define bap(n,l,a) uint8_t n[a][l];
-#define u1(n) uint8_t n;
-#define t(n,d) const char*n=NULL;
-settings
-#undef t
-#undef i8
-#undef io
-#undef gpio
-#undef u8
-#undef u8f
-#undef u16
-#undef b
-#undef bap
-#undef u1
-   pn532_t * pn532 = NULL;
+pn532_t *pn532 = NULL;
 uint8_t nfcmask = 0,
    nfcinvert = 0;
 df_t df;
@@ -254,8 +206,8 @@ task (void *pvParameters)
    uint8_t ledpos = 0;
    uint8_t retry = 0;
    uint8_t holdpolls = 0;
-   uart_set_line_inverse (nfcuart, ((PORT_INV & nfctx) ? UART_SIGNAL_TXD_INV : 0) + ((PORT_INV & nfcrx) ? UART_SIGNAL_RXD_INV : 0));    // Allow for inverted pins
-   gpio_set_pull_mode (port_mask (nfcrx), (PORT_INV & nfcrx) ? GPIO_PULLUP_ONLY : GPIO_FLOATING);       // If inverted rx, set pull up, as will be a FET
+   uart_set_line_inverse (nfcuart, (nfctx.invert ? UART_SIGNAL_TXD_INV : 0) + (nfcrx.invert ? UART_SIGNAL_RXD_INV : 0));        // Allow for inverted pins
+   gpio_set_pull_mode (nfcrx.num, nfcrx.invert ? GPIO_PULLUP_ONLY : GPIO_FLOATING);     // If inverted rx, set pull up, as will be a FET
    while (1)
    {
       esp_task_wdt_reset ();
@@ -295,9 +247,9 @@ task (void *pvParameters)
             if (on)
             {                   // Try talking to it
                ESP_LOGE (TAG, "NFC re-init");
-               pn532 = pn532_init (nfcuart, nfcbaud, port_mask (nfctx), port_mask (nfcrx), nfcmask);
+               pn532 = pn532_init (nfcuart, nfcbaud, nfctx.num, nfcrx.num, nfcmask);
                if (!pn532)
-                  pn532 = pn532_init (nfcuart, nfcbaud, port_mask (nfctx), port_mask (nfcrx), nfcmask);
+                  pn532 = pn532_init (nfcuart, nfcbaud, nfctx.num, nfcrx.num, nfcmask);
                if (pn532)
                {                // All good!
                   df_init (&df, pn532, pn532_dx);
@@ -306,17 +258,17 @@ task (void *pvParameters)
                } else
                {                // Failed
                   on = 0;
-                  gpio_reset_pin (port_mask (nfcrx));   // Don't drive
-                  gpio_reset_pin (port_mask (nfctx));   // Don't drive
-                  if (nfcpower)
-                     gpio_set_level (port_mask (nfcpower), (nfcpower & PORT_INV) ? 1 : 0);      // Off
+                  gpio_reset_pin (nfcrx.num);   // Don't drive
+                  gpio_reset_pin (nfctx.num);   // Don't drive
+                  if (nfcpower.set)
+                     gpio_set_level (nfcpower.num, nfcpower.invert);    // Off
                   wait = 1000 / nfciopoll;      // off wait
                }
             } else
             {                   // Off, so turn on
                on = 1;
-               if (nfcpower)
-                  gpio_set_level (port_mask (nfcpower), (nfcpower & PORT_INV) ? 0 : 1); // On
+               if (nfcpower.set)
+                  gpio_set_level (nfcpower.num, 1 - nfcpower.invert);   // On
                wait = 500 / nfciopoll;  // on wait
             }
          }
@@ -616,12 +568,12 @@ nfc_command (const char *tag, jo_t j)
       return NULL;              // Not running
    if (!strcmp (tag, "shutdown"))
    {
-      if (nfctx)
-         gpio_reset_pin (port_mask (nfctx));    // So not driving via data lines
-      if (nfcrx)
-         gpio_reset_pin (port_mask (nfcrx));    // So not driving via data lines
-      if (nfcpower)
-         gpio_set_level (port_mask (nfcpower), (nfcpower & PORT_INV) ? 1 : 0);  // Off
+      if (nfctx.set)
+         gpio_reset_pin (nfctx.num);    // So not driving via data lines
+      if (nfcrx.set)
+         gpio_reset_pin (nfcrx.num);    // So not driving via data lines
+      if (nfcpower.set)
+         gpio_set_level (nfcpower.num, nfcpower.invert);        // Off
    }
    if (nfcmask && !strcmp (tag, "led"))
    {
@@ -675,32 +627,8 @@ nfc_command (const char *tag, jo_t j)
 void
 nfc_boot (void)
 {
-   revk_register ("nfc", 0, sizeof (nfctx), &nfctx, BITFIELDS, SETTING_SET | SETTING_BITFIELD | SETTING_SECRET);        // parent setting
-#define str(x) #x
-#define i8(n,d) revk_register(#n,0,sizeof(n),&n,#d,SETTING_SIGNED);
-#define io(n) revk_register(#n,0,sizeof(n),&n,BITFIELDS,SETTING_SET|SETTING_BITFIELD);
-#define gpio(n) revk_register(#n,0,sizeof(n),&n,BITFIELDS,SETTING_BITFIELD);
-#define u8(n,d) revk_register(#n,0,sizeof(n),&n,#d,0);
-#define u8f(n,d) revk_register(#n,0,sizeof(n),&n,str(d),SETTING_FIX);
-#define u16(n,d) revk_register(#n,0,sizeof(n),&n,#d,0);
-#define b(n,l) revk_register(#n,0,sizeof(n),n,NULL,SETTING_BINDATA|SETTING_HEX);
-#define bap(n,l,a) revk_register(#n,a,sizeof(n[0]),n,NULL,SETTING_BINDATA|SETTING_HEX|SETTING_SECRET|SETTING_LIVE);
-#define u1(n) revk_register(#n,0,sizeof(n),&n,NULL,SETTING_BOOLEAN);
-#define t(n,d) revk_register(#n,0,0,&n,d,0);
-   settings
-#undef t
-#undef io
-#undef gpio
-#undef i8
-#undef u8
-#undef u8f
-#undef u16
-#undef b
-#undef bap
-#undef u1
-#undef str
-      // Set up ports */
-      nfcmask = 0;              /* output mask for NFC */
+   // Set up ports */
+   nfcmask = 0;                 /* output mask for NFC */
    if (nfcred)
       nfcmask |= (1 << gpio_mask (nfcred));
    if (nfcamber)
@@ -709,46 +637,46 @@ nfc_boot (void)
       nfcmask |= (1 << gpio_mask (nfcgreen));
    if (nfccard)
       nfcmask |= (1 << gpio_mask (nfccard));
-   if (nfcred & GPIO_INV)
+   if (nfcred & 0x80)
       nfcinvert |= (1 << gpio_mask (nfcred));
-   if (nfcamber & GPIO_INV)
+   if (nfcamber & 0x80)
       nfcinvert |= (1 << gpio_mask (nfcamber));
-   if (nfcgreen & GPIO_INV)
+   if (nfcgreen & 0x80)
       nfcinvert |= (1 << gpio_mask (nfcgreen));
-   if (nfccard & GPIO_INV)
+   if (nfccard & 0x80)
       nfcinvert |= (1 << gpio_mask (nfccard));
-   if (nfcpower && !port_check (port_mask (nfcpower), TAG, 0))
+   if (nfcpower.set && !port_check (nfcpower.num, TAG, 0))
    {
-      gpio_reset_pin (port_mask (nfcpower));
-      gpio_set_level (port_mask (nfcpower), (nfcpower & PORT_INV) ? 1 : 0);     // Off
-      gpio_set_direction (port_mask (nfcpower), GPIO_MODE_OUTPUT);
+      gpio_reset_pin (nfcpower.num);
+      gpio_set_level (nfcpower.num, nfcpower.invert);   // Off
+      gpio_set_direction (nfcpower.num, GPIO_MODE_OUTPUT);
    }
-   if (nfctx && nfcrx)
+   if (nfctx.set && nfcrx.set)
    {
       nfc_mutex = xSemaphoreCreateBinary ();
       xSemaphoreGive (nfc_mutex);
-      const char *e = port_check (port_mask (nfctx), TAG, 0);
+      const char *e = port_check (nfctx.num, TAG, 0);
       if (!e)
-         e = port_check (port_mask (nfcrx), TAG, 1);
+         e = port_check (nfcrx.num, TAG, 1);
       if (e)
       {
-         nfcrx = nfctx = 0;     // Don't start
+         nfcpower.set = nfcrx.set = nfctx.set = 0;      // Don't start
          logical_gpio |= logical_NFCFault;
       } else
       {
-         pn532 = pn532_init (nfcuart, nfcbaud, port_mask (nfctx), port_mask (nfcrx), nfcmask);
+         pn532 = pn532_init (nfcuart, nfcbaud, nfctx.num, nfcrx.num, nfcmask);
          if (!pn532)
             logical_gpio |= logical_NFCFault;
          df_init (&df, pn532, pn532_dx);        // Start anyway, er re-try init
       }
-   } else if (nfcrx || nfctx)
+   } else if (nfcrx.set || nfctx.set)
       logical_gpio |= logical_NFCFault;
 }
 
 void
 nfc_start (void)
 {
-   if (nfctx && nfcrx)
+   if (nfctx.set && nfcrx)
    {
       revk_task (TAG, task, pn532, 3);
       nfc_led (0, NULL);

@@ -1,0 +1,19 @@
+u8	nfc.red					.bitfield="-"
+u8	nfc.amber				.bitfield="-"
+u8	nfc.green				.bitfield="-"
+u8	nfc.card				.bitfield="-"
+gpio	nfc.tx
+gpio	nfc.rx
+gpio	nfc.power
+u16	nfc.poll	50
+u16	nfc.holdpoll	500
+u8	nfc.hold	6
+u8	nfc.longhold	20
+u16	nfc.ledpoll	100
+u16	nfc.iopoll	200
+u8	nfc.uart	1
+u8	nfc.baud	CONFIG_NFC_BAUD_CODE
+s	nfc.mqttbell
+o18	aes					.hex=1	.array=3
+o3	aid					.hex=1
+s	led.IDLE	"3R3-"

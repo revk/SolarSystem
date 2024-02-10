@@ -1,0 +1,13 @@
+#define	AREAS	"ABCDEFGHIJKLMNOPQRSTUVWXYZZZZZZZ"
+
+gpio	tamper
+bit	debug			.live=1
+bit	iot.statedoor		.live=1
+bit	iot.stateinput		.live=1
+bit	iot.stateoutput		.live=1
+bit	iot.statesystem		.live=1
+bit	iot.eventfob		.live=1
+bit	iot.eventarm		.live=1
+bit	iot.keypad		.live=1
+bit	iot.gps			.live=1
+s	iot.topic

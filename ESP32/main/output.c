@@ -7,26 +7,6 @@ static const char TAG[] = "output";
 
 #include <driver/gpio.h>
 
-// Output ports
-#define BITFIELDS "-"
-#define PORT_INV 0x40
-#define port_mask(p) ((p)&63)
-static uint8_t out[MAXOUTPUT];  // GPIO
-static uint8_t power[MAXOUTPUT];        /* fixed outputs */
-static uint8_t powerrgb[MAXOUTPUT];     // Output RGB LED number
-static char *outname[MAXOUTPUT];
-static int16_t outpulse[MAXOUTPUT];     // Timeout in s/10, +ve means timeout the active state, -ve means timeout the inactive state
-static uint8_t outrgb[MAXOUTPUT];       // Output RGB LED number
-static uint8_t outfunc[MAXOUTPUT];      // Output function codes
-static uint8_t outputfuncs;     // Combined outputs of all
-static uint8_t outputfuncset;   // Logical state of output funcs
-static uint8_t rgbs = 0;
-revk_settings_gpio_t blink[3];
-
-#define i(t,x,c) area_t out##x[MAXOUTPUT];
-#define s(t,x,c) area_t out##x[MAXOUTPUT];
-#include "states.m"
-
 static output_t output_state = 0;       // Port state
 static output_t output_raw = 0; // Actual output
 output_t output_forced = 0;     // Output forced externally
@@ -268,20 +248,6 @@ task (void *pvParameters)
 void
 output_boot (void)
 {
-   revk_register ("blink", 3, sizeof (*blink), &blink, "- ", SETTING_SET | SETTING_BITFIELD | SETTING_FIX);
-   revk_register ("rgbs", 0, sizeof (rgbs), &rgbs, NULL, 0);
-   revk_register ("out", MAXOUTPUT, sizeof (*out), &out, BITFIELDS, SETTING_BITFIELD | SETTING_SET | SETTING_SECRET);
-   revk_register ("outgpio", MAXOUTPUT, sizeof (*out), &out, BITFIELDS, SETTING_BITFIELD | SETTING_SET);
-   revk_register ("outfunc", MAXOUTPUT, sizeof (*outfunc), &outfunc, OUTPUT_FUNCS, SETTING_BITFIELD | SETTING_LIVE);
-   revk_register ("outpulse", MAXOUTPUT, sizeof (*outpulse), &outpulse, NULL, SETTING_LIVE | SETTING_SIGNED);
-   revk_register ("outrgb", MAXOUTPUT, sizeof (*outrgb), &outrgb, NULL, 0);
-   revk_register ("outname", MAXOUTPUT, 0, &outname, NULL, SETTING_LIVE);
-   revk_register ("power", MAXOUTPUT, sizeof (*power), &power, BITFIELDS, SETTING_BITFIELD | SETTING_SET | SETTING_SECRET);
-   revk_register ("powerrgb", MAXOUTPUT, sizeof (*powerrgb), &powerrgb, NULL, 0);
-   revk_register ("powergpio", MAXOUTPUT, sizeof (*power), &power, BITFIELDS, SETTING_BITFIELD | SETTING_SET);
-#define i(t,x,c) revk_register("out"#x, MAXOUTPUT, sizeof(*out##x), &out##x, AREAS, SETTING_BITFIELD|SETTING_LIVE);
-#define s(t,x,c) revk_register("out"#x, MAXOUTPUT, sizeof(*out##x), &out##x, AREAS, SETTING_BITFIELD|SETTING_LIVE);
-#include "states.m"
    outputfuncset = 0;
    outputfuncs = 0;
    for (int i = 0; i < MAXOUTPUT; i++)

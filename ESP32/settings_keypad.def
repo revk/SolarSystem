@@ -1,0 +1,13 @@
+gpio	keypad.tx
+gpio	keypad.rx
+gpio	keypad.de
+gpio	keypad.re
+gpio	keypad.clk
+u8	keypad.timer
+u8	keypad.address	10	.hex=1
+u8	keypad.txpre	75
+u8	keypad.txpost	50
+u8	keypad.rxpre	100
+u8	keypad.rxpost	20
+s	keypad.idle		.live=1
+s	keypad.pin		.live=1

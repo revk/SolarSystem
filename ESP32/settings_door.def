@@ -1,0 +1,20 @@
+u8	door.auto
+u32	door.unlock	1000
+u32	door.lock	3000
+u32	door.open	5000
+u32	door.close	500
+u32	door.prop	60000
+u32	door.exit	3000
+u32	door.poll	100
+u32	door.debounce	200
+bit	door.debug
+bit	door.exitarm
+bit	door.exitdisarm
+bit	door.catch
+s	fallback		.array=10
+s	blacklist		.array=10
+s	door.iotopen
+s	door.iotdead
+s	door.iotundead
+s	door.iotlock
+s	door.iotunlock

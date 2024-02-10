@@ -1,0 +1,4 @@
+gpio	gps.tx
+gpio	gps.rx
+gpio	gps.tick
+u8	gps.uart	2

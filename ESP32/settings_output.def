@@ -1,0 +1,35 @@
+#define	MAXOUTPUT	10
+#define	OUTPUT_FUNCS	"LDBE"
+#define	OUTPUT_FUNC_L	0x80	// Lock release
+#define	OUTPUT_FUNC_D	0x40	// Deadlock release (this needs to be L>>1)
+#define	OUTPUT_FUNC_B	0x20	// Beep
+#define	OUTPUT_FUNC_E	0x10	// Error
+
+gpio	blink			.array=3
+u8	rgbs
+
+gpio	out.gpio		.array=MAXOUTPUT
+u8	out.func		.array=MAXOUTPUT	.bitfield=OUTPUT_FUNCS
+u16	out.pulse		.array=MAXOUTPUT
+u8	out.rgb			.array=MAXOUTPUT
+s	out.name		.array=MAXOUTPUT
+u32	out.engineer		.array=MAXOUTPUT	.bitfield=AREAS
+u32	out.faulted		.array=MAXOUTPUT	.bitfield=AREAS
+u32	out.tampered		.array=MAXOUTPUT	.bitfield=AREAS
+u32	out.alarmed		.array=MAXOUTPUT	.bitfield=AREAS
+u32	out.armed		.array=MAXOUTPUT	.bitfield=AREAS
+u32	out.prearm		.array=MAXOUTPUT	.bitfield=AREAS
+u32	out.prealarm		.array=MAXOUTPUT	.bitfield=AREAS
+u32	out.alarm		.array=MAXOUTPUT	.bitfield=AREAS
+u32	out.doorbell		.array=MAXOUTPUT	.bitfield=AREAS
+u32	out.warning		.array=MAXOUTPUT	.bitfield=AREAS
+u32	out.fault		.array=MAXOUTPUT	.bitfield=AREAS
+u32	out.access		.array=MAXOUTPUT	.bitfield=AREAS
+u32	out.presence		.array=MAXOUTPUT	.bitfield=AREAS
+u32	out.tamper		.array=MAXOUTPUT	.bitfield=AREAS
+u32	out.fire		.array=MAXOUTPUT	.bitfield=AREAS
+u32	out.panic		.array=MAXOUTPUT	.bitfield=AREAS
+
+gpio	power.gpio		.array=MAXOUTPUT
+u8	power.rgb		.array=MAXOUTPUT
+

@@ -9,20 +9,6 @@
 //#error  Not safe with ESP IDF 5.1 or greater yet - memory issues
 //#endif
 
-extern uint8_t iotstatedoor;
-extern uint8_t iotstateinput;
-extern uint8_t iotstateoutput;
-extern uint8_t iotstatefault;
-extern uint8_t iotstatewarning;
-extern uint8_t iotstatetamper;
-extern uint8_t iotstatesystem;
-extern uint8_t ioteventfob;
-extern uint8_t ioteventarm;
-extern uint8_t iotkeypad;
-extern uint8_t iotgps;
-extern char *iottopic;
-extern uint8_t debug;
-
 #define	LOGIC_PORT	48
 #define	LOGIC_PORT2	56
 extern uint32_t logical_gpio;   // Logical GPIO (from GPIO 48, covers NFC, keypad...)

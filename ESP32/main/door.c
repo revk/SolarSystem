@@ -25,41 +25,6 @@ uint32_t afiletime = 0;         // Last afile stored (uptime)
 uint8_t afile[256];             // Access file saved
 char afileid[21] = { 0 };       // Access file ID
 
-#define settings  \
-  u8(doorauto,0);   \
-  u32(doorunlock,1000); \
-  u32(doorlock,3000); \
-  u32(dooropen,5000); \
-  u32(doorclose,500); \
-  u32(doorprop,60000); \
-  u32(doorexit,3000); \
-  u32(doorpoll,100); \
-  u32(doordebounce,200); \
-  b(doordebug); \
-  b(doorexitarm); \
-  b(doorexitdisarm); \
-  b(doorcatch); \
-  ta(fallback,10); \
-  ta(blacklist,10); \
-  s(dooriotopen)	\
-  s(dooriotdead)	\
-  s(dooriotundead)	\
-  s(dooriotlock)	\
-  s(dooriotunlock)	\
-
-#define u32(n,d) uint32_t n;
-#define u16(n,d) uint16_t n;
-#define u8(n,d) uint8_t n;
-#define b(n) uint8_t n;
-#define ta(n,c) const char*n[c]={};
-#define s(n) char *n;
-settings
-#undef ta
-#undef u32
-#undef u16
-#undef u8
-#undef b
-#undef s
 #define lock_states \
   l(LOCKING) \
   l(LOCKED) \
@@ -84,7 +49,7 @@ settings
   d(AJAR,R+A-G+A) \
 
 #define l(n) LOCK_##n,
-   enum
+enum
 {
    lock_states
 };
@@ -959,24 +924,7 @@ void
 door_boot (void)
 {
    extern char *ledIDLE;
-   revk_register ("door", 0, sizeof (doorauto), &doorauto, NULL, SETTING_SECRET);       // Parent
-   revk_register ("led", 0, 0, &ledIDLE, NULL, SETTING_SECRET); // Parent
-#define u32(n,d) revk_register(#n,0,sizeof(n),&n,#d,0);
-#define u16(n,d) revk_register(#n,0,sizeof(n),&n,#d,0);
-#define u8(n,d) revk_register(#n,0,sizeof(n),&n,#d,0);
-#define b(n) revk_register(#n,0,sizeof(n),&n,NULL,SETTING_BOOLEAN);
-#define ta(n,c) revk_register(#n,c,0,&n,NULL,SETTING_LIVE);
-#define d(n,l) revk_register("led"#n,0,0,&doorled[DOOR_##n],#l,0);
-#define s(n) revk_register(#n,0,0,&n,NULL,SETTING_LIVE);
-   settings door_states
-#undef ta
-#undef u32
-#undef u16
-#undef u8
-#undef b
-#undef d
-#undef s
-     int64_t now = esp_timer_get_time ();
+   int64_t now = esp_timer_get_time ();
    // Door outputs match inputs if available, otherwise just lock
    output_func_set (OUTPUT_FUNC_L, input_active (INPUT_FUNC_L) && input_func_any (INPUT_FUNC_L) ? 1 : 0);
    output_func_set (OUTPUT_FUNC_D, input_active (INPUT_FUNC_D) && input_func_any (INPUT_FUNC_D) ? 1 : 0);

@@ -1,0 +1,27 @@
+#define	MAXINPUT	16
+
+#define	INPUT_FUNCS	"EOLDMP"
+#define	INPUT_FUNC_E	0x80		// Exit pressed
+#define	INPUT_FUNC_O	0x40		// Open door
+#define	INPUT_FUNC_L	0x20		// Lock unlocked
+#define	INPUT_FUNC_D	0x10		// Deadlock unlocked (This needs to be L>>1)
+#define	INPUT_FUNC_M	0x08		// Manual active
+#define	INPUT_FUNC_P	0x04		// Pull down (not really a function, but a rarely needed input flag)
+
+u8	in.poll		10
+gpio	in.gpio			.array=MAXINPUT
+u8	in.rgb			.array=MAXINPUT
+u8	in.func			.array=MAXINPUT	.bitfields=INPUT_FUNCS
+u8	in.hold			.array=MAXINPUT
+s	in.name			.array=MAXINPUT
+u32	in.engineer		.array=MAXINPUT	.bitfield=AREAS
+u32	in.faulted		.array=MAXINPUT	.bitfield=AREAS
+u32	in.tampered		.array=MAXINPUT	.bitfield=AREAS
+u32	in.alarmed		.array=MAXINPUT	.bitfield=AREAS
+u32	in.armed		.array=MAXINPUT	.bitfield=AREAS
+u32	in.prearm		.array=MAXINPUT	.bitfield=AREAS
+u32	in.prealarm		.array=MAXINPUT	.bitfield=AREAS
+u32	in.alarm		.array=MAXINPUT	.bitfield=AREAS
+u32	in.arm			.array=MAXINPUT	.bitfield=AREAS
+u32	in.strong		.array=MAXINPUT	.bitfield=AREAS
+u32	in.disarm		.array=MAXINPUT	.bitfield=AREAS

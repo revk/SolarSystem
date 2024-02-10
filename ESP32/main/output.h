@@ -1,13 +1,9 @@
 // Outputs
 // Copyright © 2019-21 Adrian Kennard, Andrews & Arnold Ltd. See LICENCE file for details. GPL 3.0
 
-#define MAXOUTPUT 10
 typedef uint8_t output_t;       // Enough for number of outputs
 
 extern output_t output_forced;  // Output forced externally
-#define i(t,x,c) extern area_t out##x[MAXOUTPUT];
-#define s(t,x,c) extern area_t out##x[MAXOUTPUT];
-#include "states.m"
 
 void output_set (int p, int v);
 int output_get (int p);
@@ -20,9 +16,3 @@ int output_func_get (uint8_t);  // Check logical output state for func (expected
 #ifdef  CONFIG_REVK_LED_STRIP
 void led_set (int led, char c);
 #endif
-
-#define	OUTPUT_FUNCS	"LDBE"
-#define	OUTPUT_FUNC_L	0x80    // Lock release
-#define	OUTPUT_FUNC_D	0x40    // Deadlock release (this needs to be L>>1)
-#define	OUTPUT_FUNC_B	0x20    // Beep
-#define	OUTPUT_FUNC_E	0x10    // Error

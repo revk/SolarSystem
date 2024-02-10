@@ -8,23 +8,6 @@ static const char TAG[] = "keypad";
 #include "alarm.h"
 #include "keypad.h"
 
-#define port_mask(p) ((p)&127)
-
-#define settings  \
-  p(keypadtx) \
-  p(keypadrx) \
-  p(keypadde) \
-  p(keypadre) \
-  p(keypadclk) \
-  u8(keypadtimer,0) \
-  u8h(keypadaddress,10)	\
-  u8(keypadtxpre,75)	\
-  u8(keypadtxpost,50)	\
-  u8(keypadrxpre,100)	\
-  u8(keypadrxpost,20)	\
-  sl(keypadidle)	\
-  sl(keypadpin)	\
-
 struct
 {
    uint8_t display[32];
@@ -51,17 +34,6 @@ struct
    uint8_t wascursor:1;         // Cursor was set
 } ui;
 
-#define u8(n,d) uint8_t n;
-#define u8h(n,d) uint8_t n;
-#define b(n) uint8_t n;
-#define p(n) uint8_t n;
-#define sl(n) char *n;
-settings
-#undef u8
-#undef u8h
-#undef b
-#undef p
-#undef sl
 static volatile uint8_t force;
 static galaxybus_t *g = NULL;
 
@@ -454,8 +426,8 @@ static void
 task (void *pvParameters)
 {
    esp_task_wdt_add (NULL);
-   g = galaxybus_init (keypadtimer, port_mask (keypadtx), port_mask (keypadrx), port_mask (keypadde),
-                       keypadre ? port_mask (keypadre) : -1, keypadclk ? port_mask (keypadclk) : -1, 0);
+   g = galaxybus_init (keypadtimer, keypadtx.num, keypadrx.num, keypadde.num,
+                       keypadre.set ? keypadre.num : -1, keypadclk.num ? keypadclk.num : -1, 0);
    if (!g)
    {
       vTaskDelete (NULL);
@@ -671,33 +643,21 @@ task (void *pvParameters)
 void
 keypad_boot (void)
 {
-   revk_register ("keypad", 0, sizeof (keypadtx), &keypadtx, NULL, SETTING_SET | SETTING_SECRET);       // Parent
-#define u8(n,d) revk_register(#n,0,sizeof(n),&n,#d,0);
-#define u8h(n,d) revk_register(#n,0,sizeof(n),&n,#d,SETTING_HEX);
-#define b(n) revk_register(#n,0,sizeof(n),&n,NULL,SETTING_BOOLEAN|SETTING_LIVE);
-#define p(n) revk_register(#n,0,sizeof(n),&n,NULL,SETTING_SET);
-#define sl(n) revk_register(#n,0,0,&n,NULL,SETTING_LIVE);
-   settings;
-#undef u8
-#undef u8h
-#undef b
-#undef p
-#undef sl
-   if (keypadtx && keypadrx && keypadde && keypadre)
+   if (keypadtx.set && keypadrx.set && keypadde.set && keypadre.set)
    {
       message = malloc (MAX_LEAF_DISPLAY * sizeof (*message));
       memset (message, 0, MAX_LEAF_DISPLAY * sizeof (*message));
-      const char *err = port_check (port_mask (keypadtx), TAG, 0);
-      if (!err && keypadtx != keypadrx)
-         err = port_check (port_mask (keypadrx), TAG, 1);
+      const char *err = port_check (keypadtx.num, TAG, 0);
+      if (!err && keypadtx.num != keypadrx.num)
+         err = port_check (keypadrx.num, TAG, 1);
       if (!err)
-         err = port_check (port_mask (keypadde), TAG, 0);
-      if (!err && keypadde != keypadre)
-         err = port_check (port_mask (keypadre), TAG, 0);
+         err = port_check (keypadde.num, TAG, 0);
+      if (!err && keypadde.num != keypadre.num)
+         err = port_check (keypadre.num, TAG, 0);
       logical_gpio |= logical_KeyFault;
       // Done early because it beeps a lot!
       revk_task (TAG, task, NULL, 3);
-   } else if (keypadtx || keypadrx || keypadde)
+   } else if (keypadtx.num || keypadrx.num || keypadde.num)
       logical_gpio |= logical_KeyFault;
 }
 
