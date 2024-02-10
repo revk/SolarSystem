@@ -291,7 +291,7 @@ output_boot (void)
    }
 #ifdef  CONFIG_REVK_LED_STRIP
 #ifndef CONFIG_REVK_BLINK_LIB
-   if (blink[0].set && blink[0].num == blink[1].num)
+   if (blink[0].set && blink[1].set && blink[0].num == blink[1].num)
    {
       led_strip_config_t strip_config = {
          .strip_gpio_num = blink[0].num,
