@@ -164,7 +164,9 @@ keypad_ui (char key)
       timeout = now + delay;
       ui.sendrefresh = 1;
    }
-   if (key == '!')
+   if (key == '=')
+      fail ("Shutdown", 2);
+   else if (key == '!')
       fail (revk_version, 2);
    if (!key && now > timeout)
    {
@@ -444,7 +446,10 @@ task (void *pvParameters)
       if (now > keypad_next)
       {
          keypad_next = now + 1000000ULL;
-         keypad_ui (0);
+         int left = revk_shutting_down (NULL);
+         keypad_ui (left ? '=' : 0);
+         if (left < 2)
+            break;
       }
 
       static uint8_t txbuf[100],
@@ -638,6 +643,7 @@ task (void *pvParameters)
          ESP_LOGI (TAG, "Tx fail %s", galaxybus_err_to_name (l));
       }
    }
+   galaxybus_end (g);
 }
 
 void
@@ -655,8 +661,6 @@ keypad_boot (void)
       if (!err && keypadde.num != keypadre.num)
          err = port_check (keypadre.num, TAG, 0);
       logical_gpio |= logical_KeyFault;
-      // Done early because it beeps a lot!
-      revk_task (TAG, task, NULL, 3);
    } else if (keypadtx.num || keypadrx.num || keypadde.num)
       logical_gpio |= logical_KeyFault;
 }
@@ -664,6 +668,8 @@ keypad_boot (void)
 void
 keypad_start (void)
 {
+   if (keypadtx.set && keypadrx.set && keypadde.set && keypadre.set)
+      revk_task (TAG, task, NULL, 3);
 }
 
 void
