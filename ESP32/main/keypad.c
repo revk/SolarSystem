@@ -644,6 +644,7 @@ task (void *pvParameters)
       }
    }
    galaxybus_end (g);
+   vTaskDelete (NULL);
 }
 
 void
