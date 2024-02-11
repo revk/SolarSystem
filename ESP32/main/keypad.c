@@ -158,15 +158,26 @@ keypad_ui (char key)
    uint8_t kc = 1;              // Key clicks
    void fail (const char *m, int delay)
    {
+      if (state == FAILMSG)
+         return;
       displayprint ("%s", m);
       state = FAILMSG;
       pos = 0;
       timeout = now + delay;
       ui.sendrefresh = 1;
    }
-   if (key == '=')
-      fail ("Shutdown", 2);
-   else if (key == '!')
+   {
+      const char *reason = NULL;
+      int left = revk_shutting_down (&reason);
+      if (left)
+      {
+         fail (reason, 2);
+         int pc = revk_ota_progress ();
+         if (pc > 0 && pc < 100)
+            displayprint ("%s/n%s%%", reason, pc);
+      }
+   }
+   if (key == '!')
       fail (revk_version, 2);
    if (!key && now > timeout)
    {
@@ -446,10 +457,7 @@ task (void *pvParameters)
       if (now > keypad_next)
       {
          keypad_next = now + 1000000ULL;
-         int left = revk_shutting_down (NULL);
-         keypad_ui (left ? '=' : 0);
-         if (left && left < 3)
-            break;
+         keypad_ui (0);
       }
 
       static uint8_t txbuf[100],
