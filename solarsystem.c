@@ -887,10 +887,43 @@ dooffline (SQL * sqlp, int site)
       }
       sql_free_result (device);
       if (l)
-      {
          notify (sqlp, res, sql_col (res, "hookoffline"), j);
-         j_delete (&j);
+      j_delete (&j);
+      const char *root = sql_colz (res, "root");
+      char *reset = NULL;
+      slot_t slot = 0;
+      j = j_create ();
+      l = NULL;
+      int c = 0;
+      device =
+         sql_safe_query_store_f (sqlp,
+                                 "SELECT * FROM `device` WHERE `site`=%d AND `online` IS NOT NULL AND `outofservice`='false' AND `via` IS NULL");
+      while (sql_fetch_row (device))
+      {
+         if (!l)
+         {
+            j_store_string (j, "event", "split");
+            struct tm tm;
+            time_t now = time (0);
+            localtime_r (&now, &tm);
+            j_store_stringf (j, "ts", "%04d-%02d-%02d %02d:%02d\n", tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour,
+                             tm.tm_min);
+            l = j_store_array (j, "devices");
+         }
+         const char *id = sql_colz (device, "device");
+         if (!reset && strcmp (id, root))
+         {
+            reset = strdupa (id);
+            slot = strtoull (sql_colz (device, "id"), NULL, 10);
+         }
+         j_append_string (l, sql_colz (device, "devicename"));
       }
+      sql_free_result (device);
+      if (c > 1)
+         notify (sqlp, res, sql_col (res, "hookoffline"), j);
+      j_delete (&j);
+      if (reset && slot)
+         slot_send (slot, "command", reset, "restart", NULL);
    }
    sql_free_result (res);
 }
