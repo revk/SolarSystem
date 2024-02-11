@@ -174,11 +174,12 @@ keypad_ui (char key)
          fail (reason, 2);
          int pc = revk_ota_progress ();
          if (pc > 0 && pc < 100)
-            displayprint ("%s/nLoading %d%%", reason, pc);
+            displayprint ("%s\nLoading %d%%", reason, pc);
          else
-            displayprint ("Reboot in %d/n%s", left, reason);
+            displayprint ("Reboot in %d\n%s", left, reason);
          state = FAILMSG;
          ui.sendrefresh = 1;
+         timeout = now + left + 1;
       }
    }
    if (state != FAILMSG && key == '!')
