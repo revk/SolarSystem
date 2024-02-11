@@ -429,7 +429,7 @@ task (void *pvParameters)
 {
    esp_task_wdt_add (NULL);
    g = galaxybus_init (keypadtimer, keypadtx.num, keypadrx.num, keypadde.num,
-                       keypadre.set ? keypadre.num : -1, keypadclk.num ? keypadclk.num : -1, 0);
+                       keypadre.set ? keypadre.num : -1, keypadclk.set ? keypadclk.num : -1, 0);
    if (!g)
    {
       vTaskDelete (NULL);
