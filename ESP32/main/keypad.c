@@ -174,10 +174,14 @@ keypad_ui (char key)
          fail (reason, 2);
          int pc = revk_ota_progress ();
          if (pc > 0 && pc < 100)
-            displayprint ("%s/n%s%%", reason, pc);
+            displayprint ("%s/nLoading %d%%", reason, pc);
+         else
+            displayprint ("Reboot in %d/n%s", left, reason);
+         state = FAILMSG;
+         ui.sendrefresh = 1;
       }
    }
-   if (key == '!')
+   if (state != FAILMSG && key == '!')
       fail (revk_version, 2);
    if (!key && now > timeout)
    {
