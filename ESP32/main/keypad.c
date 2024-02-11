@@ -660,15 +660,19 @@ keypad_boot (void)
          err = port_check (keypadde.num, TAG, 0);
       if (!err && keypadde.num != keypadre.num)
          err = port_check (keypadre.num, TAG, 0);
-      logical_gpio |= logical_KeyFault;
+      if (err)
+      {
+         keypadtx.set = keypadrx.set = keypadde.set = keypadre.set = 0;
+         logical_gpio |= logical_KeyFault;      // Not all valid
+      }
    } else if (keypadtx.num || keypadrx.num || keypadde.num)
-      logical_gpio |= logical_KeyFault;
+      logical_gpio |= logical_KeyFault; // Not all set
 }
 
 void
 keypad_start (void)
 {
-   if (keypadtx.set && keypadrx.set && keypadde.set && keypadre.set)
+   if (keypadtx.set && keypadrx.set && keypadde.set)
       revk_task (TAG, task, NULL, 3);
 }
 
