@@ -1657,7 +1657,7 @@ main (int argc, const char *argv[])
                   sql_sprintf (&s, "`via`=%#s,", secureid);
                sql_sprintf (&s, "`online`=NOW(),");     // Can happen if reconnect without unsub/sub (i.e. fast enough)
                if (device && secureid)
-                  sql_sprintf (&s, "`poke`=NOW(),");
+                  settings (&sql, device, id);
                poke = 1;
             }
             if (!secureid || !device || (address && strcmp (sql_colz (device, "address"), address)))
