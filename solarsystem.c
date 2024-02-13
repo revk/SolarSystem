@@ -1517,12 +1517,17 @@ main (int argc, const char *argv[])
                         if (secureid)
                         {
                            int site = 0;
+                           int new = 1;
                            SQL_RES *res = sql_safe_query_store_f (&sql, "SELECT * FROM `device` WHERE `device`=%#s", secureid);
                            if (!sql_fetch_row (res))
                               sql_safe_query_f (&sql, "INSERT INTO `device` SET `device`=%#s,`id`=%lld,`online`=NOW()", secureid,
                                                 id);
                            else
+                           {
+                              if (*sql_colz (res, "online") > '0')
+                                 new = 0;
                               site = atoi (sql_colz (res, "site"));
+                           }
                            sql_free_result (res);
                            if (!site)
                               sql_safe_query_f (&sql,
@@ -1544,7 +1549,8 @@ main (int argc, const char *argv[])
                            {
                               if (!strncmp (secureid, dev, p - dev))
                                  upgrade (device, id);  // Priority upgrade for connecting device as fastest
-                              sql_safe_query_f (&sql, "UPDATE `device` SET `poke`=NOW() WHERE `device`=%#s", device);
+                              if (new)
+                                 settings (&sql, device, id);
                            }
                            poke = 1;
                         } else
