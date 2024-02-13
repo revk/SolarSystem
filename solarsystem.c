@@ -1524,7 +1524,7 @@ main (int argc, const char *argv[])
                                                 id);
                            else
                            {
-                              if (strtoull (sql_colz (res, "id"), NULL, 0) == id)
+                              if (strtoll (sql_colz (res, "id"), NULL, 0) == id)
                                  new = 0;
                               site = atoi (sql_colz (res, "site"));
                            }
