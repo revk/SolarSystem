@@ -1544,7 +1544,7 @@ main (int argc, const char *argv[])
                            {
                               if (!strncmp (secureid, dev, p - dev))
                                  upgrade (device, id);  // Priority upgrade for connecting device as fastest
-                              settings (&sql, device, id);
+                              sql_safe_query_f (&sql, "UPDATE `device` SET `poke`=NOW() WHERE `device`=%#s", device);
                            }
                            poke = 1;
                         } else
@@ -1657,7 +1657,7 @@ main (int argc, const char *argv[])
                   sql_sprintf (&s, "`via`=%#s,", secureid);
                sql_sprintf (&s, "`online`=NOW(),");     // Can happen if reconnect without unsub/sub (i.e. fast enough)
                if (device && secureid)
-                  settings (&sql, device, id);
+                  sql_sprintf (&s, "`poke`=NOW(),");
                poke = 1;
             }
             if (!secureid || !device || (address && strcmp (sql_colz (device, "address"), address)))
