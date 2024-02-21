@@ -95,11 +95,7 @@ mqtt_decode (unsigned char *buf, size_t len)
    {
       const char *fail = j_read_mem (j, (char *) b, plen);
       if (fail)
-      {
-         warnx ("Parse error %s %.*s", fail, plen, b);
-         j_delete (&j);
-         return NULL;
-      }
+         j_stringn (j, (char *) b, plen);
    }
    if (!j_isobject (j))
    {
