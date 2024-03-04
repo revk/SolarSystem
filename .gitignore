@@ -31,3 +31,4 @@ ESP32/managed_components
 ESP32/settings.h
 ESP32/settings.c
 espdefines.h
+PCB/*/production/backups
