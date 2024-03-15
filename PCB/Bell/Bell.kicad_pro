@@ -184,8 +184,6 @@
       ],
       "track_widths": [
         0.0,
-        0.125,
-        0.2,
         0.25,
         0.5
       ],
@@ -519,10 +517,6 @@
     "netclass_patterns": [
       {
         "netclass": "Thick",
-        "pattern": "GND"
-      },
-      {
-        "netclass": "Thick",
         "pattern": "+3.3V"
       },
       {
@@ -532,6 +526,10 @@
       {
         "netclass": "Thick",
         "pattern": "VBUS"
+      },
+      {
+        "netclass": "Thick",
+        "pattern": "GND"
       }
     ]
   },
