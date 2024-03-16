@@ -946,7 +946,7 @@ task (void *pvParameters)
    {
       esp_task_wdt_reset ();
       if (mqttdied && isroot && uptime () > mqttdied && lwmqtt_failed (revk_mqtt (0)) > 5 && !revk_shutting_down (NULL))
-         revk_restart ("MQTT not connecting", 0);
+         revk_restart (0, "MQTT not connecting");
       {                         // Timer logic input
          time_t now = time (0);
          if (now > 1000000000)
@@ -1047,7 +1047,7 @@ task (void *pvParameters)
          report_next = now + 1000000LL * meshcycle;
          mesh_send_report ();
          if (meshdied && last_summary + meshdied < uptime ())
-            revk_restart ("No summaries", 0);
+            revk_restart (0, "No summaries");
       }
       if (esp_mesh_is_root ())
       {
