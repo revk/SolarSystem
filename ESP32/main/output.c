@@ -313,7 +313,7 @@ output_boot (void)
             led_set (powerrgb[i], powergpio[i].invert ? 'B' : 'M');
    } else
       for (int b = 0; b < 3; b++)
-         revk_gpio_output (blink[b]);
+         revk_gpio_output (blink[b],0);
 #endif
 #endif
 }
