@@ -652,22 +652,7 @@ addsitedata (SQL * sqlp, j_t j, SQL_RES * site, const char *deviceid, const char
    const char *v;
    if (!parentid || !*parentid || !strcmp (parentid, deviceid))
       parentid = NULL;          // Not sensible
-   // Mix
-   j_t mix = j_store_array (j, "mix");
-   for (int s = 0; s < MAX_MIX; s++)
-   {
-      char temp[30];
-      sprintf (temp, "mixand%d", s + 1);
-      if ((v = sql_colz (site, temp)) && *v)
-      {
-         j_t j = j_append_object (mix);
-         addset (j, "and", v, 0);
-         sprintf (temp, "mixset%d", s + 1);
-         if ((v = sql_colz (site, temp)) && *v)
-            addset (j, "set", v, 0);
-      }
-   }
-   // Standard wifi settings
+   j_store_boolean (j, "debug", *sql_colz (site, "debug") == 't');
    v = sql_colz (site, "iothost");
    j_store_int (j, "mqttdied", atoi (sql_colz (site, "mqttdied")));
    j_store_string (j, "mqtthost2", *v ? v : NULL);
@@ -676,16 +661,7 @@ addsitedata (SQL * sqlp, j_t j, SQL_RES * site, const char *deviceid, const char
    j_store_int (j, "armdelay", atoi (sql_colz (site, "armdelay")));
    j_store_int (j, "alarmdelay", atoi (sql_colz (site, "alarmdelay")));
    j_store_int (j, "alarmhold", atoi (sql_colz (site, "alarmhold")));
-   j_store_boolean (j, "debug", *sql_colz (site, "debug") == 't');
-   j_t wifi = j_store_object (j, "wifi");
-   if ((v = sql_colz (site, "wifissid")) && *v)
-      j_store_string (wifi, "ssid", v);
-   if ((v = sql_colz (site, "wifipass")) && *v)
-      j_store_string (wifi, "pass", v);
-   if (!outofservice && (v = sql_colz (site, "wifichan")) && atoi (v))
-      j_store_int (wifi, "chan", atoi (v));
-   if (!outofservice && (v = sql_colz (site, "wifibssid")) && strlen (v) == 12)
-      j_store_string (wifi, "bssid", v);
+   // SMS
    j_t sms = j_store_object (j, "sms");
    addset (sms, "arm", sql_col (site, "smsarm"), 0);
    addset (sms, "disarm", sql_col (site, "smsdisarm"), 0);
@@ -780,6 +756,31 @@ addsitedata (SQL * sqlp, j_t j, SQL_RES * site, const char *deviceid, const char
          j_store_true (mesh, "root");
    }
 #endif
+   // WiFi
+   j_t wifi = j_store_object (j, "wifi");
+   if ((v = sql_colz (site, "wifissid")) && *v)
+      j_store_string (wifi, "ssid", v);
+   if ((v = sql_colz (site, "wifipass")) && *v)
+      j_store_string (wifi, "pass", v);
+   if (!outofservice && (v = sql_colz (site, "wifichan")) && atoi (v))
+      j_store_int (wifi, "chan", atoi (v));
+   if (!outofservice && (v = sql_colz (site, "wifibssid")) && strlen (v) == 12)
+      j_store_string (wifi, "bssid", v);
+   // Mix
+   j_t mix = j_store_array (j, "mix");
+   for (int s = 0; s < MAX_MIX; s++)
+   {
+      char temp[30];
+      sprintf (temp, "mixand%d", s + 1);
+      if ((v = sql_colz (site, temp)) && *v)
+      {
+         j_t j = j_append_object (mix);
+         addset (j, "and", v, 0);
+         sprintf (temp, "mixset%d", s + 1);
+         if ((v = sql_colz (site, temp)) && *v)
+            addset (j, "set", v, 0);
+      }
+   }
 }
 
 void
