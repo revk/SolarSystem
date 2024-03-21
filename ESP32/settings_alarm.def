@@ -10,7 +10,7 @@ u32	area.keypad			.flags=AREAS
 u32	area.keydisarm			.flags=AREAS
 u32	area.keystrong			.flags=AREAS
 u32	area.keyarm			.flags=AREAS
-u32	engineer			.flags=AREAS
+u32	engineer			.flags=AREAS	.live=1
 u32	armed				.flags=AREAS	.live=1
 u32	sms.arm				.flags=AREAS
 u32	sms.disarm			.flags=AREAS
