@@ -190,6 +190,7 @@ task (void *pvParameters)
       int l = 0;
       if (p < buf + sizeof (buf))
          l = uart_read_bytes (gpsuart, p, buf + sizeof (buf) - p, 100 / portTICK_PERIOD_MS);
+      ESP_LOGE(TAG,"l=%d len %d level %d tick %d",l, buf + sizeof (buf) - p,revk_gpio_get(gpsrx),revk_gpio_get(gpstick));
       if (l <= 0)
       {                         // Timeout
          p = buf;               // Start of line again
@@ -265,13 +266,18 @@ gps_boot (void)
       const char *e = port_check (gpstx.num, TAG, 0);
       if (!e)
          e = port_check (gpsrx.num, TAG, 1);
-      if (!e)
+      if (!e&&gpstick.set)
          e = port_check (gpstick.num, TAG, 1);
       if (e)
          logical_gpio |= logical_GPSFault;
       else
       {
          esp_err_t err = 0;
+         if (!err && !uart_is_driver_installed (gpsuart))
+         {
+            ESP_LOGE (TAG, "Installing GPS UART driver %d tx %d rx %d", gpsuart,gpstx.num,gpsrx.num);
+            err = uart_driver_install (gpsuart, 256, 0, 0, NULL, 0);
+         }
          uart_config_t uart_config = {
             .baud_rate = 9600,
             .data_bits = UART_DATA_8_BITS,
@@ -284,11 +290,6 @@ gps_boot (void)
             err = uart_param_config (gpsuart, &uart_config);
          if (!err)
             err = uart_set_pin (gpsuart, gpstx.num, gpsrx.num, -1, -1);
-         if (!err && !uart_is_driver_installed (gpsuart))
-         {
-            ESP_LOGI (TAG, "Installing GPS UART driver %d", gpsuart);
-            err = uart_driver_install (gpsuart, 256, 0, 0, NULL, 0);
-         }
          if (err)
             ESP_LOGE (TAG, "GPS UART fail %s", esp_err_to_name (err));
       }

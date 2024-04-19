@@ -1,6 +1,6 @@
 // Generated case design for Access/Access.kicad_pcb
 // By https://github.com/revk/PCBCase
-// Generated 2023-12-30 13:09:37
+// Generated 2024-04-19 10:39:51
 // title:	Access Control
 // rev:	3
 // company:	Adrian Kennard Andrews & Arnold Ltd
@@ -44,8 +44,8 @@ translate([48.200000,10.500000,1.200000])rotate([0,0,180.000000])m4(part,hole,bl
 translate([1.556250,3.900000,1.200000])rotate([0,0,-90.000000])m7(part,hole,block,casetop); // RevK:C_0603_ C_0603_1608Metric (back)
 translate([19.100000,3.400000,1.200000])rotate([0,0,-90.000000])m4(part,hole,block,casetop); // RevK:R_0402 R_0402_1005Metric (back)
 translate([8.200000,13.100000,1.200000])rotate([0,0,-90.000000])m3(part,hole,block,casetop); // RevK:C_0402 C_0402_1005Metric (back)
-translate([18.350000,15.400000,1.200000])rotate([0,0,-90.000000])m3(part,hole,block,casetop); // RevK:C_0402 C_0402_1005Metric (back)
-translate([2.400000,13.375000,1.200000])rotate([0,0,-90.000000])m3(part,hole,block,casetop); // RevK:C_0402 C_0402_1005Metric (back)
+translate([18.350000,15.300000,1.200000])rotate([0,0,-90.000000])m3(part,hole,block,casetop); // RevK:C_0402 C_0402_1005Metric (back)
+translate([2.400000,13.150000,1.200000])rotate([0,0,-90.000000])m3(part,hole,block,casetop); // RevK:C_0402 C_0402_1005Metric (back)
 translate([4.056250,7.200000,1.200000])rotate([0,0,180.000000])rotate([-0.000000,-0.000000,-90.000000])m8(part,hole,block,casetop); // RevK:L_4x4_ TYA4020 (back)
 translate([7.700000,8.300000,1.200000])rotate([0,0,90.000000])m3(part,hole,block,casetop); // RevK:C_0402 C_0402_1005Metric (back)
 translate([44.335000,4.400000,1.200000])translate([0.000000,-1.050000,0.000000])rotate([90.000000,-0.000000,-0.000000])m9(part,hole,block,casetop); // RevK:USB-C-Socket-H CSP-USC16-TR (back)
@@ -57,13 +57,13 @@ translate([37.750000,15.200000,1.200000])rotate([0,0,-90.000000])m3(part,hole,bl
 translate([14.100000,13.100000,1.200000])rotate([0,0,-90.000000])m4(part,hole,block,casetop); // RevK:R_0402 R_0402_1005Metric (back)
 translate([44.700000,15.200000,1.200000])rotate([0,0,-90.000000])m3(part,hole,block,casetop); // RevK:C_0402 C_0402_1005Metric (back)
 translate([0.850000,15.150000,1.200000])rotate([0,0,-90.000000])m3(part,hole,block,casetop); // RevK:C_0402 C_0402_1005Metric (back)
-translate([15.000000,13.400000,1.200000])rotate([0,0,-90.000000])m3(part,hole,block,casetop); // RevK:C_0402 C_0402_1005Metric (back)
+translate([15.000000,13.175000,1.200000])rotate([0,0,-90.000000])m3(part,hole,block,casetop); // RevK:C_0402 C_0402_1005Metric (back)
 translate([4.601000,15.200000,1.200000])rotate([0,0,45.000000])m5(part,hole,block,casetop); // D16 (back)
-translate([7.400000,13.400000,1.200000])rotate([0,0,-90.000000])m3(part,hole,block,casetop); // RevK:C_0402 C_0402_1005Metric (back)
+translate([7.400000,13.175000,1.200000])rotate([0,0,-90.000000])m3(part,hole,block,casetop); // RevK:C_0402 C_0402_1005Metric (back)
 translate([13.750000,5.550000,1.200000])rotate([0,0,90.000000])m7(part,hole,block,casetop); // RevK:C_0603_ C_0603_1608Metric (back)
 translate([35.800000,4.800000,1.200000])rotate([0,0,90.000000])m3(part,hole,block,casetop); // RevK:C_0402 C_0402_1005Metric (back)
 translate([11.250000,4.850000,1.200000])m7(part,hole,block,casetop); // RevK:C_0603_ C_0603_1608Metric (back)
-translate([4.900000,13.425000,1.200000])rotate([0,0,-90.000000])m3(part,hole,block,casetop); // RevK:C_0402 C_0402_1005Metric (back)
+translate([4.900000,13.200000,1.200000])rotate([0,0,-90.000000])m3(part,hole,block,casetop); // RevK:C_0402 C_0402_1005Metric (back)
 translate([5.850000,15.200000,1.200000])rotate([0,0,-90.000000])m3(part,hole,block,casetop); // RevK:C_0402 C_0402_1005Metric (back)
 translate([6.556250,4.100000,1.200000])rotate([0,0,-90.000000])m7(part,hole,block,casetop); // RevK:C_0603_ C_0603_1608Metric (back)
 translate([39.050000,17.257500,1.200000])rotate([0,0,180.000000])m1(part,hole,block,casetop,2); // J6 (back)
@@ -81,7 +81,7 @@ translate([39.000000,2.100000,1.200000])rotate([0,0,90.000000])m4(part,hole,bloc
 translate([15.950000,14.425000,1.200000])rotate([0,0,90.000000])m3(part,hole,block,casetop); // RevK:C_0402 C_0402_1005Metric (back)
 translate([4.100000,13.100000,1.200000])rotate([0,0,-90.000000])m4(part,hole,block,casetop); // RevK:R_0402 R_0402_1005Metric (back)
 translate([11.250000,8.750000,1.200000])m4(part,hole,block,casetop); // RevK:R_0402 R_0402_1005Metric (back)
-translate([9.900000,13.400000,1.200000])rotate([0,0,-90.000000])m3(part,hole,block,casetop); // RevK:C_0402 C_0402_1005Metric (back)
+translate([9.900000,13.175000,1.200000])rotate([0,0,-90.000000])m3(part,hole,block,casetop); // RevK:C_0402 C_0402_1005Metric (back)
 translate([19.100000,1.600000,1.200000])rotate([0,0,-90.000000])m3(part,hole,block,casetop); // RevK:C_0402 C_0402_1005Metric (back)
 translate([2.101000,15.200000,1.200000])rotate([0,0,45.000000])m5(part,hole,block,casetop); // D16 (back)
 translate([46.800000,13.400000,1.200000])m14(part,hole,block,casetop); // D19 (back)
@@ -89,7 +89,7 @@ translate([39.000000,5.400000,1.200000])rotate([0,0,90.000000])m4(part,hole,bloc
 translate([0.700000,13.100000,1.200000])rotate([0,0,-90.000000])m3(part,hole,block,casetop); // RevK:C_0402 C_0402_1005Metric (back)
 translate([16.750000,15.200000,1.200000])rotate([0,0,-90.000000])m4(part,hole,block,casetop); // RevK:R_0402 R_0402_1005Metric (back)
 translate([39.000000,15.200000,1.200000])rotate([0,0,45.000000])m5(part,hole,block,casetop); // D16 (back)
-translate([37.800000,10.200000,1.200000])m15(part,hole,block,casetop); // U3 (back)
+translate([37.500000,10.200000,1.200000])m15(part,hole,block,casetop); // U3 (back)
 translate([42.400000,13.400000,1.200000])rotate([0,0,180.000000])m14(part,hole,block,casetop); // D19 (back)
 translate([4.056250,2.600000,1.200000])rotate([0,0,180.000000])m11(part,hole,block,casetop); // RevK:SOT-23-6-MD8942 SOT-23-6 (back)
 translate([5.700000,13.100000,1.200000])rotate([0,0,-90.000000])m3(part,hole,block,casetop); // RevK:C_0402 C_0402_1005Metric (back)
@@ -100,7 +100,7 @@ translate([6.600000,13.100000,1.200000])rotate([0,0,-90.000000])m4(part,hole,blo
 translate([8.350000,15.200000,1.200000])rotate([0,0,-90.000000])m3(part,hole,block,casetop); // RevK:C_0402 C_0402_1005Metric (back)
 translate([44.800000,10.200000,1.200000])rotate([0,0,90.000000])m15(part,hole,block,casetop); // U3 (back)
 translate([45.900000,15.200000,1.200000])rotate([0,0,45.000000])m5(part,hole,block,casetop); // D16 (back)
-translate([12.400000,13.400000,1.200000])rotate([0,0,-90.000000])m3(part,hole,block,casetop); // RevK:C_0402 C_0402_1005Metric (back)
+translate([12.400000,13.175000,1.200000])rotate([0,0,-90.000000])m3(part,hole,block,casetop); // RevK:C_0402 C_0402_1005Metric (back)
 translate([14.601000,15.200000,1.200000])rotate([0,0,45.000000])m5(part,hole,block,casetop); // D16 (back)
 translate([11.250000,2.250000,1.200000])rotate([-0.000000,-0.000000,-90.000000])m8(part,hole,block,casetop); // RevK:L_4x4_ TYA4020 (back)
 translate([8.750000,5.550000,1.200000])rotate([0,0,90.000000])m7(part,hole,block,casetop); // RevK:C_0603_ C_0603_1608Metric (back)
