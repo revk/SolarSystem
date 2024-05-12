@@ -301,7 +301,7 @@ mesh_find_child (const mac_t mac, char insert)
 
 void
 mesh_send_report (void)
-{                               // Make the report from leaf to root for out states...
+{                               // Make the report from leaf to root for our states...
 #define MAX (MESH_MPS-MESH_PAD)
    jo_t report = NULL;
    uint8_t count = 0;
@@ -329,7 +329,7 @@ mesh_send_report (void)
       if (!report)
          return;
       stop ();
-      revk_mesh_send_json (NULL, &report);      // Split
+      revk_mesh_send_json (NULL, &report, MESH_TOS_DEF);        // Split
    }
    static area_t was_prearm = 0;
    {                            // Inputs
@@ -422,7 +422,7 @@ mesh_send_report (void)
       if (!gettimeofday (&t, NULL))
          jo_int (report, "^", (uint64_t) t.tv_sec * 1000000ULL + t.tv_usec);
    }
-   revk_mesh_send_json (NULL, &report);
+   revk_mesh_send_json (NULL, &report, MESH_TOS_DEF);
 }
 
 static void
@@ -439,7 +439,7 @@ node_online (const mac_t mac)
       revk_send_sub (1, mac);
       jo_t j = jo_object_alloc ();
       jo_null (j, "connect");
-      revk_mesh_send_json (mac, &j);
+      revk_mesh_send_json (mac, &j, MESH_TOS_P2P);
    }
 }
 
@@ -541,7 +541,7 @@ mesh_send_summary (void)
 #define c(t,x) report_##x=0;
 #include "states.m"
    const mac_t addr = { 255, 255, 255, 255, 255, 255 };
-   revk_mesh_send_json (addr, &j);
+   revk_mesh_send_json (addr, &j, MESH_TOS_DEF);
    if (esp_mesh_is_root () && !revk_link_down ())
    {                            // Report to control
       uint32_t now = uptime ();
@@ -662,7 +662,7 @@ mesh_send_display (void)
             if (d->seen && (d->area & node[i].display) && count++ < MAX_LEAF_DISPLAY)
                jo_stringf (j, NULL, "%c%s: %s\n%s", toupper (*state_name[d->priority]), state_name[d->priority] + 1,
                            area_list (set, d->area & node[i].display), d->text);
-         revk_mesh_send_json (node[i].mac, &j);
+         revk_mesh_send_json (node[i].mac, &j, MESH_TOS_P2P);
       }
    xSemaphoreGive (node_mutex);
 }
@@ -1107,7 +1107,7 @@ alarm_event (const char *event, jo_t * jp, char copy)
    jo_string (o, copy ? "event+" : "event", event);
    jo_json (o, NULL, *jp);      // Add object content in line
    jo_free (jp);
-   revk_mesh_send_json (NULL, &o);
+   revk_mesh_send_json (NULL, &o, MESH_TOS_P2P);
 #endif
 }
 
@@ -1212,7 +1212,7 @@ alarm_rx (const char *target, jo_t j)
       uint32_t size_flash_chip;
       esp_flash_get_size (NULL, &size_flash_chip);
       jo_int (j, "flash", size_flash_chip);
-      revk_mesh_send_json (NULL, &j);
+      revk_mesh_send_json (NULL, &j, MESH_TOS_P2P);
       return;
    }
 }
