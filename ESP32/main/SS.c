@@ -105,7 +105,7 @@ app_callback (int client, const char *prefix, const char *target, const char *su
    if (client && prefix && !strcmp (prefix, "command") && suffix && !strcmp (suffix, "ps"))
       return revk_command ("ps", j);
 #endif
-   if (!prefix || target || strcmp (prefix, prefixcommand) || (client && strcmp (suffix, "connect")))
+   if (!prefix || target || strcmp (prefix, topiccommand) || (client && strcmp (suffix, "connect")))
       return NULL;              // Not for us or not a command from main MQTT
 #define m(x) extern const char * x##_command(const char *,jo_t); jo_rewind(j);if(!e)e=x##_command(suffix,j);
    modules;
