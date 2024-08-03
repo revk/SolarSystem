@@ -394,6 +394,7 @@ settings (SQL * sqlp, SQL_RES * res, slot_t id)
    // Other settings
    if (*CONFIG_OTA_HOSTNAME)
       j_store_string (j, "otahost", CONFIG_OTA_HOSTNAME);
+   j_store_false (j, "otaauto");
    int site = atoi (sql_colz (res, "site"));
    {                            // site
       SQL_RES *s = sql_safe_query_store_f (sqlp, "SELECT * FROM `site` WHERE `site`=%d", site);
