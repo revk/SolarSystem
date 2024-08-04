@@ -1649,7 +1649,7 @@ main (int argc, const char *argv[])
                if (!sql_col (device, "online"))
                   sql_sprintf (&s, "`offlinereason`=NULL,`poke`=NULL,");
                time_t boot = time (0) - atoi (j_val (up));
-               if (sql_time (sql_colz (device, "boot")) > boot)
+               if (sql_time (sql_colz (device, "boot")) != boot)
                   sql_sprintf (&s, "`boot`=%#T,", boot);
             } else              // pending - update pending
             {
