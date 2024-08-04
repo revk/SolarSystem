@@ -1648,9 +1648,12 @@ main (int argc, const char *argv[])
                sql_sprintf (&s, "UPDATE `device` SET ");        // known, update
                if (!sql_col (device, "online"))
                   sql_sprintf (&s, "`offlinereason`=NULL,`poke`=NULL,");
-               time_t boot = time (0) - atoi (j_val (up));
-               if (sql_time (sql_colz (device, "boot")) != boot)
-                  sql_sprintf (&s, "`boot`=%#T,", boot);
+               if (j_isnumber (up))
+               {
+                  time_t boot = time (0) - atoi (j_val (up));
+                  if (sql_time (sql_colz (device, "boot")) != boot)
+                     sql_sprintf (&s, "`boot`=%#T,", boot);
+               }
             } else              // pending - update pending
             {
                sql_sprintf (&s, "REPLACE INTO `pending` SET ");
