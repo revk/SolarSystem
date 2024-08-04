@@ -1634,6 +1634,8 @@ main (int argc, const char *argv[])
                                  j_get (j, "reason"), deviceid, id);
                return NULL;
             }
+            if (!j_isnumber (up))
+               up = j_find (j, "uptime");
             sql_s_t s = { 0 };
             if (!device
                 && (device =
@@ -1651,7 +1653,8 @@ main (int argc, const char *argv[])
                if (j_isnumber (up))
                {
                   time_t boot = time (0) - atoi (j_val (up));
-                  if (sql_time (sql_colz (device, "boot")) != boot)
+                  time_t was = sql_time (sql_colz (device, "boot"));
+                  if ((was - boot) > 10 || (boot - was) > 10)
                      sql_sprintf (&s, "`boot`=%#T,", boot);
                }
             } else              // pending - update pending
