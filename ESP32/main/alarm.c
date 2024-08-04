@@ -1203,7 +1203,7 @@ alarm_rx (const char *target, jo_t j)
    if (!jo_strcmp (j, "connect"))
    {
       revk_command ("status", NULL);    // For up message
-      app_callback (0, topiccommand, NULL, "connect", j);
+      //app_callback (0, topiccommand, NULL, "connect", j);
       // Send capability
       jo_t j = jo_object_alloc ();
       jo_null (j, "capability");
