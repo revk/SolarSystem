@@ -79,12 +79,16 @@ alarm_command (const char *tag, jo_t j)
 {
    if (!strcmp (tag, "connect"))
    {
-      if (esp_mesh_is_root ())
+      if (j&&esp_mesh_is_root ())
       {
+	      if(jo_find(j,"client")==JO_NUMBER)
+	      {
+		      int client=jo_number(j);
          control_summary = 0;
          for (int i = 0; i < nodes; i++)
             if (node[i].online)
                node_online (node[i].mac);
+	      }
       }
       return NULL;
    }
@@ -1203,7 +1207,7 @@ alarm_rx (const char *target, jo_t j)
    if (!jo_strcmp (j, "connect"))
    {
       revk_command ("status", NULL);    // For up message
-      //app_callback (0, topiccommand, NULL, "connect", j);
+      app_callback (0, topiccommand, NULL, "connect", j);
       // Send capability
       jo_t j = jo_object_alloc ();
       jo_null (j, "capability");
