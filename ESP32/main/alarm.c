@@ -70,7 +70,7 @@ static display_t *display = NULL;
 #define i(t,x,l) static area_t report_##x=0;    // The collated reports
 #include "states.m"
 static void task (void *pvParameters);
-static void node_online (const mac_t mac);
+static void node_online (const mac_t mac, uint32_t);
 static void sms_event (const char *tag, jo_t);
 static void set_outputs (void);
 
@@ -79,16 +79,16 @@ alarm_command (const char *tag, jo_t j)
 {
    if (!strcmp (tag, "connect"))
    {
-      if (j&&esp_mesh_is_root ())
+      if (j && esp_mesh_is_root ())
       {
-	      if(jo_find(j,"client")==JO_NUMBER)
-	      {
-		      int client=jo_number(j);
-         control_summary = 0;
-         for (int i = 0; i < nodes; i++)
-            if (node[i].online)
-               node_online (node[i].mac);
-	      }
+         if (jo_find (j, "client") == JO_NUMBER)
+         {
+            int client = jo_read_int (j);
+            control_summary = 0;
+            for (int i = 0; i < nodes; i++)
+               if (node[i].online)
+                  node_online (node[i].mac, 1 << client);
+         }
       }
       return NULL;
    }
@@ -435,12 +435,14 @@ node_offline (const mac_t mac)
 }
 
 static void
-node_online (const mac_t mac)
+node_online (const mac_t mac, uint32_t clients)
 {
    if (memcmp (mac, revk_mac, 6))
    {
-      revk_send_sub (0, mac);
-      revk_send_sub (1, mac);
+      if (clients & (1 << 0))
+         revk_send_sub (0, mac);
+      if (clients & (1 << 1))
+         revk_send_sub (1, mac);
       jo_t j = jo_object_alloc ();
       jo_null (j, "connect");
       revk_mesh_send_json (mac, &j);
@@ -477,7 +479,7 @@ check_online (const char *target)
       node[child].missed = 0;
       node[child].reported = 0;
       nodes_online++;
-      node_online (mac);
+      node_online (mac, 3);
    }
    xSemaphoreGive (node_mutex);
    return child;
