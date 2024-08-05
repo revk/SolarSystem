@@ -82,7 +82,7 @@ alarm_command (const char *tag, jo_t j)
       if (j && esp_mesh_is_root ())
       {
          if (jo_find (j, "client") == JO_NUMBER)
-         {
+         { // Connect upstream
             int client = jo_read_int (j);
             control_summary = 0;
             for (int i = 0; i < nodes; i++)
@@ -436,13 +436,14 @@ node_offline (const mac_t mac)
 
 static void
 node_online (const mac_t mac, uint32_t clients)
-{
+{ // Happens when node comes on line, and for all nodes when we connect upstream
    if (memcmp (mac, revk_mac, 6))
    {
       if (clients & (1 << 0))
          revk_send_sub (0, mac);
       if (clients & (1 << 1))
          revk_send_sub (1, mac);
+      // Send connect to node so we get up & capability message
       jo_t j = jo_object_alloc ();
       jo_null (j, "connect");
       revk_mesh_send_json (mac, &j);
@@ -1208,8 +1209,8 @@ alarm_rx (const char *target, jo_t j)
    }
    if (!jo_strcmp (j, "connect"))
    {
+      app_callback (0, topiccommand, NULL, "connect", j); // not this is actually necessary
       revk_command ("status", NULL);    // For up message
-      app_callback (0, topiccommand, NULL, "connect", j);
       // Send capability
       jo_t j = jo_object_alloc ();
       jo_null (j, "capability");
