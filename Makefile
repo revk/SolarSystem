@@ -43,7 +43,8 @@ pull:
 
 update:
 	git pull
-	git submodule update --init --remote --recursive
+	git submodule update --init --remote
+	git submodule update --recursive
 	-git commit -a -m "Library update"
 	-git push
 	make -C login
