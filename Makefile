@@ -43,7 +43,7 @@ pull:
 
 update:
 	-git pull
-	-git commit
+	-git commit -a
 	git submodule update --init --remote --recursive
 	-git commit -a -m "Library update"
 	-git push
