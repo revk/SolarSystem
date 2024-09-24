@@ -325,6 +325,7 @@ keypad_ui (char key)
             }
          } else if (key == 'A')
          {                      // Arm with PIN
+            code[pos] = 0;      // Terminate input code
             if (*keypadpin && areakeyarm && !strcmp (code, keypadpin))
             {
                jo_t e = jo_make (NULL);
@@ -337,6 +338,7 @@ keypad_ui (char key)
                fail ("Wrong PIN\nPiss off", 10);
          } else if (key == 'B')
          {                      // Strongarm with PIN
+            code[pos] = 0;      // Terminate input code
             if (*keypadpin && areakeystrong && !strcmp (code, keypadpin))
             {
                jo_t e = jo_make (NULL);
