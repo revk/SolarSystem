@@ -281,8 +281,7 @@ keypad_ui (char key)
             if (pos < sizeof (code) - 1)
                code[pos++] = key;
             timeout = now + 10;
-         } else if (key == 'B' && pos)
-            pos--;              // Delete
+         }
          else if (key == 'E')
          {                      // ENT
             code[pos] = 0;      // Terminate input code
@@ -328,9 +327,18 @@ keypad_ui (char key)
             if (*keypadpin && areakeyarm && !strcmp (code, keypadpin))
             {
                jo_t e = jo_make (NULL);
-               jo_string (e, "reason", "Keypad A");
+               jo_string (e, "reason", "Keypad PIN/A");
                alarm_arm (areakeyarm, &e);
                fail ("Arming", 2);
+            }
+         } else if (key == 'B')
+         {                      // Strongarm with PIN
+            if (*keypadpin && areakeystrong && !strcmp (code, keypadpin))
+            {
+               jo_t e = jo_make (NULL);
+               jo_string (e, "reason", "Keypad PIN/B");
+               alarm_strong (areakeystrong, &e);
+               fail ("Arming forced", 2);
             }
          } else if (key == 'X')
          {
