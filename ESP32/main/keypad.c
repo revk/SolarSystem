@@ -281,8 +281,7 @@ keypad_ui (char key)
             if (pos < sizeof (code) - 1)
                code[pos++] = key;
             timeout = now + 10;
-         }
-         else if (key == 'E')
+         } else if (key == 'E')
          {                      // ENT
             code[pos] = 0;      // Terminate input code
             if (*keypadpin && areakeydisarm && !strcmp (code, keypadpin))
@@ -321,6 +320,8 @@ keypad_ui (char key)
                alarm_event ("wrongpin", &j, iotkeypad);
                if (*code == '*' || *keypadpin != '*')
                   fail ("** Wrong PIN! **\n[Attempt logged]", 10);
+               else
+                  fail ("Wrong PIN, piss off", 2);
             }
          } else if (key == 'A')
          {                      // Arm with PIN
@@ -330,7 +331,10 @@ keypad_ui (char key)
                jo_string (e, "reason", "Keypad PIN/A");
                alarm_arm (areakeyarm, &e);
                fail ("Arming", 2);
-            }
+            } else if (*code == '*' || *keypadpin != '*')
+               fail ("** Wrong PIN! **\n[Attempt logged]", 10);
+            else
+               fail ("Wrong PIN, piss off", 2);
          } else if (key == 'B')
          {                      // Strongarm with PIN
             if (*keypadpin && areakeystrong && !strcmp (code, keypadpin))
@@ -339,7 +343,10 @@ keypad_ui (char key)
                jo_string (e, "reason", "Keypad PIN/B");
                alarm_strong (areakeystrong, &e);
                fail ("Arming forced", 2);
-            }
+            } else if (*code == '*' || *keypadpin != '*')
+               fail ("** Wrong PIN! **\n[Attempt logged]", 10);
+            else
+               fail ("Wrong PIN, piss off", 2);
          } else if (key == 'X')
          {
             state = IDLE;
