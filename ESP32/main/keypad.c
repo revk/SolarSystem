@@ -321,7 +321,7 @@ keypad_ui (char key)
                if (*code == '*' || *keypadpin != '*')
                   fail ("** Wrong PIN! **\n[Attempt logged]", 10);
                else
-                  fail ("Wrong PIN, piss off", 2);
+                  fail ("Wrong PIN\nPiss off", 10);
             }
          } else if (key == 'A')
          {                      // Arm with PIN
@@ -334,7 +334,7 @@ keypad_ui (char key)
             } else if (*code == '*' || *keypadpin != '*')
                fail ("** Wrong PIN! **\n[Attempt logged]", 10);
             else
-               fail ("Wrong PIN, piss off", 2);
+               fail ("Wrong PIN\nPiss off", 10);
          } else if (key == 'B')
          {                      // Strongarm with PIN
             if (*keypadpin && areakeystrong && !strcmp (code, keypadpin))
@@ -346,7 +346,7 @@ keypad_ui (char key)
             } else if (*code == '*' || *keypadpin != '*')
                fail ("** Wrong PIN! **\n[Attempt logged]", 10);
             else
-               fail ("Wrong PIN, piss off", 2);
+               fail ("Wrong PIN\nPiss off", 10);
          } else if (key == 'X')
          {
             state = IDLE;
