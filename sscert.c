@@ -1,5 +1,7 @@
 // Certificate stuff
 
+#define OPENSSL_API_COMPAT      0x10100000L
+
 #include <stdio.h>
 #include <string.h>
 #include <time.h>
