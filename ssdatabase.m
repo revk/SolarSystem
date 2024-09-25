@@ -279,6 +279,7 @@ link2(device, via);             // Via another device using mesh
 text(devicename, 16);           // Device name
 text(keypadidle, 16);           // Keypad display name
 text(keypadpin, 16);            // Keypad disarm pin
+bool(keypadpinarm);		// Keypad pin needed to arm
 link(organisation);             // Yes, can get from site, but useful to reference quickly
 link(site);                     // The site the device is on
 link(pcb);                      // What type of device this is

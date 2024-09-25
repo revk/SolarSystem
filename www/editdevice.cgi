@@ -103,7 +103,8 @@ if($?devicename) then # save
 	if(! $?iotkeypad) setenv iotkeypad false
 	if(! $?iotgps) setenv iotgps false
 	if(! $?ioteventfob) setenv ioteventfob false
-	setenv allow "devicename timer1 areaenter areastrong areadeadlock areaarm areadisarm areabell arealed areakeypad areakeyarm areakeystrong areakeydisarm nfc gps rgb nfcadmin door doorexitarm doorexitdisarm aid site iotstatedoor iotstateinput iotstateoutput ioteventfob iotkeypad iotgps doorunlock doorlock dooropen doorclose doorprop doorexit doordebounce keypadidle keypadpin keypad pcb dooriotopen dooriotlock dooriotunlock dooriotdead dooriotundead excludeall outofservice doordebug doorcatch"
+	if(! $?keypadpinarm) setenv keypadpinarm false
+	setenv allow "devicename timer1 areaenter areastrong areadeadlock areaarm areadisarm areabell arealed areakeypad areakeyarm areakeystrong areakeydisarm nfc gps rgb nfcadmin door doorexitarm doorexitdisarm aid site iotstatedoor iotstateinput iotstateoutput ioteventfob iotkeypad iotgps doorunlock doorlock dooropen doorclose doorprop doorexit doordebounce keypadidle keypadpin keypadpinarm keypad pcb dooriotopen dooriotlock dooriotunlock dooriotdead dooriotundead excludeall outofservice doordebug doorcatch"
 	if("$USER_ADMIN" == "true") setenv allow "$allow nfctrusted"
 	sqlwrite -qon "$DB" device $allow
 	sql "$DB" 'UPDATE device SET poke=NOW() WHERE site=$site'
@@ -174,7 +175,7 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <tr><td>PCB</td><td colspan=2><select name=pcb><sql table=pcb order=pcbname><option value="$pcb"><output name=pcbname></option></sql></select></td></tr>
 <tr><td>Name</td><td colspan=2><input name=devicename size=20 maxlength=20 autofocus></td></tr>
 <if keypad=true><tr><td>Keypad</td><td colspan=2><input name=keypadidle size=16 maxlength=16 autofocus></td></tr></if>
-<if keypad=true><tr><td>Keypad PIN</td><td colspan=2><input name=keypadpin size=16 maxlength=16 autofocus> (for disarm)</td></tr></if>
+<if keypad=true><tr><td>Keypad PIN</td><td colspan=2><input name=keypadpin size=16 maxlength=16 autofocus> to disarm, <input type=checkbox id=keypadpinarm name=keypadpinarm value=true><label for=keypadpinarm> to arm</label></td></tr></if>
 <tr><td>Site</td><td colspan=2><select name=site><sql table=site where="organisation=$USER_ORGANISATION"><option value='$site'><output name=sitename></option></sql></select></td></tr>
 <sql table=site where="site=$site">
 <if not iothost="">

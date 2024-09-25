@@ -11,3 +11,4 @@ u8	keypad.rxpre	100
 u8	keypad.rxpost	20
 s	keypad.idle		.live=1
 s	keypad.pin		.live=1
+bit	keypad.pinarm		.live=1

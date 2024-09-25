@@ -501,6 +501,8 @@ settings (SQL * sqlp, SQL_RES * res, slot_t id)
                   j_store_string (o, "idle", v);
                if ((v = sql_colz (res, "keypadpin")) && *v)
                   j_store_string (o, "pin", v);
+               if (*sql_colz (res, "keypadpinarm")=='t')
+                  j_store_true (o, "pinarm");
                addset (area, "keypad", sql_colz (res, "areakeypad"), NULL);
                addset (area, "keyarm", sql_colz (res, "areakeyarm"), NULL);
                addset (area, "keydisarm", sql_colz (res, "areakeydisarm"), NULL);

@@ -220,7 +220,7 @@ keypad_ui (char key)
          pos = 0;
          break;
       }
-      if (key == 'A' && areakeyarm && (areakeyarm & ~state_armed) && *keypadpin != '*')
+      if (key == 'A' && areakeyarm && (areakeyarm & ~state_armed) && !keypadpinarm)
       {                         // Arm set
          jo_t e = jo_make (NULL);
          jo_string (e, "reason", "Keypad A");
@@ -228,7 +228,7 @@ keypad_ui (char key)
          fail ("Arming", 2);
          break;
       }
-      if (key == 'B' && areakeystrong && (areakeystrong & ~state_armed) && *keypadpin != '*')
+      if (key == 'B' && areakeystrong && (areakeystrong & ~state_armed) && !keypadpinarm)
       {                         // Strong arm set
          jo_t e = jo_make (NULL);
          jo_string (e, "reason", "Keypad B");
@@ -271,10 +271,6 @@ keypad_ui (char key)
       break;
    case PIN:
       {
-         // Note, a PIN set starting with * is special handling
-         // It means the default 'A'/'B', and the alternate */ENT #/ENT do not work
-         // It means no alert for wrong PIN unless PIN entered starts *
-         // This is mainly to allow PIN/A to arm
          static char code[17];
          if ((key >= '0' && key <= '9') || key == '*' || key == '#')
          {                      // PIN for full 12 keys
@@ -292,7 +288,7 @@ keypad_ui (char key)
                fail ("Disarming", 2);
             } else if (!strcmp (code, "*"))
             {
-               if (areakeyarm && (areakeyarm & ~state_armed) && *keypadpin != '*')
+               if (areakeyarm && (areakeyarm & ~state_armed) && !keypadpinarm)
                {                // Alternative arming, e.g. if in messages state
                   jo_t e = jo_make (NULL);
                   jo_string (e, "reason", "Keypad *");
@@ -301,7 +297,7 @@ keypad_ui (char key)
                }
             } else if (!strcmp (code, "#"))
             {
-               if (areakeystrong && (areakeystrong & ~state_armed) && *keypadpin != '*')
+               if (areakeystrong && (areakeystrong & ~state_armed) && !keypadpinarm)
                {                // Alternative arming, e.g. if in message state
                   jo_t e = jo_make (NULL);
                   jo_string (e, "reason", "Keypad #");
@@ -318,10 +314,7 @@ keypad_ui (char key)
                   jo_string (j, "entered", code);
                }
                alarm_event ("wrongpin", &j, iotkeypad);
-               if (*code == '*' || *keypadpin != '*')
-                  fail ("** Wrong PIN! **\n[Attempt logged]", 10);
-               else
-                  fail ("Wrong PIN\nPiss off", 10);
+               fail ("** Wrong PIN! **\n[Attempt logged]", 10);
             }
          } else if (key == 'A')
          {                      // Arm with PIN
@@ -332,10 +325,8 @@ keypad_ui (char key)
                jo_string (e, "reason", "Keypad PIN/A");
                alarm_arm (areakeyarm, &e);
                fail ("Arming", 2);
-            } else if (*code == '*' || *keypadpin != '*')
+            } else
                fail ("** Wrong PIN! **\n[Attempt logged]", 10);
-            else
-               fail ("Wrong PIN\nPiss off", 10);
          } else if (key == 'B')
          {                      // Strongarm with PIN
             code[pos] = 0;      // Terminate input code
@@ -345,10 +336,8 @@ keypad_ui (char key)
                jo_string (e, "reason", "Keypad PIN/B");
                alarm_strong (areakeystrong, &e);
                fail ("Arming forced", 2);
-            } else if (*code == '*' || *keypadpin != '*')
+            } else
                fail ("** Wrong PIN! **\n[Attempt logged]", 10);
-            else
-               fail ("Wrong PIN\nPiss off", 10);
          } else if (key == 'X')
          {
             state = IDLE;
