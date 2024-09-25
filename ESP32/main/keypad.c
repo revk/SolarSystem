@@ -277,72 +277,73 @@ keypad_ui (char key)
             if (pos < sizeof (code) - 1)
                code[pos++] = key;
             timeout = now + 10;
-         } else if (key == 'E')
-         {                      // ENT
+         } else
+         {
             code[pos] = 0;      // Terminate input code
-            if (*keypadpin && areakeydisarm && !strcmp (code, keypadpin))
-            {
-               jo_t e = jo_make (NULL);
-               jo_string (e, "reason", "Keypad PIN entry");
-               alarm_disarm (areakeydisarm, &e);
-               fail ("Disarming", 2);
-            } else if (!strcmp (code, "*"))
-            {
-               if (areakeyarm && (areakeyarm & ~state_armed) && !keypadpinarm)
-               {                // Alternative arming, e.g. if in messages state
+            if (key == 'E')
+            {                   // ENT
+               if (*keypadpin && areakeydisarm && !strcmp (code, keypadpin))
+               {
                   jo_t e = jo_make (NULL);
-                  jo_string (e, "reason", "Keypad *");
+                  jo_string (e, "reason", "Keypad PIN entry");
+                  alarm_disarm (areakeydisarm, &e);
+                  fail ("Disarming", 2);
+               } else if (!strcmp (code, "*"))
+               {
+                  if (areakeyarm && (areakeyarm & ~state_armed) && !keypadpinarm)
+                  {             // Alternative arming, e.g. if in messages state
+                     jo_t e = jo_make (NULL);
+                     jo_string (e, "reason", "Keypad *");
+                     alarm_arm (areakeyarm, &e);
+                     fail ("Arming", 2);
+                  }
+               } else if (!strcmp (code, "#"))
+               {
+                  if (areakeystrong && (areakeystrong & ~state_armed) && !keypadpinarm)
+                  {             // Alternative arming, e.g. if in message state
+                     jo_t e = jo_make (NULL);
+                     jo_string (e, "reason", "Keypad #");
+                     alarm_strong (areakeystrong, &e);
+                     fail ("Arming forced", 2);
+                  }
+               } else
+               {
+                  jo_t j = jo_object_alloc ();
+                  jo_stringf (j, "reason", !*keypadpin ? "No PIN set" : !areakeydisarm ? "No PIN disarm" : "Wrong PIN");
+                  if (debug)
+                  {
+                     jo_string (j, "pin", keypadpin);
+                     jo_string (j, "entered", code);
+                  }
+                  alarm_event ("wrongpin", &j, iotkeypad);
+                  fail ("** Wrong PIN! **\n[Attempt logged]", 10);
+               }
+            } else if (key == 'A' && areakeyarm)
+            {                   // Arm with PIN
+               if (*keypadpin && !strcmp (code, keypadpin))
+               {
+                  jo_t e = jo_make (NULL);
+                  jo_string (e, "reason", "Keypad PIN/A");
                   alarm_arm (areakeyarm, &e);
                   fail ("Arming", 2);
-               }
-            } else if (!strcmp (code, "#"))
-            {
-               if (areakeystrong && (areakeystrong & ~state_armed) && !keypadpinarm)
-               {                // Alternative arming, e.g. if in message state
+               } else
+                  fail ("** Wrong PIN! **\n[Attempt logged]", 10);
+            } else if (key == 'B' && areakeystrong)
+            {                   // Strongarm with PIN
+               if (*keypadpin && !strcmp (code, keypadpin))
+               {
                   jo_t e = jo_make (NULL);
-                  jo_string (e, "reason", "Keypad #");
+                  jo_string (e, "reason", "Keypad PIN/B");
                   alarm_strong (areakeystrong, &e);
                   fail ("Arming forced", 2);
-               }
-            } else
+               } else
+                  fail ("** Wrong PIN! **\n[Attempt logged]", 10);
+            } else if (key == 'X')
             {
-               jo_t j = jo_object_alloc ();
-               jo_stringf (j, "reason", !*keypadpin ? "No PIN set" : !areakeydisarm ? "No PIN disarm" : "Wrong PIN");
-               if (debug)
-               {
-                  jo_string (j, "pin", keypadpin);
-                  jo_string (j, "entered", code);
-               }
-               alarm_event ("wrongpin", &j, iotkeypad);
-               fail ("** Wrong PIN! **\n[Attempt logged]", 10);
+               state = IDLE;
+               pos = 0;
+               timeout = 0;
             }
-         } else if (key == 'A')
-         {                      // Arm with PIN
-            code[pos] = 0;      // Terminate input code
-            if (*keypadpin && areakeyarm && !strcmp (code, keypadpin))
-            {
-               jo_t e = jo_make (NULL);
-               jo_string (e, "reason", "Keypad PIN/A");
-               alarm_arm (areakeyarm, &e);
-               fail ("Arming", 2);
-            } else
-               fail ("** Wrong PIN! **\n[Attempt logged]", 10);
-         } else if (key == 'B')
-         {                      // Strongarm with PIN
-            code[pos] = 0;      // Terminate input code
-            if (*keypadpin && areakeystrong && !strcmp (code, keypadpin))
-            {
-               jo_t e = jo_make (NULL);
-               jo_string (e, "reason", "Keypad PIN/B");
-               alarm_strong (areakeystrong, &e);
-               fail ("Arming forced", 2);
-            } else
-               fail ("** Wrong PIN! **\n[Attempt logged]", 10);
-         } else if (key == 'X')
-         {
-            state = IDLE;
-            pos = 0;
-            timeout = 0;
          }
       }
       break;

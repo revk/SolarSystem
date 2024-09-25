@@ -505,6 +505,7 @@ settings (SQL * sqlp, SQL_RES * res, slot_t id)
                   j_store_true (o, "pinarm");
                addset (area, "keypad", sql_colz (res, "areakeypad"), NULL);
                addset (area, "keyarm", sql_colz (res, "areakeyarm"), NULL);
+               addset (area, "keystrong", sql_colz (res, "areakeystrong"), NULL);
                addset (area, "keydisarm", sql_colz (res, "areakeydisarm"), NULL);
             }
             o = j_store_object (j, "nfc");
