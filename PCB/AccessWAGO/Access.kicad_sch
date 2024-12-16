@@ -6148,10 +6148,6 @@
 		(uuid "2896c0a5-2096-42e8-96f0-d704cb0ad85a")
 	)
 	(no_connect
-		(at 39.37 102.87)
-		(uuid "2f02c9d1-c09a-4953-9f60-9790071ae44b")
-	)
-	(no_connect
 		(at 39.37 69.85)
 		(uuid "2fb6d96e-2be4-4594-87da-881b31ccb237")
 	)
@@ -6600,6 +6596,16 @@
 			(type default)
 		)
 		(uuid "68d9bb84-2482-4a26-9e14-e7f79f7f0dc8")
+	)
+	(wire
+		(pts
+			(xy 30.48 102.87) (xy 39.37 102.87)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "68da1ddc-831f-409f-b34a-607ecb9bae47")
 	)
 	(wire
 		(pts
@@ -13378,6 +13384,73 @@
 		)
 	)
 	(symbol
+		(lib_id "power:GND")
+		(at 30.48 105.41 90)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "55f7c36b-30db-4c07-a73d-736e0bb9c1c0")
+		(property "Reference" "#PWR09"
+			(at 36.83 105.41 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "GND"
+			(at 33.655 105.41 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(property "Footprint" ""
+			(at 30.48 105.41 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 30.48 105.41 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
+			(at 30.48 105.41 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "0d4da41b-de77-451c-ab79-6a37c60babbb")
+		)
+		(instances
+			(project "Access"
+				(path "/2a267270-6585-45e3-a633-b53049f10066"
+					(reference "#PWR09")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
 		(lib_id "power:+12V")
 		(at 175.26 50.8 90)
 		(unit 1)
@@ -18080,6 +18153,74 @@
 			(project "Access"
 				(path "/2a267270-6585-45e3-a633-b53049f10066"
 					(reference "#PWR024")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Connector_Generic:Conn_01x02")
+		(at 25.4 105.41 180)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom no)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "e85b01c2-1647-4abe-bad4-2c4085ded3f6")
+		(property "Reference" "J10"
+			(at 25.4 97.4555 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "Reset"
+			(at 25.4 99.8798 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "RevK:AA-Pad"
+			(at 25.4 105.41 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 25.4 105.41 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Generic connector, single row, 01x02, script generated (kicad-library-utils/schlib/autogen/connector/)"
+			(at 25.4 105.41 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "2"
+			(uuid "3436230e-c9c6-4d7c-ba65-fd7ebecc5c9b")
+		)
+		(pin "1"
+			(uuid "775219c0-c955-4eb6-9ca7-08ad8eac7f87")
+		)
+		(instances
+			(project "Access"
+				(path "/2a267270-6585-45e3-a633-b53049f10066"
+					(reference "J10")
 					(unit 1)
 				)
 			)
