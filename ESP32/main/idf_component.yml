@@ -1,9 +1,8 @@
 ## IDF Component Manager Manifest File
 dependencies:
-  espressif/led_strip: "*"
   ## Required IDF version
   idf:
-    version: ">=4.1.0"
+    version: '>=4.1.0'
   # # Put list of dependencies here
   # # For components maintained by Espressif:
   # component: "~1.0.0"
@@ -15,3 +14,4 @@ dependencies:
   #   # `public` flag doesn't have an effect dependencies of the `main` component.
   #   # All dependencies of `main` are public by default.
   #   public: true
+  espressif/led_strip: '*'
