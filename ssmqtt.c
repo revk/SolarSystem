@@ -563,7 +563,7 @@ insecurelistener (void *arg)
 #ifdef	CONFIG_MQTT_IPV4
       AF_INET
 #else
-      AF_UNSPEC
+      AF_INET6
 #endif
     , ai_socktype:SOCK_STREAM
    };
@@ -656,7 +656,7 @@ listener (void *arg)
 #ifdef	CONFIG_MQTT_IPV4
       AF_INET
 #else
-      AF_UNSPEC
+      AF_INET6
 #endif
     , ai_socktype:SOCK_STREAM
    };
