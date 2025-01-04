@@ -569,7 +569,13 @@ insecurelistener (void *arg)
    };
    struct addrinfo *a = 0,
       *p;
-   if (getaddrinfo (CONFIG_MQTT_HOSTNAME, CONFIG_MQTT_INSECURE_PORT, &base, &a) || !a)
+   if (getaddrinfo (
+#ifdef	CONFIG_MQTT_IPV4
+                      CONFIG_MQTT_HOSTNAME,
+#else
+                      "::",
+#endif
+                      CONFIG_MQTT_INSECURE_PORT, &base, &a) || !a)
       errx (1, "Failed to find address for %s:%s", CONFIG_MQTT_HOSTNAME, CONFIG_MQTT_INSECURE_PORT);
    for (p = a; p; p = p->ai_next)
    {
@@ -662,7 +668,13 @@ listener (void *arg)
    };
    struct addrinfo *a = 0,
       *p;
-   if (getaddrinfo (CONFIG_MQTT_HOSTNAME, CONFIG_MQTT_PORT, &base, &a) || !a)
+   if (getaddrinfo (
+#ifdef	CONFIG_MQTT_IPV4
+                      CONFIG_MQTT_HOSTNAME,
+#else
+                      "::",
+#endif
+                      CONFIG_MQTT_PORT, &base, &a) || !a)
       errx (1, "Failed to find address for %s:%s", CONFIG_MQTT_HOSTNAME, CONFIG_MQTT_PORT);
    for (p = a; p; p = p->ai_next)
    {
