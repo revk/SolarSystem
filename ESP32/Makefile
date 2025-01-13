@@ -6,7 +6,7 @@
 PROJECT_NAME := SS
 SUFFIX := $(shell components/ESP32-RevK/buildsuffix)
 
-all:	settings.h
+all:	main/settings.h
 	@echo Make: $(PROJECT_NAME)$(SUFFIX).bin
 	@idf.py build
 	@cp build/$(PROJECT_NAME).bin ../www/$(PROJECT_NAME)$(SUFFIX).bin
@@ -53,7 +53,7 @@ pull:
 	git pull
 	git submodule update --recursive
 
-settings.h:     components/ESP32-RevK/revk_settings components/ESP32-RevK/settings.def settings.def settings_nfc.def settings_door.def settings_gps.def settings_output.def settings_input.def settings_keypad.def settings_alarm.def
+main/settings.h:     components/ESP32-RevK/revk_settings components/ESP32-RevK/settings.def main/settings.def main/settings_nfc.def main/settings_door.def main/settings_gps.def main/settings_output.def main/settings_input.def main/settings_keypad.def main/settings_alarm.def
 	components/ESP32-RevK/revk_settings $^
 
 components/ESP32-RevK/revk_settings: components/ESP32-RevK/revk_settings.c
