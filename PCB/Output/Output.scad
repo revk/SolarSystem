@@ -1,6 +1,6 @@
 // Generated case design for Output/Output.kicad_pcb
 // By https://github.com/revk/PCBCase
-// Generated 2023-12-28 15:52:52
+// Generated 2025-01-19 12:02:18
 // title:	PCB-OUTPUT
 // rev:	1
 // company:	Adrian Kennard, Andrews & Arnold Ltd
@@ -56,7 +56,7 @@ translate([9.000000,15.100000,0.800000])m0(part,hole,block,casetop); // RevK:C_0
 translate([40.450000,3.420000,0.800000])rotate([0,0,90.000000])m5(part,hole,block,casetop,2); // J5 (back)
 translate([18.200000,3.500000,0.800000])rotate([0,0,135.000000])m2(part,hole,block,casetop); // D5 (back)
 translate([34.500000,7.300000,0.800000])m7(part,hole,block,casetop); // RevK:SOT-23-6-MD8942 SOT-23-6 (back)
-translate([23.800000,4.350000,0.800000])translate([0.000000,-1.050000,0.000000])rotate([90.000000,-0.000000,-0.000000])m8(part,hole,block,casetop); // RevK:USB-C-Socket-H CSP-USC16-TR (back)
+translate([23.800000,5.740000,0.800000])translate([0.000000,-2.400000,0.000000])rotate([90.000000,-0.000000,-0.000000])m8(part,hole,block,casetop); // RevK:USB-C-Socket-H CSP-USC16-TR (back)
 translate([7.250000,17.140000,0.800000])rotate([0,0,-90.000000])m5(part,hole,block,casetop,2); // J5 (back)
 translate([32.000000,6.000000,0.800000])rotate([0,0,90.000000])m3(part,hole,block,casetop); // RevK:C_0603_ C_0603_1608Metric (back)
 translate([7.250000,3.420000,0.800000])rotate([0,0,-90.000000])m5(part,hole,block,casetop,2); // J5 (back)
@@ -127,13 +127,13 @@ module m2(part=false,hole=false,block=false,height)
 // 1x1mm LED
 if(part)
 {
-        b(0,0,0,1,1,.8);
+        b(0,0,0,1.2,1.2,.8);
 }
 if(hole)
 {
         hull()
         {
-                b(0,0,.8,1,1,1);
+                b(0,0,.8,1.2,1.2,1);
                 translate([0,0,height])cylinder(d=2,h=1,$fn=16);
         }
 }
@@ -141,7 +141,7 @@ if(block)
 {
         hull()
         {
-                b(0,0,0,2,2,1);
+                b(0,0,0,2.4,2.4,1);
                 translate([0,0,height])cylinder(d=4,h=1,$fn=16);
         }
 }
@@ -222,8 +222,8 @@ rotate([-90,0,0])translate([-4.47,-3.84,0])
 			translate([5.68,0,0])
 			cylinder(d=3.26,h=7.55,$fn=24);
 		}
-		translate([0,6.25,0])cube([8.94,1.1,1.63]);
-		translate([0,1.7,0])cube([8.94,1.6,1.63]);
+		translate([0,6.2501,0])cube([8.94,1.1,1.6301]);
+		translate([0,1.7,0])cube([8.94,1.6,1.6301]);
 	}
 	if(hole)
 	{
@@ -279,8 +279,8 @@ if(hole)
 {
 	hull()
 	{
-		b(0,0,0,1.0,0.5,1);
-		b(0,0,height,3.0,2.5,1);
+		b(0,0,0,1.001,0.501,1);
+		b(0,0,height,2.0,1.5,1);
 	}
 }
 }
