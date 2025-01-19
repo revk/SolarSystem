@@ -31,9 +31,10 @@ Please bear in mind that this is an open source system with no warranty. The sys
 
 Modules work as a mesh over WiFi, and one connects to a back end cloud management system. PCB designs are included (KiCad) as are 3D printable case designs.
 
-Example of access control PCB:
+Example of access control PCB (two styles).
 
-![Access2](Manuals/Access3.png)
+<img src=PCB/Access/Access.png width=49%><img src=PCB/AccessWAGO/Access.png width=49%>
+
 
 ## Back end management cloud system
 

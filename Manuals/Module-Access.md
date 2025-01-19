@@ -6,15 +6,15 @@ The github project includes the software, PCB designs, and the 3D print designs.
 
 ## Outside unit (NFC card reader)
 
-The external board is an NFC card reader with *red*, *amber* and *grren* status LEDs There is a 3D case design that provides a low profile reader on a wall/door - where ideally the connector wire is in a hold behind the reader. If not, then a 3D printable support is included (may be needed if used on a metal door). The reader also includes a tamber contact if the case is removed. It could also be fitted behind a sheet of glass, but test that it works with your fobs/cards in such case.
+The external board is an NFC card reader with *red*, *amber* and *green* status LEDs There is a 3D case design that provides a low profile reader on a wall/door - where ideally the connector wire is in a hold behind the reader. If not, then a 3D printable support is included (may be needed if used on a metal door). The reader also includes a tamber contact if the case is removed. It could also be fitted behind a sheet of glass, but test that it works with your fobs/cards in such case.
 
 The actual contacts on the reader are 0.1" square pins, but typically they would be used with the same mini SPOX plug used in the rest of the system. There are actually 5 pins on the reader - the 5th being a doorbell contact input. If not needed then this 5th pin can be chopped off leaving juse the necessary 4 pins. These 4 pins are connected to the 4 pin header on the controller in the same order.
 
 The reader is a separate GitHub project [PN532](https://github.com/revk/ESP32-PN532).
 
-*Note: This is fitted with a 5 pin 0.1" square pin connector which can be used with either mini SPOX plug, Phœnix Contact PTSM plug, or 0.1" header as needed.*
+*Note: This is fitted with a 5 pin 0.1" square pin connector which can be used with either mini SPOX plug, Phœnix Contact PTSM plug, or 0.1" header as needed. Typically Bell is not used, so a 4 pin plug is normal.*
 
-![Round NFC reader](Round.png)
+<img src=Round.png width=49%>
 
 ## Inside unit (Access2)
 
@@ -24,7 +24,11 @@ The board also has a simple RGB LED which can be used to [indicate status](Tech-
 
 ### Connectors
 
+There have been several generations of connector usage. Older boards may be supplied with mini-SPOX connectors, which need suitable plugs and crimps. Newer boards are supplied with Phœnix Contact PTSM connectors and plugs - these accept solid core wire directly in the plug without the need for a crimp. Either board could be fitted with 0.1" square pin headers instead if needed. The latest designs also have WAGO connectors as an alternative.
+
 The board is provided with 4 connectors as follows.
+
+<img src=../PCB/Access/Access.png width=49%><img src=../PCB/Access/Access-bottom.png width=49%>
 
 |Connector|Meaning|
 |---------|--------|
@@ -33,14 +37,8 @@ The board is provided with 4 connectors as follows.
 |4 pin|The 4 pin header goes to the outside NFC reader board, and is `GND`, `5V`, `Tx`, and `Rx`. It connects to the first 4 pins on the NFC reader in the same order.|
 |6 pin|The 6 pin header are all GPIO pins, but are typically configured to be pairs of `GND` and `input` which go via an external contact such as an exit button, door closed contact, and lock disengaged contact. Their usage is configurable and can allow all 6 to be input pins if required.|
 
-The board may have a USB-C connector as well, or may not, as this is used for programming and debug. If fitted it can be used to flash the board. If not, then there are 5 pads that can be used with the (Tasmotizer)[https://github.com/revk/Tasmotizer-PCB] board to flash.
+The board may have a USB-C connector as well, or may not, as this is used for programming and debug. If fitted it can be used to flash the board. If not, then there are 5 pads that can be used with an <a href=https://www.tag-connect.com/product/tc2030-usb-nl>TC2030-USB-NL</a> lead.
 
-*Note: Older boards may be supplied with mini-SPOX connectors, which need suitable plugs and crimps. Newer boards are supplied with Phœnix Contact PTSM connectors and plugs - these accept solid core wire directly in the plug without the need for a crimp. Either board could be fitted with 0.1" square pin headers instead if needed.*
+The WAGO version has additional GND and power contacts, and is slightly bigger, however it can take less sapce as the connectors need no plugs.
 
-![Access2](Access2.png)
-
-## Access3
-
-An alternative board is also available which has an additional 3 pin connector for a second solid state relay. This is slightly bigger, obviously.
-
-![Access3](Access3.png)
+<img src=../PCB/AccessWAGO/Access.png width=49%><img src=../PCB/AccessWAGO/Access-bottom.png width=49%>

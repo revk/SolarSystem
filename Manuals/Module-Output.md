@@ -4,4 +4,4 @@ The output module board provides 10 separate outputs, each on a 2 pin connector.
 
 This provides a general purpose driver for external devices that work on DC.
 
-![Output board](Output.jpg)
+<img src=../PCB/Output/Output.png width=49%><img src=../PCB/Output/Output-bottom.png width=49%>

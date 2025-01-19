@@ -12,8 +12,4 @@ The module can also have a 5 pin header fitted to allow connection to a separate
 
 Again, a 3D case design is availble, but the board itself does not have a tamper contact - it connects to the Tamper in the bell box itself.
 
-*Bell box*
-![Bell2](Bell2.png)
-
-*GPS plug in module*
-![GPS](GPS.png)
+<img src=../PCB/Bell/Bell.png width=49%>
