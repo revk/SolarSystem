@@ -13776,7 +13776,7 @@
 				)
 			)
 		)
-		(property "LCSC Part #" "C2684786"
+		(property "MPN" "C2684786"
 			(at 0 0 90)
 			(layer "F.Fab")
 			(hide yes)

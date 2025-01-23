@@ -786,6 +786,17 @@
 						(type none)
 					)
 				)
+				(circle
+					(center 0 0)
+					(radius 0.254)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type outline)
+					)
+				)
 				(polyline
 					(pts
 						(xy 0 0) (xy 0 -2.54)
@@ -796,17 +807,6 @@
 					)
 					(fill
 						(type none)
-					)
-				)
-				(circle
-					(center 0 0)
-					(radius 0.254)
-					(stroke
-						(width 0)
-						(type default)
-					)
-					(fill
-						(type outline)
 					)
 				)
 				(polyline
@@ -1289,7 +1289,7 @@
 					(hide yes)
 				)
 			)
-			(property "LCSC Part #" "C3013941"
+			(property "MPN" "C3013941"
 				(at 0 -32.385 0)
 				(effects
 					(font
@@ -2769,7 +2769,7 @@
 					(hide yes)
 				)
 			)
-			(property "LCSC Part #" "C2684786"
+			(property "MPN" "C2684786"
 				(at 0 -26.67 0)
 				(effects
 					(font
@@ -3095,159 +3095,6 @@
 			)
 			(embedded_fonts no)
 		)
-		(symbol "RevK:QR"
-			(pin_names
-				(offset 1.016)
-			)
-			(exclude_from_sim no)
-			(in_bom no)
-			(on_board yes)
-			(property "Reference" "U"
-				(at 0 -3.175 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(hide yes)
-				)
-			)
-			(property "Value" "QR"
-				(at 0 -3.175 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(hide yes)
-				)
-			)
-			(property "Footprint" ""
-				(at -0.635 -0.635 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(hide yes)
-				)
-			)
-			(property "Datasheet" ""
-				(at -0.635 -0.635 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(hide yes)
-				)
-			)
-			(property "Description" ""
-				(at 0 0 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(hide yes)
-				)
-			)
-			(property "Note" "Non part, PCB printed"
-				(at 0 0 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(hide yes)
-				)
-			)
-			(symbol "QR_0_1"
-				(rectangle
-					(start -1.905 1.905)
-					(end 1.905 1.905)
-					(stroke
-						(width 0)
-						(type default)
-					)
-					(fill
-						(type none)
-					)
-				)
-				(rectangle
-					(start -1.905 -1.905)
-					(end -1.905 1.905)
-					(stroke
-						(width 0)
-						(type default)
-					)
-					(fill
-						(type none)
-					)
-				)
-				(rectangle
-					(start -0.635 0.635)
-					(end 0.635 0.635)
-					(stroke
-						(width 0)
-						(type default)
-					)
-					(fill
-						(type none)
-					)
-				)
-				(rectangle
-					(start -0.635 -0.635)
-					(end -0.635 0.635)
-					(stroke
-						(width 0)
-						(type default)
-					)
-					(fill
-						(type none)
-					)
-				)
-				(rectangle
-					(start 0.635 0.635)
-					(end 0.635 -0.635)
-					(stroke
-						(width 0)
-						(type default)
-					)
-					(fill
-						(type none)
-					)
-				)
-				(rectangle
-					(start 0.635 -0.635)
-					(end -0.635 -0.635)
-					(stroke
-						(width 0)
-						(type default)
-					)
-					(fill
-						(type none)
-					)
-				)
-				(rectangle
-					(start 1.905 1.905)
-					(end 1.905 -1.905)
-					(stroke
-						(width 0)
-						(type default)
-					)
-					(fill
-						(type none)
-					)
-				)
-				(rectangle
-					(start 1.905 -1.905)
-					(end -1.905 -1.905)
-					(stroke
-						(width 0)
-						(type default)
-					)
-					(fill
-						(type none)
-					)
-				)
-			)
-			(embedded_fonts no)
-		)
 		(symbol "RevK:Shelly"
 			(exclude_from_sim no)
 			(in_bom no)
@@ -3446,7 +3293,7 @@
 			)
 			(embedded_fonts no)
 		)
-		(symbol "RevK:USB-C"
+		(symbol "RevK:USB-C-Socket-H"
 			(pin_names
 				(offset 1.016)
 			)
@@ -3462,16 +3309,15 @@
 					(justify left)
 				)
 			)
-			(property "Value" "USB-C"
-				(at -7.62 15.24 0)
+			(property "Value" "USB-C-Socket-V"
+				(at 0.635 12.7 0)
 				(effects
 					(font
 						(size 1.27 1.27)
 					)
-					(justify left)
 				)
 			)
-			(property "Footprint" "RevK:USC16-TR"
+			(property "Footprint" "RevK:USB-C-Socket-H"
 				(at 0 20.32 0)
 				(effects
 					(font
@@ -3498,21 +3344,13 @@
 					(hide yes)
 				)
 			)
-			(property "LCSC Part #" "C709357"
+			(property "MPN" "C709357"
 				(at 0 0 0)
 				(effects
 					(font
 						(size 1.27 1.27)
 					)
 					(hide yes)
-				)
-			)
-			(property "JLCPCB Rotation Offset" "90"
-				(at 0 0 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
 				)
 			)
 			(property "ki_keywords" "usb universal serial bus type-C USB2.0"
@@ -3533,7 +3371,7 @@
 					(hide yes)
 				)
 			)
-			(symbol "USB-C_0_1"
+			(symbol "USB-C-Socket-H_0_1"
 				(rectangle
 					(start -10.16 17.78)
 					(end 10.16 -17.78)
@@ -3625,7 +3463,7 @@
 						(type default)
 					)
 					(fill
-						(type outline)
+						(type none)
 					)
 				)
 				(arc
@@ -3637,7 +3475,7 @@
 						(type default)
 					)
 					(fill
-						(type none)
+						(type outline)
 					)
 				)
 				(polyline
@@ -3734,7 +3572,7 @@
 					)
 				)
 			)
-			(symbol "USB-C_1_1"
+			(symbol "USB-C-Socket-H_1_1"
 				(pin passive line
 					(at -7.62 -22.86 90)
 					(length 5.08)
@@ -3753,7 +3591,7 @@
 						)
 					)
 				)
-				(pin power_out line
+				(pin passive line
 					(at 0 -22.86 90)
 					(length 5.08)
 					(name "GND"
@@ -3828,7 +3666,7 @@
 						)
 					)
 				)
-				(pin power_out line
+				(pin passive line
 					(at 15.24 15.24 180)
 					(length 5.08)
 					(name "VBUS"
@@ -4171,7 +4009,7 @@
 					(hide yes)
 				)
 			)
-			(property "LCSC Part #" "C5349953"
+			(property "MPN" "C5349953"
 				(at 1.27 -11.43 0)
 				(effects
 					(font
@@ -5577,7 +5415,7 @@
 		)
 	)
 	(symbol
-		(lib_id "RevK:USB-C")
+		(lib_id "RevK:USB-C-Socket-H")
 		(at 159.385 45.72 0)
 		(unit 1)
 		(exclude_from_sim no)
@@ -5586,22 +5424,23 @@
 		(dnp no)
 		(uuid "00000000-0000-0000-0000-000060cc7ad1")
 		(property "Reference" "J2"
-			(at 162.1028 23.6982 0)
+			(at 149.225 26.67 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "USB-C-Socket-V"
+			(at 160.02 33.02 0)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
 			)
 		)
-		(property "Value" "USB-C"
-			(at 162.1028 26.0096 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Footprint" "RevK:USC16-TR"
+		(property "Footprint" "RevK:USB-C-Socket-H"
 			(at 159.385 25.4 0)
 			(effects
 				(font
@@ -5619,15 +5458,7 @@
 				(hide yes)
 			)
 		)
-		(property "Description" ""
-			(at 159.385 45.72 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "LCSC Part #" "C709357"
+		(property "Description" "USB 2.0-only Type-C Receptacle connector"
 			(at 159.385 45.72 0)
 			(effects
 				(font
@@ -5636,7 +5467,7 @@
 				(hide yes)
 			)
 		)
-		(property "JLCPCB Rotation Offset" "0"
+		(property "MPN" "C709357"
 			(at 159.385 45.72 0)
 			(effects
 				(font
@@ -6016,7 +5847,7 @@
 				)
 			)
 		)
-		(property "LCSC Part #" "C143805"
+		(property "MPN" "C143805"
 			(at 193.675 30.48 0)
 			(effects
 				(font
@@ -7023,15 +6854,6 @@
 				)
 			)
 		)
-		(property "JLCPCB Rotation Offset" "90"
-			(at 57.785 128.905 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
 		(pin "1"
 			(uuid "1944afc9-8d4c-4703-96f1-a5d2167c8dbd")
 		)
@@ -7185,16 +7007,7 @@
 				)
 			)
 		)
-		(property "LCSC Part " "C2910170"
-			(at 74.93 162.56 90)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "JLCPCB Rotation Offset" "180"
+		(property "MPN" "C2910170"
 			(at 74.93 162.56 90)
 			(effects
 				(font
@@ -7837,15 +7650,6 @@
 				)
 			)
 		)
-		(property "JLCPCB Rotation Offset" "90"
-			(at 98.425 128.905 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
 		(pin "1"
 			(uuid "1944afc9-8d4c-4703-96f1-a5d2167c8dbe")
 		)
@@ -7997,7 +7801,7 @@
 				)
 			)
 		)
-		(property "LCSC Part #" "C1691"
+		(property "MPN" "C1691"
 			(at 250.19 31.75 0)
 			(effects
 				(font
@@ -8151,15 +7955,6 @@
 				(font
 					(size 1.27 1.27)
 				)
-			)
-		)
-		(property "JLCPCB Rotation Offset" "90"
-			(at 36.83 128.905 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
 			)
 		)
 		(pin "1"
@@ -8324,7 +8119,7 @@
 				)
 			)
 		)
-		(property "LCSC Part #" "C5349953"
+		(property "MPN" "C5349953"
 			(at 203.2 94.615 0)
 			(effects
 				(font
@@ -8935,7 +8730,7 @@
 				)
 			)
 		)
-		(property "LCSC Part #" "C2684786"
+		(property "MPN" "C2684786"
 			(at 229.235 62.865 0)
 			(effects
 				(font
@@ -9357,7 +9152,7 @@
 				)
 			)
 		)
-		(property "LCSC Part #" "C3013941"
+		(property "MPN" "C3013941"
 			(at 53.975 93.98 0)
 			(effects
 				(font
@@ -9889,78 +9684,6 @@
 		)
 	)
 	(symbol
-		(lib_id "RevK:QR")
-		(at 271.78 173.99 0)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom no)
-		(on_board yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "e0441cbd-426e-47d4-952b-8c03883e1f7a")
-		(property "Reference" "U5"
-			(at 271.78 177.165 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Value" "QR"
-			(at 271.78 177.165 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Footprint" "RevK:QR-SS"
-			(at 271.145 174.625 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" ""
-			(at 271.145 174.625 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" ""
-			(at 271.78 173.99 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Note" "Non part, PCB printed"
-			(at 271.78 173.99 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(instances
-			(project "Generic"
-				(path "/babeabf2-f3b0-4ed5-8d9e-0215947e6cf3"
-					(reference "U5")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
 		(lib_id "RevK:VCUT")
 		(at 262.89 177.8 0)
 		(unit 1)
@@ -10147,7 +9870,7 @@
 				)
 			)
 		)
-		(property "LCSC Part #" "C194427"
+		(property "MPN" "C194427"
 			(at 250.19 29.845 0)
 			(effects
 				(font
@@ -10407,15 +10130,6 @@
 				(font
 					(size 1.27 1.27)
 				)
-			)
-		)
-		(property "JLCPCB Rotation Offset" "90"
-			(at 78.74 128.905 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
 			)
 		)
 		(pin "1"
