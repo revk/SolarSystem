@@ -1,5 +1,5 @@
 (kicad_sch
-	(version 20241209)
+	(version 20250114)
 	(generator "eeschema")
 	(generator_version "9.0")
 	(uuid "2a267270-6585-45e3-a633-b53049f10066")
@@ -2976,9 +2976,10 @@
 						(type none)
 					)
 				)
-				(circle
-					(center 3.81 -2.54)
-					(radius 0.127)
+				(polyline
+					(pts
+						(xy 3.81 -2.54) (xy 3.81 2.54)
+					)
 					(stroke
 						(width 0)
 						(type default)
@@ -2987,10 +2988,9 @@
 						(type none)
 					)
 				)
-				(polyline
-					(pts
-						(xy 3.81 -2.54) (xy 3.81 2.54)
-					)
+				(circle
+					(center 3.81 -2.54)
+					(radius 0.127)
 					(stroke
 						(width 0)
 						(type default)
@@ -4343,7 +4343,7 @@
 						(type default)
 					)
 					(fill
-						(type outline)
+						(type none)
 					)
 				)
 				(arc
@@ -4355,7 +4355,7 @@
 						(type default)
 					)
 					(fill
-						(type none)
+						(type outline)
 					)
 				)
 				(arc
@@ -4391,7 +4391,7 @@
 						(type default)
 					)
 					(fill
-						(type outline)
+						(type none)
 					)
 				)
 				(arc
@@ -4403,7 +4403,7 @@
 						(type default)
 					)
 					(fill
-						(type none)
+						(type outline)
 					)
 				)
 				(polyline
@@ -9932,17 +9932,8 @@
 				(hide yes)
 			)
 		)
-		(property "Part No" ""
-			(at 207.645 61.595 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Note" ""
-			(at 207.645 61.595 0)
+		(property "MPN" "C42428017"
+			(at 207.645 61.595 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -17526,17 +17517,8 @@
 				(hide yes)
 			)
 		)
-		(property "Part No" ""
-			(at 207.645 34.925 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Note" ""
-			(at 207.645 34.925 0)
+		(property "MPN" "C42428017"
+			(at 207.645 34.925 90)
 			(effects
 				(font
 					(size 1.27 1.27)
