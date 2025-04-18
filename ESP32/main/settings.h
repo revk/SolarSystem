@@ -208,7 +208,7 @@ extern char* topicha;	// MQTT Topic for homeassistant
 #define	prefixapp	revk_settings_bits.prefixapp
 #define	prefixhost	revk_settings_bits.prefixhost
 #ifdef	CONFIG_REVK_BLINK_DEF
-extern revk_gpio_t blink[3];	// LED array
+extern revk_gpio_t blink[3];	// R, G, B LED array (set all the same for WS2812 LED)
 #endif
 #define	dark	revk_settings_bits.dark
 #ifdef  CONFIG_IDF_TARGET_ESP32S3
