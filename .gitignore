@@ -32,3 +32,4 @@ ESP32/settings.h
 ESP32/settings.c
 espdefines.h
 PCB/*/production/backups
+*-backups
