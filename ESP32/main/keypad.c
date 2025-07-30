@@ -164,7 +164,7 @@ keypad_ui (char key)
       displayprint ("%s", m);
       if (!bad)
       {
-         backoff = 2;
+         backoff = 1;
          state = OKMSG;
       } else
       {
