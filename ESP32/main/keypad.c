@@ -54,7 +54,7 @@ keypad_command (const char *tag, jo_t j)
 }
 
 enum
-{ IDLE, FAILMSG, MESSAGE, PIN };
+{ IDLE, FAILMSG, OKMSG, MESSAGE, PIN };
 
 int messages = 0;
 char **message = NULL;
@@ -151,19 +151,29 @@ keypad_ui (char key)
    static uint32_t timeout = 0;
    uint32_t now = uptime ();
    static uint8_t state = IDLE,
-      shh = 0;
+      shh = 0,
+      backoff = 0;
    static int8_t pos = 0;
    uint8_t bl = 0;              // Back light
    uint8_t bk = 0;              // Blink
    uint8_t kc = 1;              // Key clicks
-   void fail (const char *m, int delay)
+   void fail (const char *m, uint8_t bad)
    {
       if (state == FAILMSG)
          return;
       displayprint ("%s", m);
-      state = FAILMSG;
+      if (!bad)
+      {
+         backoff = 2;
+         state = OKMSG;
+      } else
+      {
+         if (backoff < 128)
+            backoff *= 2;
+         state = FAILMSG;
+      }
       pos = 0;
-      timeout = now + delay;
+      timeout = now + backoff;
       ui.sendrefresh = 1;
    }
    {
@@ -171,7 +181,7 @@ keypad_ui (char key)
       int left = revk_shutting_down (&reason);
       if (left)
       {
-         fail (reason, 2);
+         fail (reason, 0);
          int pc = revk_ota_progress ();
          if (pc > 0 && pc < 100)
             displayprint ("%s\nLoading %d%%", reason, pc);
@@ -183,8 +193,8 @@ keypad_ui (char key)
       }
    }
    if (state != FAILMSG && key == '!')
-      fail (revk_version, 2);
-   if (!key && now > timeout)
+      fail (revk_version, 0);
+   if ((!key && now > timeout) || (key && state == OKMSG))
    {
       timeout = 0;
       state = IDLE;
@@ -200,13 +210,13 @@ keypad_ui (char key)
       jo_t e = jo_make (NULL);
       jo_string (e, "reason", "Keypad ESC");
       alarm_disarm (areakeystrong, &e);
-      fail ("Cancelling", 2);
+      fail ("Cancelling", 0);
    } else if (key == 'X' && areakeyarm && !(state_armed & areakeyarm) && (control_arm & areakeyarm))
    {                            // Arm cancel as not yet armed
       jo_t e = jo_make (NULL);
       jo_string (e, "reason", "Keypad ESC");
       alarm_disarm (areakeyarm, &e);
-      fail ("Cancelling", 2);
+      fail ("Cancelling", 0);
    }
    if (key)
       shh = 1;
@@ -225,7 +235,7 @@ keypad_ui (char key)
          jo_t e = jo_make (NULL);
          jo_string (e, "reason", "Keypad A");
          alarm_arm (areakeyarm, &e);
-         fail ("Arming", 2);
+         fail ("Arming", 0);
          break;
       }
       if (key == 'B' && areakeystrong && (areakeystrong & ~state_armed) && !keypadpinarm)
@@ -233,10 +243,11 @@ keypad_ui (char key)
          jo_t e = jo_make (NULL);
          jo_string (e, "reason", "Keypad B");
          alarm_strong (areakeystrong, &e);
-         fail ("Arming forced", 2);
+         fail ("Arming forced", 0);
          break;
       }
       break;
+   case OKMSG:
    case FAILMSG:
       if (timeout < now)
          state = IDLE;
@@ -287,7 +298,7 @@ keypad_ui (char key)
                   jo_t e = jo_make (NULL);
                   jo_string (e, "reason", "Keypad PIN entry");
                   alarm_disarm (areakeydisarm, &e);
-                  fail ("Disarming", 2);
+                  fail ("Disarming", 0);
                } else if (!strcmp (code, "*"))
                {
                   if (areakeyarm && (areakeyarm & ~state_armed) && !keypadpinarm)
@@ -295,7 +306,7 @@ keypad_ui (char key)
                      jo_t e = jo_make (NULL);
                      jo_string (e, "reason", "Keypad *");
                      alarm_arm (areakeyarm, &e);
-                     fail ("Arming", 2);
+                     fail ("Arming", 0);
                   }
                } else if (!strcmp (code, "#"))
                {
@@ -304,7 +315,7 @@ keypad_ui (char key)
                      jo_t e = jo_make (NULL);
                      jo_string (e, "reason", "Keypad #");
                      alarm_strong (areakeystrong, &e);
-                     fail ("Arming forced", 2);
+                     fail ("Arming forced", 0);
                   }
                } else
                {
@@ -316,7 +327,7 @@ keypad_ui (char key)
                      jo_string (j, "entered", code);
                   }
                   alarm_event ("wrongpin", &j, iotkeypad);
-                  fail ("** Wrong PIN! **\n[Attempt logged]", 10);
+                  fail ("** Wrong PIN! **\n[Attempt logged]", 1);
                }
             } else if (key == 'A' && areakeyarm)
             {                   // Arm with PIN
@@ -325,9 +336,9 @@ keypad_ui (char key)
                   jo_t e = jo_make (NULL);
                   jo_string (e, "reason", "Keypad PIN/A");
                   alarm_arm (areakeyarm, &e);
-                  fail ("Arming", 2);
+                  fail ("Arming", 0);
                } else
-                  fail ("** Wrong PIN! **\n[Attempt logged]", 10);
+                  fail ("** Wrong PIN! **\n[Attempt logged]", 1);
             } else if (key == 'B' && areakeystrong)
             {                   // Strongarm with PIN
                if (*keypadpin && !strcmp (code, keypadpin))
@@ -335,9 +346,9 @@ keypad_ui (char key)
                   jo_t e = jo_make (NULL);
                   jo_string (e, "reason", "Keypad PIN/B");
                   alarm_strong (areakeystrong, &e);
-                  fail ("Arming forced", 2);
+                  fail ("Arming forced", 0);
                } else
-                  fail ("** Wrong PIN! **\n[Attempt logged]", 10);
+                  fail ("** Wrong PIN! **\n[Attempt logged]", 1);
             } else if (key == 'X')
             {
                state = IDLE;
