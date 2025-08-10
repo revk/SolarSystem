@@ -10900,7 +10900,7 @@
 		(dnp no)
 		(uuid "10d6f813-37d1-4259-b2a6-d67a0d35077c")
 		(property "Reference" "C28"
-			(at 238.76 74.93 0)
+			(at 244.856 74.93 0)
 			(effects
 				(font
 					(size 1.27 1.27)
