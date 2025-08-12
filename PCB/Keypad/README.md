@@ -11,4 +11,4 @@ This is an open source project, but bear in mind you cannot sell boards bearing 
 <img src='Keypad.png' width=32%><img src='Keypad-90.png' width=32%><img src='Keypad-bottom.png' width=32%>
 <img src='Keypad-panel.png' width=49%><img src='Keypad-panel-bottom.png' width=49%>
 
-*Auto generated 2025-08-09T13:01:48*
+*Auto generated 2025-08-12T13:42:20*
