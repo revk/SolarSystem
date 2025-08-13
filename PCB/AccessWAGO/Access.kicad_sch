@@ -11740,7 +11740,7 @@
 				)
 			)
 		)
-		(property "Footprint" "RevK:WAGO-2060-453-998-404"
+		(property "Footprint" "RevK:WAGO-2060-453-998-404-S"
 			(at 259.715 135.89 0)
 			(effects
 				(font
@@ -12183,7 +12183,7 @@
 				)
 			)
 		)
-		(property "Footprint" "RevK:WAGO-2060-453-998-404"
+		(property "Footprint" "RevK:WAGO-2060-453-998-404-S"
 			(at 259.715 78.105 0)
 			(effects
 				(font
@@ -12917,7 +12917,7 @@
 				)
 			)
 		)
-		(property "Footprint" "RevK:WAGO-2060-452-998-404"
+		(property "Footprint" "RevK:WAGO-2060-452-998-404-S"
 			(at 259.715 88.9 0)
 			(effects
 				(font
@@ -14922,7 +14922,7 @@
 				)
 			)
 		)
-		(property "Footprint" "RevK:WAGO-2060-453-998-404"
+		(property "Footprint" "RevK:WAGO-2060-453-998-404-S"
 			(at 259.715 66.675 0)
 			(effects
 				(font
@@ -15224,7 +15224,7 @@
 				)
 			)
 		)
-		(property "Footprint" "RevK:WAGO-2060-453-998-404"
+		(property "Footprint" "RevK:WAGO-2060-453-998-404-S"
 			(at 259.715 143.51 0)
 			(effects
 				(font
@@ -17887,7 +17887,7 @@
 				)
 			)
 		)
-		(property "Footprint" "RevK:WAGO-2060-452-998-404"
+		(property "Footprint" "RevK:WAGO-2060-452-998-404-S"
 			(at 259.715 106.045 0)
 			(effects
 				(font
@@ -18701,7 +18701,7 @@
 				)
 			)
 		)
-		(property "Footprint" "RevK:WAGO-2060-452-998-404"
+		(property "Footprint" "RevK:WAGO-2060-452-998-404-S"
 			(at 259.715 111.125 0)
 			(effects
 				(font
