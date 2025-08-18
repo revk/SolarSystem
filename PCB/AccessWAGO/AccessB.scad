@@ -1,6 +1,6 @@
 // Generated case design for AccessWAGO/Access.kicad_pcb
 // By https://github.com/revk/PCBCase
-// Generated 2025-08-13 09:58:25
+// Generated 2025-08-18 13:30:05
 // title:	Access Control
 // rev:	3
 // company:	Adrian Kennard Andrews & Arnold Ltd
@@ -14,10 +14,10 @@ lip=3.000000;
 lipa=0;
 lipt=2;
 casebottom=2.000000;
-casetop=6.000000;
+casetop=6.500000;
 casewall=3.000000;
 fit=0.000000;
-snap=0.100000;
+snap=0.150000;
 edge=2.000000;
 pcbthickness=1.200000;
 nohull=false;
@@ -471,6 +471,10 @@ if(part)
         	translate([-50,-4*(n-1)/2+p*4,2])sphere(d=2.5,$fn=24);
 	}
 }
+if(hole)
+{
+	for(p=[0:n-1])translate([0.6,-4*(n-1)/2+p*4,1])cylinder(d=2,h=height);
+}
 }
 
 module m1(part=false,hole=false,block=false,height)
@@ -502,7 +506,7 @@ if(block)
 {
         hull()
         {
-                b(0,0,0,2.4,2.4,1);
+                b(0,0,.8,2.8,2.8,1);
                 translate([0,0,height])cylinder(d=4,h=1,$fn=16);
         }
 }

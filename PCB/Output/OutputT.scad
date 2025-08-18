@@ -1,6 +1,6 @@
 // Generated case design for Output/Output.kicad_pcb
 // By https://github.com/revk/PCBCase
-// Generated 2025-08-13 09:51:55
+// Generated 2025-08-18 13:35:42
 // title:	PCB-OUTPUT
 // rev:	1
 // company:	Adrian Kennard, Andrews & Arnold Ltd
@@ -12,10 +12,10 @@ lip=3.000000;
 lipa=0;
 lipt=2;
 casebottom=1.400000;
-casetop=6.000000;
+casetop=6.500000;
 casewall=3.000000;
 fit=0.000000;
-snap=0.100000;
+snap=0.150000;
 edge=2.000000;
 pcbthickness=0.800000;
 nohull=false;
@@ -403,7 +403,7 @@ if(block)
 {
         hull()
         {
-                b(0,0,0,2.4,2.4,1);
+                b(0,0,.8,2.8,2.8,1);
                 translate([0,0,height])cylinder(d=4,h=1,$fn=16);
         }
 }
