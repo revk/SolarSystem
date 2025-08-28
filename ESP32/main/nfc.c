@@ -36,6 +36,7 @@ df_t df;
 SemaphoreHandle_t nfc_mutex = NULL;     // PN532 has low level message mutex, but this is needed for DESFire level.
 
 static uint8_t ledpattern[20] = "";
+static uint16_t ledstop = 0;    // LED idle countdown
 
 static fob_t fob = { 0 };       // Current card state
 
@@ -99,6 +100,7 @@ nfc_led (int len, const void *value)
       ledpattern[len] = 0;
    if (len)
       memcpy (ledpattern, value, len);
+   ledstop = (1000 / nfcledpoll) * nfcidle;
    return "";
 }
 
@@ -288,7 +290,8 @@ task (void *pvParameters)
          if (newled != ledlast)
             pn532_write_GPIO (pn532, (ledlast = newled) ^ nfcinvert);
          pn532_write_GPIO (pn532, ledlast ^ nfcinvert);
-         countled = 5;          // Hold for a bit
+         countled = 250 / nfcledpoll;   // Hold for a bit
+         ledstop = (1000 / nfcledpoll) * nfcidle;
          ledpos = 0;
       }
       if (nextled < now)
@@ -296,6 +299,8 @@ task (void *pvParameters)
          nextled = now + (int64_t) nfcledpoll *1000LL;
          if (countled)
             countled--;         // We are repeating existing pattern for a while
+         if (ledstop)
+            ledstop--;
          if (!countled)
          {                      // Next colour
             ledpos++;
@@ -312,19 +317,21 @@ task (void *pvParameters)
                   newled |= (1 << gpio_mask (nfcamber));
                if (nfcgreen && ledpattern[ledpos] == 'G')
                   newled |= (1 << gpio_mask (nfcgreen));
-               if (nfccard && found)
-               {                // Blinky
-                  if (holdpolls & 1)
-                     newled &= ~(1 << gpio_mask (nfccard));
-                  else
-                     newled |= (1 << gpio_mask (nfccard));
-               }
                if (ledpos + 1 >= sizeof (ledpattern) || ledpattern[ledpos + 1] != '+')
                   break;        // Combined LED pattern with +
                ledpos += 2;
             }
             if (state_prearm && (ledpos & 1) && nfcred)
                newled ^= (1 << gpio_mask (nfcred));     // Extra blinky when prearm... Not a nice bodge
+            if (nfcidle && !ledstop)
+               newled = 0;      // Idle off
+            if (nfccard && found)
+            {                   // Blinky card held (even if idle)
+               if (holdpolls & 1)
+                  newled &= ~(1 << gpio_mask (nfccard));
+               else
+                  newled |= (1 << gpio_mask (nfccard));
+            }
             if (newled != ledlast)
                pn532_write_GPIO (pn532, (ledlast = newled) ^ nfcinvert);
          }

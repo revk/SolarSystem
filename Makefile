@@ -78,9 +78,9 @@ login/redirect.o: login/redirect.c
 email/libemaillight.o: email/libemail.c
 	make -C email libemaillight.o
 
-espdefines.h: ESP32/settings.h ESP32/main/areas.h Makefile
+espdefines.h: ESP32/main/settings.h ESP32/main/areas.h Makefile
 	cat ESP32/main/areas.h > espdefines.h
-	grep '#define' ESP32/settings.h | grep -v revk_settings_bits >> espdefines.h
+	grep '#define' ESP32/main/settings.h | grep -v revk_settings_bits >> espdefines.h
 
 ssdatabase.o: ssdatabase.c ssdatabase.m ssdatabase.h config.h types.m Makefile ESP32/main/states.m ESP32/main/logicalgpio.m espdefines.h
 	gcc -g -Wall -Wextra -O -c -o $@ $< ${SQLINC} -DLIB

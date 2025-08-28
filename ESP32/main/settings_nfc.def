@@ -2,6 +2,7 @@ u8	nfc.red					.flags="-"
 u8	nfc.amber				.flags="-"
 u8	nfc.green				.flags="-"
 u8	nfc.card				.flags="-"
+u8	nfc.idle	.live=1
 gpio	nfc.tx
 gpio	nfc.rx
 gpio	nfc.power

@@ -262,7 +262,7 @@ extern char* mqtthost[CONFIG_REVK_MQTT_CLIENTS];	// MQTT hostname
 extern uint16_t mqttport[CONFIG_REVK_MQTT_CLIENTS];	// MQTT port
 extern char* mqttuser[CONFIG_REVK_MQTT_CLIENTS];	// MQTT username
 extern char* mqttpass[CONFIG_REVK_MQTT_CLIENTS];	// MQTT password
-extern revk_settings_blob_t* mqttcert[CONFIG_REVK_MQTT_CLIENTS];	// MQTT CA certificate
+extern revk_settings_blob_t* mqttcert[CONFIG_REVK_MQTT_CLIENTS];	// MQTT CA certificate (for mqtts)
 #endif
 extern revk_settings_blob_t* clientkey;	// Client Key (OTA and MQTT TLS)
 extern revk_settings_blob_t* clientcert;	// Client certificate (OTA and MQTT TLS)
@@ -315,6 +315,7 @@ extern uint8_t nfcred;
 extern uint8_t nfcamber;
 extern uint8_t nfcgreen;
 extern uint8_t nfccard;
+extern uint8_t nfcidle;
 extern revk_gpio_t nfctx;
 extern revk_gpio_t nfcrx;
 extern revk_gpio_t nfcpower;
@@ -579,6 +580,7 @@ enum {
 #define REVK_SETTINGS_NFCAMBER
 #define REVK_SETTINGS_NFCGREEN
 #define REVK_SETTINGS_NFCCARD
+#define REVK_SETTINGS_NFCIDLE
 #define REVK_SETTINGS_NFCTX
 #define REVK_SETTINGS_NFCRX
 #define REVK_SETTINGS_NFCPOWER

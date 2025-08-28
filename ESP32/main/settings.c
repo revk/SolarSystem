@@ -73,10 +73,10 @@ revk_settings_t const revk_settings[]={
 #endif
 #ifdef  CONFIG_REVK_MQTT
  {.type=REVK_SETTINGS_STRING,.name="mqtthost",.comment="MQTT hostname",.group=5,.len=8,.dot=4,.dq=1,.def=quote(CONFIG_REVK_MQTTHOST),.ptr=&mqtthost,.malloc=1,.revk=1,.array=CONFIG_REVK_MQTT_CLIENTS,.hide=1},
- {.type=REVK_SETTINGS_UNSIGNED,.name="mqttport",.comment="MQTT port",.group=5,.len=8,.dot=4,.dq=1,.def=quote(CONFIG_REVK_MQTTPORT),.ptr=&mqttport,.size=sizeof(uint16_t),.revk=1,.array=CONFIG_REVK_MQTT_CLIENTS,.hide=1},
+ {.type=REVK_SETTINGS_UNSIGNED,.name="mqttport",.comment="MQTT port",.group=5,.len=8,.dot=4,.dq=1,.def=quote(CONFIG_REVK_MQTTPORT),.ptr=&mqttport,.size=sizeof(uint16_t),.revk=1,.array=CONFIG_REVK_MQTT_CLIENTS},
  {.type=REVK_SETTINGS_STRING,.name="mqttuser",.comment="MQTT username",.group=5,.len=8,.dot=4,.dq=1,.def=quote(CONFIG_REVK_MQTTUSER),.ptr=&mqttuser,.malloc=1,.revk=1,.array=CONFIG_REVK_MQTT_CLIENTS,.hide=1},
  {.type=REVK_SETTINGS_STRING,.name="mqttpass",.comment="MQTT password",.group=5,.len=8,.dot=4,.dq=1,.def=quote(CONFIG_REVK_MQTTPASS),.ptr=&mqttpass,.malloc=1,.revk=1,.array=CONFIG_REVK_MQTT_CLIENTS,.secret=1,.hide=1},
- {.type=REVK_SETTINGS_BLOB,.name="mqttcert",.comment="MQTT CA certificate",.group=5,.len=8,.dot=4,.dq=1,.def=quote(CONFIG_REVK_MQTTCERT),.ptr=&mqttcert,.malloc=1,.revk=1,.array=CONFIG_REVK_MQTT_CLIENTS,.base64=1},
+ {.type=REVK_SETTINGS_BLOB,.name="mqttcert",.comment="MQTT CA certificate (for mqtts)",.group=5,.len=8,.dot=4,.dq=1,.def=quote(CONFIG_REVK_MQTTCERT),.ptr=&mqttcert,.malloc=1,.revk=1,.array=CONFIG_REVK_MQTT_CLIENTS,.base64=1},
 #endif
  {.type=REVK_SETTINGS_BLOB,.name="clientkey",.comment="Client Key (OTA and MQTT TLS)",.group=6,.len=9,.dot=6,.ptr=&clientkey,.malloc=1,.revk=1,.base64=1},
  {.type=REVK_SETTINGS_BLOB,.name="clientcert",.comment="Client certificate (OTA and MQTT TLS)",.group=6,.len=10,.dot=6,.ptr=&clientcert,.malloc=1,.revk=1,.base64=1},
@@ -129,6 +129,7 @@ revk_settings_t const revk_settings[]={
  {.type=REVK_SETTINGS_UNSIGNED,.name="nfcamber",.group=10,.len=8,.dot=3,.ptr=&nfcamber,.size=sizeof(uint8_t),.flags="-"},
  {.type=REVK_SETTINGS_UNSIGNED,.name="nfcgreen",.group=10,.len=8,.dot=3,.ptr=&nfcgreen,.size=sizeof(uint8_t),.flags="-"},
  {.type=REVK_SETTINGS_UNSIGNED,.name="nfccard",.group=10,.len=7,.dot=3,.ptr=&nfccard,.size=sizeof(uint8_t),.flags="-"},
+ {.type=REVK_SETTINGS_UNSIGNED,.name="nfcidle",.group=10,.len=7,.dot=3,.ptr=&nfcidle,.size=sizeof(uint8_t),.live=1},
  {.type=REVK_SETTINGS_UNSIGNED,.gpio=1,.name="nfctx",.group=10,.len=5,.dot=3,.ptr=&nfctx,.size=sizeof(revk_gpio_t),.fix=1,.set=1,.flags="- ~↓↕⇕"},
  {.type=REVK_SETTINGS_UNSIGNED,.gpio=1,.name="nfcrx",.group=10,.len=5,.dot=3,.ptr=&nfcrx,.size=sizeof(revk_gpio_t),.fix=1,.set=1,.flags="- ~↓↕⇕"},
  {.type=REVK_SETTINGS_UNSIGNED,.gpio=1,.name="nfcpower",.group=10,.len=8,.dot=3,.ptr=&nfcpower,.size=sizeof(revk_gpio_t),.fix=1,.set=1,.flags="- ~↓↕⇕"},
@@ -367,6 +368,7 @@ uint8_t nfcred=0;
 uint8_t nfcamber=0;
 uint8_t nfcgreen=0;
 uint8_t nfccard=0;
+uint8_t nfcidle=0;
 revk_gpio_t nfctx={0};
 revk_gpio_t nfcrx={0};
 revk_gpio_t nfcpower={0};
