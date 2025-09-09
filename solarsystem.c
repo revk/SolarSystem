@@ -555,6 +555,9 @@ settings (SQL * sqlp, SQL_RES * res, slot_t id)
                gpio = j_append_null (input);
             else if (*type == 'O')
                gpio = j_append_null (output);
+            int rgb = atoi (sql_colz (g, "rgb"));
+            if (rgb > rgbs)
+               rgbs = rgb;
             if (gpio)
             {
                const char *extra = NULL;
@@ -598,13 +601,8 @@ settings (SQL * sqlp, SQL_RES * res, slot_t id)
 #define s(t,n,c) addset(gpio,#n,sql_col(g,#n),NULL);
 #include "ESP32/main/states.m"
                   }
-                  int rgb = atoi (sql_colz (g, "rgb"));
                   if (rgb)
-                  {
                      j_store_int (gpio, "rgb", rgb);
-                     if (rgb > rgbs)
-                        rgbs = rgb;
-                  }
                }
             }
          }
