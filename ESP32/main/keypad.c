@@ -359,6 +359,7 @@ keypad_ui (char key)
       }
       break;
    }
+   static area_t lastdisarmed = 0;
    const char *idle = keypadidle;
    area_t area = 0;
    if (!*idle)
@@ -389,6 +390,12 @@ keypad_ui (char key)
          if (!messages)
             off = 20;           // Not a problem (yet)
          idle = "Arming";
+      } else if ((area = ((~state_armed) & areakeypad)) != lastdisarmed)
+      { // Show disarmed happened
+         lastdisarmed = area;
+         on = 10;
+         off = 1;
+         idle = "Disarmed";
       } else if (now & 1)
       {
          if ((area = (state_armed & areakeypad)))
