@@ -327,7 +327,7 @@ task (void *pvParameters)
                newled = 0;      // Idle off
             if (nfccard && found)
             {                   // Blinky card held (even if idle)
-               if (holdpolls & 1)
+               if (fob.longheld || (!fob.held && (holdpolls & 1)))
                   newled &= ~(1 << gpio_mask (nfccard));
                else
                   newled |= (1 << gpio_mask (nfccard));
@@ -358,18 +358,24 @@ task (void *pvParameters)
             if (!fob.remote && !fob.held && nfchold && holdpolls >= nfchold)
             {                   // Card has been held for a while, report
                fob.held = 1;
-               fob.deny = NULL; // Re-evaluate as held
-               door_fob (&fob);
-               door_act (&fob); // Action from held
-               fobevent (NULL, NULL);
+               if (!fob.disarmed)
+               {                // Disarm - hold - arm is confusing - so if disarm done, disable held actions
+                  fob.deny = NULL;      // Re-evaluate as held
+                  door_fob (&fob);
+                  door_act (&fob);      // Action from held
+                  fobevent (NULL, NULL);
+               }
             }
             if (!fob.remote && !fob.longheld && nfclonghold && holdpolls >= nfclonghold)
             {                   // Card has been held for a while, report
                fob.longheld = 1;
-               fob.deny = NULL; // Re-evaluate as long held
-               door_fob (&fob);
-               door_act (&fob); // Action from long held
-               fobevent (NULL, NULL);
+               if (!fob.disarmed)
+               {                // Disarm - hold - arm is confusing - so if disarm done, disable held actions
+                  fob.deny = NULL;      // Re-evaluate as long held
+                  door_fob (&fob);
+                  door_act (&fob);      // Action from long held
+                  fobevent (NULL, NULL);
+               }
             }
             continue;           // Waiting for card to go
          }
