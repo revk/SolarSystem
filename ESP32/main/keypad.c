@@ -390,15 +390,15 @@ keypad_ui (char key)
          if (!messages)
             off = 20;           // Not a problem (yet)
          idle = "Arming";
-      } else if ((area = ((~state_armed) & areakeypad)) != lastdisarmed)
+      } else if (((~state_armed) & areakeypad) != lastdisarmed)
       {                         // Show disarmed happened
-         lastdisarmed = area;
-         if (area)
+         if ((area = (((~state_armed) & areakeypad) & ~lastdisarmed)))
          {
             on = 1;
             off = 2;
             idle = "Disarmed";
          }
+         lastdisarmed = ((~state_armed) & areakeypad);
       } else if (now & 1)
       {
          if ((area = (state_armed & areakeypad)))
