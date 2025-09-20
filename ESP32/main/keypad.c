@@ -367,7 +367,6 @@ keypad_ui (char key)
    {                            // Beep, idle, and backlight
       uint8_t on = 0,
          off = 0;
-      area_t newdisarmed = ((~state_armed) & areakeypad);
       if ((area = (state_fire & areakeypad)))
       {
          on = 2;
@@ -391,13 +390,13 @@ keypad_ui (char key)
          if (!messages)
             off = 20;           // Not a problem (yet)
          idle = "Arming";
-      } else if ((area = (newdisarmed & ~lastdisarmed)))
+      } else if ((area = (~state_armed & ~lastdisarmed & areakeypad)))
       {
          on = 1;
          off = 2;
          idle = "Disarm";
          lastdisarmed |= area;
-      } else if ((area = (~newdisarmed & areakeypad & lastdisarmed)))
+      } else if ((area = (state_armed & lastdisarmed & areakeypad)))
       {
          on = 10;
          off = 1;
@@ -415,6 +414,12 @@ keypad_ui (char key)
             idle = "Check tampers";
          else if ((area = (state_faulted & areakeypad)))
             idle = "Check faults";
+      }
+      if (idle == keypadidle)
+      {
+         int8_t p = revk_ota_progress ();
+         if (p >= 0 && p <= 100)
+            idle = p ? "\377\377\377\377\377\377\377\377\377\377" + (100 - p) / 10 : "Upgrade";
       }
       if (!on && !off)
          shh = 0;
