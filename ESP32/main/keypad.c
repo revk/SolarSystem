@@ -367,6 +367,7 @@ keypad_ui (char key)
    {                            // Beep, idle, and backlight
       uint8_t on = 0,
          off = 0;
+      area_t newdisarmed = ((~state_armed) & areakeypad);
       if ((area = (state_fire & areakeypad)))
       {
          on = 2;
@@ -390,15 +391,18 @@ keypad_ui (char key)
          if (!messages)
             off = 20;           // Not a problem (yet)
          idle = "Arming";
-      } else if (((~state_armed) & areakeypad) != lastdisarmed)
-      {                         // Show disarmed happened
-         if ((area = (((~state_armed) & areakeypad) & ~lastdisarmed)))
-         {
-            on = 1;
-            off = 2;
-            idle = "Disarmed";
-         }
-         lastdisarmed = ((~state_armed) & areakeypad);
+      } else if ((area = (newdisarmed & ~lastdisarmed)))
+      {
+         on = 1;
+         off = 2;
+         idle = "Disarm";
+         lastdisarmed |= area;
+      } else if ((area = (~newdisarmed & areakeypad & lastdisarmed)))
+      {
+         on = 10;
+         off = 1;
+         idle = "Arm";
+         lastdisarmed &= ~area;
       } else if (now & 1)
       {
          if ((area = (state_armed & areakeypad)))
