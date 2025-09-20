@@ -396,7 +396,7 @@ keypad_ui (char key)
          if (area)
          {
             on = 1;
-            off = 1;
+            off = 2;
             idle = "Disarmed";
          }
       } else if (now & 1)
