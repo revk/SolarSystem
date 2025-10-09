@@ -4904,7 +4904,7 @@
 			)
 			(embedded_fonts no)
 		)
-		(symbol "RevK:WS2812B-1mm"
+		(symbol "RevK:WS2812B-1.5mm"
 			(pin_names
 				(offset 0.254)
 			)
@@ -4920,8 +4920,8 @@
 					)
 				)
 			)
-			(property "Value" "XL-1010RGBC-WS2812B"
-				(at 1.27 -5.715 0)
+			(property "Value" "XL-1615RGBC-WS2812B"
+				(at 1.27 5.715 0)
 				(effects
 					(font
 						(size 1 1)
@@ -4930,8 +4930,8 @@
 					(hide yes)
 				)
 			)
-			(property "Footprint" ""
-				(at 1.27 -7.62 0)
+			(property "Footprint" "RevK:SMD1615"
+				(at 1.27 7.62 0)
 				(effects
 					(font
 						(size 1 1)
@@ -4940,8 +4940,8 @@
 					(hide yes)
 				)
 			)
-			(property "Datasheet" "https://datasheet.lcsc.com/lcsc/2301111010_XINGLIGHT-XL-1010RGBC-WS2812B_C5349953.pdf"
-				(at 1.27 -9.525 0)
+			(property "Datasheet" "https://www.lcsc.com/datasheet/C5349954.pdf"
+				(at 1.27 9.525 0)
 				(effects
 					(font
 						(size 1 1)
@@ -4959,8 +4959,8 @@
 					(hide yes)
 				)
 			)
-			(property "MPN" "C5349953"
-				(at 1.27 -11.43 0)
+			(property "MPN" "C5349954"
+				(at 1.27 11.43 0)
 				(effects
 					(font
 						(size 1 1)
@@ -4987,10 +4987,10 @@
 					(hide yes)
 				)
 			)
-			(symbol "WS2812B-1mm_1_1"
+			(symbol "WS2812B-1.5mm_1_1"
 				(polyline
 					(pts
-						(xy 0 3.175) (xy 3.175 0) (xy 0 -3.175) (xy -3.175 0) (xy 0 3.175)
+						(xy 0 -3.175) (xy 3.175 0) (xy 0 3.175) (xy -3.175 0) (xy 0 -3.175)
 					)
 					(stroke
 						(width 0)
@@ -5010,7 +5010,7 @@
 							)
 						)
 					)
-					(number "4"
+					(number "2"
 						(effects
 							(font
 								(size 1 1)
@@ -5021,7 +5021,7 @@
 				(pin power_in line
 					(at 0 3.81 270)
 					(length 0.5)
-					(name "-"
+					(name "+"
 						(effects
 							(font
 								(size 1 1)
@@ -5039,14 +5039,14 @@
 				(pin power_in line
 					(at 0 -3.81 90)
 					(length 0.5)
-					(name "+"
+					(name "-"
 						(effects
 							(font
 								(size 1 1)
 							)
 						)
 					)
-					(number "2"
+					(number "1"
 						(effects
 							(font
 								(size 1 1)
@@ -5064,7 +5064,7 @@
 							)
 						)
 					)
-					(number "1"
+					(number "4"
 						(effects
 							(font
 								(size 1 1)
@@ -8244,7 +8244,7 @@
 				)
 			)
 		)
-		(property "Footprint" "RevK:R_0402"
+		(property "Footprint" "RevK:R_0201"
 			(at 148.59 36.068 90)
 			(effects
 				(font
@@ -8376,7 +8376,7 @@
 				)
 			)
 		)
-		(property "Footprint" "RevK:R_0402"
+		(property "Footprint" "RevK:R_0201"
 			(at 148.59 35.052 90)
 			(effects
 				(font
@@ -8905,7 +8905,7 @@
 				)
 			)
 		)
-		(property "Footprint" "RevK:R_0402"
+		(property "Footprint" "RevK:R_0201"
 			(at 239.395 111.887 90)
 			(effects
 				(font
@@ -8972,7 +8972,7 @@
 				)
 			)
 		)
-		(property "Footprint" "RevK:R_0402"
+		(property "Footprint" "RevK:R_0201"
 			(at 239.395 109.347 90)
 			(effects
 				(font
@@ -9039,7 +9039,7 @@
 				)
 			)
 		)
-		(property "Footprint" "RevK:R_0402"
+		(property "Footprint" "RevK:R_0201"
 			(at 153.035 93.472 90)
 			(effects
 				(font
@@ -9115,7 +9115,7 @@
 				)
 			)
 		)
-		(property "Footprint" "RevK:R_0402"
+		(property "Footprint" "RevK:R_0201"
 			(at 153.035 108.712 90)
 			(effects
 				(font
@@ -9185,7 +9185,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "RevK:C_0402"
+		(property "Footprint" "RevK:C_0201"
 			(at 147.6502 95.25 0)
 			(effects
 				(font
@@ -9317,7 +9317,7 @@
 				)
 			)
 		)
-		(property "Footprint" "RevK:R_0402"
+		(property "Footprint" "RevK:R_0201"
 			(at 153.035 123.952 90)
 			(effects
 				(font
@@ -9384,7 +9384,7 @@
 				)
 			)
 		)
-		(property "Footprint" "RevK:R_0402"
+		(property "Footprint" "RevK:R_0201"
 			(at 153.035 139.192 90)
 			(effects
 				(font
@@ -9451,7 +9451,7 @@
 				)
 			)
 		)
-		(property "Footprint" "RevK:R_0402"
+		(property "Footprint" "RevK:R_0201"
 			(at 153.035 154.432 90)
 			(effects
 				(font
@@ -9518,7 +9518,7 @@
 				)
 			)
 		)
-		(property "Footprint" "RevK:R_0402"
+		(property "Footprint" "RevK:R_0201"
 			(at 153.035 169.672 90)
 			(effects
 				(font
@@ -9588,7 +9588,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "RevK:C_0402"
+		(property "Footprint" "RevK:C_0201"
 			(at 228.9048 111.125 0)
 			(effects
 				(font
@@ -10784,9 +10784,8 @@
 		)
 	)
 	(symbol
-		(lib_id "RevK:WS2812B-1mm")
-		(at 132.715 110.49 90)
-		(mirror x)
+		(lib_id "RevK:WS2812B-1.5mm")
+		(at 132.715 110.49 270)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -10803,7 +10802,7 @@
 			)
 		)
 		(property "Value" "XL-1010RGBC-WS2812B"
-			(at 138.43 111.76 0)
+			(at 127 111.76 0)
 			(effects
 				(font
 					(size 1 1)
@@ -10812,7 +10811,7 @@
 				(hide yes)
 			)
 		)
-		(property "Footprint" "RevK:SMD1010"
+		(property "Footprint" "RevK:SMD1615"
 			(at 140.335 111.76 0)
 			(effects
 				(font
@@ -10822,7 +10821,7 @@
 				(hide yes)
 			)
 		)
-		(property "Datasheet" "https://datasheet.lcsc.com/lcsc/2301111010_XINGLIGHT-XL-1010RGBC-WS2812B_C5349953.pdf"
+		(property "Datasheet" "https://www.lcsc.com/datasheet/C5349954.pdf"
 			(at 142.24 111.76 0)
 			(effects
 				(font
@@ -10841,7 +10840,7 @@
 				(hide yes)
 			)
 		)
-		(property "MPN" "C5349953"
+		(property "MPN" "C5349954"
 			(at 144.145 111.76 0)
 			(effects
 				(font
@@ -11293,9 +11292,8 @@
 		)
 	)
 	(symbol
-		(lib_id "RevK:WS2812B-1mm")
+		(lib_id "RevK:WS2812B-1.5mm")
 		(at 68.58 130.81 0)
-		(mirror x)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -11312,7 +11310,7 @@
 			)
 		)
 		(property "Value" "XL-1010RGBC-WS2812B"
-			(at 69.85 125.095 0)
+			(at 69.85 136.525 0)
 			(effects
 				(font
 					(size 1 1)
@@ -11321,7 +11319,7 @@
 				(hide yes)
 			)
 		)
-		(property "Footprint" "RevK:SMD1010"
+		(property "Footprint" "RevK:SMD1615"
 			(at 69.85 123.19 0)
 			(effects
 				(font
@@ -11331,7 +11329,7 @@
 				(hide yes)
 			)
 		)
-		(property "Datasheet" "https://datasheet.lcsc.com/lcsc/2301111010_XINGLIGHT-XL-1010RGBC-WS2812B_C5349953.pdf"
+		(property "Datasheet" "https://www.lcsc.com/datasheet/C5349954.pdf"
 			(at 69.85 121.285 0)
 			(effects
 				(font
@@ -11350,7 +11348,7 @@
 				(hide yes)
 			)
 		)
-		(property "MPN" "C5349953"
+		(property "MPN" "C5349954"
 			(at 69.85 119.38 0)
 			(effects
 				(font
@@ -13247,9 +13245,8 @@
 		)
 	)
 	(symbol
-		(lib_id "RevK:WS2812B-1mm")
-		(at 132.715 95.25 90)
-		(mirror x)
+		(lib_id "RevK:WS2812B-1.5mm")
+		(at 132.715 95.25 270)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -13266,7 +13263,7 @@
 			)
 		)
 		(property "Value" "XL-1010RGBC-WS2812B"
-			(at 138.43 96.52 0)
+			(at 127 96.52 0)
 			(effects
 				(font
 					(size 1 1)
@@ -13275,7 +13272,7 @@
 				(hide yes)
 			)
 		)
-		(property "Footprint" "RevK:SMD1010"
+		(property "Footprint" "RevK:SMD1615"
 			(at 140.335 96.52 0)
 			(effects
 				(font
@@ -13285,7 +13282,7 @@
 				(hide yes)
 			)
 		)
-		(property "Datasheet" "https://datasheet.lcsc.com/lcsc/2301111010_XINGLIGHT-XL-1010RGBC-WS2812B_C5349953.pdf"
+		(property "Datasheet" "https://www.lcsc.com/datasheet/C5349954.pdf"
 			(at 142.24 96.52 0)
 			(effects
 				(font
@@ -13304,7 +13301,7 @@
 				(hide yes)
 			)
 		)
-		(property "MPN" "C5349953"
+		(property "MPN" "C5349954"
 			(at 144.145 96.52 0)
 			(effects
 				(font
@@ -13379,7 +13376,7 @@
 				)
 			)
 		)
-		(property "Footprint" "RevK:R_0402"
+		(property "Footprint" "RevK:R_0201"
 			(at 223.52 94.488 90)
 			(effects
 				(font
@@ -13722,7 +13719,7 @@
 				)
 			)
 		)
-		(property "Footprint" "RevK:C_0402"
+		(property "Footprint" "RevK:C_0201"
 			(at 73.9648 134.62 0)
 			(effects
 				(font
@@ -14182,7 +14179,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "RevK:C_0402"
+		(property "Footprint" "RevK:C_0201"
 			(at 147.6502 156.21 0)
 			(effects
 				(font
@@ -14481,9 +14478,8 @@
 		)
 	)
 	(symbol
-		(lib_id "RevK:WS2812B-1mm")
-		(at 132.715 155.956 90)
-		(mirror x)
+		(lib_id "RevK:WS2812B-1.5mm")
+		(at 132.715 155.956 270)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -14500,7 +14496,7 @@
 			)
 		)
 		(property "Value" "XL-1010RGBC-WS2812B"
-			(at 138.43 157.226 0)
+			(at 127 157.226 0)
 			(effects
 				(font
 					(size 1 1)
@@ -14509,7 +14505,7 @@
 				(hide yes)
 			)
 		)
-		(property "Footprint" "RevK:SMD1010"
+		(property "Footprint" "RevK:SMD1615"
 			(at 140.335 157.226 0)
 			(effects
 				(font
@@ -14519,7 +14515,7 @@
 				(hide yes)
 			)
 		)
-		(property "Datasheet" "https://datasheet.lcsc.com/lcsc/2301111010_XINGLIGHT-XL-1010RGBC-WS2812B_C5349953.pdf"
+		(property "Datasheet" "https://www.lcsc.com/datasheet/C5349954.pdf"
 			(at 142.24 157.226 0)
 			(effects
 				(font
@@ -14538,7 +14534,7 @@
 				(hide yes)
 			)
 		)
-		(property "MPN" "C5349953"
+		(property "MPN" "C5349954"
 			(at 144.145 157.226 0)
 			(effects
 				(font
@@ -14588,9 +14584,8 @@
 		)
 	)
 	(symbol
-		(lib_id "RevK:WS2812B-1mm")
-		(at 132.715 171.196 90)
-		(mirror x)
+		(lib_id "RevK:WS2812B-1.5mm")
+		(at 132.715 171.196 270)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -14607,7 +14602,7 @@
 			)
 		)
 		(property "Value" "XL-1010RGBC-WS2812B"
-			(at 138.43 172.466 0)
+			(at 127 172.466 0)
 			(effects
 				(font
 					(size 1 1)
@@ -14616,7 +14611,7 @@
 				(hide yes)
 			)
 		)
-		(property "Footprint" "RevK:SMD1010"
+		(property "Footprint" "RevK:SMD1615"
 			(at 140.335 172.466 0)
 			(effects
 				(font
@@ -14626,7 +14621,7 @@
 				(hide yes)
 			)
 		)
-		(property "Datasheet" "https://datasheet.lcsc.com/lcsc/2301111010_XINGLIGHT-XL-1010RGBC-WS2812B_C5349953.pdf"
+		(property "Datasheet" "https://www.lcsc.com/datasheet/C5349954.pdf"
 			(at 142.24 172.466 0)
 			(effects
 				(font
@@ -14645,7 +14640,7 @@
 				(hide yes)
 			)
 		)
-		(property "MPN" "C5349953"
+		(property "MPN" "C5349954"
 			(at 144.145 172.466 0)
 			(effects
 				(font
@@ -14855,7 +14850,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "RevK:C_0402"
+		(property "Footprint" "RevK:C_0201"
 			(at 147.6502 171.45 0)
 			(effects
 				(font
@@ -15383,7 +15378,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "RevK:C_0402"
+		(property "Footprint" "RevK:C_0201"
 			(at 147.6502 140.97 0)
 			(effects
 				(font
@@ -15670,9 +15665,8 @@
 		)
 	)
 	(symbol
-		(lib_id "RevK:WS2812B-1mm")
-		(at 132.715 140.97 90)
-		(mirror x)
+		(lib_id "RevK:WS2812B-1.5mm")
+		(at 132.715 140.97 270)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -15689,7 +15683,7 @@
 			)
 		)
 		(property "Value" "XL-1010RGBC-WS2812B"
-			(at 138.43 142.24 0)
+			(at 127 142.24 0)
 			(effects
 				(font
 					(size 1 1)
@@ -15698,7 +15692,7 @@
 				(hide yes)
 			)
 		)
-		(property "Footprint" "RevK:SMD1010"
+		(property "Footprint" "RevK:SMD1615"
 			(at 140.335 142.24 0)
 			(effects
 				(font
@@ -15708,7 +15702,7 @@
 				(hide yes)
 			)
 		)
-		(property "Datasheet" "https://datasheet.lcsc.com/lcsc/2301111010_XINGLIGHT-XL-1010RGBC-WS2812B_C5349953.pdf"
+		(property "Datasheet" "https://www.lcsc.com/datasheet/C5349954.pdf"
 			(at 142.24 142.24 0)
 			(effects
 				(font
@@ -15727,7 +15721,7 @@
 				(hide yes)
 			)
 		)
-		(property "MPN" "C5349953"
+		(property "MPN" "C5349954"
 			(at 144.145 142.24 0)
 			(effects
 				(font
@@ -15777,9 +15771,8 @@
 		)
 	)
 	(symbol
-		(lib_id "RevK:WS2812B-1mm")
-		(at 132.715 125.476 90)
-		(mirror x)
+		(lib_id "RevK:WS2812B-1.5mm")
+		(at 132.715 125.476 270)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -15796,7 +15789,7 @@
 			)
 		)
 		(property "Value" "XL-1010RGBC-WS2812B"
-			(at 138.43 126.746 0)
+			(at 127 126.746 0)
 			(effects
 				(font
 					(size 1 1)
@@ -15805,7 +15798,7 @@
 				(hide yes)
 			)
 		)
-		(property "Footprint" "RevK:SMD1010"
+		(property "Footprint" "RevK:SMD1615"
 			(at 140.335 126.746 0)
 			(effects
 				(font
@@ -15815,7 +15808,7 @@
 				(hide yes)
 			)
 		)
-		(property "Datasheet" "https://datasheet.lcsc.com/lcsc/2301111010_XINGLIGHT-XL-1010RGBC-WS2812B_C5349953.pdf"
+		(property "Datasheet" "https://www.lcsc.com/datasheet/C5349954.pdf"
 			(at 142.24 126.746 0)
 			(effects
 				(font
@@ -15834,7 +15827,7 @@
 				(hide yes)
 			)
 		)
-		(property "MPN" "C5349953"
+		(property "MPN" "C5349954"
 			(at 144.145 126.746 0)
 			(effects
 				(font
@@ -15884,9 +15877,8 @@
 		)
 	)
 	(symbol
-		(lib_id "RevK:WS2812B-1mm")
+		(lib_id "RevK:WS2812B-1.5mm")
 		(at 81.28 130.81 0)
-		(mirror x)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -15903,7 +15895,7 @@
 			)
 		)
 		(property "Value" "XL-1010RGBC-WS2812B"
-			(at 82.55 125.095 0)
+			(at 82.55 136.525 0)
 			(effects
 				(font
 					(size 1 1)
@@ -15912,7 +15904,7 @@
 				(hide yes)
 			)
 		)
-		(property "Footprint" "RevK:SMD1010"
+		(property "Footprint" "RevK:SMD1615"
 			(at 82.55 123.19 0)
 			(effects
 				(font
@@ -15922,7 +15914,7 @@
 				(hide yes)
 			)
 		)
-		(property "Datasheet" "https://datasheet.lcsc.com/lcsc/2301111010_XINGLIGHT-XL-1010RGBC-WS2812B_C5349953.pdf"
+		(property "Datasheet" "https://www.lcsc.com/datasheet/C5349954.pdf"
 			(at 82.55 121.285 0)
 			(effects
 				(font
@@ -15941,7 +15933,7 @@
 				(hide yes)
 			)
 		)
-		(property "MPN" "C5349953"
+		(property "MPN" "C5349954"
 			(at 82.55 119.38 0)
 			(effects
 				(font
@@ -16018,7 +16010,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "RevK:C_0402"
+		(property "Footprint" "RevK:C_0201"
 			(at 84.1502 113.665 0)
 			(effects
 				(font
@@ -16253,7 +16245,7 @@
 				)
 			)
 		)
-		(property "Footprint" "RevK:R_0402"
+		(property "Footprint" "RevK:R_0201"
 			(at 81.407 102.235 90)
 			(effects
 				(font
@@ -16738,7 +16730,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "RevK:C_0402"
+		(property "Footprint" "RevK:C_0201"
 			(at 147.6502 110.49 0)
 			(effects
 				(font
@@ -17363,7 +17355,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "RevK:C_0402"
+		(property "Footprint" "RevK:C_0201"
 			(at 147.6502 125.73 0)
 			(effects
 				(font
@@ -18628,7 +18620,7 @@
 				)
 			)
 		)
-		(property "Footprint" "RevK:C_0402"
+		(property "Footprint" "RevK:C_0201"
 			(at 61.7728 134.62 0)
 			(effects
 				(font
@@ -18863,7 +18855,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "RevK:C_0402"
+		(property "Footprint" "RevK:C_0201"
 			(at 51.7652 36.195 0)
 			(effects
 				(font
