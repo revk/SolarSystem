@@ -489,8 +489,8 @@ settings (SQL * sqlp, SQL_RES * res, slot_t id)
             const char *v;
             if ((v = sql_colz (res, "timer1")) && *v && strlen (v) == 8)
                j_store_int (j, "timer1", atoi (v) * 100 + atoi (v + 3));
+#define set(h,c) {const char *v=sql_col(p,#h#c);if(v&&strcmp(v,"-"))j_store_literal(o,#c,v);}
             j_t o = j_store_object (j, "keypad");
-#define set(h,c) {const char *v=sql_colz(p,#h#c);if(v&&strcmp(v,"-"))j_store_literal(o,#c,v);}
             set (keypad, tx);
             set (keypad, rx);
             set (keypad, re);
@@ -501,7 +501,7 @@ settings (SQL * sqlp, SQL_RES * res, slot_t id)
                   j_store_string (o, "idle", v);
                if ((v = sql_colz (res, "keypadpin")) && *v)
                   j_store_string (o, "pin", v);
-               if (*sql_colz (res, "keypadpinarm")=='t')
+               if (*sql_colz (res, "keypadpinarm") == 't')
                   j_store_true (o, "pinarm");
                addset (area, "keypad", sql_colz (res, "areakeypad"), NULL);
                addset (area, "keyarm", sql_colz (res, "areakeyarm"), NULL);
@@ -517,6 +517,8 @@ settings (SQL * sqlp, SQL_RES * res, slot_t id)
             set (nfc, amber);
             set (nfc, green);
             set (nfc, card);
+            if ((v = sql_colz (res, "nfcidle")) && *v && atoi (v) < 256)
+               j_store_int (o, "idle", atoi (v));
             o = j_store_object (j, "gps");
             set (gps, tx);
             set (gps, rx);
@@ -553,6 +555,9 @@ settings (SQL * sqlp, SQL_RES * res, slot_t id)
                gpio = j_append_null (input);
             else if (*type == 'O')
                gpio = j_append_null (output);
+            int rgb = atoi (sql_colz (g, "rgb"));
+            if (rgb > rgbs)
+               rgbs = rgb;
             if (gpio)
             {
                const char *extra = NULL;
@@ -596,13 +601,8 @@ settings (SQL * sqlp, SQL_RES * res, slot_t id)
 #define s(t,n,c) addset(gpio,#n,sql_col(g,#n),NULL);
 #include "ESP32/main/states.m"
                   }
-                  int rgb = atoi (sql_colz (g, "rgb"));
                   if (rgb)
-                  {
                      j_store_int (gpio, "rgb", rgb);
-                     if (rgb > rgbs)
-                        rgbs = rgb;
-                  }
                }
             }
          }

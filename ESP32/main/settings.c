@@ -129,6 +129,7 @@ revk_settings_t const revk_settings[]={
  {.type=REVK_SETTINGS_UNSIGNED,.name="nfcamber",.group=10,.len=8,.dot=3,.ptr=&nfcamber,.size=sizeof(uint8_t),.flags="-"},
  {.type=REVK_SETTINGS_UNSIGNED,.name="nfcgreen",.group=10,.len=8,.dot=3,.ptr=&nfcgreen,.size=sizeof(uint8_t),.flags="-"},
  {.type=REVK_SETTINGS_UNSIGNED,.name="nfccard",.group=10,.len=7,.dot=3,.ptr=&nfccard,.size=sizeof(uint8_t),.flags="-"},
+ {.type=REVK_SETTINGS_UNSIGNED,.name="nfcidle",.group=10,.len=7,.dot=3,.ptr=&nfcidle,.size=sizeof(uint8_t),.live=1},
  {.type=REVK_SETTINGS_UNSIGNED,.gpio=1,.name="nfctx",.group=10,.len=5,.dot=3,.ptr=&nfctx,.size=sizeof(revk_gpio_t),.fix=1,.set=1,.flags="- ~↓↕⇕"},
  {.type=REVK_SETTINGS_UNSIGNED,.gpio=1,.name="nfcrx",.group=10,.len=5,.dot=3,.ptr=&nfcrx,.size=sizeof(revk_gpio_t),.fix=1,.set=1,.flags="- ~↓↕⇕"},
  {.type=REVK_SETTINGS_UNSIGNED,.gpio=1,.name="nfcpower",.group=10,.len=8,.dot=3,.ptr=&nfcpower,.size=sizeof(revk_gpio_t),.fix=1,.set=1,.flags="- ~↓↕⇕"},
@@ -367,6 +368,7 @@ uint8_t nfcred=0;
 uint8_t nfcamber=0;
 uint8_t nfcgreen=0;
 uint8_t nfccard=0;
+uint8_t nfcidle=0;
 revk_gpio_t nfctx={0};
 revk_gpio_t nfcrx={0};
 revk_gpio_t nfcpower={0};

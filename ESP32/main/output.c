@@ -236,7 +236,7 @@ task (void *pvParameters)
             revk_gpio_set (blink[2], (colour >> 25) & 1);
          }
 #ifdef  CONFIG_REVK_LED_STRIP
-         else
+         else if(rgb)
          {
             revk_led (rgb, 0, 255, colour);
             led_strip_refresh (rgb);
