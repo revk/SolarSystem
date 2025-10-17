@@ -1,13 +1,13 @@
 // Generated case design for Output/Output.kicad_pcb
 // By https://github.com/revk/PCBCase
-// Generated 2025-08-18 13:35:42
+// Generated 2025-10-09 11:48:09
 // title:	PCB-OUTPUT
 // rev:	1
 // company:	Adrian Kennard, Andrews & Arnold Ltd
 //
 
 // Globals
-margin=0.200000;
+margin=0.250000;
 lip=3.000000;
 lipa=0;
 lipt=2;
@@ -22,6 +22,13 @@ nohull=false;
 hullcap=1.000000;
 hulledge=1.000000;
 useredge=false;
+datex=0.000000;
+datey=0.000000;
+datet=0.500000;
+dateh=3.000000;
+datea=0;
+date="2025-01-23";
+datef="OCRB";
 spacing=63.700000;
 pcbwidth=47.700000;
 pcblength=34.300000;
@@ -820,7 +827,7 @@ module top_edge()
 
 module top_pos()
 { // Position for plotting bottom
-	translate([casewall,casewall,pcbthickness+casetop])rotate([180,0,0])children();
+	translate([0,0,pcbthickness+casetop])rotate([180,0,0])children();
 }
 
 module pcb_pos()
@@ -876,7 +883,7 @@ module bottom_edge()
 
 module bottom_pos()
 {
-	translate([casewall,casewall,casebottom])children();
+	translate([0,0,casebottom])children();
 }
 
 module bottom()
@@ -892,4 +899,13 @@ module bottom()
 		pcb(height,r=margin);
 	}
 }
-bottom();
+
+module datecode()
+{
+	minkowski()
+	{
+		translate([datex,datey,-1])rotate(datea)scale([-1,1])linear_extrude(1)text(date,size=dateh,halign="center",valign="center",font=datef);
+		cylinder(d1=datet,d2=0,h=datet,$fn=6);
+	}
+}
+difference(){bottom();datecode();}

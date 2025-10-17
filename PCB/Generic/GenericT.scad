@@ -1,6 +1,6 @@
 // Generated case design for Generic/Generic.kicad_pcb
 // By https://github.com/revk/PCBCase
-// Generated 2025-08-18 13:34:03
+// Generated 2025-10-09 11:47:39
 // title:	PCB-GENERIC-GPS
 // rev:	5
 // company:	Adrian Kennard Andrews & Arnold Ltd
@@ -9,7 +9,7 @@
 //
 
 // Globals
-margin=0.200000;
+margin=0.250000;
 lip=3.000000;
 lipa=0;
 lipt=2;
@@ -24,6 +24,13 @@ nohull=false;
 hullcap=1.000000;
 hulledge=1.000000;
 useredge=false;
+datex=0.000000;
+datey=0.000000;
+datet=0.500000;
+dateh=3.000000;
+datea=0;
+date="2025-01-23";
+datef="OCRB";
 spacing=46.000000;
 pcbwidth=30.000000;
 pcblength=30.200000;
@@ -607,7 +614,7 @@ module top_edge()
 
 module top_pos()
 { // Position for plotting bottom
-	translate([casewall,casewall,pcbthickness+casetop])rotate([180,0,0])children();
+	translate([0,0,pcbthickness+casetop])rotate([180,0,0])children();
 }
 
 module pcb_pos()
@@ -663,7 +670,7 @@ module bottom_edge()
 
 module bottom_pos()
 {
-	translate([casewall,casewall,casebottom])children();
+	translate([0,0,casebottom])children();
 }
 
 module bottom()
@@ -677,6 +684,15 @@ module bottom()
 		}
 		parts_space();
 		pcb(height,r=margin);
+	}
+}
+
+module datecode()
+{
+	minkowski()
+	{
+		translate([datex,datey,-1])rotate(datea)scale([-1,1])linear_extrude(1)text(date,size=dateh,halign="center",valign="center",font=datef);
+		cylinder(d1=datet,d2=0,h=datet,$fn=6);
 	}
 }
 top();
