@@ -73,7 +73,7 @@ xmlsql -C -d "$DB" head.html - foot.html << 'END'
 <if ver="$ver2" or ver="$ver3"><td><b>Old key <tt><output name=ver></tt></b></td></if>
 <if ver not ver="$ver1" not ver="$ver2" not ver="$ver3"><td><b>Obsolete key <tt><output name=ver></tt></b></td></if>
 <if not ver><td><i>Unknown key version</i></td></if>
-<if blocked><b>Blocked</b></if>
+<if blocked><td><b>Blocked</b></td></if>
 </tr>
 </sql>
 </sql>
