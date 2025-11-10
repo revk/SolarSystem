@@ -105,7 +105,7 @@ nfc_led (int len, const void *value)
 }
 
 static void
-fobevent (const uint8_t * ats, const uint8_t ver[28])
+fobevent (const uint8_t *ats, const uint8_t ver[28])
 {
    jo_t j = jo_make (NULL);
    if (*fob.id)
@@ -340,7 +340,7 @@ task (void *pvParameters)
       if (nextpoll < now)
       {                         // Check for card
          nextpoll = now + (int64_t) nfcpoll *1000LL;    // Default polling
-         if (found && !pn532_Present (pn532))
+         if (found && pn532_Present (pn532) <= 0)
          {                      // Card gone
             ESP_LOGI (TAG, "gone %s", fob.id);
             fob.gone = 1;

@@ -42,7 +42,7 @@ revk_settings_t const revk_settings[]={
  {.type=REVK_SETTINGS_UNSIGNED,.name="usbuptime",.comment="USB  turns off after this many seconds",.len=9,.dq=1,.def=quote(CONFIG_REVK_USBUPTIME),.ptr=&usbuptime,.size=sizeof(uint16_t),.revk=1},
 #endif
 #ifdef  CONFIG_IDF_TARGET_ESP32S3
- {.type=REVK_SETTINGS_UNSIGNED,.gpio=1,.name="factorygpio",.comment="Factory reset GPIO (press 3 times)",.len=11,.def="-21",.ptr=&factorygpio,.size=sizeof(revk_gpio_t),.fix=1,.set=1,.flags="- ~↓↕⇕",.revk=1},
+ {.type=REVK_SETTINGS_UNSIGNED,.gpio=1,.name="factorygpio",.comment="Factory reset GPIO (press 3 times)",.len=11,.dq=1,.def=quote(CONFIG_REVK_RESET),.ptr=&factorygpio,.size=sizeof(revk_gpio_t),.fix=1,.set=1,.flags="- ~↓↕⇕",.revk=1},
 #else
  {.type=REVK_SETTINGS_UNSIGNED,.gpio=1,.name="factorygpio",.comment="Factory reset GPIO (press 3 times)",.len=11,.ptr=&factorygpio,.size=sizeof(revk_gpio_t),.fix=1,.set=1,.flags="- ~↓↕⇕",.revk=1},
 #endif
