@@ -588,12 +588,12 @@ mesh_send_summary (void)
             if (payload)
             {
                char *topic = NULL;
-               if (iotstatesystem && asprintf (&topic, "state/%s/%s/system", appname, *iottopic ? iottopic : revk_id) > 0)
+               if (iotstatesystem && asprintf (&topic, "state/%s/%s/system", revk_app, *iottopic ? iottopic : revk_id) > 0)
                {
                   revk_mqtt_send_raw (topic, 1, payload, (iotstatesystem << 1));
                   free (topic);
                }
-               if (asprintf (&topic, "state/%s/%s/system", appname, revk_id) > 0)
+               if (asprintf (&topic, "state/%s/%s/system", revk_app, revk_id) > 0)
                {
                   revk_mqtt_send_raw (topic, 1, payload, 1);
                   free (topic);
@@ -1021,7 +1021,7 @@ task (void *pvParameters)
                      revk_send_unsub (0, node[n].mac);
                      revk_send_unsub (1, node[n].mac);
                      char *topic;       // Tell IoT
-                     asprintf (&topic, "state/%s/%s", appname, mac);
+                     asprintf (&topic, "state/%s/%s", revk_app, mac);
                      revk_mqtt_send_raw (topic, 1, "{\"up\":false}", -1);
                      free (topic);
                      node_offline (node[n].mac);
